@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -319,326 +319,326 @@
 <span id="319">319</span>
 <span id="320">320</span>
 <span id="321">321</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{
-    <a class="ident" href="../../../src/gimli/common.rs.html#116">DebugLineStrOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>, <a class="ident" href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#351">DwarfFileType</a>,
-    <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::common::{
+    <a href="../../../src/gimli/common.rs.html#116">DebugLineStrOffset</a>, <a href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>, <a href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>, <a href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>, <a href="../../../src/gimli/common.rs.html#351">DwarfFileType</a>,
+    <a href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a href="../../../src/gimli/common.rs.html#245">SectionId</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/common.rs.html#3"><span class="kw">crate</span>::Format</a>;
+<span class="kw">use </span><a href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
+<span class="kw">use </span><a href="../../../src/gimli/common.rs.html#3"><span class="kw">crate</span>::Format</a>;
 
-<span class="doccomment">/// The `DebugStr` struct represents the DWARF strings</span>
-<span class="doccomment">/// found in the `.debug_str` section.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">debug_str_section</span>: <span class="ident">R</span>,
+<span class="doccomment">/// The `DebugStr` struct represents the DWARF strings
+/// found in the `.debug_str` section.
+</span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
+</span><span class="kw">pub struct </span>DebugStr&lt;R&gt; {
+    debug_str_section: R,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">EndianSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; DebugStr&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt;
+<span class="kw">where
+    </span>Endian: <a href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
 {
-    <span class="doccomment">/// Construct a new `DebugStr` instance from the data in the `.debug_str`</span>
-    <span class="doccomment">/// section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is the caller&#39;s responsibility to read the `.debug_str` section and</span>
-    <span class="doccomment">/// present it as a `&amp;[u8]` slice. That means using some ELF loader on</span>
-    <span class="doccomment">/// Linux, a Mach-O loader on macOS, etc.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use gimli::{DebugStr, LittleEndian};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # let buf = [0x00, 0x01, 0x02, 0x03];</span>
-    <span class="doccomment">/// # let read_debug_str_section_somehow = || &amp;buf;</span>
-    <span class="doccomment">/// let debug_str = DebugStr::new(read_debug_str_section_somehow(), LittleEndian);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">debug_str_section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">endian</span>: <span class="ident">Endian</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">EndianSlice::new</span>(<a class="ident" href="../../../src/gimli/read/str.rs.html#34">debug_str_section</a>, <a class="ident" href="../../../src/gimli/read/str.rs.html#34">endian</a>))
+    <span class="doccomment">/// Construct a new `DebugStr` instance from the data in the `.debug_str`
+    /// section.
+    ///
+    /// It is the caller&#39;s responsibility to read the `.debug_str` section and
+    /// present it as a `&amp;[u8]` slice. That means using some ELF loader on
+    /// Linux, a Mach-O loader on macOS, etc.
+    ///
+    /// ```
+    /// use gimli::{DebugStr, LittleEndian};
+    ///
+    /// # let buf = [0x00, 0x01, 0x02, 0x03];
+    /// # let read_debug_str_section_somehow = || &amp;buf;
+    /// let debug_str = DebugStr::new(read_debug_str_section_somehow(), LittleEndian);
+    /// ```
+    </span><span class="kw">pub fn </span>new(debug_str_section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(EndianSlice::new(<a href="../../../src/gimli/read/str.rs.html#34">debug_str_section</a>, <a href="../../../src/gimli/read/str.rs.html#34">endian</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Lookup a string from the `.debug_str` section by DebugStrOffset.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use gimli::{DebugStr, DebugStrOffset, LittleEndian};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # let buf = [0x01, 0x02, 0x00];</span>
-    <span class="doccomment">/// # let offset = DebugStrOffset(0);</span>
-    <span class="doccomment">/// # let read_debug_str_section_somehow = || &amp;buf;</span>
-    <span class="doccomment">/// # let debug_str_offset_somehow = || offset;</span>
-    <span class="doccomment">/// let debug_str = DebugStr::new(read_debug_str_section_somehow(), LittleEndian);</span>
-    <span class="doccomment">/// println!(&quot;Found string {:?}&quot;, debug_str.get_str(debug_str_offset_somehow()));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">DebugStrOffset</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/gimli/read/str.rs.html#52">self</a>.<span class="ident">debug_str_section</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="ident">input</span>.<span class="ident">skip</span>(<span class="ident">offset</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#53">input</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#402">read_null_terminated_slice</a>()
+<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; DebugStr&lt;R&gt; {
+    <span class="doccomment">/// Lookup a string from the `.debug_str` section by DebugStrOffset.
+    ///
+    /// ```
+    /// use gimli::{DebugStr, DebugStrOffset, LittleEndian};
+    ///
+    /// # let buf = [0x01, 0x02, 0x00];
+    /// # let offset = DebugStrOffset(0);
+    /// # let read_debug_str_section_somehow = || &amp;buf;
+    /// # let debug_str_offset_somehow = || offset;
+    /// let debug_str = DebugStr::new(read_debug_str_section_somehow(), LittleEndian);
+    /// println!(&quot;Found string {:?}&quot;, debug_str.get_str(debug_str_offset_somehow()));
+    /// ```
+    </span><span class="kw">pub fn </span>get_str(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: DebugStrOffset&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;R&gt; {
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/str.rs.html#52">self</a>.debug_str_section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        input.skip(offset.<span class="number">0</span>)<span class="question-mark">?</span>;
+        <a href="../../../src/gimli/read/str.rs.html#53">input</a>.<a href="../../../src/gimli/read/reader.rs.html#402">read_null_terminated_slice</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a `DebugStr` section that references the data in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful when `R` implements `Reader` but `T` does not.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Example Usage</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// # let load_section = || unimplemented!();</span>
-    <span class="doccomment">/// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.</span>
-    <span class="doccomment">/// let owned_section: gimli::DebugStr&lt;Vec&lt;u8&gt;&gt; = load_section();</span>
-    <span class="doccomment">/// // Create a reference to the DWARF section.</span>
-    <span class="doccomment">/// let section = owned_section.borrow(|section| {</span>
-    <span class="doccomment">///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">borrow</span>: <span class="ident">F</span>) -&gt; <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) -&gt; <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;T&gt; DebugStr&lt;T&gt; {
+    <span class="doccomment">/// Create a `DebugStr` section that references the data in `self`.
+    ///
+    /// This is useful when `R` implements `Reader` but `T` does not.
+    ///
+    /// ## Example Usage
+    ///
+    /// ```rust,no_run
+    /// # let load_section = || unimplemented!();
+    /// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.
+    /// let owned_section: gimli::DebugStr&lt;Vec&lt;u8&gt;&gt; = load_section();
+    /// // Create a reference to the DWARF section.
+    /// let section = owned_section.borrow(|section| {
+    ///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)
+    /// });
+    /// ```
+    </span><span class="kw">pub fn </span>borrow&lt;<span class="lifetime">&#39;a</span>, F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, <span class="kw-2">mut </span>borrow: F) -&gt; DebugStr&lt;R&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#75">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#75">self</a>.<span class="ident">debug_str_section</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="../../../src/gimli/read/str.rs.html#75">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#75">self</a>.debug_str_section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
-        <a class="ident" href="../../../src/gimli/common.rs.html#283">SectionId::DebugStr</a>
+<span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugStr&lt;R&gt; {
+    <span class="kw">fn </span>id() -&gt; <a href="../../../src/gimli/common.rs.html#245">SectionId</a> {
+        <a href="../../../src/gimli/common.rs.html#283">SectionId::DebugStr</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">reader</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#88">self</a>.<span class="ident">debug_str_section</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">debug_str_section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#12">DebugStr</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#94">debug_str_section</a> }
+    <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#88">self</a>.debug_str_section
     }
 }
 
-<span class="doccomment">/// The raw contents of the `.debug_str_offsets` section.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">section</span>: <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugStr&lt;R&gt; {
+    <span class="kw">fn </span>from(debug_str_section: R) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/gimli/read/str.rs.html#12">DebugStr</a> { <a href="../../../src/gimli/read/str.rs.html#94">debug_str_section</a> }
+    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="comment">// TODO: add an iterator over the sets of entries in the section.</span>
-    <span class="comment">// This is not needed for common usage of the section though.</span>
+<span class="doccomment">/// The raw contents of the `.debug_str_offsets` section.
+</span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
+</span><span class="kw">pub struct </span>DebugStrOffsets&lt;R&gt; {
+    section: R,
+}
 
-    <span class="doccomment">/// Returns the `.debug_str` offset at the given `base` and `index`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A set of entries in the `.debug_str_offsets` section consists of a header</span>
-    <span class="doccomment">/// followed by a series of string table offsets.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `base` must be the `DW_AT_str_offsets_base` value from the compilation unit DIE.</span>
-    <span class="doccomment">/// This is an offset that points to the first entry following the header.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `index` is the value of a `DW_FORM_strx` attribute.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `format` must be the DWARF format of the compilation unit. This format must</span>
-    <span class="doccomment">/// match the header. However, note that we do not parse the header to validate this,</span>
-    <span class="doccomment">/// since locating the header is unreliable, and the GNU extensions do not emit it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_str_offset</span>(
+<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; DebugStrOffsets&lt;R&gt; {
+    <span class="comment">// TODO: add an iterator over the sets of entries in the section.
+    // This is not needed for common usage of the section though.
+
+    </span><span class="doccomment">/// Returns the `.debug_str` offset at the given `base` and `index`.
+    ///
+    /// A set of entries in the `.debug_str_offsets` section consists of a header
+    /// followed by a series of string table offsets.
+    ///
+    /// The `base` must be the `DW_AT_str_offsets_base` value from the compilation unit DIE.
+    /// This is an offset that points to the first entry following the header.
+    ///
+    /// The `index` is the value of a `DW_FORM_strx` attribute.
+    ///
+    /// The `format` must be the DWARF format of the compilation unit. This format must
+    /// match the header. However, note that we do not parse the header to validate this,
+    /// since locating the header is unreliable, and the GNU extensions do not emit it.
+    </span><span class="kw">pub fn </span>get_str_offset(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3">Format</a>,
-        <span class="ident">base</span>: <span class="ident">DebugStrOffsetsBase</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>,
-        <span class="ident">index</span>: <span class="ident">DebugStrOffsetsIndex</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DebugStrOffset</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/gimli/read/str.rs.html#123">self</a>.<span class="ident">section</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="ident">input</span>.<span class="ident">skip</span>(<span class="ident">base</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="ident">input</span>.<span class="ident">skip</span>(<span class="ident">R::Offset::from_u64</span>(
-            <span class="ident">index</span>.<span class="number">0</span>.<span class="ident">into_u64</span>() <span class="op">*</span> <span class="ident">u64::from</span>(<span class="ident">format</span>.<span class="ident">word_size</span>()),
+        format: <a href="../../../src/gimli/common.rs.html#3">Format</a>,
+        base: DebugStrOffsetsBase&lt;R::Offset&gt;,
+        index: DebugStrOffsetsIndex&lt;R::Offset&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DebugStrOffset&lt;R::Offset&gt;&gt; {
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/str.rs.html#123">self</a>.section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        input.skip(base.<span class="number">0</span>)<span class="question-mark">?</span>;
+        input.skip(R::Offset::from_u64(
+            index.<span class="number">0</span>.into_u64() * u64::from(format.word_size()),
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#128">input</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#485">read_offset</a>(<a class="ident" href="../../../src/gimli/read/str.rs.html#124">format</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>)
+        <a href="../../../src/gimli/read/str.rs.html#128">input</a>.<a href="../../../src/gimli/read/reader.rs.html#485">read_offset</a>(<a href="../../../src/gimli/read/str.rs.html#124">format</a>).map(<a href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a `DebugStrOffsets` section that references the data in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful when `R` implements `Reader` but `T` does not.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Example Usage</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// # let load_section = || unimplemented!();</span>
-    <span class="doccomment">/// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.</span>
-    <span class="doccomment">/// let owned_section: gimli::DebugStrOffsets&lt;Vec&lt;u8&gt;&gt; = load_section();</span>
-    <span class="doccomment">/// // Create a reference to the DWARF section.</span>
-    <span class="doccomment">/// let section = owned_section.borrow(|section| {</span>
-    <span class="doccomment">///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">borrow</span>: <span class="ident">F</span>) -&gt; <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) -&gt; <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;T&gt; DebugStrOffsets&lt;T&gt; {
+    <span class="doccomment">/// Create a `DebugStrOffsets` section that references the data in `self`.
+    ///
+    /// This is useful when `R` implements `Reader` but `T` does not.
+    ///
+    /// ## Example Usage
+    ///
+    /// ```rust,no_run
+    /// # let load_section = || unimplemented!();
+    /// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.
+    /// let owned_section: gimli::DebugStrOffsets&lt;Vec&lt;u8&gt;&gt; = load_section();
+    /// // Create a reference to the DWARF section.
+    /// let section = owned_section.borrow(|section| {
+    ///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)
+    /// });
+    /// ```
+    </span><span class="kw">pub fn </span>borrow&lt;<span class="lifetime">&#39;a</span>, F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, <span class="kw-2">mut </span>borrow: F) -&gt; DebugStrOffsets&lt;R&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#153">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#153">self</a>.<span class="ident">section</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="../../../src/gimli/read/str.rs.html#153">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#153">self</a>.section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
-        <a class="ident" href="../../../src/gimli/common.rs.html#285">SectionId::DebugStrOffsets</a>
+<span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugStrOffsets&lt;R&gt; {
+    <span class="kw">fn </span>id() -&gt; <a href="../../../src/gimli/common.rs.html#245">SectionId</a> {
+        <a href="../../../src/gimli/common.rs.html#285">SectionId::DebugStrOffsets</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">reader</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#166">self</a>.<span class="ident">section</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#101">DebugStrOffsets</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#172">section</a> }
+    <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#166">self</a>.section
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span> <span class="ident">DebugStrOffsetsBase</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+<span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugStrOffsets&lt;R&gt; {
+    <span class="kw">fn </span>from(section: R) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/gimli/read/str.rs.html#101">DebugStrOffsets</a> { <a href="../../../src/gimli/read/str.rs.html#172">section</a> }
+    }
+}
+
+<span class="kw">impl</span>&lt;Offset&gt; DebugStrOffsetsBase&lt;Offset&gt;
+<span class="kw">where
+    </span>Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
 {
-    <span class="doccomment">/// Returns a `DebugStrOffsetsBase` with the default value of DW_AT_str_offsets_base</span>
-    <span class="doccomment">/// for the given `Encoding` and `DwarfFileType`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_for_encoding_and_file</span>(
-        <span class="ident">encoding</span>: <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>,
-        <span class="ident">file_type</span>: <a class="ident" href="../../../src/gimli/common.rs.html#351">DwarfFileType</a>,
-    ) -&gt; <span class="ident">DebugStrOffsetsBase</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">encoding</span>.<span class="ident">version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">file_type</span> <span class="op">==</span> <span class="ident">DwarfFileType::Dwo</span> {
-            <span class="comment">// In .dwo files, the compiler omits the DW_AT_str_offsets_base attribute (because there is</span>
-            <span class="comment">// only a single unit in the file) but we must skip past the header, which the attribute</span>
-            <span class="comment">// would normally do for us.</span>
-            <span class="comment">// initial_length_size + version + 2 bytes of padding.</span>
-            <a class="ident" href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>(<span class="ident">Offset::from_u8</span>(
-                <a class="ident" href="../../../src/gimli/read/str.rs.html#184">encoding</a>.<span class="ident">format</span>.<a class="ident" href="../../../src/gimli/common.rs.html#13">initial_length_size</a>() <span class="op">+</span> <span class="number">2</span> <span class="op">+</span> <span class="number">2</span>,
+    <span class="doccomment">/// Returns a `DebugStrOffsetsBase` with the default value of DW_AT_str_offsets_base
+    /// for the given `Encoding` and `DwarfFileType`.
+    </span><span class="kw">pub fn </span>default_for_encoding_and_file(
+        encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
+        file_type: <a href="../../../src/gimli/common.rs.html#351">DwarfFileType</a>,
+    ) -&gt; DebugStrOffsetsBase&lt;Offset&gt; {
+        <span class="kw">if </span>encoding.version &gt;= <span class="number">5 </span>&amp;&amp; file_type == DwarfFileType::Dwo {
+            <span class="comment">// In .dwo files, the compiler omits the DW_AT_str_offsets_base attribute (because there is
+            // only a single unit in the file) but we must skip past the header, which the attribute
+            // would normally do for us.
+            // initial_length_size + version + 2 bytes of padding.
+            </span><a href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>(Offset::from_u8(
+                <a href="../../../src/gimli/read/str.rs.html#184">encoding</a>.format.<a href="../../../src/gimli/common.rs.html#13">initial_length_size</a>() + <span class="number">2 </span>+ <span class="number">2</span>,
             ))
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>(<span class="ident">Offset::from_u8</span>(<span class="number">0</span>))
+        } <span class="kw">else </span>{
+            <a href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>(Offset::from_u8(<span class="number">0</span>))
         }
     }
 }
 
-<span class="doccomment">/// The `DebugLineStr` struct represents the DWARF strings</span>
-<span class="doccomment">/// found in the `.debug_line_str` section.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">section</span>: <span class="ident">R</span>,
+<span class="doccomment">/// The `DebugLineStr` struct represents the DWARF strings
+/// found in the `.debug_line_str` section.
+</span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
+</span><span class="kw">pub struct </span>DebugLineStr&lt;R&gt; {
+    section: R,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">EndianSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; DebugLineStr&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt;
+<span class="kw">where
+    </span>Endian: <a href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
 {
-    <span class="doccomment">/// Construct a new `DebugLineStr` instance from the data in the `.debug_line_str`</span>
-    <span class="doccomment">/// section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is the caller&#39;s responsibility to read the `.debug_line_str` section and</span>
-    <span class="doccomment">/// present it as a `&amp;[u8]` slice. That means using some ELF loader on</span>
-    <span class="doccomment">/// Linux, a Mach-O loader on macOS, etc.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use gimli::{DebugLineStr, LittleEndian};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # let buf = [0x00, 0x01, 0x02, 0x03];</span>
-    <span class="doccomment">/// # let read_debug_line_str_section_somehow = || &amp;buf;</span>
-    <span class="doccomment">/// let debug_str = DebugLineStr::new(read_debug_line_str_section_somehow(), LittleEndian);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">debug_line_str_section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">endian</span>: <span class="ident">Endian</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">EndianSlice::new</span>(<a class="ident" href="../../../src/gimli/read/str.rs.html#226">debug_line_str_section</a>, <a class="ident" href="../../../src/gimli/read/str.rs.html#226">endian</a>))
+    <span class="doccomment">/// Construct a new `DebugLineStr` instance from the data in the `.debug_line_str`
+    /// section.
+    ///
+    /// It is the caller&#39;s responsibility to read the `.debug_line_str` section and
+    /// present it as a `&amp;[u8]` slice. That means using some ELF loader on
+    /// Linux, a Mach-O loader on macOS, etc.
+    ///
+    /// ```
+    /// use gimli::{DebugLineStr, LittleEndian};
+    ///
+    /// # let buf = [0x00, 0x01, 0x02, 0x03];
+    /// # let read_debug_line_str_section_somehow = || &amp;buf;
+    /// let debug_str = DebugLineStr::new(read_debug_line_str_section_somehow(), LittleEndian);
+    /// ```
+    </span><span class="kw">pub fn </span>new(debug_line_str_section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(EndianSlice::new(<a href="../../../src/gimli/read/str.rs.html#226">debug_line_str_section</a>, <a href="../../../src/gimli/read/str.rs.html#226">endian</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Lookup a string from the `.debug_line_str` section by DebugLineStrOffset.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">DebugLineStrOffset</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/gimli/read/str.rs.html#233">self</a>.<span class="ident">section</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="ident">input</span>.<span class="ident">skip</span>(<span class="ident">offset</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#234">input</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#402">read_null_terminated_slice</a>()
+<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; DebugLineStr&lt;R&gt; {
+    <span class="doccomment">/// Lookup a string from the `.debug_line_str` section by DebugLineStrOffset.
+    </span><span class="kw">pub fn </span>get_str(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: DebugLineStrOffset&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;R&gt; {
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/str.rs.html#233">self</a>.section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        input.skip(offset.<span class="number">0</span>)<span class="question-mark">?</span>;
+        <a href="../../../src/gimli/read/str.rs.html#234">input</a>.<a href="../../../src/gimli/read/reader.rs.html#402">read_null_terminated_slice</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a `DebugLineStr` section that references the data in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful when `R` implements `Reader` but `T` does not.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Example Usage</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// # let load_section = || unimplemented!();</span>
-    <span class="doccomment">/// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.</span>
-    <span class="doccomment">/// let owned_section: gimli::DebugLineStr&lt;Vec&lt;u8&gt;&gt; = load_section();</span>
-    <span class="doccomment">/// // Create a reference to the DWARF section.</span>
-    <span class="doccomment">/// let section = owned_section.borrow(|section| {</span>
-    <span class="doccomment">///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">borrow</span>: <span class="ident">F</span>) -&gt; <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) -&gt; <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;T&gt; DebugLineStr&lt;T&gt; {
+    <span class="doccomment">/// Create a `DebugLineStr` section that references the data in `self`.
+    ///
+    /// This is useful when `R` implements `Reader` but `T` does not.
+    ///
+    /// ## Example Usage
+    ///
+    /// ```rust,no_run
+    /// # let load_section = || unimplemented!();
+    /// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.
+    /// let owned_section: gimli::DebugLineStr&lt;Vec&lt;u8&gt;&gt; = load_section();
+    /// // Create a reference to the DWARF section.
+    /// let section = owned_section.borrow(|section| {
+    ///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)
+    /// });
+    /// ```
+    </span><span class="kw">pub fn </span>borrow&lt;<span class="lifetime">&#39;a</span>, F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, <span class="kw-2">mut </span>borrow: F) -&gt; DebugLineStr&lt;R&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#256">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#256">self</a>.<span class="ident">section</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="../../../src/gimli/read/str.rs.html#256">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#256">self</a>.section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
-        <a class="ident" href="../../../src/gimli/common.rs.html#265">SectionId::DebugLineStr</a>
+<span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugLineStr&lt;R&gt; {
+    <span class="kw">fn </span>id() -&gt; <a href="../../../src/gimli/common.rs.html#245">SectionId</a> {
+        <a href="../../../src/gimli/common.rs.html#265">SectionId::DebugLineStr</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">reader</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#269">self</a>.<span class="ident">section</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#204">DebugLineStr</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#275">section</a> }
+    <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/str.rs.html#269">self</a>.section
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test_util::GimliSectionMethods</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LittleEndian</span>;
-    <span class="kw">use</span> <span class="ident">test_assembler</span>::{<span class="ident">Endian</span>, <span class="ident">Label</span>, <span class="ident">LabelMaker</span>, <span class="ident">Section</span>};
+<span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugLineStr&lt;R&gt; {
+    <span class="kw">fn </span>from(section: R) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/gimli/read/str.rs.html#204">DebugLineStr</a> { <a href="../../../src/gimli/read/str.rs.html#275">section</a> }
+    }
+}
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_get_str_offset</span>() {
-        <span class="kw">for</span> <span class="ident">format</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="ident">Format::Dwarf32</span>, <span class="ident">Format::Dwarf64</span>] {
-            <span class="kw">let</span> <span class="ident">zero</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-            <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-            <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-            <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">section</span> <span class="op">=</span> <span class="ident">Section::with_endian</span>(<span class="ident">Endian::Little</span>)
-                .<span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">zero</span>)
-                .<span class="ident">initial_length</span>(<span class="ident">format</span>, <span class="kw-2">&amp;</span><span class="ident">length</span>, <span class="kw-2">&amp;</span><span class="ident">start</span>)
-                .<span class="ident">D16</span>(<span class="number">5</span>)
-                .<span class="ident">D16</span>(<span class="number">0</span>)
-                .<span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">first</span>);
-            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">20</span> {
-                <span class="ident">section</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">word</span>(<span class="ident">format</span>.<span class="ident">word_size</span>(), <span class="number">1000</span> <span class="op">+</span> <span class="ident">i</span>);
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::test_util::GimliSectionMethods;
+    <span class="kw">use </span><span class="kw">crate</span>::LittleEndian;
+    <span class="kw">use </span>test_assembler::{Endian, Label, LabelMaker, Section};
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_get_str_offset() {
+        <span class="kw">for </span>format <span class="kw">in </span><span class="macro">vec!</span>[Format::Dwarf32, Format::Dwarf64] {
+            <span class="kw">let </span>zero = Label::new();
+            <span class="kw">let </span>length = Label::new();
+            <span class="kw">let </span>start = Label::new();
+            <span class="kw">let </span>first = Label::new();
+            <span class="kw">let </span>end = Label::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>section = Section::with_endian(Endian::Little)
+                .mark(<span class="kw-2">&amp;</span>zero)
+                .initial_length(format, <span class="kw-2">&amp;</span>length, <span class="kw-2">&amp;</span>start)
+                .D16(<span class="number">5</span>)
+                .D16(<span class="number">0</span>)
+                .mark(<span class="kw-2">&amp;</span>first);
+            <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">20 </span>{
+                section = section.word(format.word_size(), <span class="number">1000 </span>+ i);
             }
-            <span class="ident">section</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">end</span>);
-            <span class="ident">length</span>.<span class="ident">set_const</span>((<span class="kw-2">&amp;</span><span class="ident">end</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">start</span>) <span class="kw">as</span> <span class="ident">u64</span>);
+            section = section.mark(<span class="kw-2">&amp;</span>end);
+            length.set_const((<span class="kw-2">&amp;</span>end - <span class="kw-2">&amp;</span>start) <span class="kw">as </span>u64);
 
-            <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">get_contents</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">debug_str_offsets</span> <span class="op">=</span> <span class="ident">DebugStrOffsets::from</span>(<span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">section</span>, <span class="ident">LittleEndian</span>));
-            <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">DebugStrOffsetsBase</span>((<span class="kw-2">&amp;</span><span class="ident">first</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">zero</span>) <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="kw">let </span>section = section.get_contents().unwrap();
+            <span class="kw">let </span>debug_str_offsets = DebugStrOffsets::from(EndianSlice::new(<span class="kw-2">&amp;</span>section, LittleEndian));
+            <span class="kw">let </span>base = DebugStrOffsetsBase((<span class="kw-2">&amp;</span>first - <span class="kw-2">&amp;</span>zero) <span class="kw">as </span>usize);
 
             <span class="macro">assert_eq!</span>(
-                <span class="ident">debug_str_offsets</span>.<span class="ident">get_str_offset</span>(<span class="ident">format</span>, <span class="ident">base</span>, <span class="ident">DebugStrOffsetsIndex</span>(<span class="number">0</span>)),
-                <span class="prelude-val">Ok</span>(<span class="ident">DebugStrOffset</span>(<span class="number">1000</span>))
+                debug_str_offsets.get_str_offset(format, base, DebugStrOffsetsIndex(<span class="number">0</span>)),
+                <span class="prelude-val">Ok</span>(DebugStrOffset(<span class="number">1000</span>))
             );
             <span class="macro">assert_eq!</span>(
-                <span class="ident">debug_str_offsets</span>.<span class="ident">get_str_offset</span>(<span class="ident">format</span>, <span class="ident">base</span>, <span class="ident">DebugStrOffsetsIndex</span>(<span class="number">19</span>)),
-                <span class="prelude-val">Ok</span>(<span class="ident">DebugStrOffset</span>(<span class="number">1019</span>))
+                debug_str_offsets.get_str_offset(format, base, DebugStrOffsetsIndex(<span class="number">19</span>)),
+                <span class="prelude-val">Ok</span>(DebugStrOffset(<span class="number">1019</span>))
             );
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

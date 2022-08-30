@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/io/line_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>line_writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/io/line_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>line_writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -153,160 +153,160 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/futures_util/io/buf_writer.rs.html#11-39"><span class="kw">super</span>::buf_writer::BufWriter</a>;
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">futures_io::AsyncWrite</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">futures_io::IoSlice</a>;
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/io/buf_writer.rs.html#11-39"><span class="kw">super</span>::buf_writer::BufWriter</a>;
+<span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../futures_util/io/trait.AsyncWrite.html">futures_io::AsyncWrite</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">futures_io::IoSlice</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-<span class="doccomment">/// Wrap a writer, like [`BufWriter`] does, but prioritizes buffering lines</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This was written based on `std::io::LineWriter` which goes into further details</span>
-<span class="doccomment">/// explaining the code.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Buffering is actually done using `BufWriter`. This class will leverage `BufWriter`</span>
-<span class="doccomment">/// to write on-each-line.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LineWriter</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">pin</span>]</span>
-    <span class="ident">buf_writer</span>: <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+<span class="doccomment">/// Wrap a writer, like [`BufWriter`] does, but prioritizes buffering lines
+///
+/// This was written based on `std::io::LineWriter` which goes into further details
+/// explaining the code.
+///
+/// Buffering is actually done using `BufWriter`. This class will leverage `BufWriter`
+/// to write on-each-line.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>LineWriter&lt;W: <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>&gt; {
+    <span class="attribute">#[pin]
+    </span>buf_writer: BufWriter&lt;W&gt;,
 }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a><span class="op">&gt;</span> <span class="ident">LineWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new `LineWriter` with default buffer capacity. The default is currently 1KB</span>
-    <span class="doccomment">/// which was taken from `std::io::LineWriter`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">W</span>) -&gt; <span class="ident">LineWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <span class="ident">LineWriter::with_capacity</span>(<span class="number">1024</span>, <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#28">inner</a>)
+<span class="kw">impl</span>&lt;W: <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>&gt; LineWriter&lt;W&gt; {
+    <span class="doccomment">/// Create a new `LineWriter` with default buffer capacity. The default is currently 1KB
+    /// which was taken from `std::io::LineWriter`
+    </span><span class="kw">pub fn </span>new(inner: W) -&gt; LineWriter&lt;W&gt; {
+        LineWriter::with_capacity(<span class="number">1024</span>, <a href="../../../src/futures_util/io/line_writer.rs.html#28">inner</a>)
     }
 
-    <span class="doccomment">/// Creates a new `LineWriter` with the specified buffer capacity.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">inner</span>: <span class="ident">W</span>) -&gt; <span class="ident">LineWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#10-23">LineWriter</a> { <span class="ident">buf_writer</span>: <span class="ident">BufWriter::with_capacity</span>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#33">capacity</a>, <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#33">inner</a>) }
+    <span class="doccomment">/// Creates a new `LineWriter` with the specified buffer capacity.
+    </span><span class="kw">pub fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, inner: W) -&gt; LineWriter&lt;W&gt; {
+        <a href="../../../src/futures_util/io/line_writer.rs.html#10-23">LineWriter</a> { buf_writer: BufWriter::with_capacity(<a href="../../../src/futures_util/io/line_writer.rs.html#33">capacity</a>, <a href="../../../src/futures_util/io/line_writer.rs.html#33">inner</a>) }
     }
 
-    <span class="doccomment">/// Flush `buf_writer` if last char is &quot;new line&quot;</span>
-    <span class="kw">fn</span> <span class="ident">flush_if_completed_line</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#38">self</a>.<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#39">this</a>.<span class="ident">buf_writer</span>.<a class="ident" href="../../../src/futures_util/io/buf_writer.rs.html#84">buffer</a>().<span class="ident">last</span>().<span class="ident">copied</span>() {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) =&gt; <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#39">this</a>.<span class="ident">buf_writer</span>.<a class="ident" href="../../../src/futures_util/io/buf_writer.rs.html#53">flush_buf</a>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#38">cx</a>),
-            <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
+    <span class="doccomment">/// Flush `buf_writer` if last char is &quot;new line&quot;
+    </span><span class="kw">fn </span>flush_if_completed_line(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#38">self</a>.<a href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>();
+        <span class="kw">match </span><a href="../../../src/futures_util/io/line_writer.rs.html#39">this</a>.buf_writer.<a href="../../../src/futures_util/io/buf_writer.rs.html#84">buffer</a>().last().copied() {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) =&gt; <a href="../../../src/futures_util/io/line_writer.rs.html#39">this</a>.buf_writer.<a href="../../../src/futures_util/io/buf_writer.rs.html#53">flush_buf</a>(<a href="../../../src/futures_util/io/line_writer.rs.html#38">cx</a>),
+            <span class="kw">_ </span>=&gt; Poll::Ready(<span class="prelude-val">Ok</span>(())),
         }
     }
 
-    <span class="doccomment">/// Returns a reference to `buf_writer`&#39;s internally buffered data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#47">self</a>.<span class="ident">buf_writer</span>.<a class="ident" href="../../../src/futures_util/io/buf_writer.rs.html#84">buffer</a>()
+    <span class="doccomment">/// Returns a reference to `buf_writer`&#39;s internally buffered data.
+    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#47">self</a>.buf_writer.<a href="../../../src/futures_util/io/buf_writer.rs.html#84">buffer</a>()
     }
 
-    <span class="doccomment">/// Acquires a reference to the underlying sink or stream that this combinator is</span>
-    <span class="doccomment">/// pulling from.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">W</span> {
-        <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#53">self</a>.<span class="ident">buf_writer</span>.<a class="ident" href="../../../src/futures_util/io/buf_writer.rs.html#81">get_ref</a>()
+    <span class="doccomment">/// Acquires a reference to the underlying sink or stream that this combinator is
+    /// pulling from.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
+        <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#53">self</a>.buf_writer.<a href="../../../src/futures_util/io/buf_writer.rs.html#81">get_ref</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <span class="ident">LineWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#60">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>();
-        <span class="kw">let</span> <span class="ident">newline_index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">memchr::memrchr</span>(<span class="string">b&#39;\n&#39;</span>, <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>) {
-            <span class="prelude-val">None</span> =&gt; {
-                <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">flush_if_completed_line</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>);
-                <span class="kw">return</span> <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#60">self</a>.<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>().<span class="ident">buf_writer</span>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#61">cx</a>, <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>);
+<span class="kw">impl</span>&lt;W: <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>&gt; <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>LineWriter&lt;W&gt; {
+    <span class="kw">fn </span>poll_write(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#60">self</a>.as_mut().<a href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>();
+        <span class="kw">let </span>newline_index = <span class="kw">match </span>memchr::memrchr(<span class="string">b&#39;\n&#39;</span>, <a href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>) {
+            <span class="prelude-val">None </span>=&gt; {
+                <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.as_mut().flush_if_completed_line(cx)<span class="question-mark">?</span>);
+                <span class="kw">return </span><a class="self" href="../../../src/futures_util/io/line_writer.rs.html#60">self</a>.<a href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>().buf_writer.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="../../../src/futures_util/io/line_writer.rs.html#61">cx</a>, <a href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>);
             }
-            <span class="prelude-val">Some</span>(<span class="ident">newline_index</span>) =&gt; <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#70">newline_index</a> <span class="op">+</span> <span class="number">1</span>,
+            <span class="prelude-val">Some</span>(newline_index) =&gt; <a href="../../../src/futures_util/io/line_writer.rs.html#70">newline_index</a> + <span class="number">1</span>,
         };
 
-        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">this</span>.<span class="ident">buf_writer</span>.<span class="ident">as_mut</span>().<span class="ident">poll_flush</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>);
+        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(this.buf_writer.as_mut().poll_flush(cx)<span class="question-mark">?</span>);
 
-        <span class="kw">let</span> <span class="ident">lines</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>[..<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#65">newline_index</a>];
+        <span class="kw">let </span>lines = <span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>[..<a href="../../../src/futures_util/io/line_writer.rs.html#65">newline_index</a>];
 
-        <span class="kw">let</span> <span class="ident">flushed</span> <span class="op">=</span> { <span class="macro">ready!</span>(<span class="ident">this</span>.<span class="ident">buf_writer</span>.<span class="ident">as_mut</span>().<span class="ident">inner_poll_write</span>(<span class="ident">cx</span>, <span class="ident">lines</span>))<span class="question-mark">?</span> };
+        <span class="kw">let </span>flushed = { <span class="macro">ready!</span>(this.buf_writer.as_mut().inner_poll_write(cx, lines))<span class="question-mark">? </span>};
 
-        <span class="kw">if</span> <span class="ident">flushed</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
+        <span class="kw">if </span>flushed == <span class="number">0 </span>{
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">flushed</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">newline_index</span> {
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>[<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#77">flushed</a>..]
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">newline_index</span> <span class="op">-</span> <span class="ident">flushed</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">this</span>.<span class="ident">buf_writer</span>.<span class="ident">capacity</span>() {
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>[<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#77">flushed</a>..<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#65">newline_index</a>]
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">scan_area</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>[<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#77">flushed</a>..];
-            <span class="kw">let</span> <span class="ident">scan_area</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#88">scan_area</a>[..<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#64">this</a>.<span class="ident">buf_writer</span>.<a class="ident" href="../../../src/futures_util/io/buf_writer.rs.html#89">capacity</a>()];
-            <span class="kw">match</span> <span class="ident">memchr::memrchr</span>(<span class="string">b&#39;\n&#39;</span>, <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#89">scan_area</a>) {
-                <span class="prelude-val">Some</span>(<span class="ident">newline_index</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#89">scan_area</a>[..<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#91">newline_index</a> <span class="op">+</span> <span class="number">1</span>],
-                <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#89">scan_area</a>,
+        <span class="kw">let </span>tail = <span class="kw">if </span>flushed &gt;= newline_index {
+            <span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>[<a href="../../../src/futures_util/io/line_writer.rs.html#77">flushed</a>..]
+        } <span class="kw">else if </span>newline_index - flushed &lt;= this.buf_writer.capacity() {
+            <span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>[<a href="../../../src/futures_util/io/line_writer.rs.html#77">flushed</a>..<a href="../../../src/futures_util/io/line_writer.rs.html#65">newline_index</a>]
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>scan_area = <span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/line_writer.rs.html#62">buf</a>[<a href="../../../src/futures_util/io/line_writer.rs.html#77">flushed</a>..];
+            <span class="kw">let </span>scan_area = <span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/line_writer.rs.html#88">scan_area</a>[..<a href="../../../src/futures_util/io/line_writer.rs.html#64">this</a>.buf_writer.<a href="../../../src/futures_util/io/buf_writer.rs.html#89">capacity</a>()];
+            <span class="kw">match </span>memchr::memrchr(<span class="string">b&#39;\n&#39;</span>, <a href="../../../src/futures_util/io/line_writer.rs.html#89">scan_area</a>) {
+                <span class="prelude-val">Some</span>(newline_index) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/futures_util/io/line_writer.rs.html#89">scan_area</a>[..<a href="../../../src/futures_util/io/line_writer.rs.html#91">newline_index</a> + <span class="number">1</span>],
+                <span class="prelude-val">None </span>=&gt; <a href="../../../src/futures_util/io/line_writer.rs.html#89">scan_area</a>,
             }
         };
 
-        <span class="kw">let</span> <span class="ident">buffered</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#64">this</a>.<span class="ident">buf_writer</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/futures_util/io/buf_writer.rs.html#105">write_to_buf</a>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#83">tail</a>);
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#77">flushed</a> <span class="op">+</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#96">buffered</a>))
+        <span class="kw">let </span>buffered = <a href="../../../src/futures_util/io/line_writer.rs.html#64">this</a>.buf_writer.as_mut().<a href="../../../src/futures_util/io/buf_writer.rs.html#105">write_to_buf</a>(<a href="../../../src/futures_util/io/line_writer.rs.html#83">tail</a>);
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/io/line_writer.rs.html#77">flushed</a> + <a href="../../../src/futures_util/io/line_writer.rs.html#96">buffered</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#101">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>();
-        <span class="comment">// `is_write_vectored()` is handled in original code, but not in this crate</span>
-        <span class="comment">// see https://github.com/rust-lang/rust/issues/70436</span>
+    <span class="kw">fn </span>poll_write_vectored(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#101">self</a>.as_mut().<a href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>();
+        <span class="comment">// `is_write_vectored()` is handled in original code, but not in this crate
+        // see https://github.com/rust-lang/rust/issues/70436
 
-        <span class="kw">let</span> <span class="ident">last_newline_buf_idx</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#103">bufs</a>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">buf</span>)<span class="op">|</span> <span class="ident">memchr::memchr</span>(<span class="string">b&#39;\n&#39;</span>, <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#113">buf</a>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#113">i</a>));
-        <span class="kw">let</span> <span class="ident">last_newline_buf_idx</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#109">last_newline_buf_idx</a> {
-            <span class="prelude-val">None</span> =&gt; {
-                <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">flush_if_completed_line</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>);
-                <span class="kw">return</span> <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#101">self</a>.<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>().<span class="ident">buf_writer</span>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#102">cx</a>, <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#103">bufs</a>);
+        </span><span class="kw">let </span>last_newline_buf_idx = <a href="../../../src/futures_util/io/line_writer.rs.html#103">bufs</a>
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(|(i, buf)| memchr::memchr(<span class="string">b&#39;\n&#39;</span>, <a href="../../../src/futures_util/io/line_writer.rs.html#113">buf</a>).map(|<span class="kw">_</span>| <a href="../../../src/futures_util/io/line_writer.rs.html#113">i</a>));
+        <span class="kw">let </span>last_newline_buf_idx = <span class="kw">match </span><a href="../../../src/futures_util/io/line_writer.rs.html#109">last_newline_buf_idx</a> {
+            <span class="prelude-val">None </span>=&gt; {
+                <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.as_mut().flush_if_completed_line(cx)<span class="question-mark">?</span>);
+                <span class="kw">return </span><a class="self" href="../../../src/futures_util/io/line_writer.rs.html#101">self</a>.<a href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>().buf_writer.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="../../../src/futures_util/io/line_writer.rs.html#102">cx</a>, <a href="../../../src/futures_util/io/line_writer.rs.html#103">bufs</a>);
             }
-            <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#119">i</a>,
+            <span class="prelude-val">Some</span>(i) =&gt; <a href="../../../src/futures_util/io/line_writer.rs.html#119">i</a>,
         };
 
-        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">this</span>.<span class="ident">buf_writer</span>.<span class="ident">as_mut</span>().<span class="ident">poll_flush</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>);
+        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(this.buf_writer.as_mut().poll_flush(cx)<span class="question-mark">?</span>);
 
-        <span class="kw">let</span> (<span class="ident">lines</span>, <span class="ident">tail</span>) <span class="op">=</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#103">bufs</a>.<span class="ident">split_at</span>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#114">last_newline_buf_idx</a> <span class="op">+</span> <span class="number">1</span>);
+        <span class="kw">let </span>(lines, tail) = <a href="../../../src/futures_util/io/line_writer.rs.html#103">bufs</a>.split_at(<a href="../../../src/futures_util/io/line_writer.rs.html#114">last_newline_buf_idx</a> + <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">flushed</span> <span class="op">=</span> { <span class="macro">ready!</span>(<span class="ident">this</span>.<span class="ident">buf_writer</span>.<span class="ident">as_mut</span>().<span class="ident">inner_poll_write_vectored</span>(<span class="ident">cx</span>, <span class="ident">lines</span>))<span class="question-mark">?</span> };
-        <span class="kw">if</span> <span class="ident">flushed</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
+        <span class="kw">let </span>flushed = { <span class="macro">ready!</span>(this.buf_writer.as_mut().inner_poll_write_vectored(cx, lines))<span class="question-mark">? </span>};
+        <span class="kw">if </span>flushed == <span class="number">0 </span>{
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">let</span> <span class="ident">lines_len</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#124">lines</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#131">buf</a>.<span class="ident">len</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>();
-        <span class="kw">if</span> <span class="ident">flushed</span> <span class="op">&lt;</span> <span class="ident">lines_len</span> {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#126">flushed</a>));
+        <span class="kw">let </span>lines_len = <a href="../../../src/futures_util/io/line_writer.rs.html#124">lines</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|buf| <a href="../../../src/futures_util/io/line_writer.rs.html#131">buf</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>();
+        <span class="kw">if </span>flushed &lt; lines_len {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/io/line_writer.rs.html#126">flushed</a>));
         }
 
-        <span class="kw">let</span> <span class="ident">buffered</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#124">tail</a>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#138">buf</a>.<span class="ident">is_empty</span>())
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#105">this</a>.<span class="ident">buf_writer</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/futures_util/io/buf_writer.rs.html#105">write_to_buf</a>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#139">buf</a>))
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take_while</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">n</span><span class="op">|</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#140">n</a> <span class="op">&gt;</span> <span class="number">0</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>();
+        <span class="kw">let </span>buffered: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../src/futures_util/io/line_writer.rs.html#124">tail</a>
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|buf| !<a href="../../../src/futures_util/io/line_writer.rs.html#138">buf</a>.is_empty())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|buf| <a href="../../../src/futures_util/io/line_writer.rs.html#105">this</a>.buf_writer.as_mut().<a href="../../../src/futures_util/io/buf_writer.rs.html#105">write_to_buf</a>(<a href="../../../src/futures_util/io/line_writer.rs.html#139">buf</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take_while</a>(|<span class="kw-2">&amp;</span>n| <a href="../../../src/futures_util/io/line_writer.rs.html#140">n</a> &gt; <span class="number">0</span>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>();
 
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#126">flushed</a> <span class="op">+</span> <a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#136">buffered</a>))
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/io/line_writer.rs.html#126">flushed</a> + <a href="../../../src/futures_util/io/line_writer.rs.html#136">buffered</a>))
     }
 
-    <span class="doccomment">/// Forward to `buf_writer` &#39;s `BufWriter::poll_flush()`</span>
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#147">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>().<span class="ident">buf_writer</span>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#147">cx</a>)
+    <span class="doccomment">/// Forward to `buf_writer` &#39;s `BufWriter::poll_flush()`
+    </span><span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#147">self</a>.as_mut().<a href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>().buf_writer.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a href="../../../src/futures_util/io/line_writer.rs.html#147">cx</a>)
     }
 
-    <span class="doccomment">/// Forward to `buf_writer` &#39;s `BufWriter::poll_close()`</span>
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#152">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>().<span class="ident">buf_writer</span>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a class="ident" href="../../../src/futures_util/io/line_writer.rs.html#152">cx</a>)
+    <span class="doccomment">/// Forward to `buf_writer` &#39;s `BufWriter::poll_close()`
+    </span><span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        <a class="self" href="../../../src/futures_util/io/line_writer.rs.html#152">self</a>.as_mut().<a href="../../../src/futures_util/io/line_writer.rs.html#10-23">project</a>().buf_writer.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a href="../../../src/futures_util/io/line_writer.rs.html#152">cx</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

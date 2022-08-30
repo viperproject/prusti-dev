@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/segment.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>segment.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/segment.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>segment.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -301,308 +301,308 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
-<span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/result/index.html">result</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
+<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/result/index.html">result</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endian</span>::{<a class="self" href="../../../../src/object/lib.rs.html#90">self</a>, <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#110"><span class="kw">crate</span>::macho</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#233">ObjectSegment</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../../src/object/common.rs.html#378">SegmentFlags</a>};
+<span class="kw">use </span><span class="kw">crate</span>::endian::{<a class="self" href="../../../../src/object/lib.rs.html#90">self</a>, <a href="../../../../src/object/endian.rs.html#278">Endianness</a>};
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#110"><span class="kw">crate</span>::macho</a>;
+<span class="kw">use </span><a href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a href="../../../../src/object/read/traits.rs.html#233">ObjectSegment</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a href="../../../../src/object/common.rs.html#378">SegmentFlags</a>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#52">LoadCommandData</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a>, <a class="ident" href="../../../../src/object/read/macho/section.rs.html#249">Section</a>};
+<span class="kw">use super</span>::{<a href="../../../../src/object/read/macho/load_command.rs.html#52">LoadCommandData</a>, <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <a href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a>, <a href="../../../../src/object/read/macho/section.rs.html#249">Section</a>};
 
-<span class="doccomment">/// An iterator over the segments of a `MachOFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSegmentIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// An iterator over the segments of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSegmentIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator over the segments of a `MachOFile32`.
+</span><span class="kw">pub type </span>MachOSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader32&lt;Endian&gt;, R&gt;;
+<span class="doccomment">/// An iterator over the segments of a `MachOFile64`.
+</span><span class="kw">pub type </span>MachOSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// An iterator over the segments of a `MachOFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the segments of a `MachOFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>MachOSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
+    Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">iter</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;file</span>, <span class="ident">MachOSegmentInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) iter: slice::Iter&lt;<span class="lifetime">&#39;file</span>, MachOSegmentInternal&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">MachOSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>MachOSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">MachOSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = MachOSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#37">self</a>.<span class="ident">iter</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">internal</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#54">MachOSegment</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/segment.rs.html#37">self</a>.<span class="ident">file</span>,
-            <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#38">internal</a>,
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#37">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|internal| <a href="../../../../src/object/read/macho/segment.rs.html#54">MachOSegment</a> {
+            file: <a class="self" href="../../../../src/object/read/macho/segment.rs.html#37">self</a>.file,
+            <a href="../../../../src/object/read/macho/segment.rs.html#38">internal</a>,
         })
     }
 }
 
-<span class="doccomment">/// A segment of a `MachOFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSegment32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// A segment of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSegment64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A segment of a `MachOFile32`.
+</span><span class="kw">pub type </span>MachOSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader32&lt;Endian&gt;, R&gt;;
+<span class="doccomment">/// A segment of a `MachOFile64`.
+</span><span class="kw">pub type </span>MachOSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// A segment of a `MachOFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A segment of a `MachOFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>MachOSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
+    Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">internal</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOSegmentInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
+    file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;,
+    internal: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>MachOSegmentInternal&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">MachOSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; MachOSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#69">self</a>.<span class="ident">internal</span>
-            .<span class="ident">segment</span>
-            .<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#194-198">data</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#69">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>, <a class="self" href="../../../../src/object/read/macho/segment.rs.html#69">self</a>.<span class="ident">file</span>.<span class="ident">data</span>)
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O segment size or offset&quot;</span>)
+    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#69">self</a>.internal
+            .segment
+            .<a href="../../../../src/object/read/macho/segment.rs.html#194-198">data</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#69">self</a>.file.endian, <a class="self" href="../../../../src/object/read/macho/segment.rs.html#69">self</a>.file.data)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O segment size or offset&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">MachOSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; <a href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>MachOSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">ObjectSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MachOSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; ObjectSegment&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>MachOSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#90">self</a>.<span class="ident">internal</span>.<span class="ident">segment</span>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#168">vmaddr</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#90">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#90">self</a>.internal.segment.<a href="../../../../src/object/read/macho/segment.rs.html#168">vmaddr</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#90">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#95">self</a>.<span class="ident">internal</span>.<span class="ident">segment</span>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#169">vmsize</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#95">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#95">self</a>.internal.segment.<a href="../../../../src/object/read/macho/segment.rs.html#169">vmsize</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#95">self</a>.file.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">align</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="comment">// Page size.</span>
-        <span class="number">0x1000</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <span class="comment">// Page size.
+        </span><span class="number">0x1000
+    </span>}
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#106">self</a>.internal.segment.<a href="../../../../src/object/read/macho/segment.rs.html#187">file_range</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#106">self</a>.file.endian)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">file_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#106">self</a>.<span class="ident">internal</span>.<span class="ident">segment</span>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#187">file_range</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#106">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>)
+    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#110">self</a>.<a href="../../../../src/object/read/macho/segment.rs.html#69">bytes</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#110">self</a>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#69">bytes</a>()
-    }
-
-    <span class="kw">fn</span> <span class="ident">data_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/util.rs.html#217-222">read::util::data_range</a>(
-            <span class="self">self</span>.<span class="ident">bytes</span>()<span class="question-mark">?</span>,
-            <a class="self" href="../../../../src/object/read/macho/segment.rs.html#114">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#235">address</a>(),
-            <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#114">address</a>,
-            <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#114">size</a>,
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/util.rs.html#217-222">read::util::data_range</a>(
+            <span class="self">self</span>.bytes()<span class="question-mark">?</span>,
+            <a class="self" href="../../../../src/object/read/macho/segment.rs.html#114">self</a>.<a href="../../../../src/object/read/traits.rs.html#235">address</a>(),
+            <a href="../../../../src/object/read/macho/segment.rs.html#114">address</a>,
+            <a href="../../../../src/object/read/macho/segment.rs.html#114">size</a>,
         ))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">name_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#124">self</a>.<span class="ident">internal</span>.<span class="ident">segment</span>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#178">name</a>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#124">self</a>.internal.segment.<a href="../../../../src/object/read/macho/segment.rs.html#178">name</a>()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
-            <span class="ident">str::from_utf8</span>(<span class="self">self</span>.<span class="ident">internal</span>.<span class="ident">segment</span>.<span class="ident">name</span>())
-                .<span class="ident">ok</span>()
-                .<span class="ident">read_error</span>(<span class="string">&quot;Non UTF-8 Mach-O segment name&quot;</span>)<span class="question-mark">?</span>,
+            str::from_utf8(<span class="self">self</span>.internal.segment.name())
+                .ok()
+                .read_error(<span class="string">&quot;Non UTF-8 Mach-O segment name&quot;</span>)<span class="question-mark">?</span>,
         ))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#378">SegmentFlags</a> {
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.<span class="ident">internal</span>.<span class="ident">segment</span>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#175">flags</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>);
-        <span class="kw">let</span> <span class="ident">maxprot</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.<span class="ident">internal</span>.<span class="ident">segment</span>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#172">maxprot</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>);
-        <span class="kw">let</span> <span class="ident">initprot</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.<span class="ident">internal</span>.<span class="ident">segment</span>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#173">initprot</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>);
-        <a class="ident" href="../../../../src/object/common.rs.html#387">SegmentFlags::MachO</a> {
-            <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#139">flags</a>,
-            <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#140">maxprot</a>,
-            <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#141">initprot</a>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/common.rs.html#378">SegmentFlags</a> {
+        <span class="kw">let </span>flags = <a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.internal.segment.<a href="../../../../src/object/read/macho/segment.rs.html#175">flags</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.file.endian);
+        <span class="kw">let </span>maxprot = <a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.internal.segment.<a href="../../../../src/object/read/macho/segment.rs.html#172">maxprot</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.file.endian);
+        <span class="kw">let </span>initprot = <a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.internal.segment.<a href="../../../../src/object/read/macho/segment.rs.html#173">initprot</a>(<a class="self" href="../../../../src/object/read/macho/segment.rs.html#138">self</a>.file.endian);
+        <a href="../../../../src/object/common.rs.html#387">SegmentFlags::MachO</a> {
+            <a href="../../../../src/object/read/macho/segment.rs.html#139">flags</a>,
+            <a href="../../../../src/object/read/macho/segment.rs.html#140">maxprot</a>,
+            <a href="../../../../src/object/read/macho/segment.rs.html#141">initprot</a>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">MachOSegmentInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">data</span>: <span class="ident">R</span>,
-    <span class="kw">pub</span> <span class="ident">segment</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">Mach::Segment</span>,
+<span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>MachOSegmentInternal&lt;<span class="lifetime">&#39;data</span>, Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+    <span class="kw">pub </span>data: R,
+    <span class="kw">pub </span>segment: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Mach::Segment,
 }
 
-<span class="doccomment">/// A trait for generic access to `SegmentCommand32` and `SegmentCommand64`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Segment</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a> {
-    <span class="kw">type</span> <span class="ident">Word</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
-    <span class="kw">type</span> <span class="ident">Section</span>: <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">Endian</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A trait for generic access to `SegmentCommand32` and `SegmentCommand64`.
+</span><span class="attribute">#[allow(missing_docs)]
+</span><span class="kw">pub trait </span>Segment: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../../../src/object/pod.rs.html#21">Pod</a> {
+    <span class="kw">type </span>Word: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
+    <span class="kw">type </span>Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
+    <span class="kw">type </span>Section: Section&lt;Endian = <span class="self">Self</span>::Endian&gt;;
 
-    <span class="kw">fn</span> <span class="ident">from_command</span>(<span class="ident">command</span>: <span class="ident">LoadCommandData</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])<span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">fn </span>from_command(command: LoadCommandData&lt;<span class="self">Self</span>::Endian&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">cmd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">cmdsize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">segname</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>];
-    <span class="kw">fn</span> <span class="ident">vmaddr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">vmsize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">fileoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">filesize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">maxprot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">initprot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">nsects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>cmd(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>cmdsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>segname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>];
+    <span class="kw">fn </span>vmaddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>vmsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>fileoff(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>filesize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>maxprot(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>initprot(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>nsects(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 
-    <span class="doccomment">/// Return the `segname` bytes up until the null terminator.</span>
-    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let</span> <span class="ident">segname</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/macho/segment.rs.html#178">self</a>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#167">segname</a>()[..];
-        <span class="kw">match</span> <span class="ident">memchr::memchr</span>(<span class="string">b&#39;\0&#39;</span>, <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#179">segname</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">end</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/object/read/macho/segment.rs.html#179">segname</a>[..<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#181">end</a>],
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#179">segname</a>,
+    <span class="doccomment">/// Return the `segname` bytes up until the null terminator.
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">let </span>segname = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/macho/segment.rs.html#178">self</a>.<a href="../../../../src/object/read/macho/segment.rs.html#167">segname</a>()[..];
+        <span class="kw">match </span>memchr::memchr(<span class="string">b&#39;\0&#39;</span>, <a href="../../../../src/object/read/macho/segment.rs.html#179">segname</a>) {
+            <span class="prelude-val">Some</span>(end) =&gt; <span class="kw-2">&amp;</span><a href="../../../../src/object/read/macho/segment.rs.html#179">segname</a>[..<a href="../../../../src/object/read/macho/segment.rs.html#181">end</a>],
+            <span class="prelude-val">None </span>=&gt; <a href="../../../../src/object/read/macho/segment.rs.html#179">segname</a>,
         }
     }
 
-    <span class="doccomment">/// Return the offset and size of the segment in the file.</span>
-    <span class="kw">fn</span> <span class="ident">file_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        (<a class="self" href="../../../../src/object/read/macho/segment.rs.html#187">self</a>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#170">fileoff</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#187">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="self" href="../../../../src/object/read/macho/segment.rs.html#187">self</a>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#171">filesize</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#187">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    <span class="doccomment">/// Return the offset and size of the segment in the file.
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        (<a class="self" href="../../../../src/object/read/macho/segment.rs.html#187">self</a>.<a href="../../../../src/object/read/macho/segment.rs.html#170">fileoff</a>(<a href="../../../../src/object/read/macho/segment.rs.html#187">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="self" href="../../../../src/object/read/macho/segment.rs.html#187">self</a>.<a href="../../../../src/object/read/macho/segment.rs.html#171">filesize</a>(<a href="../../../../src/object/read/macho/segment.rs.html#187">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 
-    <span class="doccomment">/// Get the segment data from the file data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Err` for invalid values.</span>
-    <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Get the segment data from the file data.
+    ///
+    /// Returns `Err` for invalid values.
+    </span><span class="kw">fn </span>data&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-    ) -&gt; <span class="ident">result::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/segment.rs.html#195">self</a>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#187">file_range</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#196">endian</a>);
-        <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#197">data</a>.<a class="ident" href="../../../../src/object/read/read_ref.rs.html#44">read_bytes_at</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#199">offset</a>, <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#199">size</a>)
+        endian: <span class="self">Self</span>::Endian,
+        data: R,
+    ) -&gt; result::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ()&gt; {
+        <span class="kw">let </span>(offset, size) = <a class="self" href="../../../../src/object/read/macho/segment.rs.html#195">self</a>.<a href="../../../../src/object/read/macho/segment.rs.html#187">file_range</a>(<a href="../../../../src/object/read/macho/segment.rs.html#196">endian</a>);
+        <a href="../../../../src/object/read/macho/segment.rs.html#197">data</a>.<a href="../../../../src/object/read/read_ref.rs.html#44">read_bytes_at</a>(<a href="../../../../src/object/read/macho/segment.rs.html#199">offset</a>, <a href="../../../../src/object/read/macho/segment.rs.html#199">size</a>)
     }
 
-    <span class="doccomment">/// Get the array of sections from the data following the segment command.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Err` for invalid values.</span>
-    <span class="kw">fn</span> <span class="ident">sections</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Get the array of sections from the data following the segment command.
+    ///
+    /// Returns `Err` for invalid values.
+    </span><span class="kw">fn </span>sections&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>,
-        <span class="ident">section_data</span>: <span class="ident">R</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident"><span class="self">Self</span>::Section</span>]<span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#209">section_data</a>
-            .<a class="ident" href="../../../../src/object/read/read_ref.rs.html#109">read_slice_at</a>(<span class="number">0</span>, <a class="self" href="../../../../src/object/read/macho/segment.rs.html#207">self</a>.<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#174">nsects</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#208">endian</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O number of sections&quot;</span>)
+        endian: <span class="self">Self</span>::Endian,
+        section_data: R,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<span class="self">Self</span>::Section]&gt; {
+        <a href="../../../../src/object/read/macho/segment.rs.html#209">section_data</a>
+            .<a href="../../../../src/object/read/read_ref.rs.html#109">read_slice_at</a>(<span class="number">0</span>, <a class="self" href="../../../../src/object/read/macho/segment.rs.html#207">self</a>.<a href="../../../../src/object/read/macho/segment.rs.html#174">nsects</a>(<a href="../../../../src/object/read/macho/segment.rs.html#208">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O number of sections&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#158">Segment</a> <span class="kw">for</span> <span class="ident">macho::SegmentCommand32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
-    <span class="kw">type</span> <span class="ident">Section</span> <span class="op">=</span> <span class="ident">macho::Section32</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/macho/segment.rs.html#158">Segment</a> <span class="kw">for </span>macho::SegmentCommand32&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">type </span>Endian = Endian;
+    <span class="kw">type </span>Section = macho::Section32&lt;<span class="self">Self</span>::Endian&gt;;
 
-    <span class="kw">fn</span> <span class="ident">from_command</span>(<span class="ident">command</span>: <span class="ident">LoadCommandData</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#222">command</a>.<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#160">segment_32</a>()
+    <span class="kw">fn </span>from_command(command: LoadCommandData&lt;<span class="self">Self</span>::Endian&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])&gt;&gt; {
+        <a href="../../../../src/object/read/macho/segment.rs.html#222">command</a>.<a href="../../../../src/object/read/macho/load_command.rs.html#160">segment_32</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">cmd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#226">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#226">endian</a>)
+    <span class="kw">fn </span>cmd(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#226">self</a>.cmd.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#226">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">cmdsize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#229">self</a>.<span class="ident">cmdsize</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#229">endian</a>)
+    <span class="kw">fn </span>cmdsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#229">self</a>.cmdsize.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#229">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">segname</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/macho/segment.rs.html#232">self</a>.<span class="ident">segname</span>
+    <span class="kw">fn </span>segname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/macho/segment.rs.html#232">self</a>.segname
     }
-    <span class="kw">fn</span> <span class="ident">vmaddr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#235">self</a>.<span class="ident">vmaddr</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#235">endian</a>)
+    <span class="kw">fn </span>vmaddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#235">self</a>.vmaddr.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#235">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">vmsize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#238">self</a>.<span class="ident">vmsize</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#238">endian</a>)
+    <span class="kw">fn </span>vmsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#238">self</a>.vmsize.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#238">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">fileoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#241">self</a>.<span class="ident">fileoff</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#241">endian</a>)
+    <span class="kw">fn </span>fileoff(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#241">self</a>.fileoff.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#241">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">filesize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#244">self</a>.<span class="ident">filesize</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#244">endian</a>)
+    <span class="kw">fn </span>filesize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#244">self</a>.filesize.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#244">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">maxprot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#247">self</a>.<span class="ident">maxprot</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#247">endian</a>)
+    <span class="kw">fn </span>maxprot(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#247">self</a>.maxprot.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#247">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">initprot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#250">self</a>.<span class="ident">initprot</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#250">endian</a>)
+    <span class="kw">fn </span>initprot(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#250">self</a>.initprot.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#250">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">nsects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#253">self</a>.<span class="ident">nsects</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#253">endian</a>)
+    <span class="kw">fn </span>nsects(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#253">self</a>.nsects.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#253">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#256">self</a>.<span class="ident">flags</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#256">endian</a>)
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#256">self</a>.flags.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#256">endian</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#158">Segment</a> <span class="kw">for</span> <span class="ident">macho::SegmentCommand64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
-    <span class="kw">type</span> <span class="ident">Section</span> <span class="op">=</span> <span class="ident">macho::Section64</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/macho/segment.rs.html#158">Segment</a> <span class="kw">for </span>macho::SegmentCommand64&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">type </span>Endian = Endian;
+    <span class="kw">type </span>Section = macho::Section64&lt;<span class="self">Self</span>::Endian&gt;;
 
-    <span class="kw">fn</span> <span class="ident">from_command</span>(<span class="ident">command</span>: <span class="ident">LoadCommandData</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#266">command</a>.<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#214">segment_64</a>()
+    <span class="kw">fn </span>from_command(command: LoadCommandData&lt;<span class="self">Self</span>::Endian&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])&gt;&gt; {
+        <a href="../../../../src/object/read/macho/segment.rs.html#266">command</a>.<a href="../../../../src/object/read/macho/load_command.rs.html#214">segment_64</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">cmd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#270">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#270">endian</a>)
+    <span class="kw">fn </span>cmd(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#270">self</a>.cmd.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#270">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">cmdsize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#273">self</a>.<span class="ident">cmdsize</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#273">endian</a>)
+    <span class="kw">fn </span>cmdsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#273">self</a>.cmdsize.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#273">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">segname</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/macho/segment.rs.html#276">self</a>.<span class="ident">segname</span>
+    <span class="kw">fn </span>segname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/macho/segment.rs.html#276">self</a>.segname
     }
-    <span class="kw">fn</span> <span class="ident">vmaddr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#279">self</a>.<span class="ident">vmaddr</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#279">endian</a>)
+    <span class="kw">fn </span>vmaddr(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#279">self</a>.vmaddr.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#279">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">vmsize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#282">self</a>.<span class="ident">vmsize</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#282">endian</a>)
+    <span class="kw">fn </span>vmsize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#282">self</a>.vmsize.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#282">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">fileoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#285">self</a>.<span class="ident">fileoff</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#285">endian</a>)
+    <span class="kw">fn </span>fileoff(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#285">self</a>.fileoff.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#285">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">filesize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#288">self</a>.<span class="ident">filesize</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#288">endian</a>)
+    <span class="kw">fn </span>filesize(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#288">self</a>.filesize.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#288">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">maxprot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#291">self</a>.<span class="ident">maxprot</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#291">endian</a>)
+    <span class="kw">fn </span>maxprot(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#291">self</a>.maxprot.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#291">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">initprot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#294">self</a>.<span class="ident">initprot</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#294">endian</a>)
+    <span class="kw">fn </span>initprot(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#294">self</a>.initprot.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#294">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">nsects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#297">self</a>.<span class="ident">nsects</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#297">endian</a>)
+    <span class="kw">fn </span>nsects(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#297">self</a>.nsects.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#297">endian</a>)
     }
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#300">self</a>.<span class="ident">flags</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/segment.rs.html#300">endian</a>)
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/segment.rs.html#300">self</a>.flags.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/segment.rs.html#300">endian</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

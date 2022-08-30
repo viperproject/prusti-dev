@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/prefilter/genericsimd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>genericsimd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../memchr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../memchr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../memchr/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/prefilter/genericsimd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>genericsimd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../memchr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../memchr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../memchr/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -205,212 +205,212 @@
 <span id="205">205</span>
 <span id="206">206</span>
 <span id="207">207</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">core::mem::size_of</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">core::mem::size_of</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::memmem</span>::{
-    <span class="ident">prefilter</span>::{<a class="ident" href="../../../../src/memchr/memmem/prefilter/mod.rs.html#88">PrefilterFnTy</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/mod.rs.html#204">PrefilterState</a>},
-    <a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#21">vector::Vector</a>,
-    <a class="ident" href="../../../../src/memchr/memmem/mod.rs.html#767">NeedleInfo</a>,
+<span class="kw">use </span><span class="kw">crate</span>::memmem::{
+    prefilter::{<a href="../../../../src/memchr/memmem/prefilter/mod.rs.html#88">PrefilterFnTy</a>, <a href="../../../../src/memchr/memmem/prefilter/mod.rs.html#204">PrefilterState</a>},
+    <a href="../../../../src/memchr/memmem/vector.rs.html#21">vector::Vector</a>,
+    <a href="../../../../src/memchr/memmem/mod.rs.html#767">NeedleInfo</a>,
 };
 
-<span class="doccomment">/// The implementation of the forward vector accelerated candidate finder.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is inspired by the &quot;generic SIMD&quot; algorithm described here:</span>
-<span class="doccomment">/// http://0x80.pl/articles/simd-strfind.html#algorithm-1-generic-simd</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The main difference is that this is just a prefilter. That is, it reports</span>
-<span class="doccomment">/// candidates once they are seen and doesn&#39;t attempt to confirm them. Also,</span>
-<span class="doccomment">/// the bytes this routine uses to check for candidates are selected based on</span>
-<span class="doccomment">/// an a priori background frequency distribution. This means that on most</span>
-<span class="doccomment">/// haystacks, this will on average spend more time in vectorized code than you</span>
-<span class="doccomment">/// would if you just selected the first and last bytes of the needle.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that a non-prefilter variant of this algorithm can be found in the</span>
-<span class="doccomment">/// parent module, but it only works on smaller needles.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `prestate`, `ninfo`, `haystack` and `needle` are the four prefilter</span>
-<span class="doccomment">/// function parameters. `fallback` is a prefilter that is used if the haystack</span>
-<span class="doccomment">/// is too small to be handled with the given vector size.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This routine is not safe because it is intended for callers to specialize</span>
-<span class="doccomment">/// this with a particular vector (e.g., __m256i) and then call it with the</span>
-<span class="doccomment">/// relevant target feature (e.g., avx2) enabled.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If `needle.len() &lt;= 1`, then this panics.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Since this is meant to be used with vector functions, callers need to</span>
-<span class="doccomment">/// specialize this inside of a function with a `target_feature` attribute.</span>
-<span class="doccomment">/// Therefore, callers must ensure that whatever target feature is being used</span>
-<span class="doccomment">/// supports the vector functions that this function is specialized for. (For</span>
-<span class="doccomment">/// the specific vector functions used, see the Vector trait implementations.)</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">find</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#21">Vector</a><span class="op">&gt;</span>(
-    <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/mod.rs.html#204">PrefilterState</a>,
-    <span class="ident">ninfo</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/memchr/memmem/mod.rs.html#767">NeedleInfo</a>,
-    <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="ident">fallback</span>: <a class="ident" href="../../../../src/memchr/memmem/prefilter/mod.rs.html#88">PrefilterFnTy</a>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>, <span class="string">&quot;needle must be at least 2 bytes&quot;</span>);
-    <span class="kw">let</span> (<span class="ident">rare1i</span>, <span class="ident">rare2i</span>) <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#46">ninfo</a>.<span class="ident">rarebytes</span>.<a class="ident" href="../../../../src/memchr/memmem/rarebytes.rs.html#100">as_rare_ordered_usize</a>();
-    <span class="kw">let</span> <span class="ident">min_haystack_len</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare2i</a> <span class="op">+</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>();
-    <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">min_haystack_len</span> {
-        <span class="kw">return</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#49">fallback</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#45">prestate</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#46">ninfo</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#47">haystack</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#48">needle</a>);
+<span class="doccomment">/// The implementation of the forward vector accelerated candidate finder.
+///
+/// This is inspired by the &quot;generic SIMD&quot; algorithm described here:
+/// http://0x80.pl/articles/simd-strfind.html#algorithm-1-generic-simd
+///
+/// The main difference is that this is just a prefilter. That is, it reports
+/// candidates once they are seen and doesn&#39;t attempt to confirm them. Also,
+/// the bytes this routine uses to check for candidates are selected based on
+/// an a priori background frequency distribution. This means that on most
+/// haystacks, this will on average spend more time in vectorized code than you
+/// would if you just selected the first and last bytes of the needle.
+///
+/// Note that a non-prefilter variant of this algorithm can be found in the
+/// parent module, but it only works on smaller needles.
+///
+/// `prestate`, `ninfo`, `haystack` and `needle` are the four prefilter
+/// function parameters. `fallback` is a prefilter that is used if the haystack
+/// is too small to be handled with the given vector size.
+///
+/// This routine is not safe because it is intended for callers to specialize
+/// this with a particular vector (e.g., __m256i) and then call it with the
+/// relevant target feature (e.g., avx2) enabled.
+///
+/// # Panics
+///
+/// If `needle.len() &lt;= 1`, then this panics.
+///
+/// # Safety
+///
+/// Since this is meant to be used with vector functions, callers need to
+/// specialize this inside of a function with a `target_feature` attribute.
+/// Therefore, callers must ensure that whatever target feature is being used
+/// supports the vector functions that this function is specialized for. (For
+/// the specific vector functions used, see the Vector trait implementations.)
+</span><span class="attribute">#[inline(always)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>find&lt;V: <a href="../../../../src/memchr/memmem/vector.rs.html#21">Vector</a>&gt;(
+    prestate: <span class="kw-2">&amp;mut </span><a href="../../../../src/memchr/memmem/prefilter/mod.rs.html#204">PrefilterState</a>,
+    ninfo: <span class="kw-2">&amp;</span><a href="../../../../src/memchr/memmem/mod.rs.html#767">NeedleInfo</a>,
+    haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    needle: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    fallback: <a href="../../../../src/memchr/memmem/prefilter/mod.rs.html#88">PrefilterFnTy</a>,
+) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(needle.len() &gt;= <span class="number">2</span>, <span class="string">&quot;needle must be at least 2 bytes&quot;</span>);
+    <span class="kw">let </span>(rare1i, rare2i) = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#46">ninfo</a>.rarebytes.<a href="../../../../src/memchr/memmem/rarebytes.rs.html#100">as_rare_ordered_usize</a>();
+    <span class="kw">let </span>min_haystack_len = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare2i</a> + size_of::&lt;V&gt;();
+    <span class="kw">if </span>haystack.len() &lt; min_haystack_len {
+        <span class="kw">return </span><a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#49">fallback</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#45">prestate</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#46">ninfo</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#47">haystack</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#48">needle</a>);
     }
 
-    <span class="kw">let</span> <span class="ident">start_ptr</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#47">haystack</a>.<span class="ident">as_ptr</span>();
-    <span class="kw">let</span> <span class="ident">end_ptr</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#58">start_ptr</a>.<span class="ident">add</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#47">haystack</a>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="ident">max_ptr</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#59">end_ptr</a>.<span class="ident">sub</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#53">min_haystack_len</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#58">start_ptr</a>;
+    <span class="kw">let </span>start_ptr = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#47">haystack</a>.as_ptr();
+    <span class="kw">let </span>end_ptr = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#58">start_ptr</a>.add(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#47">haystack</a>.len());
+    <span class="kw">let </span>max_ptr = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#59">end_ptr</a>.sub(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#53">min_haystack_len</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#58">start_ptr</a>;
 
-    <span class="kw">let</span> <span class="ident">rare1chunk</span> <span class="op">=</span> <span class="ident">V::splat</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#48">needle</a>[<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare1i</a>]);
-    <span class="kw">let</span> <span class="ident">rare2chunk</span> <span class="op">=</span> <span class="ident">V::splat</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#48">needle</a>[<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare2i</a>]);
+    <span class="kw">let </span>rare1chunk = V::splat(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#48">needle</a>[<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare1i</a>]);
+    <span class="kw">let </span>rare2chunk = V::splat(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#48">needle</a>[<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare2i</a>]);
 
-    <span class="comment">// N.B. I did experiment with unrolling the loop to deal with size(V)</span>
-    <span class="comment">// bytes at a time and 2*size(V) bytes at a time. The double unroll</span>
-    <span class="comment">// was marginally faster while the quadruple unroll was unambiguously</span>
-    <span class="comment">// slower. In the end, I decided the complexity from unrolling wasn&#39;t</span>
-    <span class="comment">// worth it. I used the memmem/krate/prebuilt/huge-en/ benchmarks to</span>
-    <span class="comment">// compare.</span>
-    <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_ptr</span> {
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">find_in_chunk2</span>(<span class="ident">ptr</span>, <span class="ident">rare1i</span>, <span class="ident">rare2i</span>, <span class="ident">rare1chunk</span>, <span class="ident">rare2chunk</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chunki</span>) <span class="op">=</span> <span class="ident">m</span> {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">matched</span>(<span class="ident">prestate</span>, <span class="ident">start_ptr</span>, <span class="ident">ptr</span>, <span class="ident">chunki</span>));
+    <span class="comment">// N.B. I did experiment with unrolling the loop to deal with size(V)
+    // bytes at a time and 2*size(V) bytes at a time. The double unroll
+    // was marginally faster while the quadruple unroll was unambiguously
+    // slower. In the end, I decided the complexity from unrolling wasn&#39;t
+    // worth it. I used the memmem/krate/prebuilt/huge-en/ benchmarks to
+    // compare.
+    </span><span class="kw">while </span>ptr &lt;= max_ptr {
+        <span class="kw">let </span>m = find_in_chunk2(ptr, rare1i, rare2i, rare1chunk, rare2chunk);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(chunki) = m {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(matched(prestate, start_ptr, ptr, chunki));
         }
-        <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>());
+        ptr = ptr.add(size_of::&lt;V&gt;());
     }
-    <span class="kw">if</span> <span class="ident">ptr</span> <span class="op">&lt;</span> <span class="ident">end_ptr</span> {
-        <span class="comment">// This routine immediately quits if a candidate match is found.</span>
-        <span class="comment">// That means that if we&#39;re here, no candidate matches have been</span>
-        <span class="comment">// found at or before &#39;ptr&#39;. Thus, we don&#39;t need to mask anything</span>
-        <span class="comment">// out even though we might technically search part of the haystack</span>
-        <span class="comment">// that we&#39;ve already searched (because we know it can&#39;t match).</span>
-        <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#61">ptr</a> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#60">max_ptr</a>;
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#120-126">find_in_chunk2</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#61">ptr</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare1i</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare2i</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#63">rare1chunk</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#64">rare2chunk</a>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chunki</span>) <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#86">m</a> {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#191-196">matched</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#45">prestate</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#58">start_ptr</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#61">ptr</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#87">chunki</a>));
+    <span class="kw">if </span>ptr &lt; end_ptr {
+        <span class="comment">// This routine immediately quits if a candidate match is found.
+        // That means that if we&#39;re here, no candidate matches have been
+        // found at or before &#39;ptr&#39;. Thus, we don&#39;t need to mask anything
+        // out even though we might technically search part of the haystack
+        // that we&#39;ve already searched (because we know it can&#39;t match).
+        </span><a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#61">ptr</a> = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#60">max_ptr</a>;
+        <span class="kw">let </span>m = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#120-126">find_in_chunk2</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#61">ptr</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare1i</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#52">rare2i</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#63">rare1chunk</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#64">rare2chunk</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(chunki) = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#86">m</a> {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#191-196">matched</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#45">prestate</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#58">start_ptr</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#61">ptr</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#87">chunki</a>));
         }
     }
-    <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#45">prestate</a>.<a class="ident" href="../../../../src/memchr/memmem/prefilter/mod.rs.html#242">update</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#47">haystack</a>.<span class="ident">len</span>());
-    <span class="prelude-val">None</span>
-}
+    <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#45">prestate</a>.<a href="../../../../src/memchr/memmem/prefilter/mod.rs.html#242">update</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#47">haystack</a>.len());
+    <span class="prelude-val">None
+</span>}
 
-<span class="comment">// Below are two different techniques for checking whether a candidate</span>
-<span class="comment">// match exists in a given chunk or not. find_in_chunk2 checks two bytes</span>
-<span class="comment">// where as find_in_chunk3 checks three bytes. The idea behind checking</span>
-<span class="comment">// three bytes is that while we do a bit more work per iteration, we</span>
-<span class="comment">// decrease the chances of a false positive match being reported and thus</span>
-<span class="comment">// make the search faster overall. This actually works out for the</span>
-<span class="comment">// memmem/krate/prebuilt/huge-en/never-all-common-bytes benchmark, where</span>
-<span class="comment">// using find_in_chunk3 is about 25% faster than find_in_chunk2. However,</span>
-<span class="comment">// it turns out that find_in_chunk2 is faster for all other benchmarks, so</span>
-<span class="comment">// perhaps the extra check isn&#39;t worth it in practice.</span>
-<span class="comment">//</span>
-<span class="comment">// For now, we go with find_in_chunk2, but we leave find_in_chunk3 around</span>
-<span class="comment">// to make it easy to switch to and benchmark when possible.</span>
+<span class="comment">// Below are two different techniques for checking whether a candidate
+// match exists in a given chunk or not. find_in_chunk2 checks two bytes
+// where as find_in_chunk3 checks three bytes. The idea behind checking
+// three bytes is that while we do a bit more work per iteration, we
+// decrease the chances of a false positive match being reported and thus
+// make the search faster overall. This actually works out for the
+// memmem/krate/prebuilt/huge-en/never-all-common-bytes benchmark, where
+// using find_in_chunk3 is about 25% faster than find_in_chunk2. However,
+// it turns out that find_in_chunk2 is faster for all other benchmarks, so
+// perhaps the extra check isn&#39;t worth it in practice.
+//
+// For now, we go with find_in_chunk2, but we leave find_in_chunk3 around
+// to make it easy to switch to and benchmark when possible.
 
-<span class="doccomment">/// Search for an occurrence of two rare bytes from the needle in the current</span>
-<span class="doccomment">/// chunk pointed to by ptr.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// rare1chunk and rare2chunk correspond to vectors with the rare1 and rare2</span>
-<span class="doccomment">/// bytes repeated in each 8-bit lane, respectively.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It must be safe to do an unaligned read of size(V) bytes starting at both</span>
-<span class="doccomment">/// (ptr + rare1i) and (ptr + rare2i).</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">find_in_chunk2</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#21">Vector</a><span class="op">&gt;</span>(
-    <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="ident">rare1i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">rare2i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">rare1chunk</span>: <span class="ident">V</span>,
-    <span class="ident">rare2chunk</span>: <span class="ident">V</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">chunk0</span> <span class="op">=</span> <span class="ident">V::load_unaligned</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#121">ptr</a>.<span class="ident">add</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#122">rare1i</a>));
-    <span class="kw">let</span> <span class="ident">chunk1</span> <span class="op">=</span> <span class="ident">V::load_unaligned</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#121">ptr</a>.<span class="ident">add</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#123">rare2i</a>));
+</span><span class="doccomment">/// Search for an occurrence of two rare bytes from the needle in the current
+/// chunk pointed to by ptr.
+///
+/// rare1chunk and rare2chunk correspond to vectors with the rare1 and rare2
+/// bytes repeated in each 8-bit lane, respectively.
+///
+/// # Safety
+///
+/// It must be safe to do an unaligned read of size(V) bytes starting at both
+/// (ptr + rare1i) and (ptr + rare2i).
+</span><span class="attribute">#[inline(always)]
+</span><span class="kw">unsafe fn </span>find_in_chunk2&lt;V: <a href="../../../../src/memchr/memmem/vector.rs.html#21">Vector</a>&gt;(
+    ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    rare1i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    rare2i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    rare1chunk: V,
+    rare2chunk: V,
+) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">let </span>chunk0 = V::load_unaligned(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#121">ptr</a>.add(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#122">rare1i</a>));
+    <span class="kw">let </span>chunk1 = V::load_unaligned(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#121">ptr</a>.add(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#123">rare2i</a>));
 
-    <span class="kw">let</span> <span class="ident">eq0</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#127">chunk0</a>.<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#124">rare1chunk</a>);
-    <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#128">chunk1</a>.<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#125">rare2chunk</a>);
+    <span class="kw">let </span>eq0 = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#127">chunk0</a>.<a href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#124">rare1chunk</a>);
+    <span class="kw">let </span>eq1 = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#128">chunk1</a>.<a href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#125">rare2chunk</a>);
 
-    <span class="kw">let</span> <span class="ident">match_offsets</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#130">eq0</a>.<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#31">and</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#131">eq1</a>).<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#27">movemask</a>();
-    <span class="kw">if</span> <span class="ident">match_offsets</span> <span class="op">==</span> <span class="number">0</span> {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">let </span>match_offsets = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#130">eq0</a>.<a href="../../../../src/memchr/memmem/vector.rs.html#31">and</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#131">eq1</a>).<a href="../../../../src/memchr/memmem/vector.rs.html#27">movemask</a>();
+    <span class="kw">if </span>match_offsets == <span class="number">0 </span>{
+        <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#133">match_offsets</a>.<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    <span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#133">match_offsets</a>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 
-<span class="doccomment">/// Search for an occurrence of two rare bytes and the first byte (even if one</span>
-<span class="doccomment">/// of the rare bytes is equivalent to the first byte) from the needle in the</span>
-<span class="doccomment">/// current chunk pointed to by ptr.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// firstchunk, rare1chunk and rare2chunk correspond to vectors with the first,</span>
-<span class="doccomment">/// rare1 and rare2 bytes repeated in each 8-bit lane, respectively.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It must be safe to do an unaligned read of size(V) bytes starting at ptr,</span>
-<span class="doccomment">/// (ptr + rare1i) and (ptr + rare2i).</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">find_in_chunk3</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#21">Vector</a><span class="op">&gt;</span>(
-    <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="ident">rare1i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">rare2i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">firstchunk</span>: <span class="ident">V</span>,
-    <span class="ident">rare1chunk</span>: <span class="ident">V</span>,
-    <span class="ident">rare2chunk</span>: <span class="ident">V</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">chunk0</span> <span class="op">=</span> <span class="ident">V::load_unaligned</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#154">ptr</a>);
-    <span class="kw">let</span> <span class="ident">chunk1</span> <span class="op">=</span> <span class="ident">V::load_unaligned</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#154">ptr</a>.<span class="ident">add</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#155">rare1i</a>));
-    <span class="kw">let</span> <span class="ident">chunk2</span> <span class="op">=</span> <span class="ident">V::load_unaligned</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#154">ptr</a>.<span class="ident">add</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#156">rare2i</a>));
+<span class="doccomment">/// Search for an occurrence of two rare bytes and the first byte (even if one
+/// of the rare bytes is equivalent to the first byte) from the needle in the
+/// current chunk pointed to by ptr.
+///
+/// firstchunk, rare1chunk and rare2chunk correspond to vectors with the first,
+/// rare1 and rare2 bytes repeated in each 8-bit lane, respectively.
+///
+/// # Safety
+///
+/// It must be safe to do an unaligned read of size(V) bytes starting at ptr,
+/// (ptr + rare1i) and (ptr + rare2i).
+</span><span class="attribute">#[allow(dead_code)]
+#[inline(always)]
+</span><span class="kw">unsafe fn </span>find_in_chunk3&lt;V: <a href="../../../../src/memchr/memmem/vector.rs.html#21">Vector</a>&gt;(
+    ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    rare1i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    rare2i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    firstchunk: V,
+    rare1chunk: V,
+    rare2chunk: V,
+) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">let </span>chunk0 = V::load_unaligned(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#154">ptr</a>);
+    <span class="kw">let </span>chunk1 = V::load_unaligned(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#154">ptr</a>.add(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#155">rare1i</a>));
+    <span class="kw">let </span>chunk2 = V::load_unaligned(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#154">ptr</a>.add(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#156">rare2i</a>));
 
-    <span class="kw">let</span> <span class="ident">eq0</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#161">chunk0</a>.<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#157">firstchunk</a>);
-    <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#162">chunk1</a>.<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#158">rare1chunk</a>);
-    <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#163">chunk2</a>.<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#159">rare2chunk</a>);
+    <span class="kw">let </span>eq0 = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#161">chunk0</a>.<a href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#157">firstchunk</a>);
+    <span class="kw">let </span>eq1 = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#162">chunk1</a>.<a href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#158">rare1chunk</a>);
+    <span class="kw">let </span>eq2 = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#163">chunk2</a>.<a href="../../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#159">rare2chunk</a>);
 
-    <span class="kw">let</span> <span class="ident">match_offsets</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#165">eq0</a>.<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#31">and</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#166">eq1</a>).<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#31">and</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#167">eq2</a>).<a class="ident" href="../../../../src/memchr/memmem/vector.rs.html#27">movemask</a>();
-    <span class="kw">if</span> <span class="ident">match_offsets</span> <span class="op">==</span> <span class="number">0</span> {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">let </span>match_offsets = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#165">eq0</a>.<a href="../../../../src/memchr/memmem/vector.rs.html#31">and</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#166">eq1</a>).<a href="../../../../src/memchr/memmem/vector.rs.html#31">and</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#167">eq2</a>).<a href="../../../../src/memchr/memmem/vector.rs.html#27">movemask</a>();
+    <span class="kw">if </span>match_offsets == <span class="number">0 </span>{
+        <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#169">match_offsets</a>.<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    <span class="prelude-val">Some</span>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#169">match_offsets</a>.trailing_zeros() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 
-<span class="doccomment">/// Accepts a chunk-relative offset and returns a haystack relative offset</span>
-<span class="doccomment">/// after updating the prefilter state.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Why do we use this unlineable function when a search completes? Well,</span>
-<span class="doccomment">/// I don&#39;t know. Really. Obviously this function was not here initially.</span>
-<span class="doccomment">/// When doing profiling, the codegen for the inner loop here looked bad and</span>
-<span class="doccomment">/// I didn&#39;t know why. There were a couple extra &#39;add&#39; instructions and an</span>
-<span class="doccomment">/// extra &#39;lea&#39; instruction that I couldn&#39;t explain. I hypothesized that the</span>
-<span class="doccomment">/// optimizer was having trouble untangling the hot code in the loop from the</span>
-<span class="doccomment">/// code that deals with a candidate match. By putting the latter into an</span>
-<span class="doccomment">/// unlineable function, it kind of forces the issue and it had the intended</span>
-<span class="doccomment">/// effect: codegen improved measurably. It&#39;s good for a ~10% improvement</span>
-<span class="doccomment">/// across the board on the memmem/krate/prebuilt/huge-en/ benchmarks.</span>
-<span class="attribute">#[<span class="ident">cold</span>]</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-<span class="kw">fn</span> <span class="ident">matched</span>(
-    <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/mod.rs.html#204">PrefilterState</a>,
-    <span class="ident">start_ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="ident">chunki</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let</span> <span class="ident">found</span> <span class="op">=</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#204">diff</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#194">ptr</a>, <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#193">start_ptr</a>) <span class="op">+</span> <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#195">chunki</a>;
-    <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#192">prestate</a>.<a class="ident" href="../../../../src/memchr/memmem/prefilter/mod.rs.html#242">update</a>(<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#197">found</a>);
-    <a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#197">found</a>
+<span class="doccomment">/// Accepts a chunk-relative offset and returns a haystack relative offset
+/// after updating the prefilter state.
+///
+/// Why do we use this unlineable function when a search completes? Well,
+/// I don&#39;t know. Really. Obviously this function was not here initially.
+/// When doing profiling, the codegen for the inner loop here looked bad and
+/// I didn&#39;t know why. There were a couple extra &#39;add&#39; instructions and an
+/// extra &#39;lea&#39; instruction that I couldn&#39;t explain. I hypothesized that the
+/// optimizer was having trouble untangling the hot code in the loop from the
+/// code that deals with a candidate match. By putting the latter into an
+/// unlineable function, it kind of forces the issue and it had the intended
+/// effect: codegen improved measurably. It&#39;s good for a ~10% improvement
+/// across the board on the memmem/krate/prebuilt/huge-en/ benchmarks.
+</span><span class="attribute">#[cold]
+#[inline(never)]
+</span><span class="kw">fn </span>matched(
+    prestate: <span class="kw-2">&amp;mut </span><a href="../../../../src/memchr/memmem/prefilter/mod.rs.html#204">PrefilterState</a>,
+    start_ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    ptr: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    chunki: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">let </span>found = <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#204">diff</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#194">ptr</a>, <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#193">start_ptr</a>) + <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#195">chunki</a>;
+    <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#192">prestate</a>.<a href="../../../../src/memchr/memmem/prefilter/mod.rs.html#242">update</a>(<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#197">found</a>);
+    <a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#197">found</a>
 }
 
-<span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` must be greater than</span>
-<span class="doccomment">/// or equal to `b`.</span>
-<span class="kw">fn</span> <span class="ident">diff</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">a</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>);
-    (<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#204">a</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span> (<a class="ident" href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#204">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+<span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` must be greater than
+/// or equal to `b`.
+</span><span class="kw">fn </span>diff(a: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, b: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(a &gt;= b);
+    (<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#204">a</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) - (<a href="../../../../src/memchr/memmem/prefilter/genericsimd.rs.html#204">b</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

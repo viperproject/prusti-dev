@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/request/session.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>session.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/request/session.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>session.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -243,250 +243,250 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">std::convert::TryInto</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">std::convert::TryInto</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="kw">use</span> <span class="ident">http::header</span>::{<a class="ident" href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>, <a class="ident" href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>};
-<span class="kw">use</span> <a class="ident" href="../../../attohttpc/struct.Method.html">http::Method</a>;
+<span class="kw">use </span>http::header::{<a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>, <a href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>};
+<span class="kw">use </span><a href="../../../attohttpc/struct.Method.html">http::Method</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;charsets&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::charsets::Charset</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../src/attohttpc/error.rs.html#96">Error</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#49"><span class="kw">crate</span>::request::proxy::ProxySettings</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::request</span>::{<a class="ident" href="../../../src/attohttpc/request/mod.rs.html#52-56">header_append</a>, <a class="ident" href="../../../src/attohttpc/request/mod.rs.html#30-34">header_insert</a>, <a class="ident" href="../../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>, <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#9"><span class="kw">crate</span>::tls::Certificate</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;charsets&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::charsets::Charset;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../src/attohttpc/error.rs.html#96">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><a href="../../../src/attohttpc/request/proxy.rs.html#49"><span class="kw">crate</span>::request::proxy::ProxySettings</a>;
+<span class="kw">use </span><span class="kw">crate</span>::request::{<a href="../../../src/attohttpc/request/mod.rs.html#52-56">header_append</a>, <a href="../../../src/attohttpc/request/mod.rs.html#30-34">header_insert</a>, <a href="../../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>, <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>};
+<span class="kw">use </span><a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#9"><span class="kw">crate</span>::tls::Certificate</a>;
 
-<span class="doccomment">/// `Session` is a type that can carry settings over multiple requests. The settings applied to the</span>
-<span class="doccomment">/// `Session` are applied to every request created from this `Session`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Session</span> {
-    <span class="ident">base_settings</span>: <a class="ident" href="../../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>,
+<span class="doccomment">/// `Session` is a type that can carry settings over multiple requests. The settings applied to the
+/// `Session` are applied to every request created from this `Session`.
+</span><span class="attribute">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>Session {
+    base_settings: <a href="../../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#17">Session</a> {
-    <span class="doccomment">/// Create a new `Session` with default settings.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/attohttpc/request/session.rs.html#17">Session</a> {
-        <a class="ident" href="../../../src/attohttpc/request/session.rs.html#17">Session</a> {
-            <span class="ident">base_settings</span>: <span class="ident">BaseSettings::default</span>(),
+<span class="kw">impl </span><a href="../../../src/attohttpc/request/session.rs.html#17">Session</a> {
+    <span class="doccomment">/// Create a new `Session` with default settings.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/attohttpc/request/session.rs.html#17">Session</a> {
+        <a href="../../../src/attohttpc/request/session.rs.html#17">Session</a> {
+            base_settings: BaseSettings::default(),
         }
     }
 
-    <span class="doccomment">/// Create a new `RequestBuilder` with the GET method and this Session&#39;s settings applied on it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base_url</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new `RequestBuilder` with the GET method and this Session&#39;s settings applied on it.
+    </span><span class="kw">pub fn </span>get&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base_url: U) -&gt; <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
     {
-        <span class="ident">RequestBuilder::with_settings</span>(<span class="ident">Method::GET</span>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#30">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#30">self</a>.<span class="ident">base_settings</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        RequestBuilder::with_settings(Method::GET, <a href="../../../src/attohttpc/request/session.rs.html#30">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#30">self</a>.base_settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="doccomment">/// Create a new `RequestBuilder` with the POST method and this Session&#39;s settings applied on it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">post</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base_url</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new `RequestBuilder` with the POST method and this Session&#39;s settings applied on it.
+    </span><span class="kw">pub fn </span>post&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base_url: U) -&gt; <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
     {
-        <span class="ident">RequestBuilder::with_settings</span>(<span class="ident">Method::POST</span>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#38">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#38">self</a>.<span class="ident">base_settings</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        RequestBuilder::with_settings(Method::POST, <a href="../../../src/attohttpc/request/session.rs.html#38">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#38">self</a>.base_settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="doccomment">/// Create a new `RequestBuilder` with the PUT method and this Session&#39;s settings applied on it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">put</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base_url</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new `RequestBuilder` with the PUT method and this Session&#39;s settings applied on it.
+    </span><span class="kw">pub fn </span>put&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base_url: U) -&gt; <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
     {
-        <span class="ident">RequestBuilder::with_settings</span>(<span class="ident">Method::PUT</span>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#46">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#46">self</a>.<span class="ident">base_settings</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        RequestBuilder::with_settings(Method::PUT, <a href="../../../src/attohttpc/request/session.rs.html#46">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#46">self</a>.base_settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="doccomment">/// Create a new `RequestBuilder` with the DELETE method and this Session&#39;s settings applied on it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delete</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base_url</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new `RequestBuilder` with the DELETE method and this Session&#39;s settings applied on it.
+    </span><span class="kw">pub fn </span>delete&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base_url: U) -&gt; <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
     {
-        <span class="ident">RequestBuilder::with_settings</span>(<span class="ident">Method::DELETE</span>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#54">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#54">self</a>.<span class="ident">base_settings</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        RequestBuilder::with_settings(Method::DELETE, <a href="../../../src/attohttpc/request/session.rs.html#54">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#54">self</a>.base_settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="doccomment">/// Create a new `RequestBuilder` with the HEAD method and this Session&#39;s settings applied on it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">head</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base_url</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new `RequestBuilder` with the HEAD method and this Session&#39;s settings applied on it.
+    </span><span class="kw">pub fn </span>head&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base_url: U) -&gt; <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
     {
-        <span class="ident">RequestBuilder::with_settings</span>(<span class="ident">Method::HEAD</span>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#62">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#62">self</a>.<span class="ident">base_settings</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        RequestBuilder::with_settings(Method::HEAD, <a href="../../../src/attohttpc/request/session.rs.html#62">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#62">self</a>.base_settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="doccomment">/// Create a new `RequestBuilder` with the OPTIONS method and this Session&#39;s settings applied on it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">options</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base_url</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new `RequestBuilder` with the OPTIONS method and this Session&#39;s settings applied on it.
+    </span><span class="kw">pub fn </span>options&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base_url: U) -&gt; <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
     {
-        <span class="ident">RequestBuilder::with_settings</span>(<span class="ident">Method::OPTIONS</span>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#70">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#70">self</a>.<span class="ident">base_settings</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        RequestBuilder::with_settings(Method::OPTIONS, <a href="../../../src/attohttpc/request/session.rs.html#70">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#70">self</a>.base_settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="doccomment">/// Create a new `RequestBuilder` with the PATCH method and this Session&#39;s settings applied on it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">patch</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base_url</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new `RequestBuilder` with the PATCH method and this Session&#39;s settings applied on it.
+    </span><span class="kw">pub fn </span>patch&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base_url: U) -&gt; <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
     {
-        <span class="ident">RequestBuilder::with_settings</span>(<span class="ident">Method::PATCH</span>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#78">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#78">self</a>.<span class="ident">base_settings</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        RequestBuilder::with_settings(Method::PATCH, <a href="../../../src/attohttpc/request/session.rs.html#78">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#78">self</a>.base_settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="doccomment">/// Create a new `RequestBuilder` with the TRACE method and this Session&#39;s settings applied on it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trace</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base_url</span>: <span class="ident">U</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new `RequestBuilder` with the TRACE method and this Session&#39;s settings applied on it.
+    </span><span class="kw">pub fn </span>trace&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base_url: U) -&gt; <a href="../../../src/attohttpc/request/builder.rs.html#36">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
     {
-        <span class="ident">RequestBuilder::with_settings</span>(<span class="ident">Method::TRACE</span>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#86">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#86">self</a>.<span class="ident">base_settings</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        RequestBuilder::with_settings(Method::TRACE, <a href="../../../src/attohttpc/request/session.rs.html#86">base_url</a>, <a class="self" href="../../../src/attohttpc/request/session.rs.html#86">self</a>.base_settings.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="comment">//</span>
-    <span class="comment">// Settings</span>
-    <span class="comment">//</span>
+    <span class="comment">//
+    // Settings
+    //
 
-    <span class="doccomment">/// Modify a header for this `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the header is already present, the value will be replaced. If you wish to append a new header,</span>
-    <span class="doccomment">/// use `header_append`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">/// This method will panic if the value is invalid.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">header</span>: <span class="ident">H</span>, <span class="ident">value</span>: <span class="ident">V</span>)
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <a class="ident" href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>,
-        <span class="ident">V</span>: <span class="ident">TryInto</span><span class="op">&lt;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../../src/attohttpc/error.rs.html#96">Error</a>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">V::Error</span><span class="op">&gt;</span>,
+    </span><span class="doccomment">/// Modify a header for this `Request`.
+    ///
+    /// If the header is already present, the value will be replaced. If you wish to append a new header,
+    /// use `header_append`.
+    ///
+    /// # Panics
+    /// This method will panic if the value is invalid.
+    </span><span class="kw">pub fn </span>header&lt;H, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: H, value: V)
+    <span class="kw">where
+        </span>H: <a href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>,
+        V: TryInto&lt;<a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
+        <a href="../../../src/attohttpc/error.rs.html#96">Error</a>: From&lt;V::Error&gt;,
     {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#104">self</a>.<a class="ident" href="../../../src/attohttpc/request/session.rs.html#132-136">try_header</a>(<a class="ident" href="../../../src/attohttpc/request/session.rs.html#104">header</a>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#104">value</a>).<span class="ident">expect</span>(<span class="string">&quot;invalid header value&quot;</span>);
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#104">self</a>.<a href="../../../src/attohttpc/request/session.rs.html#132-136">try_header</a>(<a href="../../../src/attohttpc/request/session.rs.html#104">header</a>, <a href="../../../src/attohttpc/request/session.rs.html#104">value</a>).expect(<span class="string">&quot;invalid header value&quot;</span>);
     }
 
-    <span class="doccomment">/// Append a new header for this `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The new header is always appended to the request, even if the header already exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">/// This method will panic if the value is invalid.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header_append</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">header</span>: <span class="ident">H</span>, <span class="ident">value</span>: <span class="ident">V</span>)
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <a class="ident" href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>,
-        <span class="ident">V</span>: <span class="ident">TryInto</span><span class="op">&lt;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../../src/attohttpc/error.rs.html#96">Error</a>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">V::Error</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Append a new header for this `Request`.
+    ///
+    /// The new header is always appended to the request, even if the header already exists.
+    ///
+    /// # Panics
+    /// This method will panic if the value is invalid.
+    </span><span class="kw">pub fn </span>header_append&lt;H, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: H, value: V)
+    <span class="kw">where
+        </span>H: <a href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>,
+        V: TryInto&lt;<a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
+        <a href="../../../src/attohttpc/error.rs.html#96">Error</a>: From&lt;V::Error&gt;,
     {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#119">self</a>.<a class="ident" href="../../../src/attohttpc/request/session.rs.html#145-149">try_header_append</a>(<a class="ident" href="../../../src/attohttpc/request/session.rs.html#119">header</a>, <a class="ident" href="../../../src/attohttpc/request/session.rs.html#119">value</a>).<span class="ident">expect</span>(<span class="string">&quot;invalid header value&quot;</span>);
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#119">self</a>.<a href="../../../src/attohttpc/request/session.rs.html#145-149">try_header_append</a>(<a href="../../../src/attohttpc/request/session.rs.html#119">header</a>, <a href="../../../src/attohttpc/request/session.rs.html#119">value</a>).expect(<span class="string">&quot;invalid header value&quot;</span>);
     }
 
-    <span class="doccomment">/// Modify a header for this `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the header is already present, the value will be replaced. If you wish to append a new header,</span>
-    <span class="doccomment">/// use `header_append`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_header</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">header</span>: <span class="ident">H</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <a class="ident" href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>,
-        <span class="ident">V</span>: <span class="ident">TryInto</span><span class="op">&lt;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../../src/attohttpc/error.rs.html#96">Error</a>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">V::Error</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Modify a header for this `Request`.
+    ///
+    /// If the header is already present, the value will be replaced. If you wish to append a new header,
+    /// use `header_append`.
+    </span><span class="kw">pub fn </span>try_header&lt;H, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: H, value: V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>H: <a href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>,
+        V: TryInto&lt;<a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
+        <a href="../../../src/attohttpc/error.rs.html#96">Error</a>: From&lt;V::Error&gt;,
     {
-        <span class="ident">header_insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">base_settings</span>.<span class="ident">headers</span>, <span class="ident">header</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+        header_insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>.base_settings.headers, header, value)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Append a new header to this `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The new header is always appended to the `Request`, even if the header already exists.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_header_append</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">header</span>: <span class="ident">H</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <a class="ident" href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>,
-        <span class="ident">V</span>: <span class="ident">TryInto</span><span class="op">&lt;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../../src/attohttpc/error.rs.html#96">Error</a>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">V::Error</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Append a new header to this `Request`.
+    ///
+    /// The new header is always appended to the `Request`, even if the header already exists.
+    </span><span class="kw">pub fn </span>try_header_append&lt;H, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: H, value: V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>H: <a href="../../../attohttpc/header/trait.IntoHeaderName.html">IntoHeaderName</a>,
+        V: TryInto&lt;<a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>&gt;,
+        <a href="../../../src/attohttpc/error.rs.html#96">Error</a>: From&lt;V::Error&gt;,
     {
-        <span class="ident">header_append</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">base_settings</span>.<span class="ident">headers</span>, <span class="ident">header</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+        header_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>.base_settings.headers, header, value)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Set the maximum number of redirections this `Request` can perform.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default is 5.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_redirections</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">max_redirections</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#158">self</a>.<span class="ident">base_settings</span>.<span class="ident">max_redirections</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#158">max_redirections</a>;
+    <span class="doccomment">/// Set the maximum number of redirections this `Request` can perform.
+    ///
+    /// The default is 5.
+    </span><span class="kw">pub fn </span>max_redirections(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max_redirections: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#158">self</a>.base_settings.max_redirections = <a href="../../../src/attohttpc/request/session.rs.html#158">max_redirections</a>;
     }
 
-    <span class="doccomment">/// Sets if this `Request` should follow redirects, 3xx codes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This value defaults to true.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">follow_redirects</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">follow_redirects</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#165">self</a>.<span class="ident">base_settings</span>.<span class="ident">follow_redirects</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#165">follow_redirects</a>;
+    <span class="doccomment">/// Sets if this `Request` should follow redirects, 3xx codes.
+    ///
+    /// This value defaults to true.
+    </span><span class="kw">pub fn </span>follow_redirects(<span class="kw-2">&amp;mut </span><span class="self">self</span>, follow_redirects: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#165">self</a>.base_settings.follow_redirects = <a href="../../../src/attohttpc/request/session.rs.html#165">follow_redirects</a>;
     }
 
-    <span class="doccomment">/// Sets a connect timeout for this request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default is 30 seconds.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#172">self</a>.<span class="ident">base_settings</span>.<span class="ident">connect_timeout</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#172">duration</a>;
+    <span class="doccomment">/// Sets a connect timeout for this request.
+    ///
+    /// The default is 30 seconds.
+    </span><span class="kw">pub fn </span>connect_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#172">self</a>.base_settings.connect_timeout = <a href="../../../src/attohttpc/request/session.rs.html#172">duration</a>;
     }
 
-    <span class="doccomment">/// Sets a read timeout for this request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default is 30 seconds.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#179">self</a>.<span class="ident">base_settings</span>.<span class="ident">read_timeout</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#179">duration</a>;
+    <span class="doccomment">/// Sets a read timeout for this request.
+    ///
+    /// The default is 30 seconds.
+    </span><span class="kw">pub fn </span>read_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#179">self</a>.base_settings.read_timeout = <a href="../../../src/attohttpc/request/session.rs.html#179">duration</a>;
     }
 
-    <span class="doccomment">/// Sets a timeout for the whole request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Applies after a TCP connection is established. Defaults to no timeout.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#186">self</a>.<span class="ident">base_settings</span>.<span class="ident">timeout</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/attohttpc/request/session.rs.html#186">duration</a>);
+    <span class="doccomment">/// Sets a timeout for the whole request.
+    ///
+    /// Applies after a TCP connection is established. Defaults to no timeout.
+    </span><span class="kw">pub fn </span>timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#186">self</a>.base_settings.timeout = <span class="prelude-val">Some</span>(<a href="../../../src/attohttpc/request/session.rs.html#186">duration</a>);
     }
 
-    <span class="doccomment">/// Sets the proxy settigns for this request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If left untouched, the defaults are to use system proxy settings found in environment variables.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">proxy_settings</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">settings</span>: <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#193">self</a>.<span class="ident">base_settings</span>.<span class="ident">proxy_settings</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#193">settings</a>;
+    <span class="doccomment">/// Sets the proxy settigns for this request.
+    ///
+    /// If left untouched, the defaults are to use system proxy settings found in environment variables.
+    </span><span class="kw">pub fn </span>proxy_settings(<span class="kw-2">&amp;mut </span><span class="self">self</span>, settings: <a href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#193">self</a>.base_settings.proxy_settings = <a href="../../../src/attohttpc/request/session.rs.html#193">settings</a>;
     }
 
-    <span class="doccomment">/// Set the default charset to use while parsing the response of this `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the response does not say which charset it uses, this charset will be used to decode the request.</span>
-    <span class="doccomment">/// This value defaults to `None`, in which case ISO-8859-1 is used.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;charsets&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_charset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">default_charset</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Charset</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">base_settings</span>.<span class="ident">default_charset</span> <span class="op">=</span> <span class="ident">default_charset</span>;
+    <span class="doccomment">/// Set the default charset to use while parsing the response of this `Request`.
+    ///
+    /// If the response does not say which charset it uses, this charset will be used to decode the request.
+    /// This value defaults to `None`, in which case ISO-8859-1 is used.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;charsets&quot;</span>)]
+    </span><span class="kw">pub fn </span>default_charset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, default_charset: <span class="prelude-ty">Option</span>&lt;Charset&gt;) {
+        <span class="self">self</span>.base_settings.default_charset = default_charset;
     }
 
-    <span class="doccomment">/// Sets if this `Request` will announce that it accepts compression.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This value defaults to true. Note that this only lets the browser know that this `Request` supports</span>
-    <span class="doccomment">/// compression, the server might choose not to compress the content.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;compress&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_compression</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">allow_compression</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#211">self</a>.<span class="ident">base_settings</span>.<span class="ident">allow_compression</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#211">allow_compression</a>;
+    <span class="doccomment">/// Sets if this `Request` will announce that it accepts compression.
+    ///
+    /// This value defaults to true. Note that this only lets the browser know that this `Request` supports
+    /// compression, the server might choose not to compress the content.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
+    </span><span class="kw">pub fn </span>allow_compression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, allow_compression: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#211">self</a>.base_settings.allow_compression = <a href="../../../src/attohttpc/request/session.rs.html#211">allow_compression</a>;
     }
 
-    <span class="doccomment">/// Sets if this `Request` will accept invalid TLS certificates.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Accepting invalid certificates implies that invalid hostnames are accepted</span>
-    <span class="doccomment">/// as well.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default value is `false`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Danger</span>
-    <span class="doccomment">/// Use this setting with care. This will accept **any** TLS certificate valid or not.</span>
-    <span class="doccomment">/// If you are using self signed certificates, it is much safer to add their root CA</span>
-    <span class="doccomment">/// to the list of trusted root CAs by your system.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">danger_accept_invalid_certs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">accept_invalid_certs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#226">self</a>.<span class="ident">base_settings</span>.<span class="ident">accept_invalid_certs</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#226">accept_invalid_certs</a>;
+    <span class="doccomment">/// Sets if this `Request` will accept invalid TLS certificates.
+    ///
+    /// Accepting invalid certificates implies that invalid hostnames are accepted
+    /// as well.
+    ///
+    /// The default value is `false`.
+    ///
+    /// # Danger
+    /// Use this setting with care. This will accept **any** TLS certificate valid or not.
+    /// If you are using self signed certificates, it is much safer to add their root CA
+    /// to the list of trusted root CAs by your system.
+    </span><span class="kw">pub fn </span>danger_accept_invalid_certs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, accept_invalid_certs: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#226">self</a>.base_settings.accept_invalid_certs = <a href="../../../src/attohttpc/request/session.rs.html#226">accept_invalid_certs</a>;
     }
 
-    <span class="doccomment">/// Sets if this `Request` will accept an invalid hostname in a TLS certificate.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default value is `false`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Danger</span>
-    <span class="doccomment">/// Use this setting with care. This will accept TLS certificates that do not match</span>
-    <span class="doccomment">/// the hostname.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">danger_accept_invalid_hostnames</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">accept_invalid_hostnames</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#237">self</a>.<span class="ident">base_settings</span>.<span class="ident">accept_invalid_hostnames</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/session.rs.html#237">accept_invalid_hostnames</a>;
+    <span class="doccomment">/// Sets if this `Request` will accept an invalid hostname in a TLS certificate.
+    ///
+    /// The default value is `false`.
+    ///
+    /// # Danger
+    /// Use this setting with care. This will accept TLS certificates that do not match
+    /// the hostname.
+    </span><span class="kw">pub fn </span>danger_accept_invalid_hostnames(<span class="kw-2">&amp;mut </span><span class="self">self</span>, accept_invalid_hostnames: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#237">self</a>.base_settings.accept_invalid_hostnames = <a href="../../../src/attohttpc/request/session.rs.html#237">accept_invalid_hostnames</a>;
     }
 
-    <span class="doccomment">/// Adds a root certificate that will be trusted.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_root_certificate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cert</span>: <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#9">Certificate</a>) {
-        <a class="self" href="../../../src/attohttpc/request/session.rs.html#242">self</a>.<span class="ident">base_settings</span>.<span class="ident">root_certificates</span>.<span class="number">0</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/attohttpc/request/session.rs.html#242">cert</a>);
+    <span class="doccomment">/// Adds a root certificate that will be trusted.
+    </span><span class="kw">pub fn </span>add_root_certificate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cert: <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#9">Certificate</a>) {
+        <a class="self" href="../../../src/attohttpc/request/session.rs.html#242">self</a>.base_settings.root_certificates.<span class="number">0</span>.push(<a href="../../../src/attohttpc/request/session.rs.html#242">cert</a>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

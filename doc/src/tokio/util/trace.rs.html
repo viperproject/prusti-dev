@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/util/trace.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>trace.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/util/trace.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>trace.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -98,105 +98,105 @@
 <span id="98">98</span>
 <span id="99">99</span>
 <span id="100">100</span>
-</pre><pre class="rust"><code><span class="macro">cfg_trace!</span> {
-    <span class="macro">cfg_rt!</span> {
-        <span class="kw">use</span> <span class="ident">core</span>::{
-            <span class="ident">pin::Pin</span>,
-            <span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
+</pre><pre class="rust"><code><span class="macro">cfg_trace! </span>{
+    <span class="macro">cfg_rt! </span>{
+        <span class="kw">use </span>core::{
+            pin::Pin,
+            task::{Context, Poll},
         };
-        <span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
-        <span class="kw">use</span> <span class="ident">std::future::Future</span>;
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">tracing::instrument::Instrumented</span>;
+        <span class="kw">use </span>pin_project_lite::pin_project;
+        <span class="kw">use </span>std::future::Future;
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>tracing::instrument::Instrumented;
 
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">task</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">task</span>: <span class="ident">F</span>, <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">id</span>: <span class="ident">u64</span>) -&gt; <span class="ident">Instrumented</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-            <span class="kw">use</span> <span class="ident">tracing::instrument::Instrument</span>;
-            <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">std::panic::Location::caller</span>();
-            <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(
-                <span class="ident">target</span>: <span class="string">&quot;tokio::task&quot;</span>,
+        <span class="attribute">#[inline]
+        #[track_caller]
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>task&lt;F&gt;(task: F, kind: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, id: u64) -&gt; Instrumented&lt;F&gt; {
+            <span class="kw">use </span>tracing::instrument::Instrument;
+            <span class="kw">let </span>location = std::panic::Location::caller();
+            <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
+                target: <span class="string">&quot;tokio::task&quot;</span>,
                 <span class="string">&quot;runtime.spawn&quot;</span>,
-                <span class="op">%</span><span class="ident">kind</span>,
-                <span class="ident">task</span>.<span class="ident">name</span> <span class="op">=</span> <span class="op">%</span><span class="ident">name</span>.<span class="ident">unwrap_or_default</span>(),
-                <span class="ident">task</span>.<span class="ident">id</span> <span class="op">=</span> <span class="ident">id</span>,
-                <span class="ident">loc</span>.<span class="ident">file</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">file</span>(),
-                <span class="ident">loc</span>.<span class="ident">line</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">line</span>(),
-                <span class="ident">loc</span>.<span class="ident">col</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">column</span>(),
+                %kind,
+                task.name = %name.unwrap_or_default(),
+                task.id = id,
+                loc.file = location.file(),
+                loc.line = location.line(),
+                loc.col = location.column(),
             );
-            <span class="ident">task</span>.<span class="ident">instrument</span>(<span class="ident">span</span>)
+            task.instrument(span)
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">async_op</span><span class="op">&lt;</span><span class="ident">P</span>,<span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">inner</span>: <span class="ident">P</span>, <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">poll_op_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">inherits_child_attrs</span>: <span class="ident">bool</span>) -&gt; <span class="ident">InstrumentedAsyncOp</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">P</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">F</span> {
-            <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">async_op_span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, <span class="ident">source</span> <span class="op">=</span> <span class="ident">source</span>, <span class="ident">inherits_child_attrs</span> <span class="op">=</span> <span class="ident">inherits_child_attrs</span>);
-                <span class="kw">let</span> <span class="ident">enter</span> <span class="op">=</span> <span class="ident">async_op_span</span>.<span class="ident">enter</span>();
-                <span class="kw">let</span> <span class="ident">async_op_poll_span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op.poll&quot;</span>);
-                <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">inner</span>();
-                <span class="ident">drop</span>(<span class="ident">enter</span>);
-                <span class="kw">let</span> <span class="ident">tracing_ctx</span> <span class="op">=</span> <span class="ident">AsyncOpTracingCtx</span> {
-                    <span class="ident">async_op_span</span>,
-                    <span class="ident">async_op_poll_span</span>,
-                    <span class="ident">resource_span</span>: <span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>async_op&lt;P,F&gt;(inner: P, resource_span: tracing::Span, source: <span class="kw-2">&amp;</span>str, poll_op_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, inherits_child_attrs: bool) -&gt; InstrumentedAsyncOp&lt;F&gt;
+        <span class="kw">where </span>P: FnOnce() -&gt; F {
+            resource_span.in_scope(|| {
+                <span class="kw">let </span>async_op_span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, source = source, inherits_child_attrs = inherits_child_attrs);
+                <span class="kw">let </span>enter = async_op_span.enter();
+                <span class="kw">let </span>async_op_poll_span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op.poll&quot;</span>);
+                <span class="kw">let </span>inner = inner();
+                drop(enter);
+                <span class="kw">let </span>tracing_ctx = AsyncOpTracingCtx {
+                    async_op_span,
+                    async_op_poll_span,
+                    resource_span: resource_span.clone(),
                 };
-                <span class="ident">InstrumentedAsyncOp</span> {
-                    <span class="ident">inner</span>,
-                    <span class="ident">tracing_ctx</span>,
-                    <span class="ident">poll_op_name</span>,
+                InstrumentedAsyncOp {
+                    inner,
+                    tracing_ctx,
+                    poll_op_name,
                 }
             })
         }
 
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AsyncOpTracingCtx</span> {
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async_op_span</span>: <span class="ident">tracing::Span</span>,
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async_op_poll_span</span>: <span class="ident">tracing::Span</span>,
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
+        <span class="attribute">#[derive(Debug, Clone)]
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AsyncOpTracingCtx {
+            <span class="kw">pub</span>(<span class="kw">crate</span>) async_op_span: tracing::Span,
+            <span class="kw">pub</span>(<span class="kw">crate</span>) async_op_poll_span: tracing::Span,
+            <span class="kw">pub</span>(<span class="kw">crate</span>) resource_span: tracing::Span,
         }
 
 
-        <span class="macro">pin_project!</span> {
-            <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">InstrumentedAsyncOp</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-                <span class="attribute">#[<span class="ident">pin</span>]</span>
-                <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">inner</span>: <span class="ident">F</span>,
-                <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">tracing_ctx</span>: <span class="ident">AsyncOpTracingCtx</span>,
-                <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">poll_op_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>
+        <span class="macro">pin_project! </span>{
+            <span class="attribute">#[derive(Debug, Clone)]
+            </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>InstrumentedAsyncOp&lt;F&gt; {
+                <span class="attribute">#[pin]
+                </span><span class="kw">pub</span>(<span class="kw">crate</span>) inner: F,
+                <span class="kw">pub</span>(<span class="kw">crate</span>) tracing_ctx: AsyncOpTracingCtx,
+                <span class="kw">pub</span>(<span class="kw">crate</span>) poll_op_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str
             }
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Future</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">InstrumentedAsyncOp</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">F::Output</span>;
+        <span class="kw">impl</span>&lt;F: Future&gt; Future <span class="kw">for </span>InstrumentedAsyncOp&lt;F&gt; {
+            <span class="kw">type </span>Output = F::Output;
 
-            <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
-                <span class="kw">let</span> <span class="ident">poll_op_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">poll_op_name</span>;
-                <span class="kw">let</span> <span class="ident">_res_enter</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">tracing_ctx</span>.<span class="ident">resource_span</span>.<span class="ident">enter</span>();
-                <span class="kw">let</span> <span class="ident">_async_op_enter</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">tracing_ctx</span>.<span class="ident">async_op_span</span>.<span class="ident">enter</span>();
-                <span class="kw">let</span> <span class="ident">_async_op_poll_enter</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">tracing_ctx</span>.<span class="ident">async_op_poll_span</span>.<span class="ident">enter</span>();
-                <span class="macro">trace_poll_op!</span>(<span class="ident">poll_op_name</span>, <span class="ident">this</span>.<span class="ident">inner</span>.<span class="ident">poll</span>(<span class="ident">cx</span>))
+            <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+                <span class="kw">let </span>this = <span class="self">self</span>.project();
+                <span class="kw">let </span>poll_op_name = <span class="kw-2">&amp;*</span>this.poll_op_name;
+                <span class="kw">let </span>_res_enter = this.tracing_ctx.resource_span.enter();
+                <span class="kw">let </span>_async_op_enter = this.tracing_ctx.async_op_span.enter();
+                <span class="kw">let </span>_async_op_poll_enter = this.tracing_ctx.async_op_poll_span.enter();
+                <span class="macro">trace_poll_op!</span>(poll_op_name, this.inner.poll(cx))
             }
         }
     }
 }
-<span class="macro">cfg_time!</span> {
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">caller_location</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">std::panic::Location</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">std::panic::Location::caller</span>());
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="prelude-val">None</span>
-    }
+<span class="macro">cfg_time! </span>{
+    <span class="attribute">#[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>caller_location() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::panic::Location&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">return </span><span class="prelude-val">Some</span>(std::panic::Location::caller());
+        <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="prelude-val">None
+    </span>}
 }
 
-<span class="macro">cfg_not_trace!</span> {
-    <span class="macro">cfg_rt!</span> {
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">task</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">task</span>: <span class="ident">F</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>, <span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">F</span> {
-            <span class="comment">// nop</span>
-            <a class="ident" href="../../../src/tokio/util/trace.rs.html#95">task</a>
+<span class="macro">cfg_not_trace! </span>{
+    <span class="macro">cfg_rt! </span>{
+        <span class="attribute">#[inline]
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>task&lt;F&gt;(task: F, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, _name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; F {
+            <span class="comment">// nop
+            </span><a href="../../../src/tokio/util/trace.rs.html#95">task</a>
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

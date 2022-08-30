@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/select_all.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select_all.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/select_all.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select_all.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -252,259 +252,259 @@
 <span id="252">252</span>
 <span id="253">253</span>
 <span id="254">254</span>
-</pre><pre class="rust"><code><span class="doccomment">//! An unbounded set of streams</span>
+</pre><pre class="rust"><code><span class="doccomment">//! An unbounded set of streams
 
-<span class="kw">use</span> <span class="ident">core::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+</span><span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span>futures_core::stream::{<a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/mod.rs.html#138-140"><span class="kw">super</span>::assert_stream</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stream</span>::{<a class="ident" href="../../../src/futures_util/stream/mod.rs.html#112">futures_unordered</a>, <a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#54">FuturesUnordered</a>, <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>, <a class="ident" href="../../../src/futures_util/stream/stream/into_future.rs.html#11">StreamFuture</a>};
+<span class="kw">use </span><a href="../../../src/futures_util/stream/mod.rs.html#138-140"><span class="kw">super</span>::assert_stream</a>;
+<span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../../../src/futures_util/stream/mod.rs.html#112">futures_unordered</a>, <a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#54">FuturesUnordered</a>, <a href="../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>, <a href="../../../src/futures_util/stream/stream/into_future.rs.html#11">StreamFuture</a>};
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// An unbounded set of streams</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This &quot;combinator&quot; provides the ability to maintain a set of streams</span>
-    <span class="doccomment">/// and drive them all to completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Streams are pushed into this set and their realized values are</span>
-    <span class="doccomment">/// yielded as they become ready. Streams will only be polled when they</span>
-    <span class="doccomment">/// generate notifications. This allows to coordinate a large number of streams.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that you can create a ready-made `SelectAll` via the</span>
-    <span class="doccomment">/// `select_all` function in the `stream` module, or you can start with an</span>
-    <span class="doccomment">/// empty set with the `SelectAll::new` constructor.</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">inner</span>: <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">StreamFuture</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// An unbounded set of streams
+    ///
+    /// This &quot;combinator&quot; provides the ability to maintain a set of streams
+    /// and drive them all to completion.
+    ///
+    /// Streams are pushed into this set and their realized values are
+    /// yielded as they become ready. Streams will only be polled when they
+    /// generate notifications. This allows to coordinate a large number of streams.
+    ///
+    /// Note that you can create a ready-made `SelectAll` via the
+    /// `select_all` function in the `stream` module, or you can start with an
+    /// empty set with the `SelectAll::new` constructor.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>SelectAll&lt;St&gt; {
+        <span class="attribute">#[pin]
+        </span>inner: FuturesUnordered&lt;StreamFuture&lt;St&gt;&gt;,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#37">f</a>, <span class="string">&quot;SelectAll {{ ... }}&quot;</span>)
+<span class="kw">impl</span>&lt;St: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>SelectAll&lt;St&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_util/stream/select_all.rs.html#37">f</a>, <span class="string">&quot;SelectAll {{ ... }}&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs a new, empty `SelectAll`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned `SelectAll` does not contain any streams and, in this</span>
-    <span class="doccomment">/// state, `SelectAll::poll` will return `Poll::Ready(None)`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">FuturesUnordered::new</span>() }
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; SelectAll&lt;St&gt; {
+    <span class="doccomment">/// Constructs a new, empty `SelectAll`
+    ///
+    /// The returned `SelectAll` does not contain any streams and, in this
+    /// state, `SelectAll::poll` will return `Poll::Ready(None)`.
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ inner: FuturesUnordered::new() }
     }
 
-    <span class="doccomment">/// Returns the number of streams contained in the set.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This represents the total number of in-flight streams.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#54">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">len</a>()
+    <span class="doccomment">/// Returns the number of streams contained in the set.
+    ///
+    /// This represents the total number of in-flight streams.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#54">self</a>.inner.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">len</a>()
     }
 
-    <span class="doccomment">/// Returns `true` if the set contains no streams</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#59">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>()
+    <span class="doccomment">/// Returns `true` if the set contains no streams
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#59">self</a>.inner.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>()
     }
 
-    <span class="doccomment">/// Push a stream into the set.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function submits the given stream to the set for managing. This</span>
-    <span class="doccomment">/// function will not call `poll` on the submitted stream. The caller must</span>
-    <span class="doccomment">/// ensure that `SelectAll::poll` is called in order to receive task</span>
-    <span class="doccomment">/// notifications.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stream</span>: <span class="ident">St</span>) {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#69">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#69">stream</a>.<a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#308-310">into_future</a>());
+    <span class="doccomment">/// Push a stream into the set.
+    ///
+    /// This function submits the given stream to the set for managing. This
+    /// function will not call `poll` on the submitted stream. The caller must
+    /// ensure that `SelectAll::poll` is called in order to receive task
+    /// notifications.
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stream: St) {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#69">self</a>.inner.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a href="../../../src/futures_util/stream/select_all.rs.html#69">stream</a>.<a href="../../../src/futures_util/stream/stream/mod.rs.html#308-310">into_future</a>());
     }
 
-    <span class="doccomment">/// Returns an iterator that allows inspecting each stream in the set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">St</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#192">Iter</a>(<a class="self" href="../../../src/futures_util/stream/select_all.rs.html#74">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#191-193">iter</a>())
+    <span class="doccomment">/// Returns an iterator that allows inspecting each stream in the set.
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, St&gt; {
+        <a href="../../../src/futures_util/stream/select_all.rs.html#192">Iter</a>(<a class="self" href="../../../src/futures_util/stream/select_all.rs.html#74">self</a>.inner.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#191-193">iter</a>())
     }
 
-    <span class="doccomment">/// Returns an iterator that allows modifying each stream in the set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">St</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#196">IterMut</a>(<a class="self" href="../../../src/futures_util/stream/select_all.rs.html#79">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#207-209">iter_mut</a>())
+    <span class="doccomment">/// Returns an iterator that allows modifying each stream in the set.
+    </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;_</span>, St&gt; {
+        <a href="../../../src/futures_util/stream/select_all.rs.html#196">IterMut</a>(<a class="self" href="../../../src/futures_util/stream/select_all.rs.html#79">self</a>.inner.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#207-209">iter_mut</a>())
     }
 
-    <span class="doccomment">/// Clears the set, removing all streams.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#84">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#556">clear</a>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+    <span class="doccomment">/// Clears the set, removing all streams.
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#84">self</a>.inner.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#556">clear</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">St::Item</span>;
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>SelectAll&lt;St&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
+}
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_next_unpin</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Some</span>((<span class="prelude-val">Some</span>(<span class="ident">item</span>), <span class="ident">remaining</span>)) =&gt; {
-                    <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#98">self</a>.<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#69">push</a>(<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#101">remaining</a>);
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#101">item</a>));
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>SelectAll&lt;St&gt; {
+    <span class="kw">type </span>Item = St::Item;
+
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.inner.poll_next_unpin(cx)) {
+                <span class="prelude-val">Some</span>((<span class="prelude-val">Some</span>(item), remaining)) =&gt; {
+                    <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#98">self</a>.<a href="../../../src/futures_util/stream/select_all.rs.html#69">push</a>(<a href="../../../src/futures_util/stream/select_all.rs.html#101">remaining</a>);
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/futures_util/stream/select_all.rs.html#101">item</a>));
                 }
                 <span class="prelude-val">Some</span>((<span class="prelude-val">None</span>, <span class="kw">_</span>)) =&gt; {
-                    <span class="comment">// `FuturesUnordered` thinks it isn&#39;t terminated</span>
-                    <span class="comment">// because it yielded a Some.</span>
-                    <span class="comment">// We do not return, but poll `FuturesUnordered`</span>
-                    <span class="comment">// in the next loop iteration.</span>
-                }
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+                    <span class="comment">// `FuturesUnordered` thinks it isn&#39;t terminated
+                    // because it yielded a Some.
+                    // We do not return, but poll `FuturesUnordered`
+                    // in the next loop iteration.
+                </span>}
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>),
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#118">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>SelectAll&lt;St&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#118">self</a>.inner.<a href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
     }
 }
 
-<span class="doccomment">/// Convert a list of streams into a `Stream` of results from the streams.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This essentially takes a list of streams (e.g. a vector, an iterator, etc.)</span>
-<span class="doccomment">/// and bundles them together into a single stream.</span>
-<span class="doccomment">/// The stream will yield items as they become available on the underlying</span>
-<span class="doccomment">/// streams internally, in the order they become available.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that the returned set can also be used to dynamically push more</span>
-<span class="doccomment">/// streams into the set as they become available.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is only available when the `std` or `alloc` feature of this</span>
-<span class="doccomment">/// library is activated, and it is activated by default.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_all</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">streams</span>: <span class="ident">I</span>) -&gt; <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    <span class="ident">I::Item</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="doccomment">/// Convert a list of streams into a `Stream` of results from the streams.
+///
+/// This essentially takes a list of streams (e.g. a vector, an iterator, etc.)
+/// and bundles them together into a single stream.
+/// The stream will yield items as they become available on the underlying
+/// streams internally, in the order they become available.
+///
+/// Note that the returned set can also be used to dynamically push more
+/// streams into the set as they become available.
+///
+/// This function is only available when the `std` or `alloc` feature of this
+/// library is activated, and it is activated by default.
+</span><span class="kw">pub fn </span>select_all&lt;I&gt;(streams: I) -&gt; SelectAll&lt;I::Item&gt;
+<span class="kw">where
+    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
+    I::Item: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">SelectAll::new</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>set = SelectAll::new();
 
-    <span class="kw">for</span> <span class="ident">stream</span> <span class="kw">in</span> <span class="ident">streams</span> {
-        <span class="ident">set</span>.<span class="ident">push</span>(<span class="ident">stream</span>);
+    <span class="kw">for </span>stream <span class="kw">in </span>streams {
+        set.push(stream);
     }
 
-    <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">I::Item</span> <span class="kw">as</span> <span class="ident">Stream</span><span class="op">&gt;</span><span class="ident">::Item</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#140">set</a>)
+    assert_stream::&lt;&lt;I::Item <span class="kw">as </span>Stream&gt;::Item, <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/stream/select_all.rs.html#140">set</a>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">St</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#135-138">select_all</a>(<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#150">iter</a>)
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; FromIterator&lt;St&gt; <span class="kw">for </span>SelectAll&lt;St&gt; {
+    <span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = St&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/futures_util/stream/select_all.rs.html#135-138">select_all</a>(<a href="../../../src/futures_util/stream/select_all.rs.html#150">iter</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">St</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">T</span>) {
-        <span class="kw">for</span> <span class="ident">st</span> <span class="kw">in</span> <span class="ident">iter</span> {
-            <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">st</span>)
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; Extend&lt;St&gt; <span class="kw">for </span>SelectAll&lt;St&gt; {
+    <span class="kw">fn </span>extend&lt;T: IntoIterator&lt;Item = St&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: T) {
+        <span class="kw">for </span>st <span class="kw">in </span>iter {
+            <span class="self">self</span>.push(st)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">St</span>;
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>SelectAll&lt;St&gt; {
+    <span class="kw">type </span>Item = St;
+    <span class="kw">type </span>IntoIter = IntoIter&lt;St&gt;;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#200">IntoIter</a>(<a class="self" href="../../../src/futures_util/stream/select_all.rs.html#167">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>())
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
+        <a href="../../../src/futures_util/stream/select_all.rs.html#200">IntoIter</a>(<a class="self" href="../../../src/futures_util/stream/select_all.rs.html#167">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">St</span>;
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SelectAll&lt;St&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>St;
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, St&gt;;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#176">self</a>.<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#74">iter</a>()
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#176">self</a>.<a href="../../../src/futures_util/stream/select_all.rs.html#74">iter</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">SelectAll</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">St</span>;
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>SelectAll&lt;St&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>St;
+    <span class="kw">type </span>IntoIter = IterMut&lt;<span class="lifetime">&#39;a</span>, St&gt;;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#185">self</a>.<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#79">iter_mut</a>()
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#185">self</a>.<a href="../../../src/futures_util/stream/select_all.rs.html#79">iter_mut</a>()
     }
 }
 
-<span class="doccomment">/// Immutable iterator over all streams in the unordered set.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span>(<span class="ident">futures_unordered::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">StreamFuture</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Immutable iterator over all streams in the unordered set.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, St: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt;(futures_unordered::Iter&lt;<span class="lifetime">&#39;a</span>, StreamFuture&lt;St&gt;&gt;);
 
-<span class="doccomment">/// Mutable iterator over all streams in the unordered set.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span>(<span class="ident">futures_unordered::IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">StreamFuture</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Mutable iterator over all streams in the unordered set.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">&#39;a</span>, St: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt;(futures_unordered::IterMut&lt;<span class="lifetime">&#39;a</span>, StreamFuture&lt;St&gt;&gt;);
 
-<span class="doccomment">/// Owned iterator over all streams in the unordered set.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span>(<span class="ident">futures_unordered::IntoIter</span><span class="op">&lt;</span><span class="ident">StreamFuture</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Owned iterator over all streams in the unordered set.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>IntoIter&lt;St: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt;(futures_unordered::IntoIter&lt;StreamFuture&lt;St&gt;&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">St</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, St&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>St;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">st</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#206">st</a>.<a class="ident" href="../../../src/futures_util/stream/stream/into_future.rs.html#27">get_ref</a>();
-        <span class="comment">// This should always be true because FuturesUnordered removes completed futures.</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">next</span>.<span class="ident">is_some</span>());
-        <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#207">next</a>
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>st = <span class="self">self</span>.<span class="number">0</span>.next()<span class="question-mark">?</span>;
+        <span class="kw">let </span>next = <a href="../../../src/futures_util/stream/select_all.rs.html#206">st</a>.<a href="../../../src/futures_util/stream/stream/into_future.rs.html#27">get_ref</a>();
+        <span class="comment">// This should always be true because FuturesUnordered removes completed futures.
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(next.is_some());
+        <a href="../../../src/futures_util/stream/select_all.rs.html#207">next</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#213">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">St</span><span class="op">&gt;</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">St</span>;
-
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">st</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#224">st</a>.<a class="ident" href="../../../src/futures_util/stream/stream/into_future.rs.html#41">get_mut</a>();
-        <span class="comment">// This should always be true because FuturesUnordered removes completed futures.</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">next</span>.<span class="ident">is_some</span>());
-        <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#225">next</a>
-    }
-
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#231">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#213">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">St</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, St&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">St</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, St&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>St;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">st</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#242">st</a>.<a class="ident" href="../../../src/futures_util/stream/stream/into_future.rs.html#68">into_inner</a>();
-        <span class="comment">// This should always be true because FuturesUnordered removes completed futures.</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">next</span>.<span class="ident">is_some</span>());
-        <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#243">next</a>
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>st = <span class="self">self</span>.<span class="number">0</span>.next()<span class="question-mark">?</span>;
+        <span class="kw">let </span>next = <a href="../../../src/futures_util/stream/select_all.rs.html#224">st</a>.<a href="../../../src/futures_util/stream/stream/into_future.rs.html#41">get_mut</a>();
+        <span class="comment">// This should always be true because FuturesUnordered removes completed futures.
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(next.is_some());
+        <a href="../../../src/futures_util/stream/select_all.rs.html#225">next</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#249">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#231">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;_</span>, St&gt; {}
+
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IntoIter&lt;St&gt; {
+    <span class="kw">type </span>Item = St;
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>st = <span class="self">self</span>.<span class="number">0</span>.next()<span class="question-mark">?</span>;
+        <span class="kw">let </span>next = <a href="../../../src/futures_util/stream/select_all.rs.html#242">st</a>.<a href="../../../src/futures_util/stream/stream/into_future.rs.html#68">into_inner</a>();
+        <span class="comment">// This should always be true because FuturesUnordered removes completed futures.
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(next.is_some());
+        <a href="../../../src/futures_util/stream/select_all.rs.html#243">next</a>
+    }
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <a class="self" href="../../../src/futures_util/stream/select_all.rs.html#249">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    }
+}
+
+<span class="kw">impl</span>&lt;St: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IntoIter&lt;St&gt; {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

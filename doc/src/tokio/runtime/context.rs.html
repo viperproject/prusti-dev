@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -110,117 +110,117 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Thread local runtime context</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime</span>::{<a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>, <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#433">TryCurrentError</a>};
+</pre><pre class="rust"><code><span class="doccomment">//! Thread local runtime context
+</span><span class="kw">use </span><span class="kw">crate</span>::runtime::{<a href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>, <a href="../../../src/tokio/runtime/handle.rs.html#433">TryCurrentError</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
 
-<a class="macro" href="../../../src/tokio/macros/thread_local.rs.html#15-17">thread_local!</a> {
-    <span class="kw">static</span> <span class="ident">CONTEXT</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">const</span> { <span class="ident">RefCell::new</span>(<span class="prelude-val">None</span>) }
+<a class="macro" href="../../../src/tokio/macros/thread_local.rs.html#15-17">thread_local! </a>{
+    <span class="kw">static </span>CONTEXT: RefCell&lt;<span class="prelude-ty">Option</span>&lt;Handle&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_current</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>, <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#433"><span class="kw">crate</span>::runtime::TryCurrentError</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#11">ctx</a>.<span class="ident">borrow</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">handle</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/runtime/context.rs.html#12">handle</a>),
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">TryCurrentError::new_no_context</span>()),
-        <span class="prelude-val">Err</span>(<span class="ident">_access_error</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">TryCurrentError::new_thread_local_destroyed</span>()),
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_current() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>, <a href="../../../src/tokio/runtime/handle.rs.html#433"><span class="kw">crate</span>::runtime::TryCurrentError</a>&gt; {
+    <span class="kw">match </span><a href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.try_with(|ctx| <a href="../../../src/tokio/runtime/context.rs.html#11">ctx</a>.borrow().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(handle)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/runtime/context.rs.html#12">handle</a>),
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(TryCurrentError::new_no_context()),
+        <span class="prelude-val">Err</span>(_access_error) =&gt; <span class="prelude-val">Err</span>(TryCurrentError::new_thread_local_destroyed()),
     }
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">current</span>() -&gt; <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#10">try_current</a>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">handle</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/context.rs.html#21">handle</a>,
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
+<span class="attribute">#[track_caller]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current() -&gt; <a href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a> {
+    <span class="kw">match </span><a href="../../../src/tokio/runtime/context.rs.html#10">try_current</a>() {
+        <span class="prelude-val">Ok</span>(handle) =&gt; <a href="../../../src/tokio/runtime/context.rs.html#21">handle</a>,
+        <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, e),
     }
 }
 
-<span class="macro">cfg_io_driver!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">io_handle</span>() -&gt; <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#13"><span class="kw">crate</span>::runtime::driver::IoHandle</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#28">ctx</a>.<span class="ident">borrow</span>();
-            <a class="ident" href="../../../src/tokio/runtime/context.rs.html#29">ctx</a>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<a class="ident" href="../../../src/tokio/util/error.rs.html#2"><span class="kw">crate</span>::util::error::CONTEXT_MISSING_ERROR</a>).<a class="ident" href="../../../src/tokio/runtime/handle.rs.html#210">as_inner</a>().<span class="ident">io_handle</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+<span class="macro">cfg_io_driver! </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>io_handle() -&gt; <a href="../../../src/tokio/runtime/driver.rs.html#13"><span class="kw">crate</span>::runtime::driver::IoHandle</a> {
+        <span class="kw">match </span><a href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.try_with(|ctx| {
+            <span class="kw">let </span>ctx = <a href="../../../src/tokio/runtime/context.rs.html#28">ctx</a>.borrow();
+            <a href="../../../src/tokio/runtime/context.rs.html#29">ctx</a>.as_ref().expect(<a href="../../../src/tokio/util/error.rs.html#2"><span class="kw">crate</span>::util::error::CONTEXT_MISSING_ERROR</a>).<a href="../../../src/tokio/runtime/handle.rs.html#210">as_inner</a>().io_handle.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }) {
-            <span class="prelude-val">Ok</span>(<span class="ident">io_handle</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/context.rs.html#32">io_handle</a>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="ident"><span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR</span>),
+            <span class="prelude-val">Ok</span>(io_handle) =&gt; <a href="../../../src/tokio/runtime/context.rs.html#32">io_handle</a>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR),
         }
     }
 }
 
-<span class="macro">cfg_signal_internal!</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">signal_handle</span>() -&gt; <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#57"><span class="kw">crate</span>::runtime::driver::SignalHandle</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#41">ctx</a>.<span class="ident">borrow</span>();
-            <a class="ident" href="../../../src/tokio/runtime/context.rs.html#42">ctx</a>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<a class="ident" href="../../../src/tokio/util/error.rs.html#2"><span class="kw">crate</span>::util::error::CONTEXT_MISSING_ERROR</a>).<a class="ident" href="../../../src/tokio/runtime/handle.rs.html#210">as_inner</a>().<span class="ident">signal_handle</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+<span class="macro">cfg_signal_internal! </span>{
+    <span class="attribute">#[cfg(unix)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>signal_handle() -&gt; <a href="../../../src/tokio/runtime/driver.rs.html#57"><span class="kw">crate</span>::runtime::driver::SignalHandle</a> {
+        <span class="kw">match </span><a href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.try_with(|ctx| {
+            <span class="kw">let </span>ctx = <a href="../../../src/tokio/runtime/context.rs.html#41">ctx</a>.borrow();
+            <a href="../../../src/tokio/runtime/context.rs.html#42">ctx</a>.as_ref().expect(<a href="../../../src/tokio/util/error.rs.html#2"><span class="kw">crate</span>::util::error::CONTEXT_MISSING_ERROR</a>).<a href="../../../src/tokio/runtime/handle.rs.html#210">as_inner</a>().signal_handle.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }) {
-            <span class="prelude-val">Ok</span>(<span class="ident">signal_handle</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/context.rs.html#45">signal_handle</a>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="ident"><span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR</span>),
+            <span class="prelude-val">Ok</span>(signal_handle) =&gt; <a href="../../../src/tokio/runtime/context.rs.html#45">signal_handle</a>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR),
         }
     }
 }
 
-<span class="macro">cfg_time!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">time_handle</span>() -&gt; <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#104"><span class="kw">crate</span>::runtime::driver::TimeHandle</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#53">ctx</a>.<span class="ident">borrow</span>();
-            <a class="ident" href="../../../src/tokio/runtime/context.rs.html#54">ctx</a>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<a class="ident" href="../../../src/tokio/util/error.rs.html#2"><span class="kw">crate</span>::util::error::CONTEXT_MISSING_ERROR</a>).<a class="ident" href="../../../src/tokio/runtime/handle.rs.html#210">as_inner</a>().<span class="ident">time_handle</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+<span class="macro">cfg_time! </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_handle() -&gt; <a href="../../../src/tokio/runtime/driver.rs.html#104"><span class="kw">crate</span>::runtime::driver::TimeHandle</a> {
+        <span class="kw">match </span><a href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.try_with(|ctx| {
+            <span class="kw">let </span>ctx = <a href="../../../src/tokio/runtime/context.rs.html#53">ctx</a>.borrow();
+            <a href="../../../src/tokio/runtime/context.rs.html#54">ctx</a>.as_ref().expect(<a href="../../../src/tokio/util/error.rs.html#2"><span class="kw">crate</span>::util::error::CONTEXT_MISSING_ERROR</a>).<a href="../../../src/tokio/runtime/handle.rs.html#210">as_inner</a>().time_handle.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }) {
-            <span class="prelude-val">Ok</span>(<span class="ident">time_handle</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/context.rs.html#57">time_handle</a>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="ident"><span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR</span>),
+            <span class="prelude-val">Ok</span>(time_handle) =&gt; <a href="../../../src/tokio/runtime/context.rs.html#57">time_handle</a>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR),
         }
     }
 
-    <span class="macro">cfg_test_util!</span> {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clock</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::runtime::driver::Clock</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <span class="ident">CONTEXT</span>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">ctx</span>.<span class="ident">borrow</span>()).<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">as_inner</span>().<span class="ident">clock</span>.<span class="ident">clone</span>())) {
-                <span class="prelude-val">Ok</span>(<span class="ident">clock</span>) =&gt; <span class="ident">clock</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident"><span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR</span>),
+    <span class="macro">cfg_test_util! </span>{
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clock() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::runtime::driver::Clock&gt; {
+            <span class="kw">match </span>CONTEXT.try_with(|ctx| (<span class="kw-2">*</span>ctx.borrow()).as_ref().map(|ctx| ctx.as_inner().clock.clone())) {
+                <span class="prelude-val">Ok</span>(clock) =&gt; clock,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR),
             }
         }
     }
 }
 
-<span class="macro">cfg_rt!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">spawn_handle</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#11"><span class="kw">crate</span>::runtime::Spawner</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/runtime/context.rs.html#74">ctx</a>.<span class="ident">borrow</span>()).<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#74">ctx</a>.<span class="ident">spawner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())) {
-            <span class="prelude-val">Ok</span>(<span class="ident">spawner</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/context.rs.html#75">spawner</a>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="ident"><span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR</span>),
+<span class="macro">cfg_rt! </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn_handle() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/runtime/spawner.rs.html#11"><span class="kw">crate</span>::runtime::Spawner</a>&gt; {
+        <span class="kw">match </span><a href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.try_with(|ctx| (<span class="kw-2">*</span><a href="../../../src/tokio/runtime/context.rs.html#74">ctx</a>.borrow()).as_ref().map(|ctx| <a href="../../../src/tokio/runtime/context.rs.html#74">ctx</a>.spawner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())) {
+            <span class="prelude-val">Ok</span>(spawner) =&gt; <a href="../../../src/tokio/runtime/context.rs.html#75">spawner</a>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR),
         }
     }
 }
 
-<span class="doccomment">/// Sets this [`Handle`] as the current active [`Handle`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Handle`]: Handle</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">enter</span>(<span class="ident">new</span>: <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>) -&gt; <a class="ident" href="../../../src/tokio/runtime/context.rs.html#104">EnterGuard</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#94">try_enter</a>(<a class="ident" href="../../../src/tokio/runtime/context.rs.html#84">new</a>) {
-        <span class="prelude-val">Some</span>(<span class="ident">guard</span>) =&gt; <a class="ident" href="../../../src/tokio/runtime/context.rs.html#86">guard</a>,
-        <span class="prelude-val">None</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="ident"><span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR</span>),
+<span class="doccomment">/// Sets this [`Handle`] as the current active [`Handle`].
+///
+/// [`Handle`]: Handle
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enter(new: <a href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>) -&gt; <a href="../../../src/tokio/runtime/context.rs.html#104">EnterGuard</a> {
+    <span class="kw">match </span><a href="../../../src/tokio/runtime/context.rs.html#94">try_enter</a>(<a href="../../../src/tokio/runtime/context.rs.html#84">new</a>) {
+        <span class="prelude-val">Some</span>(guard) =&gt; <a href="../../../src/tokio/runtime/context.rs.html#86">guard</a>,
+        <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span>::util::error::THREAD_LOCAL_DESTROYED_ERROR),
     }
 }
 
-<span class="doccomment">/// Sets this [`Handle`] as the current active [`Handle`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Handle`]: Handle</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_enter</span>(<span class="ident">new</span>: <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/context.rs.html#104">EnterGuard</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>
-        .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#96">ctx</a>.<span class="ident">borrow_mut</span>().<span class="ident">replace</span>(<a class="ident" href="../../../src/tokio/runtime/context.rs.html#94">new</a>);
-            <a class="ident" href="../../../src/tokio/runtime/context.rs.html#104">EnterGuard</a>(<a class="ident" href="../../../src/tokio/runtime/context.rs.html#97">old</a>)
+<span class="doccomment">/// Sets this [`Handle`] as the current active [`Handle`].
+///
+/// [`Handle`]: Handle
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_enter(new: <a href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/runtime/context.rs.html#104">EnterGuard</a>&gt; {
+    <a href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>
+        .try_with(|ctx| {
+            <span class="kw">let </span>old = <a href="../../../src/tokio/runtime/context.rs.html#96">ctx</a>.borrow_mut().replace(<a href="../../../src/tokio/runtime/context.rs.html#94">new</a>);
+            <a href="../../../src/tokio/runtime/context.rs.html#104">EnterGuard</a>(<a href="../../../src/tokio/runtime/context.rs.html#97">old</a>)
         })
-        .<span class="ident">ok</span>()
+        .ok()
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">EnterGuard</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a><span class="op">&gt;</span>);
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EnterGuard(<span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/runtime/handle.rs.html#17">Handle</a>&gt;);
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#104">EnterGuard</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="ident" href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/runtime/context.rs.html#108">ctx</a>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/context.rs.html#107">self</a>.<span class="number">0</span>.<span class="ident">take</span>();
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/tokio/runtime/context.rs.html#104">EnterGuard</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a href="../../../src/tokio/runtime/context.rs.html#6-8">CONTEXT</a>.with(|ctx| {
+            <span class="kw-2">*</span><a href="../../../src/tokio/runtime/context.rs.html#108">ctx</a>.borrow_mut() = <a class="self" href="../../../src/tokio/runtime/context.rs.html#107">self</a>.<span class="number">0</span>.take();
         });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

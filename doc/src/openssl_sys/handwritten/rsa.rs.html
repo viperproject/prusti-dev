@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/rsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/rsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -127,134 +127,134 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw-2">*</span>;
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">pad_mode</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_get_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">pad_mode</span>: <span class="kw-2">*mut</span> <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(ossl300)] </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>EVP_PKEY_CTX_set_rsa_padding(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX, pad_mode: c_int) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_PKEY_CTX_get_rsa_padding(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX, pad_mode: <span class="kw-2">*mut </span>c_int) -&gt; c_int;
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_pss_saltlen</span>(<span class="ident">ctx</span>: <span class="kw-2">*mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">len</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_mgf1_md</span>(<span class="ident">ctx</span>: <span class="kw-2">*mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">md</span>: <span class="kw-2">*const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub fn </span>EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX, len: c_int) -&gt; c_int;
+            <span class="kw">pub fn </span>EVP_PKEY_CTX_set_rsa_mgf1_md(ctx: <span class="kw-2">*mut </span>EVP_PKEY_CTX, md: <span class="kw-2">*const </span>EVP_MD) -&gt; c_int;
         }
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_size</span>(<span class="ident">k</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>RSA_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>;
+    <span class="kw">pub fn </span>RSA_size(k: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_set0_key</span>(
-        <span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>,
-        <span class="ident">n</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-        <span class="ident">e</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-        <span class="ident">d</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_set0_factors</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>, <span class="ident">p</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>, <span class="ident">q</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_set0_crt_params</span>(
-        <span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>,
-        <span class="ident">dmp1</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-        <span class="ident">dmq1</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-        <span class="ident">iqmp</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_get0_key</span>(
-        <span class="ident">r</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>,
-        <span class="ident">n</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-        <span class="ident">e</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-        <span class="ident">d</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>RSA_set0_key(
+        r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>,
+        n: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+        e: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+        d: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>RSA_set0_factors(r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>, p: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>, q: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>RSA_set0_crt_params(
+        r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>,
+        dmp1: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+        dmq1: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+        iqmp: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>RSA_get0_key(
+        r: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>,
+        n: <span class="kw-2">*mut *const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+        e: <span class="kw-2">*mut *const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+        d: <span class="kw-2">*mut *const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
     );
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_get0_factors</span>(<span class="ident">r</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>, <span class="ident">p</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>, <span class="ident">q</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>);
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_get0_crt_params</span>(
-        <span class="ident">r</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>,
-        <span class="ident">dmp1</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-        <span class="ident">dmq1</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
-        <span class="ident">iqmp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>RSA_get0_factors(r: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>, p: <span class="kw-2">*mut *const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>, q: <span class="kw-2">*mut *const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>);
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>RSA_get0_crt_params(
+        r: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>,
+        dmp1: <span class="kw-2">*mut *const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+        dmq1: <span class="kw-2">*mut *const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
+        iqmp: <span class="kw-2">*mut *const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">::BIGNUM</a>,
     );
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_generate_key</span>(
-        <span class="ident">modsz</span>: <span class="ident">c_int</span>,
-        <span class="ident">e</span>: <span class="ident">c_ulong</span>,
-        <span class="ident">cb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">c_int</span>, <span class="ident">c_int</span>, <span class="kw-2">*mut</span> <span class="ident">c_void</span>)<span class="op">&gt;</span>,
-        <span class="ident">cbarg</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-    ) -&gt; <span class="kw-2">*mut</span> <span class="ident">RSA</span>;
+    <span class="attribute">#[cfg(not(ossl110))]
+    </span><span class="kw">pub fn </span>RSA_generate_key(
+        modsz: c_int,
+        e: c_ulong,
+        cb: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(c_int, c_int, <span class="kw-2">*mut </span>c_void)&gt;,
+        cbarg: <span class="kw-2">*mut </span>c_void,
+    ) -&gt; <span class="kw-2">*mut </span>RSA;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_generate_key_ex</span>(
-        <span class="ident">rsa</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
-        <span class="ident">bits</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">e</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#44">BIGNUM</a>,
-        <span class="ident">cb</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#60">BN_GENCB</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_generate_key_ex(
+        rsa: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
+        bits: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        e: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#44">BIGNUM</a>,
+        cb: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#60">BN_GENCB</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_public_encrypt</span>(
-        <span class="ident">flen</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">from</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">to</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">k</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
-        <span class="ident">pad</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_private_encrypt</span>(
-        <span class="ident">flen</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">from</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">to</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">k</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
-        <span class="ident">pad</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_public_decrypt</span>(
-        <span class="ident">flen</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">from</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">to</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">k</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
-        <span class="ident">pad</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_private_decrypt</span>(
-        <span class="ident">flen</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">from</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">to</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">k</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
-        <span class="ident">pad</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_check_key</span>(<span class="ident">r</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_free</span>(<span class="ident">rsa</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_up_ref</span>(<span class="ident">rsa</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_public_encrypt(
+        flen: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        from: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        to: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        k: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
+        pad: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_private_encrypt(
+        flen: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        from: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        to: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        k: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
+        pad: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_public_decrypt(
+        flen: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        from: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        to: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        k: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
+        pad: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_private_decrypt(
+        flen: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        from: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        to: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        k: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
+        pad: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_check_key(r: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">::RSA</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_free(rsa: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>);
+    <span class="kw">pub fn </span>RSA_up_ref(rsa: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_RSAPublicKey</span>(<span class="ident">k</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_RSAPublicKey</span>(<span class="ident">k</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_RSAPrivateKey</span>(<span class="ident">k</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_RSAPrivateKey</span>(<span class="ident">k</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>;
+    <span class="kw">pub fn </span>i2d_RSAPublicKey(k: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>d2i_RSAPublicKey(k: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, buf: <span class="kw-2">*mut *const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, len: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>;
+    <span class="kw">pub fn </span>i2d_RSAPrivateKey(k: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>d2i_RSAPrivateKey(k: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, buf: <span class="kw-2">*mut *const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, len: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_sign</span>(
-        <span class="ident">t</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">m</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">mlen</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-        <span class="ident">sig</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">siglen</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-        <span class="ident">k</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_verify</span>(
-        <span class="ident">t</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">m</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">mlen</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-        <span class="ident">sig</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">siglen</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-        <span class="ident">k</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_sign(
+        t: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        m: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        mlen: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+        sig: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        siglen: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+        k: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_verify(
+        t: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        m: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        mlen: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+        sig: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        siglen: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+        k: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_padding_check_PKCS1_type_2</span>(
-        <span class="ident">to</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">tlen</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">f</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">fl</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">rsa_len</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>RSA_padding_check_PKCS1_type_2(
+        to: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        tlen: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        f: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        fl: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        rsa_len: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

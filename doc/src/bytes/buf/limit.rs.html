@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/limit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>limit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/limit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>limit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -73,80 +73,80 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22"><span class="kw">crate</span>::buf::UninitSlice</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29"><span class="kw">crate</span>::BufMut</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22"><span class="kw">crate</span>::buf::UninitSlice</a>;
+<span class="kw">use </span><a href="../../../src/bytes/buf/buf_mut.rs.html#29"><span class="kw">crate</span>::BufMut</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
 
-<span class="doccomment">/// A `BufMut` adapter which limits the amount of bytes that can be written</span>
-<span class="doccomment">/// to an underlying buffer.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Limit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">T</span>,
-    <span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// A `BufMut` adapter which limits the amount of bytes that can be written
+/// to an underlying buffer.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Limit&lt;T&gt; {
+    inner: T,
+    limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">inner</span>: <span class="ident">T</span>, <span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">Limit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/bytes/buf/limit.rs.html#9">Limit</a> { <a class="ident" href="../../../src/bytes/buf/limit.rs.html#14">inner</a>, <a class="ident" href="../../../src/bytes/buf/limit.rs.html#14">limit</a> }
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;T&gt;(inner: T, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Limit&lt;T&gt; {
+    <a href="../../../src/bytes/buf/limit.rs.html#9">Limit</a> { <a href="../../../src/bytes/buf/limit.rs.html#14">inner</a>, <a href="../../../src/bytes/buf/limit.rs.html#14">limit</a> }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Limit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Consumes this `Limit`, returning the underlying value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../../src/bytes/buf/limit.rs.html#20">self</a>.<span class="ident">inner</span>
+<span class="kw">impl</span>&lt;T&gt; Limit&lt;T&gt; {
+    <span class="doccomment">/// Consumes this `Limit`, returning the underlying value.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../../src/bytes/buf/limit.rs.html#20">self</a>.inner
     }
 
-    <span class="doccomment">/// Gets a reference to the underlying `BufMut`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is inadvisable to directly write to the underlying `BufMut`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/limit.rs.html#27">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Gets a reference to the underlying `BufMut`.
+    ///
+    /// It is inadvisable to directly write to the underlying `BufMut`.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/limit.rs.html#27">self</a>.inner
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the underlying `BufMut`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is inadvisable to directly write to the underlying `BufMut`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/bytes/buf/limit.rs.html#34">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Gets a mutable reference to the underlying `BufMut`.
+    ///
+    /// It is inadvisable to directly write to the underlying `BufMut`.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/bytes/buf/limit.rs.html#34">self</a>.inner
     }
 
-    <span class="doccomment">/// Returns the maximum number of bytes that can be written</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the inner `BufMut` has fewer bytes than indicated by this method then</span>
-    <span class="doccomment">/// that is the actual number of available bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">limit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/bytes/buf/limit.rs.html#44">self</a>.<span class="ident">limit</span>
+    <span class="doccomment">/// Returns the maximum number of bytes that can be written
+    ///
+    /// # Note
+    ///
+    /// If the inner `BufMut` has fewer bytes than indicated by this method then
+    /// that is the actual number of available bytes.
+    </span><span class="kw">pub fn </span>limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/bytes/buf/limit.rs.html#44">self</a>.limit
     }
 
-    <span class="doccomment">/// Sets the maximum number of bytes that can be written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the inner `BufMut` has fewer bytes than `lim` then that is the actual</span>
-    <span class="doccomment">/// number of available bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_limit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lim</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/bytes/buf/limit.rs.html#54">self</a>.<span class="ident">limit</span> <span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/limit.rs.html#54">lim</a>
+    <span class="doccomment">/// Sets the maximum number of bytes that can be written.
+    ///
+    /// # Note
+    ///
+    /// If the inner `BufMut` has fewer bytes than `lim` then that is the actual
+    /// number of available bytes.
+    </span><span class="kw">pub fn </span>set_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lim: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/bytes/buf/limit.rs.html#54">self</a>.limit = <a href="../../../src/bytes/buf/limit.rs.html#54">lim</a>
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a><span class="op">&gt;</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for</span> <span class="ident">Limit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">remaining_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="ident">cmp::min</span>(<a class="self" href="../../../src/bytes/buf/limit.rs.html#60">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>(), <a class="self" href="../../../src/bytes/buf/limit.rs.html#60">self</a>.<span class="ident">limit</span>)
+<span class="kw">unsafe impl</span>&lt;T: <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>&gt; <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for </span>Limit&lt;T&gt; {
+    <span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        cmp::min(<a class="self" href="../../../src/bytes/buf/limit.rs.html#60">self</a>.inner.<a href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>(), <a class="self" href="../../../src/bytes/buf/limit.rs.html#60">self</a>.limit)
     }
 
-    <span class="kw">fn</span> <span class="ident">chunk_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/limit.rs.html#64">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#175">chunk_mut</a>();
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../src/bytes/buf/limit.rs.html#65">bytes</a>.<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#167">len</a>(), <a class="self" href="../../../src/bytes/buf/limit.rs.html#64">self</a>.<span class="ident">limit</span>);
-        <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/bytes/buf/limit.rs.html#65">bytes</a>[..<a class="ident" href="../../../src/bytes/buf/limit.rs.html#66">end</a>]
+    <span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
+        <span class="kw">let </span>bytes = <a class="self" href="../../../src/bytes/buf/limit.rs.html#64">self</a>.inner.<a href="../../../src/bytes/buf/buf_mut.rs.html#175">chunk_mut</a>();
+        <span class="kw">let </span>end = cmp::min(<a href="../../../src/bytes/buf/limit.rs.html#65">bytes</a>.<a href="../../../src/bytes/buf/uninit_slice.rs.html#167">len</a>(), <a class="self" href="../../../src/bytes/buf/limit.rs.html#64">self</a>.limit);
+        <span class="kw-2">&amp;mut </span><a href="../../../src/bytes/buf/limit.rs.html#65">bytes</a>[..<a href="../../../src/bytes/buf/limit.rs.html#66">end</a>]
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">advance_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">cnt</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">limit</span>);
-        <a class="self" href="../../../src/bytes/buf/limit.rs.html#70">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a class="ident" href="../../../src/bytes/buf/limit.rs.html#70">cnt</a>);
-        <a class="self" href="../../../src/bytes/buf/limit.rs.html#70">self</a>.<span class="ident">limit</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/limit.rs.html#70">cnt</a>;
+    <span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cnt &lt;= <span class="self">self</span>.limit);
+        <a class="self" href="../../../src/bytes/buf/limit.rs.html#70">self</a>.inner.<a href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a href="../../../src/bytes/buf/limit.rs.html#70">cnt</a>);
+        <a class="self" href="../../../src/bytes/buf/limit.rs.html#70">self</a>.limit -= <a href="../../../src/bytes/buf/limit.rs.html#70">cnt</a>;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.21/src/executor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>executor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.24/src/executor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>executor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -53,60 +53,60 @@
 <span id="53">53</span>
 <span id="54">54</span>
 <span id="55">55</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">proc_macro::TokenStream</a>;
-<span class="kw">use</span> <a class="ident" href="../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use</span> <span class="ident">quote</span>::{<a class="ident" href="../../quote/macro.quote.html">quote</a>, <a class="ident" href="../../quote/macro.quote_spanned.html">quote_spanned</a>, <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">proc_macro::TokenStream</a>;
+<span class="kw">use </span><a href="../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
+<span class="kw">use </span>quote::{<a href="../../quote/macro.quote.html">quote</a>, <a href="../../quote/macro.quote_spanned.html">quote_spanned</a>, <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">args</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>, <span class="ident">item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="ident">syn::Error::new_spanned</span>(<span class="ident">proc_macro2::TokenStream::from</span>(<a class="ident" href="../../src/futures_macro/executor.rs.html#5">args</a>), <span class="string">&quot;invalid argument&quot;</span>)
-            .<span class="ident">to_compile_error</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>test(args: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>, item: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
+    <span class="kw">if </span>!args.is_empty() {
+        <span class="kw">return </span>syn::Error::new_spanned(proc_macro2::TokenStream::from(<a href="../../src/futures_macro/executor.rs.html#5">args</a>), <span class="string">&quot;invalid argument&quot;</span>)
+            .to_compile_error()
+            .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <a class="macro" href="../../syn/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(<span class="ident">item</span> <span class="kw">as</span> <span class="ident">syn::ItemFn</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>input = <a class="macro" href="../../syn/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(item <span class="kw">as </span>syn::ItemFn);
 
-    <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">sig</span>.<span class="ident">asyncness</span>.<span class="ident">take</span>().<span class="ident">is_none</span>() {
-        <span class="kw">return</span> <span class="ident">syn::Error::new_spanned</span>(<a class="ident" href="../../src/futures_macro/executor.rs.html#12">input</a>.<span class="ident">sig</span>.<span class="ident">fn_token</span>, <span class="string">&quot;Only async functions are supported&quot;</span>)
-            .<span class="ident">to_compile_error</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    <span class="kw">if </span>input.sig.asyncness.take().is_none() {
+        <span class="kw">return </span>syn::Error::new_spanned(<a href="../../src/futures_macro/executor.rs.html#12">input</a>.sig.fn_token, <span class="string">&quot;Only async functions are supported&quot;</span>)
+            .to_compile_error()
+            .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
     }
 
-    <span class="comment">// If type mismatch occurs, the current rustc points to the last statement.</span>
-    <span class="kw">let</span> (<span class="ident">last_stmt_start_span</span>, <span class="ident">last_stmt_end_span</span>) <span class="op">=</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_stmt</span> <span class="op">=</span> <a class="ident" href="../../src/futures_macro/executor.rs.html#12">input</a>
-            .<span class="ident">block</span>
-            .<span class="ident">stmts</span>
-            .<span class="ident">last</span>()
-            .<span class="ident">map</span>(<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens::into_token_stream</a>)
-            .<span class="ident">unwrap_or_default</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-        <span class="comment">// `Span` on stable Rust has a limitation that only points to the first</span>
-        <span class="comment">// token, not the whole tokens. We can work around this limitation by</span>
-        <span class="comment">// using the first/last span of the tokens like</span>
-        <span class="comment">// `syn::Error::new_spanned` does.</span>
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/futures_macro/executor.rs.html#22">last_stmt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map_or_else</span>(<span class="ident">Span::call_site</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> <a class="ident" href="../../src/futures_macro/executor.rs.html#33">t</a>.<span class="ident">span</span>());
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/futures_macro/executor.rs.html#22">last_stmt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>().<span class="ident">map_or</span>(<a class="ident" href="../../src/futures_macro/executor.rs.html#33">start</a>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> <a class="ident" href="../../src/futures_macro/executor.rs.html#34">t</a>.<span class="ident">span</span>());
-        (<a class="ident" href="../../src/futures_macro/executor.rs.html#33">start</a>, <a class="ident" href="../../src/futures_macro/executor.rs.html#34">end</a>)
+    <span class="comment">// If type mismatch occurs, the current rustc points to the last statement.
+    </span><span class="kw">let </span>(last_stmt_start_span, last_stmt_end_span) = {
+        <span class="kw">let </span><span class="kw-2">mut </span>last_stmt = <a href="../../src/futures_macro/executor.rs.html#12">input</a>
+            .block
+            .stmts
+            .last()
+            .map(<a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens::into_token_stream</a>)
+            .unwrap_or_default()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+        <span class="comment">// `Span` on stable Rust has a limitation that only points to the first
+        // token, not the whole tokens. We can work around this limitation by
+        // using the first/last span of the tokens like
+        // `syn::Error::new_spanned` does.
+        </span><span class="kw">let </span>start = <a href="../../src/futures_macro/executor.rs.html#22">last_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map_or_else(Span::call_site, |t| <a href="../../src/futures_macro/executor.rs.html#33">t</a>.span());
+        <span class="kw">let </span>end = <a href="../../src/futures_macro/executor.rs.html#22">last_stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>().map_or(<a href="../../src/futures_macro/executor.rs.html#33">start</a>, |t| <a href="../../src/futures_macro/executor.rs.html#34">t</a>.span());
+        (<a href="../../src/futures_macro/executor.rs.html#33">start</a>, <a href="../../src/futures_macro/executor.rs.html#34">end</a>)
     };
 
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a> {<span class="ident">last_stmt_start_span</span>=&gt;
-        <span class="ident">::futures_test::__private</span>
+    <span class="kw">let </span>path = <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned! </a>{last_stmt_start_span=&gt;
+        ::futures_test::__private
     };
-    <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_macro/executor.rs.html#12">input</a>.<span class="ident">block</span>;
-    <a class="ident" href="../../src/futures_macro/executor.rs.html#12">input</a>.<span class="ident">block</span>.<span class="ident">stmts</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">syn::Stmt::Expr</span>(
-        <span class="ident">syn::parse2</span>(<span class="macro">quote_spanned!</span> {<span class="ident">last_stmt_end_span</span>=&gt;
-            #<span class="ident">path::block_on</span>(<span class="kw">async</span> #<span class="ident">body</span>)
+    <span class="kw">let </span>body = <span class="kw-2">&amp;</span><a href="../../src/futures_macro/executor.rs.html#12">input</a>.block;
+    <a href="../../src/futures_macro/executor.rs.html#12">input</a>.block.stmts = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[syn::Stmt::Expr(
+        syn::parse2(<span class="macro">quote_spanned! </span>{last_stmt_end_span=&gt;
+            #path::block_on(<span class="kw">async </span>#body)
         })
-        .<span class="ident">unwrap</span>(),
+        .unwrap(),
     )];
 
-    <span class="kw">let</span> <span class="ident">gen</span> <span class="op">=</span> <a class="macro" href="../../quote/macro.quote.html">quote!</a> {
-        <span class="attribute">#[<span class="ident">::core::prelude::v1::test</span>]</span>
-        #<span class="ident">input</span>
+    <span class="kw">let </span>gen = <a class="macro" href="../../quote/macro.quote.html">quote! </a>{
+        <span class="attribute">#[::core::prelude::v1::test]
+        </span>#input
     };
 
-    <a class="ident" href="../../src/futures_macro/executor.rs.html#49">gen</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <a href="../../src/futures_macro/executor.rs.html#49">gen</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

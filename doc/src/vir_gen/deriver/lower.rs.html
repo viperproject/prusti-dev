@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir-gen/src/deriver/lower.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lower.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../vir_gen/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../vir_gen/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../vir_gen/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir-gen/src/deriver/lower.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lower.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../vir_gen/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../vir_gen/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../vir_gen/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -645,652 +645,652 @@
 <span id="645">645</span>
 <span id="646">646</span>
 <span id="647">647</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">std::collections::HashSet</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">std::collections::HashSet</a>;
 
-<span class="kw">use</span> <span class="ident">syn</span>::{<a class="ident" href="../../../syn/macro.parse_quote.html">parse_quote</a>, <a class="ident" href="../../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
+<span class="kw">use </span>syn::{<a href="../../../syn/macro.parse_quote.html">parse_quote</a>, <a href="../../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../../src/vir_gen/ast/mod.rs.html#39">ast::DeriveLower</a>,
-    <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#30-32">deriver::common::extract_variant_type</a>,
-    <span class="ident">helpers</span>::{
-        <a class="ident" href="../../../src/vir_gen/helpers.rs.html#105">extract_container</a>, <a class="ident" href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>, <a class="ident" href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>,
-        <a class="ident" href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>,
+<span class="kw">use crate</span>::{
+    <a href="../../../src/vir_gen/ast/mod.rs.html#39">ast::DeriveLower</a>,
+    <a href="../../../src/vir_gen/deriver/common.rs.html#30-32">deriver::common::extract_variant_type</a>,
+    helpers::{
+        <a href="../../../src/vir_gen/helpers.rs.html#105">extract_container</a>, <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>, <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>,
+        <a href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>,
     },
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::common</span>::{<a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>, <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#87-90">find_variant_struct</a>};
+<span class="kw">use </span><span class="kw">super</span>::common::{<a href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>, <a href="../../../src/vir_gen/deriver/common.rs.html#87-90">find_variant_struct</a>};
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">derive</span>(
-    <span class="ident">items</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>,
-    <span class="ident">original_irs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>],
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_items</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">items</span>.<span class="ident">drain</span>(..) {
-        <span class="kw">match</span> <span class="ident">item</span> {
-            <span class="ident">syn::Item::Macro</span>(<span class="ident">macro_item</span>) <span class="kw">if</span> <span class="ident">macro_item</span>.<span class="ident">mac</span>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;derive_lower&quot;</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">DeriveLower</span> {
-                    <span class="ident">is_self_mut</span>,
-                    <span class="ident">user_trait_ident</span>,
-                    <span class="ident">deriver_trait_ident</span>,
-                    <span class="kw-2">mut</span> <span class="ident">source_type</span>,
-                    <span class="kw-2">mut</span> <span class="ident">target_type</span>,
-                } <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><span class="ident">DeriveLower</span><span class="op">&gt;</span>(<span class="ident">macro_item</span>.<span class="ident">mac</span>.<span class="ident">tokens</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
-                <span class="kw">let</span> (<span class="ident">source_type_module</span>, <span class="ident">source_enum</span>) <span class="op">=</span> <span class="ident">find_module</span>(<span class="ident">original_irs</span>, <span class="kw-2">&amp;</span><span class="ident">source_type</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> (<span class="ident">target_type_module</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">find_module</span>(<span class="ident">original_irs</span>, <span class="kw-2">&amp;</span><span class="ident">target_type</span>)<span class="question-mark">?</span>;
-                <span class="ident">source_type</span>.<span class="ident">segments</span>.<span class="ident">pop</span>();
-                <span class="ident">target_type</span>.<span class="ident">segments</span>.<span class="ident">pop</span>();
-                <span class="ident">new_items</span>.<span class="ident">extend</span>(<span class="ident">derive_lowerer</span>(
-                    <span class="ident">is_self_mut</span>,
-                    <span class="ident">user_trait_ident</span>,
-                    <span class="ident">deriver_trait_ident</span>,
-                    <span class="ident">source_type</span>,
-                    <span class="ident">source_type_module</span>,
-                    <span class="ident">source_enum</span>,
-                    <span class="ident">target_type</span>,
-                    <span class="ident">target_type_module</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>derive(
+    items: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;,
+    original_irs: <span class="kw-2">&amp;</span>[<a href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>],
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>new_items = Vec::new();
+    <span class="kw">for </span>item <span class="kw">in </span>items.drain(..) {
+        <span class="kw">match </span>item {
+            syn::Item::Macro(macro_item) <span class="kw">if </span>macro_item.mac.path.is_ident(<span class="string">&quot;derive_lower&quot;</span>) =&gt; {
+                <span class="kw">let </span>DeriveLower {
+                    is_self_mut,
+                    user_trait_ident,
+                    deriver_trait_ident,
+                    <span class="kw-2">mut </span>source_type,
+                    <span class="kw-2">mut </span>target_type,
+                } = syn::parse2::&lt;DeriveLower&gt;(macro_item.mac.tokens.clone())<span class="question-mark">?</span>;
+                <span class="kw">let </span>(source_type_module, source_enum) = find_module(original_irs, <span class="kw-2">&amp;</span>source_type)<span class="question-mark">?</span>;
+                <span class="kw">let </span>(target_type_module, <span class="kw">_</span>) = find_module(original_irs, <span class="kw-2">&amp;</span>target_type)<span class="question-mark">?</span>;
+                source_type.segments.pop();
+                target_type.segments.pop();
+                new_items.extend(derive_lowerer(
+                    is_self_mut,
+                    user_trait_ident,
+                    deriver_trait_ident,
+                    source_type,
+                    source_type_module,
+                    source_enum,
+                    target_type,
+                    target_type_module,
                 )<span class="question-mark">?</span>);
             }
-            <span class="kw">_</span> =&gt; {
-                <span class="ident">new_items</span>.<span class="ident">push</span>(<span class="ident">item</span>);
+            <span class="kw">_ </span>=&gt; {
+                new_items.push(item);
             }
         }
     }
-    <span class="kw-2">*</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#17">items</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#20">new_items</a>;
+    <span class="kw-2">*</span><a href="../../../src/vir_gen/deriver/lower.rs.html#17">items</a> = <a href="../../../src/vir_gen/deriver/lower.rs.html#20">new_items</a>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">find_module</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">original_irs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>],
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/path/struct.Path.html">syn::Path</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>), <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
-    <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">current_mod</span> <span class="kw">in</span> <span class="ident">original_irs</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">iter</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first_segment</span>) <span class="op">=</span> <span class="ident">segments</span>.<span class="ident">next</span>() {
-            <span class="kw">if</span> <span class="ident">first_segment</span>.<span class="ident">ident</span> <span class="op">!</span><span class="op">=</span> <span class="ident">current_mod</span>.<span class="ident">ident</span> {
+<span class="kw">fn </span>find_module&lt;<span class="lifetime">&#39;a</span>&gt;(
+    original_irs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../syn/item/struct.ItemMod.html">syn::ItemMod</a>],
+    path: <span class="kw-2">&amp;</span><a href="../../../syn/path/struct.Path.html">syn::Path</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../syn/item/enum.Item.html">syn::Item</a>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>), <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
+    <span class="kw">for </span><span class="kw-2">mut </span>current_mod <span class="kw">in </span>original_irs {
+        <span class="kw">let </span><span class="kw-2">mut </span>segments = path.segments.iter();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(first_segment) = segments.next() {
+            <span class="kw">if </span>first_segment.ident != current_mod.ident {
                 <span class="kw">continue</span>;
             }
         }
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">segment</span>) <span class="kw">in</span> <span class="ident">segments</span>.<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">content</span>) <span class="op">=</span> <span class="ident">current_mod</span>
-                .<span class="ident">content</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;bug: expander did not expand all modules&quot;</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span> {
-                <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">content</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Item::Mod</span>(<span class="ident">module</span>) <span class="op">=</span> <span class="ident">item</span> {
-                        <span class="kw">if</span> <span class="ident">module</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">segment</span>.<span class="ident">ident</span> {
-                            <span class="ident">current_mod</span> <span class="op">=</span> <span class="ident">module</span>;
-                            <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw">for </span>(i, segment) <span class="kw">in </span>segments.enumerate() {
+            <span class="kw">let </span>(<span class="kw">_</span>, content) = current_mod
+                .content
+                .as_ref()
+                .expect(<span class="string">&quot;bug: expander did not expand all modules&quot;</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
+            <span class="kw">if </span>i &lt; path.segments.len() - <span class="number">2 </span>{
+                <span class="kw">for </span>item <span class="kw">in </span>content {
+                    <span class="kw">if let </span>syn::Item::Mod(module) = item {
+                        <span class="kw">if </span>module.ident == segment.ident {
+                            current_mod = module;
+                            found = <span class="bool-val">true</span>;
                             <span class="kw">break</span>;
                         }
                     }
                 }
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">found</span> {
+                <span class="kw">if </span>!found {
                     <span class="kw">break</span>;
                 }
-            } <span class="kw">else</span> {
-                <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">content</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Item::Enum</span>(<span class="ident">item_enum</span>) <span class="op">=</span> <span class="ident">item</span> {
-                        <span class="kw">if</span> <span class="ident">item_enum</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">segment</span>.<span class="ident">ident</span> {
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">current_mod</span>.<span class="ident">content</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="number">1</span>, <span class="ident">item_enum</span>));
+            } <span class="kw">else </span>{
+                <span class="kw">for </span>item <span class="kw">in </span>content {
+                    <span class="kw">if let </span>syn::Item::Enum(item_enum) = item {
+                        <span class="kw">if </span>item_enum.ident == segment.ident {
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span>current_mod.content.as_ref().unwrap().<span class="number">1</span>, item_enum));
                         }
                     }
                 }
             }
         }
     }
-    <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#57">path</a>.<a class="ident" href="../../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;not found&quot;</span>))
+    <span class="prelude-val">Err</span>(syn::Error::new(<a href="../../../src/vir_gen/deriver/lower.rs.html#57">path</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>(), <span class="string">&quot;not found&quot;</span>))
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
-<span class="kw">fn</span> <span class="ident">derive_lowerer</span>(
-    <span class="ident">is_self_mut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">user_trait_ident</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="ident">deriver_trait_ident</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="ident">source_path</span>: <a class="ident" href="../../../syn/path/struct.Path.html">syn::Path</a>,
-    <span class="ident">source_type_module</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>],
-    <span class="ident">source_enum</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>,
-    <span class="ident">target_path</span>: <a class="ident" href="../../../syn/path/struct.Path.html">syn::Path</a>,
-    <span class="ident">target_type_module</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>],
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>, <a class="ident" href="../../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefix</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#102">user_trait_ident</a>);
-    <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#110">prefix</a>.<span class="ident">push</span>(<span class="string">&#39;_&#39;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deriver</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#191">Deriver</a> {
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#101">is_self_mut</a>,
-        <span class="ident">deriver_trait_ident</span>: <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#103">deriver_trait_ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-        <span class="ident">user_trait_ident</span>: <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#102">user_trait_ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-        <span class="ident">user_trait_method_name</span>: <a class="ident" href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#102">user_trait_ident</a>),
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#110">prefix</a>,
-        <span class="ident">queue</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">WorkItem::RootItem</span> {
-            <span class="ident">type_ident</span>: <span class="ident">source_enum</span>.<span class="ident">ident</span>.<span class="ident">clone</span>(),
+<span class="attribute">#[allow(clippy::too_many_arguments)]
+</span><span class="kw">fn </span>derive_lowerer(
+    is_self_mut: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    user_trait_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    deriver_trait_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    source_path: <a href="../../../syn/path/struct.Path.html">syn::Path</a>,
+    source_type_module: <span class="kw-2">&amp;</span>[<a href="../../../syn/item/enum.Item.html">syn::Item</a>],
+    source_enum: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>,
+    target_path: <a href="../../../syn/path/struct.Path.html">syn::Path</a>,
+    target_type_module: <span class="kw-2">&amp;</span>[<a href="../../../syn/item/enum.Item.html">syn::Item</a>],
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;, <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>prefix = <a href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#102">user_trait_ident</a>);
+    <a href="../../../src/vir_gen/deriver/lower.rs.html#110">prefix</a>.push(<span class="string">&#39;_&#39;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>deriver = <a href="../../../src/vir_gen/deriver/lower.rs.html#191">Deriver</a> {
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#101">is_self_mut</a>,
+        deriver_trait_ident: <a href="../../../src/vir_gen/deriver/lower.rs.html#103">deriver_trait_ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        user_trait_ident: <a href="../../../src/vir_gen/deriver/lower.rs.html#102">user_trait_ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        user_trait_method_name: <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#102">user_trait_ident</a>),
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#110">prefix</a>,
+        queue: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[WorkItem::RootItem {
+            type_ident: source_enum.ident.clone(),
         }],
-        <span class="ident">done_work_items</span>: <span class="ident">HashSet::new</span>(),
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#104">source_path</a>,
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#105">source_type_module</a>,
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#107">target_path</a>,
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#108">target_type_module</a>,
-        <span class="ident">encoded_methods</span>: <span class="ident">Vec::new</span>(),
-        <span class="ident">encoded_functions</span>: <span class="ident">Vec::new</span>(),
-        <span class="ident">encoded_trait_impls</span>: <span class="ident">Vec::new</span>(),
+        done_work_items: HashSet::new(),
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#104">source_path</a>,
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#105">source_type_module</a>,
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#107">target_path</a>,
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#108">target_type_module</a>,
+        encoded_methods: Vec::new(),
+        encoded_functions: Vec::new(),
+        encoded_trait_impls: Vec::new(),
     };
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">work_item</span>) <span class="op">=</span> <span class="ident">deriver</span>.<span class="ident">queue</span>.<span class="ident">pop</span>() {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">deriver</span>.<span class="ident">done_work_items</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">work_item</span>) {
-            <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">work_item</span> {
-                <span class="ident">WorkItem::RootItem</span> { <span class="ident">type_ident</span> } =&gt; {
-                    <span class="ident">deriver</span>.<span class="ident">encode_root_item</span>(<span class="ident">type_ident</span>)<span class="question-mark">?</span>;
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(work_item) = deriver.queue.pop() {
+        <span class="kw">if </span>!deriver.done_work_items.contains(<span class="kw-2">&amp;</span>work_item) {
+            <span class="kw">match </span><span class="kw-2">&amp;</span>work_item {
+                WorkItem::RootItem { type_ident } =&gt; {
+                    deriver.encode_root_item(type_ident)<span class="question-mark">?</span>;
                 }
-                <span class="ident">WorkItem::EnumVariant</span> {
-                    <span class="ident">enum_ident</span>,
-                    <span class="ident">variant_ident</span>,
-                    <span class="ident">arg_type</span>,
+                WorkItem::EnumVariant {
+                    enum_ident,
+                    variant_ident,
+                    arg_type,
                 } =&gt; {
-                    <span class="ident">deriver</span>.<span class="ident">encode_enum_variant</span>(<span class="ident">enum_ident</span>, <span class="ident">variant_ident</span>, <span class="ident">arg_type</span>)<span class="question-mark">?</span>;
+                    deriver.encode_enum_variant(enum_ident, variant_ident, arg_type)<span class="question-mark">?</span>;
                 }
-                <span class="ident">WorkItem::Type</span> { <span class="ident">ty</span> } =&gt; {
-                    <span class="ident">deriver</span>.<span class="ident">encode_type</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
+                WorkItem::Type { ty } =&gt; {
+                    deriver.encode_type(ty)<span class="question-mark">?</span>;
                 }
             }
-            <span class="ident">deriver</span>.<span class="ident">done_work_items</span>.<span class="ident">insert</span>(<span class="ident">work_item</span>);
+            deriver.done_work_items.insert(work_item);
         }
     }
-    <span class="kw">let</span> <span class="ident">lowerer_parameter</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#640">encode_lowerer_parameter</a>();
-    <span class="kw">let</span> <span class="ident">methods</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.<span class="ident">encoded_methods</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="ident">final_trait</span> <span class="op">=</span> <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-        <span class="kw">pub</span> <span class="kw">trait</span> #<span class="ident">deriver_trait_ident</span>: <span class="ident">Sized</span> {
-            <span class="kw">type</span> <span class="ident">Error</span>;
-            #(#<span class="ident">methods</span>)<span class="op">*</span>
+    <span class="kw">let </span>lowerer_parameter = <a href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#640">encode_lowerer_parameter</a>();
+    <span class="kw">let </span>methods = <a href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.encoded_methods;
+    <span class="kw">let </span><span class="kw-2">mut </span>items = Vec::new();
+    <span class="kw">let </span>final_trait = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">pub trait </span>#deriver_trait_ident: Sized {
+            <span class="kw">type </span>Error;
+            #(#methods)*
         }
     };
-    <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#153">final_trait</a>);
-    <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.<span class="ident">user_trait_method_name</span>;
-    <span class="kw">let</span> <span class="ident">user_trait</span> <span class="op">=</span> <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-        <span class="kw">pub</span> <span class="kw">trait</span> #<span class="ident">user_trait_ident</span> {
-            <span class="kw">type</span> <span class="ident">Output</span>;
-            <span class="kw">fn</span> #<span class="ident">method_name</span><span class="op">&lt;</span><span class="ident">L</span>: #<span class="ident">deriver_trait_ident</span><span class="op">&gt;</span>(
+    <a href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#153">final_trait</a>);
+    <span class="kw">let </span>method_name = <span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.user_trait_method_name;
+    <span class="kw">let </span>user_trait = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+        <span class="kw">pub trait </span>#user_trait_ident {
+            <span class="kw">type </span>Output;
+            <span class="kw">fn </span>#method_name&lt;L: #deriver_trait_ident&gt;(
                 <span class="self">self</span>,
-                #<span class="ident">lowerer_parameter</span>
-            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="op">&lt;</span><span class="ident">L</span> <span class="kw">as</span> #<span class="ident">deriver_trait_ident</span><span class="op">&gt;</span><span class="ident">::Error</span><span class="op">&gt;</span>;
+                #lowerer_parameter
+            ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output, &lt;L <span class="kw">as </span>#deriver_trait_ident&gt;::Error&gt;;
         }
     };
-    <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#161">user_trait</a>);
-    <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.<span class="ident">encoded_trait_impls</span>);
-    <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.<span class="ident">encoded_functions</span>);
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>)
+    <a href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#161">user_trait</a>);
+    <a href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.encoded_trait_impls);
+    <a href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#112">deriver</a>.encoded_functions);
+    <span class="prelude-val">Ok</span>(<a href="../../../src/vir_gen/deriver/lower.rs.html#152">items</a>)
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">enum</span> <span class="ident">WorkItem</span> {
-    <span class="ident">RootItem</span> {
-        <span class="ident">type_ident</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+<span class="attribute">#[derive(Debug, PartialEq, Eq, Hash)]
+</span><span class="kw">enum </span>WorkItem {
+    RootItem {
+        type_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
     },
-    <span class="ident">EnumVariant</span> {
-        <span class="ident">enum_ident</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">variant_ident</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">arg_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>,
+    EnumVariant {
+        enum_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        variant_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        arg_type: <span class="prelude-ty">Option</span>&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
     },
-    <span class="ident">Type</span> {
-        <span class="ident">ty</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a><span class="op">&gt;</span>,
+    Type {
+        ty: Box&lt;<a href="../../../syn/ty/enum.Type.html">syn::Type</a>&gt;,
     },
 }
 
-<span class="kw">struct</span> <span class="ident">Deriver</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">is_self_mut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">deriver_trait_ident</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="ident">user_trait_ident</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="ident">user_trait_method_name</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="ident">prefix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">queue</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#177">WorkItem</a><span class="op">&gt;</span>,
-    <span class="ident">done_work_items</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#177">WorkItem</a><span class="op">&gt;</span>,
-    <span class="ident">source_path</span>: <a class="ident" href="../../../syn/path/struct.Path.html">syn::Path</a>,
-    <span class="ident">source_type_module</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>],
-    <span class="ident">target_path</span>: <a class="ident" href="../../../syn/path/struct.Path.html">syn::Path</a>,
-    <span class="ident">target_type_module</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a>],
-    <span class="ident">encoded_methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>,
-    <span class="ident">encoded_functions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>,
-    <span class="ident">encoded_trait_impls</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span>,
+<span class="kw">struct </span>Deriver&lt;<span class="lifetime">&#39;a</span>&gt; {
+    is_self_mut: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    deriver_trait_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    user_trait_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    user_trait_method_name: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    prefix: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    queue: Vec&lt;<a href="../../../src/vir_gen/deriver/lower.rs.html#177">WorkItem</a>&gt;,
+    done_work_items: HashSet&lt;<a href="../../../src/vir_gen/deriver/lower.rs.html#177">WorkItem</a>&gt;,
+    source_path: <a href="../../../syn/path/struct.Path.html">syn::Path</a>,
+    source_type_module: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../syn/item/enum.Item.html">syn::Item</a>],
+    target_path: <a href="../../../syn/path/struct.Path.html">syn::Path</a>,
+    target_type_module: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../syn/item/enum.Item.html">syn::Item</a>],
+    encoded_methods: Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;,
+    encoded_functions: Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;,
+    encoded_trait_impls: Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Deriver</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">encode_root_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source_enum</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#209">self</a>.<span class="ident">source_type_module</span>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#209">ident</a>) {
-            <span class="self">self</span>.<span class="ident">encode_enum</span>(<span class="ident">ident</span>, <span class="ident">source_enum</span>)<span class="question-mark">?</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">source_struct</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#87-90">find_variant_struct</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#209">self</a>.<span class="ident">source_type_module</span>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#209">ident</a>) {
-            <span class="self">self</span>.<span class="ident">encode_struct</span>(<span class="ident">ident</span>, <span class="ident">source_struct</span>)<span class="question-mark">?</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_builtin_type</span>(<span class="ident">ident</span>) {
-            <span class="self">self</span>.<span class="ident">encode_builtin</span>(<span class="ident">ident</span>)<span class="question-mark">?</span>;
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">encode_stub</span>(<span class="ident">ident</span>)<span class="question-mark">?</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Deriver&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>encode_root_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; syn::Result&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(source_enum) = <a href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#209">self</a>.source_type_module, <a href="../../../src/vir_gen/deriver/lower.rs.html#209">ident</a>) {
+            <span class="self">self</span>.encode_enum(ident, source_enum)<span class="question-mark">?</span>;
+        } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(source_struct) = <a href="../../../src/vir_gen/deriver/common.rs.html#87-90">find_variant_struct</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#209">self</a>.source_type_module, <a href="../../../src/vir_gen/deriver/lower.rs.html#209">ident</a>) {
+            <span class="self">self</span>.encode_struct(ident, source_struct)<span class="question-mark">?</span>;
+        } <span class="kw">else if </span><span class="self">self</span>.is_builtin_type(ident) {
+            <span class="self">self</span>.encode_builtin(ident)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.encode_stub(ident)<span class="question-mark">?</span>;
         }
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_builtin_type</span>(<span class="ident">ident</span>) {
-            <span class="self">self</span>.<span class="ident">encode_user_trait_impl</span>(<span class="ident">ident</span>)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!<span class="self">self</span>.is_builtin_type(ident) {
+            <span class="self">self</span>.encode_user_trait_impl(ident)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
-    <span class="kw">fn</span> <span class="ident">encode_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <a class="ident" href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#224">self</a>.<span class="ident">prefix</span>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">ident</a>)
+    <span class="kw">fn </span>encode_name(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
+        <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#224">self</a>.prefix, <a href="../../../src/vir_gen/deriver/lower.rs.html#224">ident</a>)
     }
-    <span class="kw">fn</span> <span class="ident">encode_default_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;default_{}&quot;</span>, <span class="self">self</span>.<span class="ident">prefix</span>);
-        <a class="ident" href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#228">prefix</a>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#227">ident</a>)
+    <span class="kw">fn </span>encode_default_name(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
+        <span class="kw">let </span>prefix = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;default_{}&quot;</span>, <span class="self">self</span>.prefix);
+        <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#228">prefix</a>, <a href="../../../src/vir_gen/deriver/lower.rs.html#227">ident</a>)
     }
-    <span class="kw">fn</span> <span class="ident">encode_name_nested</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">outer_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, <span class="ident">inner_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefix</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#231">self</a>.<span class="ident">prefix</span>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#231">outer_ident</a>);
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#232">prefix</a>.<span class="ident">push</span>(<span class="string">&#39;_&#39;</span>);
-        <a class="ident" href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#232">prefix</a>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#231">inner_ident</a>)
+    <span class="kw">fn </span>encode_name_nested(<span class="kw-2">&amp;</span><span class="self">self</span>, outer_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, inner_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>prefix = <a href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#231">self</a>.prefix, <a href="../../../src/vir_gen/deriver/lower.rs.html#231">outer_ident</a>);
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#232">prefix</a>.push(<span class="string">&#39;_&#39;</span>);
+        <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#232">prefix</a>, <a href="../../../src/vir_gen/deriver/lower.rs.html#231">inner_ident</a>)
     }
-    <span class="kw">fn</span> <span class="ident">encode_name_nested2</span>(
+    <span class="kw">fn </span>encode_name_nested2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">outer_ident1</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">outer_ident2</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">inner_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    ) -&gt; <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefix</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#237">self</a>.<span class="ident">prefix</span>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#238">outer_ident1</a>);
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a>.<span class="ident">push</span>(<span class="string">&#39;_&#39;</span>);
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#239">outer_ident2</a>);
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a>.<span class="ident">push</span>(<span class="string">&#39;_&#39;</span>);
-        <a class="ident" href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#240">inner_ident</a>)
+        outer_ident1: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        outer_ident2: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        inner_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    ) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>prefix = <a href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#237">self</a>.prefix, <a href="../../../src/vir_gen/deriver/lower.rs.html#238">outer_ident1</a>);
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a>.push(<span class="string">&#39;_&#39;</span>);
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a> = <a href="../../../src/vir_gen/helpers.rs.html#21">prefixed_method_name_from_camel_raw</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a>, <a href="../../../src/vir_gen/deriver/lower.rs.html#239">outer_ident2</a>);
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a>.push(<span class="string">&#39;_&#39;</span>);
+        <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#242">prefix</a>, <a href="../../../src/vir_gen/deriver/lower.rs.html#240">inner_ident</a>)
     }
-    <span class="kw">fn</span> <span class="ident">encode_variant_method_name</span>(
+    <span class="kw">fn </span>encode_variant_method_name(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">enum_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">variant_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    ) -&gt; <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#249">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#231">encode_name_nested</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#250">enum_ident</a>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#251">variant_ident</a>)
+        enum_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        variant_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    ) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#249">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#231">encode_name_nested</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#250">enum_ident</a>, <a href="../../../src/vir_gen/deriver/lower.rs.html#251">variant_ident</a>)
     }
-    <span class="kw">fn</span> <span class="ident">is_builtin_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn </span>is_builtin_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
-            <span class="ident">ident</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>(),
-            <span class="string">&quot;String&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;bool&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;i8&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;i16&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;i32&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;i64&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;i128&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;u8&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;u16&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;u32&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;u64&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;u128&quot;</span>
-        )
+            ident.to_string().as_str(),
+            <span class="string">&quot;String&quot;
+                </span>| <span class="string">&quot;bool&quot;
+                </span>| <span class="string">&quot;i8&quot;
+                </span>| <span class="string">&quot;i16&quot;
+                </span>| <span class="string">&quot;i32&quot;
+                </span>| <span class="string">&quot;i64&quot;
+                </span>| <span class="string">&quot;i128&quot;
+                </span>| <span class="string">&quot;u8&quot;
+                </span>| <span class="string">&quot;u16&quot;
+                </span>| <span class="string">&quot;u32&quot;
+                </span>| <span class="string">&quot;u64&quot;
+                </span>| <span class="string">&quot;u128&quot;
+        </span>)
     }
-    <span class="kw">fn</span> <span class="ident">encode_parameter_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#272">self</a>.<span class="ident">source_path</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_builtin_type</span>(<span class="ident">ident</span>) {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                #<span class="ident">ident</span>
+    <span class="kw">fn </span>encode_parameter_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
+        <span class="kw">let </span>path = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#272">self</a>.source_path;
+        <span class="kw">if </span><span class="self">self</span>.is_builtin_type(ident) {
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                #ident
             }
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">crate</span> :: #<span class="ident">path</span> #<span class="ident">ident</span>
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">crate </span>:: #path #ident
             }
         }
     }
-    <span class="kw">fn</span> <span class="ident">encode_return_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#284">self</a>.<span class="ident">target_path</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_builtin_type</span>(<span class="ident">ident</span>) {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                #<span class="ident">ident</span>
+    <span class="kw">fn </span>encode_return_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
+        <span class="kw">let </span>path = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#284">self</a>.target_path;
+        <span class="kw">if </span><span class="self">self</span>.is_builtin_type(ident) {
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                #ident
             }
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">crate</span> :: #<span class="ident">path</span> #<span class="ident">ident</span>
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">crate </span>:: #path #ident
             }
         }
     }
-    <span class="kw">fn</span> <span class="ident">encode_enum_body</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">source_enum_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>,
-        <span class="ident">source_enum</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>,
-    ) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../../syn/expr/enum.Expr.html">syn::Expr</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arms</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/struct.Arm.html">syn::Arm</a><span class="op">&gt;</span><span class="ident">::new</span>();
-        <span class="kw">for</span> <span class="ident">source_variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">source_enum</span>.<span class="ident">variants</span> {
-            <span class="kw">let</span> <span class="ident">source_ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source_variant</span>.<span class="ident">ident</span>;
-            <span class="kw">let</span> <span class="ident">called_method_name</span> <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">encode_variant_method_name</span>(<span class="kw-2">&amp;</span><span class="ident">source_enum</span>.<span class="ident">ident</span>, <span class="kw-2">&amp;</span><span class="ident">source_variant</span>.<span class="ident">ident</span>);
-            <span class="kw">let</span> <span class="ident">arg_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source_type</span>) <span class="op">=</span> <span class="ident">extract_variant_type</span>(<span class="ident">source_variant</span>)<span class="question-mark">?</span> {
-                <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">method_name_from_camel</span>(<span class="ident">source_type</span>);
-                <span class="ident">arms</span>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
-                    #<span class="ident">source_enum_type</span> :: #<span class="ident">source_ident</span> (#<span class="ident">arg</span>) =&gt; { <span class="ident">lowerer</span>.#<span class="ident">called_method_name</span>(#<span class="ident">arg</span>) }
+    <span class="kw">fn </span>encode_enum_body(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        source_enum_type: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>,
+        source_enum: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>,
+    ) -&gt; syn::Result&lt;<a href="../../../syn/expr/enum.Expr.html">syn::Expr</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>arms = Vec::&lt;<a href="../../../syn/expr/struct.Arm.html">syn::Arm</a>&gt;::new();
+        <span class="kw">for </span>source_variant <span class="kw">in </span><span class="kw-2">&amp;</span>source_enum.variants {
+            <span class="kw">let </span>source_ident = <span class="kw-2">&amp;</span>source_variant.ident;
+            <span class="kw">let </span>called_method_name =
+                <span class="self">self</span>.encode_variant_method_name(<span class="kw-2">&amp;</span>source_enum.ident, <span class="kw-2">&amp;</span>source_variant.ident);
+            <span class="kw">let </span>arg_type = <span class="kw">if let </span><span class="prelude-val">Some</span>(source_type) = extract_variant_type(source_variant)<span class="question-mark">? </span>{
+                <span class="kw">let </span>arg = method_name_from_camel(source_type);
+                arms.push(<span class="macro">parse_quote! </span>{
+                    #source_enum_type :: #source_ident (#arg) =&gt; { lowerer.#called_method_name(#arg) }
                 });
-                <span class="prelude-val">Some</span>(<span class="ident">source_type</span>.<span class="ident">clone</span>())
-            } <span class="kw">else</span> {
-                <span class="ident">arms</span>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
-                    #<span class="ident">source_enum_type</span> :: #<span class="ident">source_ident</span> =&gt; { <span class="ident">lowerer</span>.#<span class="ident">called_method_name</span>() }
+                <span class="prelude-val">Some</span>(source_type.clone())
+            } <span class="kw">else </span>{
+                arms.push(<span class="macro">parse_quote! </span>{
+                    #source_enum_type :: #source_ident =&gt; { lowerer.#called_method_name() }
                 });
-                <span class="prelude-val">None</span>
-            };
-            <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">WorkItem::EnumVariant</span> {
-                <span class="ident">enum_ident</span>: <span class="ident">source_enum</span>.<span class="ident">ident</span>.<span class="ident">clone</span>(),
-                <span class="ident">variant_ident</span>: <span class="ident">source_variant</span>.<span class="ident">ident</span>.<span class="ident">clone</span>(),
-                <span class="ident">arg_type</span>,
+                <span class="prelude-val">None
+            </span>};
+            <span class="self">self</span>.queue.push(WorkItem::EnumVariant {
+                enum_ident: source_enum.ident.clone(),
+                variant_ident: source_variant.ident.clone(),
+                arg_type,
             });
         }
-        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-            <span class="kw">match</span> <span class="ident">ty</span> {
-                #(#<span class="ident">arms</span>)<span class="op">*</span>
+        <span class="kw">let </span>expr = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="kw">match </span>ty {
+                #(#arms)*
             }
         };
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#324">expr</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/vir_gen/deriver/lower.rs.html#324">expr</a>)
     }
-    <span class="kw">fn</span> <span class="ident">encode_enum</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">enum_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">source_enum</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>,
-    ) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target_enum</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<span class="ident">target_type_module</span>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#333">enum_ident</a>);
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#334">source_enum</a>.<span class="ident">ident</span>);
-        <span class="kw">let</span> <span class="ident">self_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#333">enum_ident</a>);
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#333">enum_ident</a>);
-        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">target_enum</span>.<span class="ident">is_some</span>() {
-            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_enum_body</span>(<span class="kw-2">&amp;</span><span class="ident">parameter_type</span>, <span class="ident">source_enum</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">default_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#227">encode_default_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#334">source_enum</a>.<span class="ident">ident</span>);
-            <span class="kw">let</span> <span class="ident">lowerer_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#640">encode_lowerer_parameter</a>();
-            <span class="kw">let</span> <span class="ident">deriver_trait_ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<span class="ident">deriver_trait_ident</span>;
-            <span class="kw">let</span> <span class="ident">default_function</span> <span class="op">=</span> <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">pub</span> <span class="kw">fn</span> #<span class="ident">default_name</span><span class="op">&lt;</span><span class="ident">L</span>: #<span class="ident">deriver_trait_ident</span><span class="op">&gt;</span>(
-                    <span class="ident">ty</span>: #<span class="ident">parameter_type</span>,
-                    #<span class="ident">lowerer_parameter</span>
-                ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="op">&lt;</span><span class="ident">L</span> <span class="kw">as</span> #<span class="ident">deriver_trait_ident</span><span class="op">&gt;</span><span class="ident">::Error</span><span class="op">&gt;</span> {
-                    #<span class="ident">body</span>
+    <span class="kw">fn </span>encode_enum(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        enum_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        source_enum: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemEnum.html">syn::ItemEnum</a>,
+    ) -&gt; syn::Result&lt;()&gt; {
+        <span class="kw">let </span>target_enum = <a href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.target_type_module, <a href="../../../src/vir_gen/deriver/lower.rs.html#333">enum_ident</a>);
+        <span class="kw">let </span>name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#334">source_enum</a>.ident);
+        <span class="kw">let </span>self_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#333">enum_ident</a>);
+        <span class="kw">let </span>return_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#333">enum_ident</a>);
+        <span class="kw">let </span>method = <span class="kw">if </span>target_enum.is_some() {
+            <span class="kw">let </span>body = <span class="self">self</span>.encode_enum_body(<span class="kw-2">&amp;</span>parameter_type, source_enum)<span class="question-mark">?</span>;
+            <span class="kw">let </span>default_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#227">encode_default_name</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#334">source_enum</a>.ident);
+            <span class="kw">let </span>lowerer_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#640">encode_lowerer_parameter</a>();
+            <span class="kw">let </span>deriver_trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.deriver_trait_ident;
+            <span class="kw">let </span>default_function = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">pub fn </span>#default_name&lt;L: #deriver_trait_ident&gt;(
+                    ty: #parameter_type,
+                    #lowerer_parameter
+                ) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, &lt;L <span class="kw">as </span>#deriver_trait_ident&gt;::Error&gt; {
+                    #body
                 }
             };
-            <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<span class="ident">encoded_functions</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#346">default_function</a>);
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">fn</span> #<span class="ident">name</span>(#<span class="ident">self_parameter</span>, <span class="ident">ty</span>: #<span class="ident">parameter_type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                    #<span class="ident">default_name</span>(<span class="ident">ty</span>, <span class="self">self</span>)
+            <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.encoded_functions.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#346">default_function</a>);
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">fn </span>#name(#self_parameter, ty: #parameter_type) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt; {
+                    #default_name(ty, <span class="self">self</span>)
                 }
             }
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">fn</span> #<span class="ident">name</span>(#<span class="ident">self_parameter</span>, <span class="ident">ty</span>: #<span class="ident">parameter_type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">fn </span>#name(#self_parameter, ty: #parameter_type) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt;;
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.<span class="ident">encoded_methods</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#341">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#332">self</a>.encoded_methods.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#341">method</a>);
         <span class="prelude-val">Ok</span>(())
     }
-    <span class="kw">fn</span> <span class="ident">structs_match</span>(
+    <span class="kw">fn </span>structs_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">source_struct</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>,
-        <span class="ident">target_struct</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a><span class="op">&gt;</span>,
-    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target_struct</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#371">target_struct</a> {
-            <span class="kw">if</span> <span class="ident">target_struct</span>.<span class="ident">fields</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">source_struct</span>.<span class="ident">fields</span>.<span class="ident">len</span>() {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+        source_struct: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>,
+        target_struct: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>&gt;,
+    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(target_struct) = <a href="../../../src/vir_gen/deriver/lower.rs.html#371">target_struct</a> {
+            <span class="kw">if </span>target_struct.fields.len() != source_struct.fields.len() {
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
-            <span class="kw">for</span> <span class="ident">source_field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">source_struct</span>.<span class="ident">fields</span> {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">target_struct</span>.<span class="ident">fields</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">target_field</span><span class="op">|</span> {
-                    <span class="ident">source_field</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">target_field</span>.<span class="ident">ident</span> <span class="op">&amp;&amp;</span> <span class="ident">source_field</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">target_field</span>.<span class="ident">ty</span>
+            <span class="kw">for </span>source_field <span class="kw">in </span><span class="kw-2">&amp;</span>source_struct.fields {
+                <span class="kw">if </span>!target_struct.fields.iter().any(|target_field| {
+                    source_field.ident == target_field.ident &amp;&amp; source_field.ty == target_field.ty
                 }) {
-                    <span class="kw">return</span> <span class="bool-val">false</span>;
+                    <span class="kw">return </span><span class="bool-val">false</span>;
                 }
             }
-            <span class="bool-val">true</span>
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+            <span class="bool-val">true
+        </span>} <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
-    <span class="kw">fn</span> <span class="ident">encode_struct</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">struct_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">source_struct</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>,
-    ) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target_struct</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#87-90">find_variant_struct</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<span class="ident">target_type_module</span>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#391">struct_ident</a>).<span class="ident">ok</span>();
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#391">struct_ident</a>);
-        <span class="kw">let</span> <span class="ident">self_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#391">struct_ident</a>);
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#391">struct_ident</a>);
-        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">structs_match</span>(<span class="ident">source_struct</span>, <span class="ident">target_struct</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../../syn/expr/struct.FieldValue.html">syn::FieldValue</a><span class="op">&gt;</span><span class="ident">::new</span>();
-            <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">source_struct</span>.<span class="ident">fields</span> {
-                <span class="kw">let</span> <span class="ident">field_name</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">called_method_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_name_by_type</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">ty</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">WorkItem::Type</span> {
-                    <span class="ident">ty</span>: <span class="ident">Box::new</span>(<span class="ident">field</span>.<span class="ident">ty</span>.<span class="ident">clone</span>()),
+    <span class="kw">fn </span>encode_struct(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        struct_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        source_struct: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>,
+    ) -&gt; syn::Result&lt;()&gt; {
+        <span class="kw">let </span>target_struct = <a href="../../../src/vir_gen/deriver/common.rs.html#87-90">find_variant_struct</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.target_type_module, <a href="../../../src/vir_gen/deriver/lower.rs.html#391">struct_ident</a>).ok();
+        <span class="kw">let </span>name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#391">struct_ident</a>);
+        <span class="kw">let </span>self_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#391">struct_ident</a>);
+        <span class="kw">let </span>return_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#391">struct_ident</a>);
+        <span class="kw">let </span>method = <span class="kw">if </span><span class="self">self</span>.structs_match(source_struct, target_struct) {
+            <span class="kw">let </span><span class="kw-2">mut </span>fields = Vec::&lt;<a href="../../../syn/expr/struct.FieldValue.html">syn::FieldValue</a>&gt;::new();
+            <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;</span>source_struct.fields {
+                <span class="kw">let </span>field_name = field.ident.as_ref().unwrap();
+                <span class="kw">let </span>called_method_name = <span class="self">self</span>.encode_name_by_type(<span class="kw-2">&amp;</span>field.ty)<span class="question-mark">?</span>;
+                <span class="self">self</span>.queue.push(WorkItem::Type {
+                    ty: Box::new(field.ty.clone()),
                 });
-                <span class="ident">fields</span>.<span class="ident">push</span>(<span class="macro">parse_quote!</span> {
-                    #<span class="ident">field_name</span>: <span class="self">self</span>.#<span class="ident">called_method_name</span>(<span class="ident">ty</span>.#<span class="ident">field_name</span>)<span class="question-mark">?</span>
-                });
+                fields.push(<span class="macro">parse_quote! </span>{
+                    #field_name: <span class="self">self</span>.#called_method_name(ty.#field_name)<span class="question-mark">?
+                </span>});
             }
-            <span class="kw">let</span> <span class="ident">ident</span>: <a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> <span class="op">=</span> <span class="kw">if</span> <span class="ident">fields</span>.<span class="ident">is_empty</span>() {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> { <span class="ident">_ty</span> }
-            } <span class="kw">else</span> {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> { <span class="ident">ty</span> }
+            <span class="kw">let </span>ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> = <span class="kw">if </span>fields.is_empty() {
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{ _ty }
+            } <span class="kw">else </span>{
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{ ty }
             };
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">fn</span> #<span class="ident">name</span>(#<span class="ident">self_parameter</span>, #<span class="ident">ident</span>: #<span class="ident">parameter_type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                    <span class="prelude-val">Ok</span>(#<span class="ident">return_type</span> {
-                        #(#<span class="ident">fields</span>),<span class="op">*</span>
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">fn </span>#name(#self_parameter, #ident: #parameter_type) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt; {
+                    <span class="prelude-val">Ok</span>(#return_type {
+                        #(#fields),*
                     })
                 }
             }
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">fn</span> #<span class="ident">name</span>(#<span class="ident">self_parameter</span>, <span class="ident">ty</span>: #<span class="ident">parameter_type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">fn </span>#name(#self_parameter, ty: #parameter_type) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt;;
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.<span class="ident">encoded_methods</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#399">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#390">self</a>.encoded_methods.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#399">method</a>);
         <span class="prelude-val">Ok</span>(())
     }
-    <span class="kw">fn</span> <span class="ident">encode_enum_variant</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">enum_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">variant_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-        <span class="ident">arg_type</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#248-252">encode_variant_method_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#433">enum_ident</a>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#434">variant_ident</a>);
-        <span class="kw">let</span> <span class="ident">self_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#433">enum_ident</a>);
-        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg_type</span>) <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#435">arg_type</a> {
-            <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#440">arg_type</a>);
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">target_has_variant</span>(<span class="ident">enum_ident</span>, <span class="ident">variant_ident</span>) {
-                <span class="kw">let</span> <span class="ident">called_method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#440">arg_type</a>);
-                <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<span class="ident">queue</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#178">WorkItem::RootItem</a> {
-                    <span class="ident">type_ident</span>: <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#440">arg_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">fn </span>encode_enum_variant(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        enum_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        variant_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+        arg_type: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
+    ) -&gt; syn::Result&lt;()&gt; {
+        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#248-252">encode_variant_method_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#433">enum_ident</a>, <a href="../../../src/vir_gen/deriver/lower.rs.html#434">variant_ident</a>);
+        <span class="kw">let </span>self_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
+        <span class="kw">let </span>return_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#433">enum_ident</a>);
+        <span class="kw">let </span>method = <span class="kw">if let </span><span class="prelude-val">Some</span>(arg_type) = <a href="../../../src/vir_gen/deriver/lower.rs.html#435">arg_type</a> {
+            <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#440">arg_type</a>);
+            <span class="kw">if </span><span class="self">self</span>.target_has_variant(enum_ident, variant_ident) {
+                <span class="kw">let </span>called_method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#440">arg_type</a>);
+                <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.queue.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#178">WorkItem::RootItem</a> {
+                    type_ident: <a href="../../../src/vir_gen/deriver/lower.rs.html#440">arg_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 });
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                    <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>, <span class="ident">variant</span>: #<span class="ident">parameter_type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                        <span class="prelude-val">Ok</span>(#<span class="ident">return_type</span> :: #<span class="ident">variant_ident</span> (<span class="self">self</span>.#<span class="ident">called_method_name</span>(<span class="ident">variant</span>)<span class="question-mark">?</span>))
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="kw">fn </span>#method_name(#self_parameter, variant: #parameter_type) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt; {
+                        <span class="prelude-val">Ok</span>(#return_type :: #variant_ident (<span class="self">self</span>.#called_method_name(variant)<span class="question-mark">?</span>))
                     }
                 }
-            } <span class="kw">else</span> {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                    <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>, <span class="ident">variant</span>: #<span class="ident">parameter_type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+            } <span class="kw">else </span>{
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="kw">fn </span>#method_name(#self_parameter, variant: #parameter_type) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt;;
                 }
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">target_has_variant</span>(<span class="ident">enum_ident</span>, <span class="ident">variant_ident</span>) {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                    <span class="prelude-val">Ok</span>(#<span class="ident">return_type</span>::#<span class="ident">variant_ident</span>)
+        } <span class="kw">else if </span><span class="self">self</span>.target_has_variant(enum_ident, variant_ident) {
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">fn </span>#method_name(#self_parameter) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt; {
+                    <span class="prelude-val">Ok</span>(#return_type::#variant_ident)
                 }
             }
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                <span class="kw">fn </span>#method_name(#self_parameter) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt;;
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.<span class="ident">encoded_methods</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#440">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#432">self</a>.encoded_methods.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#440">method</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">target_has_variant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">enum_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, <span class="ident">variant_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">enum_item</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#472">self</a>.<span class="ident">target_type_module</span>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#472">enum_ident</a>).<span class="ident">unwrap</span>();
-        <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#473">enum_item</a>
-            .<span class="ident">variants</span>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#477">variant</a>.<span class="ident">ident</span> <span class="op">==</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#472">variant_ident</a>)
+    <span class="kw">fn </span>target_has_variant(<span class="kw-2">&amp;</span><span class="self">self</span>, enum_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, variant_ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>enum_item = <a href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>(<a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#472">self</a>.target_type_module, <a href="../../../src/vir_gen/deriver/lower.rs.html#472">enum_ident</a>).unwrap();
+        <a href="../../../src/vir_gen/deriver/lower.rs.html#473">enum_item</a>
+            .variants
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|variant| <span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/lower.rs.html#477">variant</a>.ident == <a href="../../../src/vir_gen/deriver/lower.rs.html#472">variant_ident</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_name_by_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">inner_ident</span>, <span class="ident">container_idents</span>) <span class="op">=</span> <span class="ident">extract_container</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#481">container_idents</a>.<span class="ident">len</span>() {
-            <span class="number">0</span> =&gt; <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#480">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#481">inner_ident</a>),
-            <span class="number">1</span> =&gt; <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#480">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#231">encode_name_nested</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#481">container_idents</a>[<span class="number">0</span>], <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#481">inner_ident</a>),
-            <span class="number">2</span> =&gt; <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#480">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#236-241">encode_name_nested2</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#481">container_idents</a>[<span class="number">1</span>], <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#481">container_idents</a>[<span class="number">0</span>], <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#481">inner_ident</a>),
-            <span class="kw">_</span> =&gt; {
+    <span class="kw">fn </span>encode_name_by_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; syn::Result&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt; {
+        <span class="kw">let </span>(inner_ident, container_idents) = extract_container(ty)<span class="question-mark">?</span>;
+        <span class="kw">let </span>name = <span class="kw">match </span><a href="../../../src/vir_gen/deriver/lower.rs.html#481">container_idents</a>.len() {
+            <span class="number">0 </span>=&gt; <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#480">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#481">inner_ident</a>),
+            <span class="number">1 </span>=&gt; <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#480">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#231">encode_name_nested</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#481">container_idents</a>[<span class="number">0</span>], <a href="../../../src/vir_gen/deriver/lower.rs.html#481">inner_ident</a>),
+            <span class="number">2 </span>=&gt; <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#480">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#236-241">encode_name_nested2</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#481">container_idents</a>[<span class="number">1</span>], <a href="../../../src/vir_gen/deriver/lower.rs.html#481">container_idents</a>[<span class="number">0</span>], <a href="../../../src/vir_gen/deriver/lower.rs.html#481">inner_ident</a>),
+            <span class="kw">_ </span>=&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
             }
         };
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#482">name</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/vir_gen/deriver/lower.rs.html#482">name</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">inner_ident</span>, <span class="kw-2">mut</span> <span class="ident">container_idents</span>) <span class="op">=</span> <span class="ident">extract_container</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<span class="ident">queue</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#178">WorkItem::RootItem</a> {
-            <span class="ident">type_ident</span>: <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">fn </span>encode_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; syn::Result&lt;()&gt; {
+        <span class="kw">let </span>(inner_ident, <span class="kw-2">mut </span>container_idents) = extract_container(ty)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.queue.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#178">WorkItem::RootItem</a> {
+            type_ident: <a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         });
-        <span class="kw">if</span> <span class="ident">container_idents</span>.<span class="ident">is_empty</span>() {
-            <span class="comment">// nothing to do</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">container_idents</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-            <span class="kw">let</span> <span class="ident">container_ident</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">container_idents</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#231">encode_name_nested</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#501">container_ident</a>, <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-            <span class="kw">let</span> <span class="ident">self_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
-            <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-            <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-            <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">container_ident</span> <span class="op">==</span> <span class="string">&quot;Box&quot;</span> {
-                <span class="kw">let</span> <span class="ident">inner_method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::boxed_local</span>)]</span>
-                    <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>, <span class="ident">ty</span>: #<span class="ident">container_ident</span> <span class="op">&lt;</span> #<span class="ident">parameter_type</span> <span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">container_ident</span> <span class="op">&lt;</span> #<span class="ident">return_type</span> <span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">Box::new</span>(<span class="self">self</span>.#<span class="ident">inner_method_name</span>(<span class="kw-2">*</span><span class="ident">ty</span>)<span class="question-mark">?</span>))
+        <span class="kw">if </span>container_idents.is_empty() {
+            <span class="comment">// nothing to do
+        </span>} <span class="kw">else if </span>container_idents.len() == <span class="number">1 </span>{
+            <span class="kw">let </span>container_ident = <a href="../../../src/vir_gen/deriver/lower.rs.html#494">container_idents</a>.pop().unwrap();
+            <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#231">encode_name_nested</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#501">container_ident</a>, <a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+            <span class="kw">let </span>self_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
+            <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+            <span class="kw">let </span>return_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+            <span class="kw">let </span>method = <span class="kw">if </span>container_ident == <span class="string">&quot;Box&quot; </span>{
+                <span class="kw">let </span>inner_method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="attribute">#[allow(clippy::boxed_local)]
+                    </span><span class="kw">fn </span>#method_name(#self_parameter, ty: #container_ident &lt; #parameter_type &gt;) -&gt; <span class="prelude-ty">Result</span>&lt;#container_ident &lt; #return_type &gt;, <span class="self">Self</span>::Error&gt; {
+                        <span class="prelude-val">Ok</span>(Box::new(<span class="self">self</span>.#inner_method_name(<span class="kw-2">*</span>ty)<span class="question-mark">?</span>))
                     }
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">container_ident</span> <span class="op">==</span> <span class="string">&quot;Vec&quot;</span> {
-                <span class="kw">let</span> <span class="ident">inner_method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                    <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>, <span class="ident">ty</span>: #<span class="ident">container_ident</span> <span class="op">&lt;</span> #<span class="ident">parameter_type</span> <span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">container_ident</span> <span class="op">&lt;</span> #<span class="ident">return_type</span> <span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                        <span class="ident">ty</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> <span class="self">self</span>.#<span class="ident">inner_method_name</span>(<span class="ident">element</span>)).<span class="ident">collect</span>()
+            } <span class="kw">else if </span>container_ident == <span class="string">&quot;Vec&quot; </span>{
+                <span class="kw">let </span>inner_method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="kw">fn </span>#method_name(#self_parameter, ty: #container_ident &lt; #parameter_type &gt;) -&gt; <span class="prelude-ty">Result</span>&lt;#container_ident &lt; #return_type &gt;, <span class="self">Self</span>::Error&gt; {
+                        ty.into_iter().map(|element| <span class="self">self</span>.#inner_method_name(element)).collect()
                     }
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">container_ident</span> <span class="op">==</span> <span class="string">&quot;Option&quot;</span> {
-                <span class="kw">let</span> <span class="ident">inner_method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                    <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>, <span class="ident">ty</span>: #<span class="ident">container_ident</span> <span class="op">&lt;</span> #<span class="ident">parameter_type</span> <span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">container_ident</span> <span class="op">&lt;</span> #<span class="ident">return_type</span> <span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                        <span class="ident">ty</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> <span class="self">self</span>.#<span class="ident">inner_method_name</span>(<span class="ident">element</span>)).<span class="ident">transpose</span>()
+            } <span class="kw">else if </span>container_ident == <span class="string">&quot;Option&quot; </span>{
+                <span class="kw">let </span>inner_method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="kw">fn </span>#method_name(#self_parameter, ty: #container_ident &lt; #parameter_type &gt;) -&gt; <span class="prelude-ty">Result</span>&lt;#container_ident &lt; #return_type &gt;, <span class="self">Self</span>::Error&gt; {
+                        ty.map(|element| <span class="self">self</span>.#inner_method_name(element)).transpose()
                     }
                 }
-            } <span class="kw">else</span> {
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                    <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>, <span class="kw">_</span>: #<span class="ident">container_ident</span> <span class="op">&lt;</span> #<span class="ident">parameter_type</span> <span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">container_ident</span> <span class="op">&lt;</span> #<span class="ident">return_type</span> <span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+            } <span class="kw">else </span>{
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="kw">fn </span>#method_name(#self_parameter, <span class="kw">_</span>: #container_ident &lt; #parameter_type &gt;) -&gt; <span class="prelude-ty">Result</span>&lt;#container_ident &lt; #return_type &gt;, <span class="self">Self</span>::Error&gt;;
                 }
             };
-            <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<span class="ident">encoded_methods</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#506">method</a>);
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">container_idents</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span> {
-            <span class="kw">let</span> <span class="ident">container_ident_first</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">container_idents</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">container_ident_second</span> <span class="op">=</span> <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">container_idents</a>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#236-241">encode_name_nested2</a>(
-                <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#535">container_ident_first</a>,
-                <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#536">container_ident_second</a>,
-                <a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>,
+            <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.encoded_methods.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#506">method</a>);
+        } <span class="kw">else if </span>container_idents.len() == <span class="number">2 </span>{
+            <span class="kw">let </span>container_ident_first = <a href="../../../src/vir_gen/deriver/lower.rs.html#494">container_idents</a>.pop().unwrap();
+            <span class="kw">let </span>container_ident_second = <a href="../../../src/vir_gen/deriver/lower.rs.html#494">container_idents</a>.pop().unwrap();
+            <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#236-241">encode_name_nested2</a>(
+                <a href="../../../src/vir_gen/deriver/lower.rs.html#535">container_ident_first</a>,
+                <a href="../../../src/vir_gen/deriver/lower.rs.html#536">container_ident_second</a>,
+                <a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>,
             );
-            <span class="kw">let</span> <span class="ident">self_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
-            <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-            <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-            <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">container_ident_first</span> <span class="op">==</span> <span class="string">&quot;Option&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">container_ident_second</span> <span class="op">==</span> <span class="string">&quot;Box&quot;</span> {
-                <span class="kw">let</span> <span class="ident">inner_method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
-                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-                    <span class="kw">fn</span> #<span class="ident">method_name</span>(
-                        #<span class="ident">self_parameter</span>,
-                        <span class="ident">ty</span>: #<span class="ident">container_ident_first</span> <span class="op">&lt;</span> #<span class="ident">container_ident_second</span> <span class="op">&lt;</span> #<span class="ident">parameter_type</span> <span class="op">&gt;</span> <span class="op">&gt;</span>
-                    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span> #<span class="ident">container_ident_first</span> <span class="op">&lt;</span> #<span class="ident">container_ident_second</span> <span class="op">&lt;</span> #<span class="ident">return_type</span> <span class="op">&gt;</span> <span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                        <span class="ident">ty</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> <span class="self">self</span>.#<span class="ident">inner_method_name</span>(<span class="kw-2">*</span><span class="ident">element</span>).<span class="ident">map</span>(<span class="ident">Box::new</span>)).<span class="ident">transpose</span>()
+            <span class="kw">let </span>self_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
+            <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+            <span class="kw">let </span>return_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+            <span class="kw">let </span>method = <span class="kw">if </span>container_ident_first == <span class="string">&quot;Option&quot; </span>&amp;&amp; container_ident_second == <span class="string">&quot;Box&quot; </span>{
+                <span class="kw">let </span>inner_method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#494">inner_ident</a>);
+                <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+                    <span class="kw">fn </span>#method_name(
+                        #self_parameter,
+                        ty: #container_ident_first &lt; #container_ident_second &lt; #parameter_type &gt; &gt;
+                    ) -&gt; <span class="prelude-ty">Result</span>&lt; #container_ident_first &lt; #container_ident_second &lt; #return_type &gt; &gt;, <span class="self">Self</span>::Error&gt; {
+                        ty.map(|element| <span class="self">self</span>.#inner_method_name(<span class="kw-2">*</span>element).map(Box::new)).transpose()
                     }
                 }
-            } <span class="kw">else</span> {
+            } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(
                     <span class="string">&quot;first: {} second: {}&quot;</span>,
-                    <span class="ident">container_ident_first</span>,
-                    <span class="ident">container_ident_second</span>
+                    container_ident_first,
+                    container_ident_second
                 );
             };
-            <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.<span class="ident">encoded_methods</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#545">method</a>);
-        } <span class="kw">else</span> {
+            <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#493">self</a>.encoded_methods.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#545">method</a>);
+        } <span class="kw">else </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>()
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_builtin</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#570">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#570">ident</a>);
-        <span class="kw">let</span> <span class="ident">self_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#570">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#570">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#570">ident</a>);
-        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-            <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>, <span class="ident">value</span>: #<span class="ident">parameter_type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">parameter_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
+    <span class="kw">fn </span>encode_builtin(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; syn::Result&lt;()&gt; {
+        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#570">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#570">ident</a>);
+        <span class="kw">let </span>self_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#570">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#570">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#570">ident</a>);
+        <span class="kw">let </span>method = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="kw">fn </span>#method_name(#self_parameter, value: #parameter_type) -&gt; <span class="prelude-ty">Result</span>&lt;#parameter_type, <span class="self">Self</span>::Error&gt; {
+                <span class="prelude-val">Ok</span>(value)
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#570">self</a>.<span class="ident">encoded_methods</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#574">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#570">self</a>.encoded_methods.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#574">method</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_stub</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#583">ident</a>);
-        <span class="kw">let</span> <span class="ident">self_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#583">ident</a>);
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#583">ident</a>);
-        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-            <span class="kw">fn</span> #<span class="ident">method_name</span>(#<span class="ident">self_parameter</span>, <span class="ident">ty</span>: #<span class="ident">parameter_type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>#<span class="ident">return_type</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+    <span class="kw">fn </span>encode_stub(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; syn::Result&lt;()&gt; {
+        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#583">ident</a>);
+        <span class="kw">let </span>self_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#632">encode_self_parameter</a>();
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#583">ident</a>);
+        <span class="kw">let </span>return_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#583">ident</a>);
+        <span class="kw">let </span>method = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="kw">fn </span>#method_name(#self_parameter, ty: #parameter_type) -&gt; <span class="prelude-ty">Result</span>&lt;#return_type, <span class="self">Self</span>::Error&gt;;
         };
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.<span class="ident">encoded_methods</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#588">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#583">self</a>.encoded_methods.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#588">method</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_user_trait_impl</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">user_trait_ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<span class="ident">user_trait_ident</span>;
-        <span class="kw">let</span> <span class="ident">deriver_trait_ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<span class="ident">deriver_trait_ident</span>;
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#595">ident</a>);
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#595">ident</a>);
-        <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<span class="ident">user_trait_method_name</span>;
-        <span class="kw">let</span> <span class="ident">called_method_name</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#595">ident</a>);
-        <span class="kw">let</span> <span class="ident">lowerer_parameter</span> <span class="op">=</span> <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#640">encode_lowerer_parameter</a>();
-        <span class="kw">let</span> <span class="ident">trait_impl</span> <span class="op">=</span> <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-            <span class="kw">impl</span> #<span class="ident">user_trait_ident</span> <span class="kw">for</span> #<span class="ident">parameter_type</span> {
-                <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> #<span class="ident">return_type</span>;
-                <span class="kw">fn</span> #<span class="ident">method_name</span><span class="op">&lt;</span><span class="ident">L</span>: #<span class="ident">deriver_trait_ident</span><span class="op">&gt;</span>(
-                    <span class="self">self</span>, #<span class="ident">lowerer_parameter</span>
-                ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="op">&lt;</span><span class="ident">L</span> <span class="kw">as</span> #<span class="ident">deriver_trait_ident</span><span class="op">&gt;</span><span class="ident">::Error</span><span class="op">&gt;</span> {
-                    <span class="ident">lowerer</span>.#<span class="ident">called_method_name</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>encode_user_trait_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; syn::Result&lt;()&gt; {
+        <span class="kw">let </span>user_trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.user_trait_ident;
+        <span class="kw">let </span>deriver_trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.deriver_trait_ident;
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#272">encode_parameter_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#595">ident</a>);
+        <span class="kw">let </span>return_type = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#284">encode_return_type</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#595">ident</a>);
+        <span class="kw">let </span>method_name = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.user_trait_method_name;
+        <span class="kw">let </span>called_method_name = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#224">encode_name</a>(<a href="../../../src/vir_gen/deriver/lower.rs.html#595">ident</a>);
+        <span class="kw">let </span>lowerer_parameter = <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<a href="../../../src/vir_gen/deriver/lower.rs.html#640">encode_lowerer_parameter</a>();
+        <span class="kw">let </span>trait_impl = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="kw">impl </span>#user_trait_ident <span class="kw">for </span>#parameter_type {
+                <span class="kw">type </span>Output = #return_type;
+                <span class="kw">fn </span>#method_name&lt;L: #deriver_trait_ident&gt;(
+                    <span class="self">self</span>, #lowerer_parameter
+                ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output, &lt;L <span class="kw">as </span>#deriver_trait_ident&gt;::Error&gt; {
+                    lowerer.#called_method_name(<span class="self">self</span>)
                 }
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<span class="ident">encoded_trait_impls</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#603">trait_impl</a>);
-        <span class="kw">let</span> <span class="ident">trait_impl_vec</span> <span class="op">=</span> <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a> {
-            <span class="kw">impl</span> #<span class="ident">user_trait_ident</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span>#<span class="ident">parameter_type</span><span class="op">&gt;</span> {
-                <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span>#<span class="ident">return_type</span><span class="op">&gt;</span>;
-                <span class="kw">fn</span> #<span class="ident">method_name</span><span class="op">&lt;</span><span class="ident">L</span>: #<span class="ident">deriver_trait_ident</span><span class="op">&gt;</span>(
-                    <span class="self">self</span>, #<span class="ident">lowerer_parameter</span>
-                ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="op">&lt;</span><span class="ident">L</span> <span class="kw">as</span> #<span class="ident">deriver_trait_ident</span><span class="op">&gt;</span><span class="ident">::Error</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                    <span class="kw">for</span> <span class="ident">element</span> <span class="kw">in</span> <span class="self">self</span> {
-                        <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">lowerer</span>.#<span class="ident">called_method_name</span>(<span class="ident">element</span>)<span class="question-mark">?</span>);
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.encoded_trait_impls.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#603">trait_impl</a>);
+        <span class="kw">let </span>trait_impl_vec = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
+            <span class="kw">impl </span>#user_trait_ident <span class="kw">for </span>Vec&lt;#parameter_type&gt; {
+                <span class="kw">type </span>Output = Vec&lt;#return_type&gt;;
+                <span class="kw">fn </span>#method_name&lt;L: #deriver_trait_ident&gt;(
+                    <span class="self">self</span>, #lowerer_parameter
+                ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output, &lt;L <span class="kw">as </span>#deriver_trait_ident&gt;::Error&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>elements = Vec::new();
+                    <span class="kw">for </span>element <span class="kw">in </span><span class="self">self </span>{
+                        elements.push(lowerer.#called_method_name(element)<span class="question-mark">?</span>);
                     }
-                    <span class="prelude-val">Ok</span>(<span class="ident">elements</span>)
+                    <span class="prelude-val">Ok</span>(elements)
                 }
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.<span class="ident">encoded_trait_impls</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/vir_gen/deriver/lower.rs.html#614">trait_impl_vec</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/lower.rs.html#595">self</a>.encoded_trait_impls.push(<a href="../../../src/vir_gen/deriver/lower.rs.html#614">trait_impl_vec</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_self_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../syn/item/enum.FnArg.html">syn::FnArg</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_self_mut</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote!</a> { <span class="kw-2">&amp;mut</span> <span class="self">self</span> }
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote!</a> { <span class="kw-2">&amp;</span><span class="self">self</span> }
+    <span class="kw">fn </span>encode_self_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../syn/item/enum.FnArg.html">syn::FnArg</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_self_mut {
+            <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ <span class="kw-2">&amp;mut </span><span class="self">self </span>}
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ <span class="kw-2">&amp;</span><span class="self">self </span>}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_lowerer_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../syn/item/enum.FnArg.html">syn::FnArg</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_self_mut</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote!</a> { <span class="ident">lowerer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">L</span> }
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote!</a> { <span class="ident">lowerer</span>: <span class="kw-2">&amp;</span><span class="ident">L</span> }
+    <span class="kw">fn </span>encode_lowerer_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../syn/item/enum.FnArg.html">syn::FnArg</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_self_mut {
+            <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ lowerer: <span class="kw-2">&amp;mut </span>L }
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ lowerer: <span class="kw-2">&amp;</span>L }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="vir_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="vir_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/dh.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dh.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/dh.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dh.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -412,419 +412,419 @@
 <span id="412">412</span>
 <span id="413">413</span>
 <span id="414">414</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <span class="ident">foreign_types</span>::{<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn</span>::{<a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><span class="kw">crate</span>::bn::{<a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>};
+<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#112">HasParams</a>, <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a href="../../src/openssl/pkey.rs.html#67">Params</a>, <a href="../../src/openssl/pkey.rs.html#73">Private</a>};
+<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<a class="macro" href="../../src/openssl/macros.rs.html#164-269">generic_foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.DH.html">ffi::DH</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::DH_free</span>;
+<a class="macro" href="../../src/openssl/macros.rs.html#164-269">generic_foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/types/enum.DH.html">ffi::DH</a>;
+    <span class="kw">fn </span>drop = ffi::DH_free;
 
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">pub struct </span>Dh&lt;T&gt;;
 
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DhRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">pub struct </span>DhRef&lt;T&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DhRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a>,
+<span class="kw">impl</span>&lt;T&gt; DhRef&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/openssl/pkey.rs.html#112">HasParams</a>,
 {
-    <a class="macro" href="../../src/openssl/macros.rs.html#76-87">to_pem!</a> {
-        <span class="doccomment">/// Serializes the parameters into a PEM-encoded PKCS#3 DHparameter structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The output will have a header of `-----BEGIN DH PARAMETERS-----`.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_DHparams</span>)]</span>
-        <span class="ident">params_to_pem</span>,
-        <span class="ident">ffi::PEM_write_bio_DHparams</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#76-87">to_pem! </a>{
+        <span class="doccomment">/// Serializes the parameters into a PEM-encoded PKCS#3 DHparameter structure.
+        ///
+        /// The output will have a header of `-----BEGIN DH PARAMETERS-----`.
+        </span><span class="attribute">#[corresponds(PEM_write_bio_DHparams)]
+        </span>params_to_pem,
+        ffi::PEM_write_bio_DHparams
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der!</a> {
-        <span class="doccomment">/// Serializes the parameters into a DER-encoded PKCS#3 DHparameter structure.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_DHparams</span>)]</span>
-        <span class="ident">params_to_der</span>,
-        <span class="ident">ffi::i2d_DHparams</span>
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_params</span>(<span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <span class="ident">g</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::from_pqg</span>(<a class="ident" href="../../src/openssl/dh.rs.html#43">p</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/dh.rs.html#43">q</a>), <a class="ident" href="../../src/openssl/dh.rs.html#43">g</a>)
-    }
-
-    <span class="doccomment">/// Creates a DH instance based upon the given primes and generator params.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_set0_pqg</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pqg</span>(
-        <span class="ident">prime_p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
-        <span class="ident">prime_q</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a><span class="op">&gt;</span>,
-        <span class="ident">generator</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">Dh::from_ptr</span>(<span class="ident">cvt_p</span>(<span class="ident">ffi::DH_new</span>())<span class="question-mark">?</span>);
-            <span class="ident">cvt</span>(<span class="ident">DH_set0_pqg</span>(
-                <span class="ident">dh</span>.<span class="number">0</span>,
-                <span class="ident">prime_p</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">prime_q</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="ident">q</span>.<span class="ident">as_ptr</span>()),
-                <span class="ident">generator</span>.<span class="ident">as_ptr</span>(),
-            ))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/dh.rs.html#50">prime_p</a>, <a class="ident" href="../../src/openssl/dh.rs.html#51">prime_q</a>, <a class="ident" href="../../src/openssl/dh.rs.html#52">generator</a>));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dh.rs.html#55">dh</a>)
-        }
-    }
-
-    <span class="doccomment">/// Sets the private key on the DH object and recomputes the public key.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_private_key</span>(<span class="self">self</span>, <span class="ident">priv_key</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dh_ptr</span> <span class="op">=</span> <a class="self" href="../../src/openssl/dh.rs.html#68">self</a>.<span class="number">0</span>;
-            <span class="ident">cvt</span>(<span class="ident">DH_set0_key</span>(<span class="ident">dh_ptr</span>, <span class="ident">ptr::null_mut</span>(), <span class="ident">priv_key</span>.<span class="ident">as_ptr</span>()))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/dh.rs.html#68">priv_key</a>);
-
-            <span class="ident">cvt</span>(<span class="ident">ffi::DH_generate_key</span>(<span class="ident">dh_ptr</span>))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="self" href="../../src/openssl/dh.rs.html#68">self</a>);
-            <span class="prelude-val">Ok</span>(<span class="ident">Dh::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#70">dh_ptr</a>))
-        }
-    }
-
-    <span class="doccomment">/// Generates DH params based on the given `prime_len` and a fixed `generator` value.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_generate_parameters_ex</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_params</span>(<span class="ident">prime_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">generator</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">Dh::from_ptr</span>(<span class="ident">cvt_p</span>(<span class="ident">ffi::DH_new</span>())<span class="question-mark">?</span>);
-            <span class="ident">cvt</span>(<span class="ident">ffi::DH_generate_parameters_ex</span>(
-                <span class="ident">dh</span>.<span class="number">0</span>,
-                <span class="ident">prime_len</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                <span class="ident">generator</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                <span class="ident">ptr::null_mut</span>(),
-            ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dh.rs.html#84">dh</a>)
-        }
-    }
-
-    <span class="doccomment">/// Generates a public and a private key based on the DH params.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_generate_key</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_key</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dh_ptr</span> <span class="op">=</span> <a class="self" href="../../src/openssl/dh.rs.html#97">self</a>.<span class="number">0</span>;
-            <span class="ident">cvt</span>(<span class="ident">ffi::DH_generate_key</span>(<span class="ident">dh_ptr</span>))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="self" href="../../src/openssl/dh.rs.html#97">self</a>);
-            <span class="prelude-val">Ok</span>(<span class="ident">Dh::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#99">dh_ptr</a>))
-        }
-    }
-
-    <a class="macro" href="../../src/openssl/macros.rs.html#119-131">from_pem!</a> {
-        <span class="doccomment">/// Deserializes a PEM-encoded PKCS#3 DHpararameters structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The input should have a header of `-----BEGIN DH PARAMETERS-----`.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_DHparams</span>)]</span>
-        <span class="ident">params_from_pem</span>,
-        <span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">Params</span><span class="op">&gt;</span>,
-        <span class="ident">ffi::PEM_read_bio_DHparams</span>
-    }
-
-    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der!</a> {
-        <span class="doccomment">/// Deserializes a DER-encoded PKCS#3 DHparameters structure.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_DHparams</span>)]</span>
-        <span class="ident">params_from_der</span>,
-        <span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">Params</span><span class="op">&gt;</span>,
-        <span class="ident">ffi::d2i_DHparams</span>
-    }
-
-    <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_get_1024_160</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">ossl110</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_1024_160</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::DH_get_1024_160</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">Dh::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#130">p</a>))
-        }
-    }
-
-    <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_get_2048_224</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">ossl110</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_2048_224</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::DH_get_2048_224</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">Dh::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#140">p</a>))
-        }
-    }
-
-    <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_get_2048_256</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">ossl110</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_2048_256</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::DH_get_2048_256</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">Dh::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#150">p</a>))
-        }
+    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der! </a>{
+        <span class="doccomment">/// Serializes the parameters into a DER-encoded PKCS#3 DHparameter structure.
+        </span><span class="attribute">#[corresponds(i2d_DHparams)]
+        </span>params_to_der,
+        ffi::i2d_DHparams
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a>,
+<span class="kw">impl </span>Dh&lt;<a href="../../src/openssl/pkey.rs.html#67">Params</a>&gt; {
+    <span class="kw">pub fn </span>from_params(p: <a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, g: <a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, q: <a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../src/openssl/pkey.rs.html#67">Params</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="self">Self</span>::from_pqg(<a href="../../src/openssl/dh.rs.html#43">p</a>, <span class="prelude-val">Some</span>(<a href="../../src/openssl/dh.rs.html#43">q</a>), <a href="../../src/openssl/dh.rs.html#43">g</a>)
+    }
+
+    <span class="doccomment">/// Creates a DH instance based upon the given primes and generator params.
+    </span><span class="attribute">#[corresponds(DH_set0_pqg)]
+    </span><span class="kw">pub fn </span>from_pqg(
+        prime_p: <a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        prime_q: <span class="prelude-ty">Option</span>&lt;<a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>&gt;,
+        generator: <a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../src/openssl/pkey.rs.html#67">Params</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>dh = Dh::from_ptr(cvt_p(ffi::DH_new())<span class="question-mark">?</span>);
+            cvt(DH_set0_pqg(
+                dh.<span class="number">0</span>,
+                prime_p.as_ptr(),
+                prime_q.as_ref().map_or(ptr::null_mut(), |q| q.as_ptr()),
+                generator.as_ptr(),
+            ))<span class="question-mark">?</span>;
+            mem::forget((<a href="../../src/openssl/dh.rs.html#50">prime_p</a>, <a href="../../src/openssl/dh.rs.html#51">prime_q</a>, <a href="../../src/openssl/dh.rs.html#52">generator</a>));
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/dh.rs.html#55">dh</a>)
+        }
+    }
+
+    <span class="doccomment">/// Sets the private key on the DH object and recomputes the public key.
+    </span><span class="kw">pub fn </span>set_private_key(<span class="self">self</span>, priv_key: <a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>dh_ptr = <a class="self" href="../../src/openssl/dh.rs.html#68">self</a>.<span class="number">0</span>;
+            cvt(DH_set0_key(dh_ptr, ptr::null_mut(), priv_key.as_ptr()))<span class="question-mark">?</span>;
+            mem::forget(<a href="../../src/openssl/dh.rs.html#68">priv_key</a>);
+
+            cvt(ffi::DH_generate_key(dh_ptr))<span class="question-mark">?</span>;
+            mem::forget(<a class="self" href="../../src/openssl/dh.rs.html#68">self</a>);
+            <span class="prelude-val">Ok</span>(Dh::from_ptr(<a href="../../src/openssl/dh.rs.html#70">dh_ptr</a>))
+        }
+    }
+
+    <span class="doccomment">/// Generates DH params based on the given `prime_len` and a fixed `generator` value.
+    </span><span class="attribute">#[corresponds(DH_generate_parameters_ex)]
+    </span><span class="kw">pub fn </span>generate_params(prime_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, generator: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../src/openssl/pkey.rs.html#67">Params</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>dh = Dh::from_ptr(cvt_p(ffi::DH_new())<span class="question-mark">?</span>);
+            cvt(ffi::DH_generate_parameters_ex(
+                dh.<span class="number">0</span>,
+                prime_len <span class="kw">as </span>i32,
+                generator <span class="kw">as </span>i32,
+                ptr::null_mut(),
+            ))<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/dh.rs.html#84">dh</a>)
+        }
+    }
+
+    <span class="doccomment">/// Generates a public and a private key based on the DH params.
+    </span><span class="attribute">#[corresponds(DH_generate_key)]
+    </span><span class="kw">pub fn </span>generate_key(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>dh_ptr = <a class="self" href="../../src/openssl/dh.rs.html#97">self</a>.<span class="number">0</span>;
+            cvt(ffi::DH_generate_key(dh_ptr))<span class="question-mark">?</span>;
+            mem::forget(<a class="self" href="../../src/openssl/dh.rs.html#97">self</a>);
+            <span class="prelude-val">Ok</span>(Dh::from_ptr(<a href="../../src/openssl/dh.rs.html#99">dh_ptr</a>))
+        }
+    }
+
+    <a class="macro" href="../../src/openssl/macros.rs.html#119-131">from_pem! </a>{
+        <span class="doccomment">/// Deserializes a PEM-encoded PKCS#3 DHpararameters structure.
+        ///
+        /// The input should have a header of `-----BEGIN DH PARAMETERS-----`.
+        </span><span class="attribute">#[corresponds(PEM_read_bio_DHparams)]
+        </span>params_from_pem,
+        Dh&lt;Params&gt;,
+        ffi::PEM_read_bio_DHparams
+    }
+
+    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der! </a>{
+        <span class="doccomment">/// Deserializes a DER-encoded PKCS#3 DHparameters structure.
+        </span><span class="attribute">#[corresponds(d2i_DHparams)]
+        </span>params_from_der,
+        Dh&lt;Params&gt;,
+        ffi::d2i_DHparams
+    }
+
+    <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.
+    </span><span class="attribute">#[corresponds(DH_get_1024_160)]
+    #[cfg(any(ossl102, ossl110))]
+    </span><span class="kw">pub fn </span>get_1024_160() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../src/openssl/pkey.rs.html#67">Params</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::DH_get_1024_160()).map(|p| Dh::from_ptr(<a href="../../src/openssl/dh.rs.html#130">p</a>))
+        }
+    }
+
+    <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.
+    </span><span class="attribute">#[corresponds(DH_get_2048_224)]
+    #[cfg(any(ossl102, ossl110))]
+    </span><span class="kw">pub fn </span>get_2048_224() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../src/openssl/pkey.rs.html#67">Params</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::DH_get_2048_224()).map(|p| Dh::from_ptr(<a href="../../src/openssl/dh.rs.html#140">p</a>))
+        }
+    }
+
+    <span class="doccomment">/// Requires OpenSSL 1.0.2 or newer.
+    </span><span class="attribute">#[corresponds(DH_get_2048_256)]
+    #[cfg(any(ossl102, ossl110))]
+    </span><span class="kw">pub fn </span>get_2048_256() -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../src/openssl/pkey.rs.html#67">Params</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::DH_get_2048_256()).map(|p| Dh::from_ptr(<a href="../../src/openssl/dh.rs.html#150">p</a>))
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; Dh&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/openssl/pkey.rs.html#112">HasParams</a>,
 {
-    <span class="doccomment">/// Returns the prime `p` from the DH instance.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_get0_pqg</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prime_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="../../src/openssl/dh.rs.html#161">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dh.rs.html#162">p</a>, <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#162">p</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
+    <span class="doccomment">/// Returns the prime `p` from the DH instance.
+    </span><span class="attribute">#[corresponds(DH_get0_pqg)]
+    </span><span class="kw">pub fn </span>prime_p(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>p = ptr::null();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl_sys/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="../../src/openssl/dh.rs.html#161">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="kw-2">&amp;mut </span><a href="../../src/openssl/dh.rs.html#162">p</a>, ptr::null_mut(), ptr::null_mut());
+            BigNumRef::from_ptr(<a href="../../src/openssl/dh.rs.html#162">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 
-    <span class="doccomment">/// Returns the prime `q` from the DH instance.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_get0_pqg</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prime_q</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="../../src/openssl/dh.rs.html#171">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dh.rs.html#172">q</a>, <span class="ident">ptr::null_mut</span>());
-            <span class="kw">if</span> <span class="ident">q</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">BigNumRef::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#172">q</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
+    <span class="doccomment">/// Returns the prime `q` from the DH instance.
+    </span><span class="attribute">#[corresponds(DH_get0_pqg)]
+    </span><span class="kw">pub fn </span>prime_q(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>q = ptr::null();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl_sys/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="../../src/openssl/dh.rs.html#171">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), ptr::null_mut(), <span class="kw-2">&amp;mut </span><a href="../../src/openssl/dh.rs.html#172">q</a>, ptr::null_mut());
+            <span class="kw">if </span>q.is_null() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(BigNumRef::from_ptr(<a href="../../src/openssl/dh.rs.html#172">q</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
             }
         }
     }
 
-    <span class="doccomment">/// Returns the generator from the DH instance.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_get0_pqg</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="../../src/openssl/dh.rs.html#185">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dh.rs.html#186">g</a>);
-            <span class="ident">BigNumRef::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#186">g</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
+    <span class="doccomment">/// Returns the generator from the DH instance.
+    </span><span class="attribute">#[corresponds(DH_get0_pqg)]
+    </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>g = ptr::null();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl_sys/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>(<a class="self" href="../../src/openssl/dh.rs.html#185">self</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), ptr::null_mut(), ptr::null_mut(), <span class="kw-2">&amp;mut </span><a href="../../src/openssl/dh.rs.html#186">g</a>);
+            BigNumRef::from_ptr(<a href="../../src/openssl/dh.rs.html#186">g</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DhRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+<span class="kw">impl</span>&lt;T&gt; DhRef&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
 {
-    <span class="doccomment">/// Returns the public key from the DH instance.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_get0_key</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pub_key</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>(<a class="self" href="../../src/openssl/dh.rs.html#200">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dh.rs.html#201">pub_key</a>, <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#201">pub_key</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
+    <span class="doccomment">/// Returns the public key from the DH instance.
+    </span><span class="attribute">#[corresponds(DH_get0_key)]
+    </span><span class="kw">pub fn </span>public_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>pub_key = ptr::null();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl_sys/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>(<a class="self" href="../../src/openssl/dh.rs.html#200">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut </span><a href="../../src/openssl/dh.rs.html#201">pub_key</a>, ptr::null_mut());
+            BigNumRef::from_ptr(<a href="../../src/openssl/dh.rs.html#201">pub_key</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DhRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+<span class="kw">impl</span>&lt;T&gt; DhRef&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
 {
-    <span class="doccomment">/// Computes a shared secret from the own private key and the given `public_key`.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_compute_key</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">public_key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">key_len</span> <span class="op">=</span> <span class="ident">ffi::DH_size</span>(<a class="self" href="../../src/openssl/dh.rs.html#215">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">key</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0u8</span>; <span class="ident">key_len</span> <span class="kw">as</span> <span class="ident">usize</span>];
-            <span class="ident">cvt</span>(<span class="ident">ffi::DH_compute_key</span>(
-                <span class="ident">key</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="ident">public_key</span>.<span class="ident">as_ptr</span>(),
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
+    <span class="doccomment">/// Computes a shared secret from the own private key and the given `public_key`.
+    </span><span class="attribute">#[corresponds(DH_compute_key)]
+    </span><span class="kw">pub fn </span>compute_key(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span><a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>key_len = ffi::DH_size(<a class="self" href="../../src/openssl/dh.rs.html#215">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="kw">let </span><span class="kw-2">mut </span>key = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0u8</span>; key_len <span class="kw">as </span>usize];
+            cvt(ffi::DH_compute_key(
+                key.as_mut_ptr(),
+                public_key.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dh.rs.html#218">key</a>)
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/dh.rs.html#218">key</a>)
         }
     }
 
-    <span class="doccomment">/// Returns the private key from the DH instance.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DH_get0_key</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">priv_key</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>(<a class="self" href="../../src/openssl/dh.rs.html#230">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dh.rs.html#231">priv_key</a>);
-            <span class="ident">BigNumRef::from_ptr</span>(<a class="ident" href="../../src/openssl/dh.rs.html#231">priv_key</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
+    <span class="doccomment">/// Returns the private key from the DH instance.
+    </span><span class="attribute">#[corresponds(DH_get0_key)]
+    </span><span class="kw">pub fn </span>private_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>priv_key = ptr::null();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl_sys/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>(<a class="self" href="../../src/openssl/dh.rs.html#230">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ptr::null_mut(), <span class="kw-2">&amp;mut </span><a href="../../src/openssl/dh.rs.html#231">priv_key</a>);
+            BigNumRef::from_ptr(<a href="../../src/openssl/dh.rs.html#231">priv_key</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span> {
-        <span class="kw">use</span> <span class="ident">ffi</span>::{<a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_set0_pqg.html">DH_set0_pqg</a>, <a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>, <a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>, <a class="ident" href="../../openssl_sys/handwritten/dh/fn.DH_set0_key.html">DH_set0_key</a>};
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">DH_set0_pqg</span>(
-            <span class="ident">dh</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::DH</span>,
-            <span class="ident">p</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::BIGNUM</span>,
-            <span class="ident">q</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::BIGNUM</span>,
-            <span class="ident">g</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::BIGNUM</span>,
-        ) -&gt; <span class="ident">::libc::c_int</span> {
-            (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">p</span> <span class="op">=</span> <span class="ident">p</span>;
-            (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">q</span> <span class="op">=</span> <span class="ident">q</span>;
-            (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">g</span> <span class="op">=</span> <span class="ident">g</span>;
-            <span class="number">1</span>
-        }
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl270))] </span>{
+        <span class="kw">use </span>ffi::{<a href="../../openssl_sys/handwritten/dh/fn.DH_set0_pqg.html">DH_set0_pqg</a>, <a href="../../openssl_sys/handwritten/dh/fn.DH_get0_pqg.html">DH_get0_pqg</a>, <a href="../../openssl_sys/handwritten/dh/fn.DH_get0_key.html">DH_get0_key</a>, <a href="../../openssl_sys/handwritten/dh/fn.DH_set0_key.html">DH_set0_key</a>};
+    } <span class="kw">else </span>{
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>DH_set0_pqg(
+            dh: <span class="kw-2">*mut </span>ffi::DH,
+            p: <span class="kw-2">*mut </span>ffi::BIGNUM,
+            q: <span class="kw-2">*mut </span>ffi::BIGNUM,
+            g: <span class="kw-2">*mut </span>ffi::BIGNUM,
+        ) -&gt; ::libc::c_int {
+            (<span class="kw-2">*</span>dh).p = p;
+            (<span class="kw-2">*</span>dh).q = q;
+            (<span class="kw-2">*</span>dh).g = g;
+            <span class="number">1
+        </span>}
 
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">DH_get0_pqg</span>(
-            <span class="ident">dh</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::DH</span>,
-            <span class="ident">p</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <span class="ident">ffi::BIGNUM</span>,
-            <span class="ident">q</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <span class="ident">ffi::BIGNUM</span>,
-            <span class="ident">g</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <span class="ident">ffi::BIGNUM</span>,
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>DH_get0_pqg(
+            dh: <span class="kw-2">*mut </span>ffi::DH,
+            p: <span class="kw-2">*mut *const </span>ffi::BIGNUM,
+            q: <span class="kw-2">*mut *const </span>ffi::BIGNUM,
+            g: <span class="kw-2">*mut *const </span>ffi::BIGNUM,
         ) {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_null</span>() {
-                <span class="kw-2">*</span><span class="ident">p</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">p</span>;
+            <span class="kw">if </span>!p.is_null() {
+                <span class="kw-2">*</span>p = (<span class="kw-2">*</span>dh).p;
             }
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">q</span>.<span class="ident">is_null</span>() {
-                <span class="kw-2">*</span><span class="ident">q</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">q</span>;
+            <span class="kw">if </span>!q.is_null() {
+                <span class="kw-2">*</span>q = (<span class="kw-2">*</span>dh).q;
             }
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">g</span>.<span class="ident">is_null</span>() {
-                <span class="kw-2">*</span><span class="ident">g</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">g</span>;
+            <span class="kw">if </span>!g.is_null() {
+                <span class="kw-2">*</span>g = (<span class="kw-2">*</span>dh).g;
             }
         }
 
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">DH_set0_key</span>(
-            <span class="ident">dh</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::DH</span>,
-            <span class="ident">pub_key</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::BIGNUM</span>,
-            <span class="ident">priv_key</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::BIGNUM</span>,
-        ) -&gt; <span class="ident">::libc::c_int</span> {
-            (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">pub_key</span> <span class="op">=</span> <span class="ident">pub_key</span>;
-            (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">priv_key</span> <span class="op">=</span> <span class="ident">priv_key</span>;
-            <span class="number">1</span>
-        }
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>DH_set0_key(
+            dh: <span class="kw-2">*mut </span>ffi::DH,
+            pub_key: <span class="kw-2">*mut </span>ffi::BIGNUM,
+            priv_key: <span class="kw-2">*mut </span>ffi::BIGNUM,
+        ) -&gt; ::libc::c_int {
+            (<span class="kw-2">*</span>dh).pub_key = pub_key;
+            (<span class="kw-2">*</span>dh).priv_key = priv_key;
+            <span class="number">1
+        </span>}
 
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">DH_get0_key</span>(
-            <span class="ident">dh</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::DH</span>,
-            <span class="ident">pub_key</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <span class="ident">ffi::BIGNUM</span>,
-            <span class="ident">priv_key</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <span class="ident">ffi::BIGNUM</span>,
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>DH_get0_key(
+            dh: <span class="kw-2">*mut </span>ffi::DH,
+            pub_key: <span class="kw-2">*mut *const </span>ffi::BIGNUM,
+            priv_key: <span class="kw-2">*mut *const </span>ffi::BIGNUM,
         ) {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">pub_key</span>.<span class="ident">is_null</span>() {
-                <span class="kw-2">*</span><span class="ident">pub_key</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">pub_key</span>;
+            <span class="kw">if </span>!pub_key.is_null() {
+                <span class="kw-2">*</span>pub_key = (<span class="kw-2">*</span>dh).pub_key;
             }
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">priv_key</span>.<span class="ident">is_null</span>() {
-                <span class="kw-2">*</span><span class="ident">priv_key</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">dh</span>).<span class="ident">priv_key</span>;
+            <span class="kw">if </span>!priv_key.is_null() {
+                <span class="kw-2">*</span>priv_key = (<span class="kw-2">*</span>dh).priv_key;
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn::BigNum</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::dh::Dh</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ssl</span>::{<span class="ident">SslContext</span>, <span class="ident">SslMethod</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::bn::BigNum;
+    <span class="kw">use </span><span class="kw">crate</span>::dh::Dh;
+    <span class="kw">use </span><span class="kw">crate</span>::ssl::{SslContext, SslMethod};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_rfc5114</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">SslContext::builder</span>(<span class="ident">SslMethod::tls</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dh2</span> <span class="op">=</span> <span class="ident">Dh::get_2048_224</span>().<span class="ident">unwrap</span>();
-        <span class="ident">ctx</span>.<span class="ident">set_tmp_dh</span>(<span class="kw-2">&amp;</span><span class="ident">dh2</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dh3</span> <span class="op">=</span> <span class="ident">Dh::get_2048_256</span>().<span class="ident">unwrap</span>();
-        <span class="ident">ctx</span>.<span class="ident">set_tmp_dh</span>(<span class="kw-2">&amp;</span><span class="ident">dh3</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg(ossl102)]
+    </span><span class="kw">fn </span>test_dh_rfc5114() {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = SslContext::builder(SslMethod::tls()).unwrap();
+        <span class="kw">let </span>dh2 = Dh::get_2048_224().unwrap();
+        ctx.set_tmp_dh(<span class="kw-2">&amp;</span>dh2).unwrap();
+        <span class="kw">let </span>dh3 = Dh::get_2048_256().unwrap();
+        ctx.set_tmp_dh(<span class="kw-2">&amp;</span>dh3).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_params</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">SslContext::builder</span>(<span class="ident">SslMethod::tls</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">prime_p</span> <span class="op">=</span> <span class="ident">BigNum::from_hex_str</span>(
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_dh_params() {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = SslContext::builder(SslMethod::tls()).unwrap();
+        <span class="kw">let </span>prime_p = BigNum::from_hex_str(
             <span class="string">&quot;87A8E61DB4B6663CFFBBD19C651959998CEEF608660DD0F25D2CEED4435E3B00E00DF8F1D61957D4FAF7DF\
              4561B2AA3016C3D91134096FAA3BF4296D830E9A7C209E0C6497517ABD5A8A9D306BCF67ED91F9E6725B47\
              58C022E0B1EF4275BF7B6C5BFC11D45F9088B941F54EB1E59BB8BC39A0BF12307F5C4FDB70C581B23F76B6\
              3ACAE1CAA6B7902D52526735488A0EF13C6D9A51BFA4AB3AD8347796524D8EF6A167B5A41825D967E144E5\
              140564251CCACB83E6B486F6B3CA3F7971506026C0B857F689962856DED4010ABD0BE621C3A3960A54E710\
              C375F26375D7014103A4B54330C198AF126116D2276E11715F693877FAD7EF09CADB094AE91E1A1597&quot;</span>,
-        ).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">prime_q</span> <span class="op">=</span> <span class="ident">BigNum::from_hex_str</span>(
+        ).unwrap();
+        <span class="kw">let </span>prime_q = BigNum::from_hex_str(
             <span class="string">&quot;3FB32C9B73134D0B2E77506660EDBD484CA7B18F21EF205407F4793A1A0BA12510DBC15077BE463FFF4FED\
              4AAC0BB555BE3A6C1B0C6B47B1BC3773BF7E8C6F62901228F8C28CBB18A55AE31341000A650196F931C77A\
              57F2DDF463E5E9EC144B777DE62AAAB8A8628AC376D282D6ED3864E67982428EBC831D14348F6F2F9193B5\
              045AF2767164E1DFC967C1FB3F2E55A4BD1BFFE83B9C80D052B985D182EA0ADB2A3B7313D3FE14C8484B1E\
              052588B9B7D2BBD2DF016199ECD06E1557CD0915B3353BBB64E0EC377FD028370DF92B52C7891428CDC67E\
              B6184B523D1DB246C32F63078490F00EF8D647D148D47954515E2327CFEF98C582664B4C0F6CC41659&quot;</span>,
-        ).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">BigNum::from_hex_str</span>(
+        ).unwrap();
+        <span class="kw">let </span>generator = BigNum::from_hex_str(
             <span class="string">&quot;8CF83642A709A097B447997640129DA299B1A47D1EB3750BA308B0FE64F5FBD3&quot;</span>,
         )
-        .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">Dh::from_params</span>(
-            <span class="ident">prime_p</span>.<span class="ident">to_owned</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">generator</span>.<span class="ident">to_owned</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">prime_q</span>.<span class="ident">to_owned</span>().<span class="ident">unwrap</span>(),
+        .unwrap();
+        <span class="kw">let </span>dh = Dh::from_params(
+            prime_p.to_owned().unwrap(),
+            generator.to_owned().unwrap(),
+            prime_q.to_owned().unwrap(),
         )
-        .<span class="ident">unwrap</span>();
-        <span class="ident">ctx</span>.<span class="ident">set_tmp_dh</span>(<span class="kw-2">&amp;</span><span class="ident">dh</span>).<span class="ident">unwrap</span>();
+        .unwrap();
+        ctx.set_tmp_dh(<span class="kw-2">&amp;</span>dh).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">dh</span>.<span class="ident">prime_p</span>(), <span class="kw-2">&amp;</span><span class="ident">prime_p</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dh</span>.<span class="ident">prime_q</span>().<span class="ident">unwrap</span>(), <span class="kw-2">&amp;</span><span class="ident">prime_q</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dh</span>.<span class="ident">generator</span>(), <span class="kw-2">&amp;</span><span class="ident">generator</span>);
+        <span class="macro">assert_eq!</span>(dh.prime_p(), <span class="kw-2">&amp;</span>prime_p);
+        <span class="macro">assert_eq!</span>(dh.prime_q().unwrap(), <span class="kw-2">&amp;</span>prime_q);
+        <span class="macro">assert_eq!</span>(dh.generator(), <span class="kw-2">&amp;</span>generator);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_stored_restored</span>() {
-        <span class="kw">let</span> <span class="ident">dh1</span> <span class="op">=</span> <span class="ident">Dh::get_2048_256</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key1</span> <span class="op">=</span> <span class="ident">dh1</span>.<span class="ident">generate_key</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg(ossl102)]
+    </span><span class="kw">fn </span>test_dh_stored_restored() {
+        <span class="kw">let </span>dh1 = Dh::get_2048_256().unwrap();
+        <span class="kw">let </span>key1 = dh1.generate_key().unwrap();
 
-        <span class="kw">let</span> <span class="ident">dh2</span> <span class="op">=</span> <span class="ident">Dh::get_2048_256</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key2</span> <span class="op">=</span> <span class="ident">dh2</span>
-            .<span class="ident">set_private_key</span>(<span class="ident">key1</span>.<span class="ident">private_key</span>().<span class="ident">to_owned</span>().<span class="ident">unwrap</span>())
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let </span>dh2 = Dh::get_2048_256().unwrap();
+        <span class="kw">let </span>key2 = dh2
+            .set_private_key(key1.private_key().to_owned().unwrap())
+            .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">key1</span>.<span class="ident">public_key</span>(), <span class="ident">key2</span>.<span class="ident">public_key</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">key1</span>.<span class="ident">private_key</span>(), <span class="ident">key2</span>.<span class="ident">private_key</span>());
+        <span class="macro">assert_eq!</span>(key1.public_key(), key2.public_key());
+        <span class="macro">assert_eq!</span>(key1.private_key(), key2.private_key());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_from_pem</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">SslContext::builder</span>(<span class="ident">SslMethod::tls</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/dhparams.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">Dh::params_from_pem</span>(<span class="ident">params</span>).<span class="ident">unwrap</span>();
-        <span class="ident">ctx</span>.<span class="ident">set_tmp_dh</span>(<span class="kw-2">&amp;</span><span class="ident">dh</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_dh_from_pem() {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = SslContext::builder(SslMethod::tls()).unwrap();
+        <span class="kw">let </span>params = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/dhparams.pem&quot;</span>);
+        <span class="kw">let </span>dh = Dh::params_from_pem(params).unwrap();
+        ctx.set_tmp_dh(<span class="kw-2">&amp;</span>dh).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_from_der</span>() {
-        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/dhparams.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">Dh::params_from_pem</span>(<span class="ident">params</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="ident">dh</span>.<span class="ident">params_to_der</span>().<span class="ident">unwrap</span>();
-        <span class="ident">Dh::params_from_der</span>(<span class="kw-2">&amp;</span><span class="ident">der</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_dh_from_der() {
+        <span class="kw">let </span>params = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/dhparams.pem&quot;</span>);
+        <span class="kw">let </span>dh = Dh::params_from_pem(params).unwrap();
+        <span class="kw">let </span>der = dh.params_to_der().unwrap();
+        Dh::params_from_der(<span class="kw-2">&amp;</span>der).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_generate_key_compute_key</span>() {
-        <span class="kw">let</span> <span class="ident">dh1</span> <span class="op">=</span> <span class="ident">Dh::get_2048_224</span>().<span class="ident">unwrap</span>().<span class="ident">generate_key</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dh2</span> <span class="op">=</span> <span class="ident">Dh::get_2048_224</span>().<span class="ident">unwrap</span>().<span class="ident">generate_key</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg(ossl102)]
+    </span><span class="kw">fn </span>test_dh_generate_key_compute_key() {
+        <span class="kw">let </span>dh1 = Dh::get_2048_224().unwrap().generate_key().unwrap();
+        <span class="kw">let </span>dh2 = Dh::get_2048_224().unwrap().generate_key().unwrap();
 
-        <span class="kw">let</span> <span class="ident">shared_a</span> <span class="op">=</span> <span class="ident">dh1</span>.<span class="ident">compute_key</span>(<span class="ident">dh2</span>.<span class="ident">public_key</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">shared_b</span> <span class="op">=</span> <span class="ident">dh2</span>.<span class="ident">compute_key</span>(<span class="ident">dh1</span>.<span class="ident">public_key</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>shared_a = dh1.compute_key(dh2.public_key()).unwrap();
+        <span class="kw">let </span>shared_b = dh2.compute_key(dh1.public_key()).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">shared_a</span>, <span class="ident">shared_b</span>);
+        <span class="macro">assert_eq!</span>(shared_a, shared_b);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_generate_params_generate_key_compute_key</span>() {
-        <span class="kw">let</span> <span class="ident">dh_params1</span> <span class="op">=</span> <span class="ident">Dh::generate_params</span>(<span class="number">512</span>, <span class="number">2</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dh_params2</span> <span class="op">=</span> <span class="ident">Dh::from_pqg</span>(
-            <span class="ident">dh_params1</span>.<span class="ident">prime_p</span>().<span class="ident">to_owned</span>().<span class="ident">unwrap</span>(),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_dh_generate_params_generate_key_compute_key() {
+        <span class="kw">let </span>dh_params1 = Dh::generate_params(<span class="number">512</span>, <span class="number">2</span>).unwrap();
+        <span class="kw">let </span>dh_params2 = Dh::from_pqg(
+            dh_params1.prime_p().to_owned().unwrap(),
             <span class="prelude-val">None</span>,
-            <span class="ident">dh_params1</span>.<span class="ident">generator</span>().<span class="ident">to_owned</span>().<span class="ident">unwrap</span>(),
+            dh_params1.generator().to_owned().unwrap(),
         )
-        .<span class="ident">unwrap</span>();
+        .unwrap();
 
-        <span class="kw">let</span> <span class="ident">dh1</span> <span class="op">=</span> <span class="ident">dh_params1</span>.<span class="ident">generate_key</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dh2</span> <span class="op">=</span> <span class="ident">dh_params2</span>.<span class="ident">generate_key</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>dh1 = dh_params1.generate_key().unwrap();
+        <span class="kw">let </span>dh2 = dh_params2.generate_key().unwrap();
 
-        <span class="kw">let</span> <span class="ident">shared_a</span> <span class="op">=</span> <span class="ident">dh1</span>.<span class="ident">compute_key</span>(<span class="ident">dh2</span>.<span class="ident">public_key</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">shared_b</span> <span class="op">=</span> <span class="ident">dh2</span>.<span class="ident">compute_key</span>(<span class="ident">dh1</span>.<span class="ident">public_key</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>shared_a = dh1.compute_key(dh2.public_key()).unwrap();
+        <span class="kw">let </span>shared_b = dh2.compute_key(dh1.public_key()).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">shared_a</span>, <span class="ident">shared_b</span>);
+        <span class="macro">assert_eq!</span>(shared_a, shared_b);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

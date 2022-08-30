@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mpsc/block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mpsc/block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -383,390 +383,390 @@
 <span id="383">383</span>
 <span id="384">384</span>
 <span id="385">385</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync::atomic</span>::{<a class="ident" href="../../../../src/tokio/loom/std/atomic_ptr.rs.html#5">AtomicPtr</a>, <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::{<a href="../../../../src/tokio/loom/std/atomic_ptr.rs.html#5">AtomicPtr</a>, <a href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
-<span class="kw">use</span> <span class="ident">std::ptr</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">NonNull</a>};
-<span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">self</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>, <span class="ident">Release</span>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
+<span class="kw">use </span>std::ptr::{<a class="self" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">NonNull</a>};
+<span class="kw">use </span>std::sync::atomic::Ordering::{<a class="self" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">self</a>, AcqRel, Acquire, Release};
 
-<span class="doccomment">/// A block in a linked list.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Each block in the list can hold up to `BLOCK_CAP` messages.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The start index of this block.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Slots in this block have indices in `start_index .. start_index + BLOCK_CAP`.</span>
-    <span class="ident">start_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// A block in a linked list.
+///
+/// Each block in the list can hold up to `BLOCK_CAP` messages.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Block&lt;T&gt; {
+    <span class="doccomment">/// The start index of this block.
+    ///
+    /// Slots in this block have indices in `start_index .. start_index + BLOCK_CAP`.
+    </span>start_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
-    <span class="doccomment">/// The next block in the linked list.</span>
-    <span class="ident">next</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The next block in the linked list.
+    </span>next: AtomicPtr&lt;Block&lt;T&gt;&gt;,
 
-    <span class="doccomment">/// Bitfield tracking slots that are ready to have their values consumed.</span>
-    <span class="ident">ready_slots</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    <span class="doccomment">/// Bitfield tracking slots that are ready to have their values consumed.
+    </span>ready_slots: <a href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
 
-    <span class="doccomment">/// The observed `tail_position` value *after* the block has been passed by</span>
-    <span class="doccomment">/// `block_tail`.</span>
-    <span class="ident">observed_tail_position</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// The observed `tail_position` value *after* the block has been passed by
+    /// `block_tail`.
+    </span>observed_tail_position: UnsafeCell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
 
-    <span class="doccomment">/// Array containing values pushed into the block. Values are stored in a</span>
-    <span class="doccomment">/// continuous array in order to improve cache line behavior when reading.</span>
-    <span class="doccomment">/// The values must be manually dropped.</span>
-    <span class="ident">values</span>: <span class="ident">Values</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Array containing values pushed into the block. Values are stored in a
+    /// continuous array in order to improve cache line behavior when reading.
+    /// The values must be manually dropped.
+    </span>values: Values&lt;T&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Read</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">Value</span>(<span class="ident">T</span>),
-    <span class="ident">Closed</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Read&lt;T&gt; {
+    Value(T),
+    Closed,
 }
 
-<span class="kw">struct</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>([<span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>; <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>]);
+<span class="kw">struct </span>Values&lt;T&gt;([UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;; <a href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>]);
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#109"><span class="kw">super</span>::BLOCK_CAP</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/mod.rs.html#109"><span class="kw">super</span>::BLOCK_CAP</a>;
 
-<span class="doccomment">/// Masks an index to get the block identifier.</span>
-<span class="kw">const</span> <span class="ident">BLOCK_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="op">!</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a> <span class="op">-</span> <span class="number">1</span>);
+<span class="doccomment">/// Masks an index to get the block identifier.
+</span><span class="kw">const </span>BLOCK_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = !(<a href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a> - <span class="number">1</span>);
 
-<span class="doccomment">/// Masks an index to get the value offset in a block.</span>
-<span class="kw">const</span> <span class="ident">SLOT_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a> <span class="op">-</span> <span class="number">1</span>;
+<span class="doccomment">/// Masks an index to get the value offset in a block.
+</span><span class="kw">const </span>SLOT_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a> - <span class="number">1</span>;
 
-<span class="doccomment">/// Flag tracking that a block has gone through the sender&#39;s release routine.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When this is set, the receiver may consider freeing the block.</span>
-<span class="kw">const</span> <span class="ident">RELEASED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>;
+<span class="doccomment">/// Flag tracking that a block has gone through the sender&#39;s release routine.
+///
+/// When this is set, the receiver may consider freeing the block.
+</span><span class="kw">const </span>RELEASED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1 </span>&lt;&lt; <a href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>;
 
-<span class="doccomment">/// Flag tracking all senders dropped.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When this flag is set, the send half of the channel has closed.</span>
-<span class="kw">const</span> <span class="ident">TX_CLOSED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#52">RELEASED</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
+<span class="doccomment">/// Flag tracking all senders dropped.
+///
+/// When this flag is set, the send half of the channel has closed.
+</span><span class="kw">const </span>TX_CLOSED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../../src/tokio/sync/mpsc/block.rs.html#52">RELEASED</a> &lt;&lt; <span class="number">1</span>;
 
-<span class="doccomment">/// Mask covering all bits used to track slot readiness.</span>
-<span class="kw">const</span> <span class="ident">READY_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#52">RELEASED</a> <span class="op">-</span> <span class="number">1</span>;
+<span class="doccomment">/// Mask covering all bits used to track slot readiness.
+</span><span class="kw">const </span>READY_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../../src/tokio/sync/mpsc/block.rs.html#52">RELEASED</a> - <span class="number">1</span>;
 
-<span class="doccomment">/// Returns the index of the first slot in the block referenced by `slot_index`.</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start_index</span>(<span class="ident">slot_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#44">BLOCK_MASK</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#64">slot_index</a>
+<span class="doccomment">/// Returns the index of the first slot in the block referenced by `slot_index`.
+</span><span class="attribute">#[inline(always)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>start_index(slot_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <a href="../../../../src/tokio/sync/mpsc/block.rs.html#44">BLOCK_MASK</a> &amp; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#64">slot_index</a>
 }
 
-<span class="doccomment">/// Returns the offset into the block referenced by `slot_index`.</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">offset</span>(<span class="ident">slot_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#47">SLOT_MASK</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#70">slot_index</a>
+<span class="doccomment">/// Returns the offset into the block referenced by `slot_index`.
+</span><span class="attribute">#[inline(always)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>offset(slot_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <a href="../../../../src/tokio/sync/mpsc/block.rs.html#47">SLOT_MASK</a> &amp; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#70">slot_index</a>
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#12">Block</a> {
-            <span class="comment">// The absolute index in the channel of the first slot in the block.</span>
-            <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#75">start_index</a>,
+<span class="kw">impl</span>&lt;T&gt; Block&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(start_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Block&lt;T&gt; {
+        <a href="../../../../src/tokio/sync/mpsc/block.rs.html#12">Block</a> {
+            <span class="comment">// The absolute index in the channel of the first slot in the block.
+            </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#75">start_index</a>,
 
-            <span class="comment">// Pointer to the next block in the linked list.</span>
-            <span class="ident">next</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
+            <span class="comment">// Pointer to the next block in the linked list.
+            </span>next: AtomicPtr::new(ptr::null_mut()),
 
-            <span class="ident">ready_slots</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
+            ready_slots: AtomicUsize::new(<span class="number">0</span>),
 
-            <span class="ident">observed_tail_position</span>: <span class="ident">UnsafeCell::new</span>(<span class="number">0</span>),
+            observed_tail_position: UnsafeCell::new(<span class="number">0</span>),
 
-            <span class="comment">// Value storage</span>
-            <span class="ident">values</span>: <span class="kw">unsafe</span> { <span class="ident">Values::uninitialized</span>() },
+            <span class="comment">// Value storage
+            </span>values: <span class="kw">unsafe </span>{ Values::uninitialized() },
         }
     }
 
-    <span class="doccomment">/// Returns `true` if the block matches the given index.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_at_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">offset</span>(<span class="ident">index</span>) <span class="op">==</span> <span class="number">0</span>);
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#93">self</a>.<span class="ident">start_index</span> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#93">index</a>
+    <span class="doccomment">/// Returns `true` if the block matches the given index.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_at_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(offset(index) == <span class="number">0</span>);
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#93">self</a>.start_index == <a href="../../../../src/tokio/sync/mpsc/block.rs.html#93">index</a>
     }
 
-    <span class="doccomment">/// Returns the number of blocks between `self` and the block at the</span>
-    <span class="doccomment">/// specified index.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `start_index` must represent a block *after* `self`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">distance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">offset</span>(<span class="ident">other_index</span>) <span class="op">==</span> <span class="number">0</span>);
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#102">other_index</a>.<span class="ident">wrapping_sub</span>(<a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#102">self</a>.<span class="ident">start_index</span>) <span class="op">/</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>
+    <span class="doccomment">/// Returns the number of blocks between `self` and the block at the
+    /// specified index.
+    ///
+    /// `start_index` must represent a block *after* `self`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>distance(<span class="kw-2">&amp;</span><span class="self">self</span>, other_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(offset(other_index) == <span class="number">0</span>);
+        <a href="../../../../src/tokio/sync/mpsc/block.rs.html#102">other_index</a>.wrapping_sub(<a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#102">self</a>.start_index) / <a href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>
     }
 
-    <span class="doccomment">/// Reads the value at the given offset.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the slot is empty.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To maintain safety, the caller must ensure:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * No concurrent access to the slot.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">slot_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Read</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#70">offset</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#116">slot_index</a>);
+    <span class="doccomment">/// Reads the value at the given offset.
+    ///
+    /// Returns `None` if the slot is empty.
+    ///
+    /// # Safety
+    ///
+    /// To maintain safety, the caller must ensure:
+    ///
+    /// * No concurrent access to the slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>, slot_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Read&lt;T&gt;&gt; {
+        <span class="kw">let </span>offset = <a href="../../../../src/tokio/sync/mpsc/block.rs.html#70">offset</a>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#116">slot_index</a>);
 
-        <span class="kw">let</span> <span class="ident">ready_bits</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#116">self</a>.<span class="ident">ready_slots</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
+        <span class="kw">let </span>ready_bits = <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#116">self</a>.ready_slots.load(Acquire);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_ready</span>(<span class="ident">ready_bits</span>, <span class="ident">offset</span>) {
-            <span class="kw">if</span> <span class="ident">is_tx_closed</span>(<span class="ident">ready_bits</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#36">Read::Closed</a>);
+        <span class="kw">if </span>!is_ready(ready_bits, offset) {
+            <span class="kw">if </span>is_tx_closed(ready_bits) {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#36">Read::Closed</a>);
             }
 
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="comment">// Get the value</span>
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#116">self</a>.<span class="ident">values</span>[<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#117">offset</a>].<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="ident">ptr::read</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#130">ptr</a>));
+        <span class="comment">// Get the value
+        </span><span class="kw">let </span>value = <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#116">self</a>.values[<a href="../../../../src/tokio/sync/mpsc/block.rs.html#117">offset</a>].<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| ptr::read(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#130">ptr</a>));
 
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#35">Read::Value</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#130">value</a>.<span class="ident">assume_init</span>()))
+        <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#35">Read::Value</a>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#130">value</a>.assume_init()))
     }
 
-    <span class="doccomment">/// Writes a value to the block at the given offset.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To maintain safety, the caller must ensure:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * The slot is empty.</span>
-    <span class="doccomment">/// * No concurrent access to the slot.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">slot_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">value</span>: <span class="ident">T</span>) {
-        <span class="comment">// Get the offset into the block</span>
-        <span class="kw">let</span> <span class="ident">slot_offset</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#70">offset</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#143">slot_index</a>);
+    <span class="doccomment">/// Writes a value to the block at the given offset.
+    ///
+    /// # Safety
+    ///
+    /// To maintain safety, the caller must ensure:
+    ///
+    /// * The slot is empty.
+    /// * No concurrent access to the slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, slot_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, value: T) {
+        <span class="comment">// Get the offset into the block
+        </span><span class="kw">let </span>slot_offset = <a href="../../../../src/tokio/sync/mpsc/block.rs.html#70">offset</a>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#143">slot_index</a>);
 
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#143">self</a>.<span class="ident">values</span>[<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#145">slot_offset</a>].<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
-            <span class="ident">ptr::write</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#147">ptr</a>, <span class="ident">MaybeUninit::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#143">value</a>));
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#143">self</a>.values[<a href="../../../../src/tokio/sync/mpsc/block.rs.html#145">slot_offset</a>].<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| {
+            ptr::write(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#147">ptr</a>, MaybeUninit::new(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#143">value</a>));
         });
 
-        <span class="comment">// Release the value. After this point, the slot ref may no longer</span>
-        <span class="comment">// be used. It is possible for the receiver to free the memory at</span>
-        <span class="comment">// any point.</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#143">self</a>.<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#200">set_ready</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#145">slot_offset</a>);
+        <span class="comment">// Release the value. After this point, the slot ref may no longer
+        // be used. It is possible for the receiver to free the memory at
+        // any point.
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#143">self</a>.<a href="../../../../src/tokio/sync/mpsc/block.rs.html#200">set_ready</a>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#145">slot_offset</a>);
     }
 
-    <span class="doccomment">/// Signal to the receiver that the sender half of the list is closed.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">tx_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#158">self</a>.<span class="ident">ready_slots</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#57">TX_CLOSED</a>, <span class="ident">Release</span>);
+    <span class="doccomment">/// Signal to the receiver that the sender half of the list is closed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>tx_close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#158">self</a>.ready_slots.fetch_or(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#57">TX_CLOSED</a>, Release);
     }
 
-    <span class="doccomment">/// Resets the block to a blank state. This enables reusing blocks in the</span>
-    <span class="doccomment">/// channel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To maintain safety, the caller must ensure:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * All slots are empty.</span>
-    <span class="doccomment">/// * The caller holds a unique pointer to the block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">reclaim</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#171">self</a>.<span class="ident">start_index</span> <span class="op">=</span> <span class="number">0</span>;
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#171">self</a>.<span class="ident">next</span> <span class="op">=</span> <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>());
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#171">self</a>.<span class="ident">ready_slots</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>);
+    <span class="doccomment">/// Resets the block to a blank state. This enables reusing blocks in the
+    /// channel.
+    ///
+    /// # Safety
+    ///
+    /// To maintain safety, the caller must ensure:
+    ///
+    /// * All slots are empty.
+    /// * The caller holds a unique pointer to the block.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>reclaim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#171">self</a>.start_index = <span class="number">0</span>;
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#171">self</a>.next = AtomicPtr::new(ptr::null_mut());
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#171">self</a>.ready_slots = AtomicUsize::new(<span class="number">0</span>);
     }
 
-    <span class="doccomment">/// Releases the block to the rx half for freeing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is called by the tx half once it can be guaranteed that no</span>
-    <span class="doccomment">/// more senders will attempt to access the block.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To maintain safety, the caller must ensure:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * The block will no longer be accessed by any sender.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">tx_release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tail_position</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="comment">// Track the observed tail_position. Any sender targeting a greater</span>
-        <span class="comment">// tail_position is guaranteed to not access this block.</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#187">self</a>.<span class="ident">observed_tail_position</span>
-            .<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#191">ptr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#187">tail_position</a>);
+    <span class="doccomment">/// Releases the block to the rx half for freeing.
+    ///
+    /// This function is called by the tx half once it can be guaranteed that no
+    /// more senders will attempt to access the block.
+    ///
+    /// # Safety
+    ///
+    /// To maintain safety, the caller must ensure:
+    ///
+    /// * The block will no longer be accessed by any sender.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>tx_release(<span class="kw-2">&amp;</span><span class="self">self</span>, tail_position: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="comment">// Track the observed tail_position. Any sender targeting a greater
+        // tail_position is guaranteed to not access this block.
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#187">self</a>.observed_tail_position
+            .<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw-2">*</span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#191">ptr</a> = <a href="../../../../src/tokio/sync/mpsc/block.rs.html#187">tail_position</a>);
 
-        <span class="comment">// Set the released bit, signalling to the receiver that it is safe to</span>
-        <span class="comment">// free the block&#39;s memory as soon as all slots **prior** to</span>
-        <span class="comment">// `observed_tail_position` have been filled.</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#187">self</a>.<span class="ident">ready_slots</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#52">RELEASED</a>, <span class="ident">Release</span>);
+        <span class="comment">// Set the released bit, signalling to the receiver that it is safe to
+        // free the block&#39;s memory as soon as all slots **prior** to
+        // `observed_tail_position` have been filled.
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#187">self</a>.ready_slots.fetch_or(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#52">RELEASED</a>, Release);
     }
 
-    <span class="doccomment">/// Mark a slot as ready</span>
-    <span class="kw">fn</span> <span class="ident">set_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">slot</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#200">slot</a>;
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#200">self</a>.<span class="ident">ready_slots</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#201">mask</a>, <span class="ident">Release</span>);
+    <span class="doccomment">/// Mark a slot as ready
+    </span><span class="kw">fn </span>set_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>mask = <span class="number">1 </span>&lt;&lt; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#200">slot</a>;
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#200">self</a>.ready_slots.fetch_or(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#201">mask</a>, Release);
     }
 
-    <span class="doccomment">/// Returns `true` when all slots have their `ready` bits set.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This indicates that the block is in its final state and will no longer</span>
-    <span class="doccomment">/// be mutated.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Implementation</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The implementation walks each slot checking the `ready` flag. It might</span>
-    <span class="doccomment">/// be that it would make more sense to coalesce ready flags as bits in a</span>
-    <span class="doccomment">/// single atomic cell. However, this could have negative impact on cache</span>
-    <span class="doccomment">/// behavior as there would be many more mutations to a single slot.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_final</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#216">self</a>.<span class="ident">ready_slots</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#60">READY_MASK</a> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#60">READY_MASK</a>
+    <span class="doccomment">/// Returns `true` when all slots have their `ready` bits set.
+    ///
+    /// This indicates that the block is in its final state and will no longer
+    /// be mutated.
+    ///
+    /// # Implementation
+    ///
+    /// The implementation walks each slot checking the `ready` flag. It might
+    /// be that it would make more sense to coalesce ready flags as bits in a
+    /// single atomic cell. However, this could have negative impact on cache
+    /// behavior as there would be many more mutations to a single slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_final(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#216">self</a>.ready_slots.load(Acquire) &amp; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#60">READY_MASK</a> == <a href="../../../../src/tokio/sync/mpsc/block.rs.html#60">READY_MASK</a>
     }
 
-    <span class="doccomment">/// Returns the `observed_tail_position` value, if set</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">observed_tail_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="number">0</span> <span class="op">==</span> <span class="ident">RELEASED</span> <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">ready_slots</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#221">self</a>.<span class="ident">observed_tail_position</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#225">ptr</a> }))
+    <span class="doccomment">/// Returns the `observed_tail_position` value, if set
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>observed_tail_position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">if </span><span class="number">0 </span>== RELEASED &amp; <span class="self">self</span>.ready_slots.load(Acquire) {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#221">self</a>.observed_tail_position.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#225">ptr</a> }))
         }
     }
 
-    <span class="doccomment">/// Loads the next block</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">load_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordering</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">NonNull::new</span>(<a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#230">self</a>.<span class="ident">next</span>.<span class="ident">load</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#230">ordering</a>));
+    <span class="doccomment">/// Loads the next block
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load_next(<span class="kw-2">&amp;</span><span class="self">self</span>, ordering: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>) -&gt; <span class="prelude-ty">Option</span>&lt;NonNull&lt;Block&lt;T&gt;&gt;&gt; {
+        <span class="kw">let </span>ret = NonNull::new(<a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#230">self</a>.next.load(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#230">ordering</a>));
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">unsafe</span> {
-            <span class="ident">ret</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">block</span><span class="op">|</span> <span class="ident">block</span>.<span class="ident">as_ref</span>().<span class="ident">start_index</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_index</span>.<span class="ident">wrapping_add</span>(<span class="ident">BLOCK_CAP</span>))
-                .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">unsafe </span>{
+            ret.map(|block| block.as_ref().start_index == <span class="self">self</span>.start_index.wrapping_add(BLOCK_CAP))
+                .unwrap_or(<span class="bool-val">true</span>)
         });
 
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#231">ret</a>
+        <a href="../../../../src/tokio/sync/mpsc/block.rs.html#231">ret</a>
     }
 
-    <span class="doccomment">/// Pushes `block` as the next block in the link.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns Ok if successful, otherwise, a pointer to the next block in</span>
-    <span class="doccomment">/// the list is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires that the next pointer is null.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Ordering</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This performs a compare-and-swap on `next` using AcqRel ordering.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To maintain safety, the caller must ensure:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * `block` is not freed until it has been removed from the list.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_push</span>(
+    <span class="doccomment">/// Pushes `block` as the next block in the link.
+    ///
+    /// Returns Ok if successful, otherwise, a pointer to the next block in
+    /// the list is returned.
+    ///
+    /// This requires that the next pointer is null.
+    ///
+    /// # Ordering
+    ///
+    /// This performs a compare-and-swap on `next` using AcqRel ordering.
+    ///
+    /// # Safety
+    ///
+    /// To maintain safety, the caller must ensure:
+    ///
+    /// * `block` is not freed until it has been removed from the list.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>try_push(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">block</span>: <span class="kw-2">&amp;mut</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">success</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>,
-        <span class="ident">failure</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#259">block</a>.<span class="ident">as_mut</span>().<span class="ident">start_index</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#258">self</a>.<span class="ident">start_index</span>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>);
+        block: <span class="kw-2">&amp;mut </span>NonNull&lt;Block&lt;T&gt;&gt;,
+        success: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>,
+        failure: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), NonNull&lt;Block&lt;T&gt;&gt;&gt; {
+        <a href="../../../../src/tokio/sync/mpsc/block.rs.html#259">block</a>.as_mut().start_index = <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#258">self</a>.start_index.wrapping_add(<a href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>);
 
-        <span class="kw">let</span> <span class="ident">next_ptr</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#258">self</a>
-            .<span class="ident">next</span>
-            .<span class="ident">compare_exchange</span>(<span class="ident">ptr::null_mut</span>(), <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#259">block</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#260">success</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#261">failure</a>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#268">x</a>);
+        <span class="kw">let </span>next_ptr = <span class="self"><a href="../../../../src/tokio/sync/mpsc/block.rs.html#258">self</a>
+            </span>.next
+            .compare_exchange(ptr::null_mut(), <a href="../../../../src/tokio/sync/mpsc/block.rs.html#259">block</a>.as_ptr(), <a href="../../../../src/tokio/sync/mpsc/block.rs.html#260">success</a>, <a href="../../../../src/tokio/sync/mpsc/block.rs.html#261">failure</a>)
+            .unwrap_or_else(|x| <a href="../../../../src/tokio/sync/mpsc/block.rs.html#268">x</a>);
 
-        <span class="kw">match</span> <span class="ident">NonNull::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#265">next_ptr</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">next_ptr</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#271">next_ptr</a>),
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(()),
+        <span class="kw">match </span>NonNull::new(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#265">next_ptr</a>) {
+            <span class="prelude-val">Some</span>(next_ptr) =&gt; <span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#271">next_ptr</a>),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
 
-    <span class="doccomment">/// Grows the `Block` linked list by allocating and appending a new block.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The next block in the linked list is returned. This may or may not be</span>
-    <span class="doccomment">/// the one allocated by the function call.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Implementation</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is assumed that `self.next` is null. A new block is allocated with</span>
-    <span class="doccomment">/// `start_index` set to be the next block. A compare-and-swap is performed</span>
-    <span class="doccomment">/// with AcqRel memory ordering. If the compare-and-swap is successful, the</span>
-    <span class="doccomment">/// newly allocated block is released to other threads walking the block</span>
-    <span class="doccomment">/// linked list. If the compare-and-swap fails, the current thread acquires</span>
-    <span class="doccomment">/// the next block in the linked list, allowing the current thread to access</span>
-    <span class="doccomment">/// the slots.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">grow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Create the new block. It is assumed that the block will become the</span>
-        <span class="comment">// next one after `&amp;self`. If this turns out to not be the case,</span>
-        <span class="comment">// `start_index` is updated accordingly.</span>
-        <span class="kw">let</span> <span class="ident">new_block</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Block::new</span>(<a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#290">self</a>.<span class="ident">start_index</span> <span class="op">+</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>));
+    <span class="doccomment">/// Grows the `Block` linked list by allocating and appending a new block.
+    ///
+    /// The next block in the linked list is returned. This may or may not be
+    /// the one allocated by the function call.
+    ///
+    /// # Implementation
+    ///
+    /// It is assumed that `self.next` is null. A new block is allocated with
+    /// `start_index` set to be the next block. A compare-and-swap is performed
+    /// with AcqRel memory ordering. If the compare-and-swap is successful, the
+    /// newly allocated block is released to other threads walking the block
+    /// linked list. If the compare-and-swap fails, the current thread acquires
+    /// the next block in the linked list, allowing the current thread to access
+    /// the slots.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>grow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;Block&lt;T&gt;&gt; {
+        <span class="comment">// Create the new block. It is assumed that the block will become the
+        // next one after `&amp;self`. If this turns out to not be the case,
+        // `start_index` is updated accordingly.
+        </span><span class="kw">let </span>new_block = Box::new(Block::new(<a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#290">self</a>.start_index + <a href="../../../../src/tokio/sync/mpsc/mod.rs.html#109">BLOCK_CAP</a>));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_block</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<span class="ident">Box::into_raw</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#294">new_block</a>)) };
+        <span class="kw">let </span><span class="kw-2">mut </span>new_block = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#294">new_block</a>)) };
 
-        <span class="comment">// Attempt to store the block. The first compare-and-swap attempt is</span>
-        <span class="comment">// &quot;unrolled&quot; due to minor differences in logic</span>
-        <span class="comment">//</span>
-        <span class="comment">// `AcqRel` is used as the ordering **only** when attempting the</span>
-        <span class="comment">// compare-and-swap on self.next.</span>
-        <span class="comment">//</span>
-        <span class="comment">// If the compare-and-swap fails, then the actual value of the cell is</span>
-        <span class="comment">// returned from this function and accessed by the caller. Given this,</span>
-        <span class="comment">// the memory must be acquired.</span>
-        <span class="comment">//</span>
-        <span class="comment">// `Release` ensures that the newly allocated block is available to</span>
-        <span class="comment">// other threads acquiring the next pointer.</span>
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">NonNull::new</span>(
-            <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#290">self</a>.<span class="ident">next</span>
-                .<span class="ident">compare_exchange</span>(<span class="ident">ptr::null_mut</span>(), <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#296">new_block</a>.<span class="ident">as_ptr</span>(), <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#313">x</a>),
+        <span class="comment">// Attempt to store the block. The first compare-and-swap attempt is
+        // &quot;unrolled&quot; due to minor differences in logic
+        //
+        // `AcqRel` is used as the ordering **only** when attempting the
+        // compare-and-swap on self.next.
+        //
+        // If the compare-and-swap fails, then the actual value of the cell is
+        // returned from this function and accessed by the caller. Given this,
+        // the memory must be acquired.
+        //
+        // `Release` ensures that the newly allocated block is available to
+        // other threads acquiring the next pointer.
+        </span><span class="kw">let </span>next = NonNull::new(
+            <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#290">self</a>.next
+                .compare_exchange(ptr::null_mut(), <a href="../../../../src/tokio/sync/mpsc/block.rs.html#296">new_block</a>.as_ptr(), AcqRel, Acquire)
+                .unwrap_or_else(|x| <a href="../../../../src/tokio/sync/mpsc/block.rs.html#313">x</a>),
         );
 
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#310">next</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">next</span>) =&gt; <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#317">next</a>,
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="comment">// The compare-and-swap succeeded and the newly allocated block</span>
-                <span class="comment">// is successfully pushed.</span>
-                <span class="kw">return</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#296">new_block</a>;
+        <span class="kw">let </span>next = <span class="kw">match </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#310">next</a> {
+            <span class="prelude-val">Some</span>(next) =&gt; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#317">next</a>,
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// The compare-and-swap succeeded and the newly allocated block
+                // is successfully pushed.
+                </span><span class="kw">return </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#296">new_block</a>;
             }
         };
 
-        <span class="comment">// There already is a next block in the linked list. The newly allocated</span>
-        <span class="comment">// block could be dropped and the discovered next block returned;</span>
-        <span class="comment">// however, that would be wasteful. Instead, the linked list is walked</span>
-        <span class="comment">// by repeatedly attempting to compare-and-swap the pointer into the</span>
-        <span class="comment">// `next` register until the compare-and-swap succeed.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Care is taken to update new_block&#39;s start_index field as appropriate.</span>
+        <span class="comment">// There already is a next block in the linked list. The newly allocated
+        // block could be dropped and the discovered next block returned;
+        // however, that would be wasteful. Instead, the linked list is walked
+        // by repeatedly attempting to compare-and-swap the pointer into the
+        // `next` register until the compare-and-swap succeed.
+        //
+        // Care is taken to update new_block&#39;s start_index field as appropriate.
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#316">next</a>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a href="../../../../src/tokio/sync/mpsc/block.rs.html#316">next</a>;
 
-        <span class="comment">// TODO: Should this iteration be capped?</span>
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#333">curr</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#257-262">try_push</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#296">new_block</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) };
+        <span class="comment">// TODO: Should this iteration be capped?
+        </span><span class="kw">loop </span>{
+            <span class="kw">let </span>actual = <span class="kw">unsafe </span>{ <a href="../../../../src/tokio/sync/mpsc/block.rs.html#333">curr</a>.as_ref().<a href="../../../../src/tokio/sync/mpsc/block.rs.html#257-262">try_push</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#296">new_block</a>, AcqRel, Acquire) };
 
-            <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#333">curr</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#337">actual</a> {
+            <a href="../../../../src/tokio/sync/mpsc/block.rs.html#333">curr</a> = <span class="kw">match </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#337">actual</a> {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#316">next</a>;
+                    <span class="kw">return </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#316">next</a>;
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">curr</span>) =&gt; <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#343">curr</a>,
+                <span class="prelude-val">Err</span>(curr) =&gt; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#343">curr</a>,
             };
 
-            <a class="ident" href="../../../../src/tokio/loom/std/mod.rs.html#99"><span class="kw">crate</span>::loom::thread::yield_now</a>();
+            <a href="../../../../src/tokio/loom/std/mod.rs.html#99"><span class="kw">crate</span>::loom::thread::yield_now</a>();
         }
     }
 }
 
-<span class="doccomment">/// Returns `true` if the specified slot has a value ready to be consumed.</span>
-<span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">slot</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#352">slot</a>;
-    <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#353">mask</a> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#353">mask</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#352">bits</a>
+<span class="doccomment">/// Returns `true` if the specified slot has a value ready to be consumed.
+</span><span class="kw">fn </span>is_ready(bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">let </span>mask = <span class="number">1 </span>&lt;&lt; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#352">slot</a>;
+    <a href="../../../../src/tokio/sync/mpsc/block.rs.html#353">mask</a> == <a href="../../../../src/tokio/sync/mpsc/block.rs.html#353">mask</a> &amp; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#352">bits</a>
 }
 
-<span class="doccomment">/// Returns `true` if the closed flag has been set.</span>
-<span class="kw">fn</span> <span class="ident">is_tx_closed</span>(<span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#57">TX_CLOSED</a> <span class="op">==</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#358">bits</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#57">TX_CLOSED</a>
+<span class="doccomment">/// Returns `true` if the closed flag has been set.
+</span><span class="kw">fn </span>is_tx_closed(bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="../../../../src/tokio/sync/mpsc/block.rs.html#57">TX_CLOSED</a> == <a href="../../../../src/tokio/sync/mpsc/block.rs.html#358">bits</a> &amp; <a href="../../../../src/tokio/sync/mpsc/block.rs.html#57">TX_CLOSED</a>
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">uninitialized</span>() -&gt; <span class="ident">Values</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vals</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
+<span class="kw">impl</span>&lt;T&gt; Values&lt;T&gt; {
+    <span class="kw">unsafe fn </span>uninitialized() -&gt; Values&lt;T&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>vals = MaybeUninit::uninit();
 
-        <span class="comment">// When fuzzing, `UnsafeCell` needs to be initialized.</span>
-        <a class="macro" href="../../../../src/tokio/macros/loom.rs.html#1-12">if_loom!</a> {
-            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">vals</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">BLOCK_CAP</span> {
-                <span class="ident">p</span>.<span class="ident">add</span>(<span class="ident">i</span>)
-                    .<span class="ident">write</span>(<span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>()));
+        <span class="comment">// When fuzzing, `UnsafeCell` needs to be initialized.
+        </span><a class="macro" href="../../../../src/tokio/macros/loom.rs.html#1-12">if_loom! </a>{
+            <span class="kw">let </span>p = vals.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;;
+            <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..BLOCK_CAP {
+                p.add(i)
+                    .write(UnsafeCell::new(MaybeUninit::uninit()));
             }
         }
 
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#39">Values</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#364">vals</a>.<span class="ident">assume_init</span>())
+        <a href="../../../../src/tokio/sync/mpsc/block.rs.html#39">Values</a>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#364">vals</a>.assume_init())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ops::Index</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;T&gt; ops::Index&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span>Values&lt;T&gt; {
+    <span class="kw">type </span>Output = UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#382">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">index</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#382">index</a>)
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/block.rs.html#382">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">index</a>(<a href="../../../../src/tokio/sync/mpsc/block.rs.html#382">index</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

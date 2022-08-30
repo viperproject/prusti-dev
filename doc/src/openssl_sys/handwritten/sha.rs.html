@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/sha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sha.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/sha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sha.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -99,106 +99,106 @@
 <span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw-2">*</span>;
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SHA_CTX</span> {
-            <span class="kw">pub</span> <span class="ident">h0</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">h1</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">h2</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">h3</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">h4</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">Nl</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">Nh</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">data</span>: [<a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>; <a class="ident" href="../../../src/openssl_sys/sha.rs.html#6">SHA_LBLOCK</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
-            <span class="kw">pub</span> <span class="ident">num</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))] </span>{
+        <span class="attribute">#[repr(C)]
+        #[derive(Clone)]
+        </span><span class="kw">pub struct </span>SHA_CTX {
+            <span class="kw">pub </span>h0: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>h1: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>h2: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>h3: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>h4: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>Nl: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>Nh: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>data: [<a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>; <a href="../../../src/openssl_sys/sha.rs.html#6">SHA_LBLOCK</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
+            <span class="kw">pub </span>num: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
         }
 
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA1_Init</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#8">SHA_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA1_Update</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#8">SHA_CTX</a>, <span class="ident">data</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA1_Final</span>(<span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#8">SHA_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        }
-    }
-}
-
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl300</span>))]</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA1</span>(<span class="ident">d</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">n</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>SHA1_Init(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#8">SHA_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA1_Update(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#8">SHA_CTX</a>, data: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, len: <a href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA1_Final(md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#8">SHA_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SHA256_CTX</span> {
-            <span class="kw">pub</span> <span class="ident">h</span>: [<a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>; <span class="number">8</span>],
-            <span class="kw">pub</span> <span class="ident">Nl</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">Nh</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
-            <span class="kw">pub</span> <span class="ident">data</span>: [<a class="ident" href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>; <a class="ident" href="../../../src/openssl_sys/sha.rs.html#6">SHA_LBLOCK</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
-            <span class="kw">pub</span> <span class="ident">num</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-            <span class="kw">pub</span> <span class="ident">md_len</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-        }
-
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA224_Init</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA224_Update</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>, <span class="ident">data</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA224_Final</span>(<span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA256_Init</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA256_Update</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>, <span class="ident">data</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA256_Final</span>(<span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(not(ossl300))] </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>SHA1(d: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, n: <a href="../../../libc/unix/type.size_t.html">size_t</a>, md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl300</span>))]</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA224</span>(<span class="ident">d</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">n</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA256</span>(<span class="ident">d</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">n</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))] </span>{
+        <span class="attribute">#[repr(C)]
+        #[derive(Clone)]
+        </span><span class="kw">pub struct </span>SHA256_CTX {
+            <span class="kw">pub </span>h: [<a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>; <span class="number">8</span>],
+            <span class="kw">pub </span>Nl: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>Nh: <a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>,
+            <span class="kw">pub </span>data: [<a href="../../../src/openssl_sys/sha.rs.html#9">SHA_LONG</a>; <a href="../../../src/openssl_sys/sha.rs.html#6">SHA_LBLOCK</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
+            <span class="kw">pub </span>num: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+            <span class="kw">pub </span>md_len: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+        }
+
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>SHA224_Init(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA224_Update(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>, data: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, len: <a href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA224_Final(md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA256_Init(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA256_Update(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>, data: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, len: <a href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA256_Final(md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#40">SHA256_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SHA512_CTX</span> {
-            <span class="kw">pub</span> <span class="ident">h</span>: [<a class="ident" href="../../../src/openssl_sys/sha.rs.html#67">SHA_LONG64</a>; <span class="number">8</span>],
-            <span class="kw">pub</span> <span class="ident">Nl</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#67">SHA_LONG64</a>,
-            <span class="kw">pub</span> <span class="ident">Nh</span>: <a class="ident" href="../../../src/openssl_sys/sha.rs.html#67">SHA_LONG64</a>,
-            <span class="comment">// this is a union but we don&#39;t want to require 1.19</span>
-            <span class="ident">u</span>: [<a class="ident" href="../../../src/openssl_sys/sha.rs.html#67">SHA_LONG64</a>; <a class="ident" href="../../../src/openssl_sys/sha.rs.html#6">SHA_LBLOCK</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
-            <span class="kw">pub</span> <span class="ident">num</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-            <span class="kw">pub</span> <span class="ident">md_len</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-        }
-
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA384_Init</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA384_Update</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>, <span class="ident">data</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA384_Final</span>(<span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA512_Init</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA512_Update</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>, <span class="ident">data</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA512_Final</span>(<span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">c</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(not(ossl300))] </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>SHA224(d: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, n: <a href="../../../libc/unix/type.size_t.html">size_t</a>, md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+            <span class="kw">pub fn </span>SHA256(d: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, n: <a href="../../../libc/unix/type.size_t.html">size_t</a>, md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl300</span>))]</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA384</span>(<span class="ident">d</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">n</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SHA512</span>(<span class="ident">d</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">n</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))] </span>{
+        <span class="attribute">#[repr(C)]
+        #[derive(Clone)]
+        </span><span class="kw">pub struct </span>SHA512_CTX {
+            <span class="kw">pub </span>h: [<a href="../../../src/openssl_sys/sha.rs.html#67">SHA_LONG64</a>; <span class="number">8</span>],
+            <span class="kw">pub </span>Nl: <a href="../../../src/openssl_sys/sha.rs.html#67">SHA_LONG64</a>,
+            <span class="kw">pub </span>Nh: <a href="../../../src/openssl_sys/sha.rs.html#67">SHA_LONG64</a>,
+            <span class="comment">// this is a union but we don&#39;t want to require 1.19
+            </span>u: [<a href="../../../src/openssl_sys/sha.rs.html#67">SHA_LONG64</a>; <a href="../../../src/openssl_sys/sha.rs.html#6">SHA_LBLOCK</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>],
+            <span class="kw">pub </span>num: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+            <span class="kw">pub </span>md_len: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+        }
+
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>SHA384_Init(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA384_Update(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>, data: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, len: <a href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA384_Final(md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA512_Init(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA512_Update(c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>, data: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, len: <a href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>SHA512_Final(md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, c: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/sha.rs.html#73">SHA512_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        }
+    }
+}
+
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(not(ossl300))] </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>SHA384(d: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, n: <a href="../../../libc/unix/type.size_t.html">size_t</a>, md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+            <span class="kw">pub fn </span>SHA512(d: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, n: <a href="../../../libc/unix/type.size_t.html">size_t</a>, md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

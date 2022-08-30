@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.4/src/single.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>single.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.4/src/single.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>single.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -127,134 +127,134 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
-<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
+<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/concurrent_queue/lib.rs.html#344">PopError</a>, <a class="ident" href="../../src/concurrent_queue/lib.rs.html#392">PushError</a>};
+<span class="kw">use crate</span>::{<a href="../../src/concurrent_queue/lib.rs.html#344">PopError</a>, <a href="../../src/concurrent_queue/lib.rs.html#392">PushError</a>};
 
-<span class="kw">const</span> <span class="ident">LOCKED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
-<span class="kw">const</span> <span class="ident">PUSHED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">CLOSED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>;
+<span class="kw">const </span>LOCKED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
+<span class="kw">const </span>PUSHED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>;
+<span class="kw">const </span>CLOSED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>;
 
-<span class="doccomment">/// A single-element queue.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Single</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
-    <span class="ident">slot</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A single-element queue.
+</span><span class="kw">pub struct </span>Single&lt;T&gt; {
+    state: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    slot: UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Single</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new single-element queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Single</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/concurrent_queue/single.rs.html#13">Single</a> {
-            <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
-            <span class="ident">slot</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>()),
+<span class="kw">impl</span>&lt;T&gt; Single&lt;T&gt; {
+    <span class="doccomment">/// Creates a new single-element queue.
+    </span><span class="kw">pub fn </span>new() -&gt; Single&lt;T&gt; {
+        <a href="../../src/concurrent_queue/single.rs.html#13">Single</a> {
+            state: AtomicUsize::new(<span class="number">0</span>),
+            slot: UnsafeCell::new(MaybeUninit::uninit()),
         }
     }
 
-    <span class="doccomment">/// Attempts to push an item into the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Lock and fill the slot.</span>
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/single.rs.html#28">self</a>
-            .<span class="ident">state</span>
-            .<span class="ident">compare_exchange</span>(<span class="number">0</span>, <a class="ident" href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a> <span class="op">|</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#9">PUSHED</a>, <span class="ident">Ordering::SeqCst</span>, <span class="ident">Ordering::SeqCst</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#33">x</a>);
+    <span class="doccomment">/// Attempts to push an item into the queue.
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), PushError&lt;T&gt;&gt; {
+        <span class="comment">// Lock and fill the slot.
+        </span><span class="kw">let </span>state = <span class="self"><a href="../../src/concurrent_queue/single.rs.html#28">self</a>
+            </span>.state
+            .compare_exchange(<span class="number">0</span>, <a href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a> | <a href="../../src/concurrent_queue/single.rs.html#9">PUSHED</a>, Ordering::SeqCst, Ordering::SeqCst)
+            .unwrap_or_else(|x| <a href="../../src/concurrent_queue/single.rs.html#33">x</a>);
 
-        <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="comment">// Write the value and unlock.</span>
-            <span class="kw">unsafe</span> { <a class="self" href="../../src/concurrent_queue/single.rs.html#28">self</a>.<span class="ident">slot</span>.<span class="ident">get</span>().<span class="ident">write</span>(<span class="ident">MaybeUninit::new</span>(<a class="ident" href="../../src/concurrent_queue/single.rs.html#28">value</a>)) }
-            <a class="self" href="../../src/concurrent_queue/single.rs.html#28">self</a>.<span class="ident">state</span>.<span class="ident">fetch_and</span>(<span class="op">!</span><a class="ident" href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a>, <span class="ident">Ordering::Release</span>);
+        <span class="kw">if </span>state == <span class="number">0 </span>{
+            <span class="comment">// Write the value and unlock.
+            </span><span class="kw">unsafe </span>{ <a class="self" href="../../src/concurrent_queue/single.rs.html#28">self</a>.slot.get().write(MaybeUninit::new(<a href="../../src/concurrent_queue/single.rs.html#28">value</a>)) }
+            <a class="self" href="../../src/concurrent_queue/single.rs.html#28">self</a>.state.fetch_and(!<a href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a>, Ordering::Release);
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#397">PushError::Closed</a>(<a class="ident" href="../../src/concurrent_queue/single.rs.html#28">value</a>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#394">PushError::Full</a>(<a class="ident" href="../../src/concurrent_queue/single.rs.html#28">value</a>))
+        } <span class="kw">else if </span>state &amp; CLOSED != <span class="number">0 </span>{
+            <span class="prelude-val">Err</span>(<a href="../../src/concurrent_queue/lib.rs.html#397">PushError::Closed</a>(<a href="../../src/concurrent_queue/single.rs.html#28">value</a>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<a href="../../src/concurrent_queue/lib.rs.html#394">PushError::Full</a>(<a href="../../src/concurrent_queue/single.rs.html#28">value</a>))
         }
     }
 
-    <span class="doccomment">/// Attempts to pop an item from the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/concurrent_queue/lib.rs.html#344">PopError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#9">PUSHED</a>;
-        <span class="kw">loop</span> {
-            <span class="comment">// Lock and empty the slot.</span>
-            <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/single.rs.html#48">self</a>
-                .<span class="ident">state</span>
-                .<span class="ident">compare_exchange</span>(
-                    <a class="ident" href="../../src/concurrent_queue/single.rs.html#49">state</a>,
-                    (<a class="ident" href="../../src/concurrent_queue/single.rs.html#49">state</a> <span class="op">|</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a>) <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/concurrent_queue/single.rs.html#9">PUSHED</a>,
-                    <span class="ident">Ordering::SeqCst</span>,
-                    <span class="ident">Ordering::SeqCst</span>,
+    <span class="doccomment">/// Attempts to pop an item from the queue.
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../src/concurrent_queue/lib.rs.html#344">PopError</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="../../src/concurrent_queue/single.rs.html#9">PUSHED</a>;
+        <span class="kw">loop </span>{
+            <span class="comment">// Lock and empty the slot.
+            </span><span class="kw">let </span>prev = <span class="self"><a href="../../src/concurrent_queue/single.rs.html#48">self</a>
+                </span>.state
+                .compare_exchange(
+                    <a href="../../src/concurrent_queue/single.rs.html#49">state</a>,
+                    (<a href="../../src/concurrent_queue/single.rs.html#49">state</a> | <a href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a>) &amp; !<a href="../../src/concurrent_queue/single.rs.html#9">PUSHED</a>,
+                    Ordering::SeqCst,
+                    Ordering::SeqCst,
                 )
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#60">x</a>);
+                .unwrap_or_else(|x| <a href="../../src/concurrent_queue/single.rs.html#60">x</a>);
 
-            <span class="kw">if</span> <span class="ident">prev</span> <span class="op">==</span> <span class="ident">state</span> {
-                <span class="comment">// Read the value and unlock.</span>
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../src/concurrent_queue/single.rs.html#48">self</a>.<span class="ident">slot</span>.<span class="ident">get</span>().<span class="ident">read</span>().<span class="ident">assume_init</span>() };
-                <a class="self" href="../../src/concurrent_queue/single.rs.html#48">self</a>.<span class="ident">state</span>.<span class="ident">fetch_and</span>(<span class="op">!</span><a class="ident" href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a>, <span class="ident">Ordering::Release</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/concurrent_queue/single.rs.html#64">value</a>);
+            <span class="kw">if </span>prev == state {
+                <span class="comment">// Read the value and unlock.
+                </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ <a class="self" href="../../src/concurrent_queue/single.rs.html#48">self</a>.slot.get().read().assume_init() };
+                <a class="self" href="../../src/concurrent_queue/single.rs.html#48">self</a>.state.fetch_and(!<a href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a>, Ordering::Release);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/concurrent_queue/single.rs.html#64">value</a>);
             }
 
-            <span class="kw">if</span> <span class="ident">prev</span> <span class="op">&amp;</span> <span class="ident">PUSHED</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">if</span> <span class="ident">prev</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#346">PopError::Empty</a>);
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#349">PopError::Closed</a>);
+            <span class="kw">if </span>prev &amp; PUSHED == <span class="number">0 </span>{
+                <span class="kw">if </span>prev &amp; CLOSED == <span class="number">0 </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/concurrent_queue/lib.rs.html#346">PopError::Empty</a>);
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/concurrent_queue/lib.rs.html#349">PopError::Closed</a>);
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">prev</span> <span class="op">&amp;</span> <span class="ident">LOCKED</span> <span class="op">==</span> <span class="number">0</span> {
-                <a class="ident" href="../../src/concurrent_queue/single.rs.html#49">state</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#52">prev</a>;
-            } <span class="kw">else</span> {
-                <span class="ident">thread::yield_now</span>();
-                <a class="ident" href="../../src/concurrent_queue/single.rs.html#49">state</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#52">prev</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a>;
+            <span class="kw">if </span>prev &amp; LOCKED == <span class="number">0 </span>{
+                <a href="../../src/concurrent_queue/single.rs.html#49">state</a> = <a href="../../src/concurrent_queue/single.rs.html#52">prev</a>;
+            } <span class="kw">else </span>{
+                thread::yield_now();
+                <a href="../../src/concurrent_queue/single.rs.html#49">state</a> = <a href="../../src/concurrent_queue/single.rs.html#52">prev</a> &amp; !<a href="../../src/concurrent_queue/single.rs.html#8">LOCKED</a>;
             }
         }
     }
 
-    <span class="doccomment">/// Returns the number of items in the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">&amp;</span> <span class="ident">PUSHED</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <span class="number">1</span>
-        }
+    <span class="doccomment">/// Returns the number of items in the queue.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">if </span><span class="self">self</span>.state.load(Ordering::SeqCst) &amp; PUSHED == <span class="number">0 </span>{
+            <span class="number">0
+        </span>} <span class="kw">else </span>{
+            <span class="number">1
+        </span>}
     }
 
-    <span class="doccomment">/// Returns `true` if the queue is empty.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/concurrent_queue/single.rs.html#96">self</a>.<a class="ident" href="../../src/concurrent_queue/single.rs.html#87">len</a>() <span class="op">==</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns `true` if the queue is empty.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/concurrent_queue/single.rs.html#96">self</a>.<a href="../../src/concurrent_queue/single.rs.html#87">len</a>() == <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns `true` if the queue is full.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/concurrent_queue/single.rs.html#101">self</a>.<a class="ident" href="../../src/concurrent_queue/single.rs.html#87">len</a>() <span class="op">==</span> <span class="number">1</span>
-    }
+    <span class="doccomment">/// Returns `true` if the queue is full.
+    </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/concurrent_queue/single.rs.html#101">self</a>.<a href="../../src/concurrent_queue/single.rs.html#87">len</a>() == <span class="number">1
+    </span>}
 
-    <span class="doccomment">/// Closes the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if this call closed the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/single.rs.html#108">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../src/concurrent_queue/single.rs.html#10">CLOSED</a>, <span class="ident">Ordering::SeqCst</span>);
-        <a class="ident" href="../../src/concurrent_queue/single.rs.html#109">state</a> <span class="op">&amp;</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#10">CLOSED</a> <span class="op">==</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Closes the queue.
+    ///
+    /// Returns `true` if this call closed the queue.
+    </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>state = <a class="self" href="../../src/concurrent_queue/single.rs.html#108">self</a>.state.fetch_or(<a href="../../src/concurrent_queue/single.rs.html#10">CLOSED</a>, Ordering::SeqCst);
+        <a href="../../src/concurrent_queue/single.rs.html#109">state</a> &amp; <a href="../../src/concurrent_queue/single.rs.html#10">CLOSED</a> == <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns `true` if the queue is closed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/concurrent_queue/single.rs.html#114">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/concurrent_queue/single.rs.html#10">CLOSED</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns `true` if the queue is closed.
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/concurrent_queue/single.rs.html#114">self</a>.state.load(Ordering::SeqCst) &amp; <a href="../../src/concurrent_queue/single.rs.html#10">CLOSED</a> != <span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Single</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// Drop the value in the slot.</span>
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">get_mut</span>() <span class="op">&amp;</span> <span class="ident">PUSHED</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/single.rs.html#120">self</a>.<span class="ident">slot</span>.<span class="ident">get</span>();
-                <a class="ident" href="../../src/concurrent_queue/single.rs.html#124">value</a>.<span class="ident">as_mut_ptr</span>().<span class="ident">drop_in_place</span>();
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Single&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// Drop the value in the slot.
+        </span><span class="kw">if </span><span class="kw-2">*</span><span class="self">self</span>.state.get_mut() &amp; PUSHED != <span class="number">0 </span>{
+            <span class="kw">unsafe </span>{
+                <span class="kw">let </span>value = <span class="kw-2">&amp;mut *</span><a class="self" href="../../src/concurrent_queue/single.rs.html#120">self</a>.slot.get();
+                <a href="../../src/concurrent_queue/single.rs.html#124">value</a>.as_mut_ptr().drop_in_place();
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="concurrent_queue" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="concurrent_queue" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

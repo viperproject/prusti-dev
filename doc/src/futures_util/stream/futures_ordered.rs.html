@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/futures_ordered.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>futures_ordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/futures_ordered.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>futures_ordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -218,225 +218,281 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stream</span>::{<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#54">FuturesUnordered</a>, <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>};
-<span class="kw">use</span> <span class="ident">alloc::collections::binary_heap</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/binary_heap/struct.BinaryHeap.html">BinaryHeap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/binary_heap/struct.PeekMut.html">PeekMut</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>;
-<span class="kw">use</span> <span class="ident">core::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/stream/trait.Stream.html">futures_core::stream::Stream</a>;
-<span class="kw">use</span> <span class="ident">futures_core</span>::{
-    <span class="ident">task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>},
-    <a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>,
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#54">FuturesUnordered</a>, <a href="../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>};
+<span class="kw">use </span>alloc::collections::binary_heap::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/binary_heap/struct.BinaryHeap.html">BinaryHeap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/binary_heap/struct.PeekMut.html">PeekMut</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a>;
+<span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
+<span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span><a href="../../../futures_util/stream/trait.Stream.html">futures_core::stream::Stream</a>;
+<span class="kw">use </span>futures_core::{
+    task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>},
+    <a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">data</span>: <span class="ident">T</span>, <span class="comment">// A future or a future&#39;s output</span>
-        <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[derive(Debug)]
+    </span><span class="kw">struct </span>OrderWrapper&lt;T&gt; {
+        <span class="attribute">#[pin]
+        </span>data: T, <span class="comment">// A future or a future&#39;s output
+        </span>index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#27">self</a>.<span class="ident">index</span> <span class="op">==</span> <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#27">other</a>.<span class="ident">index</span>
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>OrderWrapper&lt;T&gt; {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#27">self</a>.index == <a href="../../../src/futures_util/stream/futures_ordered.rs.html#27">other</a>.index
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>OrderWrapper&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#35">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#35">other</a>))
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span>OrderWrapper&lt;T&gt; {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#35">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#35">other</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for</span> <span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <span class="comment">// BinaryHeap is a max heap, so compare backwards here.</span>
-        <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#41">other</a>.<span class="ident">index</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#41">self</a>.<span class="ident">index</span>)
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span>OrderWrapper&lt;T&gt; {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
+        <span class="comment">// BinaryHeap is a max heap, so compare backwards here.
+        </span><a href="../../../src/futures_util/stream/futures_ordered.rs.html#41">other</a>.index.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#41">self</a>.index)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>OrderWrapper&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = OrderWrapper&lt;T::Output&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#53">self</a>.<span class="ident">index</span>;
-        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#53">self</a>.<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#16-24">project</a>().<span class="ident">data</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#53">cx</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">output</span><span class="op">|</span> <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#16-24">OrderWrapper</a> { <span class="ident">data</span>: <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#55">output</a>, <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#54">index</a> })
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>index = <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#53">self</a>.index;
+        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#53">self</a>.<a href="../../../src/futures_util/stream/futures_ordered.rs.html#16-24">project</a>().data.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#53">cx</a>).map(|output| <a href="../../../src/futures_util/stream/futures_ordered.rs.html#16-24">OrderWrapper</a> { data: <a href="../../../src/futures_util/stream/futures_ordered.rs.html#55">output</a>, <a href="../../../src/futures_util/stream/futures_ordered.rs.html#54">index</a> })
     }
 }
 
-<span class="doccomment">/// An unbounded queue of futures.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This &quot;combinator&quot; is similar to `FuturesUnordered`, but it imposes an order</span>
-<span class="doccomment">/// on top of the set of futures. While futures in the set will race to</span>
-<span class="doccomment">/// completion in parallel, results will only be returned in the order their</span>
-<span class="doccomment">/// originating futures were added to the queue.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Futures are pushed into this queue and their realized values are yielded in</span>
-<span class="doccomment">/// order. This structure is optimized to manage a large number of futures.</span>
-<span class="doccomment">/// Futures managed by `FuturesOrdered` will only be polled when they generate</span>
-<span class="doccomment">/// notifications. This reduces the required amount of work needed to coordinate</span>
-<span class="doccomment">/// large numbers of futures.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When a `FuturesOrdered` is first created, it does not contain any futures.</span>
-<span class="doccomment">/// Calling `poll` in this state will result in `Poll::Ready(None))` to be</span>
-<span class="doccomment">/// returned. Futures are submitted to the queue using `push`; however, the</span>
-<span class="doccomment">/// future will **not** be polled at this point. `FuturesOrdered` will only</span>
-<span class="doccomment">/// poll managed futures when `FuturesOrdered::poll` is called. As such, it</span>
-<span class="doccomment">/// is important to call `poll` after pushing new futures.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If `FuturesOrdered::poll` returns `Poll::Ready(None)` this means that</span>
-<span class="doccomment">/// the queue is currently not managing any futures. A future may be submitted</span>
-<span class="doccomment">/// to the queue at a later time. At that point, a call to</span>
-<span class="doccomment">/// `FuturesOrdered::poll` will either return the future&#39;s resolved value</span>
-<span class="doccomment">/// **or** `Poll::Pending` if the future has not yet completed. When</span>
-<span class="doccomment">/// multiple futures are submitted to the queue, `FuturesOrdered::poll` will</span>
-<span class="doccomment">/// return `Poll::Pending` until the first future completes, even if</span>
-<span class="doccomment">/// some of the later futures have already completed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that you can create a ready-made `FuturesOrdered` via the</span>
-<span class="doccomment">/// [`collect`](Iterator::collect) method, or you can start with an empty queue</span>
-<span class="doccomment">/// with the `FuturesOrdered::new` constructor.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is only available when the `std` or `alloc` feature of this</span>
-<span class="doccomment">/// library is activated, and it is activated by default.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> {
-    <span class="ident">in_progress_queue</span>: <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">queued_outputs</span>: <span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">OrderWrapper</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">next_incoming_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">next_outgoing_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// An unbounded queue of futures.
+///
+/// This &quot;combinator&quot; is similar to `FuturesUnordered`, but it imposes an order
+/// on top of the set of futures. While futures in the set will race to
+/// completion in parallel, results will only be returned in the order their
+/// originating futures were added to the queue.
+///
+/// Futures are pushed into this queue and their realized values are yielded in
+/// order. This structure is optimized to manage a large number of futures.
+/// Futures managed by `FuturesOrdered` will only be polled when they generate
+/// notifications. This reduces the required amount of work needed to coordinate
+/// large numbers of futures.
+///
+/// When a `FuturesOrdered` is first created, it does not contain any futures.
+/// Calling `poll` in this state will result in `Poll::Ready(None))` to be
+/// returned. Futures are submitted to the queue using `push`; however, the
+/// future will **not** be polled at this point. `FuturesOrdered` will only
+/// poll managed futures when `FuturesOrdered::poll` is called. As such, it
+/// is important to call `poll` after pushing new futures.
+///
+/// If `FuturesOrdered::poll` returns `Poll::Ready(None)` this means that
+/// the queue is currently not managing any futures. A future may be submitted
+/// to the queue at a later time. At that point, a call to
+/// `FuturesOrdered::poll` will either return the future&#39;s resolved value
+/// **or** `Poll::Pending` if the future has not yet completed. When
+/// multiple futures are submitted to the queue, `FuturesOrdered::poll` will
+/// return `Poll::Pending` until the first future completes, even if
+/// some of the later futures have already completed.
+///
+/// Note that you can create a ready-made `FuturesOrdered` via the
+/// [`collect`](Iterator::collect) method, or you can start with an empty queue
+/// with the `FuturesOrdered::new` constructor.
+///
+/// This type is only available when the `std` or `alloc` feature of this
+/// library is activated, and it is activated by default.
+</span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+</span><span class="kw">pub struct </span>FuturesOrdered&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; {
+    in_progress_queue: FuturesUnordered&lt;OrderWrapper&lt;T&gt;&gt;,
+    queued_outputs: BinaryHeap&lt;OrderWrapper&lt;T::Output&gt;&gt;,
+    next_incoming_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    next_outgoing_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>FuturesOrdered&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs a new, empty `FuturesOrdered`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned `FuturesOrdered` does not contain any futures and, in this</span>
-    <span class="doccomment">/// state, `FuturesOrdered::poll_next` will return `Poll::Ready(None)`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">in_progress_queue</span>: <span class="ident">FuturesUnordered::new</span>(),
-            <span class="ident">queued_outputs</span>: <span class="ident">BinaryHeap::new</span>(),
-            <span class="ident">next_incoming_index</span>: <span class="number">0</span>,
-            <span class="ident">next_outgoing_index</span>: <span class="number">0</span>,
+<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; FuturesOrdered&lt;Fut&gt; {
+    <span class="doccomment">/// Constructs a new, empty `FuturesOrdered`
+    ///
+    /// The returned `FuturesOrdered` does not contain any futures and, in this
+    /// state, `FuturesOrdered::poll_next` will return `Poll::Ready(None)`.
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            in_progress_queue: FuturesUnordered::new(),
+            queued_outputs: BinaryHeap::new(),
+            next_incoming_index: <span class="number">0</span>,
+            next_outgoing_index: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Returns the number of futures contained in the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This represents the total number of in-flight futures, both</span>
-    <span class="doccomment">/// those currently processing and those that have completed but</span>
-    <span class="doccomment">/// which are waiting for earlier futures to complete.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#123">self</a>.<span class="ident">in_progress_queue</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">len</a>() <span class="op">+</span> <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#123">self</a>.<span class="ident">queued_outputs</span>.<span class="ident">len</span>()
+    <span class="doccomment">/// Returns the number of futures contained in the queue.
+    ///
+    /// This represents the total number of in-flight futures, both
+    /// those currently processing and those that have completed but
+    /// which are waiting for earlier futures to complete.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#123">self</a>.in_progress_queue.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">len</a>() + <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#123">self</a>.queued_outputs.len()
     }
 
-    <span class="doccomment">/// Returns `true` if the queue contains no futures</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#128">self</a>.<span class="ident">in_progress_queue</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#128">self</a>.<span class="ident">queued_outputs</span>.<span class="ident">is_empty</span>()
+    <span class="doccomment">/// Returns `true` if the queue contains no futures
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#128">self</a>.in_progress_queue.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>() &amp;&amp; <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#128">self</a>.queued_outputs.is_empty()
     }
 
-    <span class="doccomment">/// Push a future into the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function submits the given future to the internal set for managing.</span>
-    <span class="doccomment">/// This function will not call `poll` on the submitted future. The caller</span>
-    <span class="doccomment">/// must ensure that `FuturesOrdered::poll` is called in order to receive</span>
-    <span class="doccomment">/// task notifications.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">Fut</span>) {
-        <span class="kw">let</span> <span class="ident">wrapped</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#16-24">OrderWrapper</a> { <span class="ident">data</span>: <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#138">future</a>, <span class="ident">index</span>: <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#138">self</a>.<span class="ident">next_incoming_index</span> };
-        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#138">self</a>.<span class="ident">next_incoming_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#138">self</a>.<span class="ident">in_progress_queue</span>.<a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#139">wrapped</a>);
+    <span class="doccomment">/// Push a future into the queue.
+    ///
+    /// This function submits the given future to the internal set for managing.
+    /// This function will not call `poll` on the submitted future. The caller
+    /// must ensure that `FuturesOrdered::poll` is called in order to receive
+    /// task notifications.
+    </span><span class="attribute">#[deprecated(note = <span class="string">&quot;use `push_back` instead&quot;</span>)]
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: Fut) {
+        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#139">self</a>.<a href="../../../src/futures_util/stream/futures_ordered.rs.html#149">push_back</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#139">future</a>);
+    }
+
+    <span class="doccomment">/// Pushes a future to the back of the queue.
+    ///
+    /// This function submits the given future to the internal set for managing.
+    /// This function will not call `poll` on the submitted future. The caller
+    /// must ensure that `FuturesOrdered::poll` is called in order to receive
+    /// task notifications.
+    </span><span class="kw">pub fn </span>push_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: Fut) {
+        <span class="kw">let </span>wrapped = <a href="../../../src/futures_util/stream/futures_ordered.rs.html#16-24">OrderWrapper</a> { data: <a href="../../../src/futures_util/stream/futures_ordered.rs.html#149">future</a>, index: <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#149">self</a>.next_incoming_index };
+        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#149">self</a>.next_incoming_index += <span class="number">1</span>;
+        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#149">self</a>.in_progress_queue.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#150">wrapped</a>);
+    }
+
+    <span class="doccomment">/// Pushes a future to the front of the queue.
+    ///
+    /// This function submits the given future to the internal set for managing.
+    /// This function will not call `poll` on the submitted future. The caller
+    /// must ensure that `FuturesOrdered::poll` is called in order to receive
+    /// task notifications. This future will be the next future to be returned
+    /// complete.
+    </span><span class="kw">pub fn </span>push_front(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: Fut) {
+        <span class="kw">if </span><span class="self">self</span>.next_outgoing_index == <span class="number">0 </span>{
+            <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#162">self</a>.<a href="../../../src/futures_util/stream/futures_ordered.rs.html#149">push_back</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#162">future</a>)
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>wrapped = <a href="../../../src/futures_util/stream/futures_ordered.rs.html#16-24">OrderWrapper</a> { data: <a href="../../../src/futures_util/stream/futures_ordered.rs.html#162">future</a>, index: <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#162">self</a>.next_outgoing_index - <span class="number">1 </span>};
+            <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#162">self</a>.next_outgoing_index -= <span class="number">1</span>;
+            <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#162">self</a>.in_progress_queue.<a href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#166">wrapped</a>);
+        }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>FuturesOrdered&lt;Fut&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Fut::Output</span>;
+<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>FuturesOrdered&lt;Fut&gt; {
+    <span class="kw">type </span>Item = Fut::Output;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#154">self</a>;
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#182">self</a>;
 
-        <span class="comment">// Check to see if we&#39;ve already received the next value</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_output</span>) <span class="op">=</span> <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#155">this</a>.<span class="ident">queued_outputs</span>.<span class="ident">peek_mut</span>() {
-            <span class="kw">if</span> <span class="ident">next_output</span>.<span class="ident">index</span> <span class="op">==</span> <span class="ident">this</span>.<span class="ident">next_outgoing_index</span> {
-                <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#155">this</a>.<span class="ident">next_outgoing_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">PeekMut::pop</span>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#158">next_output</a>).<span class="ident">data</span>));
+        <span class="comment">// Check to see if we&#39;ve already received the next value
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(next_output) = <a href="../../../src/futures_util/stream/futures_ordered.rs.html#183">this</a>.queued_outputs.peek_mut() {
+            <span class="kw">if </span>next_output.index == this.next_outgoing_index {
+                <a href="../../../src/futures_util/stream/futures_ordered.rs.html#183">this</a>.next_outgoing_index += <span class="number">1</span>;
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(PeekMut::pop(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#186">next_output</a>).data));
             }
         }
 
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">this</span>.<span class="ident">in_progress_queue</span>.<span class="ident">poll_next_unpin</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">output</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">output</span>.<span class="ident">index</span> <span class="op">==</span> <span class="ident">this</span>.<span class="ident">next_outgoing_index</span> {
-                        <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#155">this</a>.<span class="ident">next_outgoing_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#167">output</a>.<span class="ident">data</span>));
-                    } <span class="kw">else</span> {
-                        <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#155">this</a>.<span class="ident">queued_outputs</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#167">output</a>)
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(this.in_progress_queue.poll_next_unpin(cx)) {
+                <span class="prelude-val">Some</span>(output) =&gt; {
+                    <span class="kw">if </span>output.index == this.next_outgoing_index {
+                        <a href="../../../src/futures_util/stream/futures_ordered.rs.html#183">this</a>.next_outgoing_index += <span class="number">1</span>;
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#195">output</a>.data));
+                    } <span class="kw">else </span>{
+                        <a href="../../../src/futures_util/stream/futures_ordered.rs.html#183">this</a>.queued_outputs.push(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#195">output</a>)
                     }
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>),
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#180">self</a>.<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#123">len</a>();
-        (<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#181">len</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#181">len</a>))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <span class="kw">let </span>len = <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#208">self</a>.<a href="../../../src/futures_util/stream/futures_ordered.rs.html#123">len</a>();
+        (<a href="../../../src/futures_util/stream/futures_ordered.rs.html#209">len</a>, <span class="prelude-val">Some</span>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#209">len</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#187">f</a>, <span class="string">&quot;FuturesOrdered {{ ... }}&quot;</span>)
+<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>FuturesOrdered&lt;Fut&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#215">f</a>, <span class="string">&quot;FuturesOrdered {{ ... }}&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Fut</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; FromIterator&lt;Fut&gt; <span class="kw">for </span>FuturesOrdered&lt;Fut&gt; {
+    <span class="kw">fn </span>from_iter&lt;T&gt;(iter: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: IntoIterator&lt;Item = Fut&gt;,
     {
-        <span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>();
-        <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#193">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#197">acc</a>, <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">acc</span>, <span class="ident">item</span><span class="op">|</span> {
-            <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#198">acc</a>.<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#138">push</a>(<a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#198">item</a>);
-            <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#198">acc</a>
+        <span class="kw">let </span>acc = <span class="self">Self</span>::new();
+        <a href="../../../src/futures_util/stream/futures_ordered.rs.html#221">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#225">acc</a>, |<span class="kw-2">mut </span>acc, item| {
+            <a href="../../../src/futures_util/stream/futures_ordered.rs.html#226">acc</a>.<a href="../../../src/futures_util/stream/futures_ordered.rs.html#149">push_back</a>(<a href="../../../src/futures_util/stream/futures_ordered.rs.html#226">item</a>);
+            <a href="../../../src/futures_util/stream/futures_ordered.rs.html#226">acc</a>
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#206">self</a>.<span class="ident">in_progress_queue</span>.<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#206">self</a>.<span class="ident">queued_outputs</span>.<span class="ident">is_empty</span>()
+<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>FuturesOrdered&lt;Fut&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#234">self</a>.in_progress_queue.<a href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="../../../src/futures_util/stream/futures_ordered.rs.html#234">self</a>.queued_outputs.is_empty()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>)
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Fut</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; Extend&lt;Fut&gt; <span class="kw">for </span>FuturesOrdered&lt;Fut&gt; {
+    <span class="kw">fn </span>extend&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I)
+    <span class="kw">where
+        </span>I: IntoIterator&lt;Item = Fut&gt;,
     {
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">iter</span> {
-            <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">item</span>);
+        <span class="kw">for </span>item <span class="kw">in </span>iter {
+            <span class="self">self</span>.push_back(item);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

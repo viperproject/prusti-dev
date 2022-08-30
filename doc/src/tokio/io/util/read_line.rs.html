@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/read_line.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read_line.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/read_line.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read_line.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -117,124 +117,124 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/util/read_until.rs.html#46-52"><span class="kw">crate</span>::io::util::read_until::read_until_internal</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23"><span class="kw">crate</span>::io::AsyncBufRead</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/tokio/io/util/read_until.rs.html#46-52"><span class="kw">crate</span>::io::util::read_until::read_until_internal</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/io/async_buf_read.rs.html#23"><span class="kw">crate</span>::io::AsyncBufRead</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomPinned</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">std::string::FromUtf8Error</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::marker::PhantomPinned;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">std::string::FromUtf8Error</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Future for the [`read_line`](crate::io::AsyncBufReadExt::read_line) method.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReadLine</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
-        <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span>,
-        <span class="comment">// This is the buffer we were provided. It will be replaced with an empty string</span>
-        <span class="comment">// while reading to postpone utf-8 handling until after reading.</span>
-        <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        <span class="comment">// The actual allocation of the string is moved into this vector instead.</span>
-        <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-        <span class="comment">// The number of bytes appended to buf. This can be less than buf.len() if</span>
-        <span class="comment">// the buffer was not empty when the operation was started.</span>
-        <span class="ident">read</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="comment">// Make this future `!Unpin` for compatibility with async trait methods.</span>
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">_pin</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Future for the [`read_line`](crate::io::AsyncBufReadExt::read_line) method.
+    </span><span class="attribute">#[derive(Debug)]
+    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="kw">pub struct </span>ReadLine&lt;<span class="lifetime">&#39;a</span>, R: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+        reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
+        <span class="comment">// This is the buffer we were provided. It will be replaced with an empty string
+        // while reading to postpone utf-8 handling until after reading.
+        </span>output: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        <span class="comment">// The actual allocation of the string is moved into this vector instead.
+        </span>buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+        <span class="comment">// The number of bytes appended to buf. This can be less than buf.len() if
+        // the buffer was not empty when the operation was started.
+        </span>read: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        <span class="comment">// Make this future `!Unpin` for compatibility with async trait methods.
+        </span><span class="attribute">#[pin]
+        </span>_pin: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">read_line</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="ident">ReadLine</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read_line&lt;<span class="lifetime">&#39;a</span>, R&gt;(reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R, string: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; ReadLine&lt;<span class="lifetime">&#39;a</span>, R&gt;
+<span class="kw">where
+    </span>R: <a href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#13-31">ReadLine</a> {
-        <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#33">reader</a>,
-        <span class="ident">buf</span>: <span class="ident">mem::take</span>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#33">string</a>).<span class="ident">into_bytes</span>(),
-        <span class="ident">output</span>: <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#33">string</a>,
-        <span class="ident">read</span>: <span class="number">0</span>,
-        <span class="ident">_pin</span>: <span class="ident">PhantomPinned</span>,
+    <a href="../../../../src/tokio/io/util/read_line.rs.html#13-31">ReadLine</a> {
+        <a href="../../../../src/tokio/io/util/read_line.rs.html#33">reader</a>,
+        buf: mem::take(<a href="../../../../src/tokio/io/util/read_line.rs.html#33">string</a>).into_bytes(),
+        output: <a href="../../../../src/tokio/io/util/read_line.rs.html#33">string</a>,
+        read: <span class="number">0</span>,
+        _pin: PhantomPinned,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">put_back_original_data</span>(<span class="ident">output</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="kw-2">mut</span> <span class="ident">vector</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="ident">num_bytes_read</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">let</span> <span class="ident">original_len</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#46">vector</a>.<span class="ident">len</span>() <span class="op">-</span> <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#46">num_bytes_read</a>;
-    <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#46">vector</a>.<span class="ident">truncate</span>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#47">original_len</a>);
-    <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#46">output</a> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#46">vector</a>).<span class="ident">expect</span>(<span class="string">&quot;The original data must be valid utf-8.&quot;</span>);
+<span class="kw">fn </span>put_back_original_data(output: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="kw-2">mut </span>vector: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, num_bytes_read: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">let </span>original_len = <a href="../../../../src/tokio/io/util/read_line.rs.html#46">vector</a>.len() - <a href="../../../../src/tokio/io/util/read_line.rs.html#46">num_bytes_read</a>;
+    <a href="../../../../src/tokio/io/util/read_line.rs.html#46">vector</a>.truncate(<a href="../../../../src/tokio/io/util/read_line.rs.html#47">original_len</a>);
+    <span class="kw-2">*</span><a href="../../../../src/tokio/io/util/read_line.rs.html#46">output</a> = String::from_utf8(<a href="../../../../src/tokio/io/util/read_line.rs.html#46">vector</a>).expect(<span class="string">&quot;The original data must be valid utf-8.&quot;</span>);
 }
 
-<span class="doccomment">/// This handles the various failure cases and puts the string back into `output`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `truncate_on_io_error` bool is necessary because `read_to_string` and `read_line`</span>
-<span class="doccomment">/// disagree on what should happen when an IO error occurs.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">finish_string_read</span>(
-    <span class="ident">io_res</span>: <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="ident">utf8_res</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a><span class="op">&gt;</span>,
-    <span class="ident">read</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">truncate_on_io_error</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> (<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#57">io_res</a>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#58">utf8_res</a>) {
-        (<span class="prelude-val">Ok</span>(<span class="ident">num_bytes</span>), <span class="prelude-val">Ok</span>(<span class="ident">string</span>)) =&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">read</span>, <span class="number">0</span>);
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#64">string</a>;
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#64">num_bytes</a>))
+<span class="doccomment">/// This handles the various failure cases and puts the string back into `output`.
+///
+/// The `truncate_on_io_error` bool is necessary because `read_to_string` and `read_line`
+/// disagree on what should happen when an IO error occurs.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>finish_string_read(
+    io_res: io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    utf8_res: <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a>&gt;,
+    read: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    output: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    truncate_on_io_error: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+    <span class="kw">match </span>(<a href="../../../../src/tokio/io/util/read_line.rs.html#57">io_res</a>, <a href="../../../../src/tokio/io/util/read_line.rs.html#58">utf8_res</a>) {
+        (<span class="prelude-val">Ok</span>(num_bytes), <span class="prelude-val">Ok</span>(string)) =&gt; {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(read, <span class="number">0</span>);
+            <span class="kw-2">*</span><a href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a> = <a href="../../../../src/tokio/io/util/read_line.rs.html#64">string</a>;
+            Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/io/util/read_line.rs.html#64">num_bytes</a>))
         }
-        (<span class="prelude-val">Err</span>(<span class="ident">io_err</span>), <span class="prelude-val">Ok</span>(<span class="ident">string</span>)) =&gt; {
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#69">string</a>;
-            <span class="kw">if</span> <span class="ident">truncate_on_io_error</span> {
-                <span class="kw">let</span> <span class="ident">original_len</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a>.<span class="ident">len</span>() <span class="op">-</span> <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#59">read</a>;
-                <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a>.<span class="ident">truncate</span>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#72">original_len</a>);
+        (<span class="prelude-val">Err</span>(io_err), <span class="prelude-val">Ok</span>(string)) =&gt; {
+            <span class="kw-2">*</span><a href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a> = <a href="../../../../src/tokio/io/util/read_line.rs.html#69">string</a>;
+            <span class="kw">if </span>truncate_on_io_error {
+                <span class="kw">let </span>original_len = <a href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a>.len() - <a href="../../../../src/tokio/io/util/read_line.rs.html#59">read</a>;
+                <a href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a>.truncate(<a href="../../../../src/tokio/io/util/read_line.rs.html#72">original_len</a>);
             }
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#69">io_err</a>))
+            Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../../src/tokio/io/util/read_line.rs.html#69">io_err</a>))
         }
-        (<span class="prelude-val">Ok</span>(<span class="ident">num_bytes</span>), <span class="prelude-val">Err</span>(<span class="ident">utf8_err</span>)) =&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">read</span>, <span class="number">0</span>);
-            <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#46">put_back_original_data</a>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#77">utf8_err</a>.<span class="ident">into_bytes</span>(), <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#77">num_bytes</a>);
+        (<span class="prelude-val">Ok</span>(num_bytes), <span class="prelude-val">Err</span>(utf8_err)) =&gt; {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(read, <span class="number">0</span>);
+            <a href="../../../../src/tokio/io/util/read_line.rs.html#46">put_back_original_data</a>(<a href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a>, <a href="../../../../src/tokio/io/util/read_line.rs.html#77">utf8_err</a>.into_bytes(), <a href="../../../../src/tokio/io/util/read_line.rs.html#77">num_bytes</a>);
 
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidData</span>,
+            Poll::Ready(<span class="prelude-val">Err</span>(io::Error::new(
+                io::ErrorKind::InvalidData,
                 <span class="string">&quot;stream did not contain valid UTF-8&quot;</span>,
             )))
         }
-        (<span class="prelude-val">Err</span>(<span class="ident">io_err</span>), <span class="prelude-val">Err</span>(<span class="ident">utf8_err</span>)) =&gt; {
-            <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#46">put_back_original_data</a>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#86">utf8_err</a>.<span class="ident">into_bytes</span>(), <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#59">read</a>);
+        (<span class="prelude-val">Err</span>(io_err), <span class="prelude-val">Err</span>(utf8_err)) =&gt; {
+            <a href="../../../../src/tokio/io/util/read_line.rs.html#46">put_back_original_data</a>(<a href="../../../../src/tokio/io/util/read_line.rs.html#60">output</a>, <a href="../../../../src/tokio/io/util/read_line.rs.html#86">utf8_err</a>.into_bytes(), <a href="../../../../src/tokio/io/util/read_line.rs.html#59">read</a>);
 
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#86">io_err</a>))
+            Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../../src/tokio/io/util/read_line.rs.html#86">io_err</a>))
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">read_line_internal</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(
-    <span class="ident">reader</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-    <span class="ident">read</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">io_res</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident">read_until_internal</span>(<span class="ident">reader</span>, <span class="ident">cx</span>, <span class="string">b&#39;\n&#39;</span>, <span class="ident">buf</span>, <span class="ident">read</span>));
-    <span class="kw">let</span> <span class="ident">utf8_res</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="ident">mem::take</span>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#98">buf</a>));
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_line_internal&lt;R: <a href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(
+    reader: Pin&lt;<span class="kw-2">&amp;mut </span>R&gt;,
+    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    output: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    buf: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    read: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+    <span class="kw">let </span>io_res = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(read_until_internal(reader, cx, <span class="string">b&#39;\n&#39;</span>, buf, read));
+    <span class="kw">let </span>utf8_res = String::from_utf8(mem::take(<a href="../../../../src/tokio/io/util/read_line.rs.html#98">buf</a>));
 
-    <span class="comment">// At this point both buf and output are empty. The allocation is in utf8_res.</span>
+    <span class="comment">// At this point both buf and output are empty. The allocation is in utf8_res.
 
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">buf</span>.<span class="ident">is_empty</span>());
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">output</span>.<span class="ident">is_empty</span>());
-    <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#56-62">finish_string_read</a>(<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#101">io_res</a>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#102">utf8_res</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#99">read</a>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#97">output</a>, <span class="bool-val">false</span>)
+    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.is_empty());
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(output.is_empty());
+    <a href="../../../../src/tokio/io/util/read_line.rs.html#56-62">finish_string_read</a>(<a href="../../../../src/tokio/io/util/read_line.rs.html#101">io_res</a>, <a href="../../../../src/tokio/io/util/read_line.rs.html#102">utf8_res</a>, <span class="kw-2">*</span><a href="../../../../src/tokio/io/util/read_line.rs.html#99">read</a>, <a href="../../../../src/tokio/io/util/read_line.rs.html#97">output</a>, <span class="bool-val">false</span>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">ReadLine</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;R: <a href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>ReadLine&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+    <span class="kw">type </span>Output = io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/read_line.rs.html#114">self</a>.<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#13-31">project</a>();
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>me = <a class="self" href="../../../../src/tokio/io/util/read_line.rs.html#114">self</a>.<a href="../../../../src/tokio/io/util/read_line.rs.html#13-31">project</a>();
 
-        <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#94-100">read_line_internal</a>(<span class="ident">Pin::new</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#115">me</a>.<span class="ident">reader</span>), <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#114">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#115">me</a>.<span class="ident">output</span>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#115">me</a>.<span class="ident">buf</span>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#115">me</a>.<span class="ident">read</span>)
+        <a href="../../../../src/tokio/io/util/read_line.rs.html#94-100">read_line_internal</a>(Pin::new(<span class="kw-2">*</span><a href="../../../../src/tokio/io/util/read_line.rs.html#115">me</a>.reader), <a href="../../../../src/tokio/io/util/read_line.rs.html#114">cx</a>, <a href="../../../../src/tokio/io/util/read_line.rs.html#115">me</a>.output, <a href="../../../../src/tokio/io/util/read_line.rs.html#115">me</a>.buf, <a href="../../../../src/tokio/io/util/read_line.rs.html#115">me</a>.read)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

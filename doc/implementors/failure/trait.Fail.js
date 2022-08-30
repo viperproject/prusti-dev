@@ -1,4 +1,4 @@
-(function() {var implementors = {};
-implementors["failure"] = [];
-implementors["rustwide"] = [{"text":"impl <a class=\"trait\" href=\"failure/trait.Fail.html\" title=\"trait failure::Fail\">Fail</a> for <a class=\"enum\" href=\"rustwide/enum.PrepareError.html\" title=\"enum rustwide::PrepareError\">PrepareError</a>","synthetic":false,"types":["rustwide::prepare::PrepareError"]},{"text":"impl <a class=\"trait\" href=\"failure/trait.Fail.html\" title=\"trait failure::Fail\">Fail</a> for <a class=\"enum\" href=\"rustwide/toolchain/enum.ToolchainError.html\" title=\"enum rustwide::toolchain::ToolchainError\">ToolchainError</a>","synthetic":false,"types":["rustwide::toolchain::ToolchainError"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"failure":[],
+"rustwide":[["impl <a class=\"trait\" href=\"failure/trait.Fail.html\" title=\"trait failure::Fail\">Fail</a> for <a class=\"enum\" href=\"rustwide/enum.PrepareError.html\" title=\"enum rustwide::PrepareError\">PrepareError</a>"],["impl <a class=\"trait\" href=\"failure/trait.Fail.html\" title=\"trait failure::Fail\">Fail</a> for <a class=\"enum\" href=\"rustwide/toolchain/enum.ToolchainError.html\" title=\"enum rustwide::toolchain::ToolchainError\">ToolchainError</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

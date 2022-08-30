@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/batch_semaphore.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>batch_semaphore.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/batch_semaphore.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>batch_semaphore.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -725,732 +725,732 @@
 <span id="725">725</span>
 <span id="726">726</span>
 <span id="727">727</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>), <span class="ident">allow</span>(<span class="ident">unreachable_pub</span>, <span class="ident">dead_code</span>))]</span>
-<span class="doccomment">//! # Implementation Details.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The semaphore is implemented using an intrusive linked list of waiters. An</span>
-<span class="doccomment">//! atomic counter tracks the number of available permits. If the semaphore does</span>
-<span class="doccomment">//! not contain the required number of permits, the task attempting to acquire</span>
-<span class="doccomment">//! permits places its waker at the end of a queue. When new permits are made</span>
-<span class="doccomment">//! available (such as by releasing an initial acquisition), they are assigned</span>
-<span class="doccomment">//! to the task at the front of the queue, waking that task if its requested</span>
-<span class="doccomment">//! number of permits is met.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Because waiters are enqueued at the back of the linked list and dequeued</span>
-<span class="doccomment">//! from the front, the semaphore is fair. Tasks trying to acquire large numbers</span>
-<span class="doccomment">//! of permits at a time will always be woken eventually, even if many other</span>
-<span class="doccomment">//! tasks are acquiring smaller numbers of permits. This means that in a</span>
-<span class="doccomment">//! use-case like tokio&#39;s read-write lock, writers will not be starved by</span>
-<span class="doccomment">//! readers.</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync</span>::{<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#6">Mutex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.MutexGuard.html">MutexGuard</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::linked_list</span>::{<a class="self" href="../../../src/tokio/util/mod.rs.html#41">self</a>, <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#19">LinkedList</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::trace</span>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/util/wake_list.rs.html#7"><span class="kw">crate</span>::util::WakeList</a>;
+</pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;sync&quot;</span>), allow(unreachable_pub, dead_code))]
+</span><span class="doccomment">//! # Implementation Details.
+//!
+//! The semaphore is implemented using an intrusive linked list of waiters. An
+//! atomic counter tracks the number of available permits. If the semaphore does
+//! not contain the required number of permits, the task attempting to acquire
+//! permits places its waker at the end of a queue. When new permits are made
+//! available (such as by releasing an initial acquisition), they are assigned
+//! to the task at the front of the queue, waking that task if its requested
+//! number of permits is met.
+//!
+//! Because waiters are enqueued at the back of the linked list and dequeued
+//! from the front, the semaphore is fair. Tasks trying to acquire large numbers
+//! of permits at a time will always be woken eventually, even if many other
+//! tasks are acquiring smaller numbers of permits. This means that in a
+//! use-case like tokio&#39;s read-write lock, writers will not be starved by
+//! readers.
+</span><span class="kw">use </span><a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="../../../src/tokio/loom/std/mutex.rs.html#6">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.MutexGuard.html">MutexGuard</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::linked_list::{<a class="self" href="../../../src/tokio/util/mod.rs.html#41">self</a>, <a href="../../../src/tokio/util/linked_list.rs.html#19">LinkedList</a>};
+<span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::util::trace;
+<span class="kw">use </span><a href="../../../src/tokio/util/wake_list.rs.html#7"><span class="kw">crate</span>::util::WakeList</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomPinned</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">std::sync::atomic::Ordering</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::marker::PhantomPinned;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">std::sync::atomic::Ordering</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
 
-<span class="doccomment">/// An asynchronous counting semaphore which permits waiting on multiple permits at once.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Semaphore</span> {
-    <span class="ident">waiters</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#44">Waitlist</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// The current number of available permits in the semaphore.</span>
-    <span class="ident">permits</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
+<span class="doccomment">/// An asynchronous counting semaphore which permits waiting on multiple permits at once.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Semaphore {
+    waiters: Mutex&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#44">Waitlist</a>&gt;,
+    <span class="doccomment">/// The current number of available permits in the semaphore.
+    </span>permits: <a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span>resource_span: tracing::Span,
 }
 
-<span class="kw">struct</span> <span class="ident">Waitlist</span> {
-    <span class="ident">queue</span>: <span class="ident">LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>, <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>,
-    <span class="ident">closed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="kw">struct </span>Waitlist {
+    queue: LinkedList&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>, &lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a> <span class="kw">as </span>linked_list::Link&gt;::Target&gt;,
+    closed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="doccomment">/// Error returned from the [`Semaphore::try_acquire`] function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Semaphore::try_acquire`]: crate::sync::Semaphore::try_acquire</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TryAcquireError</span> {
-    <span class="doccomment">/// The semaphore has been [closed] and cannot issue new permits.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [closed]: crate::sync::Semaphore::close</span>
-    <span class="ident">Closed</span>,
+<span class="doccomment">/// Error returned from the [`Semaphore::try_acquire`] function.
+///
+/// [`Semaphore::try_acquire`]: crate::sync::Semaphore::try_acquire
+</span><span class="attribute">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub enum </span>TryAcquireError {
+    <span class="doccomment">/// The semaphore has been [closed] and cannot issue new permits.
+    ///
+    /// [closed]: crate::sync::Semaphore::close
+    </span>Closed,
 
-    <span class="doccomment">/// The semaphore has no available permits.</span>
-    <span class="ident">NoPermits</span>,
+    <span class="doccomment">/// The semaphore has no available permits.
+    </span>NoPermits,
 }
-<span class="doccomment">/// Error returned from the [`Semaphore::acquire`] function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An `acquire` operation can only fail if the semaphore has been</span>
-<span class="doccomment">/// [closed].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [closed]: crate::sync::Semaphore::close</span>
-<span class="doccomment">/// [`Semaphore::acquire`]: crate::sync::Semaphore::acquire</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AcquireError</span>(());
+<span class="doccomment">/// Error returned from the [`Semaphore::acquire`] function.
+///
+/// An `acquire` operation can only fail if the semaphore has been
+/// [closed].
+///
+/// [closed]: crate::sync::Semaphore::close
+/// [`Semaphore::acquire`]: crate::sync::Semaphore::acquire
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>AcquireError(());
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">node</span>: <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>,
-    <span class="ident">semaphore</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>,
-    <span class="ident">num_permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    <span class="ident">queued</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-}
-
-<span class="doccomment">/// An entry in the wait queue.</span>
-<span class="kw">struct</span> <span class="ident">Waiter</span> {
-    <span class="doccomment">/// The current state of the waiter.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is either the number of remaining permits required by</span>
-    <span class="doccomment">/// the waiter, or a flag indicating that the waiter is not yet queued.</span>
-    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
-
-    <span class="doccomment">/// The waker to notify the task awaiting permits.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may only be accessed while the wait queue is locked.</span>
-    <span class="ident">waker</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-
-    <span class="doccomment">/// Intrusive linked-list pointers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may only be accessed while the wait queue is locked.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// TODO: Ideally, we would be able to use loom to enforce that</span>
-    <span class="doccomment">/// this isn&#39;t accessed concurrently. However, it is difficult to</span>
-    <span class="doccomment">/// use a `UnsafeCell` here, since the `Link` trait requires _returning_</span>
-    <span class="doccomment">/// references to `Pointers`, and `UnsafeCell` requires that checked access</span>
-    <span class="doccomment">/// take place inside a closure. We should consider changing `Pointers` to</span>
-    <span class="doccomment">/// use `UnsafeCell` internally.</span>
-    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span>,
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="ident">ctx</span>: <span class="ident">trace::AsyncOpTracingCtx</span>,
-
-    <span class="doccomment">/// Should not be `Unpin`.</span>
-    <span class="ident">_p</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Acquire&lt;<span class="lifetime">&#39;a</span>&gt; {
+    node: <a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>,
+    semaphore: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>,
+    num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    queued: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a> {
-    <span class="doccomment">/// The maximum number of permits which a semaphore can hold.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this reserves three bits of flags in the permit counter, but</span>
-    <span class="doccomment">/// we only actually use one of them. However, the previous semaphore</span>
-    <span class="doccomment">/// implementation used three bits, so we will continue to reserve them to</span>
-    <span class="doccomment">/// avoid a breaking change if additional flags need to be added in the</span>
-    <span class="doccomment">/// future.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MAX_PERMITS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="ident">std::usize::MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3</span>;
-    <span class="kw">const</span> <span class="ident">CLOSED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
-    <span class="comment">// The least-significant bit in the number of permits is reserved to use</span>
-    <span class="comment">// as a flag indicating that the semaphore has been closed. Consequently</span>
-    <span class="comment">// PERMIT_SHIFT is used to leave that bit for that purpose.</span>
-    <span class="kw">const</span> <span class="ident">PERMIT_SHIFT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
+<span class="doccomment">/// An entry in the wait queue.
+</span><span class="kw">struct </span>Waiter {
+    <span class="doccomment">/// The current state of the waiter.
+    ///
+    /// This is either the number of remaining permits required by
+    /// the waiter, or a flag indicating that the waiter is not yet queued.
+    </span>state: <a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
 
-    <span class="doccomment">/// Creates a new semaphore with the initial number of permits</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Maximum number of permits on 32-bit platforms is `1&lt;&lt;29`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
+    <span class="doccomment">/// The waker to notify the task awaiting permits.
+    ///
+    /// # Safety
+    ///
+    /// This may only be accessed while the wait queue is locked.
+    </span>waker: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
+
+    <span class="doccomment">/// Intrusive linked-list pointers.
+    ///
+    /// # Safety
+    ///
+    /// This may only be accessed while the wait queue is locked.
+    ///
+    /// TODO: Ideally, we would be able to use loom to enforce that
+    /// this isn&#39;t accessed concurrently. However, it is difficult to
+    /// use a `UnsafeCell` here, since the `Link` trait requires _returning_
+    /// references to `Pointers`, and `UnsafeCell` requires that checked access
+    /// take place inside a closure. We should consider changing `Pointers` to
+    /// use `UnsafeCell` internally.
+    </span>pointers: linked_list::Pointers&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt;,
+
+    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span>ctx: trace::AsyncOpTracingCtx,
+
+    <span class="doccomment">/// Should not be `Unpin`.
+    </span>_p: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
+}
+
+<span class="kw">impl </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a> {
+    <span class="doccomment">/// The maximum number of permits which a semaphore can hold.
+    ///
+    /// Note that this reserves three bits of flags in the permit counter, but
+    /// we only actually use one of them. However, the previous semaphore
+    /// implementation used three bits, so we will continue to reserve them to
+    /// avoid a breaking change if additional flags need to be added in the
+    /// future.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_PERMITS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = std::usize::MAX &gt;&gt; <span class="number">3</span>;
+    <span class="kw">const </span>CLOSED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+    <span class="comment">// The least-significant bit in the number of permits is reserved to use
+    // as a flag indicating that the semaphore has been closed. Consequently
+    // PERMIT_SHIFT is used to leave that bit for that purpose.
+    </span><span class="kw">const </span>PERMIT_SHIFT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+
+    <span class="doccomment">/// Creates a new semaphore with the initial number of permits
+    ///
+    /// Maximum number of permits on 32-bit platforms is `1&lt;&lt;29`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="ident">permits</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>,
+            permits &lt;= <span class="self">Self</span>::MAX_PERMITS,
             <span class="string">&quot;a semaphore may not have more than MAX_PERMITS permits ({})&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>
+            <span class="self">Self</span>::MAX_PERMITS
         );
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = {
+            <span class="kw">let </span>resource_span = <span class="macro">tracing::trace_span!</span>(
                 <span class="string">&quot;runtime.resource&quot;</span>,
-                <span class="ident">concrete_type</span> <span class="op">=</span> <span class="string">&quot;Semaphore&quot;</span>,
-                <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;Sync&quot;</span>,
-                <span class="ident">is_internal</span> <span class="op">=</span> <span class="bool-val">true</span>
-            );
+                concrete_type = <span class="string">&quot;Semaphore&quot;</span>,
+                kind = <span class="string">&quot;Sync&quot;</span>,
+                is_internal = <span class="bool-val">true
+            </span>);
 
-            <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            resource_span.in_scope(|| {
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">permits</span> <span class="op">=</span> <span class="ident">permits</span>,
-                    <span class="ident">permits</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    permits = permits,
+                    permits.op = <span class="string">&quot;override&quot;</span>,
                 )
             });
-            <span class="ident">resource_span</span>
+            resource_span
         };
 
-        <span class="self">Self</span> {
-            <span class="ident">permits</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#133">permits</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>),
-            <span class="ident">waiters</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#44">Waitlist</a> {
-                <span class="ident">queue</span>: <span class="ident">LinkedList::new</span>(),
-                <span class="ident">closed</span>: <span class="bool-val">false</span>,
+        <span class="self">Self </span>{
+            permits: AtomicUsize::new(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#133">permits</a> &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT),
+            waiters: Mutex::new(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#44">Waitlist</a> {
+                queue: LinkedList::new(),
+                closed: <span class="bool-val">false</span>,
             }),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 
-    <span class="doccomment">/// Creates a new semaphore with the initial number of permits.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Maximum number of permits on 32-bit platforms is `1&lt;&lt;29`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the specified number of permits exceeds the maximum permit amount</span>
-    <span class="doccomment">/// Then the value will get clamped to the maximum number of permits.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parking_lot&quot;</span>, <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">loom</span>, <span class="ident">test</span>))))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">const_new</span>(<span class="kw-2">mut</span> <span class="ident">permits</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="comment">// NOTE: assertions and by extension panics are still being worked on: https://github.com/rust-lang/rust/issues/74925</span>
-        <span class="comment">// currently we just clamp the permit count when it exceeds the max</span>
-        <span class="ident">permits</span> <span class="op">&amp;=</span> <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>;
+    <span class="doccomment">/// Creates a new semaphore with the initial number of permits.
+    ///
+    /// Maximum number of permits on 32-bit platforms is `1&lt;&lt;29`.
+    ///
+    /// If the specified number of permits exceeds the maximum permit amount
+    /// Then the value will get clamped to the maximum number of permits.
+    </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;parking_lot&quot;</span>, not(all(loom, test))))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>const_new(<span class="kw-2">mut </span>permits: usize) -&gt; <span class="self">Self </span>{
+        <span class="comment">// NOTE: assertions and by extension panics are still being worked on: https://github.com/rust-lang/rust/issues/74925
+        // currently we just clamp the permit count when it exceeds the max
+        </span>permits &amp;= <span class="self">Self</span>::MAX_PERMITS;
 
-        <span class="self">Self</span> {
-            <span class="ident">permits</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident">permits</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>),
-            <span class="ident">waiters</span>: <span class="ident">Mutex::const_new</span>(<span class="ident">Waitlist</span> {
-                <span class="ident">queue</span>: <span class="ident">LinkedList::new</span>(),
-                <span class="ident">closed</span>: <span class="bool-val">false</span>,
+        <span class="self">Self </span>{
+            permits: AtomicUsize::new(permits &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT),
+            waiters: Mutex::const_new(Waitlist {
+                queue: LinkedList::new(),
+                closed: <span class="bool-val">false</span>,
             }),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="ident">tracing::Span::none</span>(),
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: tracing::Span::none(),
         }
     }
 
-    <span class="doccomment">/// Returns the current number of available permits.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">available_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#194">self</a>.<span class="ident">permits</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>
+    <span class="doccomment">/// Returns the current number of available permits.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>available_permits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#194">self</a>.permits.load(Acquire) &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT
     }
 
-    <span class="doccomment">/// Adds `added` new permits to the semaphore.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The maximum number of permits is `usize::MAX &gt;&gt; 3`, and this function will panic if the limit is exceeded.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">added</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">if</span> <span class="ident">added</span> <span class="op">==</span> <span class="number">0</span> {
+    <span class="doccomment">/// Adds `added` new permits to the semaphore.
+    ///
+    /// The maximum number of permits is `usize::MAX &gt;&gt; 3`, and this function will panic if the limit is exceeded.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>release(<span class="kw-2">&amp;</span><span class="self">self</span>, added: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">if </span>added == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// Assign permits to the wait queue</span>
-        <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#201">self</a>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#276">add_permits_locked</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#201">added</a>, <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#201">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>());
+        <span class="comment">// Assign permits to the wait queue
+        </span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#201">self</a>.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#276">add_permits_locked</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#201">added</a>, <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#201">self</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>());
     }
 
-    <span class="doccomment">/// Closes the semaphore. This prevents the semaphore from issuing new</span>
-    <span class="doccomment">/// permits and notifies all pending waiters.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#212">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-        <span class="comment">// If the semaphore&#39;s permits counter has enough permits for an</span>
-        <span class="comment">// unqueued waiter to acquire all the permits it needs immediately,</span>
-        <span class="comment">// it won&#39;t touch the wait list. Therefore, we have to set a bit on</span>
-        <span class="comment">// the permit counter as well. However, we must do this while</span>
-        <span class="comment">// holding the lock --- otherwise, if we set the bit and then wait</span>
-        <span class="comment">// to acquire the lock we&#39;ll enter an inconsistent state where the</span>
-        <span class="comment">// permit counter is closed, but the wait list is not.</span>
-        <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#212">self</a>.<span class="ident">permits</span>.<span class="ident">fetch_or</span>(<span class="ident"><span class="self">Self</span>::CLOSED</span>, <span class="ident">Release</span>);
-        <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#213">waiters</a>.<span class="ident">closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">waiter</span>) <span class="op">=</span> <span class="ident">waiters</span>.<span class="ident">queue</span>.<span class="ident">pop_back</span>() {
-            <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">waiter</span>.<span class="ident">as_mut</span>().<span class="ident">waker</span>.<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">waker</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">waker</span>).<span class="ident">take</span>()) };
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <span class="ident">waker</span> {
-                <span class="ident">waker</span>.<span class="ident">wake</span>();
+    <span class="doccomment">/// Closes the semaphore. This prevents the semaphore from issuing new
+    /// permits and notifies all pending waiters.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>waiters = <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#212">self</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="comment">// If the semaphore&#39;s permits counter has enough permits for an
+        // unqueued waiter to acquire all the permits it needs immediately,
+        // it won&#39;t touch the wait list. Therefore, we have to set a bit on
+        // the permit counter as well. However, we must do this while
+        // holding the lock --- otherwise, if we set the bit and then wait
+        // to acquire the lock we&#39;ll enter an inconsistent state where the
+        // permit counter is closed, but the wait list is not.
+        </span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#212">self</a>.permits.fetch_or(<span class="self">Self</span>::CLOSED, Release);
+        <a href="../../../src/tokio/sync/batch_semaphore.rs.html#213">waiters</a>.closed = <span class="bool-val">true</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>waiter) = waiters.queue.pop_back() {
+            <span class="kw">let </span>waker = <span class="kw">unsafe </span>{ waiter.as_mut().waker.with_mut(|waker| (<span class="kw-2">*</span>waker).take()) };
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = waker {
+                waker.wake();
             }
         }
     }
 
-    <span class="doccomment">/// Returns true if the semaphore is closed.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#232">self</a>.<span class="ident">permits</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::CLOSED</span> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::CLOSED</span>
+    <span class="doccomment">/// Returns true if the semaphore is closed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#232">self</a>.permits.load(Acquire) &amp; <span class="self">Self</span>::CLOSED == <span class="self">Self</span>::CLOSED
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_acquire(<span class="kw-2">&amp;</span><span class="self">self</span>, num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>,
+            num_permits <span class="kw">as </span>usize &lt;= <span class="self">Self</span>::MAX_PERMITS,
             <span class="string">&quot;a semaphore may not have more than MAX_PERMITS permits ({})&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>
+            <span class="self">Self</span>::MAX_PERMITS
         );
-        <span class="kw">let</span> <span class="ident">num_permits</span> <span class="op">=</span> (<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">num_permits</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">self</a>.<span class="ident">permits</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
-        <span class="kw">loop</span> {
-            <span class="comment">// Has the semaphore closed?</span>
-            <span class="kw">if</span> <span class="ident">curr</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::CLOSED</span> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::CLOSED</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>);
+        <span class="kw">let </span>num_permits = (<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">num_permits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT;
+        <span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">self</a>.permits.load(Acquire);
+        <span class="kw">loop </span>{
+            <span class="comment">// Has the semaphore closed?
+            </span><span class="kw">if </span>curr &amp; <span class="self">Self</span>::CLOSED == <span class="self">Self</span>::CLOSED {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>);
             }
 
-            <span class="comment">// Are there enough permits remaining?</span>
-            <span class="kw">if</span> <span class="ident">curr</span> <span class="op">&lt;</span> <span class="ident">num_permits</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>);
+            <span class="comment">// Are there enough permits remaining?
+            </span><span class="kw">if </span>curr &lt; num_permits {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>);
             }
 
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#243">curr</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#242">num_permits</a>;
+            <span class="kw">let </span>next = <a href="../../../src/tokio/sync/batch_semaphore.rs.html#243">curr</a> - <a href="../../../src/tokio/sync/batch_semaphore.rs.html#242">num_permits</a>;
 
-            <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">self</a>.<span class="ident">permits</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#243">curr</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#255">next</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
+            <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">self</a>.permits.compare_exchange(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#243">curr</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#255">next</a>, AcqRel, Acquire) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="comment">// TODO: Instrument once issue has been solved}</span>
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+                    <span class="comment">// TODO: Instrument once issue has been solved}
+                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#243">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#262">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; <a href="../../../src/tokio/sync/batch_semaphore.rs.html#243">curr</a> = <a href="../../../src/tokio/sync/batch_semaphore.rs.html#262">actual</a>,
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="ident">Acquire::new</span>(<a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#267">self</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#267">num_permits</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>acquire(<span class="kw-2">&amp;</span><span class="self">self</span>, num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
+        Acquire::new(<a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#267">self</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#267">num_permits</a>)
     }
 
-    <span class="doccomment">/// Release `rem` permits to the semaphore&#39;s wait list, starting from the</span>
-    <span class="doccomment">/// end of the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `rem` exceeds the number of permits needed by the wait list, the</span>
-    <span class="doccomment">/// remainder are assigned back to the semaphore.</span>
-    <span class="kw">fn</span> <span class="ident">add_permits_locked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">rem</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">waiters</span>: <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#44">Waitlist</a><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wakers</span> <span class="op">=</span> <span class="ident">WakeList::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#276">waiters</a>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_empty</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">while</span> <span class="ident">rem</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">waiters</span>.<span class="ident">lock</span>());
-            <span class="lifetime">&#39;inner</span>: <span class="kw">while</span> <span class="ident">wakers</span>.<span class="ident">can_push</span>() {
-                <span class="comment">// Was the waiter assigned enough permits to wake it?</span>
-                <span class="kw">match</span> <span class="ident">waiters</span>.<span class="ident">queue</span>.<span class="ident">last</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">waiter</span>) =&gt; {
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">waiter</span>.<span class="ident">assign_permits</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rem</span>) {
-                            <span class="kw">break</span> <span class="lifetime">&#39;inner</span>;
+    <span class="doccomment">/// Release `rem` permits to the semaphore&#39;s wait list, starting from the
+    /// end of the queue.
+    ///
+    /// If `rem` exceeds the number of permits needed by the wait list, the
+    /// remainder are assigned back to the semaphore.
+    </span><span class="kw">fn </span>add_permits_locked(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>rem: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, waiters: MutexGuard&lt;<span class="lifetime">&#39;_</span>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#44">Waitlist</a>&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>wakers = WakeList::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#276">waiters</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>is_empty = <span class="bool-val">false</span>;
+        <span class="kw">while </span>rem &gt; <span class="number">0 </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>waiters = lock.take().unwrap_or_else(|| <span class="self">self</span>.waiters.lock());
+            <span class="lifetime">&#39;inner</span>: <span class="kw">while </span>wakers.can_push() {
+                <span class="comment">// Was the waiter assigned enough permits to wake it?
+                </span><span class="kw">match </span>waiters.queue.last() {
+                    <span class="prelude-val">Some</span>(waiter) =&gt; {
+                        <span class="kw">if </span>!waiter.assign_permits(<span class="kw-2">&amp;mut </span>rem) {
+                            <span class="kw">break </span><span class="lifetime">&#39;inner</span>;
                         }
                     }
-                    <span class="prelude-val">None</span> =&gt; {
-                        <span class="ident">is_empty</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                        <span class="comment">// If we assigned permits to all the waiters in the queue, and there are</span>
-                        <span class="comment">// still permits left over, assign them back to the semaphore.</span>
-                        <span class="kw">break</span> <span class="lifetime">&#39;inner</span>;
+                    <span class="prelude-val">None </span>=&gt; {
+                        is_empty = <span class="bool-val">true</span>;
+                        <span class="comment">// If we assigned permits to all the waiters in the queue, and there are
+                        // still permits left over, assign them back to the semaphore.
+                        </span><span class="kw">break </span><span class="lifetime">&#39;inner</span>;
                     }
                 };
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="ident">waiters</span>.<span class="ident">queue</span>.<span class="ident">pop_back</span>().<span class="ident">unwrap</span>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span>
-                    <span class="kw">unsafe</span> { <span class="ident">waiter</span>.<span class="ident">as_mut</span>().<span class="ident">waker</span>.<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">waker</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">waker</span>).<span class="ident">take</span>()) }
+                <span class="kw">let </span><span class="kw-2">mut </span>waiter = waiters.queue.pop_back().unwrap();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) =
+                    <span class="kw">unsafe </span>{ waiter.as_mut().waker.with_mut(|waker| (<span class="kw-2">*</span>waker).take()) }
                 {
-                    <span class="ident">wakers</span>.<span class="ident">push</span>(<span class="ident">waker</span>);
+                    wakers.push(waker);
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">rem</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">is_empty</span> {
-                <span class="kw">let</span> <span class="ident">permits</span> <span class="op">=</span> <span class="ident">rem</span>;
+            <span class="kw">if </span>rem &gt; <span class="number">0 </span>&amp;&amp; is_empty {
+                <span class="kw">let </span>permits = rem;
                 <span class="macro">assert!</span>(
-                    <span class="ident">permits</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>,
+                    permits &lt;= <span class="self">Self</span>::MAX_PERMITS,
                     <span class="string">&quot;cannot add more than MAX_PERMITS permits ({})&quot;</span>,
-                    <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>
+                    <span class="self">Self</span>::MAX_PERMITS
                 );
-                <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">fetch_add</span>(<span class="ident">rem</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>, <span class="ident">Release</span>);
-                <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">prev</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>;
+                <span class="kw">let </span>prev = <span class="self">self</span>.permits.fetch_add(rem &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT, Release);
+                <span class="kw">let </span>prev = prev &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT;
                 <span class="macro">assert!</span>(
-                    <span class="ident">prev</span> <span class="op">+</span> <span class="ident">permits</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>,
+                    prev + permits &lt;= <span class="self">Self</span>::MAX_PERMITS,
                     <span class="string">&quot;number of added permits ({}) would overflow MAX_PERMITS ({})&quot;</span>,
-                    <span class="ident">rem</span>,
-                    <span class="ident"><span class="self">Self</span>::MAX_PERMITS</span>
+                    rem,
+                    <span class="self">Self</span>::MAX_PERMITS
                 );
 
-                <span class="comment">// add remaining permits back</span>
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="comment">// add remaining permits back
+                </span><span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                </span><span class="self">self</span>.resource_span.in_scope(|| {
                     <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">permits</span> <span class="op">=</span> <span class="ident">rem</span>,
-                    <span class="ident">permits</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;add&quot;</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    permits = rem,
+                    permits.op = <span class="string">&quot;add&quot;</span>,
                     )
                 });
 
-                <span class="ident">rem</span> <span class="op">=</span> <span class="number">0</span>;
+                rem = <span class="number">0</span>;
             }
 
-            <span class="ident">drop</span>(<span class="ident">waiters</span>); <span class="comment">// release the lock</span>
+            drop(waiters); <span class="comment">// release the lock
 
-            <span class="ident">wakers</span>.<span class="ident">wake_all</span>();
+            </span>wakers.wake_all();
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">rem</span>, <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(rem, <span class="number">0</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_acquire</span>(
+    <span class="kw">fn </span>poll_acquire(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">num_permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-        <span class="ident">node</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span>,
-        <span class="ident">queued</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">acquired</span> <span class="op">=</span> <span class="number">0</span>;
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+        node: Pin&lt;<span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt;,
+        queued: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>acquired = <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="ident">needed</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">queued</span> {
-            <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#346">node</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>
-        } <span class="kw">else</span> {
-            (<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#345">num_permits</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>
+        <span class="kw">let </span>needed = <span class="kw">if </span>queued {
+            <a href="../../../src/tokio/sync/batch_semaphore.rs.html#346">node</a>.state.load(Acquire) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT
+        } <span class="kw">else </span>{
+            (<a href="../../../src/tokio/sync/batch_semaphore.rs.html#345">num_permits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) &lt;&lt; <span class="self">Self</span>::PERMIT_SHIFT
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="comment">// First, try to take the requested number of permits from the</span>
-        <span class="comment">// semaphore.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.<span class="ident">permits</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <span class="kw">loop</span> {
-            <span class="comment">// Has the semaphore closed?</span>
-            <span class="kw">if</span> <span class="ident">curr</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::CLOSED</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">AcquireError::closed</span>()));
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="prelude-val">None</span>;
+        <span class="comment">// First, try to take the requested number of permits from the
+        // semaphore.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.permits.load(Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>waiters = <span class="kw">loop </span>{
+            <span class="comment">// Has the semaphore closed?
+            </span><span class="kw">if </span>curr &amp; <span class="self">Self</span>::CLOSED &gt; <span class="number">0 </span>{
+                <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(AcquireError::closed()));
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a>
-                .<span class="ident">checked_add</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a>)
-                .<span class="ident">expect</span>(<span class="string">&quot;number of permits must not overflow&quot;</span>);
-            <span class="kw">let</span> (<span class="ident">next</span>, <span class="ident">acq</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">total</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">needed</span> {
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a> <span class="op">-</span> (<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#351">needed</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a>);
-                (<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#372">next</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#351">needed</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>)
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#367">remaining</a> <span class="op">=</span> (<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#351">needed</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a>) <span class="op">-</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a>;
-                (<span class="number">0</span>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::PERMIT_SHIFT</span>)
+            <span class="kw">let </span><span class="kw-2">mut </span>remaining = <span class="number">0</span>;
+            <span class="kw">let </span>total = <a href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a>
+                .checked_add(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a>)
+                .expect(<span class="string">&quot;number of permits must not overflow&quot;</span>);
+            <span class="kw">let </span>(next, acq) = <span class="kw">if </span>total &gt;= needed {
+                <span class="kw">let </span>next = <a href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a> - (<a href="../../../src/tokio/sync/batch_semaphore.rs.html#351">needed</a> - <a href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a>);
+                (<a href="../../../src/tokio/sync/batch_semaphore.rs.html#372">next</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#351">needed</a> &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT)
+            } <span class="kw">else </span>{
+                <a href="../../../src/tokio/sync/batch_semaphore.rs.html#367">remaining</a> = (<a href="../../../src/tokio/sync/batch_semaphore.rs.html#351">needed</a> - <a href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a>) - <a href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a>;
+                (<span class="number">0</span>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a> &gt;&gt; <span class="self">Self</span>::PERMIT_SHIFT)
             };
 
-            <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">lock</span>.<span class="ident">is_none</span>() {
-                <span class="comment">// No permits were immediately available, so this permit will</span>
-                <span class="comment">// (probably) need to wait. We&#39;ll need to acquire a lock on the</span>
-                <span class="comment">// wait queue before continuing. We need to do this _before_ the</span>
-                <span class="comment">// CAS that sets the new value of the semaphore&#39;s `permits`</span>
-                <span class="comment">// counter. Otherwise, if we subtract the permits and then</span>
-                <span class="comment">// acquire the lock, we might miss additional permits being</span>
-                <span class="comment">// added while waiting for the lock.</span>
-                <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#357">lock</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>());
+            <span class="kw">if </span>remaining &gt; <span class="number">0 </span>&amp;&amp; lock.is_none() {
+                <span class="comment">// No permits were immediately available, so this permit will
+                // (probably) need to wait. We&#39;ll need to acquire a lock on the
+                // wait queue before continuing. We need to do this _before_ the
+                // CAS that sets the new value of the semaphore&#39;s `permits`
+                // counter. Otherwise, if we subtract the permits and then
+                // acquire the lock, we might miss additional permits being
+                // added while waiting for the lock.
+                </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#357">lock</a> = <span class="prelude-val">Some</span>(<a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>());
             }
 
-            <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.<span class="ident">permits</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#371">next</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
+            <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.permits.compare_exchange(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#371">next</a>, AcqRel, Acquire) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#371">acq</a>;
-                    <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">==</span> <span class="number">0</span> {
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">queued</span> {
-                            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                    <a href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a> += <a href="../../../src/tokio/sync/batch_semaphore.rs.html#371">acq</a>;
+                    <span class="kw">if </span>remaining == <span class="number">0 </span>{
+                        <span class="kw">if </span>!queued {
+                            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                            </span><span class="self">self</span>.resource_span.in_scope(|| {
                                 <span class="macro">tracing::trace!</span>(
-                                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                                    <span class="ident">permits</span> <span class="op">=</span> <span class="ident">acquired</span>,
-                                    <span class="ident">permits</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;sub&quot;</span>,
+                                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                                    permits = acquired,
+                                    permits.op = <span class="string">&quot;sub&quot;</span>,
                                 );
                                 <span class="macro">tracing::trace!</span>(
-                                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::async_op::state_update&quot;</span>,
-                                    <span class="ident">permits_obtained</span> <span class="op">=</span> <span class="ident">acquired</span>,
-                                    <span class="ident">permits</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;add&quot;</span>,
+                                    target: <span class="string">&quot;runtime::resource::async_op::state_update&quot;</span>,
+                                    permits_obtained = acquired,
+                                    permits.op = <span class="string">&quot;add&quot;</span>,
                                 )
                             });
 
-                            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lock</span>.<span class="ident">is_none</span>() {
-                            <span class="kw">break</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+                            <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(()));
+                        } <span class="kw">else if </span>lock.is_none() {
+                            <span class="kw">break </span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
                         }
                     }
-                    <span class="kw">break</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#357">lock</a>.<span class="ident">expect</span>(<span class="string">&quot;lock must be acquired before waiting&quot;</span>);
+                    <span class="kw">break </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#357">lock</a>.expect(<span class="string">&quot;lock must be acquired before waiting&quot;</span>);
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#416">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; <a href="../../../src/tokio/sync/batch_semaphore.rs.html#360">curr</a> = <a href="../../../src/tokio/sync/batch_semaphore.rs.html#416">actual</a>,
             }
         };
 
-        <span class="kw">if</span> <span class="ident">waiters</span>.<span class="ident">closed</span> {
-            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">AcquireError::closed</span>()));
+        <span class="kw">if </span>waiters.closed {
+            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(AcquireError::closed()));
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                <span class="ident">permits</span> <span class="op">=</span> <span class="ident">acquired</span>,
-                <span class="ident">permits</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;sub&quot;</span>,
+                target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                permits = acquired,
+                permits.op = <span class="string">&quot;sub&quot;</span>,
             )
         });
 
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">assign_permits</span>(<span class="kw-2">&amp;mut</span> <span class="ident">acquired</span>) {
-            <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#276">add_permits_locked</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#361">waiters</a>);
-            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
+        <span class="kw">if </span>node.assign_permits(<span class="kw-2">&amp;mut </span>acquired) {
+            <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#343">self</a>.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#276">add_permits_locked</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#349">acquired</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#361">waiters</a>);
+            <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(()));
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">acquired</span>, <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(acquired, <span class="number">0</span>);
 
-        <span class="comment">// Otherwise, register the waker &amp; enqueue the node.</span>
-        <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#346">node</a>.<span class="ident">waker</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">waker</span><span class="op">|</span> {
-            <span class="comment">// Safety: the wait list is locked, so we may modify the waker.</span>
-            <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#441">waker</a> };
-            <span class="comment">// Do we need to register the new waker?</span>
-            <span class="kw">if</span> <span class="ident">waker</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">waker</span><span class="op">|</span> <span class="op">!</span><span class="ident">waker</span>.<span class="ident">will_wake</span>(<span class="ident">cx</span>.<span class="ident">waker</span>()))
-                .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
+        <span class="comment">// Otherwise, register the waker &amp; enqueue the node.
+        </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#346">node</a>.waker.<a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|waker| {
+            <span class="comment">// Safety: the wait list is locked, so we may modify the waker.
+            </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#441">waker</a> };
+            <span class="comment">// Do we need to register the new waker?
+            </span><span class="kw">if </span>waker
+                .as_ref()
+                .map(|waker| !waker.will_wake(cx.waker()))
+                .unwrap_or(<span class="bool-val">true</span>)
             {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#443">waker</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#344">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw-2">*</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#443">waker</a> = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#344">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
             }
         });
 
-        <span class="comment">// If the waiter is not already in the wait queue, enqueue it.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">queued</span> {
-            <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">Pin::into_inner_unchecked</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#346">node</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-                <span class="ident">NonNull::new_unchecked</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#457">node</a>)
+        <span class="comment">// If the waiter is not already in the wait queue, enqueue it.
+        </span><span class="kw">if </span>!queued {
+            <span class="kw">let </span>node = <span class="kw">unsafe </span>{
+                <span class="kw">let </span>node = Pin::into_inner_unchecked(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#346">node</a>) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+                NonNull::new_unchecked(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#457">node</a>)
             };
 
-            <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#361">waiters</a>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#456">node</a>);
+            <a href="../../../src/tokio/sync/batch_semaphore.rs.html#361">waiters</a>.queue.<a href="../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#456">node</a>);
         }
 
-        <span class="ident">Pending</span>
+        Pending
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#469">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Semaphore&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;permits&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#469">self</a>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#194">available_permits</a>())
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio/sync/batch_semaphore.rs.html#469">fmt</a>.debug_struct(<span class="string">&quot;Semaphore&quot;</span>)
+            .field(<span class="string">&quot;permits&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#469">self</a>.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#194">available_permits</a>())
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">num_permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span> <span class="ident">ctx</span>: <span class="ident">trace::AsyncOpTracingCtx</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a> {
-            <span class="ident">waker</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
-            <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#478">num_permits</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-            <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers::new</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">ctx</span>,
-            <span class="ident">_p</span>: <span class="ident">PhantomPinned</span>,
+<span class="kw">impl </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a> {
+    <span class="kw">fn </span>new(
+        num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))] </span>ctx: trace::AsyncOpTracingCtx,
+    ) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a> {
+            waker: UnsafeCell::new(<span class="prelude-val">None</span>),
+            state: AtomicUsize::new(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#478">num_permits</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+            pointers: linked_list::Pointers::new(),
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>ctx,
+            _p: PhantomPinned,
         }
     }
 
-    <span class="doccomment">/// Assign permits to the waiter.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if the waiter should be removed from the queue</span>
-    <span class="kw">fn</span> <span class="ident">assign_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#494">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">assign</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#495">curr</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#494">n</a>);
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#495">curr</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#497">assign</a>;
-            <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#494">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#495">curr</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#498">next</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
+    <span class="doccomment">/// Assign permits to the waiter.
+    ///
+    /// Returns `true` if the waiter should be removed from the queue
+    </span><span class="kw">fn </span>assign_permits(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>curr = <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#494">self</a>.state.load(Acquire);
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>assign = cmp::min(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#495">curr</a>, <span class="kw-2">*</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#494">n</a>);
+            <span class="kw">let </span>next = <a href="../../../src/tokio/sync/batch_semaphore.rs.html#495">curr</a> - <a href="../../../src/tokio/sync/batch_semaphore.rs.html#497">assign</a>;
+            <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#494">self</a>.state.compare_exchange(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#495">curr</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#498">next</a>, AcqRel, Acquire) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#494">n</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#497">assign</a>;
-                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                    <span class="self">self</span>.<span class="ident">ctx</span>.<span class="ident">async_op_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="kw-2">*</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#494">n</a> -= <a href="../../../src/tokio/sync/batch_semaphore.rs.html#497">assign</a>;
+                    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                    </span><span class="self">self</span>.ctx.async_op_span.in_scope(|| {
                         <span class="macro">tracing::trace!</span>(
-                            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::async_op::state_update&quot;</span>,
-                            <span class="ident">permits_obtained</span> <span class="op">=</span> <span class="ident">assign</span>,
-                            <span class="ident">permits</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;add&quot;</span>,
+                            target: <span class="string">&quot;runtime::resource::async_op::state_update&quot;</span>,
+                            permits_obtained = assign,
+                            permits.op = <span class="string">&quot;add&quot;</span>,
                         );
                     });
-                    <span class="kw">return</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#498">next</a> <span class="op">==</span> <span class="number">0</span>;
+                    <span class="kw">return </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#498">next</a> == <span class="number">0</span>;
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#495">curr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#512">actual</a>,
+                <span class="prelude-val">Err</span>(actual) =&gt; <a href="../../../src/tokio/sync/batch_semaphore.rs.html#495">curr</a> = <a href="../../../src/tokio/sync/batch_semaphore.rs.html#512">actual</a>,
             }
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a><span class="op">&gt;</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">_resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">ctx</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">_async_op_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">ctx</span>.<span class="ident">async_op_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">_async_op_poll_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">ctx</span>.<span class="ident">async_op_poll_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>_resource_span = <span class="self">self</span>.node.ctx.resource_span.clone().entered();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>_async_op_span = <span class="self">self</span>.node.ctx.async_op_span.clone().entered();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>_async_op_poll_span = <span class="self">self</span>.node.ctx.async_op_poll_span.clone().entered();
 
-        <span class="kw">let</span> (<span class="ident">node</span>, <span class="ident">semaphore</span>, <span class="ident">needed</span>, <span class="ident">queued</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#521">self</a>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#607">project</a>();
+        <span class="kw">let </span>(node, semaphore, needed, queued) = <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#521">self</a>.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#607">project</a>();
 
-        <span class="comment">// First, ensure the current task has enough budget to proceed.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="macro">trace_poll_op!</span>(
+        <span class="comment">// First, ensure the current task has enough budget to proceed.
+        </span><span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="macro">trace_poll_op!</span>(
             <span class="string">&quot;poll_acquire&quot;</span>,
-            <span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>),
+            <span class="kw">crate</span>::coop::poll_proceed(cx),
         ));
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
+        <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>coop = <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#529">semaphore</a>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#342-348">poll_acquire</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#521">cx</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#529">needed</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#529">node</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#529">queued</a>) {
-            <span class="ident">Pending</span> =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#529">queued</a> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="ident">Pending</span>
+        <span class="kw">let </span>result = <span class="kw">match </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#529">semaphore</a>.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#342-348">poll_acquire</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#521">cx</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#529">needed</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#529">node</a>, <span class="kw-2">*</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#529">queued</a>) {
+            Pending =&gt; {
+                <span class="kw-2">*</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#529">queued</a> = <span class="bool-val">true</span>;
+                Pending
             }
-            <span class="ident">Ready</span>(<span class="ident">r</span>) =&gt; {
-                <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#539">coop</a>.<a class="ident" href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
-                <span class="ident">r</span><span class="question-mark">?</span>;
-                <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#529">queued</a> <span class="op">=</span> <span class="bool-val">false</span>;
-                <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()))
+            Ready(r) =&gt; {
+                <a href="../../../src/tokio/sync/batch_semaphore.rs.html#539">coop</a>.<a href="../../../src/tokio/coop.rs.html#138">made_progress</a>();
+                r<span class="question-mark">?</span>;
+                <span class="kw-2">*</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#529">queued</a> = <span class="bool-val">false</span>;
+                Ready(<span class="prelude-val">Ok</span>(()))
             }
         };
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">return</span> <span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_acquire&quot;</span>, <span class="ident">result</span>);
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">return </span><span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_acquire&quot;</span>, result);
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">return</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#541">result</a>;
+        <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">return </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#541">result</a>;
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">semaphore</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>, <span class="ident">num_permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">return</span> <span class="self">Self</span> {
-            <span class="ident">node</span>: <span class="ident">Waiter::new</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#563">num_permits</a>),
-            <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#563">semaphore</a>,
-            <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#563">num_permits</a>,
-            <span class="ident">queued</span>: <span class="bool-val">false</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Acquire&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>new(semaphore: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>, num_permits: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+        <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">return </span><span class="self">Self </span>{
+            node: Waiter::new(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#563">num_permits</a>),
+            <a href="../../../src/tokio/sync/batch_semaphore.rs.html#563">semaphore</a>,
+            <a href="../../../src/tokio/sync/batch_semaphore.rs.html#563">num_permits</a>,
+            queued: <span class="bool-val">false</span>,
         };
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">return</span> <span class="ident">semaphore</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">async_op_span</span> <span class="op">=</span>
-                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, <span class="ident">source</span> <span class="op">=</span> <span class="string">&quot;Acquire::new&quot;</span>);
-            <span class="kw">let</span> <span class="ident">async_op_poll_span</span> <span class="op">=</span> <span class="ident">async_op_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">return </span>semaphore.resource_span.in_scope(|| {
+            <span class="kw">let </span>async_op_span =
+                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, source = <span class="string">&quot;Acquire::new&quot;</span>);
+            <span class="kw">let </span>async_op_poll_span = async_op_span.in_scope(|| {
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::async_op::state_update&quot;</span>,
-                    <span class="ident">permits_requested</span> <span class="op">=</span> <span class="ident">num_permits</span>,
-                    <span class="ident">permits</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                    target: <span class="string">&quot;runtime::resource::async_op::state_update&quot;</span>,
+                    permits_requested = num_permits,
+                    permits.op = <span class="string">&quot;override&quot;</span>,
                 );
 
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::async_op::state_update&quot;</span>,
-                    <span class="ident">permits_obtained</span> <span class="op">=</span> <span class="number">0usize</span>,
-                    <span class="ident">permits</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                    target: <span class="string">&quot;runtime::resource::async_op::state_update&quot;</span>,
+                    permits_obtained = <span class="number">0usize</span>,
+                    permits.op = <span class="string">&quot;override&quot;</span>,
                 );
 
                 <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op.poll&quot;</span>)
             });
 
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">trace::AsyncOpTracingCtx</span> {
-                <span class="ident">async_op_span</span>,
-                <span class="ident">async_op_poll_span</span>,
-                <span class="ident">resource_span</span>: <span class="ident">semaphore</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+            <span class="kw">let </span>ctx = trace::AsyncOpTracingCtx {
+                async_op_span,
+                async_op_poll_span,
+                resource_span: semaphore.resource_span.clone(),
             };
 
-            <span class="self">Self</span> {
-                <span class="ident">node</span>: <span class="ident">Waiter::new</span>(<span class="ident">num_permits</span>, <span class="ident">ctx</span>),
-                <span class="ident">semaphore</span>,
-                <span class="ident">num_permits</span>,
-                <span class="ident">queued</span>: <span class="bool-val">false</span>,
+            <span class="self">Self </span>{
+                node: Waiter::new(num_permits, ctx),
+                semaphore,
+                num_permits,
+                queued: <span class="bool-val">false</span>,
             }
         });
     }
 
-    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">fn</span> <span class="ident">is_unpin</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span>() {}
-        <span class="kw">unsafe</span> {
-            <span class="comment">// Safety: all fields other than `node` are `Unpin`</span>
+    <span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (Pin&lt;<span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt;, <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <span class="kw">fn </span>is_unpin&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt;() {}
+        <span class="kw">unsafe </span>{
+            <span class="comment">// Safety: all fields other than `node` are `Unpin`
 
-            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a><span class="op">&gt;</span>();
-            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>();
-            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span>();
+            </span>is_unpin::&lt;<span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>&gt;();
+            is_unpin::&lt;<span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;();
+            is_unpin::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;();
 
-            <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#607">self</a>.<span class="ident">get_unchecked_mut</span>();
+            <span class="kw">let </span>this = <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#607">self</a>.get_unchecked_mut();
             (
-                <span class="ident">Pin::new_unchecked</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#616">this</a>.<span class="ident">node</span>),
-                <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#616">this</a>.<span class="ident">semaphore</span>,
-                <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#616">this</a>.<span class="ident">num_permits</span>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#616">this</a>.<span class="ident">queued</span>,
+                Pin::new_unchecked(<span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#616">this</a>.node),
+                <a href="../../../src/tokio/sync/batch_semaphore.rs.html#616">this</a>.semaphore,
+                <a href="../../../src/tokio/sync/batch_semaphore.rs.html#616">this</a>.num_permits,
+                <span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#616">this</a>.queued,
             )
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// If the future is completed, there is no node in the wait list, so we</span>
-        <span class="comment">// can skip acquiring the lock.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">queued</span> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// If the future is completed, there is no node in the wait list, so we
+        // can skip acquiring the lock.
+        </span><span class="kw">if </span>!<span class="self">self</span>.queued {
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// This is where we ensure safety. The future is being dropped,</span>
-        <span class="comment">// which means we must ensure that the waiter entry is no longer stored</span>
-        <span class="comment">// in the linked list.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.<span class="ident">semaphore</span>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="comment">// This is where we ensure safety. The future is being dropped,
+        // which means we must ensure that the waiter entry is no longer stored
+        // in the linked list.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.semaphore.waiters.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-        <span class="comment">// remove the entry from the list</span>
-        <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">NonNull::from</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.<span class="ident">node</span>);
-        <span class="comment">// Safety: we have locked the wait list.</span>
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#638">waiters</a>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#183">remove</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#641">node</a>) };
+        <span class="comment">// remove the entry from the list
+        </span><span class="kw">let </span>node = NonNull::from(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.node);
+        <span class="comment">// Safety: we have locked the wait list.
+        </span><span class="kw">unsafe </span>{ <a href="../../../src/tokio/sync/batch_semaphore.rs.html#638">waiters</a>.queue.<a href="../../../src/tokio/util/linked_list.rs.html#183">remove</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#641">node</a>) };
 
-        <span class="kw">let</span> <span class="ident">acquired_permits</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.<span class="ident">num_permits</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">-</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.<span class="ident">node</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
-        <span class="kw">if</span> <span class="ident">acquired_permits</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.<span class="ident">semaphore</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#276">add_permits_locked</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#645">acquired_permits</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#638">waiters</a>);
+        <span class="kw">let </span>acquired_permits = <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.num_permits <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.node.state.load(Acquire);
+        <span class="kw">if </span>acquired_permits &gt; <span class="number">0 </span>{
+            <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#628">self</a>.semaphore.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#276">add_permits_locked</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#645">acquired_permits</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#638">waiters</a>);
         }
     }
 }
 
-<span class="comment">// Safety: the `Acquire` future is not `Sync` automatically because it contains</span>
-<span class="comment">// a `Waiter`, which, in turn, contains an `UnsafeCell`. However, the</span>
-<span class="comment">// `UnsafeCell` is only accessed when the future is borrowed mutably (either in</span>
-<span class="comment">// `poll` or in `drop`). Therefore, it is safe (although not particularly</span>
-<span class="comment">// _useful_) for the future to be borrowed immutably across threads.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {}
+<span class="comment">// Safety: the `Acquire` future is not `Sync` automatically because it contains
+// a `Waiter`, which, in turn, contains an `UnsafeCell`. However, the
+// `UnsafeCell` is only accessed when the future is borrowed mutably (either in
+// `poll` or in `drop`). Therefore, it is safe (although not particularly
+// _useful_) for the future to be borrowed immutably across threads.
+</span><span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Acquire&lt;<span class="lifetime">&#39;_</span>&gt; {}
 
-<span class="comment">// ===== impl AcquireError ====</span>
+<span class="comment">// ===== impl AcquireError ====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a> {
-    <span class="kw">fn</span> <span class="ident">closed</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a> {
-        <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a>(())
+</span><span class="kw">impl </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a> {
+    <span class="kw">fn </span>closed() -&gt; <a href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a> {
+        <a href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#668">fmt</a>, <span class="string">&quot;semaphore closed&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#668">fmt</a>, <span class="string">&quot;semaphore closed&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a> {}
 
-<span class="comment">// ===== impl TryAcquireError =====</span>
+<span class="comment">// ===== impl TryAcquireError =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a> {
-    <span class="doccomment">/// Returns `true` if the error was caused by a closed semaphore.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// may be used later!</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, <span class="ident">TryAcquireError::Closed</span>)
+</span><span class="kw">impl </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a> {
+    <span class="doccomment">/// Returns `true` if the error was caused by a closed semaphore.
+    </span><span class="attribute">#[allow(dead_code)] </span><span class="comment">// may be used later!
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, TryAcquireError::Closed)
     }
 
-    <span class="doccomment">/// Returns `true` if the error was caused by calling `try_acquire` on a</span>
-    <span class="doccomment">/// semaphore with no available permits.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// may be used later!</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_no_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, <span class="ident">TryAcquireError::NoPermits</span>)
+    <span class="doccomment">/// Returns `true` if the error was caused by calling `try_acquire` on a
+    /// semaphore with no available permits.
+    </span><span class="attribute">#[allow(dead_code)] </span><span class="comment">// may be used later!
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_no_permits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, TryAcquireError::NoPermits)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/batch_semaphore.rs.html#693">self</a> {
-            <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#693">fmt</a>, <span class="string">&quot;semaphore closed&quot;</span>),
-            <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#693">fmt</a>, <span class="string">&quot;no permits available&quot;</span>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../src/tokio/sync/batch_semaphore.rs.html#693">self</a> </span>{
+            <a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#693">fmt</a>, <span class="string">&quot;semaphore closed&quot;</span>),
+            <a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#693">fmt</a>, <span class="string">&quot;no permits available&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a> {}
 
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Waiter` is forced to be !Unpin.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a> {
-    <span class="comment">// XXX: ideally, we would be able to use `Pin` here, to enforce the</span>
-    <span class="comment">// invariant that list entries may not move while in the list. However, we</span>
-    <span class="comment">// can&#39;t do this currently, as using `Pin&lt;&amp;&#39;a mut Waiter&gt;` as the `Handle`</span>
-    <span class="comment">// type would require `Semaphore` to be generic over a lifetime. We can&#39;t</span>
-    <span class="comment">// use `Pin&lt;*mut Waiter&gt;`, as raw pointers are `Unpin` regardless of whether</span>
-    <span class="comment">// or not they dereference to an `!Unpin` target.</span>
-    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>;
+<span class="doccomment">/// # Safety
+///
+/// `Waiter` is forced to be !Unpin.
+</span><span class="kw">unsafe impl </span><a href="../../../src/tokio/util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a> {
+    <span class="comment">// XXX: ideally, we would be able to use `Pin` here, to enforce the
+    // invariant that list entries may not move while in the list. However, we
+    // can&#39;t do this currently, as using `Pin&lt;&amp;&#39;a mut Waiter&gt;` as the `Handle`
+    // type would require `Semaphore` to be generic over a lifetime. We can&#39;t
+    // use `Pin&lt;*mut Waiter&gt;`, as raw pointers are `Unpin` regardless of whether
+    // or not they dereference to an `!Unpin` target.
+    </span><span class="kw">type </span>Handle = NonNull&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt;;
+    <span class="kw">type </span>Target = <a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>;
 
-    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Handle</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span> {
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#716">handle</a>
+    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; NonNull&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt; {
+        <span class="kw-2">*</span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#716">handle</a>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#720">ptr</a>
+    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt;) -&gt; NonNull&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt; {
+        <a href="../../../src/tokio/sync/batch_semaphore.rs.html#720">ptr</a>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">NonNull::from</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#724">target</a>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
+    <span class="kw">unsafe fn </span>pointers(<span class="kw-2">mut </span>target: NonNull&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;<a href="../../../src/tokio/sync/batch_semaphore.rs.html#80">Waiter</a>&gt;&gt; {
+        NonNull::from(<span class="kw-2">&amp;mut </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#724">target</a>.as_mut().pointers)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

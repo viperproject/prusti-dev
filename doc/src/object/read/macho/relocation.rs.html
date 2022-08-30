@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/relocation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>relocation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/relocation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>relocation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -124,131 +124,131 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/endian.rs.html#278"><span class="kw">crate</span>::endian::Endianness</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#110"><span class="kw">crate</span>::macho</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{
-    <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>, <a class="ident" href="../../../../src/object/common.rs.html#316">RelocationEncoding</a>, <a class="ident" href="../../../../src/object/common.rs.html#276">RelocationKind</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#529">RelocationTarget</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
-    <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
+<span class="kw">use </span><a href="../../../../src/object/endian.rs.html#278"><span class="kw">crate</span>::endian::Endianness</a>;
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#110"><span class="kw">crate</span>::macho</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{
+    <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>, <a href="../../../../src/object/common.rs.html#316">RelocationEncoding</a>, <a href="../../../../src/object/common.rs.html#276">RelocationKind</a>, <a href="../../../../src/object/read/mod.rs.html#529">RelocationTarget</a>, <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
+    <a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a>};
+<span class="kw">use super</span>::{<a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <a href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a>};
 
-<span class="doccomment">/// An iterator over the relocations in a `MachOSection32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachORelocationIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachORelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// An iterator over the relocations in a `MachOSection64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachORelocationIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachORelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator over the relocations in a `MachOSection32`.
+</span><span class="kw">pub type </span>MachORelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachORelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader32&lt;Endian&gt;, R&gt;;
+<span class="doccomment">/// An iterator over the relocations in a `MachOSection64`.
+</span><span class="kw">pub type </span>MachORelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachORelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// An iterator over the relocations in a `MachOSection`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachORelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the relocations in a `MachOSection`.
+</span><span class="kw">pub struct </span>MachORelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
+    Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">relocations</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">macho::Relocation</span><span class="op">&lt;</span><span class="ident">Mach::Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) relocations: slice::Iter&lt;<span class="lifetime">&#39;data</span>, macho::Relocation&lt;Mach::Endian&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">MachORelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>MachORelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
+    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">reloc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">relocations</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">endian</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/relocation.rs.html#37">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>;
-            <span class="kw">let</span> <span class="ident">cputype</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/relocation.rs.html#37">self</a>.<span class="ident">file</span>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#573">cputype</a>(<a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#40">endian</a>);
-            <span class="kw">if</span> <span class="ident">reloc</span>.<span class="ident">r_scattered</span>(<span class="ident">endian</span>, <span class="ident">cputype</span>) {
-                <span class="comment">// FIXME: handle scattered relocations</span>
-                <span class="comment">// We need to add `RelocationTarget::Address` for this.</span>
-                <span class="kw">continue</span>;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>reloc = <span class="self">self</span>.relocations.next()<span class="question-mark">?</span>;
+            <span class="kw">let </span>endian = <a class="self" href="../../../../src/object/read/macho/relocation.rs.html#37">self</a>.file.endian;
+            <span class="kw">let </span>cputype = <a class="self" href="../../../../src/object/read/macho/relocation.rs.html#37">self</a>.file.header.<a href="../../../../src/object/read/macho/file.rs.html#573">cputype</a>(<a href="../../../../src/object/read/macho/relocation.rs.html#40">endian</a>);
+            <span class="kw">if </span>reloc.r_scattered(endian, cputype) {
+                <span class="comment">// FIXME: handle scattered relocations
+                // We need to add `RelocationTarget::Address` for this.
+                </span><span class="kw">continue</span>;
             }
-            <span class="kw">let</span> <span class="ident">reloc</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#39">reloc</a>.<a class="ident" href="../../../../src/object/macho.rs.html#2719">info</a>(<a class="self" href="../../../../src/object/read/macho/relocation.rs.html#37">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoding</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#318">RelocationEncoding::Generic</a>;
-            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#41">cputype</a> {
-                <a class="ident" href="../../../../src/object/macho.rs.html#39">macho::CPU_TYPE_ARM</a> =&gt; <span class="kw">match</span> (<a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>, <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>) {
-                    (<a class="ident" href="../../../../src/object/macho.rs.html#2945">macho::ARM_RELOC_VANILLA</a>, <span class="bool-val">false</span>) =&gt; <a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>,
-                    <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
-                        <span class="ident">value</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>,
-                        <span class="ident">relative</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>,
+            <span class="kw">let </span>reloc = <a href="../../../../src/object/read/macho/relocation.rs.html#39">reloc</a>.<a href="../../../../src/object/macho.rs.html#2719">info</a>(<a class="self" href="../../../../src/object/read/macho/relocation.rs.html#37">self</a>.file.endian);
+            <span class="kw">let </span><span class="kw-2">mut </span>encoding = <a href="../../../../src/object/common.rs.html#318">RelocationEncoding::Generic</a>;
+            <span class="kw">let </span>kind = <span class="kw">match </span><a href="../../../../src/object/read/macho/relocation.rs.html#41">cputype</a> {
+                <a href="../../../../src/object/macho.rs.html#39">macho::CPU_TYPE_ARM</a> =&gt; <span class="kw">match </span>(<a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type, <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel) {
+                    (<a href="../../../../src/object/macho.rs.html#2945">macho::ARM_RELOC_VANILLA</a>, <span class="bool-val">false</span>) =&gt; <a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>,
+                    <span class="kw">_ </span>=&gt; <a href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
+                        value: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type,
+                        relative: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel,
                     },
                 },
-                <a class="ident" href="../../../../src/object/macho.rs.html#40">macho::CPU_TYPE_ARM64</a> =&gt; <span class="kw">match</span> (<a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>, <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>) {
-                    (<a class="ident" href="../../../../src/object/macho.rs.html#2983">macho::ARM64_RELOC_UNSIGNED</a>, <span class="bool-val">false</span>) =&gt; <a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>,
-                    <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
-                        <span class="ident">value</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>,
-                        <span class="ident">relative</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>,
+                <a href="../../../../src/object/macho.rs.html#40">macho::CPU_TYPE_ARM64</a> =&gt; <span class="kw">match </span>(<a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type, <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel) {
+                    (<a href="../../../../src/object/macho.rs.html#2983">macho::ARM64_RELOC_UNSIGNED</a>, <span class="bool-val">false</span>) =&gt; <a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>,
+                    <span class="kw">_ </span>=&gt; <a href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
+                        value: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type,
+                        relative: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel,
                     },
                 },
-                <a class="ident" href="../../../../src/object/macho.rs.html#34">macho::CPU_TYPE_X86</a> =&gt; <span class="kw">match</span> (<a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>, <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>) {
-                    (<a class="ident" href="../../../../src/object/macho.rs.html#2924">macho::GENERIC_RELOC_VANILLA</a>, <span class="bool-val">false</span>) =&gt; <a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>,
-                    <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
-                        <span class="ident">value</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>,
-                        <span class="ident">relative</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>,
+                <a href="../../../../src/object/macho.rs.html#34">macho::CPU_TYPE_X86</a> =&gt; <span class="kw">match </span>(<a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type, <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel) {
+                    (<a href="../../../../src/object/macho.rs.html#2924">macho::GENERIC_RELOC_VANILLA</a>, <span class="bool-val">false</span>) =&gt; <a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>,
+                    <span class="kw">_ </span>=&gt; <a href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
+                        value: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type,
+                        relative: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel,
                     },
                 },
-                <a class="ident" href="../../../../src/object/macho.rs.html#35">macho::CPU_TYPE_X86_64</a> =&gt; <span class="kw">match</span> (<a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>, <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>) {
-                    (<a class="ident" href="../../../../src/object/macho.rs.html#3229">macho::X86_64_RELOC_UNSIGNED</a>, <span class="bool-val">false</span>) =&gt; <a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>,
-                    (<a class="ident" href="../../../../src/object/macho.rs.html#3231">macho::X86_64_RELOC_SIGNED</a>, <span class="bool-val">true</span>) =&gt; {
-                        <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#48">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#327">RelocationEncoding::X86RipRelative</a>;
-                        <a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>
+                <a href="../../../../src/object/macho.rs.html#35">macho::CPU_TYPE_X86_64</a> =&gt; <span class="kw">match </span>(<a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type, <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel) {
+                    (<a href="../../../../src/object/macho.rs.html#3229">macho::X86_64_RELOC_UNSIGNED</a>, <span class="bool-val">false</span>) =&gt; <a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>,
+                    (<a href="../../../../src/object/macho.rs.html#3231">macho::X86_64_RELOC_SIGNED</a>, <span class="bool-val">true</span>) =&gt; {
+                        <a href="../../../../src/object/read/macho/relocation.rs.html#48">encoding</a> = <a href="../../../../src/object/common.rs.html#327">RelocationEncoding::X86RipRelative</a>;
+                        <a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>
                     }
-                    (<a class="ident" href="../../../../src/object/macho.rs.html#3233">macho::X86_64_RELOC_BRANCH</a>, <span class="bool-val">true</span>) =&gt; {
-                        <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#48">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#335">RelocationEncoding::X86Branch</a>;
-                        <a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>
+                    (<a href="../../../../src/object/macho.rs.html#3233">macho::X86_64_RELOC_BRANCH</a>, <span class="bool-val">true</span>) =&gt; {
+                        <a href="../../../../src/object/read/macho/relocation.rs.html#48">encoding</a> = <a href="../../../../src/object/common.rs.html#335">RelocationEncoding::X86Branch</a>;
+                        <a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>
                     }
-                    (<a class="ident" href="../../../../src/object/macho.rs.html#3237">macho::X86_64_RELOC_GOT</a>, <span class="bool-val">true</span>) =&gt; <a class="ident" href="../../../../src/object/common.rs.html#284">RelocationKind::GotRelative</a>,
-                    (<a class="ident" href="../../../../src/object/macho.rs.html#3235">macho::X86_64_RELOC_GOT_LOAD</a>, <span class="bool-val">true</span>) =&gt; {
-                        <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#48">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#331">RelocationEncoding::X86RipRelativeMovq</a>;
-                        <a class="ident" href="../../../../src/object/common.rs.html#284">RelocationKind::GotRelative</a>
+                    (<a href="../../../../src/object/macho.rs.html#3237">macho::X86_64_RELOC_GOT</a>, <span class="bool-val">true</span>) =&gt; <a href="../../../../src/object/common.rs.html#284">RelocationKind::GotRelative</a>,
+                    (<a href="../../../../src/object/macho.rs.html#3235">macho::X86_64_RELOC_GOT_LOAD</a>, <span class="bool-val">true</span>) =&gt; {
+                        <a href="../../../../src/object/read/macho/relocation.rs.html#48">encoding</a> = <a href="../../../../src/object/common.rs.html#331">RelocationEncoding::X86RipRelativeMovq</a>;
+                        <a href="../../../../src/object/common.rs.html#284">RelocationKind::GotRelative</a>
                     }
-                    <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
-                        <span class="ident">value</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>,
-                        <span class="ident">relative</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>,
+                    <span class="kw">_ </span>=&gt; <a href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
+                        value: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type,
+                        relative: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel,
                     },
                 },
-                <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
-                    <span class="ident">value</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_type</span>,
-                    <span class="ident">relative</span>: <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_pcrel</span>,
+                <span class="kw">_ </span>=&gt; <a href="../../../../src/object/common.rs.html#300">RelocationKind::MachO</a> {
+                    value: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_type,
+                    relative: <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_pcrel,
                 },
             };
-            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">8</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_length</span>;
-            <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">reloc</span>.<span class="ident">r_extern</span> {
-                <a class="ident" href="../../../../src/object/read/mod.rs.html#531">RelocationTarget::Symbol</a>(<a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>(<a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_symbolnum</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../../src/object/read/mod.rs.html#533">RelocationTarget::Section</a>(<a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_symbolnum</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
+            <span class="kw">let </span>size = <span class="number">8 </span>&lt;&lt; <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_length;
+            <span class="kw">let </span>target = <span class="kw">if </span>reloc.r_extern {
+                <a href="../../../../src/object/read/mod.rs.html#531">RelocationTarget::Symbol</a>(<a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>(<a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_symbolnum <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
+            } <span class="kw">else </span>{
+                <a href="../../../../src/object/read/mod.rs.html#533">RelocationTarget::Section</a>(<a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_symbolnum <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>))
             };
-            <span class="kw">let</span> <span class="ident">addend</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">reloc</span>.<span class="ident">r_pcrel</span> { <span class="op">-</span><span class="number">4</span> } <span class="kw">else</span> { <span class="number">0</span> };
-            <span class="kw">return</span> <span class="prelude-val">Some</span>((
-                <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.<span class="ident">r_address</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-                <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a> {
-                    <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#49">kind</a>,
-                    <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#48">encoding</a>,
-                    <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#96">size</a>,
-                    <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#97">target</a>,
-                    <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#102">addend</a>,
-                    <span class="ident">implicit_addend</span>: <span class="bool-val">true</span>,
+            <span class="kw">let </span>addend = <span class="kw">if </span>reloc.r_pcrel { -<span class="number">4 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
+            <span class="kw">return </span><span class="prelude-val">Some</span>((
+                <a href="../../../../src/object/read/macho/relocation.rs.html#47">reloc</a>.r_address <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+                <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a> {
+                    <a href="../../../../src/object/read/macho/relocation.rs.html#49">kind</a>,
+                    <a href="../../../../src/object/read/macho/relocation.rs.html#48">encoding</a>,
+                    <a href="../../../../src/object/read/macho/relocation.rs.html#96">size</a>,
+                    <a href="../../../../src/object/read/macho/relocation.rs.html#97">target</a>,
+                    <a href="../../../../src/object/read/macho/relocation.rs.html#102">addend</a>,
+                    implicit_addend: <span class="bool-val">true</span>,
                 },
             ));
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MachORelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MachORelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/object/read/macho/relocation.rs.html#123">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;MachORelocationIterator&quot;</span>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/object/read/macho/relocation.rs.html#123">f</a>.debug_struct(<span class="string">&quot;MachORelocationIterator&quot;</span>).finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

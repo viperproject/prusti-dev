@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/fs/file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/fs/file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -777,558 +777,558 @@
 <span id="777">777</span>
 <span id="778">778</span>
 <span id="779">779</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Types for working with [`File`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`File`]: File</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Types for working with [`File`].
+//!
+//! [`File`]: File
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#110"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/fs/mod.rs.html#132-135"><span class="kw">crate</span>::fs::asyncify</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/io/blocking.rs.html#24"><span class="kw">crate</span>::io::blocking::Buf</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="ident" href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a class="ident" href="../../../src/tokio/io/async_seek.rs.html#18">AsyncSeek</a>, <a class="ident" href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#128"><span class="kw">crate</span>::sync::Mutex</a>;
+</span><span class="kw">use </span><a href="../../../src/tokio/fs/file.rs.html#110"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="../../../src/tokio/fs/mod.rs.html#132-135"><span class="kw">crate</span>::fs::asyncify</a>;
+<span class="kw">use </span><a href="../../../src/tokio/io/blocking.rs.html#24"><span class="kw">crate</span>::io::blocking::Buf</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a href="../../../src/tokio/io/async_seek.rs.html#18">AsyncSeek</a>, <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>};
+<span class="kw">use </span><a href="../../../src/tokio/sync/mutex.rs.html#128"><span class="kw">crate</span>::sync::Mutex</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <span class="ident">std::fs</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Permissions.html">Permissions</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">Seek</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>std::fs::{<a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/struct.Permissions.html">Permissions</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">Seek</a>, <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mocks::JoinHandle</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mocks::MockFile</span> <span class="kw">as</span> <span class="ident">StdFile</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mocks</span>::{<span class="ident">spawn_blocking</span>, <span class="ident">spawn_mandatory_blocking</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/task/join.rs.html#145"><span class="kw">crate</span>::blocking::JoinHandle</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::blocking</span>::{<a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>, <a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#126-129">spawn_mandatory_blocking</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a> <span class="kw">as</span> <span class="ident">StdFile</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">use </span><span class="kw">super</span>::mocks::JoinHandle;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">use </span><span class="kw">super</span>::mocks::MockFile <span class="kw">as </span>StdFile;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">use </span><span class="kw">super</span>::mocks::{spawn_blocking, spawn_mandatory_blocking};
+<span class="attribute">#[cfg(not(test))]
+</span><span class="kw">use </span><a href="../../../src/tokio/runtime/task/join.rs.html#145"><span class="kw">crate</span>::blocking::JoinHandle</a>;
+<span class="attribute">#[cfg(not(test))]
+</span><span class="kw">use </span><span class="kw">crate</span>::blocking::{<a href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>, <a href="../../../src/tokio/runtime/blocking/pool.rs.html#126-129">spawn_mandatory_blocking</a>};
+<span class="attribute">#[cfg(not(test))]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a> <span class="kw">as </span>StdFile;
 
-<span class="doccomment">/// A reference to an open file on the filesystem.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is a specialized version of [`std::fs::File`][std] for usage from the</span>
-<span class="doccomment">/// Tokio runtime.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An instance of a `File` can be read and/or written depending on what options</span>
-<span class="doccomment">/// it was opened with. Files also implement [`AsyncSeek`] to alter the logical</span>
-<span class="doccomment">/// cursor that the file contains internally.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A file will not be closed immediately when it goes out of scope if there</span>
-<span class="doccomment">/// are any IO operations that have not yet completed. To ensure that a file is</span>
-<span class="doccomment">/// closed immediately when it is dropped, you should call [`flush`] before</span>
-<span class="doccomment">/// dropping it. Note that this does not ensure that the file has been fully</span>
-<span class="doccomment">/// written to disk; the operating system might keep the changes around in an</span>
-<span class="doccomment">/// in-memory buffer. See the [`sync_all`] method for telling the OS to write</span>
-<span class="doccomment">/// the data to disk.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Reading and writing to a `File` is usually done using the convenience</span>
-<span class="doccomment">/// methods found on the [`AsyncReadExt`] and [`AsyncWriteExt`] traits.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [std]: struct@std::fs::File</span>
-<span class="doccomment">/// [`AsyncSeek`]: trait@crate::io::AsyncSeek</span>
-<span class="doccomment">/// [`flush`]: fn@crate::io::AsyncWriteExt::flush</span>
-<span class="doccomment">/// [`sync_all`]: fn@crate::fs::File::sync_all</span>
-<span class="doccomment">/// [`AsyncReadExt`]: trait@crate::io::AsyncReadExt</span>
-<span class="doccomment">/// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Create a new file and asynchronously write bytes to it:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use tokio::fs::File;</span>
-<span class="doccomment">/// use tokio::io::AsyncWriteExt; // for write_all()</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-<span class="doccomment">/// let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-<span class="doccomment">/// file.write_all(b&quot;hello, world!&quot;).await?;</span>
-<span class="doccomment">/// # Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Read the contents of a file into a buffer:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use tokio::fs::File;</span>
-<span class="doccomment">/// use tokio::io::AsyncReadExt; // for read_to_end()</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-<span class="doccomment">/// let mut file = File::open(&quot;foo.txt&quot;).await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut contents = vec![];</span>
-<span class="doccomment">/// file.read_to_end(&amp;mut contents).await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// println!(&quot;len = {}&quot;, contents.len());</span>
-<span class="doccomment">/// # Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">File</span> {
-    <span class="ident">std</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a><span class="op">&gt;</span>,
-    <span class="ident">inner</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/fs/file.rs.html#98">Inner</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A reference to an open file on the filesystem.
+///
+/// This is a specialized version of [`std::fs::File`][std] for usage from the
+/// Tokio runtime.
+///
+/// An instance of a `File` can be read and/or written depending on what options
+/// it was opened with. Files also implement [`AsyncSeek`] to alter the logical
+/// cursor that the file contains internally.
+///
+/// A file will not be closed immediately when it goes out of scope if there
+/// are any IO operations that have not yet completed. To ensure that a file is
+/// closed immediately when it is dropped, you should call [`flush`] before
+/// dropping it. Note that this does not ensure that the file has been fully
+/// written to disk; the operating system might keep the changes around in an
+/// in-memory buffer. See the [`sync_all`] method for telling the OS to write
+/// the data to disk.
+///
+/// Reading and writing to a `File` is usually done using the convenience
+/// methods found on the [`AsyncReadExt`] and [`AsyncWriteExt`] traits.
+///
+/// [std]: struct@std::fs::File
+/// [`AsyncSeek`]: trait@crate::io::AsyncSeek
+/// [`flush`]: fn@crate::io::AsyncWriteExt::flush
+/// [`sync_all`]: fn@crate::fs::File::sync_all
+/// [`AsyncReadExt`]: trait@crate::io::AsyncReadExt
+/// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt
+///
+/// # Examples
+///
+/// Create a new file and asynchronously write bytes to it:
+///
+/// ```no_run
+/// use tokio::fs::File;
+/// use tokio::io::AsyncWriteExt; // for write_all()
+///
+/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+/// let mut file = File::create(&quot;foo.txt&quot;).await?;
+/// file.write_all(b&quot;hello, world!&quot;).await?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Read the contents of a file into a buffer:
+///
+/// ```no_run
+/// use tokio::fs::File;
+/// use tokio::io::AsyncReadExt; // for read_to_end()
+///
+/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+/// let mut file = File::open(&quot;foo.txt&quot;).await?;
+///
+/// let mut contents = vec![];
+/// file.read_to_end(&amp;mut contents).await?;
+///
+/// println!(&quot;len = {}&quot;, contents.len());
+/// # Ok(())
+/// # }
+/// ```
+</span><span class="kw">pub struct </span>File {
+    std: Arc&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>&gt;,
+    inner: Mutex&lt;<a href="../../../src/tokio/fs/file.rs.html#98">Inner</a>&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">Inner</span> {
-    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/fs/file.rs.html#110">State</a>,
+<span class="kw">struct </span>Inner {
+    state: <a href="../../../src/tokio/fs/file.rs.html#110">State</a>,
 
-    <span class="doccomment">/// Errors from writes/flushes are returned in write/flush calls. If a write</span>
-    <span class="doccomment">/// error is observed while performing a read, it is saved until the next</span>
-    <span class="doccomment">/// write / flush call.</span>
-    <span class="ident">last_write_err</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">io::ErrorKind</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Errors from writes/flushes are returned in write/flush calls. If a write
+    /// error is observed while performing a read, it is saved until the next
+    /// write / flush call.
+    </span>last_write_err: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">io::ErrorKind</a>&gt;,
 
-    <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="ident">Idle</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/io/blocking.rs.html#24">Buf</a><span class="op">&gt;</span>),
-    <span class="ident">Busy</span>(<span class="ident">JoinHandle</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#116">Operation</a>, <a class="ident" href="../../../src/tokio/io/blocking.rs.html#24">Buf</a>)<span class="op">&gt;</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>State {
+    Idle(<span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/io/blocking.rs.html#24">Buf</a>&gt;),
+    Busy(JoinHandle&lt;(<a href="../../../src/tokio/fs/file.rs.html#116">Operation</a>, <a href="../../../src/tokio/io/blocking.rs.html#24">Buf</a>)&gt;),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Operation</span> {
-    <span class="ident">Read</span>(<span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>),
-    <span class="ident">Write</span>(<span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>),
-    <span class="ident">Seek</span>(<span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>Operation {
+    Read(io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;),
+    Write(io::Result&lt;()&gt;),
+    Seek(io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-    <span class="doccomment">/// Attempts to open a file in read-only mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [`OpenOptions`] for more details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`OpenOptions`]: super::OpenOptions</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will return an error if called from outside of the Tokio</span>
-    <span class="doccomment">/// runtime or if path does not already exist. Other errors may also be</span>
-    <span class="doccomment">/// returned according to OpenOptions::open.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">/// use tokio::io::AsyncReadExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut file = File::open(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut contents = vec![];</span>
-    <span class="doccomment">/// file.read_to_end(&amp;mut contents).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// println!(&quot;len = {}&quot;, contents.len());</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`read_to_end`] method is defined on the [`AsyncReadExt`] trait.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`read_to_end`]: fn@crate::io::AsyncReadExt::read_to_end</span>
-    <span class="doccomment">/// [`AsyncReadExt`]: trait@crate::io::AsyncReadExt</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">open</span>(<span class="ident">path</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="ident">asyncify</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">StdFile::open</span>(<span class="ident">path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+    <span class="doccomment">/// Attempts to open a file in read-only mode.
+    ///
+    /// See [`OpenOptions`] for more details.
+    ///
+    /// [`OpenOptions`]: super::OpenOptions
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if called from outside of the Tokio
+    /// runtime or if path does not already exist. Other errors may also be
+    /// returned according to OpenOptions::open.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    /// use tokio::io::AsyncReadExt;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut file = File::open(&quot;foo.txt&quot;).await?;
+    ///
+    /// let mut contents = vec![];
+    /// file.read_to_end(&amp;mut contents).await?;
+    ///
+    /// println!(&quot;len = {}&quot;, contents.len());
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// The [`read_to_end`] method is defined on the [`AsyncReadExt`] trait.
+    ///
+    /// [`read_to_end`]: fn@crate::io::AsyncReadExt::read_to_end
+    /// [`AsyncReadExt`]: trait@crate::io::AsyncReadExt
+    </span><span class="kw">pub async fn </span>open(path: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;) -&gt; io::Result&lt;<a href="../../../src/tokio/fs/file.rs.html#93">File</a>&gt; {
+        <span class="kw">let </span>path = path.as_ref().to_owned();
+        <span class="kw">let </span>std = asyncify(|| StdFile::open(path)).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">File::from_std</span>(<span class="ident">std</span>))
+        <span class="prelude-val">Ok</span>(File::from_std(std))
     }
 
-    <span class="doccomment">/// Opens a file in write-only mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will create a file if it does not exist, and will truncate</span>
-    <span class="doccomment">/// it if it does.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [`OpenOptions`] for more details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`OpenOptions`]: super::OpenOptions</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Results in an error if called from outside of the Tokio runtime or if</span>
-    <span class="doccomment">/// the underlying [`create`] call results in an error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`create`]: std::fs::File::create</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">/// use tokio::io::AsyncWriteExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// file.write_all(b&quot;hello, world!&quot;).await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`write_all`] method is defined on the [`AsyncWriteExt`] trait.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all</span>
-    <span class="doccomment">/// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">path</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">std_file</span> <span class="op">=</span> <span class="ident">asyncify</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">StdFile::create</span>(<span class="ident">path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">File::from_std</span>(<span class="ident">std_file</span>))
+    <span class="doccomment">/// Opens a file in write-only mode.
+    ///
+    /// This function will create a file if it does not exist, and will truncate
+    /// it if it does.
+    ///
+    /// See [`OpenOptions`] for more details.
+    ///
+    /// [`OpenOptions`]: super::OpenOptions
+    ///
+    /// # Errors
+    ///
+    /// Results in an error if called from outside of the Tokio runtime or if
+    /// the underlying [`create`] call results in an error.
+    ///
+    /// [`create`]: std::fs::File::create
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    /// use tokio::io::AsyncWriteExt;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut file = File::create(&quot;foo.txt&quot;).await?;
+    /// file.write_all(b&quot;hello, world!&quot;).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// The [`write_all`] method is defined on the [`AsyncWriteExt`] trait.
+    ///
+    /// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all
+    /// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt
+    </span><span class="kw">pub async fn </span>create(path: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;) -&gt; io::Result&lt;<a href="../../../src/tokio/fs/file.rs.html#93">File</a>&gt; {
+        <span class="kw">let </span>path = path.as_ref().to_owned();
+        <span class="kw">let </span>std_file = asyncify(<span class="kw">move </span>|| StdFile::create(path)).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(File::from_std(std_file))
     }
 
-    <span class="doccomment">/// Converts a [`std::fs::File`][std] to a [`tokio::fs::File`][file].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [std]: std::fs::File</span>
-    <span class="doccomment">/// [file]: File</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// // This line could block. It is not recommended to do this on the Tokio</span>
-    <span class="doccomment">/// // runtime.</span>
-    <span class="doccomment">/// let std_file = std::fs::File::open(&quot;foo.txt&quot;).unwrap();</span>
-    <span class="doccomment">/// let file = tokio::fs::File::from_std(std_file);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">std</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>) -&gt; <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-        <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-            <span class="ident">std</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#215">std</a>),
-            <span class="ident">inner</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#98">Inner</a> {
-                <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">State::Idle</a>(<span class="prelude-val">Some</span>(<span class="ident">Buf::with_capacity</span>(<span class="number">0</span>))),
-                <span class="ident">last_write_err</span>: <span class="prelude-val">None</span>,
-                <span class="ident">pos</span>: <span class="number">0</span>,
+    <span class="doccomment">/// Converts a [`std::fs::File`][std] to a [`tokio::fs::File`][file].
+    ///
+    /// [std]: std::fs::File
+    /// [file]: File
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// // This line could block. It is not recommended to do this on the Tokio
+    /// // runtime.
+    /// let std_file = std::fs::File::open(&quot;foo.txt&quot;).unwrap();
+    /// let file = tokio::fs::File::from_std(std_file);
+    /// ```
+    </span><span class="kw">pub fn </span>from_std(std: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>) -&gt; <a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+        <a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+            std: Arc::new(<a href="../../../src/tokio/fs/file.rs.html#215">std</a>),
+            inner: Mutex::new(<a href="../../../src/tokio/fs/file.rs.html#98">Inner</a> {
+                state: <a href="../../../src/tokio/fs/file.rs.html#111">State::Idle</a>(<span class="prelude-val">Some</span>(Buf::with_capacity(<span class="number">0</span>))),
+                last_write_err: <span class="prelude-val">None</span>,
+                pos: <span class="number">0</span>,
             }),
         }
     }
 
-    <span class="doccomment">/// Attempts to sync all OS-internal metadata to disk.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will attempt to ensure that all in-core data reaches the</span>
-    <span class="doccomment">/// filesystem before returning.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">/// use tokio::io::AsyncWriteExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// file.write_all(b&quot;hello, world!&quot;).await?;</span>
-    <span class="doccomment">/// file.sync_all().await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`write_all`] method is defined on the [`AsyncWriteExt`] trait.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all</span>
-    <span class="doccomment">/// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sync_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
-        <span class="ident">inner</span>.<span class="ident">complete_inflight</span>().<span class="kw">await</span>;
+    <span class="doccomment">/// Attempts to sync all OS-internal metadata to disk.
+    ///
+    /// This function will attempt to ensure that all in-core data reaches the
+    /// filesystem before returning.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    /// use tokio::io::AsyncWriteExt;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut file = File::create(&quot;foo.txt&quot;).await?;
+    /// file.write_all(b&quot;hello, world!&quot;).await?;
+    /// file.sync_all().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// The [`write_all`] method is defined on the [`AsyncWriteExt`] trait.
+    ///
+    /// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all
+    /// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt
+    </span><span class="kw">pub async fn </span>sync_all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock().<span class="kw">await</span>;
+        inner.complete_inflight().<span class="kw">await</span>;
 
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">std</span>.<span class="ident">clone</span>();
-        <span class="ident">asyncify</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>.<span class="ident">sync_all</span>()).<span class="kw">await</span>
-    }
+        <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
+        asyncify(<span class="kw">move </span>|| std.sync_all()).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// This function is similar to `sync_all`, except that it may not</span>
-    <span class="doccomment">/// synchronize file metadata to the filesystem.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is intended for use cases that must synchronize content, but don&#39;t</span>
-    <span class="doccomment">/// need the metadata on disk. The goal of this method is to reduce disk</span>
-    <span class="doccomment">/// operations.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that some platforms may simply implement this in terms of `sync_all`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">/// use tokio::io::AsyncWriteExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// file.write_all(b&quot;hello, world!&quot;).await?;</span>
-    <span class="doccomment">/// file.sync_data().await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`write_all`] method is defined on the [`AsyncWriteExt`] trait.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all</span>
-    <span class="doccomment">/// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sync_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
-        <span class="ident">inner</span>.<span class="ident">complete_inflight</span>().<span class="kw">await</span>;
+    <span class="doccomment">/// This function is similar to `sync_all`, except that it may not
+    /// synchronize file metadata to the filesystem.
+    ///
+    /// This is intended for use cases that must synchronize content, but don&#39;t
+    /// need the metadata on disk. The goal of this method is to reduce disk
+    /// operations.
+    ///
+    /// Note that some platforms may simply implement this in terms of `sync_all`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    /// use tokio::io::AsyncWriteExt;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut file = File::create(&quot;foo.txt&quot;).await?;
+    /// file.write_all(b&quot;hello, world!&quot;).await?;
+    /// file.sync_data().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// The [`write_all`] method is defined on the [`AsyncWriteExt`] trait.
+    ///
+    /// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all
+    /// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt
+    </span><span class="kw">pub async fn </span>sync_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock().<span class="kw">await</span>;
+        inner.complete_inflight().<span class="kw">await</span>;
 
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">std</span>.<span class="ident">clone</span>();
-        <span class="ident">asyncify</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>.<span class="ident">sync_data</span>()).<span class="kw">await</span>
-    }
+        <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
+        asyncify(<span class="kw">move </span>|| std.sync_data()).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Truncates or extends the underlying file, updating the size of this file to become size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the size is less than the current file&#39;s size, then the file will be</span>
-    <span class="doccomment">/// shrunk. If it is greater than the current file&#39;s size, then the file</span>
-    <span class="doccomment">/// will be extended to size and have all of the intermediate data filled in</span>
-    <span class="doccomment">/// with 0s.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will return an error if the file is not opened for</span>
-    <span class="doccomment">/// writing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">/// use tokio::io::AsyncWriteExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// file.write_all(b&quot;hello, world!&quot;).await?;</span>
-    <span class="doccomment">/// file.set_len(10).await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`write_all`] method is defined on the [`AsyncWriteExt`] trait.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all</span>
-    <span class="doccomment">/// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
-        <span class="ident">inner</span>.<span class="ident">complete_inflight</span>().<span class="kw">await</span>;
+    <span class="doccomment">/// Truncates or extends the underlying file, updating the size of this file to become size.
+    ///
+    /// If the size is less than the current file&#39;s size, then the file will be
+    /// shrunk. If it is greater than the current file&#39;s size, then the file
+    /// will be extended to size and have all of the intermediate data filled in
+    /// with 0s.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the file is not opened for
+    /// writing.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    /// use tokio::io::AsyncWriteExt;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut file = File::create(&quot;foo.txt&quot;).await?;
+    /// file.write_all(b&quot;hello, world!&quot;).await?;
+    /// file.set_len(10).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// The [`write_all`] method is defined on the [`AsyncWriteExt`] trait.
+    ///
+    /// [`write_all`]: fn@crate::io::AsyncWriteExt::write_all
+    /// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt
+    </span><span class="kw">pub async fn </span>set_len(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock().<span class="kw">await</span>;
+        inner.complete_inflight().<span class="kw">await</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">inner</span>.<span class="ident">state</span> {
-            <span class="ident">Idle</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf_cell</span>) =&gt; <span class="ident">buf_cell</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>(),
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="kw">match </span>inner.state {
+            Idle(<span class="kw-2">ref mut </span>buf_cell) =&gt; buf_cell.take().unwrap(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
 
-        <span class="kw">let</span> <span class="ident">seek</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">SeekFrom::Current</span>(<span class="ident">buf</span>.<span class="ident">discard_read</span>()))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
+        <span class="kw">let </span>seek = <span class="kw">if </span>!buf.is_empty() {
+            <span class="prelude-val">Some</span>(SeekFrom::Current(buf.discard_read()))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
 
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">std</span>.<span class="ident">clone</span>();
+        <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
 
-        <span class="ident">inner</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Busy</span>(<span class="ident">spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">seek</span>) <span class="op">=</span> <span class="ident">seek</span> {
-                (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">std</span>).<span class="ident">seek</span>(<span class="ident">seek</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">std</span>.<span class="ident">set_len</span>(<span class="ident">size</span>))
-            } <span class="kw">else</span> {
-                <span class="ident">std</span>.<span class="ident">set_len</span>(<span class="ident">size</span>)
+        inner.state = Busy(spawn_blocking(<span class="kw">move </span>|| {
+            <span class="kw">let </span>res = <span class="kw">if let </span><span class="prelude-val">Some</span>(seek) = seek {
+                (<span class="kw-2">&amp;*</span>std).seek(seek).and_then(|<span class="kw">_</span>| std.set_len(size))
+            } <span class="kw">else </span>{
+                std.set_len(size)
             }
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="number">0</span>); <span class="comment">// the value is discarded later</span>
+            .map(|<span class="kw">_</span>| <span class="number">0</span>); <span class="comment">// the value is discarded later
 
-            <span class="comment">// Return the result as a seek</span>
-            (<span class="ident">Operation::Seek</span>(<span class="ident">res</span>), <span class="ident">buf</span>)
+            // Return the result as a seek
+            </span>(Operation::Seek(res), buf)
         }));
 
-        <span class="kw">let</span> (<span class="ident">op</span>, <span class="ident">buf</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">inner</span>.<span class="ident">state</span> {
-            <span class="ident">Idle</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="ident">Busy</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rx</span>) =&gt; <span class="ident">rx</span>.<span class="kw">await</span><span class="question-mark">?</span>,
+        <span class="kw">let </span>(op, buf) = <span class="kw">match </span>inner.state {
+            Idle(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            Busy(<span class="kw-2">ref mut </span>rx) =&gt; rx.<span class="kw">await</span><span class="question-mark">?</span>,
         };
 
-        <span class="ident">inner</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Idle</span>(<span class="prelude-val">Some</span>(<span class="ident">buf</span>));
+        inner.state = Idle(<span class="prelude-val">Some</span>(buf));
 
-        <span class="kw">match</span> <span class="ident">op</span> {
-            <span class="ident">Operation::Seek</span>(<span class="ident">res</span>) =&gt; <span class="ident">res</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> {
-                <span class="ident">inner</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">pos</span>;
+        <span class="kw">match </span>op {
+            Operation::Seek(res) =&gt; res.map(|pos| {
+                inner.pos = pos;
             }),
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
-    <span class="doccomment">/// Queries metadata about the underlying file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let file = File::open(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// let metadata = file.metadata().await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// println!(&quot;{:?}&quot;, metadata);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">std</span>.<span class="ident">clone</span>();
-        <span class="ident">asyncify</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>.<span class="ident">metadata</span>()).<span class="kw">await</span>
+    <span class="doccomment">/// Queries metadata about the underlying file.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let file = File::open(&quot;foo.txt&quot;).await?;
+    /// let metadata = file.metadata().await?;
+    ///
+    /// println!(&quot;{:?}&quot;, metadata);
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub async fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a>&gt; {
+        <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
+        asyncify(<span class="kw">move </span>|| std.metadata()).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Creates a new `File` instance that shares the same underlying file handle
+    /// as the existing `File` instance. Reads, writes, and seeks will affect both
+    /// File instances simultaneously.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let file = File::open(&quot;foo.txt&quot;).await?;
+    /// let file_clone = file.try_clone().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub async fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../src/tokio/fs/file.rs.html#93">File</a>&gt; {
+        <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
+        <span class="kw">let </span>std_file = asyncify(<span class="kw">move </span>|| std.try_clone()).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(File::from_std(std_file))
     }
 
-    <span class="doccomment">/// Creates a new `File` instance that shares the same underlying file handle</span>
-    <span class="doccomment">/// as the existing `File` instance. Reads, writes, and seeks will affect both</span>
-    <span class="doccomment">/// File instances simultaneously.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let file = File::open(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// let file_clone = file.try_clone().await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">std</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">std_file</span> <span class="op">=</span> <span class="ident">asyncify</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>.<span class="ident">try_clone</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">File::from_std</span>(<span class="ident">std_file</span>))
+    <span class="doccomment">/// Destructures `File` into a [`std::fs::File`][std]. This function is
+    /// async to allow any in-flight operations to complete.
+    ///
+    /// Use `File::try_into_std` to attempt conversion immediately.
+    ///
+    /// [std]: std::fs::File
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let tokio_file = File::open(&quot;foo.txt&quot;).await?;
+    /// let std_file = tokio_file.into_std().await;
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub async fn </span>into_std(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a> {
+        <span class="self">self</span>.inner.get_mut().complete_inflight().<span class="kw">await</span>;
+        Arc::try_unwrap(<span class="self">self</span>.std).expect(<span class="string">&quot;Arc::try_unwrap failed&quot;</span>)
     }
 
-    <span class="doccomment">/// Destructures `File` into a [`std::fs::File`][std]. This function is</span>
-    <span class="doccomment">/// async to allow any in-flight operations to complete.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use `File::try_into_std` to attempt conversion immediately.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [std]: std::fs::File</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let tokio_file = File::open(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// let std_file = tokio_file.into_std().await;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">into_std</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_mut</span>().<span class="ident">complete_inflight</span>().<span class="kw">await</span>;
-        <span class="ident">Arc::try_unwrap</span>(<span class="self">self</span>.<span class="ident">std</span>).<span class="ident">expect</span>(<span class="string">&quot;Arc::try_unwrap failed&quot;</span>)
-    }
-
-    <span class="doccomment">/// Tries to immediately destructure `File` into a [`std::fs::File`][std].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [std]: std::fs::File</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will return an error containing the file if some</span>
-    <span class="doccomment">/// operation is in-flight.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let tokio_file = File::open(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// let std_file = tokio_file.try_into_std().unwrap();</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_into_std</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>, <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">Arc::try_unwrap</span>(<a class="self" href="../../../src/tokio/fs/file.rs.html#450">self</a>.<span class="ident">std</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">file</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#452">file</a>),
-            <span class="prelude-val">Err</span>(<span class="ident">std_file_arc</span>) =&gt; {
-                <a class="self" href="../../../src/tokio/fs/file.rs.html#450">self</a>.<span class="ident">std</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#453">std_file_arc</a>;
+    <span class="doccomment">/// Tries to immediately destructure `File` into a [`std::fs::File`][std].
+    ///
+    /// [std]: std::fs::File
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error containing the file if some
+    /// operation is in-flight.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let tokio_file = File::open(&quot;foo.txt&quot;).await?;
+    /// let std_file = tokio_file.try_into_std().unwrap();
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>try_into_std(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>, <span class="self">Self</span>&gt; {
+        <span class="kw">match </span>Arc::try_unwrap(<a class="self" href="../../../src/tokio/fs/file.rs.html#450">self</a>.std) {
+            <span class="prelude-val">Ok</span>(file) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/fs/file.rs.html#452">file</a>),
+            <span class="prelude-val">Err</span>(std_file_arc) =&gt; {
+                <a class="self" href="../../../src/tokio/fs/file.rs.html#450">self</a>.std = <a href="../../../src/tokio/fs/file.rs.html#453">std_file_arc</a>;
                 <span class="prelude-val">Err</span>(<a class="self" href="../../../src/tokio/fs/file.rs.html#450">self</a>)
             }
         }
     }
 
-    <span class="doccomment">/// Changes the permissions on the underlying file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Platform-specific behavior</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function currently corresponds to the `fchmod` function on Unix and</span>
-    <span class="doccomment">/// the `SetFileInformationByHandle` function on Windows. Note that, this</span>
-    <span class="doccomment">/// [may change in the future][changes].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [changes]: https://doc.rust-lang.org/std/io/index.html#platform-specific-behavior</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will return an error if the user lacks permission change</span>
-    <span class="doccomment">/// attributes on the underlying file. It may also return an error in other</span>
-    <span class="doccomment">/// os-specific unspecified cases.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let file = File::open(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">/// let mut perms = file.metadata().await?.permissions();</span>
-    <span class="doccomment">/// perms.set_readonly(true);</span>
-    <span class="doccomment">/// file.set_permissions(perms).await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_permissions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">perm</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Permissions.html">Permissions</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">std</span>.<span class="ident">clone</span>();
-        <span class="ident">asyncify</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>.<span class="ident">set_permissions</span>(<span class="ident">perm</span>)).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Changes the permissions on the underlying file.
+    ///
+    /// # Platform-specific behavior
+    ///
+    /// This function currently corresponds to the `fchmod` function on Unix and
+    /// the `SetFileInformationByHandle` function on Windows. Note that, this
+    /// [may change in the future][changes].
+    ///
+    /// [changes]: https://doc.rust-lang.org/std/io/index.html#platform-specific-behavior
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the user lacks permission change
+    /// attributes on the underlying file. It may also return an error in other
+    /// os-specific unspecified cases.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let file = File::open(&quot;foo.txt&quot;).await?;
+    /// let mut perms = file.metadata().await?.permissions();
+    /// perms.set_readonly(true);
+    /// file.set_permissions(perms).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub async fn </span>set_permissions(<span class="kw-2">&amp;</span><span class="self">self</span>, perm: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.Permissions.html">Permissions</a>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>std = <span class="self">self</span>.std.clone();
+        asyncify(<span class="kw">move </span>|| std.set_permissions(perm)).<span class="kw">await
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/fs/file.rs.html#497">self</a>.<span class="ident">get_mut</span>();
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#501">me</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+<span class="kw">impl </span><a href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+    <span class="kw">fn </span>poll_read(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        dst: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/fs/file.rs.html#497">self</a>.get_mut();
+        <span class="kw">let </span>inner = <a href="../../../src/tokio/fs/file.rs.html#501">me</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
 
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf_cell</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#506">buf_cell</a>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state {
+                <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="../../../src/tokio/fs/file.rs.html#506">buf_cell</a>.take().unwrap();
 
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a class="ident" href="../../../src/tokio/io/blocking.rs.html#206">copy_to</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
-                        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/fs/file.rs.html#506">buf_cell</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#507">buf</a>);
-                        <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
+                    <span class="kw">if </span>!buf.is_empty() {
+                        <a href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#206">copy_to</a>(<a href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
+                        <span class="kw-2">*</span><a href="../../../src/tokio/fs/file.rs.html#506">buf_cell</a> = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#507">buf</a>);
+                        <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(()));
                     }
 
-                    <a class="ident" href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a class="ident" href="../../../src/tokio/io/blocking.rs.html#232">ensure_capacity_for</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
-                    <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#501">me</a>.<span class="ident">std</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <a href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#232">ensure_capacity_for</a>(<a href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
+                    <span class="kw">let </span>std = <a href="../../../src/tokio/fs/file.rs.html#501">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-                    <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a class="ident" href="../../../src/tokio/io/blocking.rs.html#246">read_from</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio/fs/file.rs.html#516">std</a>);
-                        (<a class="ident" href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#519">res</a>), <a class="ident" href="../../../src/tokio/fs/file.rs.html#507">buf</a>)
+                    <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>(<span class="kw">move </span>|| {
+                        <span class="kw">let </span>res = <a href="../../../src/tokio/fs/file.rs.html#507">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#246">read_from</a>(<span class="kw-2">&amp;mut &amp;*</span><a href="../../../src/tokio/fs/file.rs.html#516">std</a>);
+                        (<a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<a href="../../../src/tokio/fs/file.rs.html#519">res</a>), <a href="../../../src/tokio/fs/file.rs.html#507">buf</a>)
                     }));
                 }
-                <a class="ident" href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rx</span>) =&gt; {
-                    <span class="kw">let</span> (<span class="ident">op</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">rx</span>).<span class="ident">poll</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+                <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
+                    <span class="kw">let </span>(op, <span class="kw-2">mut </span>buf) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
 
-                    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#524">op</a> {
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
-                            <a class="ident" href="../../../src/tokio/fs/file.rs.html#524">buf</a>.<a class="ident" href="../../../src/tokio/io/blocking.rs.html#206">copy_to</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
-                            <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
-                            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
+                    <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#524">op</a> {
+                        <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
+                            <a href="../../../src/tokio/fs/file.rs.html#524">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#206">copy_to</a>(<a href="../../../src/tokio/fs/file.rs.html#499">dst</a>);
+                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
+                            <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(()));
                         }
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; {
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">buf</span>.<span class="ident">is_empty</span>());
+                        <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
+                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.is_empty());
 
-                            <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
-                            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#532">e</a>));
+                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
+                            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/fs/file.rs.html#532">e</a>));
                         }
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">buf</span>.<span class="ident">is_empty</span>());
-                            <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
+                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
+                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.is_empty());
+                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
                             <span class="kw">continue</span>;
                         }
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; {
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">inner</span>.<span class="ident">last_write_err</span>.<span class="ident">is_none</span>());
-                            <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">last_write_err</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#543">e</a>.<span class="ident">kind</span>());
-                            <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
+                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
+                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(inner.last_write_err.is_none());
+                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.last_write_err = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#543">e</a>.kind());
+                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
                         }
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<span class="ident">result</span>) =&gt; {
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">buf</span>.<span class="ident">is_empty</span>());
-                            <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">pos</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#548">result</a> {
-                                <a class="ident" href="../../../src/tokio/fs/file.rs.html#502">inner</a>.<span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#551">pos</a>;
+                        <a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(result) =&gt; {
+                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.is_empty());
+                            <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#524">buf</a>));
+                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(pos) = <a href="../../../src/tokio/fs/file.rs.html#548">result</a> {
+                                <a href="../../../src/tokio/fs/file.rs.html#502">inner</a>.pos = <a href="../../../src/tokio/fs/file.rs.html#551">pos</a>;
                             }
                             <span class="kw">continue</span>;
                         }
@@ -1339,60 +1339,60 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/io/async_seek.rs.html#18">AsyncSeek</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-    <span class="kw">fn</span> <span class="ident">start_seek</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/fs/file.rs.html#564">self</a>.<span class="ident">get_mut</span>();
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#565">me</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+<span class="kw">impl </span><a href="../../../src/tokio/io/async_seek.rs.html#18">AsyncSeek</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+    <span class="kw">fn </span>start_seek(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw-2">mut </span>pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/fs/file.rs.html#564">self</a>.get_mut();
+        <span class="kw">let </span>inner = <a href="../../../src/tokio/fs/file.rs.html#565">me</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
 
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#566">inner</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;must wait for poll_complete before calling start_seek&quot;</span>),
-                <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf_cell</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#571">buf_cell</a>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#566">inner</a>.state {
+                <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;must wait for poll_complete before calling start_seek&quot;</span>),
+                <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="../../../src/tokio/fs/file.rs.html#571">buf_cell</a>.take().unwrap();
 
-                    <span class="comment">// Factor in any unread data from the buf</span>
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#572">buf</a>.<a class="ident" href="../../../src/tokio/io/blocking.rs.html#272">discard_read</a>();
+                    <span class="comment">// Factor in any unread data from the buf
+                    </span><span class="kw">if </span>!buf.is_empty() {
+                        <span class="kw">let </span>n = <a href="../../../src/tokio/fs/file.rs.html#572">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#272">discard_read</a>();
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SeekFrom::Current</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">offset</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#564">pos</a> {
-                            <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/fs/file.rs.html#578">offset</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#576">n</a>;
+                        <span class="kw">if let </span>SeekFrom::Current(<span class="kw-2">ref mut </span>offset) = <a href="../../../src/tokio/fs/file.rs.html#564">pos</a> {
+                            <span class="kw-2">*</span><a href="../../../src/tokio/fs/file.rs.html#578">offset</a> += <a href="../../../src/tokio/fs/file.rs.html#576">n</a>;
                         }
                     }
 
-                    <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#565">me</a>.<span class="ident">std</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw">let </span>std = <a href="../../../src/tokio/fs/file.rs.html#565">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-                    <a class="ident" href="../../../src/tokio/fs/file.rs.html#566">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio/fs/file.rs.html#583">std</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#564">pos</a>);
-                        (<a class="ident" href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#586">res</a>), <a class="ident" href="../../../src/tokio/fs/file.rs.html#572">buf</a>)
+                    <a href="../../../src/tokio/fs/file.rs.html#566">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>(<span class="kw">move </span>|| {
+                        <span class="kw">let </span>res = (<span class="kw-2">&amp;*</span><a href="../../../src/tokio/fs/file.rs.html#583">std</a>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">seek</a>(<a href="../../../src/tokio/fs/file.rs.html#564">pos</a>);
+                        (<a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<a href="../../../src/tokio/fs/file.rs.html#586">res</a>), <a href="../../../src/tokio/fs/file.rs.html#572">buf</a>)
                     }));
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_complete</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/fs/file.rs.html#595">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+    <span class="kw">fn </span>poll_complete(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
+        <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/fs/file.rs.html#595">self</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
 
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#596">inner</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#596">inner</a>.<span class="ident">pos</span>)),
-                <a class="ident" href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rx</span>) =&gt; {
-                    <span class="kw">let</span> (<span class="ident">op</span>, <span class="ident">buf</span>) <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">rx</span>).<span class="ident">poll</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-                    <a class="ident" href="../../../src/tokio/fs/file.rs.html#596">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#602">buf</a>));
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.state {
+                <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.pos)),
+                <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
+                    <span class="kw">let </span>(op, buf) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
+                    <a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#602">buf</a>));
 
-                    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#602">op</a> {
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; {}
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; {
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">inner</span>.<span class="ident">last_write_err</span>.<span class="ident">is_none</span>());
-                            <a class="ident" href="../../../src/tokio/fs/file.rs.html#596">inner</a>.<span class="ident">last_write_err</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#607">e</a>.<span class="ident">kind</span>());
+                    <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#602">op</a> {
+                        <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; {}
+                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="prelude-val">Err</span>(e)) =&gt; {
+                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(inner.last_write_err.is_none());
+                            <a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.last_write_err = <span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#607">e</a>.kind());
                         }
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="kw">_</span>) =&gt; {}
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<span class="ident">res</span>) =&gt; {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">pos</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#612">res</a> {
-                                <a class="ident" href="../../../src/tokio/fs/file.rs.html#596">inner</a>.<span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#613">pos</a>;
+                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="kw">_</span>) =&gt; {}
+                        <a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(res) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(pos) = <a href="../../../src/tokio/fs/file.rs.html#612">res</a> {
+                                <a href="../../../src/tokio/fs/file.rs.html#596">inner</a>.pos = <a href="../../../src/tokio/fs/file.rs.html#613">pos</a>;
                             }
-                            <span class="kw">return</span> <span class="ident">Ready</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#612">res</a>);
+                            <span class="kw">return </span>Ready(<a href="../../../src/tokio/fs/file.rs.html#612">res</a>);
                         }
                     }
                 }
@@ -1401,70 +1401,70 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/fs/file.rs.html#627">self</a>.<span class="ident">get_mut</span>();
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#631">me</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+<span class="kw">impl </span><a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+    <span class="kw">fn </span>poll_write(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/fs/file.rs.html#627">self</a>.get_mut();
+        <span class="kw">let </span>inner = <a href="../../../src/tokio/fs/file.rs.html#631">me</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#632">inner</a>.<span class="ident">last_write_err</span>.<span class="ident">take</span>() {
-            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#634">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <a href="../../../src/tokio/fs/file.rs.html#632">inner</a>.last_write_err.take() {
+            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/fs/file.rs.html#634">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
         }
 
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#632">inner</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf_cell</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#640">buf_cell</a>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#632">inner</a>.state {
+                <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw-2">ref mut </span>buf_cell) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>buf = <a href="../../../src/tokio/fs/file.rs.html#640">buf_cell</a>.take().unwrap();
 
-                    <span class="kw">let</span> <span class="ident">seek</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                        <span class="prelude-val">Some</span>(<span class="ident">SeekFrom::Current</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#641">buf</a>.<a class="ident" href="../../../src/tokio/io/blocking.rs.html#272">discard_read</a>()))
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    };
+                    <span class="kw">let </span>seek = <span class="kw">if </span>!buf.is_empty() {
+                        <span class="prelude-val">Some</span>(SeekFrom::Current(<a href="../../../src/tokio/fs/file.rs.html#641">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#272">discard_read</a>()))
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>};
 
-                    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#641">buf</a>.<a class="ident" href="../../../src/tokio/io/blocking.rs.html#219">copy_from</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#629">src</a>);
-                    <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#631">me</a>.<span class="ident">std</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw">let </span>n = <a href="../../../src/tokio/fs/file.rs.html#641">buf</a>.<a href="../../../src/tokio/io/blocking.rs.html#219">copy_from</a>(<a href="../../../src/tokio/fs/file.rs.html#629">src</a>);
+                    <span class="kw">let </span>std = <a href="../../../src/tokio/fs/file.rs.html#631">me</a>.std.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-                    <span class="kw">let</span> <span class="ident">blocking_task_join_handle</span> <span class="op">=</span> <span class="ident">spawn_mandatory_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">seek</span>) <span class="op">=</span> <span class="ident">seek</span> {
-                            (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">std</span>).<span class="ident">seek</span>(<span class="ident">seek</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">buf</span>.<span class="ident">write_to</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">std</span>))
-                        } <span class="kw">else</span> {
-                            <span class="ident">buf</span>.<span class="ident">write_to</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">std</span>)
+                    <span class="kw">let </span>blocking_task_join_handle = spawn_mandatory_blocking(<span class="kw">move </span>|| {
+                        <span class="kw">let </span>res = <span class="kw">if let </span><span class="prelude-val">Some</span>(seek) = seek {
+                            (<span class="kw-2">&amp;*</span>std).seek(seek).and_then(|<span class="kw">_</span>| buf.write_to(<span class="kw-2">&amp;mut &amp;*</span>std))
+                        } <span class="kw">else </span>{
+                            buf.write_to(<span class="kw-2">&amp;mut &amp;*</span>std)
                         };
 
-                        (<span class="ident">Operation::Write</span>(<span class="ident">res</span>), <span class="ident">buf</span>)
+                        (Operation::Write(res), buf)
                     })
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;background task failed&quot;</span>)
+                    .ok_or_else(|| {
+                        io::Error::new(io::ErrorKind::Other, <span class="string">&quot;background task failed&quot;</span>)
                     })<span class="question-mark">?</span>;
 
-                    <a class="ident" href="../../../src/tokio/fs/file.rs.html#632">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#652">blocking_task_join_handle</a>);
+                    <a href="../../../src/tokio/fs/file.rs.html#632">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<a href="../../../src/tokio/fs/file.rs.html#652">blocking_task_join_handle</a>);
 
-                    <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#649">n</a>));
+                    <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/fs/file.rs.html#649">n</a>));
                 }
-                <a class="ident" href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rx</span>) =&gt; {
-                    <span class="kw">let</span> (<span class="ident">op</span>, <span class="ident">buf</span>) <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">rx</span>).<span class="ident">poll</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-                    <a class="ident" href="../../../src/tokio/fs/file.rs.html#632">inner</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#670">buf</a>));
+                <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
+                    <span class="kw">let </span>(op, buf) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
+                    <a href="../../../src/tokio/fs/file.rs.html#632">inner</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#670">buf</a>));
 
-                    <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#670">op</a> {
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; {
-                            <span class="comment">// We don&#39;t care about the result here. The fact</span>
-                            <span class="comment">// that the cursor has advanced will be reflected in</span>
-                            <span class="comment">// the next iteration of the loop</span>
+                    <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#670">op</a> {
+                        <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; {
+                            <span class="comment">// We don&#39;t care about the result here. The fact
+                            // that the cursor has advanced will be reflected in
+                            // the next iteration of the loop
+                            </span><span class="kw">continue</span>;
+                        }
+                        <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(res) =&gt; {
+                            <span class="comment">// If the previous write was successful, continue.
+                            // Otherwise, error.
+                            </span>res<span class="question-mark">?</span>;
                             <span class="kw">continue</span>;
                         }
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="ident">res</span>) =&gt; {
-                            <span class="comment">// If the previous write was successful, continue.</span>
-                            <span class="comment">// Otherwise, error.</span>
-                            <span class="ident">res</span><span class="question-mark">?</span>;
-                            <span class="kw">continue</span>;
-                        }
-                        <a class="ident" href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<span class="kw">_</span>) =&gt; {
-                            <span class="comment">// Ignore the seek</span>
-                            <span class="kw">continue</span>;
+                        <a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<span class="kw">_</span>) =&gt; {
+                            <span class="comment">// Ignore the seek
+                            </span><span class="kw">continue</span>;
                         }
                     }
                 }
@@ -1472,89 +1472,89 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/fs/file.rs.html#696">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
-        <a class="ident" href="../../../src/tokio/fs/file.rs.html#697">inner</a>.<a class="ident" href="../../../src/tokio/fs/file.rs.html#757">poll_flush</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#696">cx</a>)
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
+        <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/fs/file.rs.html#696">self</a>.inner.<a href="../../../src/tokio/sync/mutex.rs.html#547">get_mut</a>();
+        <a href="../../../src/tokio/fs/file.rs.html#697">inner</a>.<a href="../../../src/tokio/fs/file.rs.html#757">poll_flush</a>(<a href="../../../src/tokio/fs/file.rs.html#696">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/fs/file.rs.html#701">self</a>.<a class="ident" href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#701">cx</a>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">std</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from_std</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#707">std</a>)
+    <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
+        <a class="self" href="../../../src/tokio/fs/file.rs.html#701">self</a>.<a href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../src/tokio/fs/file.rs.html#701">cx</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/fs/file.rs.html#713">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;tokio::fs::File&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;std&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/fs/file.rs.html#713">self</a>.<span class="ident">std</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+    <span class="kw">fn </span>from(std: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">StdFile</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_std(<a href="../../../src/tokio/fs/file.rs.html#707">std</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a> {
-        <a class="self" href="../../../src/tokio/fs/file.rs.html#722">self</a>.<span class="ident">std</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio/fs/file.rs.html#713">fmt</a>.debug_struct(<span class="string">&quot;tokio::fs::File&quot;</span>)
+            .field(<span class="string">&quot;std&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/fs/file.rs.html#713">self</a>.std)
+            .finish()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">std::os::unix::io::FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#93">File</a> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">StdFile::from_raw_fd</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#729">fd</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a> {
+        <a class="self" href="../../../src/tokio/fs/file.rs.html#722">self</a>.std.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">std::os::windows::io::AsRawHandle</span> <span class="kw">for</span> <span class="ident">File</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">std::os::windows::io::RawHandle</span> {
-        <span class="self">self</span>.<span class="ident">std</span>.<span class="ident">as_raw_handle</span>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">std::os::unix::io::FromRawFd</a> <span class="kw">for </span><a href="../../../src/tokio/fs/file.rs.html#93">File</a> {
+    <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>) -&gt; <span class="self">Self </span>{
+        StdFile::from_raw_fd(<a href="../../../src/tokio/fs/file.rs.html#729">fd</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">std::os::windows::io::FromRawHandle</span> <span class="kw">for</span> <span class="ident">File</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_handle</span>(<span class="ident">handle</span>: <span class="ident">std::os::windows::io::RawHandle</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">StdFile::from_raw_handle</span>(<span class="ident">handle</span>).<span class="ident">into</span>()
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">impl </span>std::os::windows::io::AsRawHandle <span class="kw">for </span>File {
+    <span class="kw">fn </span>as_raw_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; std::os::windows::io::RawHandle {
+        <span class="self">self</span>.std.as_raw_handle()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#98">Inner</a> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">complete_inflight</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::future::poll_fn</span>;
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">impl </span>std::os::windows::io::FromRawHandle <span class="kw">for </span>File {
+    <span class="kw">unsafe fn </span>from_raw_handle(handle: std::os::windows::io::RawHandle) -&gt; <span class="self">Self </span>{
+        StdFile::from_raw_handle(handle).into()
+    }
+}
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">poll_flush</span>(<span class="ident">cx</span>)).<span class="kw">await</span> {
-            <span class="self">self</span>.<span class="ident">last_write_err</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>.<span class="ident">kind</span>());
+<span class="kw">impl </span><a href="../../../src/tokio/fs/file.rs.html#98">Inner</a> {
+    <span class="kw">async fn </span>complete_inflight(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
+
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = poll_fn(|cx| Pin::new(<span class="kw-2">&amp;mut *</span><span class="self">self</span>).poll_flush(cx)).<span class="kw">await </span>{
+            <span class="self">self</span>.last_write_err = <span class="prelude-val">Some</span>(e.kind());
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.<span class="ident">last_write_err</span>.<span class="ident">take</span>() {
-            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#758">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.last_write_err.take() {
+            <span class="kw">return </span>Ready(<span class="prelude-val">Err</span>(<a href="../../../src/tokio/fs/file.rs.html#758">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
         }
 
-        <span class="kw">let</span> (<span class="ident">op</span>, <span class="ident">buf</span>) <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())),
-            <a class="ident" href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rx</span>) =&gt; <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">rx</span>).<span class="ident">poll</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>,
+        <span class="kw">let </span>(op, buf) = <span class="kw">match </span><a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.state {
+            <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Ready(<span class="prelude-val">Ok</span>(())),
+            <a href="../../../src/tokio/fs/file.rs.html#112">Busy</a>(<span class="kw-2">ref mut </span>rx) =&gt; <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>,
         };
 
-        <span class="comment">// The buffer is not used here</span>
-        <a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#762">buf</a>));
+        <span class="comment">// The buffer is not used here
+        </span><a class="self" href="../../../src/tokio/fs/file.rs.html#757">self</a>.state = <a href="../../../src/tokio/fs/file.rs.html#111">Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/file.rs.html#762">buf</a>));
 
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/file.rs.html#762">op</a> {
-            <a class="ident" href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())),
-            <a class="ident" href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(<span class="ident">res</span>) =&gt; <span class="ident">Ready</span>(<a class="ident" href="../../../src/tokio/fs/file.rs.html#772">res</a>),
-            <a class="ident" href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<span class="kw">_</span>) =&gt; <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())),
+        <span class="kw">match </span><a href="../../../src/tokio/fs/file.rs.html#762">op</a> {
+            <a href="../../../src/tokio/fs/file.rs.html#117">Operation::Read</a>(<span class="kw">_</span>) =&gt; Ready(<span class="prelude-val">Ok</span>(())),
+            <a href="../../../src/tokio/fs/file.rs.html#118">Operation::Write</a>(res) =&gt; Ready(<a href="../../../src/tokio/fs/file.rs.html#772">res</a>),
+            <a href="../../../src/tokio/fs/file.rs.html#119">Operation::Seek</a>(<span class="kw">_</span>) =&gt; Ready(<span class="prelude-val">Ok</span>(())),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/future/poll_immediate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll_immediate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/future/poll_immediate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll_immediate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -124,131 +124,131 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <span class="ident">futures_core</span>::{<a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>futures_core::{<a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Future for the [`poll_immediate`](poll_immediate()) function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It will never return [Poll::Pending](core::task::Poll::Pending)</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PollImmediate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">future</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Future for the [`poll_immediate`](poll_immediate()) function.
+    ///
+    /// It will never return [Poll::Pending](core::task::Poll::Pending)
+    </span><span class="attribute">#[derive(Debug, Clone)]
+    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="kw">pub struct </span>PollImmediate&lt;T&gt; {
+        <span class="attribute">#[pin]
+        </span>future: <span class="prelude-ty">Option</span>&lt;T&gt;
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">PollImmediate</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T, F&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>PollImmediate&lt;F&gt;
+<span class="kw">where
+    </span>F: Future&lt;Output = T&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;T&gt;;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#26">self</a>.<a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">project</a>();
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span>
-            <a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#27">this</a>.<span class="ident">future</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;PollImmediate polled after completion&quot;</span>);
-        <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#28">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#26">cx</a>) {
-            <span class="ident">Poll::Ready</span>(<span class="ident">t</span>) =&gt; {
-                <a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#27">this</a>.<span class="ident">future</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#31">t</a>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#26">self</a>.<a href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">project</a>();
+        <span class="kw">let </span>inner =
+            <a href="../../../src/futures_util/future/poll_immediate.rs.html#27">this</a>.future.as_mut().as_pin_mut().expect(<span class="string">&quot;PollImmediate polled after completion&quot;</span>);
+        <span class="kw">match </span><a href="../../../src/futures_util/future/poll_immediate.rs.html#28">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#26">cx</a>) {
+            Poll::Ready(t) =&gt; {
+                <a href="../../../src/futures_util/future/poll_immediate.rs.html#27">this</a>.future.set(<span class="prelude-val">None</span>);
+                Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#31">t</a>))
             }
-            <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+            Poll::Pending =&gt; Poll::Ready(<span class="prelude-val">None</span>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for</span> <span class="ident">PollImmediate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#41">self</a>.<span class="ident">future</span>.<span class="ident">is_none</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>PollImmediate&lt;T&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#41">self</a>.future.is_none()
     }
 }
 
-<span class="doccomment">/// A [Stream](crate::stream::Stream) implementation that can be polled repeatedly until the future is done.</span>
-<span class="doccomment">/// The stream will never return [Poll::Pending](core::task::Poll::Pending)</span>
-<span class="doccomment">/// so polling it in a tight loop is worse than using a blocking synchronous function.</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::task::Poll;</span>
-<span class="doccomment">/// use futures::{StreamExt, future, pin_mut};</span>
-<span class="doccomment">/// use future::FusedFuture;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let f = async { 1_u32 };</span>
-<span class="doccomment">/// pin_mut!(f);</span>
-<span class="doccomment">/// let mut r = future::poll_immediate(f);</span>
-<span class="doccomment">/// assert_eq!(r.next().await, Some(Poll::Ready(1)));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let f = async {futures::pending!(); 42_u8};</span>
-<span class="doccomment">/// pin_mut!(f);</span>
-<span class="doccomment">/// let mut p = future::poll_immediate(f);</span>
-<span class="doccomment">/// assert_eq!(p.next().await, Some(Poll::Pending));</span>
-<span class="doccomment">/// assert!(!p.is_terminated());</span>
-<span class="doccomment">/// assert_eq!(p.next().await, Some(Poll::Ready(42)));</span>
-<span class="doccomment">/// assert!(p.is_terminated());</span>
-<span class="doccomment">/// assert_eq!(p.next().await, None);</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">PollImmediate</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A [Stream](crate::stream::Stream) implementation that can be polled repeatedly until the future is done.
+/// The stream will never return [Poll::Pending](core::task::Poll::Pending)
+/// so polling it in a tight loop is worse than using a blocking synchronous function.
+/// ```
+/// # futures::executor::block_on(async {
+/// use futures::task::Poll;
+/// use futures::{StreamExt, future, pin_mut};
+/// use future::FusedFuture;
+///
+/// let f = async { 1_u32 };
+/// pin_mut!(f);
+/// let mut r = future::poll_immediate(f);
+/// assert_eq!(r.next().await, Some(Poll::Ready(1)));
+///
+/// let f = async {futures::pending!(); 42_u8};
+/// pin_mut!(f);
+/// let mut p = future::poll_immediate(f);
+/// assert_eq!(p.next().await, Some(Poll::Pending));
+/// assert!(!p.is_terminated());
+/// assert_eq!(p.next().await, Some(Poll::Ready(42)));
+/// assert!(p.is_terminated());
+/// assert_eq!(p.next().await, None);
+/// # });
+/// ```
+</span><span class="kw">impl</span>&lt;T, F&gt; <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>PollImmediate&lt;F&gt;
+<span class="kw">where
+    </span>F: Future&lt;Output = T&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = Poll&lt;T&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#76">self</a>.<a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">project</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#77">this</a>.<span class="ident">future</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-            <span class="comment">// inner is gone, so we can signal that the stream is closed.</span>
-            <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">fut</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#81">fut</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#76">cx</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
-                <a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#77">this</a>.<span class="ident">future</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
-                <a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#81">t</a>
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/future/poll_immediate.rs.html#76">self</a>.<a href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">project</a>();
+        <span class="kw">match </span><a href="../../../src/futures_util/future/poll_immediate.rs.html#77">this</a>.future.as_mut().as_pin_mut() {
+            <span class="comment">// inner is gone, so we can signal that the stream is closed.
+            </span><span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
+            <span class="prelude-val">Some</span>(fut) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#81">fut</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#76">cx</a>).map(|t| {
+                <a href="../../../src/futures_util/future/poll_immediate.rs.html#77">this</a>.future.set(<span class="prelude-val">None</span>);
+                <a href="../../../src/futures_util/future/poll_immediate.rs.html#81">t</a>
             }))),
         }
     }
 }
 
-<span class="doccomment">/// Creates a future that is immediately ready with an Option of a value.</span>
-<span class="doccomment">/// Specifically this means that [poll](core::future::Future::poll()) always returns [Poll::Ready](core::task::Poll::Ready).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Caution</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When consuming the future by this function, note the following:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - This function does not guarantee that the future will run to completion, so it is generally incompatible with passing the non-cancellation-safe future by value.</span>
-<span class="doccomment">/// - Even if the future is cancellation-safe, creating and dropping new futures frequently may lead to performance problems.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::future;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let r = future::poll_immediate(async { 1_u32 });</span>
-<span class="doccomment">/// assert_eq!(r.await, Some(1));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let p = future::poll_immediate(future::pending::&lt;i32&gt;());</span>
-<span class="doccomment">/// assert_eq!(p.await, None);</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Reusing a future</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::{future, pin_mut};</span>
-<span class="doccomment">/// let f = async {futures::pending!(); 42_u8};</span>
-<span class="doccomment">/// pin_mut!(f);</span>
-<span class="doccomment">/// assert_eq!(None, future::poll_immediate(&amp;mut f).await);</span>
-<span class="doccomment">/// assert_eq!(42, f.await);</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_immediate</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">PollImmediate</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">F::Output</span><span class="op">&gt;</span>, <span class="ident">PollImmediate</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">PollImmediate</a> { <span class="ident">future</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/future/poll_immediate.rs.html#124">f</a>) })
+<span class="doccomment">/// Creates a future that is immediately ready with an Option of a value.
+/// Specifically this means that [poll](core::future::Future::poll()) always returns [Poll::Ready](core::task::Poll::Ready).
+///
+/// # Caution
+///
+/// When consuming the future by this function, note the following:
+///
+/// - This function does not guarantee that the future will run to completion, so it is generally incompatible with passing the non-cancellation-safe future by value.
+/// - Even if the future is cancellation-safe, creating and dropping new futures frequently may lead to performance problems.
+///
+/// # Examples
+///
+/// ```
+/// # futures::executor::block_on(async {
+/// use futures::future;
+///
+/// let r = future::poll_immediate(async { 1_u32 });
+/// assert_eq!(r.await, Some(1));
+///
+/// let p = future::poll_immediate(future::pending::&lt;i32&gt;());
+/// assert_eq!(p.await, None);
+/// # });
+/// ```
+///
+/// ### Reusing a future
+///
+/// ```
+/// # futures::executor::block_on(async {
+/// use futures::{future, pin_mut};
+/// let f = async {futures::pending!(); 42_u8};
+/// pin_mut!(f);
+/// assert_eq!(None, future::poll_immediate(&amp;mut f).await);
+/// assert_eq!(42, f.await);
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>poll_immediate&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(f: F) -&gt; PollImmediate&lt;F&gt; {
+    assert_future::&lt;<span class="prelude-ty">Option</span>&lt;F::Output&gt;, PollImmediate&lt;F&gt;&gt;(<a href="../../../src/futures_util/future/poll_immediate.rs.html#7-17">PollImmediate</a> { future: <span class="prelude-val">Some</span>(<a href="../../../src/futures_util/future/poll_immediate.rs.html#124">f</a>) })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

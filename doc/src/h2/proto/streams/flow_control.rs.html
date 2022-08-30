@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/proto/streams/flow_control.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flow_control.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.14/src/proto/streams/flow_control.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flow_control.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../h2/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -256,263 +256,263 @@
 <span id="256">256</span>
 <span id="257">257</span>
 <span id="258">258</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/h2/frame/reason.rs.html#19"><span class="kw">crate</span>::frame::Reason</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::proto</span>::{<a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>, <a class="ident" href="../../../../src/h2/proto/mod.rs.html#33">MAX_WINDOW_SIZE</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/h2/frame/reason.rs.html#19"><span class="kw">crate</span>::frame::Reason</a>;
+<span class="kw">use </span><span class="kw">crate</span>::proto::{<a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>, <a href="../../../../src/h2/proto/mod.rs.html#33">MAX_WINDOW_SIZE</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="comment">// We don&#39;t want to send WINDOW_UPDATE frames for tiny changes, but instead</span>
-<span class="comment">// aggregate them when the changes are significant. Many implementations do</span>
-<span class="comment">// this by keeping a &quot;ratio&quot; of the update version the allowed window size.</span>
-<span class="comment">//</span>
-<span class="comment">// While some may wish to represent this ratio as percentage, using a f32,</span>
-<span class="comment">// we skip having to deal with float math and stick to integers. To do so,</span>
-<span class="comment">// the &quot;ratio&quot; is represented by 2 i32s, split into the numerator and</span>
-<span class="comment">// denominator. For example, a 50% ratio is simply represented as 1/2.</span>
-<span class="comment">//</span>
-<span class="comment">// An example applying this ratio: If a stream has an allowed window size of</span>
-<span class="comment">// 100 bytes, WINDOW_UPDATE frames are scheduled when the unclaimed change</span>
-<span class="comment">// becomes greater than 1/2, or 50 bytes.</span>
-<span class="kw">const</span> <span class="ident">UNCLAIMED_NUMERATOR</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">UNCLAIMED_DENOMINATOR</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> <span class="op">=</span> <span class="number">2</span>;
+<span class="comment">// We don&#39;t want to send WINDOW_UPDATE frames for tiny changes, but instead
+// aggregate them when the changes are significant. Many implementations do
+// this by keeping a &quot;ratio&quot; of the update version the allowed window size.
+//
+// While some may wish to represent this ratio as percentage, using a f32,
+// we skip having to deal with float math and stick to integers. To do so,
+// the &quot;ratio&quot; is represented by 2 i32s, split into the numerator and
+// denominator. For example, a 50% ratio is simply represented as 1/2.
+//
+// An example applying this ratio: If a stream has an allowed window size of
+// 100 bytes, WINDOW_UPDATE frames are scheduled when the unclaimed change
+// becomes greater than 1/2, or 50 bytes.
+</span><span class="kw">const </span>UNCLAIMED_NUMERATOR: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> = <span class="number">1</span>;
+<span class="kw">const </span>UNCLAIMED_DENOMINATOR: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> = <span class="number">2</span>;
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">sanity_unclaimed_ratio</span>() {
-    <span class="macro">assert!</span>(<span class="ident">UNCLAIMED_NUMERATOR</span> <span class="op">&lt;</span> <span class="ident">UNCLAIMED_DENOMINATOR</span>);
-    <span class="macro">assert!</span>(<span class="ident">UNCLAIMED_NUMERATOR</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>);
-    <span class="macro">assert!</span>(<span class="ident">UNCLAIMED_DENOMINATOR</span> <span class="op">&gt;</span> <span class="number">0</span>);
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>sanity_unclaimed_ratio() {
+    <span class="macro">assert!</span>(UNCLAIMED_NUMERATOR &lt; UNCLAIMED_DENOMINATOR);
+    <span class="macro">assert!</span>(UNCLAIMED_NUMERATOR &gt;= <span class="number">0</span>);
+    <span class="macro">assert!</span>(UNCLAIMED_DENOMINATOR &gt; <span class="number">0</span>);
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FlowControl</span> {
-    <span class="doccomment">/// Window the peer knows about.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can go negative if a SETTINGS_INITIAL_WINDOW_SIZE is received.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For example, say the peer sends a request and uses 32kb of the window.</span>
-    <span class="doccomment">/// We send a SETTINGS_INITIAL_WINDOW_SIZE of 16kb. The peer has to adjust</span>
-    <span class="doccomment">/// its understanding of the capacity of the window, and that would be:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```notrust</span>
-    <span class="doccomment">/// default (64kb) - used (32kb) - settings_diff (64kb - 16kb): -16kb</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">window_size</span>: <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>,
+<span class="attribute">#[derive(Copy, Clone, Debug)]
+</span><span class="kw">pub struct </span>FlowControl {
+    <span class="doccomment">/// Window the peer knows about.
+    ///
+    /// This can go negative if a SETTINGS_INITIAL_WINDOW_SIZE is received.
+    ///
+    /// For example, say the peer sends a request and uses 32kb of the window.
+    /// We send a SETTINGS_INITIAL_WINDOW_SIZE of 16kb. The peer has to adjust
+    /// its understanding of the capacity of the window, and that would be:
+    ///
+    /// ```notrust
+    /// default (64kb) - used (32kb) - settings_diff (64kb - 16kb): -16kb
+    /// ```
+    </span>window_size: <a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>,
 
-    <span class="doccomment">/// Window that we know about.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can go negative if a user declares a smaller target window than</span>
-    <span class="doccomment">/// the peer knows about.</span>
-    <span class="ident">available</span>: <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>,
+    <span class="doccomment">/// Window that we know about.
+    ///
+    /// This can go negative if a user declares a smaller target window than
+    /// the peer knows about.
+    </span>available: <a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#29">FlowControl</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#29">FlowControl</a> {
-        <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#29">FlowControl</a> {
-            <span class="ident">window_size</span>: <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>(<span class="number">0</span>),
-            <span class="ident">available</span>: <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>(<span class="number">0</span>),
+<span class="kw">impl </span><a href="../../../../src/h2/proto/streams/flow_control.rs.html#29">FlowControl</a> {
+    <span class="kw">pub fn </span>new() -&gt; <a href="../../../../src/h2/proto/streams/flow_control.rs.html#29">FlowControl</a> {
+        <a href="../../../../src/h2/proto/streams/flow_control.rs.html#29">FlowControl</a> {
+            window_size: <a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>(<span class="number">0</span>),
+            available: <a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>(<span class="number">0</span>),
         }
     }
 
-    <span class="doccomment">/// Returns the window size as known by the peer</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">window_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a> {
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#59">self</a>.<span class="ident">window_size</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#195">as_size</a>()
+    <span class="doccomment">/// Returns the window size as known by the peer
+    </span><span class="kw">pub fn </span>window_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a> {
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#59">self</a>.window_size.<a href="../../../../src/h2/proto/streams/flow_control.rs.html#195">as_size</a>()
     }
 
-    <span class="doccomment">/// Returns the window size available to the consumer</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">self</a>.<span class="ident">available</span>
+    <span class="doccomment">/// Returns the window size available to the consumer
+    </span><span class="kw">pub fn </span>available(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">self</a>.available
     }
 
-    <span class="doccomment">/// Returns true if there is unavailable window capacity</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_unavailable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">window_size</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="doccomment">/// Returns true if there is unavailable window capacity
+    </span><span class="kw">pub fn </span>has_unavailable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if </span><span class="self">self</span>.window_size &lt; <span class="number">0 </span>{
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#69">self</a>.<span class="ident">window_size</span> <span class="op">&gt;</span> <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#69">self</a>.<span class="ident">available</span>
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#69">self</a>.window_size &gt; <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#69">self</a>.available
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">claim_capacity</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">capacity</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#77">self</a>.<span class="ident">available</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#77">capacity</a>;
+    <span class="kw">pub fn </span>claim_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, capacity: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#77">self</a>.available -= <a href="../../../../src/h2/proto/streams/flow_control.rs.html#77">capacity</a>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assign_capacity</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">capacity</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#81">self</a>.<span class="ident">available</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#81">capacity</a>;
+    <span class="kw">pub fn </span>assign_capacity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, capacity: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#81">self</a>.available += <a href="../../../../src/h2/proto/streams/flow_control.rs.html#81">capacity</a>;
     }
 
-    <span class="doccomment">/// If a WINDOW_UPDATE frame should be sent, returns a positive number</span>
-    <span class="doccomment">/// representing the increment to be used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is no available bytes to be reclaimed, or the number of</span>
-    <span class="doccomment">/// available bytes does not reach the threshold, this returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This represents pending outbound WINDOW_UPDATE frames.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unclaimed_capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">available</span> <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#92">self</a>.<span class="ident">available</span>;
+    <span class="doccomment">/// If a WINDOW_UPDATE frame should be sent, returns a positive number
+    /// representing the increment to be used.
+    ///
+    /// If there is no available bytes to be reclaimed, or the number of
+    /// available bytes does not reach the threshold, this returns `None`.
+    ///
+    /// This represents pending outbound WINDOW_UPDATE frames.
+    </span><span class="kw">pub fn </span>unclaimed_capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>&gt; {
+        <span class="kw">let </span>available = <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#92">self</a>.available;
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">window_size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">available</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="kw">if </span><span class="self">self</span>.window_size &gt;= available {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">unclaimed</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#93">available</a>.<span class="number">0</span> <span class="op">-</span> <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#92">self</a>.<span class="ident">window_size</span>.<span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">threshold</span> <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#92">self</a>.<span class="ident">window_size</span>.<span class="number">0</span> <span class="op">/</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#19">UNCLAIMED_DENOMINATOR</a> <span class="op">*</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#18">UNCLAIMED_NUMERATOR</a>;
+        <span class="kw">let </span>unclaimed = <a href="../../../../src/h2/proto/streams/flow_control.rs.html#93">available</a>.<span class="number">0 </span>- <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#92">self</a>.window_size.<span class="number">0</span>;
+        <span class="kw">let </span>threshold = <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#92">self</a>.window_size.<span class="number">0 </span>/ <a href="../../../../src/h2/proto/streams/flow_control.rs.html#19">UNCLAIMED_DENOMINATOR</a> * <a href="../../../../src/h2/proto/streams/flow_control.rs.html#18">UNCLAIMED_NUMERATOR</a>;
 
-        <span class="kw">if</span> <span class="ident">unclaimed</span> <span class="op">&lt;</span> <span class="ident">threshold</span> {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#99">unclaimed</a> <span class="kw">as</span> <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>)
+        <span class="kw">if </span>unclaimed &lt; threshold {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<a href="../../../../src/h2/proto/streams/flow_control.rs.html#99">unclaimed</a> <span class="kw">as </span><a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>)
         }
     }
 
-    <span class="doccomment">/// Increase the window size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is called after receiving a WINDOW_UPDATE frame</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc_window</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/h2/frame/reason.rs.html#19">Reason</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">val</span>, <span class="ident">overflow</span>) <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#112">self</a>.<span class="ident">window_size</span>.<span class="number">0</span>.<span class="ident">overflowing_add</span>(<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#112">sz</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+    <span class="doccomment">/// Increase the window size.
+    ///
+    /// This is called after receiving a WINDOW_UPDATE frame
+    </span><span class="kw">pub fn </span>inc_window(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/h2/frame/reason.rs.html#19">Reason</a>&gt; {
+        <span class="kw">let </span>(val, overflow) = <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#112">self</a>.window_size.<span class="number">0</span>.overflowing_add(<a href="../../../../src/h2/proto/streams/flow_control.rs.html#112">sz</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
 
-        <span class="kw">if</span> <span class="ident">overflow</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reason::FLOW_CONTROL_ERROR</span>);
+        <span class="kw">if </span>overflow {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Reason::FLOW_CONTROL_ERROR);
         }
 
-        <span class="kw">if</span> <span class="ident">val</span> <span class="op">&gt;</span> <span class="ident">MAX_WINDOW_SIZE</span> <span class="kw">as</span> <span class="ident">i32</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reason::FLOW_CONTROL_ERROR</span>);
+        <span class="kw">if </span>val &gt; MAX_WINDOW_SIZE <span class="kw">as </span>i32 {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Reason::FLOW_CONTROL_ERROR);
         }
 
         <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
             <span class="string">&quot;inc_window; sz={}; old={}; new={}&quot;</span>,
-            <span class="ident">sz</span>,
-            <span class="self">self</span>.<span class="ident">window_size</span>,
-            <span class="ident">val</span>
+            sz,
+            <span class="self">self</span>.window_size,
+            val
         );
 
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#112">self</a>.<span class="ident">window_size</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>(<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#113">val</a>);
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#112">self</a>.window_size = <a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>(<a href="../../../../src/h2/proto/streams/flow_control.rs.html#113">val</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Decrement the send-side window size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is called after receiving a SETTINGS frame with a lower</span>
-    <span class="doccomment">/// INITIAL_WINDOW_SIZE value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dec_send_window</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+    <span class="doccomment">/// Decrement the send-side window size.
+    ///
+    /// This is called after receiving a SETTINGS frame with a lower
+    /// INITIAL_WINDOW_SIZE value.
+    </span><span class="kw">pub fn </span>dec_send_window(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
         <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
             <span class="string">&quot;dec_window; sz={}; window={}, available={}&quot;</span>,
-            <span class="ident">sz</span>,
-            <span class="self">self</span>.<span class="ident">window_size</span>,
-            <span class="self">self</span>.<span class="ident">available</span>
+            sz,
+            <span class="self">self</span>.window_size,
+            <span class="self">self</span>.available
         );
-        <span class="comment">// This should not be able to overflow `window_size` from the bottom.</span>
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#138">self</a>.<span class="ident">window_size</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#138">sz</a>;
+        <span class="comment">// This should not be able to overflow `window_size` from the bottom.
+        </span><a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#138">self</a>.window_size -= <a href="../../../../src/h2/proto/streams/flow_control.rs.html#138">sz</a>;
     }
 
-    <span class="doccomment">/// Decrement the recv-side window size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is called after receiving a SETTINGS ACK frame with a lower</span>
-    <span class="doccomment">/// INITIAL_WINDOW_SIZE value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dec_recv_window</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+    <span class="doccomment">/// Decrement the recv-side window size.
+    ///
+    /// This is called after receiving a SETTINGS ACK frame with a lower
+    /// INITIAL_WINDOW_SIZE value.
+    </span><span class="kw">pub fn </span>dec_recv_window(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
         <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
             <span class="string">&quot;dec_recv_window; sz={}; window={}, available={}&quot;</span>,
-            <span class="ident">sz</span>,
-            <span class="self">self</span>.<span class="ident">window_size</span>,
-            <span class="self">self</span>.<span class="ident">available</span>
+            sz,
+            <span class="self">self</span>.window_size,
+            <span class="self">self</span>.available
         );
-        <span class="comment">// This should not be able to overflow `window_size` from the bottom.</span>
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#153">self</a>.<span class="ident">window_size</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#153">sz</a>;
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#153">self</a>.<span class="ident">available</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#153">sz</a>;
+        <span class="comment">// This should not be able to overflow `window_size` from the bottom.
+        </span><a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#153">self</a>.window_size -= <a href="../../../../src/h2/proto/streams/flow_control.rs.html#153">sz</a>;
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#153">self</a>.available -= <a href="../../../../src/h2/proto/streams/flow_control.rs.html#153">sz</a>;
     }
 
-    <span class="doccomment">/// Decrements the window reflecting data has actually been sent. The caller</span>
-    <span class="doccomment">/// must ensure that the window has capacity.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_data</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+    <span class="doccomment">/// Decrements the window reflecting data has actually been sent. The caller
+    /// must ensure that the window has capacity.
+    </span><span class="kw">pub fn </span>send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
         <a class="macro" href="../../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
             <span class="string">&quot;send_data; sz={}; window={}; available={}&quot;</span>,
-            <span class="ident">sz</span>,
-            <span class="self">self</span>.<span class="ident">window_size</span>,
-            <span class="self">self</span>.<span class="ident">available</span>
+            sz,
+            <span class="self">self</span>.window_size,
+            <span class="self">self</span>.available
         );
 
-        <span class="comment">// Ensure that the argument is correct</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">window_size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">sz</span> <span class="kw">as</span> <span class="ident">usize</span>);
+        <span class="comment">// Ensure that the argument is correct
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.window_size &gt;= sz <span class="kw">as </span>usize);
 
-        <span class="comment">// Update values</span>
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#167">self</a>.<span class="ident">window_size</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#167">sz</a>;
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#167">self</a>.<span class="ident">available</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#167">sz</a>;
+        <span class="comment">// Update values
+        </span><a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#167">self</a>.window_size -= <a href="../../../../src/h2/proto/streams/flow_control.rs.html#167">sz</a>;
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#167">self</a>.available -= <a href="../../../../src/h2/proto/streams/flow_control.rs.html#167">sz</a>;
     }
 }
 
-<span class="doccomment">/// The current capacity of a flow-controlled Window.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This number can go negative when either side has used a certain amount</span>
-<span class="doccomment">/// of capacity when the other side advertises a reduction in size.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type tries to centralize the knowledge of addition and subtraction</span>
-<span class="doccomment">/// to this capacity, instead of having integer casts throughout the source.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Window</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<span class="doccomment">/// The current capacity of a flow-controlled Window.
+///
+/// This number can go negative when either side has used a certain amount
+/// of capacity when the other side advertises a reduction in size.
+///
+/// This type tries to centralize the knowledge of addition and subtraction
+/// to this capacity, instead of having integer casts throughout the source.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+</span><span class="kw">pub struct </span>Window(<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#195">self</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>
+<span class="kw">impl </span><a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
+    <span class="kw">pub fn </span>as_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a> {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>&lt; <span class="number">0 </span>{
+            <span class="number">0
+        </span>} <span class="kw">else </span>{
+            <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#195">self</a>.<span class="number">0 </span><span class="kw">as </span><a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>, <span class="string">&quot;negative Window&quot;</span>);
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#203">self</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>
+    <span class="kw">pub fn </span>checked_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="number">0 </span>&gt;= <span class="number">0</span>, <span class="string">&quot;negative Window&quot;</span>);
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#203">self</a>.<span class="number">0 </span><span class="kw">as </span><a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="bool-val">false</span>
-        } <span class="kw">else</span> {
-            (<a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#210">self</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#210">other</a>)
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">::std::cmp::Ordering</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">::std::cmp::Ordering::Less</span>)
-        } <span class="kw">else</span> {
-            (<a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#220">self</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#220">other</a>)
+<span class="kw">impl </span>PartialEq&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span><a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>&lt; <span class="number">0 </span>{
+            <span class="bool-val">false
+        </span>} <span class="kw">else </span>{
+            (<a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#210">self</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="../../../../src/h2/proto/streams/flow_control.rs.html#210">other</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">::std::ops::SubAssign</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
-    <span class="kw">fn</span> <span class="ident">sub_assign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#230">self</a>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#230">other</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+<span class="kw">impl </span>PartialOrd&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; <span class="kw">for </span><a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">::std::cmp::Ordering</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>&lt; <span class="number">0 </span>{
+            <span class="prelude-val">Some</span>(::std::cmp::Ordering::Less)
+        } <span class="kw">else </span>{
+            (<a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#220">self</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="../../../../src/h2/proto/streams/flow_control.rs.html#220">other</a>)
+        }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">::std::ops::Add</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">other</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>(<a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#237">self</a>.<span class="number">0</span> <span class="op">+</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#237">other</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)
+<span class="kw">impl </span>::std::ops::SubAssign&lt;<a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>&gt; <span class="kw">for </span><a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
+    <span class="kw">fn </span>sub_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#230">self</a>.<span class="number">0 </span>-= <a href="../../../../src/h2/proto/streams/flow_control.rs.html#230">other</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">::std::ops::AddAssign</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
-    <span class="kw">fn</span> <span class="ident">add_assign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
-        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#243">self</a>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#243">other</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+<span class="kw">impl </span>::std::ops::Add&lt;<a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>&gt; <span class="kw">for </span><a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+    <span class="kw">fn </span>add(<span class="self">self</span>, other: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) -&gt; <span class="self">Self</span>::Output {
+        <a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>(<a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#237">self</a>.<span class="number">0 </span>+ <a href="../../../../src/h2/proto/streams/flow_control.rs.html#237">other</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#249">self</a>.<span class="number">0</span>, <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#249">f</a>)
+<span class="kw">impl </span>::std::ops::AddAssign&lt;<a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>&gt; <span class="kw">for </span><a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
+    <span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <a href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+        <a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#243">self</a>.<span class="number">0 </span>+= <a href="../../../../src/h2/proto/streams/flow_control.rs.html#243">other</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">w</span>: <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> {
-        <a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#255">w</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/h2/proto/streams/flow_control.rs.html#249">self</a>.<span class="number">0</span>, <a href="../../../../src/h2/proto/streams/flow_control.rs.html#249">f</a>)
+    }
+}
+
+<span class="kw">impl </span>From&lt;<a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> {
+    <span class="kw">fn </span>from(w: <a href="../../../../src/h2/proto/streams/flow_control.rs.html#192">Window</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> {
+        <a href="../../../../src/h2/proto/streams/flow_control.rs.html#255">w</a>.<span class="number">0 </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

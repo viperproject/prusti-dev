@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -667,674 +667,674 @@
 <span id="667">667</span>
 <span id="668">668</span>
 <span id="669">669</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::permission</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#17">MutBorrowed</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23"><span class="kw">crate</span>::encoder::errors::SpannedEncodingResult</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
-<span class="kw">use</span> <span class="ident">vir_crate</span>::{
-    <a class="ident" href="../../../../../../vir/middle/index.html">middle</a> <span class="kw">as</span> <span class="ident">vir_mid</span>,
-    <span class="ident">typed</span>::{
-        <a class="self" href="../../../../../../vir/typed/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_typed</span>,
-        <span class="ident">operations</span>::{<a class="ident" href="../../../../../../vir/gen/typed/operations_internal/lifetimes/trait.WithLifetimes.html">lifetimes::WithLifetimes</a>, <a class="ident" href="../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">ty::Typed</a>},
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::permission::{<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#17">MutBorrowed</a>, <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>, <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>};
+<span class="kw">use </span><a href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23"><span class="kw">crate</span>::encoder::errors::SpannedEncodingResult</a>;
+<span class="kw">use </span><a href="../../../../../../log/macro.debug.html">log::debug</a>;
+<span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
+<span class="kw">use </span>vir_crate::{
+    <a href="../../../../../../vir/middle/index.html">middle</a> <span class="kw">as </span>vir_mid,
+    typed::{
+        <span class="self"><a href="../../../../../../vir/typed/index.html">self</a> </span><span class="kw">as </span>vir_typed,
+        operations::{<a href="../../../../../../vir/gen/typed/operations_internal/lifetimes/trait.WithLifetimes.html">lifetimes::WithLifetimes</a>, <a href="../../../../../../vir/gen/typed/operations_internal/ty/trait.Typed.html">ty::Typed</a>},
     },
 };
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">PredicateState</span> {
-    <span class="ident">owned_non_aliased</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span>,
-    <span class="ident">memory_block_stack</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span>,
-    <span class="ident">mut_borrowed</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a class="ident" href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a><span class="op">&gt;</span>,
-    <span class="ident">dead_lifetimes</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Default)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>PredicateState {
+    owned_non_aliased: BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;,
+    memory_block_stack: BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;,
+    mut_borrowed: BTreeMap&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>&gt;,
+    dead_lifetimes: BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">PlaceWithDeadLifetimes</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">lifetimes_dead_before</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">lifetimes_dead_after</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>PlaceWithDeadLifetimes {
+    <span class="kw">pub</span>(<span class="kw">super</span>) place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) lifetimes_dead_before: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) lifetimes_dead_after: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">struct</span> <span class="ident">FoldUnfoldState</span> {
-    <span class="doccomment">/// If this state is a merge of multiple incoming states, then</span>
-    <span class="doccomment">/// `incoming_labels` contains the list of basic blocks from where the</span>
-    <span class="doccomment">/// already merged states came.</span>
-    <span class="ident">incoming_labels</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// `OwnedNonAliased` and `MemoryBlock` predicates that are unconditionally</span>
-    <span class="doccomment">/// present in the current state.</span>
-    <span class="ident">unconditional</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a>,
-    <span class="doccomment">/// `OwnedNonAliased` and `MemoryBlock` predicates that are present in the</span>
-    <span class="doccomment">/// current state if we came through the blocks with labels specified in the</span>
-    <span class="doccomment">/// key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Invariant: the last label in each key must be one of the</span>
-    <span class="doccomment">/// `incoming_labels`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Invariant: only non-empty entries are present.</span>
-    <span class="ident">conditional</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>FoldUnfoldState {
+    <span class="doccomment">/// If this state is a merge of multiple incoming states, then
+    /// `incoming_labels` contains the list of basic blocks from where the
+    /// already merged states came.
+    </span>incoming_labels: Vec&lt;<a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>&gt;,
+    <span class="doccomment">/// `OwnedNonAliased` and `MemoryBlock` predicates that are unconditionally
+    /// present in the current state.
+    </span>unconditional: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a>,
+    <span class="doccomment">/// `OwnedNonAliased` and `MemoryBlock` predicates that are present in the
+    /// current state if we came through the blocks with labels specified in the
+    /// key.
+    ///
+    /// Invariant: the last label in each key must be one of the
+    /// `incoming_labels`.
+    ///
+    /// Invariant: only non-empty entries are present.
+    </span>conditional: BTreeMap&lt;<a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>, <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="macro">writeln!</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;owned_non_aliased ({}):&quot;</span>, <span class="self">self</span>.<span class="ident">owned_non_aliased</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">owned_non_aliased</span> {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  {}&quot;</span>, <span class="ident">place</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <span class="macro">writeln!</span>(f)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;owned_non_aliased ({}):&quot;</span>, <span class="self">self</span>.owned_non_aliased.len())<span class="question-mark">?</span>;
+        <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.owned_non_aliased {
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;  {}&quot;</span>, place)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;memory_block_stack ({}):&quot;</span>, <span class="self">self</span>.<span class="ident">memory_block_stack</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">memory_block_stack</span> {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  {}&quot;</span>, <span class="ident">place</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;memory_block_stack ({}):&quot;</span>, <span class="self">self</span>.memory_block_stack.len())<span class="question-mark">?</span>;
+        <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.memory_block_stack {
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;  {}&quot;</span>, place)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;mut_borrowed ({}):&quot;</span>, <span class="self">self</span>.<span class="ident">mut_borrowed</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
-        <span class="kw">for</span> (<span class="ident">place</span>, <span class="ident">lifetime</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mut_borrowed</span> {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  &amp;{} {}&quot;</span>, <span class="ident">lifetime</span>, <span class="ident">place</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;mut_borrowed ({}):&quot;</span>, <span class="self">self</span>.mut_borrowed.len())<span class="question-mark">?</span>;
+        <span class="kw">for </span>(place, lifetime) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.mut_borrowed {
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;  &amp;{} {}&quot;</span>, lifetime, place)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a> {
-    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">is_empty</span>()
+<span class="kw">impl </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a> {
+    <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.owned_non_aliased.is_empty()
+            &amp;&amp; <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.memory_block_stack.is_empty()
+            &amp;&amp; <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.mut_borrowed.is_empty()
     }
 
-    <span class="kw">fn</span> <span class="ident">contains_only_leakable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> {
-                <span class="comment">// `UniqueRef` and `FracRef` predicates can be leaked.</span>
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#75">place</a>.<span class="ident">get_dereference_base</span>().<span class="ident">is_some</span>()
+    <span class="kw">fn </span>contains_only_leakable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">self</a>.memory_block_stack.is_empty()
+            &amp;&amp; <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">self</a>.owned_non_aliased.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|place| {
+                <span class="comment">// `UniqueRef` and `FracRef` predicates can be leaked.
+                </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#75">place</a>.get_dereference_base().is_some()
             })
     }
 
-    <span class="kw">fn</span> <span class="ident">places_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">kind</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.<span class="ident">memory_block_stack</span>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.<span class="ident">owned_non_aliased</span>,
+    <span class="kw">fn </span>places_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>) -&gt; <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">kind</a> {
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.memory_block_stack,
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.owned_non_aliased,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">places</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">kind</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.<span class="ident">memory_block_stack</span>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.<span class="ident">owned_non_aliased</span>,
+    <span class="kw">fn </span>places(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>) -&gt; <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">kind</a> {
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.memory_block_stack,
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.owned_non_aliased,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">remove</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">places_mut</span>(<span class="ident">kind</span>).<span class="ident">remove</span>(<span class="ident">place</span>),
+            <span class="self">self</span>.places_mut(kind).remove(place),
             <span class="string">&quot;not found: {} in {:?}&quot;</span>,
-            <span class="ident">place</span>,
-            <span class="ident">kind</span>
+            place,
+            kind
         );
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">remove_mut_borrowed</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove_mut_borrowed(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">mut_borrowed</span>.<span class="ident">remove</span>(<span class="ident">place</span>).<span class="ident">is_some</span>(),
+            <span class="self">self</span>.mut_borrowed.remove(place).is_some(),
             <span class="string">&quot;not found in mut_borrowed: {}&quot;</span>,
-            <span class="ident">place</span>,
+            place,
         );
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">insert</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
-        <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#128">place</a>.<span class="ident">check_no_default_position</span>();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>insert(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
+        place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#128">place</a>.check_no_default_position();
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">places_mut</span>(<span class="ident">kind</span>).<span class="ident">insert</span>(<span class="ident">place</span>),
-            <span class="string">&quot;already contains a place&quot;</span>
-        );
+            <span class="self">self</span>.places_mut(kind).insert(place),
+            <span class="string">&quot;already contains a place&quot;
+        </span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>, <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">kind</a>).<span class="ident">contains</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">place</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>, place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">kind</a>).contains(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">place</a>)
     }
 
-    <span class="doccomment">/// Returns a witness if it exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The witness must not be enum&#39;s discriminant because it is useless for</span>
-    <span class="doccomment">/// determining the variant statically.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains_non_discriminant_with_prefix</span>(
+    <span class="doccomment">/// Returns a witness if it exists.
+    ///
+    /// The witness must not be enum&#39;s discriminant because it is useless for
+    /// determining the variant statically.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>contains_non_discriminant_with_prefix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
-        <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#150">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#150">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#151">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#155">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#152">prefix</a>) <span class="op">&amp;&amp;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir_typed::Expression::Field</span>(<span class="ident">field</span>) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#155">p</a> {
-                    <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#157">field</a>.<span class="ident">field</span>.<span class="ident">is_discriminant</span>()
-                } <span class="kw">else</span> {
-                    <span class="bool-val">true</span>
-                }
+        kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
+        prefix: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#150">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#150">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#151">kind</a>).iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|p| {
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#155">p</a>.has_prefix(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#152">prefix</a>) &amp;&amp; {
+                <span class="kw">if let </span>vir_typed::Expression::Field(field) = <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#155">p</a> {
+                    !<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#157">field</a>.field.is_discriminant()
+                } <span class="kw">else </span>{
+                    <span class="bool-val">true
+                </span>}
             }
         })
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains_discriminant_with_prefix</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>contains_discriminant_with_prefix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">owned</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#167">self</a>
-            .<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a>)
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#173">place</a>));
-        <span class="kw">let</span> <span class="ident">memory_block</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#167">self</a>
-            .<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a>)
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#177">place</a>));
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#170">owned</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#174">memory_block</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">p</span>)<span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir_typed::Expression::Field</span>(<span class="ident">field</span>) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#178">p</a> {
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#179">field</a>.<span class="ident">field</span>.<span class="ident">is_discriminant</span>() <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#179">field</a>.<span class="ident">base</span> <span class="op">==</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#168">prefix</a>
-            } <span class="kw">else</span> {
-                <span class="bool-val">false</span>
-            }
+        prefix: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>, <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>)&gt; {
+        <span class="kw">let </span>owned = <span class="self"><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#167">self</a>
+            </span>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a>)
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|place| (<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a>, <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#173">place</a>));
+        <span class="kw">let </span>memory_block = <span class="self"><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#167">self</a>
+            </span>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a>)
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|place| (<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a>, <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#177">place</a>));
+        <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#170">owned</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#174">memory_block</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|(<span class="kw">_</span>, p)| {
+            <span class="kw">if let </span>vir_typed::Expression::Field(field) = <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#178">p</a> {
+                <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#179">field</a>.field.is_discriminant() &amp;&amp; <span class="kw-2">&amp;*</span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#179">field</a>.base == <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#168">prefix</a>
+            } <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>}
         })
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_all_with_prefix</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
-        <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
-        <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#188">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#188">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#189">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#193">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#190">prefix</a>))
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_all_with_prefix&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+        kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
+        prefix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#188">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#188">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#189">kind</a>).iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|p| <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#193">p</a>.has_prefix(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#190">prefix</a>))
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains_prefix_of</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>contains_prefix_of(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#197">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#197">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#198">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#199">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#202">p</a>))
+        kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#197">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#197">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#198">kind</a>).iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|p| <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#199">place</a>.has_prefix(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#202">p</a>))
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">find_prefix</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>find_prefix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#206">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#206">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#207">kind</a>)
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#213">p</a>.<span class="ident">check_no_default_position</span>();
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#208">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#213">p</a>)
+        kind: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23">PermissionKind</a>,
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#206">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#206">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#207">kind</a>)
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|p| {
+                <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#213">p</a>.check_no_default_position();
+                <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#208">place</a>.has_prefix(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#213">p</a>)
             })
-            .<span class="ident">cloned</span>()
+            .cloned()
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">collect_owned_with_prefix</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>collect_owned_with_prefix(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#221">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <span class="kw">let</span> <span class="ident">collected_places</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#221">self</a>
-            .<span class="ident">owned_non_aliased</span>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#228">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#222">prefix</a>))
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#225">collected_places</a>)
+        prefix: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;Vec&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#221">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <span class="kw">let </span>collected_places = <span class="self"><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#221">self</a>
+            </span>.owned_non_aliased
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|place| <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#228">place</a>.has_prefix(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#222">prefix</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="prelude-val">Ok</span>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#225">collected_places</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains_blocked</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>contains_blocked(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>)<span class="op">&gt;</span><span class="op">&gt;</span>
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>)&gt;&gt;
     {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#235">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">prefix_expr</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">p</a> {
-                <span class="ident">vir_typed::Expression::BuiltinFuncApp</span>(<a class="ident" href="../../../../../../vir/gen/typed/ast/expression/struct.BuiltinFuncApp.html">vir_typed::BuiltinFuncApp</a> {
-                    <span class="ident">function</span>: <span class="ident">vir_typed::BuiltinFunc::Index</span>,
-                    <span class="ident">type_arguments</span>: <span class="kw">_</span>,
-                    <span class="ident">arguments</span>,
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#235">self</a>.mut_borrowed.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|(p, <span class="kw">_</span>)| {
+            <span class="kw">let </span>prefix_expr = <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">p</a> {
+                vir_typed::Expression::BuiltinFuncApp(<a href="../../../../../../vir/gen/typed/ast/expression/struct.BuiltinFuncApp.html">vir_typed::BuiltinFuncApp</a> {
+                    function: vir_typed::BuiltinFunc::Index,
+                    type_arguments: <span class="kw">_</span>,
+                    arguments,
                     ..
-                }) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#244">arguments</a>[<span class="number">0</span>],
-                <span class="kw">_</span> =&gt; <span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">p</a>,
+                }) =&gt; <span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#244">arguments</a>[<span class="number">0</span>],
+                <span class="kw">_ </span>=&gt; <span class="kw-2">*</span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">p</a>,
             };
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#240">prefix_expr</a>)
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">place</a>.has_prefix(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#240">prefix_expr</a>)
         }))
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">clear</span>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">clear</span>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">clear</span>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.owned_non_aliased.clear();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.memory_block_stack.clear();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.mut_borrowed.clear();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">check_no_default_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">for</span> <span class="ident">expr</span> <span class="kw">in</span> <span class="self">self</span>
-            .<span class="ident">owned_non_aliased</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">chain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">memory_block_stack</span>)
+    <span class="kw">fn </span>check_no_default_position(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">for </span>expr <span class="kw">in </span><span class="self">self
+            </span>.owned_non_aliased
+            .iter()
+            .chain(<span class="kw-2">&amp;</span><span class="self">self</span>.memory_block_stack)
         {
-            <span class="ident">expr</span>.<span class="ident">check_no_default_position</span>();
+            expr.check_no_default_position();
         }
-        <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">mut_borrowed</span>.<span class="ident">keys</span>() {
-            <span class="ident">place</span>.<span class="ident">check_no_default_position</span>();
+        <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.mut_borrowed.keys() {
+            place.check_no_default_position();
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">mark_lifetime_dead</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">lifetime</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>,
-    ) -&gt; (<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#21">PlaceWithDeadLifetimes</a><span class="op">&gt;</span>) {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>mark_lifetime_dead(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        lifetime: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>,
+    ) -&gt; (Vec&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;, Vec&lt;<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#21">PlaceWithDeadLifetimes</a>&gt;) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="op">!</span><span class="self">self</span>.<span class="ident">dead_lifetimes</span>.<span class="ident">contains</span>(<span class="ident">lifetime</span>),
+            !<span class="self">self</span>.dead_lifetimes.contains(lifetime),
             <span class="string">&quot;The lifetime {} is already dead.&quot;</span>,
-            <span class="ident">lifetime</span>
+            lifetime
         );
-        <span class="kw">let</span> <span class="ident">dead_references</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#275">self</a>
-            .<span class="ident">owned_non_aliased</span>
-            .<span class="ident">drain_filter</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#285">place</a>.<span class="ident">is_deref_of_lifetime</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#276">lifetime</a>))
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">places_with_dead_lifetimes</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">owned_non_aliased</span> {
-            <span class="kw">let</span> <span class="ident">lifetimes</span> <span class="op">=</span> <span class="ident">place</span>.<span class="ident">get_type</span>().<span class="ident">get_lifetimes</span>();
-            <span class="kw">if</span> <span class="ident">lifetimes</span>.<span class="ident">contains</span>(<span class="ident">lifetime</span>) {
-                <span class="ident">places_with_dead_lifetimes</span>.<span class="ident">push</span>(<span class="ident">PlaceWithDeadLifetimes</span> {
-                    <span class="ident">place</span>: <span class="ident">place</span>.<span class="ident">clone</span>(),
-                    <span class="ident">lifetimes_dead_before</span>: <span class="ident">lifetimes</span>
-                        .<span class="ident">iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">dead_lifetimes</span>.<span class="ident">contains</span>(<span class="ident">l</span>))
-                        .<span class="ident">collect</span>(),
-                    <span class="ident">lifetimes_dead_after</span>: <span class="ident">lifetimes</span>
-                        .<span class="ident">iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">dead_lifetimes</span>.<span class="ident">contains</span>(<span class="ident">l</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">l</span> <span class="op">==</span> <span class="ident">lifetime</span>)
-                        .<span class="ident">collect</span>(),
+        <span class="kw">let </span>dead_references = <span class="self"><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#275">self</a>
+            </span>.owned_non_aliased
+            .drain_filter(|place| <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#285">place</a>.is_deref_of_lifetime(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#276">lifetime</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>places_with_dead_lifetimes = Vec::new();
+        <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.owned_non_aliased {
+            <span class="kw">let </span>lifetimes = place.get_type().get_lifetimes();
+            <span class="kw">if </span>lifetimes.contains(lifetime) {
+                places_with_dead_lifetimes.push(PlaceWithDeadLifetimes {
+                    place: place.clone(),
+                    lifetimes_dead_before: lifetimes
+                        .iter()
+                        .map(|l| <span class="self">self</span>.dead_lifetimes.contains(l))
+                        .collect(),
+                    lifetimes_dead_after: lifetimes
+                        .iter()
+                        .map(|l| <span class="self">self</span>.dead_lifetimes.contains(l) || l == lifetime)
+                        .collect(),
                 });
             }
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#275">self</a>.<span class="ident">dead_lifetimes</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#276">lifetime</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#283">dead_references</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#287">places_with_dead_lifetimes</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#275">self</a>.dead_lifetimes.insert(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#276">lifetime</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        (<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#283">dead_references</a>, <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#287">places_with_dead_lifetimes</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#28">FoldUnfoldState</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;incoming labels: &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">label</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">incoming_labels</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}, &quot;</span>, <span class="ident">label</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#28">FoldUnfoldState</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <span class="macro">write!</span>(f, <span class="string">&quot;incoming labels: &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>label <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.incoming_labels {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{}, &quot;</span>, label)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;\nunconditional:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">unconditional</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> (<span class="ident">condition</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">conditional</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;conditional ({}&quot;</span>, <span class="ident">condition</span>)<span class="question-mark">?</span>;
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;):\n{}&quot;</span>, <span class="ident">state</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;\nunconditional:&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.unconditional)<span class="question-mark">?</span>;
+        <span class="kw">for </span>(condition, state) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.conditional {
+            <span class="macro">write!</span>(f, <span class="string">&quot;conditional ({}&quot;</span>, condition)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;):\n{}&quot;</span>, state)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#28">FoldUnfoldState</a> {
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">incoming_labels</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">unconditional</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            <span class="ident">conditional</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+<span class="kw">impl </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#28">FoldUnfoldState</a> {
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            incoming_labels: Vec::new(),
+            unconditional: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            conditional: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">debug_print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>debug_print(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <a class="macro" href="../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;state:\n{}&quot;</span>, <span class="self">self</span>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">contains_only_leakable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">for</span> <span class="ident">state</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">conditional</span>.<span class="ident">values</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">state</span>.<span class="ident">contains_only_leakable</span>() {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains_only_leakable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">for </span>state <span class="kw">in </span><span class="self">self</span>.conditional.values() {
+            <span class="kw">if </span>!state.contains_only_leakable() {
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#338">self</a>.<span class="ident">unconditional</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">contains_only_leakable</a>()
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#338">self</a>.unconditional.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">contains_only_leakable</a>()
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">reset_incoming_labels_with</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">incoming_label</span>: <a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
-        <span class="ident">path_disambiguators</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>],
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#348">self</a>.<span class="ident">conditional</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#348">self</a>.<span class="ident">conditional</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw-2">mut</span> <span class="ident">labels</span>, <span class="ident">state</span>)<span class="op">|</span> {
-                <span class="kw">for</span> <span class="ident">non_incoming_label</span> <span class="kw">in</span> <span class="ident">path_disambiguators</span> {
-                    <span class="ident">labels</span>.<span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">vir_mid::BlockMarkerConditionElement</span> {
-                        <span class="ident">visited</span>: <span class="bool-val">false</span>,
-                        <span class="ident">basic_block_id</span>: <span class="ident">non_incoming_label</span>.<span class="ident">clone</span>(),
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>reset_incoming_labels_with(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        incoming_label: <a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
+        path_disambiguators: <span class="kw-2">&amp;</span>[<a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>],
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#348">self</a>.conditional = std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#348">self</a>.conditional)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw-2">mut </span>labels, state)| {
+                <span class="kw">for </span>non_incoming_label <span class="kw">in </span>path_disambiguators {
+                    labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                        visited: <span class="bool-val">false</span>,
+                        basic_block_id: non_incoming_label.clone(),
                     });
                 }
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">labels</a>.<span class="ident">elements</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerConditionElement.html">vir_mid::BlockMarkerConditionElement</a> {
-                    <span class="ident">visited</span>: <span class="bool-val">true</span>,
-                    <span class="ident">basic_block_id</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#349">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">labels</a>.elements.push(<a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerConditionElement.html">vir_mid::BlockMarkerConditionElement</a> {
+                    visited: <span class="bool-val">true</span>,
+                    basic_block_id: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#349">incoming_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 });
-                (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">labels</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">state</a>)
+                (<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">labels</a>, <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">state</a>)
             })
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#348">self</a>.<span class="ident">incoming_labels</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">incoming_label</span>];
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#348">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#348">self</a>.incoming_labels = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[incoming_label];
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#348">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Merge `incoming_state` coming from block with label `incoming_label`</span>
-    <span class="doccomment">/// into `self`.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">merge</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">incoming_label</span>: <a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
-        <span class="ident">current_label</span>: <a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
-        <span class="ident">path_disambiguators</span>: <span class="kw-2">&amp;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span>
-            (<a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, <a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>),
-            <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a><span class="op">&gt;</span>,
-        <span class="op">&gt;</span>,
-        <span class="ident">incoming_state</span>: <span class="self">Self</span>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_conditional</span> <span class="op">=</span> <span class="ident">PredicateState::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">incoming_conditional</span> <span class="op">=</span> <span class="ident">PredicateState::default</span>();
+    <span class="doccomment">/// Merge `incoming_state` coming from block with label `incoming_label`
+    /// into `self`.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>merge(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        incoming_label: <a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
+        current_label: <a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
+        path_disambiguators: <span class="kw-2">&amp;</span>BTreeMap&lt;
+            (<a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, <a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>),
+            Vec&lt;<a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>&gt;,
+        &gt;,
+        incoming_state: <span class="self">Self</span>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>new_conditional = PredicateState::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>incoming_conditional = PredicateState::default();
 
-        <span class="comment">// Move differences between unconditional into conditional.</span>
-        <span class="ident"><span class="self">Self</span>::merge_unconditional</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">owned_non_aliased</span>,
-            <span class="ident">incoming_state</span>.<span class="ident">unconditional</span>.<span class="ident">owned_non_aliased</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">new_conditional</span>.<span class="ident">owned_non_aliased</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">incoming_conditional</span>.<span class="ident">owned_non_aliased</span>,
+        <span class="comment">// Move differences between unconditional into conditional.
+        </span><span class="self">Self</span>::merge_unconditional(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.unconditional.owned_non_aliased,
+            incoming_state.unconditional.owned_non_aliased,
+            <span class="kw-2">&amp;mut </span>new_conditional.owned_non_aliased,
+            <span class="kw-2">&amp;mut </span>incoming_conditional.owned_non_aliased,
         )<span class="question-mark">?</span>;
-        <span class="ident"><span class="self">Self</span>::merge_unconditional</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">memory_block_stack</span>,
-            <span class="ident">incoming_state</span>.<span class="ident">unconditional</span>.<span class="ident">memory_block_stack</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">new_conditional</span>.<span class="ident">memory_block_stack</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">incoming_conditional</span>.<span class="ident">memory_block_stack</span>,
+        <span class="self">Self</span>::merge_unconditional(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.unconditional.memory_block_stack,
+            incoming_state.unconditional.memory_block_stack,
+            <span class="kw-2">&amp;mut </span>new_conditional.memory_block_stack,
+            <span class="kw-2">&amp;mut </span>incoming_conditional.memory_block_stack,
         )<span class="question-mark">?</span>;
-        <span class="ident"><span class="self">Self</span>::merge_unconditional_mut_borrowed</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">mut_borrowed</span>,
-            <span class="ident">incoming_state</span>.<span class="ident">unconditional</span>.<span class="ident">mut_borrowed</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">new_conditional</span>.<span class="ident">mut_borrowed</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">incoming_conditional</span>.<span class="ident">mut_borrowed</span>,
+        <span class="self">Self</span>::merge_unconditional_mut_borrowed(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.unconditional.mut_borrowed,
+            incoming_state.unconditional.mut_borrowed,
+            <span class="kw-2">&amp;mut </span>new_conditional.mut_borrowed,
+            <span class="kw-2">&amp;mut </span>incoming_conditional.mut_borrowed,
         )<span class="question-mark">?</span>;
 
-        <span class="comment">// Copy over conditional.</span>
-        <span class="kw">let</span> <span class="ident">empty_vec</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">incoming_label_path_disambiguators</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#379">path_disambiguators</a>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#377">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#378">current_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
-            .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#409">empty_vec</a>);
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#376">self</a>.<span class="ident">conditional</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#383">incoming_state</a>
-                    .<span class="ident">conditional</span>
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw-2">mut</span> <span class="ident">labels</span>, <span class="ident">state</span>)<span class="op">|</span> {
-                        <span class="kw">for</span> <span class="ident">non_incoming_label</span> <span class="kw">in</span> <span class="ident">incoming_label_path_disambiguators</span> {
-                            <span class="ident">labels</span>.<span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">vir_mid::BlockMarkerConditionElement</span> {
-                                <span class="ident">visited</span>: <span class="bool-val">false</span>,
-                                <span class="ident">basic_block_id</span>: <span class="ident">non_incoming_label</span>.<span class="ident">clone</span>(),
+        <span class="comment">// Copy over conditional.
+        </span><span class="kw">let </span>empty_vec = Vec::new();
+        <span class="kw">let </span>incoming_label_path_disambiguators = <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#379">path_disambiguators</a>
+            .get(<span class="kw-2">&amp;</span>(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#377">incoming_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#378">current_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+            .unwrap_or(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#409">empty_vec</a>);
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#376">self</a>.conditional
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
+                <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#383">incoming_state</a>
+                    .conditional
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw-2">mut </span>labels, state)| {
+                        <span class="kw">for </span>non_incoming_label <span class="kw">in </span>incoming_label_path_disambiguators {
+                            labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                                visited: <span class="bool-val">false</span>,
+                                basic_block_id: non_incoming_label.clone(),
                             });
                         }
-                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#418">labels</a>.<span class="ident">elements</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerConditionElement.html">vir_mid::BlockMarkerConditionElement</a> {
-                            <span class="ident">visited</span>: <span class="bool-val">true</span>,
-                            <span class="ident">basic_block_id</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#377">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#418">labels</a>.elements.push(<a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerConditionElement.html">vir_mid::BlockMarkerConditionElement</a> {
+                            visited: <span class="bool-val">true</span>,
+                            basic_block_id: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#377">incoming_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                         });
-                        (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#418">labels</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#418">state</a>)
+                        (<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#418">labels</a>, <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#418">state</a>)
                     }),
             );
 
-        <span class="comment">// Create new conditionals.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">new_conditional</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">for</span> <span class="ident">label</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">incoming_labels</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">vir_mid::BlockMarkerConditionElement</span> {
-                    <span class="ident">basic_block_id</span>: <span class="ident">label</span>.<span class="ident">clone</span>(),
-                    <span class="ident">visited</span>: <span class="bool-val">true</span>,
+        <span class="comment">// Create new conditionals.
+        </span><span class="kw">if </span>!new_conditional.is_empty() {
+            <span class="kw">for </span>label <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.incoming_labels {
+                <span class="kw">let </span><span class="kw-2">mut </span>elements = <span class="macro">vec!</span>[vir_mid::BlockMarkerConditionElement {
+                    basic_block_id: label.clone(),
+                    visited: <span class="bool-val">true</span>,
                 }];
-                <span class="kw">for</span> <span class="ident">disambiguator</span> <span class="kw">in</span> <span class="ident">path_disambiguators</span>
-                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">label</span>.<span class="ident">clone</span>(), <span class="ident">current_label</span>.<span class="ident">clone</span>()))
-                    .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">empty_vec</span>)
+                <span class="kw">for </span>disambiguator <span class="kw">in </span>path_disambiguators
+                    .get(<span class="kw-2">&amp;</span>(label.clone(), current_label.clone()))
+                    .unwrap_or(<span class="kw-2">&amp;</span>empty_vec)
                 {
-                    <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">vir_mid::BlockMarkerConditionElement</span> {
-                        <span class="ident">visited</span>: <span class="bool-val">false</span>,
-                        <span class="ident">basic_block_id</span>: <span class="ident">disambiguator</span>.<span class="ident">clone</span>(),
+                    elements.push(vir_mid::BlockMarkerConditionElement {
+                        visited: <span class="bool-val">false</span>,
+                        basic_block_id: disambiguator.clone(),
                     });
                 }
-                <span class="self">self</span>.<span class="ident">conditional</span>.<span class="ident">insert</span>(
-                    <span class="ident">vir_mid::BlockMarkerCondition</span> { <span class="ident">elements</span> },
-                    <span class="ident">new_conditional</span>.<span class="ident">clone</span>(),
+                <span class="self">self</span>.conditional.insert(
+                    vir_mid::BlockMarkerCondition { elements },
+                    new_conditional.clone(),
                 );
             }
         }
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">incoming_conditional</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">vir_mid::BlockMarkerConditionElement</span> {
-                <span class="ident">basic_block_id</span>: <span class="ident">incoming_label</span>.<span class="ident">clone</span>(),
-                <span class="ident">visited</span>: <span class="bool-val">true</span>,
+        <span class="kw">if </span>!incoming_conditional.is_empty() {
+            <span class="kw">let </span><span class="kw-2">mut </span>elements = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir_mid::BlockMarkerConditionElement {
+                basic_block_id: incoming_label.clone(),
+                visited: <span class="bool-val">true</span>,
             }];
-            <span class="kw">for</span> <span class="ident">non_incoming_label</span> <span class="kw">in</span> <span class="ident">incoming_label_path_disambiguators</span> {
-                <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">vir_mid::BlockMarkerConditionElement</span> {
-                    <span class="ident">visited</span>: <span class="bool-val">false</span>,
-                    <span class="ident">basic_block_id</span>: <span class="ident">non_incoming_label</span>.<span class="ident">clone</span>(),
+            <span class="kw">for </span>non_incoming_label <span class="kw">in </span>incoming_label_path_disambiguators {
+                elements.push(vir_mid::BlockMarkerConditionElement {
+                    visited: <span class="bool-val">false</span>,
+                    basic_block_id: non_incoming_label.clone(),
                 });
             }
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#376">self</a>.<span class="ident">conditional</span>.<span class="ident">insert</span>(
-                <a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a> { <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#456">elements</a> },
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#386">incoming_conditional</a>,
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#376">self</a>.conditional.insert(
+                <a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a> { <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#456">elements</a> },
+                <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#386">incoming_conditional</a>,
             );
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#376">self</a>.<span class="ident">incoming_labels</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#377">incoming_label</a>);
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#376">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#376">self</a>.incoming_labels.push(<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#377">incoming_label</a>);
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#376">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">merge_unconditional_mut_borrowed</span>(
-        <span class="ident">unconditional</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a class="ident" href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a><span class="op">&gt;</span>,
-        <span class="ident">incoming_unconditional</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a class="ident" href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a><span class="op">&gt;</span>,
-        <span class="ident">new_conditional</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a class="ident" href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a><span class="op">&gt;</span>,
-        <span class="ident">incoming_conditional</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a class="ident" href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unconditional_predicates</span> <span class="op">=</span> <span class="ident">BTreeMap::default</span>();
-        <span class="comment">// Unconditional: merge incoming into self.</span>
-        <span class="kw">for</span> (<span class="ident">predicate</span>, <span class="ident">lifetime</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">incoming_unconditional</span> {
-            <span class="kw">if</span> <span class="ident">unconditional</span>.<span class="ident">contains_key</span>(<span class="ident">predicate</span>) {
-                <span class="ident">unconditional_predicates</span>.<span class="ident">insert</span>(<span class="ident">predicate</span>, <span class="ident">lifetime</span>);
-            } <span class="kw">else</span> {
-                <span class="ident">incoming_conditional</span>.<span class="ident">insert</span>(<span class="ident">predicate</span>.<span class="ident">clone</span>(), <span class="ident">lifetime</span>.<span class="ident">clone</span>());
+    <span class="kw">fn </span>merge_unconditional_mut_borrowed(
+        unconditional: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>&gt;,
+        incoming_unconditional: BTreeMap&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>&gt;,
+        new_conditional: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>&gt;,
+        incoming_conditional: <span class="kw-2">&amp;mut </span>BTreeMap&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>, <a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>&gt;,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>unconditional_predicates = BTreeMap::default();
+        <span class="comment">// Unconditional: merge incoming into self.
+        </span><span class="kw">for </span>(predicate, lifetime) <span class="kw">in </span><span class="kw-2">&amp;</span>incoming_unconditional {
+            <span class="kw">if </span>unconditional.contains_key(predicate) {
+                unconditional_predicates.insert(predicate, lifetime);
+            } <span class="kw">else </span>{
+                incoming_conditional.insert(predicate.clone(), lifetime.clone());
             }
         }
-        <span class="comment">// Unconditional: check what needs to be made conditional.</span>
-        <span class="kw">for</span> (<span class="ident">predicate</span>, <span class="ident">lifetime</span>) <span class="kw">in</span> <span class="ident">unconditional</span>
-            .<span class="ident">drain_filter</span>(<span class="op">|</span><span class="ident">predicate</span>, <span class="kw">_</span><span class="op">|</span> <span class="op">!</span><span class="ident">unconditional_predicates</span>.<span class="ident">contains_key</span>(<span class="ident">predicate</span>))
+        <span class="comment">// Unconditional: check what needs to be made conditional.
+        </span><span class="kw">for </span>(predicate, lifetime) <span class="kw">in </span>unconditional
+            .drain_filter(|predicate, <span class="kw">_</span>| !unconditional_predicates.contains_key(predicate))
         {
-            <span class="ident">new_conditional</span>.<span class="ident">insert</span>(<span class="ident">predicate</span>, <span class="ident">lifetime</span>);
+            new_conditional.insert(predicate, lifetime);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">merge_unconditional</span>(
-        <span class="ident">unconditional</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span>,
-        <span class="ident">incoming_unconditional</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span>,
-        <span class="ident">new_conditional</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span>,
-        <span class="ident">incoming_conditional</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unconditional_predicates</span> <span class="op">=</span> <span class="ident">BTreeSet::default</span>();
-        <span class="comment">// Unconditional: merge incoming into self.</span>
-        <span class="kw">for</span> <span class="ident">predicate</span> <span class="kw">in</span> <span class="ident">incoming_unconditional</span> {
-            <span class="kw">if</span> <span class="ident">unconditional</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">predicate</span>) {
-                <span class="ident">unconditional_predicates</span>.<span class="ident">insert</span>(<span class="ident">predicate</span>);
-            } <span class="kw">else</span> {
-                <span class="ident">incoming_conditional</span>.<span class="ident">insert</span>(<span class="ident">predicate</span>);
+    <span class="kw">fn </span>merge_unconditional(
+        unconditional: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;,
+        incoming_unconditional: BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;,
+        new_conditional: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;,
+        incoming_conditional: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>&gt;,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>unconditional_predicates = BTreeSet::default();
+        <span class="comment">// Unconditional: merge incoming into self.
+        </span><span class="kw">for </span>predicate <span class="kw">in </span>incoming_unconditional {
+            <span class="kw">if </span>unconditional.contains(<span class="kw-2">&amp;</span>predicate) {
+                unconditional_predicates.insert(predicate);
+            } <span class="kw">else </span>{
+                incoming_conditional.insert(predicate);
             }
         }
-        <span class="comment">// Unconditional: check what needs to be made conditional.</span>
-        <span class="kw">for</span> <span class="ident">predicate</span> <span class="kw">in</span>
-            <span class="ident">unconditional</span>.<span class="ident">drain_filter</span>(<span class="op">|</span><span class="ident">predicate</span><span class="op">|</span> <span class="op">!</span><span class="ident">unconditional_predicates</span>.<span class="ident">contains</span>(<span class="ident">predicate</span>))
+        <span class="comment">// Unconditional: check what needs to be made conditional.
+        </span><span class="kw">for </span>predicate <span class="kw">in
+            </span>unconditional.drain_filter(|predicate| !unconditional_predicates.contains(predicate))
         {
-            <span class="ident">new_conditional</span>.<span class="ident">insert</span>(<span class="ident">predicate</span>);
+            new_conditional.insert(predicate);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">insert_memory_block</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">memory_block_stack</span>.<span class="ident">insert</span>(<span class="ident">place</span>));
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#525">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_memory_block(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.unconditional.memory_block_stack.insert(place));
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#525">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">insert_owned</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">owned_non_aliased</span>.<span class="ident">insert</span>(<span class="ident">place</span>));
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#535">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_owned(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.unconditional.owned_non_aliased.insert(place));
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#535">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">insert_mut_borrowed</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">borrow</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#17">MutBorrowed</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">borrow</span>.<span class="ident">place</span>.<span class="ident">is_place</span>());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>
-            .<span class="ident">unconditional</span>
-            .<span class="ident">mut_borrowed</span>
-            .<span class="ident">insert</span>(<span class="ident">borrow</span>.<span class="ident">place</span>, <span class="ident">borrow</span>.<span class="ident">lifetime</span>)
-            .<span class="ident">is_none</span>());
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#545">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_mut_borrowed(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        borrow: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#17">MutBorrowed</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(borrow.place.is_place());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self
+            </span>.unconditional
+            .mut_borrowed
+            .insert(borrow.place, borrow.lifetime)
+            .is_none());
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#545">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">remove_memory_block</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_memory_block(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">memory_block_stack</span>.<span class="ident">remove</span>(<span class="ident">place</span>),
+            <span class="self">self</span>.unconditional.memory_block_stack.remove(place),
             <span class="string">&quot;not found place: {}&quot;</span>,
-            <span class="ident">place</span>
+            place
         );
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#559">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#559">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">remove_owned</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_owned(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(place.is_place());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">owned_non_aliased</span>.<span class="ident">remove</span>(<span class="ident">place</span>),
+            <span class="self">self</span>.unconditional.owned_non_aliased.remove(place),
             <span class="string">&quot;not found place: {}&quot;</span>,
-            <span class="ident">place</span>
+            place
         );
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#573">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#573">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">insert_permissions</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">permissions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">permission</span> <span class="kw">in</span> <span class="ident">permissions</span> {
-            <span class="self">self</span>.<span class="ident">insert_permission</span>(<span class="ident">permission</span>)<span class="question-mark">?</span>;
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_permissions(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        permissions: Vec&lt;<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>&gt;,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">for </span>permission <span class="kw">in </span>permissions {
+            <span class="self">self</span>.insert_permission(permission)<span class="question-mark">?</span>;
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#587">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#587">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">insert_permission</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">permission</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#598">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#599">permission</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#6">Permission::MemoryBlock</a>(<span class="ident">place</span>) =&gt; <span class="self">self</span>.<span class="ident">insert_memory_block</span>(<span class="ident">place</span>)<span class="question-mark">?</span>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10">Permission::Owned</a>(<span class="ident">place</span>) =&gt; <span class="self">self</span>.<span class="ident">insert_owned</span>(<span class="ident">place</span>)<span class="question-mark">?</span>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#12">Permission::MutBorrowed</a>(<span class="ident">borrow</span>) =&gt; <span class="self">self</span>.<span class="ident">insert_mut_borrowed</span>(<span class="ident">borrow</span>)<span class="question-mark">?</span>,
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_permission(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        permission: <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#598">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#599">permission</a> {
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#6">Permission::MemoryBlock</a>(place) =&gt; <span class="self">self</span>.insert_memory_block(place)<span class="question-mark">?</span>,
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10">Permission::Owned</a>(place) =&gt; <span class="self">self</span>.insert_owned(place)<span class="question-mark">?</span>,
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#12">Permission::MutBorrowed</a>(borrow) =&gt; <span class="self">self</span>.insert_mut_borrowed(borrow)<span class="question-mark">?</span>,
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#598">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#598">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">remove_permissions</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">permissions</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>],
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#612">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
-        <span class="kw">for</span> <span class="ident">permission</span> <span class="kw">in</span> <span class="ident">permissions</span> {
-            <span class="self">self</span>.<span class="ident">remove_permission</span>(<span class="ident">permission</span>)<span class="question-mark">?</span>;
-        }
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">remove_permission</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">permission</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#623">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#624">permission</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#6">Permission::MemoryBlock</a>(<span class="ident">place</span>) =&gt; <span class="self">self</span>.<span class="ident">remove_memory_block</span>(<span class="ident">place</span>)<span class="question-mark">?</span>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10">Permission::Owned</a>(<span class="ident">place</span>) =&gt; <span class="self">self</span>.<span class="ident">remove_owned</span>(<span class="ident">place</span>)<span class="question-mark">?</span>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#12">Permission::MutBorrowed</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_permissions(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        permissions: <span class="kw-2">&amp;</span>[<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>],
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#612">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <span class="kw">for </span>permission <span class="kw">in </span>permissions {
+            <span class="self">self</span>.remove_permission(permission)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_unconditional_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#635">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
-        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#635">self</a>.<span class="ident">unconditional</span>)
-    }
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_conditional_states</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>
-        <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a>)<span class="op">&gt;</span>,
-    <span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">self</a>.<span class="ident">conditional</span>.<span class="ident">iter_mut</span>())
-    }
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">remove_empty_conditional_states</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#649">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#649">self</a>.<span class="ident">conditional</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">state</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#651">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">is_empty</a>());
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_permission(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        permission: <span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4">Permission</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#623">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#624">permission</a> {
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#6">Permission::MemoryBlock</a>(place) =&gt; <span class="self">self</span>.remove_memory_block(place)<span class="question-mark">?</span>,
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10">Permission::Owned</a>(place) =&gt; <span class="self">self</span>.remove_owned(place)<span class="question-mark">?</span>,
+            <a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#12">Permission::MutBorrowed</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Remove all permissions. This is intended to be used only by `LeakAll` statement.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#656">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
-        <span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">clear</span>()<span class="question-mark">?</span>;
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#656">self</a>.<span class="ident">conditional</span>.<span class="ident">clear</span>();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_unconditional_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;<span class="kw-2">&amp;mut </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a>&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#635">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#635">self</a>.unconditional)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_conditional_states(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+    ) -&gt; SpannedEncodingResult&lt;
+        <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>, <span class="kw-2">&amp;mut </span><a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14">PredicateState</a>)&gt;,
+    &gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">self</a>.conditional.iter_mut())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove_empty_conditional_states(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#649">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#649">self</a>.conditional.retain(|<span class="kw">_</span>, state| !<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#651">state</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">is_empty</a>());
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">check_no_default_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">self</a>.<span class="ident">unconditional</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
-        <span class="kw">for</span> <span class="ident">predicates</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">conditional</span>.<span class="ident">values</span>() {
-            <span class="ident">predicates</span>.<span class="ident">check_no_default_position</span>();
+    <span class="doccomment">/// Remove all permissions. This is intended to be used only by `LeakAll` statement.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#656">self</a>.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">check_no_default_position</a>();
+        <span class="self">self</span>.unconditional.clear()<span class="question-mark">?</span>;
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#656">self</a>.conditional.clear();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>check_no_default_position(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#663">self</a>.unconditional.<a href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">check_no_default_position</a>();
+        <span class="kw">for </span>predicates <span class="kw">in </span><span class="self">self</span>.conditional.values() {
+            predicates.check_no_default_position();
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

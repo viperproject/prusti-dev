@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/filetime-0.2.17/src/unix/linux.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linux.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../filetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../filetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../filetime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/filetime-0.2.17/src/unix/linux.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linux.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../filetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../filetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../filetime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -100,107 +100,107 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
-</pre><pre class="rust"><code><span class="doccomment">//! On Linux we try to use the more accurate `utimensat` syscall but this isn&#39;t</span>
-<span class="doccomment">//! always available so we also fall back to `utimes` if we couldn&#39;t find</span>
-<span class="doccomment">//! `utimensat` at runtime.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! On Linux we try to use the more accurate `utimensat` syscall but this isn&#39;t
+//! always available so we also fall back to `utimes` if we couldn&#39;t find
+//! `utimensat` at runtime.
 
-<span class="kw">use</span> <a class="ident" href="../../../src/filetime/lib.rs.html#65"><span class="kw">crate</span>::FileTime</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/index.html">std::fs</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">std::sync::atomic::AtomicBool</a>;
-<span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering::SeqCst</span>;
+</span><span class="kw">use </span><a href="../../../src/filetime/lib.rs.html#65"><span class="kw">crate</span>::FileTime</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/index.html">std::fs</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">std::sync::atomic::AtomicBool</a>;
+<span class="kw">use </span>std::sync::atomic::Ordering::SeqCst;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_file_times</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">atime</span>: <a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a>, <span class="ident">mtime</span>: <a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/filetime/unix/linux.rs.html#64-69">set_times</a>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#15">p</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#15">atime</a>), <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#15">mtime</a>), <span class="bool-val">false</span>)
+<span class="kw">pub fn </span>set_file_times(p: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, atime: <a href="../../../src/filetime/lib.rs.html#65">FileTime</a>, mtime: <a href="../../../src/filetime/lib.rs.html#65">FileTime</a>) -&gt; io::Result&lt;()&gt; {
+    <a href="../../../src/filetime/unix/linux.rs.html#64-69">set_times</a>(<a href="../../../src/filetime/unix/linux.rs.html#15">p</a>, <span class="prelude-val">Some</span>(<a href="../../../src/filetime/unix/linux.rs.html#15">atime</a>), <span class="prelude-val">Some</span>(<a href="../../../src/filetime/unix/linux.rs.html#15">mtime</a>), <span class="bool-val">false</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_file_mtime</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">mtime</span>: <a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/filetime/unix/linux.rs.html#64-69">set_times</a>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#19">p</a>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#19">mtime</a>), <span class="bool-val">false</span>)
+<span class="kw">pub fn </span>set_file_mtime(p: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, mtime: <a href="../../../src/filetime/lib.rs.html#65">FileTime</a>) -&gt; io::Result&lt;()&gt; {
+    <a href="../../../src/filetime/unix/linux.rs.html#64-69">set_times</a>(<a href="../../../src/filetime/unix/linux.rs.html#19">p</a>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="../../../src/filetime/unix/linux.rs.html#19">mtime</a>), <span class="bool-val">false</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_file_atime</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">atime</span>: <a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/filetime/unix/linux.rs.html#64-69">set_times</a>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#23">p</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#23">atime</a>), <span class="prelude-val">None</span>, <span class="bool-val">false</span>)
+<span class="kw">pub fn </span>set_file_atime(p: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, atime: <a href="../../../src/filetime/lib.rs.html#65">FileTime</a>) -&gt; io::Result&lt;()&gt; {
+    <a href="../../../src/filetime/unix/linux.rs.html#64-69">set_times</a>(<a href="../../../src/filetime/unix/linux.rs.html#23">p</a>, <span class="prelude-val">Some</span>(<a href="../../../src/filetime/unix/linux.rs.html#23">atime</a>), <span class="prelude-val">None</span>, <span class="bool-val">false</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_file_handle_times</span>(
-    <span class="ident">f</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>,
-    <span class="ident">atime</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a><span class="op">&gt;</span>,
-    <span class="ident">mtime</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a><span class="op">&gt;</span>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="comment">// Attempt to use the `utimensat` syscall, but if it&#39;s not supported by the</span>
-    <span class="comment">// current kernel then fall back to an older syscall.</span>
-    <span class="kw">static</span> <span class="ident">INVALID</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> <span class="op">=</span> <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>);
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">INVALID</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-        <span class="kw">let</span> <span class="ident">times</span> <span class="op">=</span> [<a class="ident" href="../../../src/filetime/unix/mod.rs.html#34"><span class="kw">super</span>::to_timespec</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/filetime/unix/linux.rs.html#29">atime</a>), <a class="ident" href="../../../src/filetime/unix/mod.rs.html#34"><span class="kw">super</span>::to_timespec</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/filetime/unix/linux.rs.html#30">mtime</a>)];
-        <span class="kw">let</span> <span class="ident">rc</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">libc::syscall</span>(
-                <span class="ident">libc::SYS_utimensat</span>,
-                <a class="ident" href="../../../src/filetime/unix/linux.rs.html#28">f</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(),
-                <span class="ident">ptr::null</span>::<span class="op">&lt;</span><span class="ident">libc::c_char</span><span class="op">&gt;</span>(),
-                <a class="ident" href="../../../src/filetime/unix/linux.rs.html#36">times</a>.<span class="ident">as_ptr</span>(),
+<span class="kw">pub fn </span>set_file_handle_times(
+    f: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>,
+    atime: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/filetime/lib.rs.html#65">FileTime</a>&gt;,
+    mtime: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/filetime/lib.rs.html#65">FileTime</a>&gt;,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="comment">// Attempt to use the `utimensat` syscall, but if it&#39;s not supported by the
+    // current kernel then fall back to an older syscall.
+    </span><span class="kw">static </span>INVALID: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> = AtomicBool::new(<span class="bool-val">false</span>);
+    <span class="kw">if </span>!INVALID.load(SeqCst) {
+        <span class="kw">let </span>times = [<a href="../../../src/filetime/unix/mod.rs.html#34"><span class="kw">super</span>::to_timespec</a>(<span class="kw-2">&amp;</span><a href="../../../src/filetime/unix/linux.rs.html#29">atime</a>), <a href="../../../src/filetime/unix/mod.rs.html#34"><span class="kw">super</span>::to_timespec</a>(<span class="kw-2">&amp;</span><a href="../../../src/filetime/unix/linux.rs.html#30">mtime</a>)];
+        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{
+            libc::syscall(
+                libc::SYS_utimensat,
+                <a href="../../../src/filetime/unix/linux.rs.html#28">f</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(),
+                ptr::null::&lt;libc::c_char&gt;(),
+                <a href="../../../src/filetime/unix/linux.rs.html#36">times</a>.as_ptr(),
                 <span class="number">0</span>,
             )
         };
-        <span class="kw">if</span> <span class="ident">rc</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+        <span class="kw">if </span>rc == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
-        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">io::Error::last_os_error</span>();
-        <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">raw_os_error</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">libc::ENOSYS</span>) {
-            <a class="ident" href="../../../src/filetime/unix/linux.rs.html#34">INVALID</a>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">SeqCst</span>);
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#49">err</a>);
+        <span class="kw">let </span>err = io::Error::last_os_error();
+        <span class="kw">if </span>err.raw_os_error() == <span class="prelude-val">Some</span>(libc::ENOSYS) {
+            <a href="../../../src/filetime/unix/linux.rs.html#34">INVALID</a>.store(<span class="bool-val">true</span>, SeqCst);
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/filetime/unix/linux.rs.html#49">err</a>);
         }
     }
 
-    <a class="ident" href="../../../src/filetime/unix/utimes.rs.html#25-29"><span class="kw">super</span>::utimes::set_file_handle_times</a>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#28">f</a>, <a class="ident" href="../../../src/filetime/unix/linux.rs.html#29">atime</a>, <a class="ident" href="../../../src/filetime/unix/linux.rs.html#30">mtime</a>)
+    <a href="../../../src/filetime/unix/utimes.rs.html#25-29"><span class="kw">super</span>::utimes::set_file_handle_times</a>(<a href="../../../src/filetime/unix/linux.rs.html#28">f</a>, <a href="../../../src/filetime/unix/linux.rs.html#29">atime</a>, <a href="../../../src/filetime/unix/linux.rs.html#30">mtime</a>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_symlink_file_times</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">atime</span>: <a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a>, <span class="ident">mtime</span>: <a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/filetime/unix/linux.rs.html#64-69">set_times</a>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#60">p</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#60">atime</a>), <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#60">mtime</a>), <span class="bool-val">true</span>)
+<span class="kw">pub fn </span>set_symlink_file_times(p: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, atime: <a href="../../../src/filetime/lib.rs.html#65">FileTime</a>, mtime: <a href="../../../src/filetime/lib.rs.html#65">FileTime</a>) -&gt; io::Result&lt;()&gt; {
+    <a href="../../../src/filetime/unix/linux.rs.html#64-69">set_times</a>(<a href="../../../src/filetime/unix/linux.rs.html#60">p</a>, <span class="prelude-val">Some</span>(<a href="../../../src/filetime/unix/linux.rs.html#60">atime</a>), <span class="prelude-val">Some</span>(<a href="../../../src/filetime/unix/linux.rs.html#60">mtime</a>), <span class="bool-val">true</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">set_times</span>(
-    <span class="ident">p</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">atime</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a><span class="op">&gt;</span>,
-    <span class="ident">mtime</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/filetime/lib.rs.html#65">FileTime</a><span class="op">&gt;</span>,
-    <span class="ident">symlink</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">symlink</span> {
-        <span class="ident">libc::AT_SYMLINK_NOFOLLOW</span>
-    } <span class="kw">else</span> {
-        <span class="number">0</span>
-    };
+<span class="kw">fn </span>set_times(
+    p: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    atime: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/filetime/lib.rs.html#65">FileTime</a>&gt;,
+    mtime: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/filetime/lib.rs.html#65">FileTime</a>&gt;,
+    symlink: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span>flags = <span class="kw">if </span>symlink {
+        libc::AT_SYMLINK_NOFOLLOW
+    } <span class="kw">else </span>{
+        <span class="number">0
+    </span>};
 
-    <span class="comment">// Same as the `if` statement above.</span>
-    <span class="kw">static</span> <span class="ident">INVALID</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> <span class="op">=</span> <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>);
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">INVALID</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">p</span>.<span class="ident">as_os_str</span>().<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">times</span> <span class="op">=</span> [<a class="ident" href="../../../src/filetime/unix/mod.rs.html#34"><span class="kw">super</span>::to_timespec</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/filetime/unix/linux.rs.html#66">atime</a>), <a class="ident" href="../../../src/filetime/unix/mod.rs.html#34"><span class="kw">super</span>::to_timespec</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/filetime/unix/linux.rs.html#67">mtime</a>)];
-        <span class="kw">let</span> <span class="ident">rc</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">libc::syscall</span>(
-                <span class="ident">libc::SYS_utimensat</span>,
-                <span class="ident">libc::AT_FDCWD</span>,
-                <a class="ident" href="../../../src/filetime/unix/linux.rs.html#79">p</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../../src/filetime/unix/linux.rs.html#80">times</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../../src/filetime/unix/linux.rs.html#70">flags</a>,
+    <span class="comment">// Same as the `if` statement above.
+    </span><span class="kw">static </span>INVALID: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> = AtomicBool::new(<span class="bool-val">false</span>);
+    <span class="kw">if </span>!INVALID.load(SeqCst) {
+        <span class="kw">let </span>p = CString::new(p.as_os_str().as_bytes())<span class="question-mark">?</span>;
+        <span class="kw">let </span>times = [<a href="../../../src/filetime/unix/mod.rs.html#34"><span class="kw">super</span>::to_timespec</a>(<span class="kw-2">&amp;</span><a href="../../../src/filetime/unix/linux.rs.html#66">atime</a>), <a href="../../../src/filetime/unix/mod.rs.html#34"><span class="kw">super</span>::to_timespec</a>(<span class="kw-2">&amp;</span><a href="../../../src/filetime/unix/linux.rs.html#67">mtime</a>)];
+        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{
+            libc::syscall(
+                libc::SYS_utimensat,
+                libc::AT_FDCWD,
+                <a href="../../../src/filetime/unix/linux.rs.html#79">p</a>.as_ptr(),
+                <a href="../../../src/filetime/unix/linux.rs.html#80">times</a>.as_ptr(),
+                <a href="../../../src/filetime/unix/linux.rs.html#70">flags</a>,
             )
         };
-        <span class="kw">if</span> <span class="ident">rc</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+        <span class="kw">if </span>rc == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
-        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">io::Error::last_os_error</span>();
-        <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">raw_os_error</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">libc::ENOSYS</span>) {
-            <a class="ident" href="../../../src/filetime/unix/linux.rs.html#77">INVALID</a>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">SeqCst</span>);
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#93">err</a>);
+        <span class="kw">let </span>err = io::Error::last_os_error();
+        <span class="kw">if </span>err.raw_os_error() == <span class="prelude-val">Some</span>(libc::ENOSYS) {
+            <a href="../../../src/filetime/unix/linux.rs.html#77">INVALID</a>.store(<span class="bool-val">true</span>, SeqCst);
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/filetime/unix/linux.rs.html#93">err</a>);
         }
     }
 
-    <a class="ident" href="../../../src/filetime/unix/utimes.rs.html#88-93"><span class="kw">super</span>::utimes::set_times</a>(<a class="ident" href="../../../src/filetime/unix/linux.rs.html#65">p</a>, <a class="ident" href="../../../src/filetime/unix/linux.rs.html#66">atime</a>, <a class="ident" href="../../../src/filetime/unix/linux.rs.html#67">mtime</a>, <a class="ident" href="../../../src/filetime/unix/linux.rs.html#68">symlink</a>)
+    <a href="../../../src/filetime/unix/utimes.rs.html#88-93"><span class="kw">super</span>::utimes::set_times</a>(<a href="../../../src/filetime/unix/linux.rs.html#65">p</a>, <a href="../../../src/filetime/unix/linux.rs.html#66">atime</a>, <a href="../../../src/filetime/unix/linux.rs.html#67">mtime</a>, <a href="../../../src/filetime/unix/linux.rs.html#68">symlink</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="filetime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="filetime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

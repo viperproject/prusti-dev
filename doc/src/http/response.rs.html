@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.8/src/response.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>response.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../http/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../http/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../http/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.8/src/response.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>response.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../http/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../http/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../http/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -797,804 +797,804 @@
 <span id="797">797</span>
 <span id="798">798</span>
 <span id="799">799</span>
-</pre><pre class="rust"><code><span class="doccomment">//! HTTP response types.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module contains structs related to HTTP responses, notably the</span>
-<span class="doccomment">//! `Response` type itself as well as a builder to create responses. Typically</span>
-<span class="doccomment">//! you&#39;ll import the `http::Response` type rather than reaching into this</span>
-<span class="doccomment">//! module itself.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Creating a `Response` to return</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use http::{Request, Response, StatusCode};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! fn respond_to(req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {</span>
-<span class="doccomment">//!     let mut builder = Response::builder()</span>
-<span class="doccomment">//!         .header(&quot;Foo&quot;, &quot;Bar&quot;)</span>
-<span class="doccomment">//!         .status(StatusCode::OK);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     if req.headers().contains_key(&quot;Another-Header&quot;) {</span>
-<span class="doccomment">//!         builder = builder.header(&quot;Another-Header&quot;, &quot;Ack&quot;);</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     builder.body(())</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A simple 404 handler</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use http::{Request, Response, StatusCode};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! fn not_found(_req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {</span>
-<span class="doccomment">//!     Response::builder()</span>
-<span class="doccomment">//!         .status(StatusCode::NOT_FOUND)</span>
-<span class="doccomment">//!         .body(())</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Or otherwise inspecting the result of a request:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```no_run</span>
-<span class="doccomment">//! use http::{Request, Response};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! fn get(url: &amp;str) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {</span>
-<span class="doccomment">//!     // ...</span>
-<span class="doccomment">//! # panic!()</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let response = get(&quot;https://www.rust-lang.org/&quot;).unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! if !response.status().is_success() {</span>
-<span class="doccomment">//!     panic!(&quot;failed to get a successful response status!&quot;);</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! if let Some(date) = response.headers().get(&quot;Date&quot;) {</span>
-<span class="doccomment">//!     // we&#39;ve got a `Date` header!</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let body = response.body();</span>
-<span class="doccomment">//! // ...</span>
-<span class="doccomment">//! ```</span>
+</pre><pre class="rust"><code><span class="doccomment">//! HTTP response types.
+//!
+//! This module contains structs related to HTTP responses, notably the
+//! `Response` type itself as well as a builder to create responses. Typically
+//! you&#39;ll import the `http::Response` type rather than reaching into this
+//! module itself.
+//!
+//! # Examples
+//!
+//! Creating a `Response` to return
+//!
+//! ```
+//! use http::{Request, Response, StatusCode};
+//!
+//! fn respond_to(req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {
+//!     let mut builder = Response::builder()
+//!         .header(&quot;Foo&quot;, &quot;Bar&quot;)
+//!         .status(StatusCode::OK);
+//!
+//!     if req.headers().contains_key(&quot;Another-Header&quot;) {
+//!         builder = builder.header(&quot;Another-Header&quot;, &quot;Ack&quot;);
+//!     }
+//!
+//!     builder.body(())
+//! }
+//! ```
+//!
+//! A simple 404 handler
+//!
+//! ```
+//! use http::{Request, Response, StatusCode};
+//!
+//! fn not_found(_req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {
+//!     Response::builder()
+//!         .status(StatusCode::NOT_FOUND)
+//!         .body(())
+//! }
+//! ```
+//!
+//! Or otherwise inspecting the result of a request:
+//!
+//! ```no_run
+//! use http::{Request, Response};
+//!
+//! fn get(url: &amp;str) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {
+//!     // ...
+//! # panic!()
+//! }
+//!
+//! let response = get(&quot;https://www.rust-lang.org/&quot;).unwrap();
+//!
+//! if !response.status().is_success() {
+//!     panic!(&quot;failed to get a successful response status!&quot;);
+//! }
+//!
+//! if let Some(date) = response.headers().get(&quot;Date&quot;) {
+//!     // we&#39;ve got a `Date` header!
+//! }
+//!
+//! let body = response.body();
+//! // ...
+//! ```
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::header</span>::{<a class="ident" href="../../src/http/header/map.rs.html#45">HeaderMap</a>, <a class="ident" href="../../src/http/header/name.rs.html#33">HeaderName</a>, <a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/http/status.rs.html#45"><span class="kw">crate</span>::status::StatusCode</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/http/version.rs.html#26"><span class="kw">crate</span>::version::Version</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::header::{<a href="../../src/http/header/map.rs.html#45">HeaderMap</a>, <a href="../../src/http/header/name.rs.html#33">HeaderName</a>, <a href="../../src/http/header/value.rs.html#21">HeaderValue</a>};
+<span class="kw">use </span><a href="../../src/http/status.rs.html#45"><span class="kw">crate</span>::status::StatusCode</a>;
+<span class="kw">use </span><a href="../../src/http/version.rs.html#26"><span class="kw">crate</span>::version::Version</a>;
+<span class="kw">use crate</span>::{<a href="../../src/http/extensions.rs.html#35">Extensions</a>, <span class="prelude-ty">Result</span>};
 
-<span class="doccomment">/// Represents an HTTP response</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An HTTP response consists of a head and a potentially optional body. The body</span>
-<span class="doccomment">/// component is generic, enabling arbitrary types to represent the HTTP body.</span>
-<span class="doccomment">/// For example, the body could be `Vec&lt;u8&gt;`, a `Stream` of byte chunks, or a</span>
-<span class="doccomment">/// value that has been deserialized.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Typically you&#39;ll work with responses on the client side as the result of</span>
-<span class="doccomment">/// sending a `Request` and on the server you&#39;ll be generating a `Response` to</span>
-<span class="doccomment">/// send back to the client.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Creating a `Response` to return</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use http::{Request, Response, StatusCode};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn respond_to(req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {</span>
-<span class="doccomment">///     let mut builder = Response::builder()</span>
-<span class="doccomment">///         .header(&quot;Foo&quot;, &quot;Bar&quot;)</span>
-<span class="doccomment">///         .status(StatusCode::OK);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     if req.headers().contains_key(&quot;Another-Header&quot;) {</span>
-<span class="doccomment">///         builder = builder.header(&quot;Another-Header&quot;, &quot;Ack&quot;);</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     builder.body(())</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A simple 404 handler</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use http::{Request, Response, StatusCode};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn not_found(_req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {</span>
-<span class="doccomment">///     Response::builder()</span>
-<span class="doccomment">///         .status(StatusCode::NOT_FOUND)</span>
-<span class="doccomment">///         .body(())</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Or otherwise inspecting the result of a request:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use http::{Request, Response};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn get(url: &amp;str) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {</span>
-<span class="doccomment">///     // ...</span>
-<span class="doccomment">/// # panic!()</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let response = get(&quot;https://www.rust-lang.org/&quot;).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// if !response.status().is_success() {</span>
-<span class="doccomment">///     panic!(&quot;failed to get a successful response status!&quot;);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// if let Some(date) = response.headers().get(&quot;Date&quot;) {</span>
-<span class="doccomment">///     // we&#39;ve got a `Date` header!</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let body = response.body();</span>
-<span class="doccomment">/// // ...</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Deserialize a response of bytes via json:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # extern crate serde;</span>
-<span class="doccomment">/// # extern crate serde_json;</span>
-<span class="doccomment">/// # extern crate http;</span>
-<span class="doccomment">/// use http::Response;</span>
-<span class="doccomment">/// use serde::de;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn deserialize&lt;T&gt;(res: Response&lt;Vec&lt;u8&gt;&gt;) -&gt; serde_json::Result&lt;Response&lt;T&gt;&gt;</span>
-<span class="doccomment">///     where for&lt;&#39;de&gt; T: de::Deserialize&lt;&#39;de&gt;,</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     let (parts, body) = res.into_parts();</span>
-<span class="doccomment">///     let body = serde_json::from_slice(&amp;body)?;</span>
-<span class="doccomment">///     Ok(Response::from_parts(parts, body))</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # fn main() {}</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Or alternatively, serialize the body of a response to json</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # extern crate serde;</span>
-<span class="doccomment">/// # extern crate serde_json;</span>
-<span class="doccomment">/// # extern crate http;</span>
-<span class="doccomment">/// use http::Response;</span>
-<span class="doccomment">/// use serde::ser;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn serialize&lt;T&gt;(res: Response&lt;T&gt;) -&gt; serde_json::Result&lt;Response&lt;Vec&lt;u8&gt;&gt;&gt;</span>
-<span class="doccomment">///     where T: ser::Serialize,</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     let (parts, body) = res.into_parts();</span>
-<span class="doccomment">///     let body = serde_json::to_vec(&amp;body)?;</span>
-<span class="doccomment">///     Ok(Response::from_parts(parts, body))</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # fn main() {}</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">head</span>: <a class="ident" href="../../src/http/response.rs.html#188">Parts</a>,
-    <span class="ident">body</span>: <span class="ident">T</span>,
+<span class="doccomment">/// Represents an HTTP response
+///
+/// An HTTP response consists of a head and a potentially optional body. The body
+/// component is generic, enabling arbitrary types to represent the HTTP body.
+/// For example, the body could be `Vec&lt;u8&gt;`, a `Stream` of byte chunks, or a
+/// value that has been deserialized.
+///
+/// Typically you&#39;ll work with responses on the client side as the result of
+/// sending a `Request` and on the server you&#39;ll be generating a `Response` to
+/// send back to the client.
+///
+/// # Examples
+///
+/// Creating a `Response` to return
+///
+/// ```
+/// use http::{Request, Response, StatusCode};
+///
+/// fn respond_to(req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {
+///     let mut builder = Response::builder()
+///         .header(&quot;Foo&quot;, &quot;Bar&quot;)
+///         .status(StatusCode::OK);
+///
+///     if req.headers().contains_key(&quot;Another-Header&quot;) {
+///         builder = builder.header(&quot;Another-Header&quot;, &quot;Ack&quot;);
+///     }
+///
+///     builder.body(())
+/// }
+/// ```
+///
+/// A simple 404 handler
+///
+/// ```
+/// use http::{Request, Response, StatusCode};
+///
+/// fn not_found(_req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {
+///     Response::builder()
+///         .status(StatusCode::NOT_FOUND)
+///         .body(())
+/// }
+/// ```
+///
+/// Or otherwise inspecting the result of a request:
+///
+/// ```no_run
+/// use http::{Request, Response};
+///
+/// fn get(url: &amp;str) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {
+///     // ...
+/// # panic!()
+/// }
+///
+/// let response = get(&quot;https://www.rust-lang.org/&quot;).unwrap();
+///
+/// if !response.status().is_success() {
+///     panic!(&quot;failed to get a successful response status!&quot;);
+/// }
+///
+/// if let Some(date) = response.headers().get(&quot;Date&quot;) {
+///     // we&#39;ve got a `Date` header!
+/// }
+///
+/// let body = response.body();
+/// // ...
+/// ```
+///
+/// Deserialize a response of bytes via json:
+///
+/// ```
+/// # extern crate serde;
+/// # extern crate serde_json;
+/// # extern crate http;
+/// use http::Response;
+/// use serde::de;
+///
+/// fn deserialize&lt;T&gt;(res: Response&lt;Vec&lt;u8&gt;&gt;) -&gt; serde_json::Result&lt;Response&lt;T&gt;&gt;
+///     where for&lt;&#39;de&gt; T: de::Deserialize&lt;&#39;de&gt;,
+/// {
+///     let (parts, body) = res.into_parts();
+///     let body = serde_json::from_slice(&amp;body)?;
+///     Ok(Response::from_parts(parts, body))
+/// }
+/// #
+/// # fn main() {}
+/// ```
+///
+/// Or alternatively, serialize the body of a response to json
+///
+/// ```
+/// # extern crate serde;
+/// # extern crate serde_json;
+/// # extern crate http;
+/// use http::Response;
+/// use serde::ser;
+///
+/// fn serialize&lt;T&gt;(res: Response&lt;T&gt;) -&gt; serde_json::Result&lt;Response&lt;Vec&lt;u8&gt;&gt;&gt;
+///     where T: ser::Serialize,
+/// {
+///     let (parts, body) = res.into_parts();
+///     let body = serde_json::to_vec(&amp;body)?;
+///     Ok(Response::from_parts(parts, body))
+/// }
+/// #
+/// # fn main() {}
+/// ```
+</span><span class="kw">pub struct </span>Response&lt;T&gt; {
+    head: <a href="../../src/http/response.rs.html#188">Parts</a>,
+    body: T,
 }
 
-<span class="doccomment">/// Component parts of an HTTP `Response`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The HTTP response head consists of a status, version, and a set of</span>
-<span class="doccomment">/// header fields.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Parts</span> {
-    <span class="doccomment">/// The response&#39;s status</span>
-    <span class="kw">pub</span> <span class="ident">status</span>: <a class="ident" href="../../src/http/status.rs.html#45">StatusCode</a>,
+<span class="doccomment">/// Component parts of an HTTP `Response`
+///
+/// The HTTP response head consists of a status, version, and a set of
+/// header fields.
+</span><span class="kw">pub struct </span>Parts {
+    <span class="doccomment">/// The response&#39;s status
+    </span><span class="kw">pub </span>status: <a href="../../src/http/status.rs.html#45">StatusCode</a>,
 
-    <span class="doccomment">/// The response&#39;s version</span>
-    <span class="kw">pub</span> <span class="ident">version</span>: <a class="ident" href="../../src/http/version.rs.html#26">Version</a>,
+    <span class="doccomment">/// The response&#39;s version
+    </span><span class="kw">pub </span>version: <a href="../../src/http/version.rs.html#26">Version</a>,
 
-    <span class="doccomment">/// The response&#39;s headers</span>
-    <span class="kw">pub</span> <span class="ident">headers</span>: <span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// The response&#39;s headers
+    </span><span class="kw">pub </span>headers: HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt;,
 
-    <span class="doccomment">/// The response&#39;s extensions</span>
-    <span class="kw">pub</span> <span class="ident">extensions</span>: <a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a>,
+    <span class="doccomment">/// The response&#39;s extensions
+    </span><span class="kw">pub </span>extensions: <a href="../../src/http/extensions.rs.html#35">Extensions</a>,
 
-    <span class="ident">_priv</span>: (),
+    _priv: (),
 }
 
-<span class="doccomment">/// An HTTP response builder</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type can be used to construct an instance of `Response` through a</span>
-<span class="doccomment">/// builder-like pattern.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span> {
-    <span class="ident">inner</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/http/response.rs.html#188">Parts</a><span class="op">&gt;</span>,
+<span class="doccomment">/// An HTTP response builder
+///
+/// This type can be used to construct an instance of `Response` through a
+/// builder-like pattern.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Builder {
+    inner: <span class="prelude-ty">Result</span>&lt;<a href="../../src/http/response.rs.html#188">Parts</a>&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Response</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new builder-style object to manufacture a `Response`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Response`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response = Response::builder()</span>
-    <span class="doccomment">///     .status(200)</span>
-    <span class="doccomment">///     .header(&quot;X-Custom-Foo&quot;, &quot;Bar&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <a class="ident" href="../../src/http/response.rs.html#209">Builder</a> {
-        <span class="ident">Builder::new</span>()
+<span class="kw">impl </span>Response&lt;()&gt; {
+    <span class="doccomment">/// Creates a new builder-style object to manufacture a `Response`
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Response`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response = Response::builder()
+    ///     .status(200)
+    ///     .header(&quot;X-Custom-Foo&quot;, &quot;Bar&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>builder() -&gt; <a href="../../src/http/response.rs.html#209">Builder</a> {
+        Builder::new()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new blank `Response` with the body</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The component ports of this response will be set to their default, e.g.</span>
-    <span class="doccomment">/// the ok status, no headers, etc.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response = Response::new(&quot;hello world&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(response.status(), StatusCode::OK);</span>
-    <span class="doccomment">/// assert_eq!(*response.body(), &quot;hello world&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">body</span>: <span class="ident">T</span>) -&gt; <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/http/response.rs.html#179">Response</a> {
-            <span class="ident">head</span>: <span class="ident">Parts::new</span>(),
-            <span class="ident">body</span>: <a class="ident" href="../../src/http/response.rs.html#251">body</a>,
+<span class="kw">impl</span>&lt;T&gt; Response&lt;T&gt; {
+    <span class="doccomment">/// Creates a new blank `Response` with the body
+    ///
+    /// The component ports of this response will be set to their default, e.g.
+    /// the ok status, no headers, etc.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response = Response::new(&quot;hello world&quot;);
+    ///
+    /// assert_eq!(response.status(), StatusCode::OK);
+    /// assert_eq!(*response.body(), &quot;hello world&quot;);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(body: T) -&gt; Response&lt;T&gt; {
+        <a href="../../src/http/response.rs.html#179">Response</a> {
+            head: Parts::new(),
+            body: <a href="../../src/http/response.rs.html#251">body</a>,
         }
     }
 
-    <span class="doccomment">/// Creates a new `Response` with the given head and body</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response = Response::new(&quot;hello world&quot;);</span>
-    <span class="doccomment">/// let (mut parts, body) = response.into_parts();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// parts.status = StatusCode::BAD_REQUEST;</span>
-    <span class="doccomment">/// let response = Response::from_parts(parts, body);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(response.status(), StatusCode::BAD_REQUEST);</span>
-    <span class="doccomment">/// assert_eq!(*response.body(), &quot;hello world&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_parts</span>(<span class="ident">parts</span>: <a class="ident" href="../../src/http/response.rs.html#188">Parts</a>, <span class="ident">body</span>: <span class="ident">T</span>) -&gt; <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/http/response.rs.html#179">Response</a> {
-            <span class="ident">head</span>: <a class="ident" href="../../src/http/response.rs.html#274">parts</a>,
-            <span class="ident">body</span>: <a class="ident" href="../../src/http/response.rs.html#274">body</a>,
+    <span class="doccomment">/// Creates a new `Response` with the given head and body
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response = Response::new(&quot;hello world&quot;);
+    /// let (mut parts, body) = response.into_parts();
+    ///
+    /// parts.status = StatusCode::BAD_REQUEST;
+    /// let response = Response::from_parts(parts, body);
+    ///
+    /// assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    /// assert_eq!(*response.body(), &quot;hello world&quot;);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>from_parts(parts: <a href="../../src/http/response.rs.html#188">Parts</a>, body: T) -&gt; Response&lt;T&gt; {
+        <a href="../../src/http/response.rs.html#179">Response</a> {
+            head: <a href="../../src/http/response.rs.html#274">parts</a>,
+            body: <a href="../../src/http/response.rs.html#274">body</a>,
         }
     }
 
-    <span class="doccomment">/// Returns the `StatusCode`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// assert_eq!(response.status(), StatusCode::OK);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/http/status.rs.html#45">StatusCode</a> {
-        <a class="self" href="../../src/http/response.rs.html#291">self</a>.<span class="ident">head</span>.<span class="ident">status</span>
+    <span class="doccomment">/// Returns the `StatusCode`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response: Response&lt;()&gt; = Response::default();
+    /// assert_eq!(response.status(), StatusCode::OK);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/http/status.rs.html#45">StatusCode</a> {
+        <a class="self" href="../../src/http/response.rs.html#291">self</a>.head.status
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated `StatusCode`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let mut response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// *response.status_mut() = StatusCode::CREATED;</span>
-    <span class="doccomment">/// assert_eq!(response.status(), StatusCode::CREATED);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/status.rs.html#45">StatusCode</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/response.rs.html#306">self</a>.<span class="ident">head</span>.<span class="ident">status</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated `StatusCode`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let mut response: Response&lt;()&gt; = Response::default();
+    /// *response.status_mut() = StatusCode::CREATED;
+    /// assert_eq!(response.status(), StatusCode::CREATED);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>status_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/http/status.rs.html#45">StatusCode</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/response.rs.html#306">self</a>.head.status
     }
 
-    <span class="doccomment">/// Returns a reference to the associated version.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// assert_eq!(response.version(), Version::HTTP_11);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/http/version.rs.html#26">Version</a> {
-        <a class="self" href="../../src/http/response.rs.html#320">self</a>.<span class="ident">head</span>.<span class="ident">version</span>
+    <span class="doccomment">/// Returns a reference to the associated version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response: Response&lt;()&gt; = Response::default();
+    /// assert_eq!(response.version(), Version::HTTP_11);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/http/version.rs.html#26">Version</a> {
+        <a class="self" href="../../src/http/response.rs.html#320">self</a>.head.version
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated version.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let mut response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// *response.version_mut() = Version::HTTP_2;</span>
-    <span class="doccomment">/// assert_eq!(response.version(), Version::HTTP_2);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/version.rs.html#26">Version</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/response.rs.html#335">self</a>.<span class="ident">head</span>.<span class="ident">version</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let mut response: Response&lt;()&gt; = Response::default();
+    /// *response.version_mut() = Version::HTTP_2;
+    /// assert_eq!(response.version(), Version::HTTP_2);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>version_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/http/version.rs.html#26">Version</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/response.rs.html#335">self</a>.head.version
     }
 
-    <span class="doccomment">/// Returns a reference to the associated header field map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// assert!(response.headers().is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#349">self</a>.<span class="ident">head</span>.<span class="ident">headers</span>
+    <span class="doccomment">/// Returns a reference to the associated header field map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response: Response&lt;()&gt; = Response::default();
+    /// assert!(response.headers().is_empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#349">self</a>.head.headers
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated header field map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// # use http::header::*;</span>
-    <span class="doccomment">/// let mut response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// response.headers_mut().insert(HOST, HeaderValue::from_static(&quot;world&quot;));</span>
-    <span class="doccomment">/// assert!(!response.headers().is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/response.rs.html#365">self</a>.<span class="ident">head</span>.<span class="ident">headers</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated header field map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// # use http::header::*;
+    /// let mut response: Response&lt;()&gt; = Response::default();
+    /// response.headers_mut().insert(HOST, HeaderValue::from_static(&quot;world&quot;));
+    /// assert!(!response.headers().is_empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt; {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/response.rs.html#365">self</a>.head.headers
     }
 
-    <span class="doccomment">/// Returns a reference to the associated extensions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// assert!(response.extensions().get::&lt;i32&gt;().is_none());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#379">self</a>.<span class="ident">head</span>.<span class="ident">extensions</span>
+    <span class="doccomment">/// Returns a reference to the associated extensions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response: Response&lt;()&gt; = Response::default();
+    /// assert!(response.extensions().get::&lt;i32&gt;().is_none());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/http/extensions.rs.html#35">Extensions</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#379">self</a>.head.extensions
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated extensions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// # use http::header::*;</span>
-    <span class="doccomment">/// let mut response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// response.extensions_mut().insert(&quot;hello&quot;);</span>
-    <span class="doccomment">/// assert_eq!(response.extensions().get(), Some(&amp;&quot;hello&quot;));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extensions_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/response.rs.html#395">self</a>.<span class="ident">head</span>.<span class="ident">extensions</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated extensions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// # use http::header::*;
+    /// let mut response: Response&lt;()&gt; = Response::default();
+    /// response.extensions_mut().insert(&quot;hello&quot;);
+    /// assert_eq!(response.extensions().get(), Some(&amp;&quot;hello&quot;));
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/http/extensions.rs.html#35">Extensions</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/response.rs.html#395">self</a>.head.extensions
     }
 
-    <span class="doccomment">/// Returns a reference to the associated HTTP body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response: Response&lt;String&gt; = Response::default();</span>
-    <span class="doccomment">/// assert!(response.body().is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#409">self</a>.<span class="ident">body</span>
+    <span class="doccomment">/// Returns a reference to the associated HTTP body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response: Response&lt;String&gt; = Response::default();
+    /// assert!(response.body().is_empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#409">self</a>.body
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated HTTP body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let mut response: Response&lt;String&gt; = Response::default();</span>
-    <span class="doccomment">/// response.body_mut().push_str(&quot;hello world&quot;);</span>
-    <span class="doccomment">/// assert!(!response.body().is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/response.rs.html#424">self</a>.<span class="ident">body</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated HTTP body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let mut response: Response&lt;String&gt; = Response::default();
+    /// response.body_mut().push_str(&quot;hello world&quot;);
+    /// assert!(!response.body().is_empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>body_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/response.rs.html#424">self</a>.body
     }
 
-    <span class="doccomment">/// Consumes the response, returning just the body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::Response;</span>
-    <span class="doccomment">/// let response = Response::new(10);</span>
-    <span class="doccomment">/// let body = response.into_body();</span>
-    <span class="doccomment">/// assert_eq!(body, 10);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_body</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../src/http/response.rs.html#439">self</a>.<span class="ident">body</span>
+    <span class="doccomment">/// Consumes the response, returning just the body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::Response;
+    /// let response = Response::new(10);
+    /// let body = response.into_body();
+    /// assert_eq!(body, 10);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>into_body(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../src/http/response.rs.html#439">self</a>.body
     }
 
-    <span class="doccomment">/// Consumes the response returning the head and body parts.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response: Response&lt;()&gt; = Response::default();</span>
-    <span class="doccomment">/// let (parts, body) = response.into_parts();</span>
-    <span class="doccomment">/// assert_eq!(parts.status, StatusCode::OK);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_parts</span>(<span class="self">self</span>) -&gt; (<a class="ident" href="../../src/http/response.rs.html#188">Parts</a>, <span class="ident">T</span>) {
-        (<a class="self" href="../../src/http/response.rs.html#454">self</a>.<span class="ident">head</span>, <a class="self" href="../../src/http/response.rs.html#454">self</a>.<span class="ident">body</span>)
+    <span class="doccomment">/// Consumes the response returning the head and body parts.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response: Response&lt;()&gt; = Response::default();
+    /// let (parts, body) = response.into_parts();
+    /// assert_eq!(parts.status, StatusCode::OK);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>into_parts(<span class="self">self</span>) -&gt; (<a href="../../src/http/response.rs.html#188">Parts</a>, T) {
+        (<a class="self" href="../../src/http/response.rs.html#454">self</a>.head, <a class="self" href="../../src/http/response.rs.html#454">self</a>.body)
     }
 
-    <span class="doccomment">/// Consumes the response returning a new response with body mapped to the</span>
-    <span class="doccomment">/// return type of the passed in function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let response = Response::builder().body(&quot;some string&quot;).unwrap();</span>
-    <span class="doccomment">/// let mapped_response: Response&lt;&amp;[u8]&gt; = response.map(|b| {</span>
-    <span class="doccomment">///   assert_eq!(b, &quot;some string&quot;);</span>
-    <span class="doccomment">///   b.as_bytes()</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// assert_eq!(mapped_response.body(), &amp;&quot;some string&quot;.as_bytes());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">T</span>) -&gt; <span class="ident">U</span>,
+    <span class="doccomment">/// Consumes the response returning a new response with body mapped to the
+    /// return type of the passed in function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let response = Response::builder().body(&quot;some string&quot;).unwrap();
+    /// let mapped_response: Response&lt;&amp;[u8]&gt; = response.map(|b| {
+    ///   assert_eq!(b, &quot;some string&quot;);
+    ///   b.as_bytes()
+    /// });
+    /// assert_eq!(mapped_response.body(), &amp;&quot;some string&quot;.as_bytes());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>map&lt;F, U&gt;(<span class="self">self</span>, f: F) -&gt; Response&lt;U&gt;
+    <span class="kw">where
+        </span>F: FnOnce(T) -&gt; U,
     {
-        <a class="ident" href="../../src/http/response.rs.html#179">Response</a> {
-            <span class="ident">body</span>: <a class="ident" href="../../src/http/response.rs.html#473">f</a>(<a class="self" href="../../src/http/response.rs.html#473">self</a>.<span class="ident">body</span>),
-            <span class="ident">head</span>: <a class="self" href="../../src/http/response.rs.html#473">self</a>.<span class="ident">head</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">Response::new</span>(<span class="ident">T::default</span>())
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/http/response.rs.html#492">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Response&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#492">self</a>.<a class="ident" href="../../src/http/response.rs.html#291">status</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#492">self</a>.<a class="ident" href="../../src/http/response.rs.html#320">version</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;headers&quot;</span>, <a class="self" href="../../src/http/response.rs.html#492">self</a>.<a class="ident" href="../../src/http/response.rs.html#349">headers</a>())
-            <span class="comment">// omits Extensions because not useful</span>
-            .<span class="ident">field</span>(<span class="string">&quot;body&quot;</span>, <a class="self" href="../../src/http/response.rs.html#492">self</a>.<a class="ident" href="../../src/http/response.rs.html#409">body</a>())
-            .<span class="ident">finish</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../src/http/response.rs.html#188">Parts</a> {
-    <span class="doccomment">/// Creates a new default instance of `Parts`</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/http/response.rs.html#188">Parts</a> {
-        <a class="ident" href="../../src/http/response.rs.html#188">Parts</a> {
-            <span class="ident">status</span>: <span class="ident">StatusCode::default</span>(),
-            <span class="ident">version</span>: <span class="ident">Version::default</span>(),
-            <span class="ident">headers</span>: <span class="ident">HeaderMap::default</span>(),
-            <span class="ident">extensions</span>: <span class="ident">Extensions::default</span>(),
-            <span class="ident">_priv</span>: (),
+        <a href="../../src/http/response.rs.html#179">Response</a> {
+            body: <a href="../../src/http/response.rs.html#473">f</a>(<a class="self" href="../../src/http/response.rs.html#473">self</a>.body),
+            head: <a class="self" href="../../src/http/response.rs.html#473">self</a>.head,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/http/response.rs.html#188">Parts</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/http/response.rs.html#517">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Parts&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#517">self</a>.<span class="ident">status</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#517">self</a>.<span class="ident">version</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#517">self</a>.<span class="ident">headers</span>)
-            <span class="comment">// omits Extensions because not useful</span>
-            <span class="comment">// omits _priv because not useful</span>
-            .<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Response&lt;T&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; Response&lt;T&gt; {
+        Response::new(T::default())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/http/response.rs.html#209">Builder</a> {
-    <span class="doccomment">/// Creates a new default instance of `Builder` to construct either a</span>
-    <span class="doccomment">/// `Head` or a `Response`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let response = response::Builder::new()</span>
-    <span class="doccomment">///     .status(200)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/http/response.rs.html#209">Builder</a> {
-        <span class="ident">Builder::default</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Response&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/http/response.rs.html#492">f</a>.debug_struct(<span class="string">&quot;Response&quot;</span>)
+            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#492">self</a>.<a href="../../src/http/response.rs.html#291">status</a>())
+            .field(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#492">self</a>.<a href="../../src/http/response.rs.html#320">version</a>())
+            .field(<span class="string">&quot;headers&quot;</span>, <a class="self" href="../../src/http/response.rs.html#492">self</a>.<a href="../../src/http/response.rs.html#349">headers</a>())
+            <span class="comment">// omits Extensions because not useful
+            </span>.field(<span class="string">&quot;body&quot;</span>, <a class="self" href="../../src/http/response.rs.html#492">self</a>.<a href="../../src/http/response.rs.html#409">body</a>())
+            .finish()
+    }
+}
+
+<span class="kw">impl </span><a href="../../src/http/response.rs.html#188">Parts</a> {
+    <span class="doccomment">/// Creates a new default instance of `Parts`
+    </span><span class="kw">fn </span>new() -&gt; <a href="../../src/http/response.rs.html#188">Parts</a> {
+        <a href="../../src/http/response.rs.html#188">Parts</a> {
+            status: StatusCode::default(),
+            version: Version::default(),
+            headers: HeaderMap::default(),
+            extensions: Extensions::default(),
+            _priv: (),
+        }
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/http/response.rs.html#188">Parts</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/http/response.rs.html#517">f</a>.debug_struct(<span class="string">&quot;Parts&quot;</span>)
+            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#517">self</a>.status)
+            .field(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#517">self</a>.version)
+            .field(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/response.rs.html#517">self</a>.headers)
+            <span class="comment">// omits Extensions because not useful
+            // omits _priv because not useful
+            </span>.finish()
+    }
+}
+
+<span class="kw">impl </span><a href="../../src/http/response.rs.html#209">Builder</a> {
+    <span class="doccomment">/// Creates a new default instance of `Builder` to construct either a
+    /// `Head` or a `Response`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let response = response::Builder::new()
+    ///     .status(200)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/http/response.rs.html#209">Builder</a> {
+        Builder::default()
     }
 
-    <span class="doccomment">/// Set the HTTP status for this response.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will configure the HTTP status code of the `Response` that</span>
-    <span class="doccomment">/// will be returned from `Builder::build`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is `200`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let response = Response::builder()</span>
-    <span class="doccomment">///     .status(200)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">status</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/response.rs.html#209">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/status.rs.html#45">StatusCode</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/status.rs.html#45">StatusCode</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Set the HTTP status for this response.
+    ///
+    /// This function will configure the HTTP status code of the `Response` that
+    /// will be returned from `Builder::build`.
+    ///
+    /// By default this is `200`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let response = Response::builder()
+    ///     .status(200)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>status&lt;T&gt;(<span class="self">self</span>, status: T) -&gt; <a href="../../src/http/response.rs.html#209">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/status.rs.html#45">StatusCode</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/status.rs.html#45">StatusCode</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
     {
-        <a class="self" href="../../src/http/response.rs.html#564">self</a>.<a class="ident" href="../../src/http/response.rs.html#767-769">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <a class="ident" href="../../src/http/response.rs.html#569">head</a>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">TryFrom::try_from</span>(<span class="ident">status</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/response.rs.html#569">head</a>)
+        <a class="self" href="../../src/http/response.rs.html#564">self</a>.<a href="../../src/http/response.rs.html#767-769">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <a href="../../src/http/response.rs.html#569">head</a>.status = TryFrom::try_from(status).map_err(Into::into)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/response.rs.html#569">head</a>)
         })
     }
 
-    <span class="doccomment">/// Set the HTTP version for this response.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will configure the HTTP version of the `Response` that</span>
-    <span class="doccomment">/// will be returned from `Builder::build`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is HTTP/1.1</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let response = Response::builder()</span>
-    <span class="doccomment">///     .version(Version::HTTP_2)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version</span>(<span class="self">self</span>, <span class="ident">version</span>: <a class="ident" href="../../src/http/version.rs.html#26">Version</a>) -&gt; <a class="ident" href="../../src/http/response.rs.html#209">Builder</a> {
-        <a class="self" href="../../src/http/response.rs.html#592">self</a>.<a class="ident" href="../../src/http/response.rs.html#767-769">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <a class="ident" href="../../src/http/response.rs.html#593">head</a>.<span class="ident">version</span> <span class="op">=</span> <a class="ident" href="../../src/http/response.rs.html#592">version</a>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/response.rs.html#593">head</a>)
+    <span class="doccomment">/// Set the HTTP version for this response.
+    ///
+    /// This function will configure the HTTP version of the `Response` that
+    /// will be returned from `Builder::build`.
+    ///
+    /// By default this is HTTP/1.1
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let response = Response::builder()
+    ///     .version(Version::HTTP_2)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>version(<span class="self">self</span>, version: <a href="../../src/http/version.rs.html#26">Version</a>) -&gt; <a href="../../src/http/response.rs.html#209">Builder</a> {
+        <a class="self" href="../../src/http/response.rs.html#592">self</a>.<a href="../../src/http/response.rs.html#767-769">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <a href="../../src/http/response.rs.html#593">head</a>.version = <a href="../../src/http/response.rs.html#592">version</a>;
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/response.rs.html#593">head</a>)
         })
     }
 
-    <span class="doccomment">/// Appends a header to this response builder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will append the provided key/value as a header to the</span>
-    <span class="doccomment">/// internal `HeaderMap` being constructed. Essentially this is equivalent</span>
-    <span class="doccomment">/// to calling `HeaderMap::append`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// # use http::header::HeaderValue;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let response = Response::builder()</span>
-    <span class="doccomment">///     .header(&quot;Content-Type&quot;, &quot;text/html&quot;)</span>
-    <span class="doccomment">///     .header(&quot;X-Custom-Foo&quot;, &quot;bar&quot;)</span>
-    <span class="doccomment">///     .header(&quot;content-length&quot;, 0)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../src/http/response.rs.html#209">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/header/name.rs.html#33">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/header/name.rs.html#33">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Appends a header to this response builder.
+    ///
+    /// This function will append the provided key/value as a header to the
+    /// internal `HeaderMap` being constructed. Essentially this is equivalent
+    /// to calling `HeaderMap::append`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// # use http::header::HeaderValue;
+    ///
+    /// let response = Response::builder()
+    ///     .header(&quot;Content-Type&quot;, &quot;text/html&quot;)
+    ///     .header(&quot;X-Custom-Foo&quot;, &quot;bar&quot;)
+    ///     .header(&quot;content-length&quot;, 0)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>header&lt;K, V&gt;(<span class="self">self</span>, key: K, value: V) -&gt; <a href="../../src/http/response.rs.html#209">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/header/name.rs.html#33">HeaderName</a>: TryFrom&lt;K&gt;,
+        &lt;<a href="../../src/http/header/name.rs.html#33">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
+        <a href="../../src/http/header/value.rs.html#21">HeaderValue</a>: TryFrom&lt;V&gt;,
+        &lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
     {
-        <a class="self" href="../../src/http/response.rs.html#618">self</a>.<a class="ident" href="../../src/http/response.rs.html#767-769">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">HeaderName</span> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="ident">key</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">HeaderValue</span> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="ident">value</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/http/response.rs.html#625">head</a>.<span class="ident">headers</span>.<a class="ident" href="../../src/http/header/map.rs.html#1234-1236">append</a>(<a class="ident" href="../../src/http/response.rs.html#626">name</a>, <a class="ident" href="../../src/http/response.rs.html#627">value</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/response.rs.html#625">head</a>)
+        <a class="self" href="../../src/http/response.rs.html#618">self</a>.<a href="../../src/http/response.rs.html#767-769">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <span class="kw">let </span>name = &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(key).map_err(Into::into)<span class="question-mark">?</span>;
+            <span class="kw">let </span>value = &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(value).map_err(Into::into)<span class="question-mark">?</span>;
+            <a href="../../src/http/response.rs.html#625">head</a>.headers.<a href="../../src/http/header/map.rs.html#1234-1236">append</a>(<a href="../../src/http/response.rs.html#626">name</a>, <a href="../../src/http/response.rs.html#627">value</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/response.rs.html#625">head</a>)
         })
     }
 
-    <span class="doccomment">/// Get header on this response builder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When builder has error returns None.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::Response;</span>
-    <span class="doccomment">/// # use http::header::HeaderValue;</span>
-    <span class="doccomment">/// let res = Response::builder()</span>
-    <span class="doccomment">///     .header(&quot;Accept&quot;, &quot;text/html&quot;)</span>
-    <span class="doccomment">///     .header(&quot;X-Custom-Foo&quot;, &quot;bar&quot;);</span>
-    <span class="doccomment">/// let headers = res.headers_ref().unwrap();</span>
-    <span class="doccomment">/// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );</span>
-    <span class="doccomment">/// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/response.rs.html#649">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/response.rs.html#650">h</a>.<span class="ident">headers</span>)
+    <span class="doccomment">/// Get header on this response builder.
+    ///
+    /// When builder has error returns None.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::Response;
+    /// # use http::header::HeaderValue;
+    /// let res = Response::builder()
+    ///     .header(&quot;Accept&quot;, &quot;text/html&quot;)
+    ///     .header(&quot;X-Custom-Foo&quot;, &quot;bar&quot;);
+    /// let headers = res.headers_ref().unwrap();
+    /// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );
+    /// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );
+    /// ```
+    </span><span class="kw">pub fn </span>headers_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt;&gt; {
+        <a class="self" href="../../src/http/response.rs.html#649">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="../../src/http/response.rs.html#650">h</a>.headers)
     }
 
-    <span class="doccomment">/// Get header on this response builder.</span>
-    <span class="doccomment">/// when builder has error returns None</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// # use http::header::HeaderValue;</span>
-    <span class="doccomment">/// # use http::response::Builder;</span>
-    <span class="doccomment">/// let mut res = Response::builder();</span>
-    <span class="doccomment">/// {</span>
-    <span class="doccomment">///   let headers = res.headers_mut().unwrap();</span>
-    <span class="doccomment">///   headers.insert(&quot;Accept&quot;, HeaderValue::from_static(&quot;text/html&quot;));</span>
-    <span class="doccomment">///   headers.insert(&quot;X-Custom-Foo&quot;, HeaderValue::from_static(&quot;bar&quot;));</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// let headers = res.headers_ref().unwrap();</span>
-    <span class="doccomment">/// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );</span>
-    <span class="doccomment">/// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/response.rs.html#672">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/response.rs.html#673">h</a>.<span class="ident">headers</span>)
+    <span class="doccomment">/// Get header on this response builder.
+    /// when builder has error returns None
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    /// # use http::header::HeaderValue;
+    /// # use http::response::Builder;
+    /// let mut res = Response::builder();
+    /// {
+    ///   let headers = res.headers_mut().unwrap();
+    ///   headers.insert(&quot;Accept&quot;, HeaderValue::from_static(&quot;text/html&quot;));
+    ///   headers.insert(&quot;X-Custom-Foo&quot;, HeaderValue::from_static(&quot;bar&quot;));
+    /// }
+    /// let headers = res.headers_ref().unwrap();
+    /// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );
+    /// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );
+    /// ```
+    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt;&gt; {
+        <a class="self" href="../../src/http/response.rs.html#672">self</a>.inner.as_mut().ok().map(|h| <span class="kw-2">&amp;mut </span><a href="../../src/http/response.rs.html#673">h</a>.headers)
     }
 
-    <span class="doccomment">/// Adds an extension to this builder</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let response = Response::builder()</span>
-    <span class="doccomment">///     .extension(&quot;My Extension&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(response.extensions().get::&lt;&amp;&#39;static str&gt;(),</span>
-    <span class="doccomment">///            Some(&amp;&quot;My Extension&quot;));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extension</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">extension</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/response.rs.html#209">Builder</a>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Adds an extension to this builder
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let response = Response::builder()
+    ///     .extension(&quot;My Extension&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    ///
+    /// assert_eq!(response.extensions().get::&lt;&amp;&#39;static str&gt;(),
+    ///            Some(&amp;&quot;My Extension&quot;));
+    /// ```
+    </span><span class="kw">pub fn </span>extension&lt;T&gt;(<span class="self">self</span>, extension: T) -&gt; <a href="../../src/http/response.rs.html#209">Builder</a>
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="../../src/http/response.rs.html#691">self</a>.<a class="ident" href="../../src/http/response.rs.html#767-769">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <a class="ident" href="../../src/http/response.rs.html#695">head</a>.<span class="ident">extensions</span>.<a class="ident" href="../../src/http/extensions.rs.html#62">insert</a>(<a class="ident" href="../../src/http/response.rs.html#691">extension</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/response.rs.html#695">head</a>)
+        <a class="self" href="../../src/http/response.rs.html#691">self</a>.<a href="../../src/http/response.rs.html#767-769">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <a href="../../src/http/response.rs.html#695">head</a>.extensions.<a href="../../src/http/extensions.rs.html#62">insert</a>(<a href="../../src/http/response.rs.html#691">extension</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/response.rs.html#695">head</a>)
         })
     }
 
-    <span class="doccomment">/// Get a reference to the extensions for this response builder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the builder has an error, this returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::Response;</span>
-    <span class="doccomment">/// let res = Response::builder().extension(&quot;My Extension&quot;).extension(5u32);</span>
-    <span class="doccomment">/// let extensions = res.extensions_ref().unwrap();</span>
-    <span class="doccomment">/// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));</span>
-    <span class="doccomment">/// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extensions_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/response.rs.html#714">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/response.rs.html#715">h</a>.<span class="ident">extensions</span>)
+    <span class="doccomment">/// Get a reference to the extensions for this response builder.
+    ///
+    /// If the builder has an error, this returns `None`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::Response;
+    /// let res = Response::builder().extension(&quot;My Extension&quot;).extension(5u32);
+    /// let extensions = res.extensions_ref().unwrap();
+    /// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));
+    /// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));
+    /// ```
+    </span><span class="kw">pub fn </span>extensions_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/http/extensions.rs.html#35">Extensions</a>&gt; {
+        <a class="self" href="../../src/http/response.rs.html#714">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="../../src/http/response.rs.html#715">h</a>.extensions)
     }
 
-    <span class="doccomment">/// Get a mutable reference to the extensions for this response builder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the builder has an error, this returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::Response;</span>
-    <span class="doccomment">/// let mut res = Response::builder().extension(&quot;My Extension&quot;);</span>
-    <span class="doccomment">/// let mut extensions = res.extensions_mut().unwrap();</span>
-    <span class="doccomment">/// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));</span>
-    <span class="doccomment">/// extensions.insert(5u32);</span>
-    <span class="doccomment">/// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extensions_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/response.rs.html#732">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/response.rs.html#733">h</a>.<span class="ident">extensions</span>)
+    <span class="doccomment">/// Get a mutable reference to the extensions for this response builder.
+    ///
+    /// If the builder has an error, this returns `None`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::Response;
+    /// let mut res = Response::builder().extension(&quot;My Extension&quot;);
+    /// let mut extensions = res.extensions_mut().unwrap();
+    /// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));
+    /// extensions.insert(5u32);
+    /// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));
+    /// ```
+    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../src/http/extensions.rs.html#35">Extensions</a>&gt; {
+        <a class="self" href="../../src/http/response.rs.html#732">self</a>.inner.as_mut().ok().map(|h| <span class="kw-2">&amp;mut </span><a href="../../src/http/response.rs.html#733">h</a>.extensions)
     }
 
-    <span class="doccomment">/// &quot;Consumes&quot; this builder, using the provided `body` to return a</span>
-    <span class="doccomment">/// constructed `Response`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function may return an error if any previously configured argument</span>
-    <span class="doccomment">/// failed to parse or get converted to the internal representation. For</span>
-    <span class="doccomment">/// example if an invalid `head` was specified via `header(&quot;Foo&quot;,</span>
-    <span class="doccomment">/// &quot;Bar\r\n&quot;)` the error will be returned when this function is called</span>
-    <span class="doccomment">/// rather than when `header` was called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let response = Response::builder()</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">body</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/response.rs.html#756">self</a>.<span class="ident">inner</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">head</span><span class="op">|</span> {
-            <a class="ident" href="../../src/http/response.rs.html#179">Response</a> {
-                <a class="ident" href="../../src/http/response.rs.html#757">head</a>,
-                <a class="ident" href="../../src/http/response.rs.html#756">body</a>,
+    <span class="doccomment">/// &quot;Consumes&quot; this builder, using the provided `body` to return a
+    /// constructed `Response`.
+    ///
+    /// # Errors
+    ///
+    /// This function may return an error if any previously configured argument
+    /// failed to parse or get converted to the internal representation. For
+    /// example if an invalid `head` was specified via `header(&quot;Foo&quot;,
+    /// &quot;Bar\r\n&quot;)` the error will be returned when this function is called
+    /// rather than when `header` was called.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let response = Response::builder()
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>body&lt;T&gt;(<span class="self">self</span>, body: T) -&gt; <span class="prelude-ty">Result</span>&lt;Response&lt;T&gt;&gt; {
+        <a class="self" href="../../src/http/response.rs.html#756">self</a>.inner.map(<span class="kw">move </span>|head| {
+            <a href="../../src/http/response.rs.html#179">Response</a> {
+                <a href="../../src/http/response.rs.html#757">head</a>,
+                <a href="../../src/http/response.rs.html#756">body</a>,
             }
         })
     }
 
-    <span class="comment">// private</span>
+    <span class="comment">// private
 
-    <span class="kw">fn</span> <span class="ident">and_then</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="../../src/http/response.rs.html#188">Parts</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/http/response.rs.html#188">Parts</a><span class="op">&gt;</span>
+    </span><span class="kw">fn </span>and_then&lt;F&gt;(<span class="self">self</span>, func: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnOnce(<a href="../../src/http/response.rs.html#188">Parts</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/http/response.rs.html#188">Parts</a>&gt;
     {
-        <a class="ident" href="../../src/http/response.rs.html#209">Builder</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../src/http/response.rs.html#767">self</a>.<span class="ident">inner</span>.<span class="ident">and_then</span>(<a class="ident" href="../../src/http/response.rs.html#767">func</a>),
+        <a href="../../src/http/response.rs.html#209">Builder</a> {
+            inner: <a class="self" href="../../src/http/response.rs.html#767">self</a>.inner.and_then(<a href="../../src/http/response.rs.html#767">func</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/http/response.rs.html#209">Builder</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/http/response.rs.html#209">Builder</a> {
-        <a class="ident" href="../../src/http/response.rs.html#209">Builder</a> {
-            <span class="ident">inner</span>: <span class="prelude-val">Ok</span>(<span class="ident">Parts::new</span>()),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/http/response.rs.html#209">Builder</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <a href="../../src/http/response.rs.html#209">Builder</a> {
+        <a href="../../src/http/response.rs.html#209">Builder</a> {
+            inner: <span class="prelude-val">Ok</span>(Parts::new()),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">it_can_map_a_body_from_one_type_to_another</span>() {
-        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">Response::builder</span>().<span class="ident">body</span>(<span class="string">&quot;some string&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">mapped_response</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
-            <span class="macro">assert_eq!</span>(<span class="ident">s</span>, <span class="string">&quot;some string&quot;</span>);
-            <span class="number">123u32</span>
-        });
-        <span class="macro">assert_eq!</span>(<span class="ident">mapped_response</span>.<span class="ident">body</span>(), <span class="kw-2">&amp;</span><span class="number">123u32</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>it_can_map_a_body_from_one_type_to_another() {
+        <span class="kw">let </span>response = Response::builder().body(<span class="string">&quot;some string&quot;</span>).unwrap();
+        <span class="kw">let </span>mapped_response = response.map(|s| {
+            <span class="macro">assert_eq!</span>(s, <span class="string">&quot;some string&quot;</span>);
+            <span class="number">123u32
+        </span>});
+        <span class="macro">assert_eq!</span>(mapped_response.body(), <span class="kw-2">&amp;</span><span class="number">123u32</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

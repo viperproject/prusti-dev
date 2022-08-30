@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/unicode_tables/word_break.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>word_break.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/unicode_tables/word_break.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>word_break.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1096,36 +1096,36 @@
 <span id="1096">1096</span>
 <span id="1097">1097</span>
 <span id="1098">1098</span>
-</pre><pre class="rust"><code><span class="comment">// DO NOT EDIT THIS FILE. IT WAS AUTOMATICALLY GENERATED BY:</span>
-<span class="comment">//</span>
-<span class="comment">//   ucd-generate word-break /tmp/ucd --chars</span>
-<span class="comment">//</span>
-<span class="comment">// Unicode version: 14.0.0.</span>
-<span class="comment">//</span>
-<span class="comment">// ucd-generate 0.2.11 is available on crates.io.</span>
+</pre><pre class="rust"><code><span class="comment">// DO NOT EDIT THIS FILE. IT WAS AUTOMATICALLY GENERATED BY:
+//
+//   ucd-generate word-break /tmp/ucd --chars
+//
+// Unicode version: 14.0.0.
+//
+// ucd-generate 0.2.11 is available on crates.io.
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BY_NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)])] <span class="op">=</span> <span class="kw-2">&amp;</span>[
-    (<span class="string">&quot;ALetter&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#30">ALETTER</a>),
-    (<span class="string">&quot;CR&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#603">CR</a>),
-    (<span class="string">&quot;Double_Quote&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#605">DOUBLE_QUOTE</a>),
-    (<span class="string">&quot;Extend&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#607">EXTEND</a>),
-    (<span class="string">&quot;ExtendNumLet&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#913">EXTENDNUMLET</a>),
-    (<span class="string">&quot;Format&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#923">FORMAT</a>),
-    (<span class="string">&quot;Hebrew_Letter&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#946">HEBREW_LETTER</a>),
-    (<span class="string">&quot;Katakana&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#959">KATAKANA</a>),
-    (<span class="string">&quot;LF&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#976">LF</a>),
-    (<span class="string">&quot;MidLetter&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#978">MIDLETTER</a>),
-    (<span class="string">&quot;MidNum&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#990">MIDNUM</a>),
-    (<span class="string">&quot;MidNumLet&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1007">MIDNUMLET</a>),
-    (<span class="string">&quot;Newline&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1016">NEWLINE</a>),
-    (<span class="string">&quot;Numeric&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1019">NUMERIC</a>),
-    (<span class="string">&quot;Regional_Indicator&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1085">REGIONAL_INDICATOR</a>),
-    (<span class="string">&quot;Single_Quote&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1087">SINGLE_QUOTE</a>),
-    (<span class="string">&quot;WSegSpace&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1089">WSEGSPACE</a>),
-    (<span class="string">&quot;ZWJ&quot;</span>, <a class="ident" href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1098">ZWJ</a>),
+</span><span class="kw">pub const </span>BY_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)])] = <span class="kw-2">&amp;</span>[
+    (<span class="string">&quot;ALetter&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#30">ALETTER</a>),
+    (<span class="string">&quot;CR&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#603">CR</a>),
+    (<span class="string">&quot;Double_Quote&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#605">DOUBLE_QUOTE</a>),
+    (<span class="string">&quot;Extend&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#607">EXTEND</a>),
+    (<span class="string">&quot;ExtendNumLet&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#913">EXTENDNUMLET</a>),
+    (<span class="string">&quot;Format&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#923">FORMAT</a>),
+    (<span class="string">&quot;Hebrew_Letter&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#946">HEBREW_LETTER</a>),
+    (<span class="string">&quot;Katakana&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#959">KATAKANA</a>),
+    (<span class="string">&quot;LF&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#976">LF</a>),
+    (<span class="string">&quot;MidLetter&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#978">MIDLETTER</a>),
+    (<span class="string">&quot;MidNum&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#990">MIDNUM</a>),
+    (<span class="string">&quot;MidNumLet&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1007">MIDNUMLET</a>),
+    (<span class="string">&quot;Newline&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1016">NEWLINE</a>),
+    (<span class="string">&quot;Numeric&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1019">NUMERIC</a>),
+    (<span class="string">&quot;Regional_Indicator&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1085">REGIONAL_INDICATOR</a>),
+    (<span class="string">&quot;Single_Quote&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1087">SINGLE_QUOTE</a>),
+    (<span class="string">&quot;WSegSpace&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1089">WSEGSPACE</a>),
+    (<span class="string">&quot;ZWJ&quot;</span>, <a href="../../../src/regex_syntax/unicode_tables/word_break.rs.html#1098">ZWJ</a>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ALETTER</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>ALETTER: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>),
     (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>),
     (<span class="string">&#39;ª&#39;</span>, <span class="string">&#39;ª&#39;</span>),
@@ -1698,11 +1698,11 @@
     (<span class="string">&#39;🅰&#39;</span>, <span class="string">&#39;🆉&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\r&#39;</span>, <span class="string">&#39;\r&#39;</span>)];
+<span class="kw">pub const </span>CR: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[(<span class="string">&#39;\r&#39;</span>, <span class="string">&#39;\r&#39;</span>)];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DOUBLE_QUOTE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;&quot;&#39;</span>, <span class="string">&#39;&quot;&#39;</span>)];
+<span class="kw">pub const </span>DOUBLE_QUOTE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[(<span class="string">&#39;&quot;&#39;</span>, <span class="string">&#39;&quot;&#39;</span>)];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXTEND</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>EXTEND: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;\u{300}&#39;</span>, <span class="string">&#39;\u{36f}&#39;</span>),
     (<span class="string">&#39;\u{483}&#39;</span>, <span class="string">&#39;\u{489}&#39;</span>),
     (<span class="string">&#39;\u{591}&#39;</span>, <span class="string">&#39;\u{5bd}&#39;</span>),
@@ -2008,7 +2008,7 @@
     (<span class="string">&#39;\u{e0100}&#39;</span>, <span class="string">&#39;\u{e01ef}&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXTENDNUMLET</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>EXTENDNUMLET: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;_&#39;</span>, <span class="string">&#39;_&#39;</span>),
     (<span class="string">&#39;\u{202f}&#39;</span>, <span class="string">&#39;\u{202f}&#39;</span>),
     (<span class="string">&#39;‿&#39;</span>, <span class="string">&#39;⁀&#39;</span>),
@@ -2018,7 +2018,7 @@
     (<span class="string">&#39;＿&#39;</span>, <span class="string">&#39;＿&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FORMAT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>FORMAT: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;\u{ad}&#39;</span>, <span class="string">&#39;\u{ad}&#39;</span>),
     (<span class="string">&#39;\u{600}&#39;</span>, <span class="string">&#39;\u{605}&#39;</span>),
     (<span class="string">&#39;\u{61c}&#39;</span>, <span class="string">&#39;\u{61c}&#39;</span>),
@@ -2041,7 +2041,7 @@
     (<span class="string">&#39;\u{e0001}&#39;</span>, <span class="string">&#39;\u{e0001}&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEBREW_LETTER</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>HEBREW_LETTER: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;א&#39;</span>, <span class="string">&#39;ת&#39;</span>),
     (<span class="string">&#39;ׯ&#39;</span>, <span class="string">&#39;ײ&#39;</span>),
     (<span class="string">&#39;יִ&#39;</span>, <span class="string">&#39;יִ&#39;</span>),
@@ -2054,7 +2054,7 @@
     (<span class="string">&#39;צּ&#39;</span>, <span class="string">&#39;ﭏ&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KATAKANA</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>KATAKANA: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;〱&#39;</span>, <span class="string">&#39;〵&#39;</span>),
     (<span class="string">&#39;゛&#39;</span>, <span class="string">&#39;゜&#39;</span>),
     (<span class="string">&#39;゠&#39;</span>, <span class="string">&#39;ヺ&#39;</span>),
@@ -2071,9 +2071,9 @@
     (<span class="string">&#39;𛅤&#39;</span>, <span class="string">&#39;𛅧&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LF</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\n&#39;</span>, <span class="string">&#39;\n&#39;</span>)];
+<span class="kw">pub const </span>LF: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[(<span class="string">&#39;\n&#39;</span>, <span class="string">&#39;\n&#39;</span>)];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIDLETTER</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>MIDLETTER: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;:&#39;</span>, <span class="string">&#39;:&#39;</span>),
     (<span class="string">&#39;·&#39;</span>, <span class="string">&#39;·&#39;</span>),
     (<span class="string">&#39;·&#39;</span>, <span class="string">&#39;·&#39;</span>),
@@ -2085,7 +2085,7 @@
     (<span class="string">&#39;：&#39;</span>, <span class="string">&#39;：&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIDNUM</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>MIDNUM: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;,&#39;</span>, <span class="string">&#39;,&#39;</span>),
     (<span class="string">&#39;;&#39;</span>, <span class="string">&#39;;&#39;</span>),
     (<span class="string">&#39;;&#39;</span>, <span class="string">&#39;;&#39;</span>),
@@ -2102,7 +2102,7 @@
     (<span class="string">&#39;；&#39;</span>, <span class="string">&#39;；&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIDNUMLET</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>MIDNUMLET: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;.&#39;</span>, <span class="string">&#39;.&#39;</span>),
     (<span class="string">&#39;‘&#39;</span>, <span class="string">&#39;’&#39;</span>),
     (<span class="string">&#39;․&#39;</span>, <span class="string">&#39;․&#39;</span>),
@@ -2111,10 +2111,10 @@
     (<span class="string">&#39;．&#39;</span>, <span class="string">&#39;．&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NEWLINE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span>
+<span class="kw">pub const </span>NEWLINE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] =
     <span class="kw-2">&amp;</span>[(<span class="string">&#39;\u{b}&#39;</span>, <span class="string">&#39;\u{c}&#39;</span>), (<span class="string">&#39;\u{85}&#39;</span>, <span class="string">&#39;\u{85}&#39;</span>), (<span class="string">&#39;\u{2028}&#39;</span>, <span class="string">&#39;\u{2029}&#39;</span>)];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NUMERIC</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>NUMERIC: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>),
     (<span class="string">&#39;٠&#39;</span>, <span class="string">&#39;٩&#39;</span>),
     (<span class="string">&#39;٫&#39;</span>, <span class="string">&#39;٫&#39;</span>),
@@ -2180,11 +2180,11 @@
     (<span class="string">&#39;🯰&#39;</span>, <span class="string">&#39;🯹&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REGIONAL_INDICATOR</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;🇦&#39;</span>, <span class="string">&#39;🇿&#39;</span>)];
+<span class="kw">pub const </span>REGIONAL_INDICATOR: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[(<span class="string">&#39;🇦&#39;</span>, <span class="string">&#39;🇿&#39;</span>)];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SINGLE_QUOTE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\&#39;&#39;</span>, <span class="string">&#39;\&#39;&#39;</span>)];
+<span class="kw">pub const </span>SINGLE_QUOTE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[(<span class="string">&#39;\&#39;&#39;</span>, <span class="string">&#39;\&#39;&#39;</span>)];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WSEGSPACE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+<span class="kw">pub const </span>WSEGSPACE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[
     (<span class="string">&#39; &#39;</span>, <span class="string">&#39; &#39;</span>),
     (<span class="string">&#39;\u{1680}&#39;</span>, <span class="string">&#39;\u{1680}&#39;</span>),
     (<span class="string">&#39;\u{2000}&#39;</span>, <span class="string">&#39;\u{2006}&#39;</span>),
@@ -2193,6 +2193,6 @@
     (<span class="string">&#39;\u{3000}&#39;</span>, <span class="string">&#39;\u{3000}&#39;</span>),
 ];
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ZWJ</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\u{200d}&#39;</span>, <span class="string">&#39;\u{200d}&#39;</span>)];
+<span class="kw">pub const </span>ZWJ: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] = <span class="kw-2">&amp;</span>[(<span class="string">&#39;\u{200d}&#39;</span>, <span class="string">&#39;\u{200d}&#39;</span>)];
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

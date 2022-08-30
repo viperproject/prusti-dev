@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/driver/sleep.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sleep.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/driver/sleep.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sleep.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -439,446 +439,446 @@
 <span id="439">439</span>
 <span id="440">440</span>
 <span id="441">441</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::time::driver::ClockTime</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::time::driver</span>::{<a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#7">Handle</a>, <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::time</span>::{<a class="ident" href="../../../../src/tokio/time/error.rs.html#27">error::Error</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/mod.rs.html#70"><span class="kw">crate</span>::util::trace</a>;
+</pre><pre class="rust"><code><span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::time::driver::ClockTime;
+<span class="kw">use </span><span class="kw">crate</span>::time::driver::{<a href="../../../../src/tokio/time/driver/handle.rs.html#7">Handle</a>, <a href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a>};
+<span class="kw">use </span><span class="kw">crate</span>::time::{<a href="../../../../src/tokio/time/error.rs.html#27">error::Error</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/util/mod.rs.html#70"><span class="kw">crate</span>::util::trace</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/location/struct.Location.html">std::panic::Location</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/panic/location/struct.Location.html">std::panic::Location</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// Waits until `deadline` is reached.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// No work is performed while awaiting on the sleep future to complete. `Sleep`</span>
-<span class="doccomment">/// operates at millisecond granularity and should not be used for tasks that</span>
-<span class="doccomment">/// require high-resolution timers.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To run something regularly on a schedule, see [`interval`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Cancellation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Canceling a sleep instance is done by dropping the returned future. No additional</span>
-<span class="doccomment">/// cleanup work is required.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Wait 100ms and print &quot;100 ms have elapsed&quot;.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use tokio::time::{sleep_until, Instant, Duration};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     sleep_until(Instant::now() + Duration::from_millis(100)).await;</span>
-<span class="doccomment">///     println!(&quot;100 ms have elapsed&quot;);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the documentation for the [`Sleep`] type for more examples.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function panics if there is no current timer set.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can be triggered when [`Builder::enable_time`] or</span>
-<span class="doccomment">/// [`Builder::enable_all`] are not included in the builder.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can also panic whenever a timer is created outside of a</span>
-<span class="doccomment">/// Tokio runtime. That is why `rt.block_on(sleep(...))` will panic,</span>
-<span class="doccomment">/// since the function is executed outside of the runtime.</span>
-<span class="doccomment">/// Whereas `rt.block_on(async {sleep(...).await})` doesn&#39;t panic.</span>
-<span class="doccomment">/// And this is because wrapping the function on an async makes it lazy,</span>
-<span class="doccomment">/// and so gets executed inside the runtime successfully without</span>
-<span class="doccomment">/// panicking.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Sleep`]: struct@crate::time::Sleep</span>
-<span class="doccomment">/// [`interval`]: crate::time::interval()</span>
-<span class="doccomment">/// [`Builder::enable_time`]: crate::runtime::Builder::enable_time</span>
-<span class="doccomment">/// [`Builder::enable_all`]: crate::runtime::Builder::enable_all</span>
-<span class="comment">// Alias for old name in 0.x</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;delay_until&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleep_until</span>(<span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-    <span class="kw">return</span> <span class="ident">Sleep::new_timeout</span>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#64">deadline</a>, <a class="ident" href="../../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>());
+<span class="doccomment">/// Waits until `deadline` is reached.
+///
+/// No work is performed while awaiting on the sleep future to complete. `Sleep`
+/// operates at millisecond granularity and should not be used for tasks that
+/// require high-resolution timers.
+///
+/// To run something regularly on a schedule, see [`interval`].
+///
+/// # Cancellation
+///
+/// Canceling a sleep instance is done by dropping the returned future. No additional
+/// cleanup work is required.
+///
+/// # Examples
+///
+/// Wait 100ms and print &quot;100 ms have elapsed&quot;.
+///
+/// ```
+/// use tokio::time::{sleep_until, Instant, Duration};
+///
+/// #[tokio::main]
+/// async fn main() {
+///     sleep_until(Instant::now() + Duration::from_millis(100)).await;
+///     println!(&quot;100 ms have elapsed&quot;);
+/// }
+/// ```
+///
+/// See the documentation for the [`Sleep`] type for more examples.
+///
+/// # Panics
+///
+/// This function panics if there is no current timer set.
+///
+/// It can be triggered when [`Builder::enable_time`] or
+/// [`Builder::enable_all`] are not included in the builder.
+///
+/// It can also panic whenever a timer is created outside of a
+/// Tokio runtime. That is why `rt.block_on(sleep(...))` will panic,
+/// since the function is executed outside of the runtime.
+/// Whereas `rt.block_on(async {sleep(...).await})` doesn&#39;t panic.
+/// And this is because wrapping the function on an async makes it lazy,
+/// and so gets executed inside the runtime successfully without
+/// panicking.
+///
+/// [`Sleep`]: struct@crate::time::Sleep
+/// [`interval`]: crate::time::interval()
+/// [`Builder::enable_time`]: crate::runtime::Builder::enable_time
+/// [`Builder::enable_all`]: crate::runtime::Builder::enable_all
+</span><span class="comment">// Alias for old name in 0.x
+</span><span class="attribute">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;delay_until&quot;</span>))]
+#[track_caller]
+</span><span class="kw">pub fn </span>sleep_until(deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+    <span class="kw">return </span>Sleep::new_timeout(<a href="../../../../src/tokio/time/driver/sleep.rs.html#64">deadline</a>, <a href="../../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>());
 }
 
-<span class="doccomment">/// Waits until `duration` has elapsed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Equivalent to `sleep_until(Instant::now() + duration)`. An asynchronous</span>
-<span class="doccomment">/// analog to `std::thread::sleep`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// No work is performed while awaiting on the sleep future to complete. `Sleep`</span>
-<span class="doccomment">/// operates at millisecond granularity and should not be used for tasks that</span>
-<span class="doccomment">/// require high-resolution timers. The implementation is platform specific,</span>
-<span class="doccomment">/// and some platforms (specifically Windows) will provide timers with a</span>
-<span class="doccomment">/// larger resolution than 1 ms.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To run something regularly on a schedule, see [`interval`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The maximum duration for a sleep is 68719476734 milliseconds (approximately 2.2 years).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Cancellation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Canceling a sleep instance is done by dropping the returned future. No additional</span>
-<span class="doccomment">/// cleanup work is required.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Wait 100ms and print &quot;100 ms have elapsed&quot;.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use tokio::time::{sleep, Duration};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     sleep(Duration::from_millis(100)).await;</span>
-<span class="doccomment">///     println!(&quot;100 ms have elapsed&quot;);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the documentation for the [`Sleep`] type for more examples.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function panics if there is no current timer set.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can be triggered when [`Builder::enable_time`] or</span>
-<span class="doccomment">/// [`Builder::enable_all`] are not included in the builder.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can also panic whenever a timer is created outside of a</span>
-<span class="doccomment">/// Tokio runtime. That is why `rt.block_on(sleep(...))` will panic,</span>
-<span class="doccomment">/// since the function is executed outside of the runtime.</span>
-<span class="doccomment">/// Whereas `rt.block_on(async {sleep(...).await})` doesn&#39;t panic.</span>
-<span class="doccomment">/// And this is because wrapping the function on an async makes it lazy,</span>
-<span class="doccomment">/// and so gets executed inside the runtime successfully without</span>
-<span class="doccomment">/// panicking.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Sleep`]: struct@crate::time::Sleep</span>
-<span class="doccomment">/// [`interval`]: crate::time::interval()</span>
-<span class="doccomment">/// [`Builder::enable_time`]: crate::runtime::Builder::enable_time</span>
-<span class="doccomment">/// [`Builder::enable_all`]: crate::runtime::Builder::enable_all</span>
-<span class="comment">// Alias for old name in 0.x</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;delay_for&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;wait&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleep</span>(<span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>();
+<span class="doccomment">/// Waits until `duration` has elapsed.
+///
+/// Equivalent to `sleep_until(Instant::now() + duration)`. An asynchronous
+/// analog to `std::thread::sleep`.
+///
+/// No work is performed while awaiting on the sleep future to complete. `Sleep`
+/// operates at millisecond granularity and should not be used for tasks that
+/// require high-resolution timers. The implementation is platform specific,
+/// and some platforms (specifically Windows) will provide timers with a
+/// larger resolution than 1 ms.
+///
+/// To run something regularly on a schedule, see [`interval`].
+///
+/// The maximum duration for a sleep is 68719476734 milliseconds (approximately 2.2 years).
+///
+/// # Cancellation
+///
+/// Canceling a sleep instance is done by dropping the returned future. No additional
+/// cleanup work is required.
+///
+/// # Examples
+///
+/// Wait 100ms and print &quot;100 ms have elapsed&quot;.
+///
+/// ```
+/// use tokio::time::{sleep, Duration};
+///
+/// #[tokio::main]
+/// async fn main() {
+///     sleep(Duration::from_millis(100)).await;
+///     println!(&quot;100 ms have elapsed&quot;);
+/// }
+/// ```
+///
+/// See the documentation for the [`Sleep`] type for more examples.
+///
+/// # Panics
+///
+/// This function panics if there is no current timer set.
+///
+/// It can be triggered when [`Builder::enable_time`] or
+/// [`Builder::enable_all`] are not included in the builder.
+///
+/// It can also panic whenever a timer is created outside of a
+/// Tokio runtime. That is why `rt.block_on(sleep(...))` will panic,
+/// since the function is executed outside of the runtime.
+/// Whereas `rt.block_on(async {sleep(...).await})` doesn&#39;t panic.
+/// And this is because wrapping the function on an async makes it lazy,
+/// and so gets executed inside the runtime successfully without
+/// panicking.
+///
+/// [`Sleep`]: struct@crate::time::Sleep
+/// [`interval`]: crate::time::interval()
+/// [`Builder::enable_time`]: crate::runtime::Builder::enable_time
+/// [`Builder::enable_all`]: crate::runtime::Builder::enable_all
+</span><span class="comment">// Alias for old name in 0.x
+</span><span class="attribute">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;delay_for&quot;</span>))]
+#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;wait&quot;</span>))]
+#[track_caller]
+</span><span class="kw">pub fn </span>sleep(duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+    <span class="kw">let </span>location = <a href="../../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>();
 
-    <span class="kw">match</span> <span class="ident">Instant::now</span>().<a class="ident" href="../../../../src/tokio/time/instant.rs.html#141">checked_add</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#127">duration</a>) {
-        <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) =&gt; <span class="ident">Sleep::new_timeout</span>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#131">deadline</a>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#128">location</a>),
-        <span class="prelude-val">None</span> =&gt; <span class="ident">Sleep::new_timeout</span>(<span class="ident">Instant::far_future</span>(), <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#128">location</a>),
+    <span class="kw">match </span>Instant::now().<a href="../../../../src/tokio/time/instant.rs.html#141">checked_add</a>(<a href="../../../../src/tokio/time/driver/sleep.rs.html#127">duration</a>) {
+        <span class="prelude-val">Some</span>(deadline) =&gt; Sleep::new_timeout(<a href="../../../../src/tokio/time/driver/sleep.rs.html#131">deadline</a>, <a href="../../../../src/tokio/time/driver/sleep.rs.html#128">location</a>),
+        <span class="prelude-val">None </span>=&gt; Sleep::new_timeout(Instant::far_future(), <a href="../../../../src/tokio/time/driver/sleep.rs.html#128">location</a>),
     }
 }
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Future returned by [`sleep`](sleep) and [`sleep_until`](sleep_until).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This type does not implement the `Unpin` trait, which means that if you</span>
-    <span class="doccomment">/// use it with [`select!`] or by calling `poll`, you have to pin it first.</span>
-    <span class="doccomment">/// If you use it with `.await`, this does not apply.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Wait 100ms and print &quot;100 ms have elapsed&quot;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::time::{sleep, Duration};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     sleep(Duration::from_millis(100)).await;</span>
-    <span class="doccomment">///     println!(&quot;100 ms have elapsed&quot;);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use with [`select!`]. Pinning the `Sleep` with [`tokio::pin!`] is</span>
-    <span class="doccomment">/// necessary when the same `Sleep` is selected on multiple times.</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::time::{self, Duration, Instant};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let sleep = time::sleep(Duration::from_millis(10));</span>
-    <span class="doccomment">///     tokio::pin!(sleep);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     loop {</span>
-    <span class="doccomment">///         tokio::select! {</span>
-    <span class="doccomment">///             () = &amp;mut sleep =&gt; {</span>
-    <span class="doccomment">///                 println!(&quot;timer elapsed&quot;);</span>
-    <span class="doccomment">///                 sleep.as_mut().reset(Instant::now() + Duration::from_millis(50));</span>
-    <span class="doccomment">///             },</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// Use in a struct with boxing. By pinning the `Sleep` with a `Box`, the</span>
-    <span class="doccomment">/// `HasSleep` struct implements `Unpin`, even though `Sleep` does not.</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::future::Future;</span>
-    <span class="doccomment">/// use std::pin::Pin;</span>
-    <span class="doccomment">/// use std::task::{Context, Poll};</span>
-    <span class="doccomment">/// use tokio::time::Sleep;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// struct HasSleep {</span>
-    <span class="doccomment">///     sleep: Pin&lt;Box&lt;Sleep&gt;&gt;,</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// impl Future for HasSleep {</span>
-    <span class="doccomment">///     type Output = ();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     fn poll(mut self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;()&gt; {</span>
-    <span class="doccomment">///         self.sleep.as_mut().poll(cx)</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// Use in a struct with pin projection. This method avoids the `Box`, but</span>
-    <span class="doccomment">/// the `HasSleep` struct will not be `Unpin` as a consequence.</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::future::Future;</span>
-    <span class="doccomment">/// use std::pin::Pin;</span>
-    <span class="doccomment">/// use std::task::{Context, Poll};</span>
-    <span class="doccomment">/// use tokio::time::Sleep;</span>
-    <span class="doccomment">/// use pin_project_lite::pin_project;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// pin_project! {</span>
-    <span class="doccomment">///     struct HasSleep {</span>
-    <span class="doccomment">///         #[pin]</span>
-    <span class="doccomment">///         sleep: Sleep,</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// impl Future for HasSleep {</span>
-    <span class="doccomment">///     type Output = ();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     fn poll(self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;()&gt; {</span>
-    <span class="doccomment">///         self.project().sleep.poll(cx)</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`select!`]: ../macro.select.html</span>
-    <span class="doccomment">/// [`tokio::pin!`]: ../macro.pin.html</span>
-    <span class="comment">// Alias for old name in 0.2</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;Delay&quot;</span>))]</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sleep</span> {
-        <span class="ident">inner</span>: <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#248">Inner</a>,
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Future returned by [`sleep`](sleep) and [`sleep_until`](sleep_until).
+    ///
+    /// This type does not implement the `Unpin` trait, which means that if you
+    /// use it with [`select!`] or by calling `poll`, you have to pin it first.
+    /// If you use it with `.await`, this does not apply.
+    ///
+    /// # Examples
+    ///
+    /// Wait 100ms and print &quot;100 ms have elapsed&quot;.
+    ///
+    /// ```
+    /// use tokio::time::{sleep, Duration};
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     sleep(Duration::from_millis(100)).await;
+    ///     println!(&quot;100 ms have elapsed&quot;);
+    /// }
+    /// ```
+    ///
+    /// Use with [`select!`]. Pinning the `Sleep` with [`tokio::pin!`] is
+    /// necessary when the same `Sleep` is selected on multiple times.
+    /// ```no_run
+    /// use tokio::time::{self, Duration, Instant};
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let sleep = time::sleep(Duration::from_millis(10));
+    ///     tokio::pin!(sleep);
+    ///
+    ///     loop {
+    ///         tokio::select! {
+    ///             () = &amp;mut sleep =&gt; {
+    ///                 println!(&quot;timer elapsed&quot;);
+    ///                 sleep.as_mut().reset(Instant::now() + Duration::from_millis(50));
+    ///             },
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    /// Use in a struct with boxing. By pinning the `Sleep` with a `Box`, the
+    /// `HasSleep` struct implements `Unpin`, even though `Sleep` does not.
+    /// ```
+    /// use std::future::Future;
+    /// use std::pin::Pin;
+    /// use std::task::{Context, Poll};
+    /// use tokio::time::Sleep;
+    ///
+    /// struct HasSleep {
+    ///     sleep: Pin&lt;Box&lt;Sleep&gt;&gt;,
+    /// }
+    ///
+    /// impl Future for HasSleep {
+    ///     type Output = ();
+    ///
+    ///     fn poll(mut self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;()&gt; {
+    ///         self.sleep.as_mut().poll(cx)
+    ///     }
+    /// }
+    /// ```
+    /// Use in a struct with pin projection. This method avoids the `Box`, but
+    /// the `HasSleep` struct will not be `Unpin` as a consequence.
+    /// ```
+    /// use std::future::Future;
+    /// use std::pin::Pin;
+    /// use std::task::{Context, Poll};
+    /// use tokio::time::Sleep;
+    /// use pin_project_lite::pin_project;
+    ///
+    /// pin_project! {
+    ///     struct HasSleep {
+    ///         #[pin]
+    ///         sleep: Sleep,
+    ///     }
+    /// }
+    ///
+    /// impl Future for HasSleep {
+    ///     type Output = ();
+    ///
+    ///     fn poll(self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;()&gt; {
+    ///         self.project().sleep.poll(cx)
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// [`select!`]: ../macro.select.html
+    /// [`tokio::pin!`]: ../macro.pin.html
+    </span><span class="comment">// Alias for old name in 0.2
+    </span><span class="attribute">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;Delay&quot;</span>))]
+    #[derive(Debug)]
+    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="kw">pub struct </span>Sleep {
+        inner: <a href="../../../../src/tokio/time/driver/sleep.rs.html#248">Inner</a>,
 
-        <span class="comment">// The link between the `Sleep` instance and the timer that drives it.</span>
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">entry</span>: <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a>,
+        <span class="comment">// The link between the `Sleep` instance and the timer that drives it.
+        </span><span class="attribute">#[pin]
+        </span>entry: <a href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a>,
     }
 }
 
-<span class="macro">cfg_trace!</span> {
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">Inner</span> {
-        <span class="ident">deadline</span>: <span class="ident">Instant</span>,
-        <span class="ident">ctx</span>: <span class="ident">trace::AsyncOpTracingCtx</span>,
-        <span class="ident">time_source</span>: <span class="ident">ClockTime</span>,
+<span class="macro">cfg_trace! </span>{
+    <span class="attribute">#[derive(Debug)]
+    </span><span class="kw">struct </span>Inner {
+        deadline: Instant,
+        ctx: trace::AsyncOpTracingCtx,
+        time_source: ClockTime,
     }
 }
 
-<span class="macro">cfg_not_trace!</span> {
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">Inner</span> {
-        <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>,
+<span class="macro">cfg_not_trace! </span>{
+    <span class="attribute">#[derive(Debug)]
+    </span><span class="kw">struct </span>Inner {
+        deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>,
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)), <span class="ident">allow</span>(<span class="ident">unused_variables</span>))]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_timeout</span>(
-        <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>,
-        <span class="ident">location</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Location</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">Handle::current</span>();
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">TimerEntry::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#260">handle</a>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#257">deadline</a>);
+<span class="kw">impl </span><a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+    <span class="attribute">#[cfg_attr(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)), allow(unused_variables))]
+    #[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_timeout(
+        deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>,
+        location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Location&lt;<span class="lifetime">&#39;static</span>&gt;&gt;,
+    ) -&gt; <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+        <span class="kw">let </span>handle = Handle::current();
+        <span class="kw">let </span>entry = TimerEntry::new(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/time/driver/sleep.rs.html#260">handle</a>, <a href="../../../../src/tokio/time/driver/sleep.rs.html#257">deadline</a>);
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">time_source</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">time_source</span>().<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">deadline_tick</span> <span class="op">=</span> <span class="ident">time_source</span>.<span class="ident">deadline_to_tick</span>(<span class="ident">deadline</span>);
-            <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">deadline_tick</span>.<span class="ident">saturating_sub</span>(<span class="ident">time_source</span>.<span class="ident">now</span>());
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>inner = {
+            <span class="kw">let </span>time_source = handle.time_source().clone();
+            <span class="kw">let </span>deadline_tick = time_source.deadline_to_tick(deadline);
+            <span class="kw">let </span>duration = deadline_tick.saturating_sub(time_source.now());
 
-            <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">expect</span>(<span class="string">&quot;should have location if tracing&quot;</span>);
-            <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(
+            <span class="kw">let </span>location = location.expect(<span class="string">&quot;should have location if tracing&quot;</span>);
+            <span class="kw">let </span>resource_span = <span class="macro">tracing::trace_span!</span>(
                 <span class="string">&quot;runtime.resource&quot;</span>,
-                <span class="ident">concrete_type</span> <span class="op">=</span> <span class="string">&quot;Sleep&quot;</span>,
-                <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;timer&quot;</span>,
-                <span class="ident">loc</span>.<span class="ident">file</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">file</span>(),
-                <span class="ident">loc</span>.<span class="ident">line</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">line</span>(),
-                <span class="ident">loc</span>.<span class="ident">col</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">column</span>(),
+                concrete_type = <span class="string">&quot;Sleep&quot;</span>,
+                kind = <span class="string">&quot;timer&quot;</span>,
+                loc.file = location.file(),
+                loc.line = location.line(),
+                loc.col = location.column(),
             );
 
-            <span class="kw">let</span> <span class="ident">async_op_span</span> <span class="op">=</span> <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="kw">let </span>async_op_span = resource_span.in_scope(|| {
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">duration</span> <span class="op">=</span> <span class="ident">duration</span>,
-                    <span class="ident">duration</span>.<span class="ident">unit</span> <span class="op">=</span> <span class="string">&quot;ms&quot;</span>,
-                    <span class="ident">duration</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    duration = duration,
+                    duration.unit = <span class="string">&quot;ms&quot;</span>,
+                    duration.op = <span class="string">&quot;override&quot;</span>,
                 );
 
-                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, <span class="ident">source</span> <span class="op">=</span> <span class="string">&quot;Sleep::new_timeout&quot;</span>)
+                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, source = <span class="string">&quot;Sleep::new_timeout&quot;</span>)
             });
 
-            <span class="kw">let</span> <span class="ident">async_op_poll_span</span> <span class="op">=</span>
-                <span class="ident">async_op_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op.poll&quot;</span>));
+            <span class="kw">let </span>async_op_poll_span =
+                async_op_span.in_scope(|| <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op.poll&quot;</span>));
 
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">trace::AsyncOpTracingCtx</span> {
-                <span class="ident">async_op_span</span>,
-                <span class="ident">async_op_poll_span</span>,
-                <span class="ident">resource_span</span>,
+            <span class="kw">let </span>ctx = trace::AsyncOpTracingCtx {
+                async_op_span,
+                async_op_poll_span,
+                resource_span,
             };
 
-            <span class="ident">Inner</span> {
-                <span class="ident">deadline</span>,
-                <span class="ident">ctx</span>,
-                <span class="ident">time_source</span>,
+            Inner {
+                deadline,
+                ctx,
+                time_source,
             }
         };
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#248">Inner</a> { <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#257">deadline</a> };
+        <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>inner = <a href="../../../../src/tokio/time/driver/sleep.rs.html#248">Inner</a> { <a href="../../../../src/tokio/time/driver/sleep.rs.html#257">deadline</a> };
 
-        <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> { <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#307">inner</a>, <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#261">entry</a> }
+        <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> { <a href="../../../../src/tokio/time/driver/sleep.rs.html#307">inner</a>, <a href="../../../../src/tokio/time/driver/sleep.rs.html#261">entry</a> }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">far_future</span>(<span class="ident">location</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Location</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-        <span class="ident"><span class="self">Self</span>::new_timeout</span>(<span class="ident">Instant::far_future</span>(), <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#312">location</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>far_future(location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Location&lt;<span class="lifetime">&#39;static</span>&gt;&gt;) -&gt; <a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+        <span class="self">Self</span>::new_timeout(Instant::far_future(), <a href="../../../../src/tokio/time/driver/sleep.rs.html#312">location</a>)
     }
 
-    <span class="doccomment">/// Returns the instant at which the future will complete.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deadline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#317">self</a>.<span class="ident">inner</span>.<span class="ident">deadline</span>
+    <span class="doccomment">/// Returns the instant at which the future will complete.
+    </span><span class="kw">pub fn </span>deadline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#317">self</a>.inner.deadline
     }
 
-    <span class="doccomment">/// Returns `true` if `Sleep` has elapsed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A `Sleep` instance is elapsed when the requested duration has elapsed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_elapsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#324">self</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#501">is_elapsed</a>()
+    <span class="doccomment">/// Returns `true` if `Sleep` has elapsed.
+    ///
+    /// A `Sleep` instance is elapsed when the requested duration has elapsed.
+    </span><span class="kw">pub fn </span>is_elapsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#324">self</a>.entry.<a href="../../../../src/tokio/time/driver/entry.rs.html#501">is_elapsed</a>()
     }
 
-    <span class="doccomment">/// Resets the `Sleep` instance to a new deadline.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Calling this function allows changing the instant at which the `Sleep`</span>
-    <span class="doccomment">/// future completes without having to create new associated state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function can be called both before and after the future has</span>
-    <span class="doccomment">/// completed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To call this method, you will usually combine the call with</span>
-    <span class="doccomment">/// [`Pin::as_mut`], which lets you call the method without consuming the</span>
-    <span class="doccomment">/// `Sleep` itself.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::time::{Duration, Instant};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # #[tokio::main(flavor = &quot;current_thread&quot;)]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// let sleep = tokio::time::sleep(Duration::from_millis(10));</span>
-    <span class="doccomment">/// tokio::pin!(sleep);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// sleep.as_mut().reset(Instant::now() + Duration::from_millis(20));</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See also the top-level examples.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Pin::as_mut`]: fn@std::pin::Pin::as_mut</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) {
-        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#357">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#361">reset_inner</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#357">deadline</a>)
+    <span class="doccomment">/// Resets the `Sleep` instance to a new deadline.
+    ///
+    /// Calling this function allows changing the instant at which the `Sleep`
+    /// future completes without having to create new associated state.
+    ///
+    /// This function can be called both before and after the future has
+    /// completed.
+    ///
+    /// To call this method, you will usually combine the call with
+    /// [`Pin::as_mut`], which lets you call the method without consuming the
+    /// `Sleep` itself.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use tokio::time::{Duration, Instant};
+    ///
+    /// # #[tokio::main(flavor = &quot;current_thread&quot;)]
+    /// # async fn main() {
+    /// let sleep = tokio::time::sleep(Duration::from_millis(10));
+    /// tokio::pin!(sleep);
+    ///
+    /// sleep.as_mut().reset(Instant::now() + Duration::from_millis(20));
+    /// # }
+    /// ```
+    ///
+    /// See also the top-level examples.
+    ///
+    /// [`Pin::as_mut`]: fn@std::pin::Pin::as_mut
+    </span><span class="kw">pub fn </span>reset(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) {
+        <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#357">self</a>.<a href="../../../../src/tokio/time/driver/sleep.rs.html#361">reset_inner</a>(<a href="../../../../src/tokio/time/driver/sleep.rs.html#357">deadline</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">reset_inner</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#361">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">project</a>();
-        <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#362">me</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#532">reset</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#361">deadline</a>);
-        (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#362">me</a>.<span class="ident">inner</span>).<span class="ident">deadline</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#361">deadline</a>;
+    <span class="kw">fn </span>reset_inner(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: <a href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) {
+        <span class="kw">let </span>me = <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#361">self</a>.<a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">project</a>();
+        <a href="../../../../src/tokio/time/driver/sleep.rs.html#362">me</a>.entry.<a href="../../../../src/tokio/time/driver/entry.rs.html#532">reset</a>(<a href="../../../../src/tokio/time/driver/sleep.rs.html#361">deadline</a>);
+        (<span class="kw-2">*</span><a href="../../../../src/tokio/time/driver/sleep.rs.html#362">me</a>.inner).deadline = <a href="../../../../src/tokio/time/driver/sleep.rs.html#361">deadline</a>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        {
-            <span class="kw">let</span> <span class="ident">_resource_enter</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">ctx</span>.<span class="ident">resource_span</span>.<span class="ident">enter</span>();
-            <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">ctx</span>.<span class="ident">async_op_span</span> <span class="op">=</span>
-                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, <span class="ident">source</span> <span class="op">=</span> <span class="string">&quot;Sleep::reset&quot;</span>);
-            <span class="kw">let</span> <span class="ident">_async_op_enter</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">ctx</span>.<span class="ident">async_op_span</span>.<span class="ident">enter</span>();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span>{
+            <span class="kw">let </span>_resource_enter = me.inner.ctx.resource_span.enter();
+            me.inner.ctx.async_op_span =
+                <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op&quot;</span>, source = <span class="string">&quot;Sleep::reset&quot;</span>);
+            <span class="kw">let </span>_async_op_enter = me.inner.ctx.async_op_span.enter();
 
-            <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">ctx</span>.<span class="ident">async_op_poll_span</span> <span class="op">=</span>
+            me.inner.ctx.async_op_poll_span =
                 <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;runtime.resource.async_op.poll&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">time_source</span>.<span class="ident">now</span>();
-                <span class="kw">let</span> <span class="ident">deadline_tick</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">inner</span>.<span class="ident">time_source</span>.<span class="ident">deadline_to_tick</span>(<span class="ident">deadline</span>);
-                <span class="ident">deadline_tick</span>.<span class="ident">saturating_sub</span>(<span class="ident">now</span>)
+            <span class="kw">let </span>duration = {
+                <span class="kw">let </span>now = me.inner.time_source.now();
+                <span class="kw">let </span>deadline_tick = me.inner.time_source.deadline_to_tick(deadline);
+                deadline_tick.saturating_sub(now)
             };
 
             <span class="macro">tracing::trace!</span>(
-                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                <span class="ident">duration</span> <span class="op">=</span> <span class="ident">duration</span>,
-                <span class="ident">duration</span>.<span class="ident">unit</span> <span class="op">=</span> <span class="string">&quot;ms&quot;</span>,
-                <span class="ident">duration</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+                target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                duration = duration,
+                duration.unit = <span class="string">&quot;ms&quot;</span>,
+                duration.op = <span class="string">&quot;override&quot;</span>,
             );
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_elapsed</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/tokio/time/error.rs.html#27">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#391">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">project</a>();
+    <span class="kw">fn </span>poll_elapsed(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/tokio/time/error.rs.html#27">Error</a>&gt;&gt; {
+        <span class="kw">let </span>me = <a class="self" href="../../../../src/tokio/time/driver/sleep.rs.html#391">self</a>.<a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">project</a>();
 
-        <span class="comment">// Keep track of task budget</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="macro">trace_poll_op!</span>(
+        <span class="comment">// Keep track of task budget
+        </span><span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="macro">trace_poll_op!</span>(
             <span class="string">&quot;poll_elapsed&quot;</span>,
-            <span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>),
+            <span class="kw">crate</span>::coop::poll_proceed(cx),
         ));
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
+        <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>coop = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#392">me</a>.<span class="ident">entry</span>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#546-549">poll_elapsed</a>(<a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#391">cx</a>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
-            <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#402">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
-            <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#404">r</a>
+        <span class="kw">let </span>result = <a href="../../../../src/tokio/time/driver/sleep.rs.html#392">me</a>.entry.<a href="../../../../src/tokio/time/driver/entry.rs.html#546-549">poll_elapsed</a>(<a href="../../../../src/tokio/time/driver/sleep.rs.html#391">cx</a>).map(<span class="kw">move </span>|r| {
+            <a href="../../../../src/tokio/time/driver/sleep.rs.html#402">coop</a>.<a href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+            <a href="../../../../src/tokio/time/driver/sleep.rs.html#404">r</a>
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">return</span> <span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_elapsed&quot;</span>, <span class="ident">result</span>);
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">return </span><span class="macro">trace_poll_op!</span>(<span class="string">&quot;poll_elapsed&quot;</span>, result);
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">return</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#404">result</a>;
+        <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">return </span><a href="../../../../src/tokio/time/driver/sleep.rs.html#404">result</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="../../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a> {
+    <span class="kw">type </span>Output = ();
 
-    <span class="comment">// `poll_elapsed` can return an error in two cases:</span>
-    <span class="comment">//</span>
-    <span class="comment">// - AtCapacity: this is a pathological case where far too many</span>
-    <span class="comment">//   sleep instances have been scheduled.</span>
-    <span class="comment">// - Shutdown: No timer has been setup, which is a mis-use error.</span>
-    <span class="comment">//</span>
-    <span class="comment">// Both cases are extremely rare, and pretty accurately fit into</span>
-    <span class="comment">// &quot;logic errors&quot;, so we just panic in this case. A user couldn&#39;t</span>
-    <span class="comment">// really do much better if we passed the error onwards.</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">_res_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">ctx</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">_ao_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">ctx</span>.<span class="ident">async_op_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">_ao_poll_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">ctx</span>.<span class="ident">async_op_poll_span</span>.<span class="ident">clone</span>().<span class="ident">entered</span>();
-        <span class="kw">match</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">poll_elapsed</span>(<span class="ident">cx</span>)) {
-            <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">Poll::Ready</span>(()),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;timer error: {}&quot;</span>, <span class="ident">e</span>),
+    <span class="comment">// `poll_elapsed` can return an error in two cases:
+    //
+    // - AtCapacity: this is a pathological case where far too many
+    //   sleep instances have been scheduled.
+    // - Shutdown: No timer has been setup, which is a mis-use error.
+    //
+    // Both cases are extremely rare, and pretty accurately fit into
+    // &quot;logic errors&quot;, so we just panic in this case. A user couldn&#39;t
+    // really do much better if we passed the error onwards.
+    </span><span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>_res_span = <span class="self">self</span>.inner.ctx.resource_span.clone().entered();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>_ao_span = <span class="self">self</span>.inner.ctx.async_op_span.clone().entered();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>_ao_poll_span = <span class="self">self</span>.inner.ctx.async_op_poll_span.clone().entered();
+        <span class="kw">match </span><a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.as_mut().poll_elapsed(cx)) {
+            <span class="prelude-val">Ok</span>(()) =&gt; Poll::Ready(()),
+            <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;timer error: {}&quot;</span>, e),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

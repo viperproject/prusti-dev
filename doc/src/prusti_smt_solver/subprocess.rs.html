@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-smt-solver/src/subprocess.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>subprocess.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_smt_solver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_smt_solver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_smt_solver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-smt-solver/src/subprocess.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>subprocess.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_smt_solver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_smt_solver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_smt_solver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -90,97 +90,97 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#10"><span class="kw">crate</span>::context::Context</a>;
-<span class="kw">use</span> <span class="ident">async_std</span>::{
-    <span class="ident">io</span>::{<a class="ident" href="../../async_std/io/buf_read/trait.BufReadExt.html">prelude::BufReadExt</a>, <a class="ident" href="../../async_std/io/buf_reader/struct.BufReader.html">BufReader</a>, <a class="ident" href="../../async_std/io/write/trait.WriteExt.html">WriteExt</a>},
-    <span class="ident">process</span>::{<a class="ident" href="../../async_process/struct.ChildStderr.html">ChildStderr</a>, <a class="ident" href="../../async_process/struct.ChildStdin.html">ChildStdin</a>, <a class="ident" href="../../async_process/struct.ChildStdout.html">ChildStdout</a>},
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/prusti_smt_solver/context.rs.html#10"><span class="kw">crate</span>::context::Context</a>;
+<span class="kw">use </span>async_std::{
+    io::{<a href="../../async_std/io/buf_read/trait.BufReadExt.html">prelude::BufReadExt</a>, <a href="../../async_std/io/buf_reader/struct.BufReader.html">BufReader</a>, <a href="../../async_std/io/write/trait.WriteExt.html">WriteExt</a>},
+    process::{<a href="../../async_process/struct.ChildStderr.html">ChildStderr</a>, <a href="../../async_process/struct.ChildStdin.html">ChildStdin</a>, <a href="../../async_process/struct.ChildStdout.html">ChildStdout</a>},
 };
 
-<span class="kw">fn</span> <span class="ident">are_parens_balanced</span>(<span class="ident">line</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let</span> <span class="ident">openning_parens</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#7">line</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#8">c</a> <span class="op">==</span> <span class="string">&#39;(&#39;</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
-    <span class="kw">let</span> <span class="ident">closing_parens</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#7">line</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#9">c</a> <span class="op">==</span> <span class="string">&#39;)&#39;</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
-    <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#8">openning_parens</a> <span class="op">==</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#9">closing_parens</a>
+<span class="kw">fn </span>are_parens_balanced(line: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">let </span>openning_parens = <a href="../../src/prusti_smt_solver/subprocess.rs.html#7">line</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|c| <span class="kw-2">*</span><a href="../../src/prusti_smt_solver/subprocess.rs.html#8">c</a> == <span class="string">&#39;(&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
+    <span class="kw">let </span>closing_parens = <a href="../../src/prusti_smt_solver/subprocess.rs.html#7">line</a>.chars().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|c| <span class="kw-2">*</span><a href="../../src/prusti_smt_solver/subprocess.rs.html#9">c</a> == <span class="string">&#39;)&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
+    <a href="../../src/prusti_smt_solver/subprocess.rs.html#8">openning_parens</a> == <a href="../../src/prusti_smt_solver/subprocess.rs.html#9">closing_parens</a>
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_command</span>(<span class="ident">command</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-    <span class="ident">command</span>.<span class="ident">clear</span>();
-    <span class="kw">let</span> <span class="ident">stdin</span> <span class="op">=</span> <span class="ident">async_std::io::stdin</span>();
-    <span class="kw">while</span> <span class="ident">stdin</span>.<span class="ident">read_line</span>(<span class="ident">command</span>).<span class="kw">await</span><span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="kw">if</span> <span class="ident">are_parens_balanced</span>(<span class="ident">command</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+<span class="kw">async fn </span>read_command(command: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+    command.clear();
+    <span class="kw">let </span>stdin = async_std::io::stdin();
+    <span class="kw">while </span>stdin.read_line(command).<span class="kw">await</span><span class="question-mark">? </span>&gt; <span class="number">0 </span>{
+        <span class="kw">if </span>are_parens_balanced(command) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
         }
     }
     <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_response</span>(
-    <span class="ident">solver_stdout</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufReader</span><span class="op">&lt;</span><a class="ident" href="../../async_process/struct.ChildStdout.html">ChildStdout</a><span class="op">&gt;</span>,
-    <span class="ident">response</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-    <span class="ident">response</span>.<span class="ident">clear</span>();
-    <span class="kw">while</span> <span class="ident">solver_stdout</span>.<span class="ident">read_line</span>(<span class="ident">response</span>).<span class="kw">await</span><span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="kw">if</span> <span class="ident">are_parens_balanced</span>(<span class="ident">response</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+<span class="kw">async fn </span>read_response(
+    solver_stdout: <span class="kw-2">&amp;mut </span>BufReader&lt;<a href="../../async_process/struct.ChildStdout.html">ChildStdout</a>&gt;,
+    response: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+    response.clear();
+    <span class="kw">while </span>solver_stdout.read_line(response).<span class="kw">await</span><span class="question-mark">? </span>&gt; <span class="number">0 </span>{
+        <span class="kw">if </span>are_parens_balanced(response) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
         }
     }
     <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">communicate</span>(
-    <span class="ident">context</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/context.rs.html#10">Context</a>,
-    <span class="kw-2">mut</span> <span class="ident">solver_stdin</span>: <a class="ident" href="../../async_process/struct.ChildStdin.html">ChildStdin</a>,
-    <span class="ident">solver_stdout</span>: <a class="ident" href="../../async_process/struct.ChildStdout.html">ChildStdout</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">async_std::io::stdout</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">solver_stdout</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="ident">solver_stdout</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">String::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">String::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">not_finished</span> <span class="op">=</span> <span class="bool-val">true</span>;
-    <span class="kw">while</span> <span class="ident">not_finished</span> <span class="op">&amp;&amp;</span> <span class="ident">read_command</span>(<span class="kw-2">&amp;mut</span> <span class="ident">command</span>).<span class="kw">await</span><span class="question-mark">?</span> {
-        <span class="ident">context</span>.<span class="ident">write_to_log</span>(<span class="string">&quot;in &quot;</span>, <span class="kw-2">&amp;</span><span class="ident">command</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">std::time::Instant::now</span>();
-        <span class="ident">solver_stdin</span>.<span class="ident">write_all</span>(<span class="ident">command</span>.<span class="ident">as_bytes</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="ident">solver_stdin</span>.<span class="ident">flush</span>().<span class="kw">await</span><span class="question-mark">?</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>communicate(
+    context: <span class="kw-2">&amp;</span><a href="../../src/prusti_smt_solver/context.rs.html#10">Context</a>,
+    <span class="kw-2">mut </span>solver_stdin: <a href="../../async_process/struct.ChildStdin.html">ChildStdin</a>,
+    solver_stdout: <a href="../../async_process/struct.ChildStdout.html">ChildStdout</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>stdout = async_std::io::stdout();
+    <span class="kw">let </span><span class="kw-2">mut </span>solver_stdout = BufReader::new(solver_stdout);
+    <span class="kw">let </span><span class="kw-2">mut </span>response = String::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>command = String::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>not_finished = <span class="bool-val">true</span>;
+    <span class="kw">while </span>not_finished &amp;&amp; read_command(<span class="kw-2">&amp;mut </span>command).<span class="kw">await</span><span class="question-mark">? </span>{
+        context.write_to_log(<span class="string">&quot;in &quot;</span>, <span class="kw-2">&amp;</span>command).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>now = std::time::Instant::now();
+        solver_stdin.write_all(command.as_bytes()).<span class="kw">await</span><span class="question-mark">?</span>;
+        solver_stdin.flush().<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">read_response</span>(<span class="kw-2">&amp;mut</span> <span class="ident">solver_stdout</span>, <span class="kw-2">&amp;mut</span> <span class="ident">response</span>)
-            .<span class="kw">await</span>
-            .<span class="ident">unwrap</span>()
+        <span class="kw">if </span>!read_response(<span class="kw-2">&amp;mut </span>solver_stdout, <span class="kw-2">&amp;mut </span>response)
+            .<span class="kw">await
+            </span>.unwrap()
         {
             <span class="macro">assert!</span>(
-                <span class="ident">are_parens_balanced</span>(<span class="kw-2">&amp;</span><span class="ident">response</span>),
+                are_parens_balanced(<span class="kw-2">&amp;</span>response),
                 <span class="string">&quot;unbalanced EOF response: {}&quot;</span>,
-                <span class="ident">response</span>
+                response
             );
-            <span class="ident">not_finished</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            not_finished = <span class="bool-val">false</span>;
         }
-        <span class="kw">let</span> <span class="ident">elapsed</span> <span class="op">=</span> <span class="ident">now</span>.<span class="ident">elapsed</span>().<span class="ident">as_millis</span>();
-        <span class="ident">context</span>.<span class="ident">write_to_log</span>(<span class="string">&quot;out&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">response</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="ident">context</span>.<span class="ident">write_number_to_log</span>(<span class="string">&quot;elapsed-time&quot;</span>, <span class="ident">elapsed</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="ident">stdout</span>.<span class="ident">write_all</span>(<span class="ident">response</span>.<span class="ident">as_bytes</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="ident">stdout</span>.<span class="ident">flush</span>().<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>elapsed = now.elapsed().as_millis();
+        context.write_to_log(<span class="string">&quot;out&quot;</span>, <span class="kw-2">&amp;</span>response).<span class="kw">await</span><span class="question-mark">?</span>;
+        context.write_number_to_log(<span class="string">&quot;elapsed-time&quot;</span>, elapsed).<span class="kw">await</span><span class="question-mark">?</span>;
+        stdout.write_all(response.as_bytes()).<span class="kw">await</span><span class="question-mark">?</span>;
+        stdout.flush().<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="ident">context</span>.<span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="ident">command</span>, <span class="kw-2">&amp;</span><span class="ident">response</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        context.check(<span class="kw-2">&amp;</span>command, <span class="kw-2">&amp;</span>response).<span class="kw">await</span><span class="question-mark">?</span>;
     }
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">pass_error</span>(
-    <span class="ident">context</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/context.rs.html#10">Context</a>,
-    <span class="ident">solver_stderr</span>: <a class="ident" href="../../async_process/struct.ChildStderr.html">ChildStderr</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">solver_stderr</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="ident">solver_stderr</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">async_std::io::stderr</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">String::new</span>();
-    <span class="ident">context</span>.<span class="ident">write_to_log</span>(<span class="string">&quot;err&quot;</span>, <span class="string">&quot;stderr started\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">while</span> <span class="ident">solver_stderr</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">line</span>).<span class="kw">await</span><span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="ident">context</span>.<span class="ident">write_to_log</span>(<span class="string">&quot;err&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">line</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="ident">stderr</span>.<span class="ident">write_all</span>(<span class="ident">line</span>.<span class="ident">as_bytes</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="ident">stderr</span>.<span class="ident">flush</span>().<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="ident">line</span>.<span class="ident">clear</span>();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>pass_error(
+    context: <span class="kw-2">&amp;</span><a href="../../src/prusti_smt_solver/context.rs.html#10">Context</a>,
+    solver_stderr: <a href="../../async_process/struct.ChildStderr.html">ChildStderr</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>solver_stderr = BufReader::new(solver_stderr);
+    <span class="kw">let </span><span class="kw-2">mut </span>stderr = async_std::io::stderr();
+    <span class="kw">let </span><span class="kw-2">mut </span>line = String::new();
+    context.write_to_log(<span class="string">&quot;err&quot;</span>, <span class="string">&quot;stderr started\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">while </span>solver_stderr.read_line(<span class="kw-2">&amp;mut </span>line).<span class="kw">await</span><span class="question-mark">? </span>&gt; <span class="number">0 </span>{
+        context.write_to_log(<span class="string">&quot;err&quot;</span>, <span class="kw-2">&amp;</span>line).<span class="kw">await</span><span class="question-mark">?</span>;
+        stderr.write_all(line.as_bytes()).<span class="kw">await</span><span class="question-mark">?</span>;
+        stderr.flush().<span class="kw">await</span><span class="question-mark">?</span>;
+        line.clear();
     }
-    <span class="ident">context</span>.<span class="ident">write_to_log</span>(<span class="string">&quot;err&quot;</span>, <span class="string">&quot;stderr finished\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+    context.write_to_log(<span class="string">&quot;err&quot;</span>, <span class="string">&quot;stderr finished\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_smt_solver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_smt_solver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

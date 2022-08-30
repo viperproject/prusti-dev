@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.16/src/parser/arg_matcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_matcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.18/src/parser/arg_matcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_matcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
                         <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -280,285 +280,285 @@
 <span id="278">278</span>
 <span id="279">279</span>
 <span id="280">280</span>
-</pre><pre class="rust"><code><span class="comment">// Std</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
+</pre><pre class="rust"><code><span class="comment">// Std
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
 
-<span class="comment">// Internal</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builder</span>::{<a class="ident" href="../../../src/clap/builder/arg.rs.html#61">Arg</a>, <a class="ident" href="../../../src/clap/builder/arg_predicate.rs.html#2">ArgPredicate</a>, <a class="ident" href="../../../src/clap/builder/command.rs.html#70">Command</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/clap/parser/matches/any_value.rs.html#2"><span class="kw">crate</span>::parser::AnyValue</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/clap/parser/parser.rs.html#1725"><span class="kw">crate</span>::parser::Identifier</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/clap/parser/parser.rs.html#1718"><span class="kw">crate</span>::parser::PendingArg</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser</span>::{<a class="ident" href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a>, <a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>, <a class="ident" href="../../../src/clap/parser/matches/arg_matches.rs.html#1315">SubCommand</a>, <a class="ident" href="../../../src/clap/parser/matches/value_source.rs.html#4">ValueSource</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/clap/util/id.rs.html#11"><span class="kw">crate</span>::util::Id</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/clap/lib.rs.html#189"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</a>;
+<span class="comment">// Internal
+</span><span class="kw">use </span><span class="kw">crate</span>::builder::{<a href="../../../src/clap/builder/arg.rs.html#61">Arg</a>, <a href="../../../src/clap/builder/arg_predicate.rs.html#2">ArgPredicate</a>, <a href="../../../src/clap/builder/command.rs.html#70">Command</a>};
+<span class="kw">use </span><a href="../../../src/clap/parser/matches/any_value.rs.html#2"><span class="kw">crate</span>::parser::AnyValue</a>;
+<span class="kw">use </span><a href="../../../src/clap/parser/parser.rs.html#1725"><span class="kw">crate</span>::parser::Identifier</a>;
+<span class="kw">use </span><a href="../../../src/clap/parser/parser.rs.html#1718"><span class="kw">crate</span>::parser::PendingArg</a>;
+<span class="kw">use </span><span class="kw">crate</span>::parser::{<a href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a>, <a href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>, <a href="../../../src/clap/parser/matches/arg_matches.rs.html#1315">SubCommand</a>, <a href="../../../src/clap/parser/matches/value_source.rs.html#4">ValueSource</a>};
+<span class="kw">use </span><a href="../../../src/clap/util/id.rs.html#11"><span class="kw">crate</span>::util::Id</a>;
+<span class="kw">use </span><a href="../../../src/clap/lib.rs.html#189"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</a>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">ArgMatcher</span> {
-    <span class="ident">matches</span>: <a class="ident" href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a>,
-    <span class="ident">pending</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/parser/parser.rs.html#1718">PendingArg</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Default)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ArgMatcher {
+    matches: <a href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a>,
+    pending: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/clap/parser/parser.rs.html#1718">PendingArg</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_cmd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/command.rs.html#70">Command</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a> {
-            <span class="ident">matches</span>: <a class="ident" href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a> {
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-                <span class="ident">valid_args</span>: {
-                    <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#23">_cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#3529">get_arguments</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#28">a</a>.<span class="ident">id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                    <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#23">_cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#3523">get_groups</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#29">g</a>.<span class="ident">id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                    <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#28">args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#29">groups</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+<span class="kw">impl </span><a href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(_cmd: <span class="kw-2">&amp;</span><a href="../../../src/clap/builder/command.rs.html#70">Command</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a> {
+            matches: <a href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a> {
+                <span class="attribute">#[cfg(debug_assertions)]
+                </span>valid_args: {
+                    <span class="kw">let </span>args = <a href="../../../src/clap/parser/arg_matcher.rs.html#23">_cmd</a>.<a href="../../../src/clap/builder/command.rs.html#3551">get_arguments</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|a| <a href="../../../src/clap/parser/arg_matcher.rs.html#28">a</a>.id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <span class="kw">let </span>groups = <a href="../../../src/clap/parser/arg_matcher.rs.html#23">_cmd</a>.<a href="../../../src/clap/builder/command.rs.html#3545">get_groups</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|g| <a href="../../../src/clap/parser/arg_matcher.rs.html#29">g</a>.id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <a href="../../../src/clap/parser/arg_matcher.rs.html#28">args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#29">groups</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
                 },
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-                <span class="ident">valid_subcommands</span>: <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#23">_cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#3433">get_subcommands</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">sc</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#33">sc</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4109">get_id</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <span class="comment">// HACK: Allow an external subcommand&#39;s ArgMatches be a stand-in for any ArgMatches</span>
-                <span class="comment">// since users can&#39;t detect it and avoid the asserts.</span>
-                <span class="comment">//</span>
-                <span class="comment">// See clap-rs/clap#3263</span>
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>))]</span>
-                <span class="ident">disable_asserts</span>: <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#23">_cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#3733">is_allow_external_subcommands_set</a>(),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-                <span class="ident">disable_asserts</span>: <span class="bool-val">false</span>,
-                ..<a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
+                <span class="attribute">#[cfg(debug_assertions)]
+                </span>valid_subcommands: <a href="../../../src/clap/parser/arg_matcher.rs.html#23">_cmd</a>.<a href="../../../src/clap/builder/command.rs.html#3455">get_subcommands</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|sc| <a href="../../../src/clap/parser/arg_matcher.rs.html#33">sc</a>.<a href="../../../src/clap/builder/command.rs.html#4131">get_id</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <span class="comment">// HACK: Allow an external subcommand&#39;s ArgMatches be a stand-in for any ArgMatches
+                // since users can&#39;t detect it and avoid the asserts.
+                //
+                // See clap-rs/clap#3263
+                </span><span class="attribute">#[cfg(debug_assertions)]
+                #[cfg(not(feature = <span class="string">&quot;unstable-v4&quot;</span>))]
+                </span>disable_asserts: <a href="../../../src/clap/parser/arg_matcher.rs.html#23">_cmd</a>.<a href="../../../src/clap/builder/command.rs.html#3755">is_allow_external_subcommands_set</a>(),
+                <span class="attribute">#[cfg(debug_assertions)]
+                #[cfg(feature = <span class="string">&quot;unstable-v4&quot;</span>)]
+                </span>disable_asserts: <span class="bool-val">false</span>,
+                ..<a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
             },
-            <span class="ident">pending</span>: <span class="prelude-val">None</span>,
+            pending: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#50">self</a>.<span class="ident">matches</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; <a href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a> {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#50">self</a>.matches
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">propagate_globals</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">global_arg_vec</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>]) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>propagate_globals(<span class="kw-2">&amp;mut </span><span class="self">self</span>, global_arg_vec: <span class="kw-2">&amp;</span>[<a href="../../../src/clap/util/id.rs.html#11">Id</a>]) {
         <span class="macro">debug!</span>(
             <span class="string">&quot;ArgMatcher::get_global_values: global_arg_vec={:?}&quot;</span>,
-            <span class="ident">global_arg_vec</span>
+            global_arg_vec
         );
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vals_map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#54">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#63-67">fill_in_global_values</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#54">global_arg_vec</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#59">vals_map</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>vals_map = HashMap::new();
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#54">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#63-67">fill_in_global_values</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#54">global_arg_vec</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/clap/parser/arg_matcher.rs.html#59">vals_map</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">fill_in_global_values</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">global_arg_vec</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>],
-        <span class="ident">vals_map</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a><span class="op">&gt;</span>,
+    <span class="kw">fn </span>fill_in_global_values(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        global_arg_vec: <span class="kw-2">&amp;</span>[<a href="../../../src/clap/util/id.rs.html#11">Id</a>],
+        vals_map: <span class="kw-2">&amp;mut </span>HashMap&lt;<a href="../../../src/clap/util/id.rs.html#11">Id</a>, <a href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>&gt;,
     ) {
-        <span class="kw">for</span> <span class="ident">global_arg</span> <span class="kw">in</span> <span class="ident">global_arg_vec</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ma</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">global_arg</span>) {
-                <span class="comment">// We have to check if the parent&#39;s global arg wasn&#39;t used but still exists</span>
-                <span class="comment">// such as from a default value.</span>
-                <span class="comment">//</span>
-                <span class="comment">// For example, `myprog subcommand --global-arg=value` where `--global-arg` defines</span>
-                <span class="comment">// a default value of `other` myprog would have an existing MatchedArg for</span>
-                <span class="comment">// `--global-arg` where the value is `other`</span>
-                <span class="kw">let</span> <span class="ident">to_update</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent_ma</span>) <span class="op">=</span> <span class="ident">vals_map</span>.<span class="ident">get</span>(<span class="ident">global_arg</span>) {
-                    <span class="kw">if</span> <span class="ident">parent_ma</span>.<span class="ident">source</span>() <span class="op">&gt;</span> <span class="ident">ma</span>.<span class="ident">source</span>() {
-                        <span class="ident">parent_ma</span>
-                    } <span class="kw">else</span> {
-                        <span class="ident">ma</span>
+        <span class="kw">for </span>global_arg <span class="kw">in </span>global_arg_vec {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ma) = <span class="self">self</span>.get(global_arg) {
+                <span class="comment">// We have to check if the parent&#39;s global arg wasn&#39;t used but still exists
+                // such as from a default value.
+                //
+                // For example, `myprog subcommand --global-arg=value` where `--global-arg` defines
+                // a default value of `other` myprog would have an existing MatchedArg for
+                // `--global-arg` where the value is `other`
+                </span><span class="kw">let </span>to_update = <span class="kw">if let </span><span class="prelude-val">Some</span>(parent_ma) = vals_map.get(global_arg) {
+                    <span class="kw">if </span>parent_ma.source() &gt; ma.source() {
+                        parent_ma
+                    } <span class="kw">else </span>{
+                        ma
                     }
-                } <span class="kw">else</span> {
-                    <span class="ident">ma</span>
+                } <span class="kw">else </span>{
+                    ma
                 }
-                .<span class="ident">clone</span>();
-                <span class="ident">vals_map</span>.<span class="ident">insert</span>(<span class="ident">global_arg</span>.<span class="ident">clone</span>(), <span class="ident">to_update</span>);
+                .clone();
+                vals_map.insert(global_arg.clone(), to_update);
             }
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">sc</span>) <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#64">self</a>.<span class="ident">matches</span>.<span class="ident">subcommand</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">am</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a> {
-                <span class="ident">matches</span>: <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#89">sc</a>.<span class="ident">matches</span>),
-                <span class="ident">pending</span>: <span class="prelude-val">None</span>,
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>sc) = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#64">self</a>.matches.subcommand {
+            <span class="kw">let </span><span class="kw-2">mut </span>am = <a href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a> {
+                matches: mem::take(<span class="kw-2">&amp;mut </span><a href="../../../src/clap/parser/arg_matcher.rs.html#89">sc</a>.matches),
+                pending: <span class="prelude-val">None</span>,
             };
-            <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#90">am</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#63-67">fill_in_global_values</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#65">global_arg_vec</a>, <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#66">vals_map</a>);
-            <span class="ident">mem::swap</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#90">am</a>.<span class="ident">matches</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#89">sc</a>.<span class="ident">matches</span>);
+            <a href="../../../src/clap/parser/arg_matcher.rs.html#90">am</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#63-67">fill_in_global_values</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#65">global_arg_vec</a>, <a href="../../../src/clap/parser/arg_matcher.rs.html#66">vals_map</a>);
+            mem::swap(<span class="kw-2">&amp;mut </span><a href="../../../src/clap/parser/arg_matcher.rs.html#90">am</a>.matches, <span class="kw-2">&amp;mut </span><a href="../../../src/clap/parser/arg_matcher.rs.html#89">sc</a>.matches);
         }
 
-        <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">matched_arg</span>) <span class="kw">in</span> <span class="ident">vals_map</span>.<span class="ident">iter_mut</span>() {
-            <span class="self">self</span>.<span class="ident">matches</span>.<span class="ident">args</span>.<span class="ident">insert</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">matched_arg</span>.<span class="ident">clone</span>());
+        <span class="kw">for </span>(name, matched_arg) <span class="kw">in </span>vals_map.iter_mut() {
+            <span class="self">self</span>.matches.args.insert(name.clone(), matched_arg.clone());
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#103">self</a>.<span class="ident">matches</span>.<span class="ident">args</span>.<span class="ident">get</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#103">arg</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>&gt; {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#103">self</a>.matches.args.get(<a href="../../../src/clap/parser/arg_matcher.rs.html#103">arg</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#107">self</a>.<span class="ident">matches</span>.<span class="ident">args</span>.<span class="ident">get_mut</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#107">arg</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>&gt; {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#107">self</a>.matches.args.get_mut(<a href="../../../src/clap/parser/arg_matcher.rs.html#107">arg</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>) {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#111">self</a>.<span class="ident">matches</span>.<span class="ident">args</span>.<span class="ident">swap_remove</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#111">arg</a>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>) {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#111">self</a>.matches.args.swap_remove(<a href="../../../src/clap/parser/arg_matcher.rs.html#111">arg</a>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#115">self</a>.<span class="ident">matches</span>.<span class="ident">args</span>.<span class="ident">contains_key</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#115">arg</a>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#115">self</a>.matches.args.contains_key(<a href="../../../src/clap/parser/arg_matcher.rs.html#115">arg</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">arg_ids</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">indexmap::map::Keys</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#119">self</a>.<span class="ident">matches</span>.<span class="ident">args</span>.<span class="ident">keys</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>arg_ids(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; indexmap::map::Keys&lt;<a href="../../../src/clap/util/id.rs.html#11">Id</a>, <a href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>&gt; {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#119">self</a>.matches.args.keys()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">entry</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <span class="ident">indexmap::map::Entry</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#123">self</a>.<span class="ident">matches</span>.<span class="ident">args</span>.<span class="ident">entry</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#123">arg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; indexmap::map::Entry&lt;<a href="../../../src/clap/util/id.rs.html#11">Id</a>, <a href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>&gt; {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#123">self</a>.matches.args.entry(<a href="../../../src/clap/parser/arg_matcher.rs.html#123">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">subcommand</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sc</span>: <a class="ident" href="../../../src/clap/parser/matches/arg_matches.rs.html#1315">SubCommand</a>) {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#127">self</a>.<span class="ident">matches</span>.<span class="ident">subcommand</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#127">sc</a>));
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subcommand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sc: <a href="../../../src/clap/parser/matches/arg_matches.rs.html#1315">SubCommand</a>) {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#127">self</a>.matches.subcommand = <span class="prelude-val">Some</span>(Box::new(<a href="../../../src/clap/parser/arg_matcher.rs.html#127">sc</a>));
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">subcommand_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#131">self</a>.<span class="ident">matches</span>.<a class="ident" href="../../../src/clap/parser/matches/arg_matches.rs.html#1050">subcommand_name</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subcommand_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#131">self</a>.matches.<a href="../../../src/clap/parser/matches/arg_matches.rs.html#1050">subcommand_name</a>()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">indexmap::map::Iter</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#135">self</a>.<span class="ident">matches</span>.<span class="ident">args</span>.<span class="ident">iter</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; indexmap::map::Iter&lt;<a href="../../../src/clap/util/id.rs.html#11">Id</a>, <a href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>&gt; {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#135">self</a>.matches.args.iter()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_explicit</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <span class="ident">predicate</span>: <span class="ident">ArgPredicate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#139">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#103">get</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#139">arg</a>).<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#140">a</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#151">check_explicit</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#139">predicate</a>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_explicit&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>, predicate: ArgPredicate&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#139">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#103">get</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#139">arg</a>).map_or(<span class="bool-val">false</span>, |a| <a href="../../../src/clap/parser/arg_matcher.rs.html#140">a</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#151">check_explicit</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#139">predicate</a>))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start_custom_arg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61">Arg</a>, <span class="ident">source</span>: <a class="ident" href="../../../src/clap/parser/matches/value_source.rs.html#4">ValueSource</a>) {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#143">arg</a>.<span class="ident">id</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>start_custom_arg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/builder/arg.rs.html#61">Arg</a>, source: <a href="../../../src/clap/parser/matches/value_source.rs.html#4">ValueSource</a>) {
+        <span class="kw">let </span>id = <span class="kw-2">&amp;</span><a href="../../../src/clap/parser/arg_matcher.rs.html#143">arg</a>.id;
         <span class="macro">debug!</span>(
             <span class="string">&quot;ArgMatcher::start_custom_arg: id={:?}, source={:?}&quot;</span>,
-            <span class="ident">id</span>, <span class="ident">source</span>
+            id, source
         );
-        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#143">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#144">id</a>).<span class="ident">or_insert</span>(<span class="ident">MatchedArg::new_arg</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#143">arg</a>));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">ma</span>.<span class="ident">type_id</span>(), <span class="prelude-val">Some</span>(<span class="ident">arg</span>.<span class="ident">get_value_parser</span>().<span class="ident">type_id</span>()));
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#149">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#143">source</a>);
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#149">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
+        <span class="kw">let </span>ma = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#143">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#144">id</a>).or_insert(MatchedArg::new_arg(<a href="../../../src/clap/parser/arg_matcher.rs.html#143">arg</a>));
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(ma.type_id(), <span class="prelude-val">Some</span>(arg.get_value_parser().type_id()));
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#149">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#143">source</a>);
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#149">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start_custom_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <span class="ident">source</span>: <a class="ident" href="../../../src/clap/parser/matches/value_source.rs.html#4">ValueSource</a>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>start_custom_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>, source: <a href="../../../src/clap/parser/matches/value_source.rs.html#4">ValueSource</a>) {
         <span class="macro">debug!</span>(
             <span class="string">&quot;ArgMatcher::start_custom_arg: id={:?}, source={:?}&quot;</span>,
-            <span class="ident">id</span>, <span class="ident">source</span>
+            id, source
         );
-        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#155">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#155">id</a>).<span class="ident">or_insert</span>(<span class="ident">MatchedArg::new_group</span>());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">ma</span>.<span class="ident">type_id</span>(), <span class="prelude-val">None</span>);
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#160">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#155">source</a>);
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#160">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
+        <span class="kw">let </span>ma = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#155">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#155">id</a>).or_insert(MatchedArg::new_group());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(ma.type_id(), <span class="prelude-val">None</span>);
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#160">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#155">source</a>);
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#160">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start_occurrence_of_arg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61">Arg</a>) {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#166">arg</a>.<span class="ident">id</span>;
-        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::start_occurrence_of_arg: id={:?}&quot;</span>, <span class="ident">id</span>);
-        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#166">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#167">id</a>).<span class="ident">or_insert</span>(<span class="ident">MatchedArg::new_arg</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#166">arg</a>));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">ma</span>.<span class="ident">type_id</span>(), <span class="prelude-val">Some</span>(<span class="ident">arg</span>.<span class="ident">get_value_parser</span>().<span class="ident">type_id</span>()));
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#169">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a class="ident" href="../../../src/clap/parser/matches/value_source.rs.html#10">ValueSource::CommandLine</a>);
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#169">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#71">inc_occurrences</a>();
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#169">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>start_occurrence_of_arg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/builder/arg.rs.html#61">Arg</a>) {
+        <span class="kw">let </span>id = <span class="kw-2">&amp;</span><a href="../../../src/clap/parser/arg_matcher.rs.html#166">arg</a>.id;
+        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::start_occurrence_of_arg: id={:?}&quot;</span>, id);
+        <span class="kw">let </span>ma = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#166">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#167">id</a>).or_insert(MatchedArg::new_arg(<a href="../../../src/clap/parser/arg_matcher.rs.html#166">arg</a>));
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(ma.type_id(), <span class="prelude-val">Some</span>(arg.get_value_parser().type_id()));
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#169">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a href="../../../src/clap/parser/matches/value_source.rs.html#10">ValueSource::CommandLine</a>);
+        <span class="attribute">#[allow(deprecated)]
+        </span><a href="../../../src/clap/parser/arg_matcher.rs.html#169">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#71">inc_occurrences</a>();
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#169">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start_occurrence_of_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::start_occurrence_of_group: id={:?}&quot;</span>, <span class="ident">id</span>);
-        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#177">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#177">id</a>).<span class="ident">or_insert</span>(<span class="ident">MatchedArg::new_group</span>());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">ma</span>.<span class="ident">type_id</span>(), <span class="prelude-val">None</span>);
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#179">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a class="ident" href="../../../src/clap/parser/matches/value_source.rs.html#10">ValueSource::CommandLine</a>);
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#179">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#71">inc_occurrences</a>();
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#179">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>start_occurrence_of_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>) {
+        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::start_occurrence_of_group: id={:?}&quot;</span>, id);
+        <span class="kw">let </span>ma = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#177">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#177">id</a>).or_insert(MatchedArg::new_group());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(ma.type_id(), <span class="prelude-val">None</span>);
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#179">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a href="../../../src/clap/parser/matches/value_source.rs.html#10">ValueSource::CommandLine</a>);
+        <span class="attribute">#[allow(deprecated)]
+        </span><a href="../../../src/clap/parser/arg_matcher.rs.html#179">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#71">inc_occurrences</a>();
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#179">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start_occurrence_of_external</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/command.rs.html#70"><span class="kw">crate</span>::Command</a>) {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Id::empty_hash</span>();
-        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::start_occurrence_of_external: id={:?}&quot;</span>, <span class="ident">id</span>,);
-        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#187">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#188">id</a>).<span class="ident">or_insert</span>(<span class="ident">MatchedArg::new_external</span>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#187">cmd</a>));
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>start_occurrence_of_external(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span><a href="../../../src/clap/builder/command.rs.html#70"><span class="kw">crate</span>::Command</a>) {
+        <span class="kw">let </span>id = <span class="kw-2">&amp;</span>Id::empty_hash();
+        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::start_occurrence_of_external: id={:?}&quot;</span>, id,);
+        <span class="kw">let </span>ma = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#187">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#123">entry</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#188">id</a>).or_insert(MatchedArg::new_external(<a href="../../../src/clap/parser/arg_matcher.rs.html#187">cmd</a>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
-            <span class="ident">ma</span>.<span class="ident">type_id</span>(),
+            ma.type_id(),
             <span class="prelude-val">Some</span>(
-                <span class="ident">cmd</span>.<span class="ident">get_external_subcommand_value_parser</span>()
-                    .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>)
-                    .<span class="ident">type_id</span>()
+                cmd.get_external_subcommand_value_parser()
+                    .expect(INTERNAL_ERROR_MSG)
+                    .type_id()
             )
         );
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#190">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a class="ident" href="../../../src/clap/parser/matches/value_source.rs.html#10">ValueSource::CommandLine</a>);
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#190">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#71">inc_occurrences</a>();
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#190">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#190">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#173">set_source</a>(<a href="../../../src/clap/parser/matches/value_source.rs.html#10">ValueSource::CommandLine</a>);
+        <span class="attribute">#[allow(deprecated)]
+        </span><a href="../../../src/clap/parser/arg_matcher.rs.html#190">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#71">inc_occurrences</a>();
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#190">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#123">new_val_group</a>();
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_val_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <span class="ident">val</span>: <a class="ident" href="../../../src/clap/parser/matches/any_value.rs.html#2">AnyValue</a>, <span class="ident">raw_val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>) {
-        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#205">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#107">get_mut</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#205">arg</a>).<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#189">INTERNAL_ERROR_MSG</a>);
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#206">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#128">append_val</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#205">val</a>, <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#205">raw_val</a>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_val_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>, val: <a href="../../../src/clap/parser/matches/any_value.rs.html#2">AnyValue</a>, raw_val: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>) {
+        <span class="kw">let </span>ma = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#205">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#107">get_mut</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#205">arg</a>).expect(<a href="../../../src/clap/lib.rs.html#189">INTERNAL_ERROR_MSG</a>);
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#206">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#128">append_val</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#205">val</a>, <a href="../../../src/clap/parser/arg_matcher.rs.html#205">raw_val</a>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_index_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#210">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#107">get_mut</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#210">arg</a>).<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#189">INTERNAL_ERROR_MSG</a>);
-        <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#211">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#93">push_index</a>(<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#210">idx</a>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_index_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>ma = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#210">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#107">get_mut</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#210">arg</a>).expect(<a href="../../../src/clap/lib.rs.html#189">INTERNAL_ERROR_MSG</a>);
+        <a href="../../../src/clap/parser/arg_matcher.rs.html#211">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#93">push_index</a>(<a href="../../../src/clap/parser/arg_matcher.rs.html#210">idx</a>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">needs_more_vals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61">Arg</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">num_resolved</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#215">self</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#103">get</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.<span class="ident">id</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">ma</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#216">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#137">num_vals</a>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">num_pending</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#215">self</a>
-            .<span class="ident">pending</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> (<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#220">p</a>.<span class="ident">id</span> <span class="op">==</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.<span class="ident">id</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#220">p</a>.<span class="ident">raw_vals</span>.<span class="ident">len</span>()))
-            .<span class="ident">unwrap_or</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">current_num</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#216">num_resolved</a> <span class="op">+</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#217">num_pending</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>needs_more_vals(<span class="kw-2">&amp;</span><span class="self">self</span>, o: <span class="kw-2">&amp;</span><a href="../../../src/clap/builder/arg.rs.html#61">Arg</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>num_resolved = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#215">self</a>.<a href="../../../src/clap/parser/arg_matcher.rs.html#103">get</a>(<span class="kw-2">&amp;</span><a href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.id).map(|ma| <a href="../../../src/clap/parser/arg_matcher.rs.html#216">ma</a>.<a href="../../../src/clap/parser/matches/matched_arg.rs.html#137">num_vals</a>()).unwrap_or(<span class="number">0</span>);
+        <span class="kw">let </span>num_pending = <span class="self"><a href="../../../src/clap/parser/arg_matcher.rs.html#215">self</a>
+            </span>.pending
+            .as_ref()
+            .and_then(|p| (<a href="../../../src/clap/parser/arg_matcher.rs.html#220">p</a>.id == <a href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.id).then(|| <a href="../../../src/clap/parser/arg_matcher.rs.html#220">p</a>.raw_vals.len()))
+            .unwrap_or(<span class="number">0</span>);
+        <span class="kw">let </span>current_num = <a href="../../../src/clap/parser/arg_matcher.rs.html#216">num_resolved</a> + <a href="../../../src/clap/parser/arg_matcher.rs.html#217">num_pending</a>;
         <span class="macro">debug!</span>(
             <span class="string">&quot;ArgMatcher::needs_more_vals: o={}, resolved={}, pending={}&quot;</span>,
-            <span class="ident">o</span>.<span class="ident">name</span>, <span class="ident">num_resolved</span>, <span class="ident">num_pending</span>
+            o.name, num_resolved, num_pending
         );
-        <span class="kw">if</span> <span class="ident">current_num</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="bool-val">true</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">num</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.<span class="ident">num_vals</span> {
-            <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: num_vals...{}&quot;</span>, <span class="ident">num</span>);
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_multiple_occurrences_set</span>() {
-                (<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#222">current_num</a> <span class="op">%</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#229">num</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#229">num</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#222">current_num</a>
+        <span class="kw">if </span>current_num == <span class="number">0 </span>{
+            <span class="bool-val">true
+        </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(num) = <a href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.num_vals {
+            <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: num_vals...{}&quot;</span>, num);
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="kw">if </span>o.is_multiple_occurrences_set() {
+                (<a href="../../../src/clap/parser/arg_matcher.rs.html#222">current_num</a> % <a href="../../../src/clap/parser/arg_matcher.rs.html#229">num</a>) != <span class="number">0
+            </span>} <span class="kw">else </span>{
+                <a href="../../../src/clap/parser/arg_matcher.rs.html#229">num</a> != <a href="../../../src/clap/parser/arg_matcher.rs.html#222">current_num</a>
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">num</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.<span class="ident">max_vals</span> {
-            <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: max_vals...{}&quot;</span>, <span class="ident">num</span>);
-            <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#222">current_num</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#237">num</a>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">min_vals</span>.<span class="ident">is_some</span>() {
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(num) = <a href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.max_vals {
+            <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: max_vals...{}&quot;</span>, num);
+            <a href="../../../src/clap/parser/arg_matcher.rs.html#222">current_num</a> &lt; <a href="../../../src/clap/parser/arg_matcher.rs.html#237">num</a>
+        } <span class="kw">else if </span>o.min_vals.is_some() {
             <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: min_vals...true&quot;</span>);
-            <span class="bool-val">true</span>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4522">is_multiple_values_set</a>()
+            <span class="bool-val">true
+        </span>} <span class="kw">else </span>{
+            <a href="../../../src/clap/parser/arg_matcher.rs.html#215">o</a>.<a href="../../../src/clap/builder/arg.rs.html#4522">is_multiple_values_set</a>()
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pending_arg_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#248">self</a>.<span class="ident">pending</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#249">p</a>.<span class="ident">id</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pending_arg_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>&gt; {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#248">self</a>.pending.as_ref().map(|p| <span class="kw-2">&amp;</span><a href="../../../src/clap/parser/arg_matcher.rs.html#249">p</a>.id)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pending_values_mut</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>,
-        <span class="ident">ident</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/parser/parser.rs.html#1725">Identifier</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">pending</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#253">self</a>.<span class="ident">pending</span>.<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/parser.rs.html#1718">PendingArg</a> {
-            <span class="ident">id</span>: <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#254">id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#255">ident</a>,
-            <span class="ident">raw_vals</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pending_values_mut(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        id: <span class="kw-2">&amp;</span><a href="../../../src/clap/util/id.rs.html#11">Id</a>,
+        ident: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/clap/parser/parser.rs.html#1725">Identifier</a>&gt;,
+    ) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; {
+        <span class="kw">let </span>pending = <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#253">self</a>.pending.get_or_insert_with(|| <a href="../../../src/clap/parser/parser.rs.html#1718">PendingArg</a> {
+            id: <a href="../../../src/clap/parser/arg_matcher.rs.html#254">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="../../../src/clap/parser/arg_matcher.rs.html#255">ident</a>,
+            raw_vals: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         });
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">pending</span>.<span class="ident">id</span>, <span class="kw-2">*</span><span class="ident">id</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">INTERNAL_ERROR_MSG</span>);
-        <span class="kw">if</span> <span class="ident">ident</span>.<span class="ident">is_some</span>() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">pending</span>.<span class="ident">ident</span>, <span class="ident">ident</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">INTERNAL_ERROR_MSG</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(pending.id, <span class="kw-2">*</span>id, <span class="string">&quot;{}&quot;</span>, INTERNAL_ERROR_MSG);
+        <span class="kw">if </span>ident.is_some() {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(pending.ident, ident, <span class="string">&quot;{}&quot;</span>, INTERNAL_ERROR_MSG);
         }
-        <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#257">pending</a>.<span class="ident">raw_vals</span>
+        <span class="kw-2">&amp;mut </span><a href="../../../src/clap/parser/arg_matcher.rs.html#257">pending</a>.raw_vals
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take_pending</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/parser/parser.rs.html#1718">PendingArg</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#269">self</a>.<span class="ident">pending</span>.<span class="ident">take</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_pending(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/clap/parser/parser.rs.html#1718">PendingArg</a>&gt; {
+        <a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#269">self</a>.pending.take()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a> {
+    <span class="kw">type </span>Target = <a href="../../../src/clap/parser/matches/arg_matches.rs.html#68">ArgMatches</a>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#277">self</a>.<span class="ident">matches</span>
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/clap/parser/arg_matcher.rs.html#277">self</a>.matches
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

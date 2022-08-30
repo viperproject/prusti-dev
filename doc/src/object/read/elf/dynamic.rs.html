@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/dynamic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dynamic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/dynamic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dynamic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -115,122 +115,122 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#90"><span class="kw">crate</span>::endian</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../../src/object/read/util.rs.html#232">StringTable</a>};
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#90"><span class="kw">crate</span>::endian</a>;
+<span class="kw">use </span><a href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <span class="prelude-ty">Result</span>, <a href="../../../../src/object/read/util.rs.html#232">StringTable</a>};
 
-<span class="doccomment">/// A trait for generic access to `Dyn32` and `Dyn64`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Dyn</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a> {
-    <span class="kw">type</span> <span class="ident">Word</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
+<span class="doccomment">/// A trait for generic access to `Dyn32` and `Dyn64`.
+</span><span class="attribute">#[allow(missing_docs)]
+</span><span class="kw">pub trait </span>Dyn: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../../../src/object/pod.rs.html#21">Pod</a> {
+    <span class="kw">type </span>Word: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
+    <span class="kw">type </span>Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
 
-    <span class="kw">fn</span> <span class="ident">d_tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">d_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
+    <span class="kw">fn </span>d_tag(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>d_val(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
 
-    <span class="doccomment">/// Try to convert the tag to a `u32`.</span>
-    <span class="kw">fn</span> <span class="ident">tag32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#19">self</a>.<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#15">d_tag</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#19">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">ok</span>()
+    <span class="doccomment">/// Try to convert the tag to a `u32`.
+    </span><span class="kw">fn </span>tag32(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#19">self</a>.<a href="../../../../src/object/read/elf/dynamic.rs.html#15">d_tag</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#19">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().ok()
     }
 
-    <span class="doccomment">/// Try to convert the value to a `u32`.</span>
-    <span class="kw">fn</span> <span class="ident">val32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#24">self</a>.<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#16">d_val</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#24">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">ok</span>()
+    <span class="doccomment">/// Try to convert the value to a `u32`.
+    </span><span class="kw">fn </span>val32(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#24">self</a>.<a href="../../../../src/object/read/elf/dynamic.rs.html#16">d_val</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#24">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().ok()
     }
 
-    <span class="doccomment">/// Return true if the value is an offset in the dynamic string table.</span>
-    <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tag</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#29">self</a>.<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#19">tag32</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#29">endian</a>) {
-            <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#30">tag</a> {
-                <a class="ident" href="../../../../src/object/elf.rs.html#1476">elf::DT_NEEDED</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1502">elf::DT_SONAME</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1504">elf::DT_RPATH</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1532">elf::DT_RUNPATH</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1632">elf::DT_AUXILIARY</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1634">elf::DT_FILTER</a> =&gt; <span class="bool-val">true</span>,
-                <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    <span class="doccomment">/// Return true if the value is an offset in the dynamic string table.
+    </span><span class="kw">fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(tag) = <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#29">self</a>.<a href="../../../../src/object/read/elf/dynamic.rs.html#19">tag32</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#29">endian</a>) {
+            <span class="kw">match </span><a href="../../../../src/object/read/elf/dynamic.rs.html#30">tag</a> {
+                <a href="../../../../src/object/elf.rs.html#1476">elf::DT_NEEDED</a>
+                | <a href="../../../../src/object/elf.rs.html#1502">elf::DT_SONAME</a>
+                | <a href="../../../../src/object/elf.rs.html#1504">elf::DT_RPATH</a>
+                | <a href="../../../../src/object/elf.rs.html#1532">elf::DT_RUNPATH</a>
+                | <a href="../../../../src/object/elf.rs.html#1632">elf::DT_AUXILIARY</a>
+                | <a href="../../../../src/object/elf.rs.html#1634">elf::DT_FILTER</a> =&gt; <span class="bool-val">true</span>,
+                <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             }
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 
-    <span class="doccomment">/// Use the value to get a string in a string table.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Does not check for an appropriate tag.</span>
-    <span class="kw">fn</span> <span class="ident">string</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Use the value to get a string in a string table.
+    ///
+    /// Does not check for an appropriate tag.
+    </span><span class="kw">fn </span>string&lt;<span class="lifetime">&#39;data</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>,
-        <span class="ident">strings</span>: <span class="ident">StringTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#49">self</a>.<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#24">val32</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#50">endian</a>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#51">strings</a>.<a class="ident" href="../../../../src/object/read/util.rs.html#254">get</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#54">val</a>).<span class="ident">ok</span>())
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF dyn string&quot;</span>)
+        endian: <span class="self">Self</span>::Endian,
+        strings: StringTable&lt;<span class="lifetime">&#39;data</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#49">self</a>.<a href="../../../../src/object/read/elf/dynamic.rs.html#24">val32</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#50">endian</a>)
+            .and_then(|val| <a href="../../../../src/object/read/elf/dynamic.rs.html#51">strings</a>.<a href="../../../../src/object/read/util.rs.html#254">get</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#54">val</a>).ok())
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid ELF dyn string&quot;</span>)
     }
 
-    <span class="doccomment">/// Return true if the value is an address.</span>
-    <span class="kw">fn</span> <span class="ident">is_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tag</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#59">self</a>.<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#19">tag32</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#59">endian</a>) {
-            <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#60">tag</a> {
-                <a class="ident" href="../../../../src/object/elf.rs.html#1480">elf::DT_PLTGOT</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1482">elf::DT_HASH</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1484">elf::DT_STRTAB</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1486">elf::DT_SYMTAB</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1488">elf::DT_RELA</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1498">elf::DT_INIT</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1500">elf::DT_FINI</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1506">elf::DT_SYMBOLIC</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1508">elf::DT_REL</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1516">elf::DT_DEBUG</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1520">elf::DT_JMPREL</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1526">elf::DT_FINI_ARRAY</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1524">elf::DT_INIT_ARRAY</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1538">elf::DT_PREINIT_ARRAY</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1542">elf::DT_SYMTAB_SHNDX</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1622">elf::DT_VERDEF</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1626">elf::DT_VERNEED</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1614">elf::DT_VERSYM</a>
-                <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#1585">elf::DT_ADDRRNGLO</a>..<span class="op">=</span><a class="ident" href="../../../../src/object/elf.rs.html#1609">elf::DT_ADDRRNGHI</a> =&gt; <span class="bool-val">true</span>,
-                <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    <span class="doccomment">/// Return true if the value is an address.
+    </span><span class="kw">fn </span>is_address(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(tag) = <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#59">self</a>.<a href="../../../../src/object/read/elf/dynamic.rs.html#19">tag32</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#59">endian</a>) {
+            <span class="kw">match </span><a href="../../../../src/object/read/elf/dynamic.rs.html#60">tag</a> {
+                <a href="../../../../src/object/elf.rs.html#1480">elf::DT_PLTGOT</a>
+                | <a href="../../../../src/object/elf.rs.html#1482">elf::DT_HASH</a>
+                | <a href="../../../../src/object/elf.rs.html#1484">elf::DT_STRTAB</a>
+                | <a href="../../../../src/object/elf.rs.html#1486">elf::DT_SYMTAB</a>
+                | <a href="../../../../src/object/elf.rs.html#1488">elf::DT_RELA</a>
+                | <a href="../../../../src/object/elf.rs.html#1498">elf::DT_INIT</a>
+                | <a href="../../../../src/object/elf.rs.html#1500">elf::DT_FINI</a>
+                | <a href="../../../../src/object/elf.rs.html#1506">elf::DT_SYMBOLIC</a>
+                | <a href="../../../../src/object/elf.rs.html#1508">elf::DT_REL</a>
+                | <a href="../../../../src/object/elf.rs.html#1516">elf::DT_DEBUG</a>
+                | <a href="../../../../src/object/elf.rs.html#1520">elf::DT_JMPREL</a>
+                | <a href="../../../../src/object/elf.rs.html#1526">elf::DT_FINI_ARRAY</a>
+                | <a href="../../../../src/object/elf.rs.html#1524">elf::DT_INIT_ARRAY</a>
+                | <a href="../../../../src/object/elf.rs.html#1538">elf::DT_PREINIT_ARRAY</a>
+                | <a href="../../../../src/object/elf.rs.html#1542">elf::DT_SYMTAB_SHNDX</a>
+                | <a href="../../../../src/object/elf.rs.html#1622">elf::DT_VERDEF</a>
+                | <a href="../../../../src/object/elf.rs.html#1626">elf::DT_VERNEED</a>
+                | <a href="../../../../src/object/elf.rs.html#1614">elf::DT_VERSYM</a>
+                | <a href="../../../../src/object/elf.rs.html#1585">elf::DT_ADDRRNGLO</a>..=<a href="../../../../src/object/elf.rs.html#1609">elf::DT_ADDRRNGHI</a> =&gt; <span class="bool-val">true</span>,
+                <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             }
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#11">Dyn</a> <span class="kw">for</span> <span class="ident">elf::Dyn32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/elf/dynamic.rs.html#11">Dyn</a> <span class="kw">for </span>elf::Dyn32&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">type </span>Endian = Endian;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">d_tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#94">self</a>.<span class="ident">d_tag</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#94">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>d_tag(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#94">self</a>.d_tag.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#94">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">d_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#99">self</a>.<span class="ident">d_val</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#99">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>d_val(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#99">self</a>.d_val.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#99">endian</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#11">Dyn</a> <span class="kw">for</span> <span class="ident">elf::Dyn64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/elf/dynamic.rs.html#11">Dyn</a> <span class="kw">for </span>elf::Dyn64&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">type </span>Endian = Endian;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">d_tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#109">self</a>.<span class="ident">d_tag</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#109">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>d_tag(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#109">self</a>.d_tag.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#109">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">d_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#114">self</a>.<span class="ident">d_val</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/elf/dynamic.rs.html#114">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>d_val(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/dynamic.rs.html#114">self</a>.d_val.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/elf/dynamic.rs.html#114">endian</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

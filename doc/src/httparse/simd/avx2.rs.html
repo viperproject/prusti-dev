@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/httparse-1.7.1/src/simd/avx2.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>avx2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../httparse/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../httparse/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../httparse/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/httparse-1.7.1/src/simd/avx2.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>avx2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../httparse/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../httparse/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../httparse/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -179,186 +179,186 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/httparse/iter.rs.html#3">::iter::Bytes</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/httparse/iter.rs.html#3">::iter::Bytes</a>;
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Scan</span> {
-    <span class="doccomment">/// Returned when an implementation finds a noteworthy token.</span>
-    <span class="ident">Found</span>,
-    <span class="doccomment">/// Returned when an implementation couldn&#39;t keep running because the input was too short.</span>
-    <span class="ident">TooShort</span>,
+<span class="kw">pub enum </span>Scan {
+    <span class="doccomment">/// Returned when an implementation finds a noteworthy token.
+    </span>Found,
+    <span class="doccomment">/// Returned when an implementation couldn&#39;t keep running because the input was too short.
+    </span>TooShort,
 }
 
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">parse_uri_batch_32</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/httparse/iter.rs.html#3">Bytes</a>) -&gt; <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#3">Scan</a> {
-    <span class="kw">while</span> <span class="ident">bytes</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">32</span> {
-        <span class="kw">let</span> <span class="ident">advance</span> <span class="op">=</span> <span class="ident">match_url_char_32_avx</span>(<span class="ident">bytes</span>.<span class="ident">as_ref</span>());
-        <span class="ident">bytes</span>.<span class="ident">advance</span>(<span class="ident">advance</span>);
+<span class="kw">pub unsafe fn </span>parse_uri_batch_32(bytes: <span class="kw-2">&amp;mut </span><a href="../../../src/httparse/iter.rs.html#3">Bytes</a>) -&gt; <a href="../../../src/httparse/simd/avx2.rs.html#3">Scan</a> {
+    <span class="kw">while </span>bytes.as_ref().len() &gt;= <span class="number">32 </span>{
+        <span class="kw">let </span>advance = match_url_char_32_avx(bytes.as_ref());
+        bytes.advance(advance);
 
-        <span class="kw">if</span> <span class="ident">advance</span> <span class="op">!</span><span class="op">=</span> <span class="number">32</span> {
-            <span class="kw">return</span> <span class="ident">Scan::Found</span>;
+        <span class="kw">if </span>advance != <span class="number">32 </span>{
+            <span class="kw">return </span>Scan::Found;
         }
     }
-    <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#7">Scan::TooShort</a>
+    <a href="../../../src/httparse/simd/avx2.rs.html#7">Scan::TooShort</a>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>, <span class="ident">overflowing_literals</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">match_url_char_32_avx</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">32</span>);
+<span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
+#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+#[inline]
+#[allow(non_snake_case, overflowing_literals)]
+</span><span class="kw">unsafe fn </span>match_url_char_32_avx(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.len() &gt;= <span class="number">32</span>);
 
     <span class="comment">/*
     #[cfg(target_arch = &quot;x86&quot;)]
     use core::arch::x86::*;
     #[cfg(target_arch = &quot;x86_64&quot;)]
-    */</span>
-    <span class="kw">use</span> <span class="ident">core::arch::x86_64</span>::<span class="kw-2">*</span>;
+    */
+    </span><span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
 
-    <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#27">buf</a>.<span class="ident">as_ptr</span>();
+    <span class="kw">let </span>ptr = <a href="../../../src/httparse/simd/avx2.rs.html#27">buf</a>.as_ptr();
 
-    <span class="kw">let</span> <span class="ident">LSH</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> <span class="op">=</span> <span class="ident">_mm256_set1_epi8</span>(<span class="number">0x0f</span>);
+    <span class="kw">let </span>LSH: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_set1_epi8(<span class="number">0x0f</span>);
 
-    <span class="comment">// See comment in sse42::match_url_char_16_sse.</span>
+    <span class="comment">// See comment in sse42::match_url_char_16_sse.
 
-    <span class="kw">let</span> <span class="ident">URI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> <span class="op">=</span> <span class="ident">_mm256_setr_epi8</span>(
+    </span><span class="kw">let </span>URI: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_setr_epi8(
         <span class="number">0xf8</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>,
         <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xf4</span>, <span class="number">0xfc</span>, <span class="number">0xf4</span>, <span class="number">0x7c</span>,
         <span class="number">0xf8</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>,
         <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xfc</span>, <span class="number">0xf4</span>, <span class="number">0xfc</span>, <span class="number">0xf4</span>, <span class="number">0x7c</span>,
     );
-    <span class="kw">let</span> <span class="ident">ARF</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> <span class="op">=</span> <span class="ident">_mm256_setr_epi8</span>(
+    <span class="kw">let </span>ARF: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_setr_epi8(
         <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x04</span>, <span class="number">0x08</span>, <span class="number">0x10</span>, <span class="number">0x20</span>, <span class="number">0x40</span>, <span class="number">0x80</span>,
         <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
         <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x04</span>, <span class="number">0x08</span>, <span class="number">0x10</span>, <span class="number">0x20</span>, <span class="number">0x40</span>, <span class="number">0x80</span>,
         <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
     );
 
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">_mm256_lddqu_si256</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#37">ptr</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>);
-    <span class="kw">let</span> <span class="ident">rbms</span> <span class="op">=</span> <span class="ident">_mm256_shuffle_epi8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#43">URI</a>, <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#56">data</a>);
-    <span class="kw">let</span> <span class="ident">cols</span> <span class="op">=</span> <span class="ident">_mm256_and_si256</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#39">LSH</a>, <span class="ident">_mm256_srli_epi16</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#56">data</a>, <span class="number">4</span>));
-    <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">_mm256_and_si256</span>(<span class="ident">_mm256_shuffle_epi8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#49">ARF</a>, <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#58">cols</a>), <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#57">rbms</a>);
+    <span class="kw">let </span>data = _mm256_lddqu_si256(<a href="../../../src/httparse/simd/avx2.rs.html#37">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
+    <span class="kw">let </span>rbms = _mm256_shuffle_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#43">URI</a>, <a href="../../../src/httparse/simd/avx2.rs.html#56">data</a>);
+    <span class="kw">let </span>cols = _mm256_and_si256(<a href="../../../src/httparse/simd/avx2.rs.html#39">LSH</a>, _mm256_srli_epi16(<a href="../../../src/httparse/simd/avx2.rs.html#56">data</a>, <span class="number">4</span>));
+    <span class="kw">let </span>bits = _mm256_and_si256(_mm256_shuffle_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#49">ARF</a>, <a href="../../../src/httparse/simd/avx2.rs.html#58">cols</a>), <a href="../../../src/httparse/simd/avx2.rs.html#57">rbms</a>);
 
-    <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">_mm256_cmpeq_epi8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#59">bits</a>, <span class="ident">_mm256_setzero_si256</span>());
-    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="number">0xffff_ffff_0000_0000</span> <span class="op">|</span> <span class="ident">_mm256_movemask_epi8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#61">v</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">let </span>v = _mm256_cmpeq_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#59">bits</a>, _mm256_setzero_si256());
+    <span class="kw">let </span>r = <span class="number">0xffff_ffff_0000_0000 </span>| _mm256_movemask_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#61">v</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 
-    <span class="ident">_tzcnt_u64</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#62">r</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    _tzcnt_u64(<a href="../../../src/httparse/simd/avx2.rs.html#62">r</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">match_url_char_32_avx</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
+<span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+</span><span class="kw">unsafe fn </span>match_url_char_32_avx(<span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
     <span class="macro">unreachable!</span>(<span class="string">&quot;AVX2 detection should be disabled for x86&quot;</span>);
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">match_header_value_batch_32</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/httparse/iter.rs.html#3">Bytes</a>) -&gt; <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#3">Scan</a> {
-    <span class="kw">while</span> <span class="ident">bytes</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">32</span> {
-        <span class="kw">let</span> <span class="ident">advance</span> <span class="op">=</span> <span class="ident">match_header_value_char_32_avx</span>(<span class="ident">bytes</span>.<span class="ident">as_ref</span>());
-        <span class="ident">bytes</span>.<span class="ident">advance</span>(<span class="ident">advance</span>);
+<span class="kw">pub unsafe fn </span>match_header_value_batch_32(bytes: <span class="kw-2">&amp;mut </span><a href="../../../src/httparse/iter.rs.html#3">Bytes</a>) -&gt; <a href="../../../src/httparse/simd/avx2.rs.html#3">Scan</a> {
+    <span class="kw">while </span>bytes.as_ref().len() &gt;= <span class="number">32 </span>{
+        <span class="kw">let </span>advance = match_header_value_char_32_avx(bytes.as_ref());
+        bytes.advance(advance);
 
-        <span class="kw">if</span> <span class="ident">advance</span> <span class="op">!</span><span class="op">=</span> <span class="number">32</span> {
-            <span class="kw">return</span> <span class="ident">Scan::Found</span>;
+        <span class="kw">if </span>advance != <span class="number">32 </span>{
+            <span class="kw">return </span>Scan::Found;
         }
     }
-    <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#7">Scan::TooShort</a>
+    <a href="../../../src/httparse/simd/avx2.rs.html#7">Scan::TooShort</a>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">match_header_value_char_32_avx</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">32</span>);
+<span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
+#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+#[inline]
+#[allow(non_snake_case)]
+</span><span class="kw">unsafe fn </span>match_header_value_char_32_avx(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.len() &gt;= <span class="number">32</span>);
 
     <span class="comment">/*
     #[cfg(target_arch = &quot;x86&quot;)]
     use core::arch::x86::*;
     #[cfg(target_arch = &quot;x86_64&quot;)]
-    */</span>
-    <span class="kw">use</span> <span class="ident">core::arch::x86_64</span>::<span class="kw-2">*</span>;
+    */
+    </span><span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
 
-    <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#88">buf</a>.<span class="ident">as_ptr</span>();
+    <span class="kw">let </span>ptr = <a href="../../../src/httparse/simd/avx2.rs.html#88">buf</a>.as_ptr();
 
-    <span class="comment">// %x09 %x20-%x7e %x80-%xff</span>
-    <span class="kw">let</span> <span class="ident">TAB</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> <span class="op">=</span> <span class="ident">_mm256_set1_epi8</span>(<span class="number">0x09</span>);
-    <span class="kw">let</span> <span class="ident">DEL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> <span class="op">=</span> <span class="ident">_mm256_set1_epi8</span>(<span class="number">0x7f</span>);
-    <span class="kw">let</span> <span class="ident">LOW</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> <span class="op">=</span> <span class="ident">_mm256_set1_epi8</span>(<span class="number">0x20</span>);
+    <span class="comment">// %x09 %x20-%x7e %x80-%xff
+    </span><span class="kw">let </span>TAB: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_set1_epi8(<span class="number">0x09</span>);
+    <span class="kw">let </span>DEL: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_set1_epi8(<span class="number">0x7f</span>);
+    <span class="kw">let </span>LOW: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m256i.html">__m256i</a> = _mm256_set1_epi8(<span class="number">0x20</span>);
 
-    <span class="kw">let</span> <span class="ident">dat</span> <span class="op">=</span> <span class="ident">_mm256_lddqu_si256</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#98">ptr</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>);
-    <span class="comment">// unsigned comparison dat &gt;= LOW</span>
-    <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="ident">_mm256_cmpeq_epi8</span>(<span class="ident">_mm256_max_epu8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#103">LOW</a>), <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>);
-    <span class="kw">let</span> <span class="ident">tab</span> <span class="op">=</span> <span class="ident">_mm256_cmpeq_epi8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#101">TAB</a>);
-    <span class="kw">let</span> <span class="ident">del</span> <span class="op">=</span> <span class="ident">_mm256_cmpeq_epi8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#102">DEL</a>);
-    <span class="kw">let</span> <span class="ident">bit</span> <span class="op">=</span> <span class="ident">_mm256_andnot_si256</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#109">del</a>, <span class="ident">_mm256_or_si256</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#107">low</a>, <a class="ident" href="../../../src/httparse/simd/avx2.rs.html#108">tab</a>));
-    <span class="kw">let</span> <span class="ident">rev</span> <span class="op">=</span> <span class="ident">_mm256_cmpeq_epi8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#110">bit</a>, <span class="ident">_mm256_setzero_si256</span>());
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="number">0xffff_ffff_0000_0000</span> <span class="op">|</span> <span class="ident">_mm256_movemask_epi8</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#111">rev</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">let </span>dat = _mm256_lddqu_si256(<a href="../../../src/httparse/simd/avx2.rs.html#98">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
+    <span class="comment">// unsigned comparison dat &gt;= LOW
+    </span><span class="kw">let </span>low = _mm256_cmpeq_epi8(_mm256_max_epu8(<a href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a href="../../../src/httparse/simd/avx2.rs.html#103">LOW</a>), <a href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>);
+    <span class="kw">let </span>tab = _mm256_cmpeq_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a href="../../../src/httparse/simd/avx2.rs.html#101">TAB</a>);
+    <span class="kw">let </span>del = _mm256_cmpeq_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#105">dat</a>, <a href="../../../src/httparse/simd/avx2.rs.html#102">DEL</a>);
+    <span class="kw">let </span>bit = _mm256_andnot_si256(<a href="../../../src/httparse/simd/avx2.rs.html#109">del</a>, _mm256_or_si256(<a href="../../../src/httparse/simd/avx2.rs.html#107">low</a>, <a href="../../../src/httparse/simd/avx2.rs.html#108">tab</a>));
+    <span class="kw">let </span>rev = _mm256_cmpeq_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#110">bit</a>, _mm256_setzero_si256());
+    <span class="kw">let </span>res = <span class="number">0xffff_ffff_0000_0000 </span>| _mm256_movemask_epi8(<a href="../../../src/httparse/simd/avx2.rs.html#111">rev</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 
-    <span class="ident">_tzcnt_u64</span>(<a class="ident" href="../../../src/httparse/simd/avx2.rs.html#112">res</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    _tzcnt_u64(<a href="../../../src/httparse/simd/avx2.rs.html#112">res</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">match_header_value_char_32_avx</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
+<span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+</span><span class="kw">unsafe fn </span>match_header_value_char_32_avx(<span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
     <span class="macro">unreachable!</span>(<span class="string">&quot;AVX2 detection should be disabled for x86&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">avx2_code_matches_uri_chars_table</span>() {
-    <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::detect</span>() {
-        <span class="ident"><span class="kw">super</span>::AVX_2</span> <span class="op">|</span> <span class="ident"><span class="kw">super</span>::AVX_2_AND_SSE_42</span> =&gt; {},
-        <span class="kw">_</span> =&gt; <span class="kw">return</span>,
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>avx2_code_matches_uri_chars_table() {
+    <span class="kw">match </span><span class="kw">super</span>::detect() {
+        <span class="kw">super</span>::AVX_2 | <span class="kw">super</span>::AVX_2_AND_SSE_42 =&gt; {},
+        <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
     }
 
-    <span class="kw">unsafe</span> {
-        <span class="macro">assert!</span>(<span class="ident">byte_is_allowed</span>(<span class="string">b&#39;_&#39;</span>, <span class="ident">parse_uri_batch_32</span>));
+    <span class="kw">unsafe </span>{
+        <span class="macro">assert!</span>(byte_is_allowed(<span class="string">b&#39;_&#39;</span>, parse_uri_batch_32));
 
-        <span class="kw">for</span> (<span class="ident">b</span>, <span class="ident">allowed</span>) <span class="kw">in</span> <span class="ident">::URI_MAP</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">enumerate</span>() {
+        <span class="kw">for </span>(b, allowed) <span class="kw">in </span>::URI_MAP.iter().cloned().enumerate() {
             <span class="macro">assert_eq!</span>(
-                <span class="ident">byte_is_allowed</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">parse_uri_batch_32</span>), <span class="ident">allowed</span>,
-                <span class="string">&quot;byte_is_allowed({:?}) should be {:?}&quot;</span>, <span class="ident">b</span>, <span class="ident">allowed</span>,
+                byte_is_allowed(b <span class="kw">as </span>u8, parse_uri_batch_32), allowed,
+                <span class="string">&quot;byte_is_allowed({:?}) should be {:?}&quot;</span>, b, allowed,
             );
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">avx2_code_matches_header_value_chars_table</span>() {
-    <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::detect</span>() {
-        <span class="ident"><span class="kw">super</span>::AVX_2</span> <span class="op">|</span> <span class="ident"><span class="kw">super</span>::AVX_2_AND_SSE_42</span> =&gt; {},
-        <span class="kw">_</span> =&gt; <span class="kw">return</span>,
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>avx2_code_matches_header_value_chars_table() {
+    <span class="kw">match </span><span class="kw">super</span>::detect() {
+        <span class="kw">super</span>::AVX_2 | <span class="kw">super</span>::AVX_2_AND_SSE_42 =&gt; {},
+        <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
     }
 
-    <span class="kw">unsafe</span> {
-        <span class="macro">assert!</span>(<span class="ident">byte_is_allowed</span>(<span class="string">b&#39;_&#39;</span>, <span class="ident">match_header_value_batch_32</span>));
+    <span class="kw">unsafe </span>{
+        <span class="macro">assert!</span>(byte_is_allowed(<span class="string">b&#39;_&#39;</span>, match_header_value_batch_32));
 
-        <span class="kw">for</span> (<span class="ident">b</span>, <span class="ident">allowed</span>) <span class="kw">in</span> <span class="ident">::HEADER_VALUE_MAP</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">enumerate</span>() {
+        <span class="kw">for </span>(b, allowed) <span class="kw">in </span>::HEADER_VALUE_MAP.iter().cloned().enumerate() {
             <span class="macro">assert_eq!</span>(
-                <span class="ident">byte_is_allowed</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">match_header_value_batch_32</span>), <span class="ident">allowed</span>,
-                <span class="string">&quot;byte_is_allowed({:?}) should be {:?}&quot;</span>, <span class="ident">b</span>, <span class="ident">allowed</span>,
+                byte_is_allowed(b <span class="kw">as </span>u8, match_header_value_batch_32), allowed,
+                <span class="string">&quot;byte_is_allowed({:?}) should be {:?}&quot;</span>, b, allowed,
             );
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">byte_is_allowed</span>(<span class="ident">byte</span>: <span class="ident">u8</span>, <span class="ident">f</span>: <span class="kw">unsafe</span> <span class="kw">fn</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Scan</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> [
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">unsafe fn </span>byte_is_allowed(byte: u8, f: <span class="kw">unsafe fn</span>(bytes: <span class="kw-2">&amp;mut </span>Bytes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Scan) -&gt; bool {
+    <span class="kw">let </span>slice = [
         <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>,
         <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>,
         <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>,
         <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>,
         <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>,
         <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>,
-        <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="ident">byte</span>, <span class="string">b&#39;_&#39;</span>,
+        <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, byte, <span class="string">b&#39;_&#39;</span>,
         <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;_&#39;</span>,
     ];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">Bytes::new</span>(<span class="kw-2">&amp;</span><span class="ident">slice</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>bytes = Bytes::new(<span class="kw-2">&amp;</span>slice);
 
-    <span class="ident">f</span>(<span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>);
+    f(<span class="kw-2">&amp;mut </span>bytes);
 
-    <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">pos</span>() {
-        <span class="number">32</span> =&gt; <span class="bool-val">true</span>,
-        <span class="number">26</span> =&gt; <span class="bool-val">false</span>,
-        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+    <span class="kw">match </span>bytes.pos() {
+        <span class="number">32 </span>=&gt; <span class="bool-val">true</span>,
+        <span class="number">26 </span>=&gt; <span class="bool-val">false</span>,
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="httparse" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="httparse" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

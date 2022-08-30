@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -339,346 +339,346 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>, <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#8">RawTask</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>, <a href="../../../../src/tokio/runtime/task/raw.rs.html#8">RawTask</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std::panic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span>std::panic::{<a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="macro">cfg_rt!</span> {
-    <span class="doccomment">/// An owned permission to join on a task (await its termination).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be thought of as the equivalent of [`std::thread::JoinHandle`] for</span>
-    <span class="doccomment">/// a task rather than a thread.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A `JoinHandle` *detaches* the associated task when it is dropped, which</span>
-    <span class="doccomment">/// means that there is no longer any handle to the task, and no way to `join`</span>
-    <span class="doccomment">/// on it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This `struct` is created by the [`task::spawn`] and [`task::spawn_blocking`]</span>
-    <span class="doccomment">/// functions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Creation from [`task::spawn`]:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn doc() {</span>
-    <span class="doccomment">/// let join_handle: task::JoinHandle&lt;_&gt; = task::spawn(async {</span>
-    <span class="doccomment">///     // some work here</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Creation from [`task::spawn_blocking`]:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn doc() {</span>
-    <span class="doccomment">/// let join_handle: task::JoinHandle&lt;_&gt; = task::spawn_blocking(|| {</span>
-    <span class="doccomment">///     // some blocking work here</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The generic parameter `T` in `JoinHandle&lt;T&gt;` is the return type of the spawned task.</span>
-    <span class="doccomment">/// If the return value is an i32, the join handle has type `JoinHandle&lt;i32&gt;`:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn doc() {</span>
-    <span class="doccomment">/// let join_handle: task::JoinHandle&lt;i32&gt; = task::spawn(async {</span>
-    <span class="doccomment">///     5 + 3</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the task does not have a return value, the join handle has type `JoinHandle&lt;()&gt;`:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn doc() {</span>
-    <span class="doccomment">/// let join_handle: task::JoinHandle&lt;()&gt; = task::spawn(async {</span>
-    <span class="doccomment">///     println!(&quot;I return nothing.&quot;);</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that `handle.await` doesn&#39;t give you the return type directly. It is wrapped in a</span>
-    <span class="doccomment">/// `Result` because panics in the spawned task are caught by Tokio. The `?` operator has</span>
-    <span class="doccomment">/// to be double chained to extract the returned value:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let join_handle: task::JoinHandle&lt;Result&lt;i32, io::Error&gt;&gt; = tokio::spawn(async {</span>
-    <span class="doccomment">///         Ok(5 + 3)</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let result = join_handle.await??;</span>
-    <span class="doccomment">///     assert_eq!(result, 8);</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the task panics, the error is a [`JoinError`] that contains the panic:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">/// use std::panic;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let join_handle: task::JoinHandle&lt;Result&lt;i32, io::Error&gt;&gt; = tokio::spawn(async {</span>
-    <span class="doccomment">///         panic!(&quot;boom&quot;);</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let err = join_handle.await.unwrap_err();</span>
-    <span class="doccomment">///     assert!(err.is_panic());</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// Child being detached and outliving its parent:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">/// use tokio::time;</span>
-    <span class="doccomment">/// use std::time::Duration;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # #[tokio::main] async fn main() {</span>
-    <span class="doccomment">/// let original_task = task::spawn(async {</span>
-    <span class="doccomment">///     let _detached_task = task::spawn(async {</span>
-    <span class="doccomment">///         // Here we sleep to make sure that the first task returns before.</span>
-    <span class="doccomment">///         time::sleep(Duration::from_millis(10)).await;</span>
-    <span class="doccomment">///         // This will be called, even though the JoinHandle is dropped.</span>
-    <span class="doccomment">///         println!(&quot;♫ Still alive ♫&quot;);</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// original_task.await.expect(&quot;The task being joined has panicked&quot;);</span>
-    <span class="doccomment">/// println!(&quot;Original task is joined.&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // We make sure that the new task has time to run, before the main</span>
-    <span class="doccomment">/// // task returns.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// time::sleep(Duration::from_millis(1000)).await;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`task::spawn`]: crate::task::spawn()</span>
-    <span class="doccomment">/// [`task::spawn_blocking`]: crate::task::spawn_blocking</span>
-    <span class="doccomment">/// [`std::thread::JoinHandle`]: std::thread::JoinHandle</span>
-    <span class="doccomment">/// [`JoinError`]: crate::task::JoinError</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">raw</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#8">RawTask</a><span class="op">&gt;</span>,
-        <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>,
-        <span class="ident">_p</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="macro">cfg_rt! </span>{
+    <span class="doccomment">/// An owned permission to join on a task (await its termination).
+    ///
+    /// This can be thought of as the equivalent of [`std::thread::JoinHandle`] for
+    /// a task rather than a thread.
+    ///
+    /// A `JoinHandle` *detaches* the associated task when it is dropped, which
+    /// means that there is no longer any handle to the task, and no way to `join`
+    /// on it.
+    ///
+    /// This `struct` is created by the [`task::spawn`] and [`task::spawn_blocking`]
+    /// functions.
+    ///
+    /// # Examples
+    ///
+    /// Creation from [`task::spawn`]:
+    ///
+    /// ```
+    /// use tokio::task;
+    ///
+    /// # async fn doc() {
+    /// let join_handle: task::JoinHandle&lt;_&gt; = task::spawn(async {
+    ///     // some work here
+    /// });
+    /// # }
+    /// ```
+    ///
+    /// Creation from [`task::spawn_blocking`]:
+    ///
+    /// ```
+    /// use tokio::task;
+    ///
+    /// # async fn doc() {
+    /// let join_handle: task::JoinHandle&lt;_&gt; = task::spawn_blocking(|| {
+    ///     // some blocking work here
+    /// });
+    /// # }
+    /// ```
+    ///
+    /// The generic parameter `T` in `JoinHandle&lt;T&gt;` is the return type of the spawned task.
+    /// If the return value is an i32, the join handle has type `JoinHandle&lt;i32&gt;`:
+    ///
+    /// ```
+    /// use tokio::task;
+    ///
+    /// # async fn doc() {
+    /// let join_handle: task::JoinHandle&lt;i32&gt; = task::spawn(async {
+    ///     5 + 3
+    /// });
+    /// # }
+    ///
+    /// ```
+    ///
+    /// If the task does not have a return value, the join handle has type `JoinHandle&lt;()&gt;`:
+    ///
+    /// ```
+    /// use tokio::task;
+    ///
+    /// # async fn doc() {
+    /// let join_handle: task::JoinHandle&lt;()&gt; = task::spawn(async {
+    ///     println!(&quot;I return nothing.&quot;);
+    /// });
+    /// # }
+    /// ```
+    ///
+    /// Note that `handle.await` doesn&#39;t give you the return type directly. It is wrapped in a
+    /// `Result` because panics in the spawned task are caught by Tokio. The `?` operator has
+    /// to be double chained to extract the returned value:
+    ///
+    /// ```
+    /// use tokio::task;
+    /// use std::io;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let join_handle: task::JoinHandle&lt;Result&lt;i32, io::Error&gt;&gt; = tokio::spawn(async {
+    ///         Ok(5 + 3)
+    ///     });
+    ///
+    ///     let result = join_handle.await??;
+    ///     assert_eq!(result, 8);
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// If the task panics, the error is a [`JoinError`] that contains the panic:
+    ///
+    /// ```
+    /// use tokio::task;
+    /// use std::io;
+    /// use std::panic;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let join_handle: task::JoinHandle&lt;Result&lt;i32, io::Error&gt;&gt; = tokio::spawn(async {
+    ///         panic!(&quot;boom&quot;);
+    ///     });
+    ///
+    ///     let err = join_handle.await.unwrap_err();
+    ///     assert!(err.is_panic());
+    ///     Ok(())
+    /// }
+    ///
+    /// ```
+    /// Child being detached and outliving its parent:
+    ///
+    /// ```no_run
+    /// use tokio::task;
+    /// use tokio::time;
+    /// use std::time::Duration;
+    ///
+    /// # #[tokio::main] async fn main() {
+    /// let original_task = task::spawn(async {
+    ///     let _detached_task = task::spawn(async {
+    ///         // Here we sleep to make sure that the first task returns before.
+    ///         time::sleep(Duration::from_millis(10)).await;
+    ///         // This will be called, even though the JoinHandle is dropped.
+    ///         println!(&quot;♫ Still alive ♫&quot;);
+    ///     });
+    /// });
+    ///
+    /// original_task.await.expect(&quot;The task being joined has panicked&quot;);
+    /// println!(&quot;Original task is joined.&quot;);
+    ///
+    /// // We make sure that the new task has time to run, before the main
+    /// // task returns.
+    ///
+    /// time::sleep(Duration::from_millis(1000)).await;
+    /// # }
+    /// ```
+    ///
+    /// [`task::spawn`]: crate::task::spawn()
+    /// [`task::spawn_blocking`]: crate::task::spawn_blocking
+    /// [`std::thread::JoinHandle`]: std::thread::JoinHandle
+    /// [`JoinError`]: crate::task::JoinError
+    </span><span class="kw">pub struct </span>JoinHandle&lt;T&gt; {
+        raw: <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/tokio/runtime/task/raw.rs.html#8">RawTask</a>&gt;,
+        id: <a href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>,
+        _p: PhantomData&lt;T&gt;,
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">raw</span>: <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#8">RawTask</a>, <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>) -&gt; <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#145">JoinHandle</a> {
-            <span class="ident">raw</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#159">raw</a>),
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#159">id</a>,
-            <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;T&gt; JoinHandle&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: <a href="../../../../src/tokio/runtime/task/raw.rs.html#8">RawTask</a>, id: <a href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>) -&gt; JoinHandle&lt;T&gt; {
+        <a href="../../../../src/tokio/runtime/task/join.rs.html#145">JoinHandle</a> {
+            raw: <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/runtime/task/join.rs.html#159">raw</a>),
+            <a href="../../../../src/tokio/runtime/task/join.rs.html#159">id</a>,
+            _p: PhantomData,
         }
     }
 
-    <span class="doccomment">/// Abort the task associated with the handle.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Awaiting a cancelled task might complete as usual if the task was</span>
-    <span class="doccomment">/// already completed at the time it was cancelled, but most likely it</span>
-    <span class="doccomment">/// will fail with a [cancelled] `JoinError`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use tokio::time;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///    let mut handles = Vec::new();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///    handles.push(tokio::spawn(async {</span>
-    <span class="doccomment">///       time::sleep(time::Duration::from_secs(10)).await;</span>
-    <span class="doccomment">///       true</span>
-    <span class="doccomment">///    }));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///    handles.push(tokio::spawn(async {</span>
-    <span class="doccomment">///       time::sleep(time::Duration::from_secs(10)).await;</span>
-    <span class="doccomment">///       false</span>
-    <span class="doccomment">///    }));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///    for handle in &amp;handles {</span>
-    <span class="doccomment">///        handle.abort();</span>
-    <span class="doccomment">///    }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///    for handle in handles {</span>
-    <span class="doccomment">///        assert!(handle.await.unwrap_err().is_cancelled());</span>
-    <span class="doccomment">///    }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// [cancelled]: method@super::error::JoinError::is_cancelled</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abort</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#200">self</a>.<span class="ident">raw</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#201">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#121">remote_abort</a>();
+    <span class="doccomment">/// Abort the task associated with the handle.
+    ///
+    /// Awaiting a cancelled task might complete as usual if the task was
+    /// already completed at the time it was cancelled, but most likely it
+    /// will fail with a [cancelled] `JoinError`.
+    ///
+    /// ```rust
+    /// use tokio::time;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///    let mut handles = Vec::new();
+    ///
+    ///    handles.push(tokio::spawn(async {
+    ///       time::sleep(time::Duration::from_secs(10)).await;
+    ///       true
+    ///    }));
+    ///
+    ///    handles.push(tokio::spawn(async {
+    ///       time::sleep(time::Duration::from_secs(10)).await;
+    ///       false
+    ///    }));
+    ///
+    ///    for handle in &amp;handles {
+    ///        handle.abort();
+    ///    }
+    ///
+    ///    for handle in handles {
+    ///        assert!(handle.await.unwrap_err().is_cancelled());
+    ///    }
+    /// }
+    /// ```
+    /// [cancelled]: method@super::error::JoinError::is_cancelled
+    </span><span class="kw">pub fn </span>abort(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(raw) = <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#200">self</a>.raw {
+            <a href="../../../../src/tokio/runtime/task/join.rs.html#201">raw</a>.<a href="../../../../src/tokio/runtime/task/raw.rs.html#121">remote_abort</a>();
         }
     }
 
-    <span class="doccomment">/// Checks if the task associated with this `JoinHandle` has finished.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Please note that this method can return `false` even if [`abort`] has been</span>
-    <span class="doccomment">/// called on the task. This is because the cancellation process may take</span>
-    <span class="doccomment">/// some time, and this method does not return `true` until it has</span>
-    <span class="doccomment">/// completed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use tokio::time;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # #[tokio::main(flavor = &quot;current_thread&quot;)]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// # time::pause();</span>
-    <span class="doccomment">/// let handle1 = tokio::spawn(async {</span>
-    <span class="doccomment">///     // do some stuff here</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// let handle2 = tokio::spawn(async {</span>
-    <span class="doccomment">///     // do some other stuff here</span>
-    <span class="doccomment">///     time::sleep(time::Duration::from_secs(10)).await;</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// // Wait for the task to finish</span>
-    <span class="doccomment">/// handle2.abort();</span>
-    <span class="doccomment">/// time::sleep(time::Duration::from_secs(1)).await;</span>
-    <span class="doccomment">/// assert!(handle1.is_finished());</span>
-    <span class="doccomment">/// assert!(handle2.is_finished());</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// [`abort`]: method@JoinHandle::abort</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_finished</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#234">self</a>.<span class="ident">raw</span> {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#235">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#77">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#109">load</a>();
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#236">state</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>()
-        } <span class="kw">else</span> {
-            <span class="bool-val">true</span>
-        }
+    <span class="doccomment">/// Checks if the task associated with this `JoinHandle` has finished.
+    ///
+    /// Please note that this method can return `false` even if [`abort`] has been
+    /// called on the task. This is because the cancellation process may take
+    /// some time, and this method does not return `true` until it has
+    /// completed.
+    ///
+    /// ```rust
+    /// use tokio::time;
+    ///
+    /// # #[tokio::main(flavor = &quot;current_thread&quot;)]
+    /// # async fn main() {
+    /// # time::pause();
+    /// let handle1 = tokio::spawn(async {
+    ///     // do some stuff here
+    /// });
+    /// let handle2 = tokio::spawn(async {
+    ///     // do some other stuff here
+    ///     time::sleep(time::Duration::from_secs(10)).await;
+    /// });
+    /// // Wait for the task to finish
+    /// handle2.abort();
+    /// time::sleep(time::Duration::from_secs(1)).await;
+    /// assert!(handle1.is_finished());
+    /// assert!(handle2.is_finished());
+    /// # }
+    /// ```
+    /// [`abort`]: method@JoinHandle::abort
+    </span><span class="kw">pub fn </span>is_finished(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(raw) = <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#234">self</a>.raw {
+            <span class="kw">let </span>state = <a href="../../../../src/tokio/runtime/task/join.rs.html#235">raw</a>.<a href="../../../../src/tokio/runtime/task/raw.rs.html#77">header</a>().state.<a href="../../../../src/tokio/runtime/task/state.rs.html#109">load</a>();
+            <a href="../../../../src/tokio/runtime/task/join.rs.html#236">state</a>.<a href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>()
+        } <span class="kw">else </span>{
+            <span class="bool-val">true
+        </span>}
     }
 
-    <span class="doccomment">/// Set the waker that is notified when the task completes.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_join_waker</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#244">self</a>.<span class="ident">raw</span> {
-            <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">try_set_join_waker</span>(<span class="ident">waker</span>) {
-                <span class="comment">// In this case the task has already completed. We wake the waker immediately.</span>
-                <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#244">waker</a>.<span class="ident">wake_by_ref</span>();
+    <span class="doccomment">/// Set the waker that is notified when the task completes.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_join_waker(<span class="kw-2">&amp;mut </span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(raw) = <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#244">self</a>.raw {
+            <span class="kw">if </span>raw.try_set_join_waker(waker) {
+                <span class="comment">// In this case the task has already completed. We wake the waker immediately.
+                </span><a href="../../../../src/tokio/runtime/task/join.rs.html#244">waker</a>.wake_by_ref();
             }
         }
     }
 
-    <span class="doccomment">/// Returns a new `AbortHandle` that can be used to remotely abort this task.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">tokio_unstable</span>, <span class="ident">test</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">abort_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="kw">super</span>::AbortHandle</span> {
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">raw</span><span class="op">|</span> {
-            <span class="ident">raw</span>.<span class="ident">ref_inc</span>();
-            <span class="ident">raw</span>
+    <span class="doccomment">/// Returns a new `AbortHandle` that can be used to remotely abort this task.
+    </span><span class="attribute">#[cfg(any(tokio_unstable, test))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>abort_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">super</span>::AbortHandle {
+        <span class="kw">let </span>raw = <span class="self">self</span>.raw.map(|raw| {
+            raw.ref_inc();
+            raw
         });
-        <span class="ident"><span class="kw">super</span>::AbortHandle::new</span>(<span class="ident">raw</span>, <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">clone</span>())
+        <span class="kw">super</span>::AbortHandle::new(raw, <span class="self">self</span>.id.clone())
     }
 
-    <span class="doccomment">/// Returns a [task ID] that uniquely identifies this task relative to other</span>
-    <span class="doccomment">/// currently spawned tasks.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: This is an [unstable API][unstable]. The public API of this type</span>
-    <span class="doccomment">/// may break in 1.x releases. See [the documentation on unstable</span>
-    <span class="doccomment">/// features][unstable] for details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [task ID]: crate::task::Id</span>
-    <span class="doccomment">/// [unstable]: crate#unstable-features</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">tokio_unstable</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">tokio_unstable</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="kw">super</span>::Id</span> {
-        <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">clone</span>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">Poll::Pending</span>;
-
-        <span class="comment">// Keep track of task budget</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
-
-        <span class="comment">// Raw should always be set. If it is not, this is due to polling after</span>
-        <span class="comment">// completion</span>
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#284">self</a>
-            .<span class="ident">raw</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;polling after `JoinHandle` already completed&quot;</span>);
-
-        <span class="comment">// Try to read the task output. If the task is not yet complete, the</span>
-        <span class="comment">// waker is stored and is notified once the task does complete.</span>
-        <span class="comment">//</span>
-        <span class="comment">// The function must go via the vtable, which requires erasing generic</span>
-        <span class="comment">// types. To do this, the function &quot;return&quot; is placed on the stack</span>
-        <span class="comment">// **before** calling the function and is passed into the function using</span>
-        <span class="comment">// `*mut ()`.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Safety:</span>
-        <span class="comment">//</span>
-        <span class="comment">// The type of `T` must match the task&#39;s output type.</span>
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#292">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#96">try_read_output</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#285">ret</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> (), <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#284">cx</a>.<span class="ident">waker</span>());
-        }
-
-        <span class="kw">if</span> <span class="ident">ret</span>.<span class="ident">is_ready</span>() {
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#288">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
-        }
-
-        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#285">ret</a>
+    <span class="doccomment">/// Returns a [task ID] that uniquely identifies this task relative to other
+    /// currently spawned tasks.
+    ///
+    /// **Note**: This is an [unstable API][unstable]. The public API of this type
+    /// may break in 1.x releases. See [the documentation on unstable
+    /// features][unstable] for details.
+    ///
+    /// [task ID]: crate::task::Id
+    /// [unstable]: crate#unstable-features
+    </span><span class="attribute">#[cfg(tokio_unstable)]
+    #[cfg_attr(docsrs, doc(cfg(tokio_unstable)))]
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">super</span>::Id {
+        <span class="self">self</span>.id.clone()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#321">self</a>.<span class="ident">raw</span>.<span class="ident">take</span>() {
-            <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">drop_join_handle_fast</span>().<span class="ident">is_ok</span>() {
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {
+    <span class="kw">type </span>Output = <span class="kw">super</span>::Result&lt;T&gt;;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ret = Poll::Pending;
+
+        <span class="comment">// Keep track of task budget
+        </span><span class="kw">let </span>coop = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
+
+        <span class="comment">// Raw should always be set. If it is not, this is due to polling after
+        // completion
+        </span><span class="kw">let </span>raw = <span class="self"><a href="../../../../src/tokio/runtime/task/join.rs.html#284">self</a>
+            </span>.raw
+            .as_ref()
+            .expect(<span class="string">&quot;polling after `JoinHandle` already completed&quot;</span>);
+
+        <span class="comment">// Try to read the task output. If the task is not yet complete, the
+        // waker is stored and is notified once the task does complete.
+        //
+        // The function must go via the vtable, which requires erasing generic
+        // types. To do this, the function &quot;return&quot; is placed on the stack
+        // **before** calling the function and is passed into the function using
+        // `*mut ()`.
+        //
+        // Safety:
+        //
+        // The type of `T` must match the task&#39;s output type.
+        </span><span class="kw">unsafe </span>{
+            <a href="../../../../src/tokio/runtime/task/join.rs.html#292">raw</a>.<a href="../../../../src/tokio/runtime/task/raw.rs.html#96">try_read_output</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/runtime/task/join.rs.html#285">ret</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>(), <a href="../../../../src/tokio/runtime/task/join.rs.html#284">cx</a>.waker());
+        }
+
+        <span class="kw">if </span>ret.is_ready() {
+            <a href="../../../../src/tokio/runtime/task/join.rs.html#288">coop</a>.<a href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+        }
+
+        <a href="../../../../src/tokio/runtime/task/join.rs.html#285">ret</a>
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>JoinHandle&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(raw) = <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#321">self</a>.raw.take() {
+            <span class="kw">if </span>raw.header().state.drop_join_handle_fast().is_ok() {
                 <span class="kw">return</span>;
             }
 
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#322">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#106">drop_join_handle_slow</a>();
+            <a href="../../../../src/tokio/runtime/task/join.rs.html#322">raw</a>.<a href="../../../../src/tokio/runtime/task/raw.rs.html#106">drop_join_handle_slow</a>();
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>JoinHandle&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#336">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;JoinHandle&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#336">self</a>.<span class="ident">id</span>)
-            .<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/tokio/runtime/task/join.rs.html#336">fmt</a>.debug_struct(<span class="string">&quot;JoinHandle&quot;</span>)
+            .field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#336">self</a>.id)
+            .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/callsite.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>callsite.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/callsite.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>callsite.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
                         <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -620,625 +620,625 @@
 <span id="618">618</span>
 <span id="619">619</span>
 <span id="620">620</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Callsites represent the source locations from which spans or events</span>
-<span class="doccomment">//! originate.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # What Are Callsites?</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Every span or event in `tracing` is associated with a [`Callsite`]. A</span>
-<span class="doccomment">//! callsite is a small `static` value that is responsible for the following:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! * Storing the span or event&#39;s [`Metadata`],</span>
-<span class="doccomment">//! * Uniquely [identifying](Identifier) the span or event definition,</span>
-<span class="doccomment">//! * Caching the subscriber&#39;s [`Interest`][^1] in that span or event, to avoid</span>
-<span class="doccomment">//!   re-evaluating filters,</span>
-<span class="doccomment">//! * Storing a [`Registration`] that allows the callsite to be part of a global</span>
-<span class="doccomment">//!   list of all callsites in the program.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Registering Callsites</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When a span or event is recorded for the first time, its callsite</span>
-<span class="doccomment">//! [`register`]s itself with the global callsite registry. Registering a</span>
-<span class="doccomment">//! callsite calls the [`Subscriber::register_callsite`][`register_callsite`]</span>
-<span class="doccomment">//! method with that callsite&#39;s [`Metadata`] on every currently active</span>
-<span class="doccomment">//! subscriber. This serves two primary purposes: informing subscribers of the</span>
-<span class="doccomment">//! callsite&#39;s existence, and performing static filtering.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Callsite Existence</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! If a [`Subscriber`] implementation wishes to allocate storage for each</span>
-<span class="doccomment">//! unique span/event location in the program, or pre-compute some value</span>
-<span class="doccomment">//! that will be used to record that span or event in the future, it can</span>
-<span class="doccomment">//! do so in its [`register_callsite`] method.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Performing Static Filtering</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The [`register_callsite`] method returns an [`Interest`] value,</span>
-<span class="doccomment">//! which indicates that the subscriber either [always] wishes to record</span>
-<span class="doccomment">//! that span or event, [sometimes] wishes to record it based on a</span>
-<span class="doccomment">//! dynamic filter evaluation, or [never] wishes to record it.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When registering a new callsite, the [`Interest`]s returned by every</span>
-<span class="doccomment">//! currently active subscriber are combined, and the result is stored at</span>
-<span class="doccomment">//! each callsite. This way, when the span or event occurs in the</span>
-<span class="doccomment">//! future, the cached [`Interest`] value can be checked efficiently</span>
-<span class="doccomment">//! to determine if the span or event should be recorded, without</span>
-<span class="doccomment">//! needing to perform expensive filtering (i.e. calling the</span>
-<span class="doccomment">//! [`Subscriber::enabled`] method every time a span or event occurs).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ### Rebuilding Cached Interest</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When a new [`Dispatch`] is created (i.e. a new subscriber becomes</span>
-<span class="doccomment">//! active), any previously cached [`Interest`] values are re-evaluated</span>
-<span class="doccomment">//! for all callsites in the program. This way, if the new subscriber</span>
-<span class="doccomment">//! will enable a callsite that was not previously enabled, the</span>
-<span class="doccomment">//! [`Interest`] in that callsite is updated. Similarly, when a</span>
-<span class="doccomment">//! subscriber is dropped, the interest cache is also re-evaluated, so</span>
-<span class="doccomment">//! that any callsites enabled only by that subscriber are disabled.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In addition, the [`rebuild_interest_cache`] function in this module can be</span>
-<span class="doccomment">//! used to manually invalidate all cached interest and re-register those</span>
-<span class="doccomment">//! callsites. This function is useful in situations where a subscriber&#39;s</span>
-<span class="doccomment">//! interest can change, but it does so relatively infrequently. The subscriber</span>
-<span class="doccomment">//! may wish for its interest to be cached most of the time, and return</span>
-<span class="doccomment">//! [`Interest::always`][always] or [`Interest::never`][never] in its</span>
-<span class="doccomment">//! [`register_callsite`] method, so that its [`Subscriber::enabled`] method</span>
-<span class="doccomment">//! doesn&#39;t need to be evaluated every time a span or event is recorded.</span>
-<span class="doccomment">//! However, when the configuration changes, the subscriber can call</span>
-<span class="doccomment">//! [`rebuild_interest_cache`] to re-evaluate the entire interest cache with its</span>
-<span class="doccomment">//! new configuration. This is a relatively costly operation, but if the</span>
-<span class="doccomment">//! configuration changes infrequently, it may be more efficient than calling</span>
-<span class="doccomment">//! [`Subscriber::enabled`] frequently.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Implementing Callsites</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In most cases, instrumenting code using `tracing` should *not* require</span>
-<span class="doccomment">//! implementing the [`Callsite`] trait directly. When using the [`tracing`</span>
-<span class="doccomment">//! crate&#39;s macros][macros] or the [`#[instrument]` attribute][instrument], a</span>
-<span class="doccomment">//! `Callsite` is automatically generated.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! However, code which provides alternative forms of `tracing` instrumentation</span>
-<span class="doccomment">//! may need to interact with the callsite system directly. If</span>
-<span class="doccomment">//! instrumentation-side code needs to produce a `Callsite` to emit spans or</span>
-<span class="doccomment">//! events, the [`DefaultCallsite`] struct provided in this module is a</span>
-<span class="doccomment">//! ready-made `Callsite` implementation that is suitable for most uses. When</span>
-<span class="doccomment">//! possible, the use of `DefaultCallsite` should be preferred over implementing</span>
-<span class="doccomment">//! [`Callsite`] for user types, as `DefaultCallsite` may benefit from</span>
-<span class="doccomment">//! additional performance optimizations.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [^1]: Returned by the [`Subscriber::register_callsite`][`register_callsite`]</span>
-<span class="doccomment">//!     method.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Metadata`]: crate::metadata::Metadata</span>
-<span class="doccomment">//! [`Interest`]: crate::subscriber::Interest</span>
-<span class="doccomment">//! [`Subscriber`]: crate::subscriber::Subscriber</span>
-<span class="doccomment">//! [`register_callsite`]: crate::subscriber::Subscriber::register_callsite</span>
-<span class="doccomment">//! [`Subscriber::enabled`]: crate::subscriber::Subscriber::enabled</span>
-<span class="doccomment">//! [always]: crate::subscriber::Interest::always</span>
-<span class="doccomment">//! [sometimes]: crate::subscriber::Interest::sometimes</span>
-<span class="doccomment">//! [never]: crate::subscriber::Interest::never</span>
-<span class="doccomment">//! [`Dispatch`]: crate::dispatch::Dispatch</span>
-<span class="doccomment">//! [macros]: https://docs.rs/tracing/latest/tracing/#macros</span>
-<span class="doccomment">//! [instrument]: https://docs.rs/tracing/latest/tracing/attr.instrument.html</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">any::TypeId</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
-    <span class="ident">hash</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>,
-    <span class="ident">sync</span>::{
-        <span class="ident">atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
-        <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>,
+</pre><pre class="rust"><code><span class="doccomment">//! Callsites represent the source locations from which spans or events
+//! originate.
+//!
+//! # What Are Callsites?
+//!
+//! Every span or event in `tracing` is associated with a [`Callsite`]. A
+//! callsite is a small `static` value that is responsible for the following:
+//!
+//! * Storing the span or event&#39;s [`Metadata`],
+//! * Uniquely [identifying](Identifier) the span or event definition,
+//! * Caching the subscriber&#39;s [`Interest`][^1] in that span or event, to avoid
+//!   re-evaluating filters,
+//! * Storing a [`Registration`] that allows the callsite to be part of a global
+//!   list of all callsites in the program.
+//!
+//! # Registering Callsites
+//!
+//! When a span or event is recorded for the first time, its callsite
+//! [`register`]s itself with the global callsite registry. Registering a
+//! callsite calls the [`Subscriber::register_callsite`][`register_callsite`]
+//! method with that callsite&#39;s [`Metadata`] on every currently active
+//! subscriber. This serves two primary purposes: informing subscribers of the
+//! callsite&#39;s existence, and performing static filtering.
+//!
+//! ## Callsite Existence
+//!
+//! If a [`Subscriber`] implementation wishes to allocate storage for each
+//! unique span/event location in the program, or pre-compute some value
+//! that will be used to record that span or event in the future, it can
+//! do so in its [`register_callsite`] method.
+//!
+//! ## Performing Static Filtering
+//!
+//! The [`register_callsite`] method returns an [`Interest`] value,
+//! which indicates that the subscriber either [always] wishes to record
+//! that span or event, [sometimes] wishes to record it based on a
+//! dynamic filter evaluation, or [never] wishes to record it.
+//!
+//! When registering a new callsite, the [`Interest`]s returned by every
+//! currently active subscriber are combined, and the result is stored at
+//! each callsite. This way, when the span or event occurs in the
+//! future, the cached [`Interest`] value can be checked efficiently
+//! to determine if the span or event should be recorded, without
+//! needing to perform expensive filtering (i.e. calling the
+//! [`Subscriber::enabled`] method every time a span or event occurs).
+//!
+//! ### Rebuilding Cached Interest
+//!
+//! When a new [`Dispatch`] is created (i.e. a new subscriber becomes
+//! active), any previously cached [`Interest`] values are re-evaluated
+//! for all callsites in the program. This way, if the new subscriber
+//! will enable a callsite that was not previously enabled, the
+//! [`Interest`] in that callsite is updated. Similarly, when a
+//! subscriber is dropped, the interest cache is also re-evaluated, so
+//! that any callsites enabled only by that subscriber are disabled.
+//!
+//! In addition, the [`rebuild_interest_cache`] function in this module can be
+//! used to manually invalidate all cached interest and re-register those
+//! callsites. This function is useful in situations where a subscriber&#39;s
+//! interest can change, but it does so relatively infrequently. The subscriber
+//! may wish for its interest to be cached most of the time, and return
+//! [`Interest::always`][always] or [`Interest::never`][never] in its
+//! [`register_callsite`] method, so that its [`Subscriber::enabled`] method
+//! doesn&#39;t need to be evaluated every time a span or event is recorded.
+//! However, when the configuration changes, the subscriber can call
+//! [`rebuild_interest_cache`] to re-evaluate the entire interest cache with its
+//! new configuration. This is a relatively costly operation, but if the
+//! configuration changes infrequently, it may be more efficient than calling
+//! [`Subscriber::enabled`] frequently.
+//!
+//! # Implementing Callsites
+//!
+//! In most cases, instrumenting code using `tracing` should *not* require
+//! implementing the [`Callsite`] trait directly. When using the [`tracing`
+//! crate&#39;s macros][macros] or the [`#[instrument]` attribute][instrument], a
+//! `Callsite` is automatically generated.
+//!
+//! However, code which provides alternative forms of `tracing` instrumentation
+//! may need to interact with the callsite system directly. If
+//! instrumentation-side code needs to produce a `Callsite` to emit spans or
+//! events, the [`DefaultCallsite`] struct provided in this module is a
+//! ready-made `Callsite` implementation that is suitable for most uses. When
+//! possible, the use of `DefaultCallsite` should be preferred over implementing
+//! [`Callsite`] for user types, as `DefaultCallsite` may benefit from
+//! additional performance optimizations.
+//!
+//! [^1]: Returned by the [`Subscriber::register_callsite`][`register_callsite`]
+//!     method.
+//!
+//! [`Metadata`]: crate::metadata::Metadata
+//! [`Interest`]: crate::subscriber::Interest
+//! [`Subscriber`]: crate::subscriber::Subscriber
+//! [`register_callsite`]: crate::subscriber::Subscriber::register_callsite
+//! [`Subscriber::enabled`]: crate::subscriber::Subscriber::enabled
+//! [always]: crate::subscriber::Interest::always
+//! [sometimes]: crate::subscriber::Interest::sometimes
+//! [never]: crate::subscriber::Interest::never
+//! [`Dispatch`]: crate::dispatch::Dispatch
+//! [macros]: https://docs.rs/tracing/latest/tracing/#macros
+//! [instrument]: https://docs.rs/tracing/latest/tracing/attr.instrument.html
+</span><span class="kw">use </span><span class="kw">crate</span>::stdlib::{
+    <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">any::TypeId</a>,
+    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
+    hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>},
+    <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>,
+    sync::{
+        atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
+        <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>,
     },
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">vec::Vec</a>,
+    <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">vec::Vec</a>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">dispatcher::Dispatch</a>,
-    <a class="ident" href="../../once_cell/sync/struct.Lazy.html">lazy::Lazy</a>,
-    <span class="ident">metadata</span>::{<a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>},
-    <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">subscriber::Interest</a>,
+<span class="kw">use crate</span>::{
+    <a href="../../src/tracing_core/dispatcher.rs.html#151">dispatcher::Dispatch</a>,
+    <a href="../../once_cell/sync/struct.Lazy.html">lazy::Lazy</a>,
+    metadata::{<a href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>, <a href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>},
+    <a href="../../src/tracing_core/subscriber.rs.html#571">subscriber::Interest</a>,
 };
 
-<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#526"><span class="self">self</span>::dispatchers::Dispatchers</a>;
+<span class="kw">use </span><a href="../../src/tracing_core/callsite.rs.html#526"><span class="self">self</span>::dispatchers::Dispatchers</a>;
 
-<span class="doccomment">/// Trait implemented by callsites.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// These functions are only intended to be called by the callsite registry, which</span>
-<span class="doccomment">/// correctly handles determining the common interest between all subscribers.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the [module-level documentation](crate::callsite) for details on</span>
-<span class="doccomment">/// callsites.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Callsite</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
-    <span class="doccomment">/// Sets the [`Interest`] for this callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See the [documentation on callsite interest caching][cache-docs] for</span>
-    <span class="doccomment">/// details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Interest`]: super::subscriber::Interest</span>
-    <span class="doccomment">/// [cache-docs]: crate::callsite#performing-static-filtering</span>
-    <span class="kw">fn</span> <span class="ident">set_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>);
+<span class="doccomment">/// Trait implemented by callsites.
+///
+/// These functions are only intended to be called by the callsite registry, which
+/// correctly handles determining the common interest between all subscribers.
+///
+/// See the [module-level documentation](crate::callsite) for details on
+/// callsites.
+</span><span class="kw">pub trait </span>Callsite: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
+    <span class="doccomment">/// Sets the [`Interest`] for this callsite.
+    ///
+    /// See the [documentation on callsite interest caching][cache-docs] for
+    /// details.
+    ///
+    /// [`Interest`]: super::subscriber::Interest
+    /// [cache-docs]: crate::callsite#performing-static-filtering
+    </span><span class="kw">fn </span>set_interest(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>);
 
-    <span class="doccomment">/// Returns the [metadata] associated with the callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &lt;div class=&quot;example-wrap&quot; style=&quot;display:inline-block&quot;&gt;</span>
-    <span class="doccomment">/// &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note:** Implementations of this method should not produce [`Metadata`]</span>
-    <span class="doccomment">/// that share the same callsite [`Identifier`] but otherwise differ in any</span>
-    <span class="doccomment">/// way (e.g., have different `name`s).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &lt;/pre&gt;&lt;/div&gt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [metadata]: super::metadata::Metadata</span>
-    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Returns the [metadata] associated with the callsite.
+    ///
+    /// &lt;div class=&quot;example-wrap&quot; style=&quot;display:inline-block&quot;&gt;
+    /// &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;
+    ///
+    /// **Note:** Implementations of this method should not produce [`Metadata`]
+    /// that share the same callsite [`Identifier`] but otherwise differ in any
+    /// way (e.g., have different `name`s).
+    ///
+    /// &lt;/pre&gt;&lt;/div&gt;
+    ///
+    /// [metadata]: super::metadata::Metadata
+    </span><span class="kw">fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;;
 
-    <span class="doccomment">/// This method is an *internal implementation detail* of `tracing-core`. It</span>
-    <span class="doccomment">/// is *not* intended to be called or overridden from downstream code.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `Private` type can only be constructed from within `tracing-core`.</span>
-    <span class="doccomment">/// Because this method takes a `Private` as an argument, it cannot be</span>
-    <span class="doccomment">/// called from (safe) code external to `tracing-core`. Because it must</span>
-    <span class="doccomment">/// *return* a `Private`, the only valid implementation possible outside of</span>
-    <span class="doccomment">/// `tracing-core` would have to always unconditionally panic.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// THIS IS BY DESIGN. There is currently no valid reason for code outside</span>
-    <span class="doccomment">/// of `tracing-core` to override this method.</span>
-    <span class="comment">// TODO(eliza): this could be used to implement a public downcasting API</span>
-    <span class="comment">// for `&amp;dyn Callsite`s in the future.</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">private_type_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="ident">private::Private</span><span class="op">&lt;</span>()<span class="op">&gt;</span>) -&gt; <span class="ident">private::Private</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// This method is an *internal implementation detail* of `tracing-core`. It
+    /// is *not* intended to be called or overridden from downstream code.
+    ///
+    /// The `Private` type can only be constructed from within `tracing-core`.
+    /// Because this method takes a `Private` as an argument, it cannot be
+    /// called from (safe) code external to `tracing-core`. Because it must
+    /// *return* a `Private`, the only valid implementation possible outside of
+    /// `tracing-core` would have to always unconditionally panic.
+    ///
+    /// THIS IS BY DESIGN. There is currently no valid reason for code outside
+    /// of `tracing-core` to override this method.
+    </span><span class="comment">// TODO(eliza): this could be used to implement a public downcasting API
+    // for `&amp;dyn Callsite`s in the future.
+    </span><span class="attribute">#[doc(hidden)]
+    #[inline]
+    </span><span class="kw">fn </span>private_type_id(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: private::Private&lt;()&gt;) -&gt; private::Private&lt;<a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: <span class="lifetime">&#39;static</span>,
     {
-        <a class="ident" href="../../src/tracing_core/callsite.rs.html#515">private::Private</a>(<span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())
+        <a href="../../src/tracing_core/callsite.rs.html#515">private::Private</a>(TypeId::of::&lt;<span class="self">Self</span>&gt;())
     }
 }
 
-<span class="doccomment">/// Uniquely identifies a [`Callsite`]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Two `Identifier`s are equal if they both refer to the same callsite.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Callsite`]: super::callsite::Callsite</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Identifier</span>(
-    <span class="doccomment">/// **Warning**: The fields on this type are currently `pub` because it must</span>
-    <span class="doccomment">/// be able to be constructed statically by macros. However, when `const</span>
-    <span class="doccomment">/// fn`s are available on stable Rust, this will no longer be necessary.</span>
-    <span class="doccomment">/// Thus, these fields are *not* considered stable public API, and they may</span>
-    <span class="doccomment">/// change warning. Do not rely on any fields on `Identifier`. When</span>
-    <span class="doccomment">/// constructing new `Identifier`s, use the `identify_callsite!` macro</span>
-    <span class="doccomment">/// instead.</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>,
+<span class="doccomment">/// Uniquely identifies a [`Callsite`]
+///
+/// Two `Identifier`s are equal if they both refer to the same callsite.
+///
+/// [`Callsite`]: super::callsite::Callsite
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Identifier(
+    <span class="doccomment">/// **Warning**: The fields on this type are currently `pub` because it must
+    /// be able to be constructed statically by macros. However, when `const
+    /// fn`s are available on stable Rust, this will no longer be necessary.
+    /// Thus, these fields are *not* considered stable public API, and they may
+    /// change warning. Do not rely on any fields on `Identifier`. When
+    /// constructing new `Identifier`s, use the `identify_callsite!` macro
+    /// instead.
+    </span><span class="attribute">#[doc(hidden)]
+    </span><span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>,
 );
 
-<span class="doccomment">/// A default [`Callsite`] implementation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DefaultCallsite</span> {
-    <span class="ident">interest</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>,
-    <span class="ident">registration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>,
-    <span class="ident">meta</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
-    <span class="ident">next</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A default [`Callsite`] implementation.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>DefaultCallsite {
+    interest: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>,
+    registration: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>,
+    meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
+    next: AtomicPtr&lt;<span class="self">Self</span>&gt;,
 }
 
-<span class="doccomment">/// Clear and reregister interest on every [`Callsite`]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is intended for runtime reconfiguration of filters on traces</span>
-<span class="doccomment">/// when the filter recalculation is much less frequent than trace events are.</span>
-<span class="doccomment">/// The alternative is to have the [`Subscriber`] that supports runtime</span>
-<span class="doccomment">/// reconfiguration of filters always return [`Interest::sometimes()`] so that</span>
-<span class="doccomment">/// [`enabled`] is evaluated for every event.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will also re-compute the global maximum level as determined by</span>
-<span class="doccomment">/// the [`max_level_hint`] method. If a [`Subscriber`]</span>
-<span class="doccomment">/// implementation changes the value returned by its `max_level_hint`</span>
-<span class="doccomment">/// implementation at runtime, then it **must** call this function after that</span>
-<span class="doccomment">/// value changes, in order for the change to be reflected.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the [documentation on callsite interest caching][cache-docs] for</span>
-<span class="doccomment">/// additional information on this function&#39;s usage.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`max_level_hint`]: super::subscriber::Subscriber::max_level_hint</span>
-<span class="doccomment">/// [`Callsite`]: super::callsite::Callsite</span>
-<span class="doccomment">/// [`enabled`]: super::subscriber::Subscriber#tymethod.enabled</span>
-<span class="doccomment">/// [`Interest::sometimes()`]: super::subscriber::Interest::sometimes</span>
-<span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-<span class="doccomment">/// [cache-docs]: crate::callsite#rebuilding-cached-interest</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rebuild_interest_cache</span>() {
-    <a class="ident" href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#411">rebuild_interest</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#264">DISPATCHERS</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#546">rebuilder</a>());
+<span class="doccomment">/// Clear and reregister interest on every [`Callsite`]
+///
+/// This function is intended for runtime reconfiguration of filters on traces
+/// when the filter recalculation is much less frequent than trace events are.
+/// The alternative is to have the [`Subscriber`] that supports runtime
+/// reconfiguration of filters always return [`Interest::sometimes()`] so that
+/// [`enabled`] is evaluated for every event.
+///
+/// This function will also re-compute the global maximum level as determined by
+/// the [`max_level_hint`] method. If a [`Subscriber`]
+/// implementation changes the value returned by its `max_level_hint`
+/// implementation at runtime, then it **must** call this function after that
+/// value changes, in order for the change to be reflected.
+///
+/// See the [documentation on callsite interest caching][cache-docs] for
+/// additional information on this function&#39;s usage.
+///
+/// [`max_level_hint`]: super::subscriber::Subscriber::max_level_hint
+/// [`Callsite`]: super::callsite::Callsite
+/// [`enabled`]: super::subscriber::Subscriber#tymethod.enabled
+/// [`Interest::sometimes()`]: super::subscriber::Interest::sometimes
+/// [`Subscriber`]: super::subscriber::Subscriber
+/// [cache-docs]: crate::callsite#rebuilding-cached-interest
+</span><span class="kw">pub fn </span>rebuild_interest_cache() {
+    <a href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a href="../../src/tracing_core/callsite.rs.html#411">rebuild_interest</a>(<a href="../../src/tracing_core/callsite.rs.html#264">DISPATCHERS</a>.<a href="../../src/tracing_core/callsite.rs.html#546">rebuilder</a>());
 }
 
-<span class="doccomment">/// Register a new [`Callsite`] with the global registry.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This should be called once per callsite after the callsite has been</span>
-<span class="doccomment">/// constructed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the [documentation on callsite registration][reg-docs] for details</span>
-<span class="doccomment">/// on the global callsite registry.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Callsite`]: crate::callsite::Callsite</span>
-<span class="doccomment">/// [reg-docs]: crate::callsite#registering-callsites</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">callsite</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>) {
-    <a class="ident" href="../../src/tracing_core/callsite.rs.html#493-496">rebuild_callsite_interest</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#239">callsite</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/callsite.rs.html#264">DISPATCHERS</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#546">rebuilder</a>());
+<span class="doccomment">/// Register a new [`Callsite`] with the global registry.
+///
+/// This should be called once per callsite after the callsite has been
+/// constructed.
+///
+/// See the [documentation on callsite registration][reg-docs] for details
+/// on the global callsite registry.
+///
+/// [`Callsite`]: crate::callsite::Callsite
+/// [reg-docs]: crate::callsite#registering-callsites
+</span><span class="kw">pub fn </span>register(callsite: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>) {
+    <a href="../../src/tracing_core/callsite.rs.html#493-496">rebuild_callsite_interest</a>(<a href="../../src/tracing_core/callsite.rs.html#239">callsite</a>, <span class="kw-2">&amp;</span><a href="../../src/tracing_core/callsite.rs.html#264">DISPATCHERS</a>.<a href="../../src/tracing_core/callsite.rs.html#546">rebuilder</a>());
 
-    <span class="comment">// Is this a `DefaultCallsite`? If so, use the fancy linked list!</span>
-    <span class="kw">if</span> <span class="ident">callsite</span>.<span class="ident">private_type_id</span>(<span class="ident">private::Private</span>(())).<span class="number">0</span> <span class="op">==</span> <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">DefaultCallsite</span><span class="op">&gt;</span>() {
-        <span class="kw">let</span> <span class="ident">callsite</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="comment">// Safety: the pointer cast is safe because the type id of the</span>
-            <span class="comment">// provided callsite matches that of the target type for the cast</span>
-            <span class="comment">// (`DefaultCallsite`). Because user implementations of `Callsite`</span>
-            <span class="comment">// cannot override `private_type_id`, we can trust that the callsite</span>
-            <span class="comment">// is not lying about its type ID.</span>
-            <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#239">callsite</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a>)
+    <span class="comment">// Is this a `DefaultCallsite`? If so, use the fancy linked list!
+    </span><span class="kw">if </span>callsite.private_type_id(private::Private(())).<span class="number">0 </span>== TypeId::of::&lt;DefaultCallsite&gt;() {
+        <span class="kw">let </span>callsite = <span class="kw">unsafe </span>{
+            <span class="comment">// Safety: the pointer cast is safe because the type id of the
+            // provided callsite matches that of the target type for the cast
+            // (`DefaultCallsite`). Because user implementations of `Callsite`
+            // cannot override `private_type_id`, we can trust that the callsite
+            // is not lying about its type ID.
+            </span><span class="kw-2">&amp;*</span>(<a href="../../src/tracing_core/callsite.rs.html#239">callsite</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">dyn </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a>)
         };
-        <a class="ident" href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#441">push_default</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#244">callsite</a>);
+        <a href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a href="../../src/tracing_core/callsite.rs.html#441">push_default</a>(<a href="../../src/tracing_core/callsite.rs.html#244">callsite</a>);
         <span class="kw">return</span>;
     }
 
-    <a class="ident" href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#431">push_dyn</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#239">callsite</a>);
+    <a href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a href="../../src/tracing_core/callsite.rs.html#431">push_dyn</a>(<a href="../../src/tracing_core/callsite.rs.html#239">callsite</a>);
 }
 
-<span class="kw">static</span> <span class="ident">CALLSITES</span>: <a class="ident" href="../../src/tracing_core/callsite.rs.html#268">Callsites</a> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#268">Callsites</a> {
-    <span class="ident">list_head</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
-    <span class="ident">has_locked_callsites</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
+<span class="kw">static </span>CALLSITES: <a href="../../src/tracing_core/callsite.rs.html#268">Callsites</a> = <a href="../../src/tracing_core/callsite.rs.html#268">Callsites</a> {
+    list_head: AtomicPtr::new(ptr::null_mut()),
+    has_locked_callsites: AtomicBool::new(<span class="bool-val">false</span>),
 };
 
-<span class="kw">static</span> <span class="ident">DISPATCHERS</span>: <a class="ident" href="../../src/tracing_core/callsite.rs.html#526">Dispatchers</a> <span class="op">=</span> <span class="ident">Dispatchers::new</span>();
+<span class="kw">static </span>DISPATCHERS: <a href="../../src/tracing_core/callsite.rs.html#526">Dispatchers</a> = Dispatchers::new();
 
-<span class="kw">static</span> <span class="ident">LOCKED_CALLSITES</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>);
+<span class="kw">static </span>LOCKED_CALLSITES: Lazy&lt;Mutex&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>&gt;&gt;&gt; = Lazy::new(<a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>);
 
-<span class="kw">struct</span> <span class="ident">Callsites</span> {
-    <span class="ident">list_head</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a><span class="op">&gt;</span>,
-    <span class="ident">has_locked_callsites</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+<span class="kw">struct </span>Callsites {
+    list_head: AtomicPtr&lt;<a href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a>&gt;,
+    has_locked_callsites: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
 }
 
-<span class="comment">// === impl DefaultCallsite ===</span>
+<span class="comment">// === impl DefaultCallsite ===
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a> {
-    <span class="kw">const</span> <span class="ident">UNREGISTERED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">const</span> <span class="ident">REGISTERING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">1</span>;
-    <span class="kw">const</span> <span class="ident">REGISTERED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">2</span>;
+</span><span class="kw">impl </span><a href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a> {
+    <span class="kw">const </span>UNREGISTERED: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0</span>;
+    <span class="kw">const </span>REGISTERING: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">1</span>;
+    <span class="kw">const </span>REGISTERED: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">2</span>;
 
-    <span class="kw">const</span> <span class="ident">INTEREST_NEVER</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">const</span> <span class="ident">INTEREST_SOMETIMES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">1</span>;
-    <span class="kw">const</span> <span class="ident">INTEREST_ALWAYS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">2</span>;
+    <span class="kw">const </span>INTEREST_NEVER: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0</span>;
+    <span class="kw">const </span>INTEREST_SOMETIMES: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">1</span>;
+    <span class="kw">const </span>INTEREST_ALWAYS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">2</span>;
 
-    <span class="doccomment">/// Returns a new `DefaultCallsite` with the specified `Metadata`.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">meta</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">interest</span>: <span class="ident">AtomicU8::new</span>(<span class="number">0xFF</span>),
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#285">meta</a>,
-            <span class="ident">next</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
-            <span class="ident">registration</span>: <span class="ident">AtomicU8::new</span>(<span class="ident"><span class="self">Self</span>::UNREGISTERED</span>),
+    <span class="doccomment">/// Returns a new `DefaultCallsite` with the specified `Metadata`.
+    </span><span class="kw">pub const fn </span>new(meta: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            interest: AtomicU8::new(<span class="number">0xFF</span>),
+            <a href="../../src/tracing_core/callsite.rs.html#285">meta</a>,
+            next: AtomicPtr::new(ptr::null_mut()),
+            registration: AtomicU8::new(<span class="self">Self</span>::UNREGISTERED),
         }
     }
 
-    <span class="doccomment">/// Registers this callsite with the global callsite registry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the callsite is already registered, this does nothing. When using</span>
-    <span class="doccomment">/// [`DefaultCallsite`], this method should be preferred over</span>
-    <span class="doccomment">/// [`tracing_core::callsite::register`], as it ensures that the callsite is</span>
-    <span class="doccomment">/// only registered a single time.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Other callsite implementations will generally ensure that</span>
-    <span class="doccomment">/// callsites are not re-registered through another mechanism.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See the [documentation on callsite registration][reg-docs] for details</span>
-    <span class="doccomment">/// on the global callsite registry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Callsite`]: crate::callsite::Callsite</span>
-    <span class="doccomment">/// [reg-docs]: crate::callsite#registering-callsites</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="comment">// This only happens once (or if the cached interest value was corrupted).</span>
-    <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
-        <span class="comment">// Attempt to advance the registration state to `REGISTERING`...</span>
-        <span class="kw">match</span> <a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>.<span class="ident">registration</span>.<span class="ident">compare_exchange</span>(
-            <span class="ident"><span class="self">Self</span>::UNREGISTERED</span>,
-            <span class="ident"><span class="self">Self</span>::REGISTERING</span>,
-            <span class="ident">Ordering::AcqRel</span>,
-            <span class="ident">Ordering::Acquire</span>,
+    <span class="doccomment">/// Registers this callsite with the global callsite registry.
+    ///
+    /// If the callsite is already registered, this does nothing. When using
+    /// [`DefaultCallsite`], this method should be preferred over
+    /// [`tracing_core::callsite::register`], as it ensures that the callsite is
+    /// only registered a single time.
+    ///
+    /// Other callsite implementations will generally ensure that
+    /// callsites are not re-registered through another mechanism.
+    ///
+    /// See the [documentation on callsite registration][reg-docs] for details
+    /// on the global callsite registry.
+    ///
+    /// [`Callsite`]: crate::callsite::Callsite
+    /// [reg-docs]: crate::callsite#registering-callsites
+    </span><span class="attribute">#[inline(never)]
+    </span><span class="comment">// This only happens once (or if the cached interest value was corrupted).
+    </span><span class="attribute">#[cold]
+    </span><span class="kw">pub fn </span>register(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
+        <span class="comment">// Attempt to advance the registration state to `REGISTERING`...
+        </span><span class="kw">match </span><a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>.registration.compare_exchange(
+            <span class="self">Self</span>::UNREGISTERED,
+            <span class="self">Self</span>::REGISTERING,
+            Ordering::AcqRel,
+            Ordering::Acquire,
         ) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                <span class="comment">// Okay, we advanced the state, try to register the callsite.</span>
-                <a class="ident" href="../../src/tracing_core/callsite.rs.html#493-496">rebuild_callsite_interest</a>(<a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/callsite.rs.html#264">DISPATCHERS</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#546">rebuilder</a>());
-                <a class="ident" href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#441">push_default</a>(<a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>);
-                <a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>.<span class="ident">registration</span>.<span class="ident">store</span>(<span class="ident"><span class="self">Self</span>::REGISTERED</span>, <span class="ident">Ordering::Release</span>);
+                <span class="comment">// Okay, we advanced the state, try to register the callsite.
+                </span><a href="../../src/tracing_core/callsite.rs.html#493-496">rebuild_callsite_interest</a>(<a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>, <span class="kw-2">&amp;</span><a href="../../src/tracing_core/callsite.rs.html#264">DISPATCHERS</a>.<a href="../../src/tracing_core/callsite.rs.html#546">rebuilder</a>());
+                <a href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a href="../../src/tracing_core/callsite.rs.html#441">push_default</a>(<a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>);
+                <a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>.registration.store(<span class="self">Self</span>::REGISTERED, Ordering::Release);
             }
-            <span class="comment">// Great, the callsite is already registered! Just load its</span>
-            <span class="comment">// previous cached interest.</span>
-            <span class="prelude-val">Err</span>(<span class="ident"><span class="self">Self</span>::REGISTERED</span>) =&gt; {}
-            <span class="comment">// Someone else is registering...</span>
-            <span class="prelude-val">Err</span>(<span class="ident">_state</span>) =&gt; {
+            <span class="comment">// Great, the callsite is already registered! Just load its
+            // previous cached interest.
+            </span><span class="prelude-val">Err</span>(<span class="self">Self</span>::REGISTERED) =&gt; {}
+            <span class="comment">// Someone else is registering...
+            </span><span class="prelude-val">Err</span>(_state) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
-                    <span class="ident">_state</span>,
-                    <span class="ident"><span class="self">Self</span>::REGISTERING</span>,
-                    <span class="string">&quot;weird callsite registration state&quot;</span>
-                );
-                <span class="comment">// Just hit `enabled` this time.</span>
-                <span class="kw">return</span> <span class="ident">Interest::sometimes</span>();
+                    _state,
+                    <span class="self">Self</span>::REGISTERING,
+                    <span class="string">&quot;weird callsite registration state&quot;
+                </span>);
+                <span class="comment">// Just hit `enabled` this time.
+                </span><span class="kw">return </span>Interest::sometimes();
             }
         }
 
-        <span class="kw">match</span> <a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>.<span class="ident">interest</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
-            <span class="ident"><span class="self">Self</span>::INTEREST_NEVER</span> =&gt; <span class="ident">Interest::never</span>(),
-            <span class="ident"><span class="self">Self</span>::INTEREST_ALWAYS</span> =&gt; <span class="ident">Interest::always</span>(),
-            <span class="kw">_</span> =&gt; <span class="ident">Interest::sometimes</span>(),
+        <span class="kw">match </span><a class="self" href="../../src/tracing_core/callsite.rs.html#312">self</a>.interest.load(Ordering::Relaxed) {
+            <span class="self">Self</span>::INTEREST_NEVER =&gt; Interest::never(),
+            <span class="self">Self</span>::INTEREST_ALWAYS =&gt; Interest::always(),
+            <span class="kw">_ </span>=&gt; Interest::sometimes(),
         }
     }
 
-    <span class="doccomment">/// Returns the callsite&#39;s cached `Interest`, or registers it for the</span>
-    <span class="doccomment">/// first time if it has not yet been registered.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interest</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/tracing_core/callsite.rs.html#351">self</a>.<span class="ident">interest</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
-            <span class="ident"><span class="self">Self</span>::INTEREST_NEVER</span> =&gt; <span class="ident">Interest::never</span>(),
-            <span class="ident"><span class="self">Self</span>::INTEREST_SOMETIMES</span> =&gt; <span class="ident">Interest::sometimes</span>(),
-            <span class="ident"><span class="self">Self</span>::INTEREST_ALWAYS</span> =&gt; <span class="ident">Interest::always</span>(),
-            <span class="kw">_</span> =&gt; <a class="self" href="../../src/tracing_core/callsite.rs.html#351">self</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#312">register</a>(),
+    <span class="doccomment">/// Returns the callsite&#39;s cached `Interest`, or registers it for the
+    /// first time if it has not yet been registered.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>interest(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
+        <span class="kw">match </span><a class="self" href="../../src/tracing_core/callsite.rs.html#351">self</a>.interest.load(Ordering::Relaxed) {
+            <span class="self">Self</span>::INTEREST_NEVER =&gt; Interest::never(),
+            <span class="self">Self</span>::INTEREST_SOMETIMES =&gt; Interest::sometimes(),
+            <span class="self">Self</span>::INTEREST_ALWAYS =&gt; Interest::always(),
+            <span class="kw">_ </span>=&gt; <a class="self" href="../../src/tracing_core/callsite.rs.html#351">self</a>.<a href="../../src/tracing_core/callsite.rs.html#312">register</a>(),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a> {
-    <span class="kw">fn</span> <span class="ident">set_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>) {
-        <span class="kw">let</span> <span class="ident">interest</span> <span class="op">=</span> <span class="kw">match</span> () {
-            <span class="kw">_</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#362">interest</a>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#616">is_never</a>() =&gt; <span class="ident"><span class="self">Self</span>::INTEREST_NEVER</span>,
-            <span class="kw">_</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#362">interest</a>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#630">is_always</a>() =&gt; <span class="ident"><span class="self">Self</span>::INTEREST_ALWAYS</span>,
-            <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::INTEREST_SOMETIMES</span>,
+<span class="kw">impl </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a> <span class="kw">for </span><a href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a> {
+    <span class="kw">fn </span>set_interest(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>) {
+        <span class="kw">let </span>interest = <span class="kw">match </span>() {
+            <span class="kw">_ if </span><a href="../../src/tracing_core/callsite.rs.html#362">interest</a>.<a href="../../src/tracing_core/subscriber.rs.html#616">is_never</a>() =&gt; <span class="self">Self</span>::INTEREST_NEVER,
+            <span class="kw">_ if </span><a href="../../src/tracing_core/callsite.rs.html#362">interest</a>.<a href="../../src/tracing_core/subscriber.rs.html#630">is_always</a>() =&gt; <span class="self">Self</span>::INTEREST_ALWAYS,
+            <span class="kw">_ </span>=&gt; <span class="self">Self</span>::INTEREST_SOMETIMES,
         };
-        <a class="self" href="../../src/tracing_core/callsite.rs.html#362">self</a>.<span class="ident">interest</span>.<span class="ident">store</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#363">interest</a>, <span class="ident">Ordering::SeqCst</span>);
+        <a class="self" href="../../src/tracing_core/callsite.rs.html#362">self</a>.interest.store(<a href="../../src/tracing_core/callsite.rs.html#363">interest</a>, Ordering::SeqCst);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/callsite.rs.html#372">self</a>.<span class="ident">meta</span>
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt; {
+        <a class="self" href="../../src/tracing_core/callsite.rs.html#372">self</a>.meta
     }
 }
 
-<span class="comment">// ===== impl Identifier =====</span>
+<span class="comment">// ===== impl Identifier =====
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#181">Identifier</a> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/callsite.rs.html#181">Identifier</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="ident">core::ptr::eq</span>(
-            <a class="self" href="../../src/tracing_core/callsite.rs.html#380">self</a>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> (),
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#380">other</a>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> (),
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="../../src/tracing_core/callsite.rs.html#181">Identifier</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/callsite.rs.html#181">Identifier</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        core::ptr::eq(
+            <a class="self" href="../../src/tracing_core/callsite.rs.html#380">self</a>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>(),
+            <a href="../../src/tracing_core/callsite.rs.html#380">other</a>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>(),
         )
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#181">Identifier</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="../../src/tracing_core/callsite.rs.html#181">Identifier</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#181">Identifier</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#391">f</a>, <span class="string">&quot;Identifier({:p})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/tracing_core/callsite.rs.html#181">Identifier</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/tracing_core/callsite.rs.html#391">f</a>, <span class="string">&quot;Identifier({:p})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#181">Identifier</a> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>)
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="../../src/tracing_core/callsite.rs.html#181">Identifier</a> {
+    <span class="kw">fn </span>hash&lt;H&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H)
+    <span class="kw">where
+        </span>H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>,
     {
-        (<a class="self" href="../../src/tracing_core/callsite.rs.html#397">self</a>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#397">state</a>)
+        (<a class="self" href="../../src/tracing_core/callsite.rs.html#397">self</a>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">dyn </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>).<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../src/tracing_core/callsite.rs.html#397">state</a>)
     }
 }
 
-<span class="comment">// === impl Callsites ===</span>
+<span class="comment">// === impl Callsites ===
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#268">Callsites</a> {
-    <span class="doccomment">/// Rebuild `Interest`s for all callsites in the registry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This also re-computes the max level hint.</span>
-    <span class="kw">fn</span> <span class="ident">rebuild_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dispatchers</span>: <span class="ident">dispatchers::Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max_level</span> <span class="op">=</span> <span class="ident">LevelFilter::OFF</span>;
-        <a class="ident" href="../../src/tracing_core/callsite.rs.html#411">dispatchers</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#564">for_each</a>(<span class="op">|</span><span class="ident">dispatch</span><span class="op">|</span> {
-            <span class="comment">// If the subscriber did not provide a max level hint, assume</span>
-            <span class="comment">// that it may enable every level.</span>
-            <span class="kw">let</span> <span class="ident">level_hint</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#413">dispatch</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#458">max_level_hint</a>().<span class="ident">unwrap_or</span>(<span class="ident">LevelFilter::TRACE</span>);
-            <span class="kw">if</span> <span class="ident">level_hint</span> <span class="op">&gt;</span> <span class="ident">max_level</span> {
-                <a class="ident" href="../../src/tracing_core/callsite.rs.html#412">max_level</a> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#416">level_hint</a>;
+</span><span class="kw">impl </span><a href="../../src/tracing_core/callsite.rs.html#268">Callsites</a> {
+    <span class="doccomment">/// Rebuild `Interest`s for all callsites in the registry.
+    ///
+    /// This also re-computes the max level hint.
+    </span><span class="kw">fn </span>rebuild_interest(<span class="kw-2">&amp;</span><span class="self">self</span>, dispatchers: dispatchers::Rebuilder&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>max_level = LevelFilter::OFF;
+        <a href="../../src/tracing_core/callsite.rs.html#411">dispatchers</a>.<a href="../../src/tracing_core/callsite.rs.html#564">for_each</a>(|dispatch| {
+            <span class="comment">// If the subscriber did not provide a max level hint, assume
+            // that it may enable every level.
+            </span><span class="kw">let </span>level_hint = <a href="../../src/tracing_core/callsite.rs.html#413">dispatch</a>.<a href="../../src/tracing_core/dispatcher.rs.html#458">max_level_hint</a>().unwrap_or(LevelFilter::TRACE);
+            <span class="kw">if </span>level_hint &gt; max_level {
+                <a href="../../src/tracing_core/callsite.rs.html#412">max_level</a> = <a href="../../src/tracing_core/callsite.rs.html#416">level_hint</a>;
             }
         });
 
-        <a class="self" href="../../src/tracing_core/callsite.rs.html#411">self</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#470">for_each</a>(<span class="op">|</span><span class="ident">callsite</span><span class="op">|</span> {
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#493-496">rebuild_callsite_interest</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#422">callsite</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/callsite.rs.html#411">dispatchers</a>);
+        <a class="self" href="../../src/tracing_core/callsite.rs.html#411">self</a>.<a href="../../src/tracing_core/callsite.rs.html#470">for_each</a>(|callsite| {
+            <a href="../../src/tracing_core/callsite.rs.html#493-496">rebuild_callsite_interest</a>(<a href="../../src/tracing_core/callsite.rs.html#422">callsite</a>, <span class="kw-2">&amp;</span><a href="../../src/tracing_core/callsite.rs.html#411">dispatchers</a>);
         });
-        <span class="ident">LevelFilter::set_max</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#412">max_level</a>);
+        LevelFilter::set_max(<a href="../../src/tracing_core/callsite.rs.html#412">max_level</a>);
     }
 
-    <span class="doccomment">/// Push a `dyn Callsite` trait object to the callsite registry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will attempt to lock the callsites vector.</span>
-    <span class="kw">fn</span> <span class="ident">push_dyn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">callsite</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#266">LOCKED_CALLSITES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <a class="self" href="../../src/tracing_core/callsite.rs.html#431">self</a>.<span class="ident">has_locked_callsites</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Release</span>);
-        <a class="ident" href="../../src/tracing_core/callsite.rs.html#432">lock</a>.<span class="ident">push</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#431">callsite</a>);
+    <span class="doccomment">/// Push a `dyn Callsite` trait object to the callsite registry.
+    ///
+    /// This will attempt to lock the callsites vector.
+    </span><span class="kw">fn </span>push_dyn(<span class="kw-2">&amp;</span><span class="self">self</span>, callsite: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = <a href="../../src/tracing_core/callsite.rs.html#266">LOCKED_CALLSITES</a>.lock().unwrap();
+        <a class="self" href="../../src/tracing_core/callsite.rs.html#431">self</a>.has_locked_callsites.store(<span class="bool-val">true</span>, Ordering::Release);
+        <a href="../../src/tracing_core/callsite.rs.html#432">lock</a>.push(<a href="../../src/tracing_core/callsite.rs.html#431">callsite</a>);
     }
 
-    <span class="doccomment">/// Push a `DefaultCallsite` to the callsite registry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If we know the callsite being pushed is a `DefaultCallsite`, we can push</span>
-    <span class="doccomment">/// it to the linked list without having to acquire a lock.</span>
-    <span class="kw">fn</span> <span class="ident">push_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">callsite</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/callsite.rs.html#441">self</a>.<span class="ident">list_head</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+    <span class="doccomment">/// Push a `DefaultCallsite` to the callsite registry.
+    ///
+    /// If we know the callsite being pushed is a `DefaultCallsite`, we can push
+    /// it to the linked list without having to acquire a lock.
+    </span><span class="kw">fn </span>push_default(<span class="kw-2">&amp;</span><span class="self">self</span>, callsite: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/tracing_core/callsite.rs.html#195">DefaultCallsite</a>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>head = <a class="self" href="../../src/tracing_core/callsite.rs.html#441">self</a>.list_head.load(Ordering::Acquire);
 
-        <span class="kw">loop</span> {
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#441">callsite</a>.<span class="ident">next</span>.<span class="ident">store</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#442">head</a>, <span class="ident">Ordering::Release</span>);
+        <span class="kw">loop </span>{
+            <a href="../../src/tracing_core/callsite.rs.html#441">callsite</a>.next.store(<a href="../../src/tracing_core/callsite.rs.html#442">head</a>, Ordering::Release);
 
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(
-                <span class="ident">callsite</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <span class="ident">head</span>,
+                callsite <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, head,
                 <span class="string">&quot;Attempted to register a `DefaultCallsite` that already exists! \
                 This will cause an infinite loop when attempting to read from the \
                 callsite cache. This is likely a bug! You should only need to call \
-                `DefaultCallsite::register` once per `DefaultCallsite`.&quot;</span>
-            );
+                `DefaultCallsite::register` once per `DefaultCallsite`.&quot;
+            </span>);
 
-            <span class="kw">match</span> <a class="self" href="../../src/tracing_core/callsite.rs.html#441">self</a>.<span class="ident">list_head</span>.<span class="ident">compare_exchange</span>(
-                <a class="ident" href="../../src/tracing_core/callsite.rs.html#442">head</a>,
-                <a class="ident" href="../../src/tracing_core/callsite.rs.html#441">callsite</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <span class="ident">Ordering::AcqRel</span>,
-                <span class="ident">Ordering::Acquire</span>,
+            <span class="kw">match </span><a class="self" href="../../src/tracing_core/callsite.rs.html#441">self</a>.list_head.compare_exchange(
+                <a href="../../src/tracing_core/callsite.rs.html#442">head</a>,
+                <a href="../../src/tracing_core/callsite.rs.html#441">callsite</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                Ordering::AcqRel,
+                Ordering::Acquire,
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">break</span>;
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">current</span>) =&gt; <a class="ident" href="../../src/tracing_core/callsite.rs.html#442">head</a> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#464">current</a>,
+                <span class="prelude-val">Err</span>(current) =&gt; <a href="../../src/tracing_core/callsite.rs.html#442">head</a> = <a href="../../src/tracing_core/callsite.rs.html#464">current</a>,
             }
         }
     }
 
-    <span class="doccomment">/// Invokes the provided closure `f` with each callsite in the registry.</span>
-    <span class="kw">fn</span> <span class="ident">for_each</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>)) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/callsite.rs.html#470">self</a>.<span class="ident">list_head</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+    <span class="doccomment">/// Invokes the provided closure `f` with each callsite in the registry.
+    </span><span class="kw">fn </span>for_each(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>)) {
+        <span class="kw">let </span><span class="kw-2">mut </span>head = <a class="self" href="../../src/tracing_core/callsite.rs.html#470">self</a>.list_head.load(Ordering::Acquire);
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cs</span>) <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">head</span>.<span class="ident">as_ref</span>() } {
-            <span class="ident">f</span>(<span class="ident">cs</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(cs) = <span class="kw">unsafe </span>{ head.as_ref() } {
+            f(cs);
 
-            <span class="ident">head</span> <span class="op">=</span> <span class="ident">cs</span>.<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+            head = cs.next.load(Ordering::Acquire);
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_locked_callsites</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) {
-            <span class="kw">let</span> <span class="ident">locked</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#266">LOCKED_CALLSITES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">cs</span> <span class="kw">in</span> <span class="ident">locked</span>.<span class="ident">iter</span>() {
-                <span class="ident">f</span>(<span class="ident">cs</span>);
+        <span class="kw">if </span><span class="self">self</span>.has_locked_callsites.load(Ordering::Acquire) {
+            <span class="kw">let </span>locked = <a href="../../src/tracing_core/callsite.rs.html#266">LOCKED_CALLSITES</a>.lock().unwrap();
+            <span class="kw">for </span><span class="kw-2">&amp;</span>cs <span class="kw">in </span>locked.iter() {
+                f(cs);
             }
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_dispatch</span>(<span class="ident">dispatch</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) {
-    <span class="kw">let</span> <span class="ident">dispatchers</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#264">DISPATCHERS</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#553">register_dispatch</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#488">dispatch</a>);
-    <a class="ident" href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#411">rebuild_interest</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#489">dispatchers</a>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_dispatch(dispatch: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) {
+    <span class="kw">let </span>dispatchers = <a href="../../src/tracing_core/callsite.rs.html#264">DISPATCHERS</a>.<a href="../../src/tracing_core/callsite.rs.html#553">register_dispatch</a>(<a href="../../src/tracing_core/callsite.rs.html#488">dispatch</a>);
+    <a href="../../src/tracing_core/callsite.rs.html#259">CALLSITES</a>.<a href="../../src/tracing_core/callsite.rs.html#411">rebuild_interest</a>(<a href="../../src/tracing_core/callsite.rs.html#489">dispatchers</a>);
 }
 
-<span class="kw">fn</span> <span class="ident">rebuild_callsite_interest</span>(
-    <span class="ident">callsite</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>,
-    <span class="ident">dispatchers</span>: <span class="kw-2">&amp;</span><span class="ident">dispatchers::Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+<span class="kw">fn </span>rebuild_callsite_interest(
+    callsite: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span><a href="../../src/tracing_core/callsite.rs.html#128">Callsite</a>,
+    dispatchers: <span class="kw-2">&amp;</span>dispatchers::Rebuilder&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) {
-    <span class="kw">let</span> <span class="ident">meta</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#494">callsite</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#150">metadata</a>();
+    <span class="kw">let </span>meta = <a href="../../src/tracing_core/callsite.rs.html#494">callsite</a>.<a href="../../src/tracing_core/callsite.rs.html#150">metadata</a>();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interest</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-    <a class="ident" href="../../src/tracing_core/callsite.rs.html#495">dispatchers</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#564">for_each</a>(<span class="op">|</span><span class="ident">dispatch</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">this_interest</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#500">dispatch</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#442">register_callsite</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#497">meta</a>);
-        <a class="ident" href="../../src/tracing_core/callsite.rs.html#499">interest</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#499">interest</a>.<span class="ident">take</span>() {
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#501">this_interest</a>),
-            <span class="prelude-val">Some</span>(<span class="ident">that_interest</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#504">that_interest</a>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#640">and</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#501">this_interest</a>)),
+    <span class="kw">let </span><span class="kw-2">mut </span>interest = <span class="prelude-val">None</span>;
+    <a href="../../src/tracing_core/callsite.rs.html#495">dispatchers</a>.<a href="../../src/tracing_core/callsite.rs.html#564">for_each</a>(|dispatch| {
+        <span class="kw">let </span>this_interest = <a href="../../src/tracing_core/callsite.rs.html#500">dispatch</a>.<a href="../../src/tracing_core/dispatcher.rs.html#442">register_callsite</a>(<a href="../../src/tracing_core/callsite.rs.html#497">meta</a>);
+        <a href="../../src/tracing_core/callsite.rs.html#499">interest</a> = <span class="kw">match </span><a href="../../src/tracing_core/callsite.rs.html#499">interest</a>.take() {
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/callsite.rs.html#501">this_interest</a>),
+            <span class="prelude-val">Some</span>(that_interest) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/callsite.rs.html#504">that_interest</a>.<a href="../../src/tracing_core/subscriber.rs.html#640">and</a>(<a href="../../src/tracing_core/callsite.rs.html#501">this_interest</a>)),
         }
     });
 
-    <span class="kw">let</span> <span class="ident">interest</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#499">interest</a>.<span class="ident">unwrap_or_else</span>(<span class="ident">Interest::never</span>);
-    <a class="ident" href="../../src/tracing_core/callsite.rs.html#494">callsite</a>.<a class="ident" href="../../src/tracing_core/callsite.rs.html#136">set_interest</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#508">interest</a>)
+    <span class="kw">let </span>interest = <a href="../../src/tracing_core/callsite.rs.html#499">interest</a>.unwrap_or_else(Interest::never);
+    <a href="../../src/tracing_core/callsite.rs.html#494">callsite</a>.<a href="../../src/tracing_core/callsite.rs.html#136">set_interest</a>(<a href="../../src/tracing_core/callsite.rs.html#508">interest</a>)
 }
 
-<span class="kw">mod</span> <span class="ident">private</span> {
-    <span class="doccomment">/// Don&#39;t call this function, it&#39;s private.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Private</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">T</span>);
+<span class="kw">mod </span>private {
+    <span class="doccomment">/// Don&#39;t call this function, it&#39;s private.
+    </span><span class="attribute">#[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>Private&lt;T&gt;(<span class="kw">pub</span>(<span class="kw">crate</span>) T);
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">dispatchers</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/tracing_core/lib.rs.html#272">dispatcher</a>, <a class="ident" href="../../once_cell/sync/struct.Lazy.html">lazy::Lazy</a>};
-    <span class="kw">use</span> <span class="ident">std::sync</span>::{
-        <span class="ident">atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
-        <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLock.html">RwLock</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockReadGuard.html">RwLockReadGuard</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockWriteGuard.html">RwLockWriteGuard</a>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">mod </span>dispatchers {
+    <span class="kw">use crate</span>::{<a href="../../src/tracing_core/lib.rs.html#272">dispatcher</a>, <a href="../../once_cell/sync/struct.Lazy.html">lazy::Lazy</a>};
+    <span class="kw">use </span>std::sync::{
+        atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
+        <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLock.html">RwLock</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockReadGuard.html">RwLockReadGuard</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockWriteGuard.html">RwLockWriteGuard</a>,
     };
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Dispatchers</span> {
-        <span class="ident">has_just_one</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Dispatchers {
+        has_just_one: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
     }
 
-    <span class="kw">static</span> <span class="ident">LOCKED_DISPATCHERS</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">dispatcher::Registrar</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="ident">Lazy::new</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>);
+    <span class="kw">static </span>LOCKED_DISPATCHERS: Lazy&lt;RwLock&lt;Vec&lt;<a href="../../src/tracing_core/dispatcher.rs.html#403">dispatcher::Registrar</a>&gt;&gt;&gt; =
+        Lazy::new(<a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>);
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">JustOne</span>,
-        <span class="ident">Read</span>(<span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">dispatcher::Registrar</a><span class="op">&gt;</span><span class="op">&gt;</span>),
-        <span class="ident">Write</span>(<span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">dispatcher::Registrar</a><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Rebuilder&lt;<span class="lifetime">&#39;a</span>&gt; {
+        JustOne,
+        Read(RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, Vec&lt;<a href="../../src/tracing_core/dispatcher.rs.html#403">dispatcher::Registrar</a>&gt;&gt;),
+        Write(RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, Vec&lt;<a href="../../src/tracing_core/dispatcher.rs.html#403">dispatcher::Registrar</a>&gt;&gt;),
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#526">Dispatchers</a> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span> {
-                <span class="ident">has_just_one</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">true</span>),
+    <span class="kw">impl </span><a href="../../src/tracing_core/callsite.rs.html#526">Dispatchers</a> {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
+            <span class="self">Self </span>{
+                has_just_one: AtomicBool::new(<span class="bool-val">true</span>),
             }
         }
 
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">rebuilder</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_just_one</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) {
-                <span class="kw">return</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#534">Rebuilder::JustOne</a>;
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>rebuilder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rebuilder&lt;<span class="lifetime">&#39;_</span>&gt; {
+            <span class="kw">if </span><span class="self">self</span>.has_just_one.load(Ordering::SeqCst) {
+                <span class="kw">return </span><a href="../../src/tracing_core/callsite.rs.html#534">Rebuilder::JustOne</a>;
             }
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#535">Rebuilder::Read</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#530">LOCKED_DISPATCHERS</a>.<span class="ident">read</span>().<span class="ident">unwrap</span>())
+            <a href="../../src/tracing_core/callsite.rs.html#535">Rebuilder::Read</a>(<a href="../../src/tracing_core/callsite.rs.html#530">LOCKED_DISPATCHERS</a>.read().unwrap())
         }
 
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">register_dispatch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dispatch</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">dispatcher::Dispatch</a>) -&gt; <span class="ident">Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dispatchers</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#530">LOCKED_DISPATCHERS</a>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#554">dispatchers</a>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#555">d</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#672">upgrade</a>().<span class="ident">is_some</span>());
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#554">dispatchers</a>.<span class="ident">push</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#553">dispatch</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#429">registrar</a>());
-            <a class="self" href="../../src/tracing_core/callsite.rs.html#553">self</a>.<span class="ident">has_just_one</span>
-                .<span class="ident">store</span>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#554">dispatchers</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>);
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#536">Rebuilder::Write</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#554">dispatchers</a>)
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>register_dispatch(<span class="kw-2">&amp;</span><span class="self">self</span>, dispatch: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/dispatcher.rs.html#151">dispatcher::Dispatch</a>) -&gt; Rebuilder&lt;<span class="lifetime">&#39;_</span>&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>dispatchers = <a href="../../src/tracing_core/callsite.rs.html#530">LOCKED_DISPATCHERS</a>.write().unwrap();
+            <a href="../../src/tracing_core/callsite.rs.html#554">dispatchers</a>.retain(|d| <a href="../../src/tracing_core/callsite.rs.html#555">d</a>.<a href="../../src/tracing_core/dispatcher.rs.html#672">upgrade</a>().is_some());
+            <a href="../../src/tracing_core/callsite.rs.html#554">dispatchers</a>.push(<a href="../../src/tracing_core/callsite.rs.html#553">dispatch</a>.<a href="../../src/tracing_core/dispatcher.rs.html#429">registrar</a>());
+            <a class="self" href="../../src/tracing_core/callsite.rs.html#553">self</a>.has_just_one
+                .store(<a href="../../src/tracing_core/callsite.rs.html#554">dispatchers</a>.len() &lt;= <span class="number">1</span>, Ordering::SeqCst);
+            <a href="../../src/tracing_core/callsite.rs.html#536">Rebuilder::Write</a>(<a href="../../src/tracing_core/callsite.rs.html#554">dispatchers</a>)
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">for_each</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">dispatcher::Dispatch</a>)) {
-            <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/tracing_core/callsite.rs.html#564">self</a> {
-                <a class="ident" href="../../src/tracing_core/callsite.rs.html#534">Rebuilder::JustOne</a> =&gt; {
-                    <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330-332">dispatcher::get_default</a>(<a class="ident" href="../../src/tracing_core/callsite.rs.html#564">f</a>);
+    <span class="kw">impl </span>Rebuilder&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>for_each(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/dispatcher.rs.html#151">dispatcher::Dispatch</a>)) {
+            <span class="kw">let </span>iter = <span class="kw">match </span><span class="self"><a href="../../src/tracing_core/callsite.rs.html#564">self</a> </span>{
+                <a href="../../src/tracing_core/callsite.rs.html#534">Rebuilder::JustOne</a> =&gt; {
+                    <a href="../../src/tracing_core/dispatcher.rs.html#330-332">dispatcher::get_default</a>(<a href="../../src/tracing_core/callsite.rs.html#564">f</a>);
                     <span class="kw">return</span>;
                 }
-                <a class="ident" href="../../src/tracing_core/callsite.rs.html#535">Rebuilder::Read</a>(<span class="ident">vec</span>) =&gt; <a class="ident" href="../../src/tracing_core/callsite.rs.html#570">vec</a>.<span class="ident">iter</span>(),
-                <a class="ident" href="../../src/tracing_core/callsite.rs.html#536">Rebuilder::Write</a>(<span class="ident">vec</span>) =&gt; <a class="ident" href="../../src/tracing_core/callsite.rs.html#571">vec</a>.<span class="ident">iter</span>(),
+                <a href="../../src/tracing_core/callsite.rs.html#535">Rebuilder::Read</a>(vec) =&gt; <a href="../../src/tracing_core/callsite.rs.html#570">vec</a>.iter(),
+                <a href="../../src/tracing_core/callsite.rs.html#536">Rebuilder::Write</a>(vec) =&gt; <a href="../../src/tracing_core/callsite.rs.html#571">vec</a>.iter(),
             };
-            <a class="ident" href="../../src/tracing_core/callsite.rs.html#565">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="ident">dispatcher::Registrar::upgrade</span>)
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<span class="op">|</span><span class="ident">dispatch</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/callsite.rs.html#564">f</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/callsite.rs.html#574">dispatch</a>))
+            <a href="../../src/tracing_core/callsite.rs.html#565">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(dispatcher::Registrar::upgrade)
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|dispatch| <a href="../../src/tracing_core/callsite.rs.html#564">f</a>(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/callsite.rs.html#574">dispatch</a>))
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">dispatchers</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::dispatcher</span>;
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="kw">mod </span>dispatchers {
+    <span class="kw">use </span><span class="kw">crate</span>::dispatcher;
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Dispatchers</span>(());
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">dispatcher::Dispatch</span><span class="op">&gt;</span>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Dispatchers(());
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Rebuilder&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>dispatcher::Dispatch&gt;);
 
-    <span class="kw">impl</span> <span class="ident">Dispatchers</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
+    <span class="kw">impl </span>Dispatchers {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
             <span class="self">Self</span>(())
         }
 
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">rebuilder</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-            <span class="ident">Rebuilder</span>(<span class="prelude-val">None</span>)
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>rebuilder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rebuilder&lt;<span class="lifetime">&#39;_</span>&gt; {
+            Rebuilder(<span class="prelude-val">None</span>)
         }
 
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">register_dispatch</span><span class="op">&lt;</span><span class="lifetime">&#39;dispatch</span><span class="op">&gt;</span>(
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>register_dispatch&lt;<span class="lifetime">&#39;dispatch</span>&gt;(
             <span class="kw-2">&amp;</span><span class="self">self</span>,
-            <span class="ident">dispatch</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;dispatch</span> <span class="ident">dispatcher::Dispatch</span>,
-        ) -&gt; <span class="ident">Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;dispatch</span><span class="op">&gt;</span> {
-            <span class="comment">// nop; on no_std, there can only ever be one dispatcher</span>
-            <span class="ident">Rebuilder</span>(<span class="prelude-val">Some</span>(<span class="ident">dispatch</span>))
+            dispatch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;dispatch </span>dispatcher::Dispatch,
+        ) -&gt; Rebuilder&lt;<span class="lifetime">&#39;dispatch</span>&gt; {
+            <span class="comment">// nop; on no_std, there can only ever be one dispatcher
+            </span>Rebuilder(<span class="prelude-val">Some</span>(dispatch))
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Rebuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">for_each</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">dispatcher::Dispatch</span>)) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dispatch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span> {
-                <span class="comment">// we are rebuilding the interest cache because a new dispatcher</span>
-                <span class="comment">// is about to be set. on `no_std`, this should only happen</span>
-                <span class="comment">// once, because the new dispatcher will be the global default.</span>
-                <span class="ident">f</span>(<span class="ident">dispatch</span>)
-            } <span class="kw">else</span> {
-                <span class="comment">// otherwise, we are rebuilding the cache because the subscriber</span>
-                <span class="comment">// configuration changed, so use the global default.</span>
-                <span class="comment">// on no_std, there can only ever be one dispatcher</span>
-                <span class="ident">dispatcher::get_default</span>(<span class="ident">f</span>)
+    <span class="kw">impl </span>Rebuilder&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="attribute">#[inline]
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>for_each(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>dispatcher::Dispatch)) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(dispatch) = <span class="self">self</span>.<span class="number">0 </span>{
+                <span class="comment">// we are rebuilding the interest cache because a new dispatcher
+                // is about to be set. on `no_std`, this should only happen
+                // once, because the new dispatcher will be the global default.
+                </span>f(dispatch)
+            } <span class="kw">else </span>{
+                <span class="comment">// otherwise, we are rebuilding the cache because the subscriber
+                // configuration changed, so use the global default.
+                // on no_std, there can only ever be one dispatcher
+                </span>dispatcher::get_default(f)
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

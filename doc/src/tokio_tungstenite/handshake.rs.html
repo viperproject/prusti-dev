@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-tungstenite-0.15.0/src/handshake.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handshake.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tokio_tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tokio_tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tokio_tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-tungstenite-0.15.0/src/handshake.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handshake.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tokio_tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tokio_tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tokio_tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -170,177 +170,177 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">compat</span>::{<a class="ident" href="../../src/tokio_tungstenite/compat.rs.html#19">AllowStd</a>, <a class="ident" href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>},
-    <a class="ident" href="../../src/tokio_tungstenite/lib.rs.html#179">WebSocketStream</a>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    compat::{<a href="../../src/tokio_tungstenite/compat.rs.html#19">AllowStd</a>, <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>},
+    <a href="../../src/tokio_tungstenite/lib.rs.html#179">WebSocketStream</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../log/index.html">log</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">future::Future</a>,
-    <span class="ident">io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
-    <span class="ident">task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>},
+<span class="kw">use </span><a href="../../log/index.html">log</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
+<span class="kw">use </span>std::{
+    <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">future::Future</a>,
+    io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
+    <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
+    task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>},
 };
-<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
-<span class="kw">use</span> <span class="ident">tungstenite</span>::{
-    <span class="ident">handshake</span>::{
-        <a class="ident" href="../../tungstenite/handshake/client/type.Response.html">client::Response</a>, <a class="ident" href="../../tungstenite/handshake/server/trait.Callback.html">server::Callback</a>, <a class="ident" href="../../tungstenite/handshake/enum.HandshakeError.html">HandshakeError</a> <span class="kw">as</span> <span class="ident">Error</span>, <a class="ident" href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a>,
-        <a class="ident" href="../../tungstenite/handshake/struct.MidHandshake.html">MidHandshake</a> <span class="kw">as</span> <span class="ident">WsHandshake</span>,
+<span class="kw">use </span>tokio::io::{<a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span>tungstenite::{
+    handshake::{
+        <a href="../../tungstenite/handshake/client/type.Response.html">client::Response</a>, <a href="../../tungstenite/handshake/server/trait.Callback.html">server::Callback</a>, <a href="../../tungstenite/handshake/enum.HandshakeError.html">HandshakeError</a> <span class="kw">as </span>Error, <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a>,
+        <a href="../../tungstenite/handshake/struct.MidHandshake.html">MidHandshake</a> <span class="kw">as </span>WsHandshake,
     },
-    <a class="ident" href="../../tungstenite/handshake/client/struct.ClientHandshake.html">ClientHandshake</a>, <a class="ident" href="../../tungstenite/handshake/server/struct.ServerHandshake.html">ServerHandshake</a>, <a class="ident" href="../../tungstenite/protocol/struct.WebSocket.html">WebSocket</a>,
+    <a href="../../tungstenite/handshake/client/struct.ClientHandshake.html">ClientHandshake</a>, <a href="../../tungstenite/handshake/server/struct.ServerHandshake.html">ServerHandshake</a>, <a href="../../tungstenite/protocol/struct.WebSocket.html">WebSocket</a>,
 };
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">without_handshake</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">S</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">WebSocketStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">S</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>without_handshake&lt;F, S&gt;(stream: S, f: F) -&gt; WebSocketStream&lt;S&gt;
+<span class="kw">where
+    </span>F: FnOnce(AllowStd&lt;S&gt;) -&gt; WebSocket&lt;AllowStd&lt;S&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">SkippedHandshakeFuture</span>(<span class="prelude-val">Some</span>(<span class="ident">SkippedHandshakeFutureInner</span> { <span class="ident">f</span>, <span class="ident">stream</span> }));
+    <span class="kw">let </span>start = SkippedHandshakeFuture(<span class="prelude-val">Some</span>(SkippedHandshakeFutureInner { f, stream }));
 
-    <span class="kw">let</span> <span class="ident">ws</span> <span class="op">=</span> <span class="ident">start</span>.<span class="kw">await</span>;
+    <span class="kw">let </span>ws = start.<span class="kw">await</span>;
 
-    <span class="ident">WebSocketStream::new</span>(<span class="ident">ws</span>)
+    WebSocketStream::new(ws)
 }
 
-<span class="kw">struct</span> <span class="ident">SkippedHandshakeFuture</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SkippedHandshakeFutureInner</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-<span class="kw">struct</span> <span class="ident">SkippedHandshakeFutureInner</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">f</span>: <span class="ident">F</span>,
-    <span class="ident">stream</span>: <span class="ident">S</span>,
+<span class="kw">struct </span>SkippedHandshakeFuture&lt;F, S&gt;(<span class="prelude-ty">Option</span>&lt;SkippedHandshakeFutureInner&lt;F, S&gt;&gt;);
+<span class="kw">struct </span>SkippedHandshakeFutureInner&lt;F, S&gt; {
+    f: F,
+    stream: S,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">SkippedHandshakeFuture</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+<span class="kw">impl</span>&lt;F, S&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>SkippedHandshakeFuture&lt;F, S&gt;
+<span class="kw">where
+    </span>F: FnOnce(AllowStd&lt;S&gt;) -&gt; WebSocket&lt;AllowStd&lt;S&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    AllowStd&lt;S&gt;: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = WebSocket&lt;AllowStd&lt;S&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#48">self</a>.<span class="ident">get_mut</span>().<span class="number">0</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;future polled after completion&quot;</span>);
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>inner = <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#48">self</a>.get_mut().<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Setting context when skipping handshake&quot;</span>);
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">AllowStd::new</span>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#49">inner</a>.<span class="ident">stream</span>, <a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#48">ctx</a>.<span class="ident">waker</span>());
+        <span class="kw">let </span>stream = AllowStd::new(<a href="../../src/tokio_tungstenite/handshake.rs.html#49">inner</a>.stream, <a href="../../src/tokio_tungstenite/handshake.rs.html#48">ctx</a>.waker());
 
-        <span class="ident">Poll::Ready</span>((<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#49">inner</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#51">stream</a>))
+        Poll::Ready((<a href="../../src/tokio_tungstenite/handshake.rs.html#49">inner</a>.f)(<a href="../../src/tokio_tungstenite/handshake.rs.html#51">stream</a>))
     }
 }
 
-<span class="attribute">#[<span class="ident">pin_project</span>]</span>
-<span class="kw">struct</span> <span class="ident">MidHandshake</span><span class="op">&lt;</span><span class="ident">Role</span>: <a class="ident" href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a><span class="op">&gt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WsHandshake</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="attribute">#[pin_project]
+</span><span class="kw">struct </span>MidHandshake&lt;Role: <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a>&gt;(<span class="prelude-ty">Option</span>&lt;WsHandshake&lt;Role&gt;&gt;);
 
-<span class="kw">enum</span> <span class="ident">StartedHandshake</span><span class="op">&lt;</span><span class="ident">Role</span>: <a class="ident" href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a><span class="op">&gt;</span> {
-    <span class="ident">Done</span>(<span class="ident">Role::FinalResult</span>),
-    <span class="ident">Mid</span>(<span class="ident">WsHandshake</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span>),
+<span class="kw">enum </span>StartedHandshake&lt;Role: <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a>&gt; {
+    Done(Role::FinalResult),
+    Mid(WsHandshake&lt;Role&gt;),
 }
 
-<span class="kw">struct</span> <span class="ident">StartedHandshakeFuture</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StartedHandshakeFutureInner</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-<span class="kw">struct</span> <span class="ident">StartedHandshakeFutureInner</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">f</span>: <span class="ident">F</span>,
-    <span class="ident">stream</span>: <span class="ident">S</span>,
+<span class="kw">struct </span>StartedHandshakeFuture&lt;F, S&gt;(<span class="prelude-ty">Option</span>&lt;StartedHandshakeFutureInner&lt;F, S&gt;&gt;);
+<span class="kw">struct </span>StartedHandshakeFutureInner&lt;F, S&gt; {
+    f: F,
+    stream: S,
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handshake</span><span class="op">&lt;</span><span class="ident">Role</span>, <span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">S</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Role::FinalResult</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Role</span>: <a class="ident" href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">Role::InternalStream</span>: <a class="ident" href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Role::FinalResult</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">S</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">async fn </span>handshake&lt;Role, F, S&gt;(stream: S, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt;
+<span class="kw">where
+    </span>Role: <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    Role::InternalStream: <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
+    F: FnOnce(AllowStd&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">StartedHandshakeFuture</span>(<span class="prelude-val">Some</span>(<span class="ident">StartedHandshakeFutureInner</span> { <span class="ident">f</span>, <span class="ident">stream</span> }));
+    <span class="kw">let </span>start = StartedHandshakeFuture(<span class="prelude-val">Some</span>(StartedHandshakeFutureInner { f, stream }));
 
-    <span class="kw">match</span> <span class="ident">start</span>.<span class="kw">await</span><span class="question-mark">?</span> {
-        <span class="ident">StartedHandshake::Done</span>(<span class="ident">r</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">r</span>),
-        <span class="ident">StartedHandshake::Mid</span>(<span class="ident">s</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">res</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Role::FinalResult</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MidHandshake</span>::<span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span>(<span class="prelude-val">Some</span>(<span class="ident">s</span>)).<span class="kw">await</span>;
-            <span class="ident">res</span>
+    <span class="kw">match </span>start.<span class="kw">await</span><span class="question-mark">? </span>{
+        StartedHandshake::Done(r) =&gt; <span class="prelude-val">Ok</span>(r),
+        StartedHandshake::Mid(s) =&gt; {
+            <span class="kw">let </span>res: <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt; = MidHandshake::&lt;Role&gt;(<span class="prelude-val">Some</span>(s)).<span class="kw">await</span>;
+            res
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">client_handshake</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(
-    <span class="ident">stream</span>: <span class="ident">S</span>,
-    <span class="ident">f</span>: <span class="ident">F</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">WebSocketStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <a class="ident" href="../../tungstenite/handshake/client/type.Response.html">Response</a>), <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(
-            <span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-            <span class="op">&lt;</span><span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">HandshakeRole</span><span class="op">&gt;</span><span class="ident">::FinalResult</span>,
-            <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">S</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>client_handshake&lt;F, S&gt;(
+    stream: S,
+    f: F,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(WebSocketStream&lt;S&gt;, <a href="../../tungstenite/handshake/client/type.Response.html">Response</a>), Error&lt;ClientHandshake&lt;AllowStd&lt;S&gt;&gt;&gt;&gt;
+<span class="kw">where
+    </span>F: FnOnce(
+            AllowStd&lt;S&gt;,
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;
+            &lt;ClientHandshake&lt;AllowStd&lt;S&gt;&gt; <span class="kw">as </span>HandshakeRole&gt;::FinalResult,
+            Error&lt;ClientHandshake&lt;AllowStd&lt;S&gt;&gt;&gt;,
+        &gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">handshake</span>(<span class="ident">stream</span>, <span class="ident">f</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">result</span>;
-    <span class="prelude-val">Ok</span>((<span class="ident">WebSocketStream::new</span>(<span class="ident">s</span>), <span class="ident">r</span>))
+    <span class="kw">let </span>result = handshake(stream, f).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>(s, r) = result;
+    <span class="prelude-val">Ok</span>((WebSocketStream::new(s), r))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">server_handshake</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(
-    <span class="ident">stream</span>: <span class="ident">S</span>,
-    <span class="ident">f</span>: <span class="ident">F</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WebSocketStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">C</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">C</span>: <a class="ident" href="../../tungstenite/handshake/server/trait.Callback.html">Callback</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(
-            <span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-            <span class="op">&lt;</span><span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">HandshakeRole</span><span class="op">&gt;</span><span class="ident">::FinalResult</span>,
-            <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">C</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">S</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>server_handshake&lt;C, F, S&gt;(
+    stream: S,
+    f: F,
+) -&gt; <span class="prelude-ty">Result</span>&lt;WebSocketStream&lt;S&gt;, Error&lt;ServerHandshake&lt;AllowStd&lt;S&gt;, C&gt;&gt;&gt;
+<span class="kw">where
+    </span>C: <a href="../../tungstenite/handshake/server/trait.Callback.html">Callback</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    F: FnOnce(
+            AllowStd&lt;S&gt;,
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;
+            &lt;ServerHandshake&lt;AllowStd&lt;S&gt;, C&gt; <span class="kw">as </span>HandshakeRole&gt;::FinalResult,
+            Error&lt;ServerHandshake&lt;AllowStd&lt;S&gt;, C&gt;&gt;,
+        &gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S: <a href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">let</span> <span class="ident">s</span>: <span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">handshake</span>(<span class="ident">stream</span>, <span class="ident">f</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">WebSocketStream::new</span>(<span class="ident">s</span>))
+    <span class="kw">let </span>s: WebSocket&lt;AllowStd&lt;S&gt;&gt; = handshake(stream, f).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(WebSocketStream::new(s))
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Role</span>, <span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">StartedHandshakeFuture</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Role</span>: <a class="ident" href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a>,
-    <span class="ident">Role::InternalStream</span>: <a class="ident" href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Role::FinalResult</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">AllowStd</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+<span class="kw">impl</span>&lt;Role, F, S&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>StartedHandshakeFuture&lt;F, S&gt;
+<span class="kw">where
+    </span>Role: <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a>,
+    Role::InternalStream: <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
+    F: FnOnce(AllowStd&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    AllowStd&lt;S&gt;: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StartedHandshake</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;StartedHandshake&lt;Role&gt;, Error&lt;Role&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#135">self</a>.<span class="number">0</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;future polled after completion&quot;</span>);
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, ctx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>inner = <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#135">self</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Setting ctx when starting handshake&quot;</span>);
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">AllowStd::new</span>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#136">inner</a>.<span class="ident">stream</span>, <a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#135">ctx</a>.<span class="ident">waker</span>());
+        <span class="kw">let </span>stream = AllowStd::new(<a href="../../src/tokio_tungstenite/handshake.rs.html#136">inner</a>.stream, <a href="../../src/tokio_tungstenite/handshake.rs.html#135">ctx</a>.waker());
 
-        <span class="kw">match</span> (<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#136">inner</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#138">stream</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">r</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#61">StartedHandshake::Done</a>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#141">r</a>))),
-            <span class="prelude-val">Err</span>(<span class="ident">Error::Interrupted</span>(<span class="ident">mid</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#62">StartedHandshake::Mid</a>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#142">mid</a>))),
-            <span class="prelude-val">Err</span>(<span class="ident">Error::Failure</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">Error::Failure</span>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#143">e</a>))),
+        <span class="kw">match </span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#136">inner</a>.f)(<a href="../../src/tokio_tungstenite/handshake.rs.html#138">stream</a>) {
+            <span class="prelude-val">Ok</span>(r) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#61">StartedHandshake::Done</a>(<a href="../../src/tokio_tungstenite/handshake.rs.html#141">r</a>))),
+            <span class="prelude-val">Err</span>(Error::Interrupted(mid)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#62">StartedHandshake::Mid</a>(<a href="../../src/tokio_tungstenite/handshake.rs.html#142">mid</a>))),
+            <span class="prelude-val">Err</span>(Error::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Error::Failure(<a href="../../src/tokio_tungstenite/handshake.rs.html#143">e</a>))),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">MidHandshake</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Role</span>: <a class="ident" href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">Role::InternalStream</span>: <a class="ident" href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
+<span class="kw">impl</span>&lt;Role&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>MidHandshake&lt;Role&gt;
+<span class="kw">where
+    </span>Role: <a href="../../tungstenite/handshake/trait.HandshakeRole.html">HandshakeRole</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    Role::InternalStream: <a href="../../src/tokio_tungstenite/compat.rs.html#53">SetWaker</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Role::FinalResult</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">Role</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Role::FinalResult, Error&lt;Role&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#155">self</a>.<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#57">project</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#156">this</a>.<span class="number">0</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;future polled after completion&quot;</span>);
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <a class="self" href="../../src/tokio_tungstenite/handshake.rs.html#155">self</a>.<a href="../../src/tokio_tungstenite/handshake.rs.html#57">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>s = <a href="../../src/tokio_tungstenite/handshake.rs.html#156">this</a>.<span class="number">0</span>.take().expect(<span class="string">&quot;future polled after completion&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">machine</span> <span class="op">=</span> <a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#157">s</a>.<span class="ident">get_mut</span>();
+        <span class="kw">let </span>machine = <a href="../../src/tokio_tungstenite/handshake.rs.html#157">s</a>.get_mut();
         <a class="macro" href="../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Setting context in handshake&quot;</span>);
-        <a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#159">machine</a>.<span class="ident">get_mut</span>().<a class="ident" href="../../src/tokio_tungstenite/compat.rs.html#54">set_waker</a>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#155">cx</a>.<span class="ident">waker</span>());
+        <a href="../../src/tokio_tungstenite/handshake.rs.html#159">machine</a>.get_mut().<a href="../../src/tokio_tungstenite/compat.rs.html#54">set_waker</a>(<a href="../../src/tokio_tungstenite/handshake.rs.html#155">cx</a>.waker());
 
-        <span class="kw">match</span> <a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#157">s</a>.<span class="ident">handshake</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#164">stream</a>)),
-            <span class="prelude-val">Err</span>(<span class="ident">Error::Failure</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">Error::Failure</span>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#165">e</a>))),
-            <span class="prelude-val">Err</span>(<span class="ident">Error::Interrupted</span>(<span class="ident">mid</span>)) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#156">this</a>.<span class="number">0</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tokio_tungstenite/handshake.rs.html#166">mid</a>);
-                <span class="ident">Poll::Pending</span>
+        <span class="kw">match </span><a href="../../src/tokio_tungstenite/handshake.rs.html#157">s</a>.handshake() {
+            <span class="prelude-val">Ok</span>(stream) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#164">stream</a>)),
+            <span class="prelude-val">Err</span>(Error::Failure(e)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Error::Failure(<a href="../../src/tokio_tungstenite/handshake.rs.html#165">e</a>))),
+            <span class="prelude-val">Err</span>(Error::Interrupted(mid)) =&gt; {
+                <span class="kw-2">*</span><a href="../../src/tokio_tungstenite/handshake.rs.html#156">this</a>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<a href="../../src/tokio_tungstenite/handshake.rs.html#166">mid</a>);
+                Poll::Pending
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

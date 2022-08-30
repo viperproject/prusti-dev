@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/merge.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>merge.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/merge.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>merge.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -192,199 +192,199 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_uint.html">libc::c_uint</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/call.rs.html#32"><span class="kw">crate</span>::call::Convert</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/commit.rs.html#14">Commit</a>, <a class="ident" href="../../src/git2/lib.rs.html#393">FileFavor</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>};
+<span class="kw">use </span><a href="../../src/git2/call.rs.html#32"><span class="kw">crate</span>::call::Convert</a>;
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/commit.rs.html#14">Commit</a>, <a href="../../src/git2/lib.rs.html#393">FileFavor</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>};
 
-<span class="doccomment">/// A structure to represent an annotated commit, the input to merge and rebase.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An annotated commit contains information about how it was looked up, which</span>
-<span class="doccomment">/// may be useful for functions like merge or rebase to provide context to the</span>
-<span class="doccomment">/// operation.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_annotated_commit.html">raw::git_annotated_commit</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="ident">Commit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A structure to represent an annotated commit, the input to merge and rebase.
+///
+/// An annotated commit contains information about how it was looked up, which
+/// may be useful for functions like merge or rebase to provide context to the
+/// operation.
+</span><span class="kw">pub struct </span>AnnotatedCommit&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_annotated_commit.html">raw::git_annotated_commit</a>,
+    _marker: marker::PhantomData&lt;Commit&lt;<span class="lifetime">&#39;repo</span>&gt;&gt;,
 }
 
-<span class="doccomment">/// Options to specify when merging.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MergeOptions</span> {
-    <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_merge_options.html">raw::git_merge_options</a>,
+<span class="doccomment">/// Options to specify when merging.
+</span><span class="kw">pub struct </span>MergeOptions {
+    raw: <a href="../../libgit2_sys/struct.git_merge_options.html">raw::git_merge_options</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Gets the commit ID that the given git_annotated_commit refers to</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="ident">raw::git_annotated_commit_id</span>(<a class="self" href="../../src/git2/merge.rs.html#27">self</a>.<span class="ident">raw</span>)) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; AnnotatedCommit&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Gets the commit ID that the given git_annotated_commit refers to
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/oid.rs.html#15">Oid</a> {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(raw::git_annotated_commit_id(<a class="self" href="../../src/git2/merge.rs.html#27">self</a>.raw)) }
     }
 
-    <span class="doccomment">/// Get the refname that the given git_annotated_commit refers to</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns None if it is not valid utf8</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refname</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/merge.rs.html#34">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#39">refname_bytes</a>()).<span class="ident">ok</span>()
+    <span class="doccomment">/// Get the refname that the given git_annotated_commit refers to
+    ///
+    /// Returns None if it is not valid utf8
+    </span><span class="kw">pub fn </span>refname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/merge.rs.html#34">self</a>.<a href="../../src/git2/merge.rs.html#39">refname_bytes</a>()).ok()
     }
 
-    <span class="doccomment">/// Get the refname that the given git_annotated_commit refers to.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refname_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/merge.rs.html#39">self</a>, <span class="ident">raw::git_annotated_commit_ref</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/merge.rs.html#39">self</a>.<span class="ident">raw</span>)).<span class="ident">unwrap</span>() }
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+    <span class="doccomment">/// Get the refname that the given git_annotated_commit refers to.
+    </span><span class="kw">pub fn </span>refname_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/merge.rs.html#39">self</a>, raw::git_annotated_commit_ref(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/merge.rs.html#39">self</a>.raw)).unwrap() }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-    <span class="doccomment">/// Creates a default set of merge options.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-            <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
+}
+
+<span class="kw">impl </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+    <span class="doccomment">/// Creates a default set of merge options.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>opts = <a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+            raw: <span class="kw">unsafe </span>{ mem::zeroed() },
         };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="kw">unsafe</span> { <span class="ident">raw::git_merge_init_options</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">raw</span>, <span class="number">1</span>) }, <span class="number">0</span>);
-        <a class="ident" href="../../src/git2/merge.rs.html#53">opts</a>
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="kw">unsafe </span>{ raw::git_merge_init_options(<span class="kw-2">&amp;mut </span>opts.raw, <span class="number">1</span>) }, <span class="number">0</span>);
+        <a href="../../src/git2/merge.rs.html#53">opts</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <span class="kw">if</span> <span class="ident">val</span> {
-            <a class="self" href="../../src/git2/merge.rs.html#60">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/git2/merge.rs.html#60">opt</a>;
-        } <span class="kw">else</span> {
-            <a class="self" href="../../src/git2/merge.rs.html#60">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../src/git2/merge.rs.html#60">opt</a>;
+    <span class="kw">fn </span>flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <span class="kw">if </span>val {
+            <a class="self" href="../../src/git2/merge.rs.html#60">self</a>.raw.flags |= <a href="../../src/git2/merge.rs.html#60">opt</a>;
+        } <span class="kw">else </span>{
+            <a class="self" href="../../src/git2/merge.rs.html#60">self</a>.raw.flags &amp;= !<a href="../../src/git2/merge.rs.html#60">opt</a>;
         }
-        <a class="self" href="../../src/git2/merge.rs.html#60">self</a>
+        <span class="self"><a href="../../src/git2/merge.rs.html#60">self</a>
+    </span>}
+
+    <span class="doccomment">/// Detect file renames
+    </span><span class="kw">pub fn </span>find_renames(<span class="kw-2">&amp;mut </span><span class="self">self</span>, find: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#70">self</a>.<a href="../../src/git2/merge.rs.html#60">flag</a>(raw::GIT_MERGE_FIND_RENAMES <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#70">find</a>)
     }
 
-    <span class="doccomment">/// Detect file renames</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_renames</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">find</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#70">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#60">flag</a>(<span class="ident">raw::GIT_MERGE_FIND_RENAMES</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#70">find</a>)
+    <span class="doccomment">/// If a conflict occurs, exit immediately instead of attempting to continue
+    /// resolving conflicts
+    </span><span class="kw">pub fn </span>fail_on_conflict(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fail: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#76">self</a>.<a href="../../src/git2/merge.rs.html#60">flag</a>(raw::GIT_MERGE_FAIL_ON_CONFLICT <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#76">fail</a>)
     }
 
-    <span class="doccomment">/// If a conflict occurs, exit immediately instead of attempting to continue</span>
-    <span class="doccomment">/// resolving conflicts</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fail_on_conflict</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">fail</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#76">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#60">flag</a>(<span class="ident">raw::GIT_MERGE_FAIL_ON_CONFLICT</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#76">fail</a>)
+    <span class="doccomment">/// Do not write the REUC extension on the generated index
+    </span><span class="kw">pub fn </span>skip_reuc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, skip: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#81">self</a>.<a href="../../src/git2/merge.rs.html#60">flag</a>(raw::GIT_MERGE_FAIL_ON_CONFLICT <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#81">skip</a>)
     }
 
-    <span class="doccomment">/// Do not write the REUC extension on the generated index</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip_reuc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">skip</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#81">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#60">flag</a>(<span class="ident">raw::GIT_MERGE_FAIL_ON_CONFLICT</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#81">skip</a>)
+    <span class="doccomment">/// If the commits being merged have multiple merge bases, do not build a
+    /// recursive merge base (by merging the multiple merge bases), instead
+    /// simply use the first base.
+    </span><span class="kw">pub fn </span>no_recursive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, disable: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#88">self</a>.<a href="../../src/git2/merge.rs.html#60">flag</a>(raw::GIT_MERGE_NO_RECURSIVE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#88">disable</a>)
     }
 
-    <span class="doccomment">/// If the commits being merged have multiple merge bases, do not build a</span>
-    <span class="doccomment">/// recursive merge base (by merging the multiple merge bases), instead</span>
-    <span class="doccomment">/// simply use the first base.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_recursive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">disable</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#88">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#60">flag</a>(<span class="ident">raw::GIT_MERGE_NO_RECURSIVE</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#88">disable</a>)
-    }
+    <span class="doccomment">/// Similarity to consider a file renamed (default 50)
+    </span><span class="kw">pub fn </span>rename_threshold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, thresh: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#93">self</a>.raw.rename_threshold = <a href="../../src/git2/merge.rs.html#93">thresh</a>;
+        <span class="self"><a href="../../src/git2/merge.rs.html#93">self</a>
+    </span>}
 
-    <span class="doccomment">/// Similarity to consider a file renamed (default 50)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rename_threshold</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">thresh</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#93">self</a>.<span class="ident">raw</span>.<span class="ident">rename_threshold</span> <span class="op">=</span> <a class="ident" href="../../src/git2/merge.rs.html#93">thresh</a>;
-        <a class="self" href="../../src/git2/merge.rs.html#93">self</a>
-    }
+    <span class="doccomment">///  Maximum similarity sources to examine for renames (default 200).
+    /// If the number of rename candidates (add / delete pairs) is greater
+    /// than this value, inexact rename detection is aborted. This setting
+    /// overrides the `merge.renameLimit` configuration value.
+    </span><span class="kw">pub fn </span>target_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#102">self</a>.raw.target_limit = <a href="../../src/git2/merge.rs.html#102">limit</a> <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>;
+        <span class="self"><a href="../../src/git2/merge.rs.html#102">self</a>
+    </span>}
 
-    <span class="doccomment">///  Maximum similarity sources to examine for renames (default 200).</span>
-    <span class="doccomment">/// If the number of rename candidates (add / delete pairs) is greater</span>
-    <span class="doccomment">/// than this value, inexact rename detection is aborted. This setting</span>
-    <span class="doccomment">/// overrides the `merge.renameLimit` configuration value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_limit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#102">self</a>.<span class="ident">raw</span>.<span class="ident">target_limit</span> <span class="op">=</span> <a class="ident" href="../../src/git2/merge.rs.html#102">limit</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>;
-        <a class="self" href="../../src/git2/merge.rs.html#102">self</a>
-    }
+    <span class="doccomment">/// Maximum number of times to merge common ancestors to build a
+    /// virtual merge base when faced with criss-cross merges.  When
+    /// this limit is reached, the next ancestor will simply be used
+    /// instead of attempting to merge it.  The default is unlimited.
+    </span><span class="kw">pub fn </span>recursion_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#111">self</a>.raw.recursion_limit = <a href="../../src/git2/merge.rs.html#111">limit</a> <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>;
+        <span class="self"><a href="../../src/git2/merge.rs.html#111">self</a>
+    </span>}
 
-    <span class="doccomment">/// Maximum number of times to merge common ancestors to build a</span>
-    <span class="doccomment">/// virtual merge base when faced with criss-cross merges.  When</span>
-    <span class="doccomment">/// this limit is reached, the next ancestor will simply be used</span>
-    <span class="doccomment">/// instead of attempting to merge it.  The default is unlimited.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recursion_limit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#111">self</a>.<span class="ident">raw</span>.<span class="ident">recursion_limit</span> <span class="op">=</span> <a class="ident" href="../../src/git2/merge.rs.html#111">limit</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>;
-        <a class="self" href="../../src/git2/merge.rs.html#111">self</a>
-    }
+    <span class="doccomment">/// Specify a side to favor for resolving conflicts
+    </span><span class="kw">pub fn </span>file_favor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, favor: <a href="../../src/git2/lib.rs.html#393">FileFavor</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#117">self</a>.raw.file_favor = <a href="../../src/git2/merge.rs.html#117">favor</a>.<a href="../../src/git2/call.rs.html#33">convert</a>();
+        <span class="self"><a href="../../src/git2/merge.rs.html#117">self</a>
+    </span>}
 
-    <span class="doccomment">/// Specify a side to favor for resolving conflicts</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_favor</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">favor</span>: <a class="ident" href="../../src/git2/lib.rs.html#393">FileFavor</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#117">self</a>.<span class="ident">raw</span>.<span class="ident">file_favor</span> <span class="op">=</span> <a class="ident" href="../../src/git2/merge.rs.html#117">favor</a>.<a class="ident" href="../../src/git2/call.rs.html#33">convert</a>();
-        <a class="self" href="../../src/git2/merge.rs.html#117">self</a>
-    }
-
-    <span class="kw">fn</span> <span class="ident">file_flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <span class="kw">if</span> <span class="ident">val</span> {
-            <a class="self" href="../../src/git2/merge.rs.html#122">self</a>.<span class="ident">raw</span>.<span class="ident">file_flags</span> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/git2/merge.rs.html#122">opt</a>;
-        } <span class="kw">else</span> {
-            <a class="self" href="../../src/git2/merge.rs.html#122">self</a>.<span class="ident">raw</span>.<span class="ident">file_flags</span> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../src/git2/merge.rs.html#122">opt</a>;
+    <span class="kw">fn </span>file_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <span class="kw">if </span>val {
+            <a class="self" href="../../src/git2/merge.rs.html#122">self</a>.raw.file_flags |= <a href="../../src/git2/merge.rs.html#122">opt</a>;
+        } <span class="kw">else </span>{
+            <a class="self" href="../../src/git2/merge.rs.html#122">self</a>.raw.file_flags &amp;= !<a href="../../src/git2/merge.rs.html#122">opt</a>;
         }
-        <a class="self" href="../../src/git2/merge.rs.html#122">self</a>
+        <span class="self"><a href="../../src/git2/merge.rs.html#122">self</a>
+    </span>}
+
+    <span class="doccomment">/// Create standard conflicted merge files
+    </span><span class="kw">pub fn </span>standard_style(<span class="kw-2">&amp;mut </span><span class="self">self</span>, standard: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#132">self</a>.<a href="../../src/git2/merge.rs.html#122">file_flag</a>(raw::GIT_MERGE_FILE_STYLE_MERGE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#132">standard</a>)
     }
 
-    <span class="doccomment">/// Create standard conflicted merge files</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">standard_style</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">standard</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#132">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#122">file_flag</a>(<span class="ident">raw::GIT_MERGE_FILE_STYLE_MERGE</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#132">standard</a>)
+    <span class="doccomment">/// Create diff3-style file
+    </span><span class="kw">pub fn </span>diff3_style(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diff3: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#137">self</a>.<a href="../../src/git2/merge.rs.html#122">file_flag</a>(raw::GIT_MERGE_FILE_STYLE_DIFF3 <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#137">diff3</a>)
     }
 
-    <span class="doccomment">/// Create diff3-style file</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diff3_style</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">diff3</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#137">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#122">file_flag</a>(<span class="ident">raw::GIT_MERGE_FILE_STYLE_DIFF3</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#137">diff3</a>)
+    <span class="doccomment">/// Condense non-alphanumeric regions for simplified diff file
+    </span><span class="kw">pub fn </span>simplify_alnum(<span class="kw-2">&amp;mut </span><span class="self">self</span>, simplify: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#142">self</a>.<a href="../../src/git2/merge.rs.html#122">file_flag</a>(raw::GIT_MERGE_FILE_SIMPLIFY_ALNUM <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#142">simplify</a>)
     }
 
-    <span class="doccomment">/// Condense non-alphanumeric regions for simplified diff file</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simplify_alnum</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">simplify</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#142">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#122">file_flag</a>(<span class="ident">raw::GIT_MERGE_FILE_SIMPLIFY_ALNUM</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#142">simplify</a>)
+    <span class="doccomment">/// Ignore all whitespace
+    </span><span class="kw">pub fn </span>ignore_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ignore: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#147">self</a>.<a href="../../src/git2/merge.rs.html#122">file_flag</a>(raw::GIT_MERGE_FILE_IGNORE_WHITESPACE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#147">ignore</a>)
     }
 
-    <span class="doccomment">/// Ignore all whitespace</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#147">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#122">file_flag</a>(<span class="ident">raw::GIT_MERGE_FILE_IGNORE_WHITESPACE</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#147">ignore</a>)
+    <span class="doccomment">/// Ignore changes in amount of whitespace
+    </span><span class="kw">pub fn </span>ignore_whitespace_change(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ignore: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#152">self</a>.<a href="../../src/git2/merge.rs.html#122">file_flag</a>(raw::GIT_MERGE_FILE_IGNORE_WHITESPACE_CHANGE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#152">ignore</a>)
     }
 
-    <span class="doccomment">/// Ignore changes in amount of whitespace</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace_change</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#152">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#122">file_flag</a>(<span class="ident">raw::GIT_MERGE_FILE_IGNORE_WHITESPACE_CHANGE</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#152">ignore</a>)
+    <span class="doccomment">/// Ignore whitespace at end of line
+    </span><span class="kw">pub fn </span>ignore_whitespace_eol(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ignore: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#157">self</a>.<a href="../../src/git2/merge.rs.html#122">file_flag</a>(raw::GIT_MERGE_FILE_IGNORE_WHITESPACE_EOL <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#157">ignore</a>)
     }
 
-    <span class="doccomment">/// Ignore whitespace at end of line</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace_eol</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#157">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#122">file_flag</a>(<span class="ident">raw::GIT_MERGE_FILE_IGNORE_WHITESPACE_EOL</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#157">ignore</a>)
+    <span class="doccomment">/// Use the &quot;patience diff&quot; algorithm
+    </span><span class="kw">pub fn </span>patience(<span class="kw-2">&amp;mut </span><span class="self">self</span>, patience: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#162">self</a>.<a href="../../src/git2/merge.rs.html#122">file_flag</a>(raw::GIT_MERGE_FILE_DIFF_PATIENCE <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#162">patience</a>)
     }
 
-    <span class="doccomment">/// Use the &quot;patience diff&quot; algorithm</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">patience</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">patience</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#162">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#122">file_flag</a>(<span class="ident">raw::GIT_MERGE_FILE_DIFF_PATIENCE</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#162">patience</a>)
+    <span class="doccomment">/// Take extra time to find minimal diff
+    </span><span class="kw">pub fn </span>minimal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, minimal: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#167">self</a>.<a href="../../src/git2/merge.rs.html#122">file_flag</a>(raw::GIT_MERGE_FILE_DIFF_MINIMAL <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../src/git2/merge.rs.html#167">minimal</a>)
     }
 
-    <span class="doccomment">/// Take extra time to find minimal diff</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minimal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">minimal</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#167">self</a>.<a class="ident" href="../../src/git2/merge.rs.html#122">file_flag</a>(<span class="ident">raw::GIT_MERGE_FILE_DIFF_MINIMAL</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/git2/merge.rs.html#167">minimal</a>)
-    }
+    <span class="doccomment">/// Acquire a pointer to the underlying raw options.
+    </span><span class="kw">pub unsafe fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_merge_options.html">raw::git_merge_options</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/merge.rs.html#172">self</a>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_
+    </span>}
+}
 
-    <span class="doccomment">/// Acquire a pointer to the underlying raw options.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_merge_options.html">raw::git_merge_options</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/merge.rs.html#172">self</a>.<span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>AnnotatedCommit&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_annotated_commit.html">raw::git_annotated_commit</a>;
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_annotated_commit.html">raw::git_annotated_commit</a>) -&gt; AnnotatedCommit&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/merge.rs.html#15">AnnotatedCommit</a> {
+            <a href="../../src/git2/merge.rs.html#179">raw</a>,
+            _marker: marker::PhantomData,
+        }
+    }
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_annotated_commit.html">raw::git_annotated_commit</a> {
+        <a class="self" href="../../src/git2/merge.rs.html#185">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_annotated_commit.html">raw::git_annotated_commit</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_annotated_commit.html">raw::git_annotated_commit</a>) -&gt; <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/merge.rs.html#15">AnnotatedCommit</a> {
-            <a class="ident" href="../../src/git2/merge.rs.html#179">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
-        }
-    }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_annotated_commit.html">raw::git_annotated_commit</a> {
-        <a class="self" href="../../src/git2/merge.rs.html#185">self</a>.<span class="ident">raw</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_annotated_commit_free</span>(<a class="self" href="../../src/git2/merge.rs.html#191">self</a>.<span class="ident">raw</span>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>AnnotatedCommit&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{ raw::git_annotated_commit_free(<a class="self" href="../../src/git2/merge.rs.html#191">self</a>.raw) }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

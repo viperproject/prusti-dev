@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_storage.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_storage.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_storage.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_storage.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -49,56 +49,56 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module allows storing mir bodies with borrowck facts in a thread-local</span>
-<span class="doccomment">//! storage. Unfortunately, thread local storage requires all data stored in it</span>
-<span class="doccomment">//! to have a `&#39;static` lifetime. Therefore, we transmute the lifetime `&#39;tcx`</span>
-<span class="doccomment">//! away when storing the data. To ensure that nothing gets meessed up, we</span>
-<span class="doccomment">//! require the client to provide a witness: an instance of type `TyCtxt&lt;&#39;tcx&gt;`</span>
-<span class="doccomment">//! that is used to show that the lifetime that the client provided is indeed</span>
-<span class="doccomment">//! `&#39;tcx`.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module allows storing mir bodies with borrowck facts in a thread-local
+//! storage. Unfortunately, thread local storage requires all data stored in it
+//! to have a `&#39;static` lifetime. Therefore, we transmute the lifetime `&#39;tcx`
+//! away when storing the data. To ensure that nothing gets meessed up, we
+//! require the client to provide a witness: an instance of type `TyCtxt&lt;&#39;tcx&gt;`
+//! that is used to show that the lifetime that the client provided is indeed
+//! `&#39;tcx`.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">prusti_rustc_interface::hir::def_id::LocalDefId</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">prusti_rustc_interface::middle::ty::TyCtxt</a>;
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::borrowck::BodyWithBorrowckFacts</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">cell::RefCell</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local</a>};
+</span><span class="kw">use </span>prusti_rustc_interface::{
+    borrowck::BodyWithBorrowckFacts, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">hir::def_id::LocalDefId</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">middle::ty::TyCtxt</a>,
+};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">cell::RefCell</a>, <a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local</a>};
 
-<a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local!</a> {
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="ident">SHARED_STATE</span>:
-        <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">LocalDefId</span>, <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="ident">RefCell::new</span>(<span class="ident">HashMap::new</span>());
+<a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
+    <span class="kw">pub static </span>SHARED_STATE:
+        RefCell&lt;HashMap&lt;LocalDefId, BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt;&gt;&gt; =
+        RefCell::new(HashMap::new());
 }
 
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the module level comment.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">store_mir_body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-    <span class="ident">_tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
-    <span class="ident">body_with_facts</span>: <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+<span class="doccomment">/// # Safety
+///
+/// See the module level comment.
+</span><span class="kw">pub unsafe fn </span>store_mir_body&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+    _tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
+    body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) {
-    <span class="comment">// SAFETY: See the module level comment.</span>
-    <span class="kw">let</span> <span class="ident">body_with_facts</span>: <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="kw">unsafe</span> { <span class="ident">std::mem::transmute</span>(<a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#26">body_with_facts</a>) };
-    <a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#14-18">SHARED_STATE</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#31">state</a>.<span class="ident">borrow_mut</span>();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">def_id</span>, <span class="ident">body_with_facts</span>).<span class="ident">is_none</span>());
+    <span class="comment">// SAFETY: See the module level comment.
+    </span><span class="kw">let </span>body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt; =
+        <span class="kw">unsafe </span>{ std::mem::transmute(<a href="../../../src/prusti_interface/environment/mir_storage.rs.html#26">body_with_facts</a>) };
+    <a href="../../../src/prusti_interface/environment/mir_storage.rs.html#14-18">SHARED_STATE</a>.with(|state| {
+        <span class="kw">let </span><span class="kw-2">mut </span>map = <a href="../../../src/prusti_interface/environment/mir_storage.rs.html#31">state</a>.borrow_mut();
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(map.insert(def_id, body_with_facts).is_none());
     });
 }
 
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the module level comment.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span> <span class="comment">// We want to be very explicit about lifetimes here.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">retrieve_mir_body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-    <span class="ident">_tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
-) -&gt; <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">body_with_facts</span>: <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#14-18">SHARED_STATE</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#45">state</a>.<span class="ident">borrow_mut</span>();
-        <a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#46">map</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#43">def_id</a>).<span class="ident">unwrap</span>()
+<span class="doccomment">/// # Safety
+///
+/// See the module level comment.
+</span><span class="attribute">#[allow(clippy::needless_lifetimes)] </span><span class="comment">// We want to be very explicit about lifetimes here.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>retrieve_mir_body&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+    _tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
+) -&gt; BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">let </span>body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt; = <a href="../../../src/prusti_interface/environment/mir_storage.rs.html#14-18">SHARED_STATE</a>.with(|state| {
+        <span class="kw">let </span><span class="kw-2">mut </span>map = <a href="../../../src/prusti_interface/environment/mir_storage.rs.html#45">state</a>.borrow_mut();
+        <a href="../../../src/prusti_interface/environment/mir_storage.rs.html#46">map</a>.remove(<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/mir_storage.rs.html#43">def_id</a>).unwrap()
     });
-    <span class="comment">// SAFETY: See the module level comment.</span>
-    <span class="kw">unsafe</span> { <span class="ident">std::mem::transmute</span>(<a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#45">body_with_facts</a>) }
+    <span class="comment">// SAFETY: See the module level comment.
+    </span><span class="kw">unsafe </span>{ std::mem::transmute(<a href="../../../src/prusti_interface/environment/mir_storage.rs.html#45">body_with_facts</a>) }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

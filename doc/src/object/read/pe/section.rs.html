@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/pe/section.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>section.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/pe/section.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>section.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -434,441 +434,441 @@
 <span id="434">434</span>
 <span id="435">435</span>
 <span id="436">436</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/index.html">iter</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/index.html">iter</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/endian.rs.html#317"><span class="kw">crate</span>::endian::LittleEndian</a> <span class="kw">as</span> <span class="ident">LE</span>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/pe.rs.html#683"><span class="kw">crate</span>::pe::ImageSectionHeader</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{
-    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#659">CompressedData</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#612">CompressedFileRange</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#270">ObjectSection</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#233">ObjectSegment</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>,
-    <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../../src/object/common.rs.html#405">SectionFlags</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a class="ident" href="../../../../src/object/common.rs.html#96">SectionKind</a>, <a class="ident" href="../../../../src/object/common.rs.html#378">SegmentFlags</a>,
+<span class="kw">use </span><a href="../../../../src/object/endian.rs.html#317"><span class="kw">crate</span>::endian::LittleEndian</a> <span class="kw">as </span>LE;
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
+<span class="kw">use </span><a href="../../../../src/object/pe.rs.html#683"><span class="kw">crate</span>::pe::ImageSectionHeader</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{
+    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a href="../../../../src/object/read/mod.rs.html#659">CompressedData</a>, <a href="../../../../src/object/read/mod.rs.html#612">CompressedFileRange</a>, <a href="../../../../src/object/read/traits.rs.html#270">ObjectSection</a>, <a href="../../../../src/object/read/traits.rs.html#233">ObjectSegment</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>,
+    <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>, <span class="prelude-ty">Result</span>, <a href="../../../../src/object/common.rs.html#405">SectionFlags</a>, <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a href="../../../../src/object/common.rs.html#96">SectionKind</a>, <a href="../../../../src/object/common.rs.html#378">SegmentFlags</a>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>, <a class="ident" href="../../../../src/object/read/pe/file.rs.html#26">PeFile</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#16">SectionTable</a>};
+<span class="kw">use super</span>::{<a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>, <a href="../../../../src/object/read/pe/file.rs.html#26">PeFile</a>, <a href="../../../../src/object/read/coff/section.rs.html#16">SectionTable</a>};
 
-<span class="doccomment">/// An iterator over the loadable sections of a `PeFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSegmentIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// An iterator over the loadable sections of a `PeFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSegmentIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator over the loadable sections of a `PeFile32`.
+</span><span class="kw">pub type </span>PeSegmentIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    PeSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, R&gt;;
+<span class="doccomment">/// An iterator over the loadable sections of a `PeFile64`.
+</span><span class="kw">pub type </span>PeSegmentIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    PeSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, R&gt;;
 
-<span class="doccomment">/// An iterator over the loadable sections of a `PeFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the loadable sections of a `PeFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PeSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">PeFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">iter</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>PeFile&lt;<span class="lifetime">&#39;data</span>, Pe, R&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) iter: slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>PeSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt;
+<span class="kw">where
+    </span>Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = PeSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt;;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#39">self</a>.<span class="ident">iter</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#56">PeSegment</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/pe/section.rs.html#39">self</a>.<span class="ident">file</span>,
-            <a class="ident" href="../../../../src/object/read/pe/section.rs.html#40">section</a>,
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#39">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|section| <a href="../../../../src/object/read/pe/section.rs.html#56">PeSegment</a> {
+            file: <a class="self" href="../../../../src/object/read/pe/section.rs.html#39">self</a>.file,
+            <a href="../../../../src/object/read/pe/section.rs.html#40">section</a>,
         })
     }
 }
 
-<span class="doccomment">/// A loadable section of a `PeFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSegment32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// A loadable section of a `PeFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSegment64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A loadable section of a `PeFile32`.
+</span><span class="kw">pub type </span>PeSegment32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    PeSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, R&gt;;
+<span class="doccomment">/// A loadable section of a `PeFile64`.
+</span><span class="kw">pub type </span>PeSegment64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    PeSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, R&gt;;
 
-<span class="doccomment">/// A loadable section of a `PeFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A loadable section of a `PeFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PeSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">PeFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a>,
+    file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>PeFile&lt;<span class="lifetime">&#39;data</span>, Pe, R&gt;,
+    section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt; <a href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>PeSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt;
+<span class="kw">where
+    </span>Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">ObjectSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt; ObjectSegment&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>PeSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt;
+<span class="kw">where
+    </span>Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="ident">u64::from</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#78">self</a>.<span class="ident">section</span>.<span class="ident">virtual_address</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>)).<span class="ident">wrapping_add</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#78">self</a>.<span class="ident">file</span>.<span class="ident">common</span>.<span class="ident">image_base</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        u64::from(<a class="self" href="../../../../src/object/read/pe/section.rs.html#78">self</a>.section.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>)).wrapping_add(<a class="self" href="../../../../src/object/read/pe/section.rs.html#78">self</a>.file.common.image_base)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="ident">u64::from</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#83">self</a>.<span class="ident">section</span>.<span class="ident">virtual_size</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        u64::from(<a class="self" href="../../../../src/object/read/pe/section.rs.html#83">self</a>.section.virtual_size.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">align</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#88">self</a>.<span class="ident">file</span>.<a class="ident" href="../../../../src/object/read/pe/file.rs.html#118">section_alignment</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#88">self</a>.file.<a href="../../../../src/object/read/pe/file.rs.html#118">section_alignment</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">file_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#93">self</a>.<span class="ident">section</span>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
-        (<span class="ident">u64::from</span>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#94">offset</a>), <span class="ident">u64::from</span>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#94">size</a>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <span class="kw">let </span>(offset, size) = <a class="self" href="../../../../src/object/read/pe/section.rs.html#93">self</a>.section.<a href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
+        (u64::from(<a href="../../../../src/object/read/pe/section.rs.html#94">offset</a>), u64::from(<a href="../../../../src/object/read/pe/section.rs.html#94">size</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#98">self</a>.<span class="ident">section</span>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#370">pe_data</a>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#98">self</a>.<span class="ident">file</span>.<span class="ident">data</span>)
+    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#98">self</a>.section.<a href="../../../../src/object/read/pe/section.rs.html#370">pe_data</a>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#98">self</a>.file.data)
     }
 
-    <span class="kw">fn</span> <span class="ident">data_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/util.rs.html#217-222">read::util::data_range</a>(
-            <span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>,
-            <a class="self" href="../../../../src/object/read/pe/section.rs.html#102">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#235">address</a>(),
-            <a class="ident" href="../../../../src/object/read/pe/section.rs.html#102">address</a>,
-            <a class="ident" href="../../../../src/object/read/pe/section.rs.html#102">size</a>,
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/util.rs.html#217-222">read::util::data_range</a>(
+            <span class="self">self</span>.data()<span class="question-mark">?</span>,
+            <a class="self" href="../../../../src/object/read/pe/section.rs.html#102">self</a>.<a href="../../../../src/object/read/traits.rs.html#235">address</a>(),
+            <a href="../../../../src/object/read/pe/section.rs.html#102">address</a>,
+            <a href="../../../../src/object/read/pe/section.rs.html#102">size</a>,
         ))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">name_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#112">self</a>.<span class="ident">section</span>
-            .<a class="ident" href="../../../../src/object/read/coff/section.rs.html#401-404">name</a>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#112">self</a>.<span class="ident">file</span>.<span class="ident">common</span>.<span class="ident">symbols</span>.<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#67">strings</a>())
-            .<span class="ident">map</span>(<span class="prelude-val">Some</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#112">self</a>.section
+            .<a href="../../../../src/object/read/coff/section.rs.html#401-404">name</a>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#112">self</a>.file.common.symbols.<a href="../../../../src/object/read/coff/symbol.rs.html#67">strings</a>())
+            .map(<span class="prelude-val">Some</span>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">section</span>.<span class="ident">name</span>(<span class="self">self</span>.<span class="ident">file</span>.<span class="ident">common</span>.<span class="ident">symbols</span>.<span class="ident">strings</span>())<span class="question-mark">?</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+        <span class="kw">let </span>name = <span class="self">self</span>.section.name(<span class="self">self</span>.file.common.symbols.strings())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
-            <span class="ident">str::from_utf8</span>(<span class="ident">name</span>)
-                .<span class="ident">ok</span>()
-                .<span class="ident">read_error</span>(<span class="string">&quot;Non UTF-8 PE section name&quot;</span>)<span class="question-mark">?</span>,
+            str::from_utf8(name)
+                .ok()
+                .read_error(<span class="string">&quot;Non UTF-8 PE section name&quot;</span>)<span class="question-mark">?</span>,
         ))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#378">SegmentFlags</a> {
-        <span class="kw">let</span> <span class="ident">characteristics</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#129">self</a>.<span class="ident">section</span>.<span class="ident">characteristics</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>);
-        <a class="ident" href="../../../../src/object/common.rs.html#396">SegmentFlags::Coff</a> { <a class="ident" href="../../../../src/object/read/pe/section.rs.html#130">characteristics</a> }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/common.rs.html#378">SegmentFlags</a> {
+        <span class="kw">let </span>characteristics = <a class="self" href="../../../../src/object/read/pe/section.rs.html#129">self</a>.section.characteristics.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <a href="../../../../src/object/common.rs.html#396">SegmentFlags::Coff</a> { <a href="../../../../src/object/read/pe/section.rs.html#130">characteristics</a> }
     }
 }
 
-<span class="doccomment">/// An iterator over the sections of a `PeFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSectionIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// An iterator over the sections of a `PeFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSectionIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator over the sections of a `PeFile32`.
+</span><span class="kw">pub type </span>PeSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    PeSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, R&gt;;
+<span class="doccomment">/// An iterator over the sections of a `PeFile64`.
+</span><span class="kw">pub type </span>PeSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    PeSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, R&gt;;
 
-<span class="doccomment">/// An iterator over the sections of a `PeFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the sections of a `PeFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PeSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
+    Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">PeFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">iter</span>: <span class="ident">iter::Enumerate</span><span class="op">&lt;</span><span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>PeFile&lt;<span class="lifetime">&#39;data</span>, Pe, R&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) iter: iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;data</span>, <a href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>PeSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt;
+<span class="kw">where
+    </span>Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = PeSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt;;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#161">self</a>.<span class="ident">iter</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">section</span>)<span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#179">PeSection</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/pe/section.rs.html#161">self</a>.<span class="ident">file</span>,
-            <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#162">index</a> <span class="op">+</span> <span class="number">1</span>),
-            <a class="ident" href="../../../../src/object/read/pe/section.rs.html#162">section</a>,
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#161">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|(index, section)| <a href="../../../../src/object/read/pe/section.rs.html#179">PeSection</a> {
+            file: <a class="self" href="../../../../src/object/read/pe/section.rs.html#161">self</a>.file,
+            index: <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<a href="../../../../src/object/read/pe/section.rs.html#162">index</a> + <span class="number">1</span>),
+            <a href="../../../../src/object/read/pe/section.rs.html#162">section</a>,
         })
     }
 }
 
-<span class="doccomment">/// A section of a `PeFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSection32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// A section of a `PeFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSection64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A section of a `PeFile32`.
+</span><span class="kw">pub type </span>PeSection32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    PeSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, R&gt;;
+<span class="doccomment">/// A section of a `PeFile64`.
+</span><span class="kw">pub type </span>PeSection64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    PeSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, R&gt;;
 
-<span class="doccomment">/// A section of a `PeFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A section of a `PeFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PeSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
+    Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">PeFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>PeFile&lt;<span class="lifetime">&#39;data</span>, Pe, R&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) index: <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt; <a href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>PeSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt;
+<span class="kw">where
+    </span>Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">ObjectSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt; ObjectSection&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>PeSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Pe, R&gt;
+<span class="kw">where
+    </span>Pe: <a href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">RelocationIterator</span> <span class="op">=</span> <span class="ident">PeRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>RelocationIterator = PeRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt;;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#205">self</a>.<span class="ident">index</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a> {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#205">self</a>.index
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="ident">u64::from</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#210">self</a>.<span class="ident">section</span>.<span class="ident">virtual_address</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>)).<span class="ident">wrapping_add</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#210">self</a>.<span class="ident">file</span>.<span class="ident">common</span>.<span class="ident">image_base</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        u64::from(<a class="self" href="../../../../src/object/read/pe/section.rs.html#210">self</a>.section.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>)).wrapping_add(<a class="self" href="../../../../src/object/read/pe/section.rs.html#210">self</a>.file.common.image_base)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="ident">u64::from</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#215">self</a>.<span class="ident">section</span>.<span class="ident">virtual_size</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        u64::from(<a class="self" href="../../../../src/object/read/pe/section.rs.html#215">self</a>.section.virtual_size.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">align</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#220">self</a>.<span class="ident">file</span>.<a class="ident" href="../../../../src/object/read/pe/file.rs.html#118">section_alignment</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#220">self</a>.file.<a href="../../../../src/object/read/pe/file.rs.html#118">section_alignment</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">file_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#225">self</a>.<span class="ident">section</span>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
-        <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>((<span class="ident">u64::from</span>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#226">offset</a>), <span class="ident">u64::from</span>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#226">size</a>)))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt; {
+        <span class="kw">let </span>(offset, size) = <a class="self" href="../../../../src/object/read/pe/section.rs.html#225">self</a>.section.<a href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
+        <span class="kw">if </span>size == <span class="number">0 </span>{
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>((u64::from(<a href="../../../../src/object/read/pe/section.rs.html#226">offset</a>), u64::from(<a href="../../../../src/object/read/pe/section.rs.html#226">size</a>)))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#234">self</a>.<span class="ident">section</span>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#370">pe_data</a>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#234">self</a>.<span class="ident">file</span>.<span class="ident">data</span>)
+    <span class="kw">fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#234">self</a>.section.<a href="../../../../src/object/read/pe/section.rs.html#370">pe_data</a>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#234">self</a>.file.data)
     }
 
-    <span class="kw">fn</span> <span class="ident">data_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/util.rs.html#217-222">read::util::data_range</a>(
-            <span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>,
-            <a class="self" href="../../../../src/object/read/pe/section.rs.html#238">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#281">address</a>(),
-            <a class="ident" href="../../../../src/object/read/pe/section.rs.html#238">address</a>,
-            <a class="ident" href="../../../../src/object/read/pe/section.rs.html#238">size</a>,
+    <span class="kw">fn </span>data_range(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/util.rs.html#217-222">read::util::data_range</a>(
+            <span class="self">self</span>.data()<span class="question-mark">?</span>,
+            <a class="self" href="../../../../src/object/read/pe/section.rs.html#238">self</a>.<a href="../../../../src/object/read/traits.rs.html#281">address</a>(),
+            <a href="../../../../src/object/read/pe/section.rs.html#238">address</a>,
+            <a href="../../../../src/object/read/pe/section.rs.html#238">size</a>,
         ))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">compressed_file_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/object/read/mod.rs.html#612">CompressedFileRange</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">CompressedFileRange::none</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#248">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#290">file_range</a>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>compressed_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/object/read/mod.rs.html#612">CompressedFileRange</a>&gt; {
+        <span class="prelude-val">Ok</span>(CompressedFileRange::none(<a class="self" href="../../../../src/object/read/pe/section.rs.html#248">self</a>.<a href="../../../../src/object/read/traits.rs.html#290">file_range</a>()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">compressed_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompressedData</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#253">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#298">data</a>().<span class="ident">map</span>(<span class="ident">CompressedData::none</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>compressed_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;CompressedData&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#253">self</a>.<a href="../../../../src/object/read/traits.rs.html#298">data</a>().map(CompressedData::none)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">name_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#258">self</a>.<span class="ident">section</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#401-404">name</a>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#258">self</a>.<span class="ident">file</span>.<span class="ident">common</span>.<span class="ident">symbols</span>.<a class="ident" href="../../../../src/object/read/coff/symbol.rs.html#67">strings</a>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#258">self</a>.section.<a href="../../../../src/object/read/coff/section.rs.html#401-404">name</a>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#258">self</a>.file.common.symbols.<a href="../../../../src/object/read/coff/symbol.rs.html#67">strings</a>())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">name_bytes</span>()<span class="question-mark">?</span>;
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#264">name</a>)
-            .<span class="ident">ok</span>()
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Non UTF-8 PE section name&quot;</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <span class="kw">let </span>name = <span class="self">self</span>.name_bytes()<span class="question-mark">?</span>;
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../../../src/object/read/pe/section.rs.html#264">name</a>)
+            .ok()
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Non UTF-8 PE section name&quot;</span>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">segment_name_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>segment_name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">segment_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>segment_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#96">SectionKind</a> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#281">self</a>.<span class="ident">section</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#334">kind</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/common.rs.html#96">SectionKind</a> {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#281">self</a>.section.<a href="../../../../src/object/read/coff/section.rs.html#334">kind</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">relocations</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PeRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/pe/section.rs.html#426">PeRelocationIterator</a>(<span class="ident">PhantomData</span>)
+    <span class="kw">fn </span>relocations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PeRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+        <a href="../../../../src/object/read/pe/section.rs.html#426">PeRelocationIterator</a>(PhantomData)
     }
 
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#405">SectionFlags</a> {
-        <a class="ident" href="../../../../src/object/common.rs.html#419">SectionFlags::Coff</a> {
-            <span class="ident">characteristics</span>: <a class="self" href="../../../../src/object/read/pe/section.rs.html#289">self</a>.<span class="ident">section</span>.<span class="ident">characteristics</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>),
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/common.rs.html#405">SectionFlags</a> {
+        <a href="../../../../src/object/common.rs.html#419">SectionFlags::Coff</a> {
+            characteristics: <a class="self" href="../../../../src/object/read/pe/section.rs.html#289">self</a>.section.characteristics.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">SectionTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Return the file offset of the given virtual address, and the size up</span>
-    <span class="doccomment">/// to the end of the section containing it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if no section contains the address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_file_range_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#301">self</a>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#40">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#302">section</a>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#350">pe_file_range_at</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#301">va</a>))
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; SectionTable&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="doccomment">/// Return the file offset of the given virtual address, and the size up
+    /// to the end of the section containing it.
+    ///
+    /// Returns `None` if no section contains the address.
+    </span><span class="kw">pub fn </span>pe_file_range_at(<span class="kw-2">&amp;</span><span class="self">self</span>, va: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#301">self</a>.<a href="../../../../src/object/read/coff/section.rs.html#40">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(|section| <a href="../../../../src/object/read/pe/section.rs.html#302">section</a>.<a href="../../../../src/object/read/pe/section.rs.html#350">pe_file_range_at</a>(<a href="../../../../src/object/read/pe/section.rs.html#301">va</a>))
     }
 
-    <span class="doccomment">/// Return the data starting at the given virtual address, up to the end of the</span>
-    <span class="doccomment">/// section containing it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Ignores sections with invalid data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if no section contains the address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_data_at</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">R</span>, <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#311">self</a>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#40">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#312">section</a>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#382">pe_data_at</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#311">data</a>, <a class="ident" href="../../../../src/object/read/pe/section.rs.html#311">va</a>))
+    <span class="doccomment">/// Return the data starting at the given virtual address, up to the end of the
+    /// section containing it.
+    ///
+    /// Ignores sections with invalid data.
+    ///
+    /// Returns `None` if no section contains the address.
+    </span><span class="kw">pub fn </span>pe_data_at&lt;R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: R, va: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#311">self</a>.<a href="../../../../src/object/read/coff/section.rs.html#40">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(|section| <a href="../../../../src/object/read/pe/section.rs.html#312">section</a>.<a href="../../../../src/object/read/pe/section.rs.html#382">pe_data_at</a>(<a href="../../../../src/object/read/pe/section.rs.html#311">data</a>, <a href="../../../../src/object/read/pe/section.rs.html#311">va</a>))
     }
 
-    <span class="doccomment">/// Return the data of the section that contains the given virtual address in a PE file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also returns the virtual address of that section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Ignores sections with invalid data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_data_containing</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Return the data of the section that contains the given virtual address in a PE file.
+    ///
+    /// Also returns the virtual address of that section.
+    ///
+    /// Ignores sections with invalid data.
+    </span><span class="kw">pub fn </span>pe_data_containing&lt;R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-        <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#321">self</a>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#40">iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#326">section</a>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#404-408">pe_data_containing</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#322">data</a>, <a class="ident" href="../../../../src/object/read/pe/section.rs.html#323">va</a>))
+        data: R,
+        va: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#321">self</a>.<a href="../../../../src/object/read/coff/section.rs.html#40">iter</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(|section| <a href="../../../../src/object/read/pe/section.rs.html#326">section</a>.<a href="../../../../src/object/read/pe/section.rs.html#404-408">pe_data_containing</a>(<a href="../../../../src/object/read/pe/section.rs.html#322">data</a>, <a href="../../../../src/object/read/pe/section.rs.html#323">va</a>))
     }
 
-    <span class="doccomment">/// Return the section that contains a given virtual address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">section_containing</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683">ImageSectionHeader</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#330">self</a>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#40">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#331">section</a>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#388">contains_rva</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#330">va</a>))
+    <span class="doccomment">/// Return the section that contains a given virtual address.
+    </span><span class="kw">pub fn </span>section_containing(<span class="kw-2">&amp;</span><span class="self">self</span>, va: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#683">ImageSectionHeader</a>&gt; {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#330">self</a>.<a href="../../../../src/object/read/coff/section.rs.html#40">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|section| <a href="../../../../src/object/read/pe/section.rs.html#331">section</a>.<a href="../../../../src/object/read/pe/section.rs.html#388">contains_rva</a>(<a href="../../../../src/object/read/pe/section.rs.html#330">va</a>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a> {
-    <span class="doccomment">/// Return the offset and size of the section in a PE file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The size of the range will be the minimum of the file size and virtual size.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_file_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <span class="comment">// Pointer and size will be zero for uninitialized data; we don&#39;t need to validate this.</span>
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#339">self</a>.<span class="ident">pointer_to_raw_data</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>);
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#339">self</a>.<span class="ident">virtual_size</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>), <a class="self" href="../../../../src/object/read/pe/section.rs.html#339">self</a>.<span class="ident">size_of_raw_data</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>));
-        (<a class="ident" href="../../../../src/object/read/pe/section.rs.html#341">offset</a>, <a class="ident" href="../../../../src/object/read/pe/section.rs.html#342">size</a>)
+<span class="kw">impl </span><a href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a> {
+    <span class="doccomment">/// Return the offset and size of the section in a PE file.
+    ///
+    /// The size of the range will be the minimum of the file size and virtual size.
+    </span><span class="kw">pub fn </span>pe_file_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <span class="comment">// Pointer and size will be zero for uninitialized data; we don&#39;t need to validate this.
+        </span><span class="kw">let </span>offset = <a class="self" href="../../../../src/object/read/pe/section.rs.html#339">self</a>.pointer_to_raw_data.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>size = cmp::min(<a class="self" href="../../../../src/object/read/pe/section.rs.html#339">self</a>.virtual_size.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>), <a class="self" href="../../../../src/object/read/pe/section.rs.html#339">self</a>.size_of_raw_data.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>));
+        (<a href="../../../../src/object/read/pe/section.rs.html#341">offset</a>, <a href="../../../../src/object/read/pe/section.rs.html#342">size</a>)
     }
 
-    <span class="doccomment">/// Return the file offset of the given virtual address, and the remaining size up</span>
-    <span class="doccomment">/// to the end of the section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the section does not contain the address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_file_range_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">section_va</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#350">self</a>.<span class="ident">virtual_address</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>);
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">va</span>.<span class="ident">checked_sub</span>(<span class="ident">section_va</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> (<span class="ident">section_offset</span>, <span class="ident">section_size</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#350">self</a>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
-        <span class="comment">// Address must be within section (and not at its end).</span>
-        <span class="kw">if</span> <span class="ident">offset</span> <span class="op">&lt;</span> <span class="ident">section_size</span> {
-            <span class="prelude-val">Some</span>((<span class="ident">section_offset</span>.<span class="ident">checked_add</span>(<span class="ident">offset</span>)<span class="question-mark">?</span>, <a class="ident" href="../../../../src/object/read/pe/section.rs.html#353">section_size</a> <span class="op">-</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#352">offset</a>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="doccomment">/// Return the file offset of the given virtual address, and the remaining size up
+    /// to the end of the section.
+    ///
+    /// Returns `None` if the section does not contain the address.
+    </span><span class="kw">pub fn </span>pe_file_range_at(<span class="kw-2">&amp;</span><span class="self">self</span>, va: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt; {
+        <span class="kw">let </span>section_va = <a class="self" href="../../../../src/object/read/pe/section.rs.html#350">self</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>offset = va.checked_sub(section_va)<span class="question-mark">?</span>;
+        <span class="kw">let </span>(section_offset, section_size) = <a class="self" href="../../../../src/object/read/pe/section.rs.html#350">self</a>.<a href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
+        <span class="comment">// Address must be within section (and not at its end).
+        </span><span class="kw">if </span>offset &lt; section_size {
+            <span class="prelude-val">Some</span>((section_offset.checked_add(offset)<span class="question-mark">?</span>, <a href="../../../../src/object/read/pe/section.rs.html#353">section_size</a> - <a href="../../../../src/object/read/pe/section.rs.html#352">offset</a>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Return the virtual address and size of the section.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_address_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        (<a class="self" href="../../../../src/object/read/pe/section.rs.html#363">self</a>.<span class="ident">virtual_address</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>), <a class="self" href="../../../../src/object/read/pe/section.rs.html#363">self</a>.<span class="ident">virtual_size</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>))
+    <span class="doccomment">/// Return the virtual address and size of the section.
+    </span><span class="kw">pub fn </span>pe_address_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        (<a class="self" href="../../../../src/object/read/pe/section.rs.html#363">self</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>), <a class="self" href="../../../../src/object/read/pe/section.rs.html#363">self</a>.virtual_size.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>))
     }
 
-    <span class="doccomment">/// Return the section data in a PE file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The length of the data will be the minimum of the file size and virtual size.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_data</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#370">self</a>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
-        <a class="ident" href="../../../../src/object/read/pe/section.rs.html#370">data</a>.<a class="ident" href="../../../../src/object/read/read_ref.rs.html#44">read_bytes_at</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#371">offset</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../src/object/read/pe/section.rs.html#371">size</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid PE section offset or size&quot;</span>)
+    <span class="doccomment">/// Return the section data in a PE file.
+    ///
+    /// The length of the data will be the minimum of the file size and virtual size.
+    </span><span class="kw">pub fn </span>pe_data&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">let </span>(offset, size) = <a class="self" href="../../../../src/object/read/pe/section.rs.html#370">self</a>.<a href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
+        <a href="../../../../src/object/read/pe/section.rs.html#370">data</a>.<a href="../../../../src/object/read/read_ref.rs.html#44">read_bytes_at</a>(<a href="../../../../src/object/read/pe/section.rs.html#371">offset</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../../src/object/read/pe/section.rs.html#371">size</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid PE section offset or size&quot;</span>)
     }
 
-    <span class="doccomment">/// Return the data starting at the given virtual address, up to the end of the</span>
-    <span class="doccomment">/// section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Ignores sections with invalid data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the section does not contain the address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_data_at</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">R</span>, <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">size</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pe_file_range_at</span>(<span class="ident">va</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../src/object/read/pe/section.rs.html#382">data</a>.<a class="ident" href="../../../../src/object/read/read_ref.rs.html#44">read_bytes_at</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#383">offset</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../src/object/read/pe/section.rs.html#383">size</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<span class="ident">ok</span>()
+    <span class="doccomment">/// Return the data starting at the given virtual address, up to the end of the
+    /// section.
+    ///
+    /// Ignores sections with invalid data.
+    ///
+    /// Returns `None` if the section does not contain the address.
+    </span><span class="kw">pub fn </span>pe_data_at&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: R, va: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">let </span>(offset, size) = <span class="self">self</span>.pe_file_range_at(va)<span class="question-mark">?</span>;
+        <a href="../../../../src/object/read/pe/section.rs.html#382">data</a>.<a href="../../../../src/object/read/read_ref.rs.html#44">read_bytes_at</a>(<a href="../../../../src/object/read/pe/section.rs.html#383">offset</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../../src/object/read/pe/section.rs.html#383">size</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).ok()
     }
 
-    <span class="doccomment">/// Tests whether a given RVA is part of this section</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_rva</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">section_va</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#388">self</a>.<span class="ident">virtual_address</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>);
-        <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#388">va</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#389">section_va</a>) {
-            <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">offset</span>) =&gt; {
-                <span class="comment">// Address must be within section (and not at its end).</span>
-                <a class="ident" href="../../../../src/object/read/pe/section.rs.html#392">offset</a> <span class="op">&lt;</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#388">self</a>.<span class="ident">virtual_size</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>)
+    <span class="doccomment">/// Tests whether a given RVA is part of this section
+    </span><span class="kw">pub fn </span>contains_rva(<span class="kw-2">&amp;</span><span class="self">self</span>, va: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>section_va = <a class="self" href="../../../../src/object/read/pe/section.rs.html#388">self</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <span class="kw">match </span><a href="../../../../src/object/read/pe/section.rs.html#388">va</a>.checked_sub(<a href="../../../../src/object/read/pe/section.rs.html#389">section_va</a>) {
+            <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(offset) =&gt; {
+                <span class="comment">// Address must be within section (and not at its end).
+                </span><a href="../../../../src/object/read/pe/section.rs.html#392">offset</a> &lt; <a class="self" href="../../../../src/object/read/pe/section.rs.html#388">self</a>.virtual_size.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>)
             }
         }
     }
 
-    <span class="doccomment">/// Return the section data if it contains the given virtual address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also returns the virtual address of that section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Ignores sections with invalid data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pe_data_containing</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Return the section data if it contains the given virtual address.
+    ///
+    /// Also returns the virtual address of that section.
+    ///
+    /// Ignores sections with invalid data.
+    </span><span class="kw">pub fn </span>pe_data_containing&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-        <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">section_va</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#405">self</a>.<span class="ident">virtual_address</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>);
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">va</span>.<span class="ident">checked_sub</span>(<span class="ident">section_va</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> (<span class="ident">section_offset</span>, <span class="ident">section_size</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#405">self</a>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
-        <span class="comment">// Address must be within section (and not at its end).</span>
-        <span class="kw">if</span> <span class="ident">offset</span> <span class="op">&lt;</span> <span class="ident">section_size</span> {
-            <span class="kw">let</span> <span class="ident">section_data</span> <span class="op">=</span> <span class="ident">data</span>
-                .<span class="ident">read_bytes_at</span>(<span class="ident">section_offset</span>.<span class="ident">into</span>(), <span class="ident">section_size</span>.<span class="ident">into</span>())
-                .<span class="ident">ok</span>()<span class="question-mark">?</span>;
-            <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/object/read/pe/section.rs.html#414">section_data</a>, <a class="ident" href="../../../../src/object/read/pe/section.rs.html#409">section_va</a>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+        data: R,
+        va: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt; {
+        <span class="kw">let </span>section_va = <a class="self" href="../../../../src/object/read/pe/section.rs.html#405">self</a>.virtual_address.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>);
+        <span class="kw">let </span>offset = va.checked_sub(section_va)<span class="question-mark">?</span>;
+        <span class="kw">let </span>(section_offset, section_size) = <a class="self" href="../../../../src/object/read/pe/section.rs.html#405">self</a>.<a href="../../../../src/object/read/pe/section.rs.html#339">pe_file_range</a>();
+        <span class="comment">// Address must be within section (and not at its end).
+        </span><span class="kw">if </span>offset &lt; section_size {
+            <span class="kw">let </span>section_data = data
+                .read_bytes_at(section_offset.into(), section_size.into())
+                .ok()<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>((<a href="../../../../src/object/read/pe/section.rs.html#414">section_data</a>, <a href="../../../../src/object/read/pe/section.rs.html#409">section_va</a>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="doccomment">/// An iterator over the relocations in an `PeSection`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>(
-    <span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> (), <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> (), <span class="ident">R</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the relocations in an `PeSection`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PeRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;(
+    PhantomData&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>(), R)&gt;,
 );
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">PeRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>PeRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, R&gt; {
+    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="prelude-val">None
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

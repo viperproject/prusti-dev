@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/macros/scoped_tls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scoped_tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/macros/scoped_tls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scoped_tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -75,82 +75,82 @@
 <span id="75">75</span>
 <span id="76">76</span>
 <span id="77">77</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/local/struct.LocalKey.html"><span class="kw">crate</span>::loom::thread::LocalKey</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/thread/local/struct.LocalKey.html"><span class="kw">crate</span>::loom::thread::LocalKey</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
 
-<span class="doccomment">/// Sets a reference as a thread-local.</span>
-<span class="macro">macro_rules!</span> <span class="ident">scoped_thread_local</span> {
-    ($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attrs</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vis</span>:<span class="ident">vis</span> <span class="kw">static</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) =&gt; (
-        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attrs</span>]</span>)<span class="op">*</span>
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vis</span> <span class="kw">static</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::macros::scoped_tls::ScopedKey</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>
-            <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::macros::scoped_tls::ScopedKey</span> {
-                <span class="ident">inner</span>: {
-                    <span class="macro">thread_local!</span>(<span class="kw">static</span> <span class="ident">FOO</span>: <span class="ident">::std::cell::Cell</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span> <span class="op">=</span> <span class="kw">const</span> {
-                        <span class="ident">std::cell::Cell::new</span>(<span class="ident">::std::ptr::null</span>())
+<span class="doccomment">/// Sets a reference as a thread-local.
+</span><span class="macro">macro_rules! </span>scoped_thread_local {
+    ($(<span class="attribute">#[<span class="macro-nonterminal">$attrs</span>:meta]</span>)* <span class="macro-nonterminal">$vis</span>:vis <span class="kw">static </span><span class="macro-nonterminal">$name</span>:ident: <span class="macro-nonterminal">$ty</span>:ty) =&gt; (
+        $(<span class="attribute">#[<span class="macro-nonterminal">$attrs</span>]</span>)*
+        <span class="macro-nonterminal">$vis </span><span class="kw">static </span><span class="macro-nonterminal">$name</span>: <span class="macro-nonterminal">$crate::macros::scoped_tls::ScopedKey</span>&lt;<span class="macro-nonterminal">$ty</span>&gt;
+            = <span class="macro-nonterminal">$crate::macros::scoped_tls::ScopedKey </span>{
+                inner: {
+                    <span class="macro">thread_local!</span>(<span class="kw">static </span>FOO: ::std::cell::Cell&lt;<span class="kw-2">*const </span>()&gt; = <span class="kw">const </span>{
+                        std::cell::Cell::new(::std::ptr::null())
                     });
-                    <span class="kw-2">&amp;</span><span class="ident">FOO</span>
+                    <span class="kw-2">&amp;</span>FOO
                 },
-                <span class="ident">_marker</span>: <span class="ident">::std::marker::PhantomData</span>,
+                _marker: ::std::marker::PhantomData,
             };
     )
 }
 
-<span class="doccomment">/// Type representing a thread local storage key corresponding to a reference</span>
-<span class="doccomment">/// to the type parameter `T`.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">ScopedKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">inner</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">LocalKey</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Type representing a thread local storage key corresponding to a reference
+/// to the type parameter `T`.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ScopedKey&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;Cell&lt;<span class="kw-2">*const </span>()&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) _marker: marker::PhantomData&lt;T&gt;,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">ScopedKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>ScopedKey&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ScopedKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Inserts a value into this scoped thread local storage slot for a</span>
-    <span class="doccomment">/// duration of a closure.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>, <span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;T&gt; ScopedKey&lt;T&gt; {
+    <span class="doccomment">/// Inserts a value into this scoped thread local storage slot for a
+    /// duration of a closure.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, t: <span class="kw-2">&amp;</span>T, f: F) -&gt; R
+    <span class="kw">where
+        </span>F: FnOnce() -&gt; R,
     {
-        <span class="kw">struct</span> <span class="ident">Reset</span> {
-            <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">LocalKey</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>,
-            <span class="ident">val</span>: <span class="kw-2">*const</span> (),
+        <span class="kw">struct </span>Reset {
+            key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;Cell&lt;<span class="kw-2">*const </span>()&gt;&gt;,
+            val: <span class="kw-2">*const </span>(),
         }
 
-        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#39">Reset</a> {
-            <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-                <a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#45">self</a>.<span class="ident">key</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#46">c</a>.<span class="ident">set</span>(<a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#45">self</a>.<span class="ident">val</span>));
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/tokio/macros/scoped_tls.rs.html#39">Reset</a> {
+            <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+                <a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#45">self</a>.key.with(|c| <a href="../../../src/tokio/macros/scoped_tls.rs.html#46">c</a>.set(<a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#45">self</a>.val));
             }
         }
 
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#35">self</a>.<span class="ident">inner</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#50">c</a>.<span class="ident">get</span>();
-            <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#50">c</a>.<span class="ident">set</span>(<a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#35">t</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> ());
-            <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#51">prev</a>
+        <span class="kw">let </span>prev = <a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#35">self</a>.inner.with(|c| {
+            <span class="kw">let </span>prev = <a href="../../../src/tokio/macros/scoped_tls.rs.html#50">c</a>.get();
+            <a href="../../../src/tokio/macros/scoped_tls.rs.html#50">c</a>.set(<a href="../../../src/tokio/macros/scoped_tls.rs.html#35">t</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>());
+            <a href="../../../src/tokio/macros/scoped_tls.rs.html#51">prev</a>
         });
 
-        <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#39">Reset</a> {
-            <span class="ident">key</span>: <a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#35">self</a>.<span class="ident">inner</span>,
-            <span class="ident">val</span>: <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#50">prev</a>,
+        <span class="kw">let </span>_reset = <a href="../../../src/tokio/macros/scoped_tls.rs.html#39">Reset</a> {
+            key: <a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#35">self</a>.inner,
+            val: <a href="../../../src/tokio/macros/scoped_tls.rs.html#50">prev</a>,
         };
 
-        <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#35">f</a>()
+        <a href="../../../src/tokio/macros/scoped_tls.rs.html#35">f</a>()
     }
 
-    <span class="doccomment">/// Gets a value out of this scoped variable.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
+    <span class="doccomment">/// Gets a value out of this scoped variable.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, f: F) -&gt; R
+    <span class="kw">where
+        </span>F: FnOnce(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;) -&gt; R,
     {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#65">self</a>.<span class="ident">inner</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#69">c</a>.<span class="ident">get</span>());
+        <span class="kw">let </span>val = <a class="self" href="../../../src/tokio/macros/scoped_tls.rs.html#65">self</a>.inner.with(|c| <a href="../../../src/tokio/macros/scoped_tls.rs.html#69">c</a>.get());
 
-        <span class="kw">if</span> <span class="ident">val</span>.<span class="ident">is_null</span>() {
-            <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#65">f</a>(<span class="prelude-val">None</span>)
-        } <span class="kw">else</span> {
-            <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#65">f</a>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#69">val</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">T</span>))) }
+        <span class="kw">if </span>val.is_null() {
+            <a href="../../../src/tokio/macros/scoped_tls.rs.html#65">f</a>(<span class="prelude-val">None</span>)
+        } <span class="kw">else </span>{
+            <span class="kw">unsafe </span>{ <a href="../../../src/tokio/macros/scoped_tls.rs.html#65">f</a>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="../../../src/tokio/macros/scoped_tls.rs.html#69">val</a> <span class="kw">as </span><span class="kw-2">*const </span>T))) }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

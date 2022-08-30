@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/aranges.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aranges.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/aranges.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aranges.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -658,665 +658,665 @@
 <span id="658">658</span>
 <span id="659">659</span>
 <span id="660">660</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/gimli/common.rs.html#104">DebugArangesOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#108">DebugInfoOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585">Range</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/gimli/common.rs.html#104">DebugArangesOffset</a>, <a href="../../../src/gimli/common.rs.html#108">DebugInfoOffset</a>, <a href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a href="../../../src/gimli/common.rs.html#245">SectionId</a>};
+<span class="kw">use </span><a href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../../src/gimli/read/rnglists.rs.html#585">Range</a>, <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
 
-<span class="doccomment">/// The `DebugAranges` struct represents the DWARF address range information</span>
-<span class="doccomment">/// found in the `.debug_aranges` section.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugAranges</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">section</span>: <span class="ident">R</span>,
+<span class="doccomment">/// The `DebugAranges` struct represents the DWARF address range information
+/// found in the `.debug_aranges` section.
+</span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
+</span><span class="kw">pub struct </span>DebugAranges&lt;R&gt; {
+    section: R,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">DebugAranges</span><span class="op">&lt;</span><span class="ident">EndianSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; DebugAranges&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt;
+<span class="kw">where
+    </span>Endian: <a href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
 {
-    <span class="doccomment">/// Construct a new `DebugAranges` instance from the data in the `.debug_aranges`</span>
-    <span class="doccomment">/// section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is the caller&#39;s responsibility to read the `.debug_aranges` section and</span>
-    <span class="doccomment">/// present it as a `&amp;[u8]` slice. That means using some ELF loader on</span>
-    <span class="doccomment">/// Linux, a Mach-O loader on macOS, etc.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use gimli::{DebugAranges, LittleEndian};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # let buf = [];</span>
-    <span class="doccomment">/// # let read_debug_aranges_section = || &amp;buf;</span>
-    <span class="doccomment">/// let debug_aranges =</span>
-    <span class="doccomment">///     DebugAranges::new(read_debug_aranges_section(), LittleEndian);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">endian</span>: <span class="ident">Endian</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/aranges.rs.html#8">DebugAranges</a> {
-            <span class="ident">section</span>: <span class="ident">EndianSlice::new</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#31">section</a>, <a class="ident" href="../../../src/gimli/read/aranges.rs.html#31">endian</a>),
+    <span class="doccomment">/// Construct a new `DebugAranges` instance from the data in the `.debug_aranges`
+    /// section.
+    ///
+    /// It is the caller&#39;s responsibility to read the `.debug_aranges` section and
+    /// present it as a `&amp;[u8]` slice. That means using some ELF loader on
+    /// Linux, a Mach-O loader on macOS, etc.
+    ///
+    /// ```
+    /// use gimli::{DebugAranges, LittleEndian};
+    ///
+    /// # let buf = [];
+    /// # let read_debug_aranges_section = || &amp;buf;
+    /// let debug_aranges =
+    ///     DebugAranges::new(read_debug_aranges_section(), LittleEndian);
+    /// ```
+    </span><span class="kw">pub fn </span>new(section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/gimli/read/aranges.rs.html#8">DebugAranges</a> {
+            section: EndianSlice::new(<a href="../../../src/gimli/read/aranges.rs.html#31">section</a>, <a href="../../../src/gimli/read/aranges.rs.html#31">endian</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugAranges</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Iterate the sets of entries in the `.debug_aranges` section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Each set of entries belongs to a single unit.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ArangeHeaderIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/gimli/read/aranges.rs.html#99">ArangeHeaderIter</a> {
-            <span class="ident">input</span>: <a class="self" href="../../../src/gimli/read/aranges.rs.html#42">self</a>.<span class="ident">section</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">offset</span>: <a class="ident" href="../../../src/gimli/common.rs.html#104">DebugArangesOffset</a>(<span class="ident">R::Offset::from_u8</span>(<span class="number">0</span>)),
+<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; DebugAranges&lt;R&gt; {
+    <span class="doccomment">/// Iterate the sets of entries in the `.debug_aranges` section.
+    ///
+    /// Each set of entries belongs to a single unit.
+    </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ArangeHeaderIter&lt;R&gt; {
+        <a href="../../../src/gimli/read/aranges.rs.html#99">ArangeHeaderIter</a> {
+            input: <a class="self" href="../../../src/gimli/read/aranges.rs.html#42">self</a>.section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            offset: <a href="../../../src/gimli/common.rs.html#104">DebugArangesOffset</a>(R::Offset::from_u8(<span class="number">0</span>)),
         }
     }
 
-    <span class="doccomment">/// Get the header at the given offset.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">DebugArangesOffset</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ArangeHeader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/aranges.rs.html#50">self</a>.<span class="ident">section</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="ident">input</span>.<span class="ident">skip</span>(<span class="ident">offset</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="ident">ArangeHeader::parse</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#51">input</a>, <a class="ident" href="../../../src/gimli/read/aranges.rs.html#50">offset</a>)
+    <span class="doccomment">/// Get the header at the given offset.
+    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: DebugArangesOffset&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ArangeHeader&lt;R&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>input = <a class="self" href="../../../src/gimli/read/aranges.rs.html#50">self</a>.section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        input.skip(offset.<span class="number">0</span>)<span class="question-mark">?</span>;
+        ArangeHeader::parse(<span class="kw-2">&amp;mut </span><a href="../../../src/gimli/read/aranges.rs.html#51">input</a>, <a href="../../../src/gimli/read/aranges.rs.html#50">offset</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DebugAranges</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a `DebugAranges` section that references the data in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful when `R` implements `Reader` but `T` does not.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Example Usage</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// # let load_section = || unimplemented!();</span>
-    <span class="doccomment">/// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.</span>
-    <span class="doccomment">/// let owned_section: gimli::DebugAranges&lt;Vec&lt;u8&gt;&gt; = load_section();</span>
-    <span class="doccomment">/// // Create a reference to the DWARF section.</span>
-    <span class="doccomment">/// let section = owned_section.borrow(|section| {</span>
-    <span class="doccomment">///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">borrow</span>: <span class="ident">F</span>) -&gt; <span class="ident">DebugAranges</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) -&gt; <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;T&gt; DebugAranges&lt;T&gt; {
+    <span class="doccomment">/// Create a `DebugAranges` section that references the data in `self`.
+    ///
+    /// This is useful when `R` implements `Reader` but `T` does not.
+    ///
+    /// ## Example Usage
+    ///
+    /// ```rust,no_run
+    /// # let load_section = || unimplemented!();
+    /// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.
+    /// let owned_section: gimli::DebugAranges&lt;Vec&lt;u8&gt;&gt; = load_section();
+    /// // Create a reference to the DWARF section.
+    /// let section = owned_section.borrow(|section| {
+    ///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)
+    /// });
+    /// ```
+    </span><span class="kw">pub fn </span>borrow&lt;<span class="lifetime">&#39;a</span>, F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, <span class="kw-2">mut </span>borrow: F) -&gt; DebugAranges&lt;R&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a class="ident" href="../../../src/gimli/read/aranges.rs.html#73">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/aranges.rs.html#73">self</a>.<span class="ident">section</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="../../../src/gimli/read/aranges.rs.html#73">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/aranges.rs.html#73">self</a>.section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAranges</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
-        <a class="ident" href="../../../src/gimli/common.rs.html#251">SectionId::DebugAranges</a>
+<span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugAranges&lt;R&gt; {
+    <span class="kw">fn </span>id() -&gt; <a href="../../../src/gimli/common.rs.html#245">SectionId</a> {
+        <a href="../../../src/gimli/common.rs.html#251">SectionId::DebugAranges</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">reader</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/aranges.rs.html#86">self</a>.<span class="ident">section</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAranges</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/aranges.rs.html#8">DebugAranges</a> { <a class="ident" href="../../../src/gimli/read/aranges.rs.html#92">section</a> }
+    <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/aranges.rs.html#86">self</a>.section
     }
 }
 
-<span class="doccomment">/// An iterator over the headers of a `.debug_aranges` section.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArangeHeaderIter</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> {
-    <span class="ident">input</span>: <span class="ident">R</span>,
-    <span class="ident">offset</span>: <span class="ident">DebugArangesOffset</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugAranges&lt;R&gt; {
+    <span class="kw">fn </span>from(section: R) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/gimli/read/aranges.rs.html#8">DebugAranges</a> { <a href="../../../src/gimli/read/aranges.rs.html#92">section</a> }
+    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">ArangeHeaderIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Advance the iterator to the next header.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ArangeHeader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+<span class="doccomment">/// An iterator over the headers of a `.debug_aranges` section.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>ArangeHeaderIter&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; {
+    input: R,
+    offset: DebugArangesOffset&lt;R::Offset&gt;,
+}
+
+<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; ArangeHeaderIter&lt;R&gt; {
+    <span class="doccomment">/// Advance the iterator to the next header.
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ArangeHeader&lt;R&gt;&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.input.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#226">len</a>();
-        <span class="kw">match</span> <span class="ident">ArangeHeader::parse</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.<span class="ident">input</span>, <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.<span class="ident">offset</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">header</span>) =&gt; {
-                <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.<span class="ident">offset</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#111">len</a> <span class="op">-</span> <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#226">len</a>();
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#113">header</a>))
+        <span class="kw">let </span>len = <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.input.<a href="../../../src/gimli/read/reader.rs.html#226">len</a>();
+        <span class="kw">match </span>ArangeHeader::parse(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.input, <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.offset) {
+            <span class="prelude-val">Ok</span>(header) =&gt; {
+                <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.offset.<span class="number">0 </span>+= <a href="../../../src/gimli/read/aranges.rs.html#111">len</a> - <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.input.<a href="../../../src/gimli/read/reader.rs.html#226">len</a>();
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/aranges.rs.html#113">header</a>))
             }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#117">e</a>)
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a class="self" href="../../../src/gimli/read/aranges.rs.html#106">self</a>.input.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
+                <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/aranges.rs.html#117">e</a>)
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fallible-iterator&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Reader</span><span class="op">&gt;</span> <span class="ident">fallible_iterator::FallibleIterator</span> <span class="kw">for</span> <span class="ident">ArangeHeaderIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">ArangeHeader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;fallible-iterator&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: Reader&gt; fallible_iterator::FallibleIterator <span class="kw">for </span>ArangeHeaderIter&lt;R&gt; {
+    <span class="kw">type </span>Item = ArangeHeader&lt;R&gt;;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">::core::result::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">ArangeHeaderIter::next</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ::core::result::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;, <span class="self">Self</span>::Error&gt; {
+        ArangeHeaderIter::next(<span class="self">self</span>)
     }
 }
 
-<span class="doccomment">/// A header for a set of entries in the `.debug_arange` section.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// These entries all belong to a single unit.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArangeHeader</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Offset</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Reader</span><span class="op">&gt;</span><span class="ident">::Offset</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Reader</span><span class="op">&lt;</span><span class="ident">Offset</span> <span class="op">=</span> <span class="ident">Offset</span><span class="op">&gt;</span>,
-    <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+<span class="doccomment">/// A header for a set of entries in the `.debug_arange` section.
+///
+/// These entries all belong to a single unit.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>ArangeHeader&lt;R, Offset = &lt;R <span class="kw">as </span>Reader&gt;::Offset&gt;
+<span class="kw">where
+    </span>R: Reader&lt;Offset = Offset&gt;,
+    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
 {
-    <span class="ident">offset</span>: <span class="ident">DebugArangesOffset</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span>,
-    <span class="ident">encoding</span>: <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>,
-    <span class="ident">length</span>: <span class="ident">Offset</span>,
-    <span class="ident">debug_info_offset</span>: <span class="ident">DebugInfoOffset</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span>,
-    <span class="ident">segment_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
-    <span class="ident">entries</span>: <span class="ident">R</span>,
+    offset: DebugArangesOffset&lt;Offset&gt;,
+    encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
+    length: Offset,
+    debug_info_offset: DebugInfoOffset&lt;Offset&gt;,
+    segment_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+    entries: R,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Offset</span><span class="op">&gt;</span> <span class="ident">ArangeHeader</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Offset</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Reader</span><span class="op">&lt;</span><span class="ident">Offset</span> <span class="op">=</span> <span class="ident">Offset</span><span class="op">&gt;</span>,
-    <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
+<span class="kw">impl</span>&lt;R, Offset&gt; ArangeHeader&lt;R, Offset&gt;
+<span class="kw">where
+    </span>R: Reader&lt;Offset = Offset&gt;,
+    Offset: <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
 {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>, <span class="ident">offset</span>: <span class="ident">DebugArangesOffset</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">length</span>, <span class="ident">format</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_initial_length</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">split</span>(<span class="ident">length</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>parse(input: <span class="kw-2">&amp;mut </span>R, offset: DebugArangesOffset&lt;Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>(length, format) = input.read_initial_length()<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>rest = input.split(length)<span class="question-mark">?</span>;
 
-        <span class="comment">// Check the version. The DWARF 5 spec says that this is always 2, but version 3</span>
-        <span class="comment">// has been observed in the wild, potentially due to a bug; see</span>
-        <span class="comment">// https://github.com/gimli-rs/gimli/issues/559 for more information.</span>
-        <span class="comment">// lldb allows versions 2 through 5, possibly by mistake.</span>
-        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">read_u16</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">version</span> <span class="op">!</span><span class="op">=</span> <span class="number">2</span> <span class="op">&amp;&amp;</span> <span class="ident">version</span> <span class="op">!</span><span class="op">=</span> <span class="number">3</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#311">Error::UnknownVersion</a>(<span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#165">version</a>)));
+        <span class="comment">// Check the version. The DWARF 5 spec says that this is always 2, but version 3
+        // has been observed in the wild, potentially due to a bug; see
+        // https://github.com/gimli-rs/gimli/issues/559 for more information.
+        // lldb allows versions 2 through 5, possibly by mistake.
+        </span><span class="kw">let </span>version = rest.read_u16()<span class="question-mark">?</span>;
+        <span class="kw">if </span>version != <span class="number">2 </span>&amp;&amp; version != <span class="number">3 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#311">Error::UnknownVersion</a>(u64::from(<a href="../../../src/gimli/read/aranges.rs.html#165">version</a>)));
         }
 
-        <span class="kw">let</span> <span class="ident">debug_info_offset</span> <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">read_offset</span>(<span class="ident">format</span>).<span class="ident">map</span>(<span class="ident">DebugInfoOffset</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">address_size</span> <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">segment_size</span> <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
+        <span class="kw">let </span>debug_info_offset = rest.read_offset(format).map(DebugInfoOffset)<span class="question-mark">?</span>;
+        <span class="kw">let </span>address_size = rest.read_u8()<span class="question-mark">?</span>;
+        <span class="kw">let </span>segment_size = rest.read_u8()<span class="question-mark">?</span>;
 
-        <span class="comment">// unit_length + version + offset + address_size + segment_size</span>
-        <span class="kw">let</span> <span class="ident">header_length</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#158">format</a>.<a class="ident" href="../../../src/gimli/common.rs.html#13">initial_length_size</a>() <span class="op">+</span> <span class="number">2</span> <span class="op">+</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#158">format</a>.<a class="ident" href="../../../src/gimli/common.rs.html#22">word_size</a>() <span class="op">+</span> <span class="number">1</span> <span class="op">+</span> <span class="number">1</span>;
+        <span class="comment">// unit_length + version + offset + address_size + segment_size
+        </span><span class="kw">let </span>header_length = <a href="../../../src/gimli/read/aranges.rs.html#158">format</a>.<a href="../../../src/gimli/common.rs.html#13">initial_length_size</a>() + <span class="number">2 </span>+ <a href="../../../src/gimli/read/aranges.rs.html#158">format</a>.<a href="../../../src/gimli/common.rs.html#22">word_size</a>() + <span class="number">1 </span>+ <span class="number">1</span>;
 
-        <span class="comment">// The first tuple following the header in each set begins at an offset that is</span>
-        <span class="comment">// a multiple of the size of a single tuple (that is, the size of a segment selector</span>
-        <span class="comment">// plus twice the size of an address).</span>
-        <span class="kw">let</span> <span class="ident">tuple_length</span> <span class="op">=</span> <span class="ident">address_size</span>
-            .<span class="ident">checked_mul</span>(<span class="number">2</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">checked_add</span>(<span class="ident">segment_size</span>))
-            .<span class="ident">ok_or</span>(<span class="ident">Error::InvalidAddressRange</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">tuple_length</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::InvalidAddressRange</span>)<span class="question-mark">?</span>;
+        <span class="comment">// The first tuple following the header in each set begins at an offset that is
+        // a multiple of the size of a single tuple (that is, the size of a segment selector
+        // plus twice the size of an address).
+        </span><span class="kw">let </span>tuple_length = address_size
+            .checked_mul(<span class="number">2</span>)
+            .and_then(|x| x.checked_add(segment_size))
+            .ok_or(Error::InvalidAddressRange)<span class="question-mark">?</span>;
+        <span class="kw">if </span>tuple_length == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidAddressRange)<span class="question-mark">?</span>;
         }
-        <span class="kw">let</span> <span class="ident">padding</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">header_length</span> <span class="op">%</span> <span class="ident">tuple_length</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#180">tuple_length</a> <span class="op">-</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#175">header_length</a> <span class="op">%</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#180">tuple_length</a>
+        <span class="kw">let </span>padding = <span class="kw">if </span>header_length % tuple_length == <span class="number">0 </span>{
+            <span class="number">0
+        </span>} <span class="kw">else </span>{
+            <a href="../../../src/gimli/read/aranges.rs.html#180">tuple_length</a> - <a href="../../../src/gimli/read/aranges.rs.html#175">header_length</a> % <a href="../../../src/gimli/read/aranges.rs.html#180">tuple_length</a>
         };
-        <span class="ident">rest</span>.<span class="ident">skip</span>(<span class="ident">R::Offset::from_u8</span>(<span class="ident">padding</span>))<span class="question-mark">?</span>;
+        rest.skip(R::Offset::from_u8(padding))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a> {
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#158">format</a>,
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#165">version</a>,
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#171">address_size</a>,
-            <span class="comment">// TODO: segment_size</span>
-        };
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#139">ArangeHeader</a> {
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#157">offset</a>,
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#194">encoding</a>,
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#158">length</a>,
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#170">debug_info_offset</a>,
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#172">segment_size</a>,
-            <span class="ident">entries</span>: <a class="ident" href="../../../src/gimli/read/aranges.rs.html#159">rest</a>,
+        <span class="kw">let </span>encoding = <a href="../../../src/gimli/common.rs.html#37">Encoding</a> {
+            <a href="../../../src/gimli/read/aranges.rs.html#158">format</a>,
+            <a href="../../../src/gimli/read/aranges.rs.html#165">version</a>,
+            <a href="../../../src/gimli/read/aranges.rs.html#171">address_size</a>,
+            <span class="comment">// TODO: segment_size
+        </span>};
+        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/aranges.rs.html#139">ArangeHeader</a> {
+            <a href="../../../src/gimli/read/aranges.rs.html#157">offset</a>,
+            <a href="../../../src/gimli/read/aranges.rs.html#194">encoding</a>,
+            <a href="../../../src/gimli/read/aranges.rs.html#158">length</a>,
+            <a href="../../../src/gimli/read/aranges.rs.html#170">debug_info_offset</a>,
+            <a href="../../../src/gimli/read/aranges.rs.html#172">segment_size</a>,
+            entries: <a href="../../../src/gimli/read/aranges.rs.html#159">rest</a>,
         })
     }
 
-    <span class="doccomment">/// Return the offset of this header within the `.debug_aranges` section.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DebugArangesOffset</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/gimli/read/aranges.rs.html#212">self</a>.<span class="ident">offset</span>
+    <span class="doccomment">/// Return the offset of this header within the `.debug_aranges` section.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DebugArangesOffset&lt;Offset&gt; {
+        <a class="self" href="../../../src/gimli/read/aranges.rs.html#212">self</a>.offset
     }
 
-    <span class="doccomment">/// Return the length of this set of entries, including the header.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Offset</span> {
-        <a class="self" href="../../../src/gimli/read/aranges.rs.html#218">self</a>.<span class="ident">length</span>
+    <span class="doccomment">/// Return the length of this set of entries, including the header.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Offset {
+        <a class="self" href="../../../src/gimli/read/aranges.rs.html#218">self</a>.length
     }
 
-    <span class="doccomment">/// Return the encoding parameters for this set of entries.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a> {
-        <a class="self" href="../../../src/gimli/read/aranges.rs.html#224">self</a>.<span class="ident">encoding</span>
+    <span class="doccomment">/// Return the encoding parameters for this set of entries.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/common.rs.html#37">Encoding</a> {
+        <a class="self" href="../../../src/gimli/read/aranges.rs.html#224">self</a>.encoding
     }
 
-    <span class="doccomment">/// Return the segment size for this set of entries.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">segment_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../src/gimli/read/aranges.rs.html#230">self</a>.<span class="ident">segment_size</span>
+    <span class="doccomment">/// Return the segment size for this set of entries.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>segment_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
+        <a class="self" href="../../../src/gimli/read/aranges.rs.html#230">self</a>.segment_size
     }
 
-    <span class="doccomment">/// Return the offset into the .debug_info section for this set of arange entries.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_info_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DebugInfoOffset</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/gimli/read/aranges.rs.html#236">self</a>.<span class="ident">debug_info_offset</span>
+    <span class="doccomment">/// Return the offset into the .debug_info section for this set of arange entries.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>debug_info_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DebugInfoOffset&lt;Offset&gt; {
+        <a class="self" href="../../../src/gimli/read/aranges.rs.html#236">self</a>.debug_info_offset
     }
 
-    <span class="doccomment">/// Return the arange entries in this set.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">entries</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ArangeEntryIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/gimli/read/aranges.rs.html#256">ArangeEntryIter</a> {
-            <span class="ident">input</span>: <a class="self" href="../../../src/gimli/read/aranges.rs.html#242">self</a>.<span class="ident">entries</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">encoding</span>: <a class="self" href="../../../src/gimli/read/aranges.rs.html#242">self</a>.<span class="ident">encoding</span>,
-            <span class="ident">segment_size</span>: <a class="self" href="../../../src/gimli/read/aranges.rs.html#242">self</a>.<span class="ident">segment_size</span>,
+    <span class="doccomment">/// Return the arange entries in this set.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ArangeEntryIter&lt;R&gt; {
+        <a href="../../../src/gimli/read/aranges.rs.html#256">ArangeEntryIter</a> {
+            input: <a class="self" href="../../../src/gimli/read/aranges.rs.html#242">self</a>.entries.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            encoding: <a class="self" href="../../../src/gimli/read/aranges.rs.html#242">self</a>.encoding,
+            segment_size: <a class="self" href="../../../src/gimli/read/aranges.rs.html#242">self</a>.segment_size,
         }
     }
 }
 
-<span class="doccomment">/// An iterator over the aranges from a `.debug_aranges` section.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Can be [used with</span>
-<span class="doccomment">/// `FallibleIterator`](./index.html#using-with-fallibleiterator).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArangeEntryIter</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> {
-    <span class="ident">input</span>: <span class="ident">R</span>,
-    <span class="ident">encoding</span>: <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>,
-    <span class="ident">segment_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+<span class="doccomment">/// An iterator over the aranges from a `.debug_aranges` section.
+///
+/// Can be [used with
+/// `FallibleIterator`](./index.html#using-with-fallibleiterator).
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>ArangeEntryIter&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; {
+    input: R,
+    encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
+    segment_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">ArangeEntryIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Advance the iterator and return the next arange.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the newly parsed arange as `Ok(Some(arange))`. Returns `Ok(None)`</span>
-    <span class="doccomment">/// when iteration is complete and all aranges have already been parsed and</span>
-    <span class="doccomment">/// yielded. If an error occurs while parsing the next arange, then this error</span>
-    <span class="doccomment">/// is returned as `Err(e)`, and all subsequent calls return `Ok(None)`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/aranges.rs.html#300">ArangeEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; ArangeEntryIter&lt;R&gt; {
+    <span class="doccomment">/// Advance the iterator and return the next arange.
+    ///
+    /// Returns the newly parsed arange as `Ok(Some(arange))`. Returns `Ok(None)`
+    /// when iteration is complete and all aranges have already been parsed and
+    /// yielded. If an error occurs while parsing the next arange, then this error
+    /// is returned as `Err(e)`, and all subsequent calls return `Ok(None)`.
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/gimli/read/aranges.rs.html#300">ArangeEntry</a>&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.input.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">match</span> <span class="ident">ArangeEntry::parse</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.<span class="ident">input</span>, <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.<span class="ident">encoding</span>, <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.<span class="ident">segment_size</span>) {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">entry</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#275">entry</a>)),
+        <span class="kw">match </span>ArangeEntry::parse(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.input, <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.encoding, <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.segment_size) {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(entry)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/aranges.rs.html#275">entry</a>)),
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-                <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
+                <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.input.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
             }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#280">e</a>)
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a class="self" href="../../../src/gimli/read/aranges.rs.html#269">self</a>.input.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
+                <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/aranges.rs.html#280">e</a>)
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fallible-iterator&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Reader</span><span class="op">&gt;</span> <span class="ident">fallible_iterator::FallibleIterator</span> <span class="kw">for</span> <span class="ident">ArangeEntryIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">ArangeEntry</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;fallible-iterator&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: Reader&gt; fallible_iterator::FallibleIterator <span class="kw">for </span>ArangeEntryIter&lt;R&gt; {
+    <span class="kw">type </span>Item = ArangeEntry;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">::core::result::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">ArangeEntryIter::next</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ::core::result::Result&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;, <span class="self">Self</span>::Error&gt; {
+        ArangeEntryIter::next(<span class="self">self</span>)
     }
 }
 
-<span class="doccomment">/// A single parsed arange.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArangeEntry</span> {
-    <span class="ident">segment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span>,
-    <span class="ident">address</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-    <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+<span class="doccomment">/// A single parsed arange.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="kw">pub struct </span>ArangeEntry {
+    segment: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt;,
+    address: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    length: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#300">ArangeEntry</a> {
-    <span class="doccomment">/// Parse a single arange. Return `None` for the null arange, `Some` for an actual arange.</span>
-    <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(
-        <span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
-        <span class="ident">encoding</span>: <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>,
-        <span class="ident">segment_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">address_size</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#310">encoding</a>.<span class="ident">address_size</span>;
+<span class="kw">impl </span><a href="../../../src/gimli/read/aranges.rs.html#300">ArangeEntry</a> {
+    <span class="doccomment">/// Parse a single arange. Return `None` for the null arange, `Some` for an actual arange.
+    </span><span class="kw">fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(
+        input: <span class="kw-2">&amp;mut </span>R,
+        encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>,
+        segment_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
+        <span class="kw">let </span>address_size = <a href="../../../src/gimli/read/aranges.rs.html#310">encoding</a>.address_size;
 
-        <span class="kw">let</span> <span class="ident">tuple_length</span> <span class="op">=</span> <span class="ident">R::Offset::from_u8</span>(<span class="number">2</span> <span class="op">*</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#313">address_size</a> <span class="op">+</span> <a class="ident" href="../../../src/gimli/read/aranges.rs.html#311">segment_size</a>);
-        <span class="kw">if</span> <span class="ident">tuple_length</span> <span class="op">&gt;</span> <span class="ident">input</span>.<span class="ident">len</span>() {
-            <a class="ident" href="../../../src/gimli/read/aranges.rs.html#309">input</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        <span class="kw">let </span>tuple_length = R::Offset::from_u8(<span class="number">2 </span>* <a href="../../../src/gimli/read/aranges.rs.html#313">address_size</a> + <a href="../../../src/gimli/read/aranges.rs.html#311">segment_size</a>);
+        <span class="kw">if </span>tuple_length &gt; input.len() {
+            <a href="../../../src/gimli/read/aranges.rs.html#309">input</a>.<a href="../../../src/gimli/read/reader.rs.html#229">empty</a>();
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">segment</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">segment_size</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="ident">input</span>.<span class="ident">read_address</span>(<span class="ident">segment_size</span>)<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
-        };
-        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_address</span>(<span class="ident">address_size</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_address</span>(<span class="ident">address_size</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>segment = <span class="kw">if </span>segment_size != <span class="number">0 </span>{
+            input.read_address(segment_size)<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            <span class="number">0
+        </span>};
+        <span class="kw">let </span>address = input.read_address(address_size)<span class="question-mark">?</span>;
+        <span class="kw">let </span>length = input.read_address(address_size)<span class="question-mark">?</span>;
 
-        <span class="kw">match</span> (<a class="ident" href="../../../src/gimli/read/aranges.rs.html#321">segment</a>, <a class="ident" href="../../../src/gimli/read/aranges.rs.html#326">address</a>, <a class="ident" href="../../../src/gimli/read/aranges.rs.html#327">length</a>) {
-            <span class="comment">// This is meant to be a null terminator, but in practice it can occur</span>
-            <span class="comment">// before the end, possibly due to a linker omitting a function and</span>
-            <span class="comment">// leaving an unrelocated entry.</span>
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) =&gt; <span class="ident"><span class="self">Self</span>::parse</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#309">input</a>, <a class="ident" href="../../../src/gimli/read/aranges.rs.html#310">encoding</a>, <a class="ident" href="../../../src/gimli/read/aranges.rs.html#311">segment_size</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#300">ArangeEntry</a> {
-                <span class="ident">segment</span>: <span class="kw">if</span> <span class="ident">segment_size</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/aranges.rs.html#321">segment</a>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                },
-                <a class="ident" href="../../../src/gimli/read/aranges.rs.html#326">address</a>,
-                <a class="ident" href="../../../src/gimli/read/aranges.rs.html#327">length</a>,
+        <span class="kw">match </span>(<a href="../../../src/gimli/read/aranges.rs.html#321">segment</a>, <a href="../../../src/gimli/read/aranges.rs.html#326">address</a>, <a href="../../../src/gimli/read/aranges.rs.html#327">length</a>) {
+            <span class="comment">// This is meant to be a null terminator, but in practice it can occur
+            // before the end, possibly due to a linker omitting a function and
+            // leaving an unrelocated entry.
+            </span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) =&gt; <span class="self">Self</span>::parse(<a href="../../../src/gimli/read/aranges.rs.html#309">input</a>, <a href="../../../src/gimli/read/aranges.rs.html#310">encoding</a>, <a href="../../../src/gimli/read/aranges.rs.html#311">segment_size</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/aranges.rs.html#300">ArangeEntry</a> {
+                segment: <span class="kw">if </span>segment_size != <span class="number">0 </span>{
+                    <span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/aranges.rs.html#321">segment</a>)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>},
+                <a href="../../../src/gimli/read/aranges.rs.html#326">address</a>,
+                <a href="../../../src/gimli/read/aranges.rs.html#327">length</a>,
             })),
         }
     }
 
-    <span class="doccomment">/// Return the segment selector of this arange.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">segment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/gimli/read/aranges.rs.html#348">self</a>.<span class="ident">segment</span>
+    <span class="doccomment">/// Return the segment selector of this arange.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>segment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
+        <a class="self" href="../../../src/gimli/read/aranges.rs.html#348">self</a>.segment
     }
 
-    <span class="doccomment">/// Return the beginning address of this arange.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/aranges.rs.html#354">self</a>.<span class="ident">address</span>
+    <span class="doccomment">/// Return the beginning address of this arange.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/gimli/read/aranges.rs.html#354">self</a>.address
     }
 
-    <span class="doccomment">/// Return the length of this arange.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/aranges.rs.html#360">self</a>.<span class="ident">length</span>
+    <span class="doccomment">/// Return the length of this arange.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/gimli/read/aranges.rs.html#360">self</a>.length
     }
 
-    <span class="doccomment">/// Return the range.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585">Range</a> {
-        <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585">Range</a> {
-            <span class="ident">begin</span>: <a class="self" href="../../../src/gimli/read/aranges.rs.html#366">self</a>.<span class="ident">address</span>,
-            <span class="ident">end</span>: <a class="self" href="../../../src/gimli/read/aranges.rs.html#366">self</a>.<span class="ident">address</span>.<span class="ident">wrapping_add</span>(<a class="self" href="../../../src/gimli/read/aranges.rs.html#366">self</a>.<span class="ident">length</span>),
+    <span class="doccomment">/// Return the range.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/read/rnglists.rs.html#585">Range</a> {
+        <a href="../../../src/gimli/read/rnglists.rs.html#585">Range</a> {
+            begin: <a class="self" href="../../../src/gimli/read/aranges.rs.html#366">self</a>.address,
+            end: <a class="self" href="../../../src/gimli/read/aranges.rs.html#366">self</a>.address.wrapping_add(<a class="self" href="../../../src/gimli/read/aranges.rs.html#366">self</a>.length),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<span class="ident">DebugInfoOffset</span>, <span class="ident">Format</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endianity::LittleEndian</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read::EndianSlice</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::common::{DebugInfoOffset, Format};
+    <span class="kw">use </span><span class="kw">crate</span>::endianity::LittleEndian;
+    <span class="kw">use </span><span class="kw">crate</span>::read::EndianSlice;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_iterate_headers</span>() {
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="comment">// 32-bit length = 28.</span>
-            <span class="number">0x1c</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
-            <span class="comment">// Version.</span>
-            <span class="number">0x02</span>, <span class="number">0x00</span>,
-            <span class="comment">// Offset.</span>
-            <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
-            <span class="comment">// Address size.</span>
-            <span class="number">0x04</span>,
-            <span class="comment">// Segment size.</span>
-            <span class="number">0x00</span>,
-            <span class="comment">// Dummy padding and arange tuples.</span>
-            <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_iterate_headers() {
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = [
+            <span class="comment">// 32-bit length = 28.
+            </span><span class="number">0x1c</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Version.
+            </span><span class="number">0x02</span>, <span class="number">0x00</span>,
+            <span class="comment">// Offset.
+            </span><span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
+            <span class="comment">// Address size.
+            </span><span class="number">0x04</span>,
+            <span class="comment">// Segment size.
+            </span><span class="number">0x00</span>,
+            <span class="comment">// Dummy padding and arange tuples.
+            </span><span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
 
-            <span class="comment">// 32-bit length = 36.</span>
-            <span class="number">0x24</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
-            <span class="comment">// Version.</span>
-            <span class="number">0x02</span>, <span class="number">0x00</span>,
-            <span class="comment">// Offset.</span>
-            <span class="number">0x11</span>, <span class="number">0x12</span>, <span class="number">0x13</span>, <span class="number">0x14</span>,
-            <span class="comment">// Address size.</span>
-            <span class="number">0x04</span>,
-            <span class="comment">// Segment size.</span>
-            <span class="number">0x00</span>,
-            <span class="comment">// Dummy padding and arange tuples.</span>
-            <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// 32-bit length = 36.
+            </span><span class="number">0x24</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Version.
+            </span><span class="number">0x02</span>, <span class="number">0x00</span>,
+            <span class="comment">// Offset.
+            </span><span class="number">0x11</span>, <span class="number">0x12</span>, <span class="number">0x13</span>, <span class="number">0x14</span>,
+            <span class="comment">// Address size.
+            </span><span class="number">0x04</span>,
+            <span class="comment">// Segment size.
+            </span><span class="number">0x00</span>,
+            <span class="comment">// Dummy padding and arange tuples.
+            </span><span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
         ];
 
-        <span class="kw">let</span> <span class="ident">debug_aranges</span> <span class="op">=</span> <span class="ident">DebugAranges::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">debug_aranges</span>.<span class="ident">headers</span>();
+        <span class="kw">let </span>debug_aranges = DebugAranges::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span><span class="kw-2">mut </span>headers = debug_aranges.headers();
 
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">headers</span>
-            .<span class="ident">next</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;should parse header ok&quot;</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should have a header&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">header</span>.<span class="ident">offset</span>(), <span class="ident">DebugArangesOffset</span>(<span class="number">0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">header</span>.<span class="ident">debug_info_offset</span>(), <span class="ident">DebugInfoOffset</span>(<span class="number">0x0403_0201</span>));
+        <span class="kw">let </span>header = headers
+            .next()
+            .expect(<span class="string">&quot;should parse header ok&quot;</span>)
+            .expect(<span class="string">&quot;should have a header&quot;</span>);
+        <span class="macro">assert_eq!</span>(header.offset(), DebugArangesOffset(<span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(header.debug_info_offset(), DebugInfoOffset(<span class="number">0x0403_0201</span>));
 
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">headers</span>
-            .<span class="ident">next</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;should parse header ok&quot;</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should have a header&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">header</span>.<span class="ident">offset</span>(), <span class="ident">DebugArangesOffset</span>(<span class="number">0x20</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">header</span>.<span class="ident">debug_info_offset</span>(), <span class="ident">DebugInfoOffset</span>(<span class="number">0x1413_1211</span>));
+        <span class="kw">let </span>header = headers
+            .next()
+            .expect(<span class="string">&quot;should parse header ok&quot;</span>)
+            .expect(<span class="string">&quot;should have a header&quot;</span>);
+        <span class="macro">assert_eq!</span>(header.offset(), DebugArangesOffset(<span class="number">0x20</span>));
+        <span class="macro">assert_eq!</span>(header.debug_info_offset(), DebugInfoOffset(<span class="number">0x1413_1211</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_header_ok</span>() {
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="comment">// 32-bit length = 32.</span>
-            <span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
-            <span class="comment">// Version.</span>
-            <span class="number">0x02</span>, <span class="number">0x00</span>,
-            <span class="comment">// Offset.</span>
-            <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
-            <span class="comment">// Address size.</span>
-            <span class="number">0x08</span>,
-            <span class="comment">// Segment size.</span>
-            <span class="number">0x04</span>,
-            <span class="comment">// Length to here = 12, tuple length = 20.</span>
-            <span class="comment">// Padding to tuple length multiple = 4.</span>
-            <span class="number">0x10</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_header_ok() {
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = [
+            <span class="comment">// 32-bit length = 32.
+            </span><span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Version.
+            </span><span class="number">0x02</span>, <span class="number">0x00</span>,
+            <span class="comment">// Offset.
+            </span><span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
+            <span class="comment">// Address size.
+            </span><span class="number">0x08</span>,
+            <span class="comment">// Segment size.
+            </span><span class="number">0x04</span>,
+            <span class="comment">// Length to here = 12, tuple length = 20.
+            // Padding to tuple length multiple = 4.
+            </span><span class="number">0x10</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
 
-            <span class="comment">// Dummy arange tuple data.</span>
-            <span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Dummy arange tuple data.
+            </span><span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
 
-            <span class="comment">// Dummy next arange.</span>
-            <span class="number">0x30</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Dummy next arange.
+            </span><span class="number">0x30</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
         ];
 
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
 
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span>
-            <span class="ident">ArangeHeader::parse</span>(<span class="ident">rest</span>, <span class="ident">DebugArangesOffset</span>(<span class="number">0x10</span>)).<span class="ident">expect</span>(<span class="string">&quot;should parse header ok&quot;</span>);
+        <span class="kw">let </span>header =
+            ArangeHeader::parse(rest, DebugArangesOffset(<span class="number">0x10</span>)).expect(<span class="string">&quot;should parse header ok&quot;</span>);
 
         <span class="macro">assert_eq!</span>(
-            <span class="kw-2">*</span><span class="ident">rest</span>,
-            <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">16</span>..], <span class="ident">LittleEndian</span>)
+            <span class="kw-2">*</span>rest,
+            EndianSlice::new(<span class="kw-2">&amp;</span>buf[buf.len() - <span class="number">16</span>..], LittleEndian)
         );
         <span class="macro">assert_eq!</span>(
-            <span class="ident">header</span>,
-            <span class="ident">ArangeHeader</span> {
-                <span class="ident">offset</span>: <span class="ident">DebugArangesOffset</span>(<span class="number">0x10</span>),
-                <span class="ident">encoding</span>: <span class="ident">Encoding</span> {
-                    <span class="ident">format</span>: <span class="ident">Format::Dwarf32</span>,
-                    <span class="ident">version</span>: <span class="number">2</span>,
-                    <span class="ident">address_size</span>: <span class="number">8</span>,
+            header,
+            ArangeHeader {
+                offset: DebugArangesOffset(<span class="number">0x10</span>),
+                encoding: Encoding {
+                    format: Format::Dwarf32,
+                    version: <span class="number">2</span>,
+                    address_size: <span class="number">8</span>,
                 },
-                <span class="ident">length</span>: <span class="number">0x20</span>,
-                <span class="ident">debug_info_offset</span>: <span class="ident">DebugInfoOffset</span>(<span class="number">0x0403_0201</span>),
-                <span class="ident">segment_size</span>: <span class="number">4</span>,
-                <span class="ident">entries</span>: <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">32</span>..<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">16</span>], <span class="ident">LittleEndian</span>),
+                length: <span class="number">0x20</span>,
+                debug_info_offset: DebugInfoOffset(<span class="number">0x0403_0201</span>),
+                segment_size: <span class="number">4</span>,
+                entries: EndianSlice::new(<span class="kw-2">&amp;</span>buf[buf.len() - <span class="number">32</span>..buf.len() - <span class="number">16</span>], LittleEndian),
             }
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_header_overflow_error</span>() {
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="comment">// 32-bit length = 32.</span>
-            <span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
-            <span class="comment">// Version.</span>
-            <span class="number">0x02</span>, <span class="number">0x00</span>,
-            <span class="comment">// Offset.</span>
-            <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
-            <span class="comment">// Address size.</span>
-            <span class="number">0xff</span>,
-            <span class="comment">// Segment size.</span>
-            <span class="number">0xff</span>,
-            <span class="comment">// Length to here = 12, tuple length = 20.</span>
-            <span class="comment">// Padding to tuple length multiple = 4.</span>
-            <span class="number">0x10</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_header_overflow_error() {
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = [
+            <span class="comment">// 32-bit length = 32.
+            </span><span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Version.
+            </span><span class="number">0x02</span>, <span class="number">0x00</span>,
+            <span class="comment">// Offset.
+            </span><span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
+            <span class="comment">// Address size.
+            </span><span class="number">0xff</span>,
+            <span class="comment">// Segment size.
+            </span><span class="number">0xff</span>,
+            <span class="comment">// Length to here = 12, tuple length = 20.
+            // Padding to tuple length multiple = 4.
+            </span><span class="number">0x10</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
 
-            <span class="comment">// Dummy arange tuple data.</span>
-            <span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Dummy arange tuple data.
+            </span><span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
 
-            <span class="comment">// Dummy next arange.</span>
-            <span class="number">0x30</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Dummy next arange.
+            </span><span class="number">0x30</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
         ];
 
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
 
-        <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">ArangeHeader::parse</span>(<span class="ident">rest</span>, <span class="ident">DebugArangesOffset</span>(<span class="number">0x10</span>))
-            .<span class="ident">expect_err</span>(<span class="string">&quot;should fail to parse header&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">error</span>, <span class="ident">Error::InvalidAddressRange</span>);
+        <span class="kw">let </span>error = ArangeHeader::parse(rest, DebugArangesOffset(<span class="number">0x10</span>))
+            .expect_err(<span class="string">&quot;should fail to parse header&quot;</span>);
+        <span class="macro">assert_eq!</span>(error, Error::InvalidAddressRange);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_header_div_by_zero_error</span>() {
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="comment">// 32-bit length = 32.</span>
-            <span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
-            <span class="comment">// Version.</span>
-            <span class="number">0x02</span>, <span class="number">0x00</span>,
-            <span class="comment">// Offset.</span>
-            <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
-            <span class="comment">// Address size = 0. Could cause a division by zero if we aren&#39;t</span>
-            <span class="comment">// careful.</span>
-            <span class="number">0x00</span>,
-            <span class="comment">// Segment size.</span>
-            <span class="number">0x00</span>,
-            <span class="comment">// Length to here = 12, tuple length = 20.</span>
-            <span class="comment">// Padding to tuple length multiple = 4.</span>
-            <span class="number">0x10</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_header_div_by_zero_error() {
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = [
+            <span class="comment">// 32-bit length = 32.
+            </span><span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Version.
+            </span><span class="number">0x02</span>, <span class="number">0x00</span>,
+            <span class="comment">// Offset.
+            </span><span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
+            <span class="comment">// Address size = 0. Could cause a division by zero if we aren&#39;t
+            // careful.
+            </span><span class="number">0x00</span>,
+            <span class="comment">// Segment size.
+            </span><span class="number">0x00</span>,
+            <span class="comment">// Length to here = 12, tuple length = 20.
+            // Padding to tuple length multiple = 4.
+            </span><span class="number">0x10</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
 
-            <span class="comment">// Dummy arange tuple data.</span>
-            <span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Dummy arange tuple data.
+            </span><span class="number">0x20</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
 
-            <span class="comment">// Dummy next arange.</span>
-            <span class="number">0x30</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Dummy next arange.
+            </span><span class="number">0x30</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
             <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
         ];
 
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
 
-        <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">ArangeHeader::parse</span>(<span class="ident">rest</span>, <span class="ident">DebugArangesOffset</span>(<span class="number">0x10</span>))
-            .<span class="ident">expect_err</span>(<span class="string">&quot;should fail to parse header&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">error</span>, <span class="ident">Error::InvalidAddressRange</span>);
+        <span class="kw">let </span>error = ArangeHeader::parse(rest, DebugArangesOffset(<span class="number">0x10</span>))
+            .expect_err(<span class="string">&quot;should fail to parse header&quot;</span>);
+        <span class="macro">assert_eq!</span>(error, Error::InvalidAddressRange);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_entry_ok</span>() {
-        <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <span class="ident">Encoding</span> {
-            <span class="ident">format</span>: <span class="ident">Format::Dwarf32</span>,
-            <span class="ident">version</span>: <span class="number">2</span>,
-            <span class="ident">address_size</span>: <span class="number">4</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_entry_ok() {
+        <span class="kw">let </span>encoding = Encoding {
+            format: Format::Dwarf32,
+            version: <span class="number">2</span>,
+            address_size: <span class="number">4</span>,
         };
-        <span class="kw">let</span> <span class="ident">segment_size</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>, <span class="number">0x08</span>, <span class="number">0x09</span>];
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span>
-            <span class="ident">ArangeEntry::parse</span>(<span class="ident">rest</span>, <span class="ident">encoding</span>, <span class="ident">segment_size</span>).<span class="ident">expect</span>(<span class="string">&quot;should parse entry ok&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>..], <span class="ident">LittleEndian</span>));
+        <span class="kw">let </span>segment_size = <span class="number">0</span>;
+        <span class="kw">let </span>buf = [<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>, <span class="number">0x08</span>, <span class="number">0x09</span>];
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span>entry =
+            ArangeEntry::parse(rest, encoding, segment_size).expect(<span class="string">&quot;should parse entry ok&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>buf[buf.len() - <span class="number">1</span>..], LittleEndian));
         <span class="macro">assert_eq!</span>(
-            <span class="ident">entry</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">ArangeEntry</span> {
-                <span class="ident">segment</span>: <span class="prelude-val">None</span>,
-                <span class="ident">address</span>: <span class="number">0x0403_0201</span>,
-                <span class="ident">length</span>: <span class="number">0x0807_0605</span>,
+            entry,
+            <span class="prelude-val">Some</span>(ArangeEntry {
+                segment: <span class="prelude-val">None</span>,
+                address: <span class="number">0x0403_0201</span>,
+                length: <span class="number">0x0807_0605</span>,
             })
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_entry_segment</span>() {
-        <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <span class="ident">Encoding</span> {
-            <span class="ident">format</span>: <span class="ident">Format::Dwarf32</span>,
-            <span class="ident">version</span>: <span class="number">2</span>,
-            <span class="ident">address_size</span>: <span class="number">4</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_entry_segment() {
+        <span class="kw">let </span>encoding = Encoding {
+            format: Format::Dwarf32,
+            version: <span class="number">2</span>,
+            address_size: <span class="number">4</span>,
         };
-        <span class="kw">let</span> <span class="ident">segment_size</span> <span class="op">=</span> <span class="number">8</span>;
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="comment">// Segment.</span>
-            <span class="number">0x11</span>, <span class="number">0x12</span>, <span class="number">0x13</span>, <span class="number">0x14</span>, <span class="number">0x15</span>, <span class="number">0x16</span>, <span class="number">0x17</span>, <span class="number">0x18</span>,
-            <span class="comment">// Address.</span>
-            <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
-            <span class="comment">// Length.</span>
-            <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>, <span class="number">0x08</span>,
-            <span class="comment">// Next tuple.</span>
-            <span class="number">0x09</span>
-        ];
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span>
-            <span class="ident">ArangeEntry::parse</span>(<span class="ident">rest</span>, <span class="ident">encoding</span>, <span class="ident">segment_size</span>).<span class="ident">expect</span>(<span class="string">&quot;should parse entry ok&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>..], <span class="ident">LittleEndian</span>));
+        <span class="kw">let </span>segment_size = <span class="number">8</span>;
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = [
+            <span class="comment">// Segment.
+            </span><span class="number">0x11</span>, <span class="number">0x12</span>, <span class="number">0x13</span>, <span class="number">0x14</span>, <span class="number">0x15</span>, <span class="number">0x16</span>, <span class="number">0x17</span>, <span class="number">0x18</span>,
+            <span class="comment">// Address.
+            </span><span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
+            <span class="comment">// Length.
+            </span><span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>, <span class="number">0x08</span>,
+            <span class="comment">// Next tuple.
+            </span><span class="number">0x09
+        </span>];
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span>entry =
+            ArangeEntry::parse(rest, encoding, segment_size).expect(<span class="string">&quot;should parse entry ok&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>buf[buf.len() - <span class="number">1</span>..], LittleEndian));
         <span class="macro">assert_eq!</span>(
-            <span class="ident">entry</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">ArangeEntry</span> {
-                <span class="ident">segment</span>: <span class="prelude-val">Some</span>(<span class="number">0x1817_1615_1413_1211</span>),
-                <span class="ident">address</span>: <span class="number">0x0403_0201</span>,
-                <span class="ident">length</span>: <span class="number">0x0807_0605</span>,
+            entry,
+            <span class="prelude-val">Some</span>(ArangeEntry {
+                segment: <span class="prelude-val">Some</span>(<span class="number">0x1817_1615_1413_1211</span>),
+                address: <span class="number">0x0403_0201</span>,
+                length: <span class="number">0x0807_0605</span>,
             })
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_entry_zero</span>() {
-        <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <span class="ident">Encoding</span> {
-            <span class="ident">format</span>: <span class="ident">Format::Dwarf32</span>,
-            <span class="ident">version</span>: <span class="number">2</span>,
-            <span class="ident">address_size</span>: <span class="number">4</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_entry_zero() {
+        <span class="kw">let </span>encoding = Encoding {
+            format: Format::Dwarf32,
+            version: <span class="number">2</span>,
+            address_size: <span class="number">4</span>,
         };
-        <span class="kw">let</span> <span class="ident">segment_size</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="comment">// Zero tuple.</span>
-            <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
-            <span class="comment">// Address.</span>
-            <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
-            <span class="comment">// Length.</span>
-            <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>, <span class="number">0x08</span>,
-            <span class="comment">// Next tuple.</span>
-            <span class="number">0x09</span>
-        ];
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span>
-            <span class="ident">ArangeEntry::parse</span>(<span class="ident">rest</span>, <span class="ident">encoding</span>, <span class="ident">segment_size</span>).<span class="ident">expect</span>(<span class="string">&quot;should parse entry ok&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>..], <span class="ident">LittleEndian</span>));
+        <span class="kw">let </span>segment_size = <span class="number">0</span>;
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = [
+            <span class="comment">// Zero tuple.
+            </span><span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>,
+            <span class="comment">// Address.
+            </span><span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>,
+            <span class="comment">// Length.
+            </span><span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>, <span class="number">0x08</span>,
+            <span class="comment">// Next tuple.
+            </span><span class="number">0x09
+        </span>];
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span>entry =
+            ArangeEntry::parse(rest, encoding, segment_size).expect(<span class="string">&quot;should parse entry ok&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>buf[buf.len() - <span class="number">1</span>..], LittleEndian));
         <span class="macro">assert_eq!</span>(
-            <span class="ident">entry</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">ArangeEntry</span> {
-                <span class="ident">segment</span>: <span class="prelude-val">None</span>,
-                <span class="ident">address</span>: <span class="number">0x0403_0201</span>,
-                <span class="ident">length</span>: <span class="number">0x0807_0605</span>,
+            entry,
+            <span class="prelude-val">Some</span>(ArangeEntry {
+                segment: <span class="prelude-val">None</span>,
+                address: <span class="number">0x0403_0201</span>,
+                length: <span class="number">0x0807_0605</span>,
             })
         );
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

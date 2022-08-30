@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/framed_read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/framed_read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -197,204 +197,204 @@
 <span id="197">197</span>
 <span id="198">198</span>
 <span id="199">199</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::codec::framed_impl</span>::{<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a>, <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#31">ReadFrame</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35"><span class="kw">crate</span>::codec::Decoder</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::codec::framed_impl::{<a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a>, <a href="../../../src/tokio_util/codec/framed_impl.rs.html#31">ReadFrame</a>};
+<span class="kw">use </span><a href="../../../src/tokio_util/codec/decoder.rs.html#35"><span class="kw">crate</span>::codec::Decoder</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
-<span class="kw">use</span> <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">tokio::io::AsyncRead</a>;
+<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
+<span class="kw">use </span><a href="../../../tokio/io/async_read/trait.AsyncRead.html">tokio::io::AsyncRead</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">bytes::BytesMut</a>;
-<span class="kw">use</span> <a class="ident" href="../../../futures_sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">bytes::BytesMut</a>;
+<span class="kw">use </span><a href="../../../futures_sink/trait.Sink.html">futures_sink::Sink</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// A [`Stream`] of messages decoded from an [`AsyncRead`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Stream`]: futures_core::Stream</span>
-    <span class="doccomment">/// [`AsyncRead`]: tokio::io::AsyncRead</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">inner</span>: <span class="ident">FramedImpl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span>, <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#31">ReadFrame</a><span class="op">&gt;</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// A [`Stream`] of messages decoded from an [`AsyncRead`].
+    ///
+    /// [`Stream`]: futures_core::Stream
+    /// [`AsyncRead`]: tokio::io::AsyncRead
+    </span><span class="kw">pub struct </span>FramedRead&lt;T, D&gt; {
+        <span class="attribute">#[pin]
+        </span>inner: FramedImpl&lt;T, D, <a href="../../../src/tokio_util/codec/framed_impl.rs.html#31">ReadFrame</a>&gt;,
     }
 }
 
-<span class="comment">// ===== impl FramedRead =====</span>
+<span class="comment">// ===== impl FramedRead =====
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
-    <span class="ident">D</span>: <a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a>,
+</span><span class="kw">impl</span>&lt;T, D&gt; FramedRead&lt;T, D&gt;
+<span class="kw">where
+    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
+    D: <a href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a>,
 {
-    <span class="doccomment">/// Creates a new `FramedRead` with the given `decoder`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">T</span>, <span class="ident">decoder</span>: <span class="ident">D</span>) -&gt; <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a> {
-                <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#33">inner</a>,
-                <span class="ident">codec</span>: <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#33">decoder</a>,
-                <span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+    <span class="doccomment">/// Creates a new `FramedRead` with the given `decoder`.
+    </span><span class="kw">pub fn </span>new(inner: T, decoder: D) -&gt; FramedRead&lt;T, D&gt; {
+        <a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a> {
+            inner: <a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a> {
+                <a href="../../../src/tokio_util/codec/framed_read.rs.html#33">inner</a>,
+                codec: <a href="../../../src/tokio_util/codec/framed_read.rs.html#33">decoder</a>,
+                state: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
             },
         }
     }
 
-    <span class="doccomment">/// Creates a new `FramedRead` with the given `decoder` and a buffer of `capacity`</span>
-    <span class="doccomment">/// initial size.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">inner</span>: <span class="ident">T</span>, <span class="ident">decoder</span>: <span class="ident">D</span>, <span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a> {
-                <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#45">inner</a>,
-                <span class="ident">codec</span>: <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#45">decoder</a>,
-                <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#31">ReadFrame</a> {
-                    <span class="ident">eof</span>: <span class="bool-val">false</span>,
-                    <span class="ident">is_readable</span>: <span class="bool-val">false</span>,
-                    <span class="ident">buffer</span>: <span class="ident">BytesMut::with_capacity</span>(<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#45">capacity</a>),
-                    <span class="ident">has_errored</span>: <span class="bool-val">false</span>,
+    <span class="doccomment">/// Creates a new `FramedRead` with the given `decoder` and a buffer of `capacity`
+    /// initial size.
+    </span><span class="kw">pub fn </span>with_capacity(inner: T, decoder: D, capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; FramedRead&lt;T, D&gt; {
+        <a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a> {
+            inner: <a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a> {
+                <a href="../../../src/tokio_util/codec/framed_read.rs.html#45">inner</a>,
+                codec: <a href="../../../src/tokio_util/codec/framed_read.rs.html#45">decoder</a>,
+                state: <a href="../../../src/tokio_util/codec/framed_impl.rs.html#31">ReadFrame</a> {
+                    eof: <span class="bool-val">false</span>,
+                    is_readable: <span class="bool-val">false</span>,
+                    buffer: BytesMut::with_capacity(<a href="../../../src/tokio_util/codec/framed_read.rs.html#45">capacity</a>),
+                    has_errored: <span class="bool-val">false</span>,
                 },
             },
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Returns a reference to the underlying I/O stream wrapped by</span>
-    <span class="doccomment">/// `FramedRead`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care should be taken to not tamper with the underlying stream</span>
-    <span class="doccomment">/// of data coming in as it may corrupt the stream of frames otherwise</span>
-    <span class="doccomment">/// being worked with.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#68">self</a>.<span class="ident">inner</span>.<span class="ident">inner</span>
+<span class="kw">impl</span>&lt;T, D&gt; FramedRead&lt;T, D&gt; {
+    <span class="doccomment">/// Returns a reference to the underlying I/O stream wrapped by
+    /// `FramedRead`.
+    ///
+    /// Note that care should be taken to not tamper with the underlying stream
+    /// of data coming in as it may corrupt the stream of frames otherwise
+    /// being worked with.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#68">self</a>.inner.inner
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the underlying I/O stream wrapped by</span>
-    <span class="doccomment">/// `FramedRead`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care should be taken to not tamper with the underlying stream</span>
-    <span class="doccomment">/// of data coming in as it may corrupt the stream of frames otherwise</span>
-    <span class="doccomment">/// being worked with.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#78">self</a>.<span class="ident">inner</span>.<span class="ident">inner</span>
+    <span class="doccomment">/// Returns a mutable reference to the underlying I/O stream wrapped by
+    /// `FramedRead`.
+    ///
+    /// Note that care should be taken to not tamper with the underlying stream
+    /// of data coming in as it may corrupt the stream of frames otherwise
+    /// being worked with.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#78">self</a>.inner.inner
     }
 
-    <span class="doccomment">/// Returns a pinned mutable reference to the underlying I/O stream wrapped by</span>
-    <span class="doccomment">/// `FramedRead`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care should be taken to not tamper with the underlying stream</span>
-    <span class="doccomment">/// of data coming in as it may corrupt the stream of frames otherwise</span>
-    <span class="doccomment">/// being worked with.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pin_mut</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#88">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().<span class="ident">inner</span>
+    <span class="doccomment">/// Returns a pinned mutable reference to the underlying I/O stream wrapped by
+    /// `FramedRead`.
+    ///
+    /// Note that care should be taken to not tamper with the underlying stream
+    /// of data coming in as it may corrupt the stream of frames otherwise
+    /// being worked with.
+    </span><span class="kw">pub fn </span>get_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>T&gt; {
+        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#88">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().inner.<a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().inner
     }
 
-    <span class="doccomment">/// Consumes the `FramedRead`, returning its underlying I/O stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care should be taken to not tamper with the underlying stream</span>
-    <span class="doccomment">/// of data coming in as it may corrupt the stream of frames otherwise</span>
-    <span class="doccomment">/// being worked with.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#97">self</a>.<span class="ident">inner</span>.<span class="ident">inner</span>
+    <span class="doccomment">/// Consumes the `FramedRead`, returning its underlying I/O stream.
+    ///
+    /// Note that care should be taken to not tamper with the underlying stream
+    /// of data coming in as it may corrupt the stream of frames otherwise
+    /// being worked with.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#97">self</a>.inner.inner
     }
 
-    <span class="doccomment">/// Returns a reference to the underlying decoder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decoder</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">D</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#102">self</a>.<span class="ident">inner</span>.<span class="ident">codec</span>
+    <span class="doccomment">/// Returns a reference to the underlying decoder.
+    </span><span class="kw">pub fn </span>decoder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>D {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#102">self</a>.inner.codec
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the underlying decoder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decoder_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">D</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#107">self</a>.<span class="ident">inner</span>.<span class="ident">codec</span>
+    <span class="doccomment">/// Returns a mutable reference to the underlying decoder.
+    </span><span class="kw">pub fn </span>decoder_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>D {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#107">self</a>.inner.codec
     }
 
-    <span class="doccomment">/// Maps the decoder `D` to `C`, preserving the read buffer</span>
-    <span class="doccomment">/// wrapped by `Framed`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_decoder</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">map</span>: <span class="ident">F</span>) -&gt; <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">C</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">D</span>) -&gt; <span class="ident">C</span>,
+    <span class="doccomment">/// Maps the decoder `D` to `C`, preserving the read buffer
+    /// wrapped by `Framed`.
+    </span><span class="kw">pub fn </span>map_decoder&lt;C, F&gt;(<span class="self">self</span>, map: F) -&gt; FramedRead&lt;T, C&gt;
+    <span class="kw">where
+        </span>F: FnOnce(D) -&gt; C,
     {
-        <span class="comment">// This could be potentially simplified once rust-lang/rust#86555 hits stable</span>
-        <span class="kw">let</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a> {
-            <span class="ident">inner</span>,
-            <span class="ident">state</span>,
-            <span class="ident">codec</span>,
-        } <span class="op">=</span> <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#113">self</a>.<span class="ident">inner</span>;
-        <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a> {
-                <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#119">inner</a>,
-                <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#120">state</a>,
-                <span class="ident">codec</span>: <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#113">map</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#121">codec</a>),
+        <span class="comment">// This could be potentially simplified once rust-lang/rust#86555 hits stable
+        </span><span class="kw">let </span><a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a> {
+            inner,
+            state,
+            codec,
+        } = <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#113">self</a>.inner;
+        <a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a> {
+            inner: <a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">FramedImpl</a> {
+                <a href="../../../src/tokio_util/codec/framed_read.rs.html#119">inner</a>,
+                <a href="../../../src/tokio_util/codec/framed_read.rs.html#120">state</a>,
+                codec: <a href="../../../src/tokio_util/codec/framed_read.rs.html#113">map</a>(<a href="../../../src/tokio_util/codec/framed_read.rs.html#121">codec</a>),
             },
         }
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the underlying decoder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decoder_pin_mut</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">D</span> {
-        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#133">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().<span class="ident">codec</span>
+    <span class="doccomment">/// Returns a mutable reference to the underlying decoder.
+    </span><span class="kw">pub fn </span>decoder_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span>D {
+        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#133">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().inner.<a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().codec
     }
 
-    <span class="doccomment">/// Returns a reference to the read buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#138">self</a>.<span class="ident">inner</span>.<span class="ident">state</span>.<span class="ident">buffer</span>
+    <span class="doccomment">/// Returns a reference to the read buffer.
+    </span><span class="kw">pub fn </span>read_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#138">self</a>.inner.state.buffer
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the read buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_buffer_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#143">self</a>.<span class="ident">inner</span>.<span class="ident">state</span>.<span class="ident">buffer</span>
-    }
-}
-
-<span class="comment">// This impl just defers to the underlying FramedImpl</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
-    <span class="ident">D</span>: <a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a>,
-{
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">D::Item</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#156">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#156">cx</a>)
+    <span class="doccomment">/// Returns a mutable reference to the read buffer.
+    </span><span class="kw">pub fn </span>read_buffer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#143">self</a>.inner.state.buffer
     }
 }
 
-<span class="comment">// This impl just defers to the underlying T: Sink</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">I</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
+<span class="comment">// This impl just defers to the underlying FramedImpl
+</span><span class="kw">impl</span>&lt;T, D&gt; <a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>FramedRead&lt;T, D&gt;
+<span class="kw">where
+    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
+    D: <a href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a>,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">T::Error</span>;
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;D::Item, D::Error&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#168">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_ready</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#168">cx</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">item</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#172">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../futures_sink/trait.Sink.html">start_send</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#172">item</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#176">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#176">cx</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#180">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#180">cx</a>)
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#156">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().inner.<a href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a href="../../../src/tokio_util/codec/framed_read.rs.html#156">cx</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    <span class="ident">D</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="comment">// This impl just defers to the underlying T: Sink
+</span><span class="kw">impl</span>&lt;T, I, D&gt; Sink&lt;I&gt; <span class="kw">for </span>FramedRead&lt;T, D&gt;
+<span class="kw">where
+    </span>T: Sink&lt;I&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#190">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;FramedRead&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#68">get_ref</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;decoder&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#102">decoder</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;eof&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.<span class="ident">inner</span>.<span class="ident">state</span>.<span class="ident">eof</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;is_readable&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.<span class="ident">inner</span>.<span class="ident">state</span>.<span class="ident">is_readable</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;buffer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#138">read_buffer</a>())
-            .<span class="ident">finish</span>()
+    <span class="kw">type </span>Error = T::Error;
+
+    <span class="kw">fn </span>poll_ready(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#168">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().inner.<a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().inner.<a href="../../../futures_sink/trait.Sink.html">poll_ready</a>(<a href="../../../src/tokio_util/codec/framed_read.rs.html#168">cx</a>)
+    }
+
+    <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: I) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#172">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().inner.<a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().inner.<a href="../../../futures_sink/trait.Sink.html">start_send</a>(<a href="../../../src/tokio_util/codec/framed_read.rs.html#172">item</a>)
+    }
+
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#176">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().inner.<a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().inner.<a href="../../../futures_sink/trait.Sink.html">poll_flush</a>(<a href="../../../src/tokio_util/codec/framed_read.rs.html#176">cx</a>)
+    }
+
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#180">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">project</a>().inner.<a href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().inner.<a href="../../../futures_sink/trait.Sink.html">poll_close</a>(<a href="../../../src/tokio_util/codec/framed_read.rs.html#180">cx</a>)
+    }
+}
+
+<span class="kw">impl</span>&lt;T, D&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>FramedRead&lt;T, D&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    D: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+{
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio_util/codec/framed_read.rs.html#190">f</a>.debug_struct(<span class="string">&quot;FramedRead&quot;</span>)
+            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#68">get_ref</a>())
+            .field(<span class="string">&quot;decoder&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#102">decoder</a>())
+            .field(<span class="string">&quot;eof&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.inner.state.eof)
+            .field(<span class="string">&quot;is_readable&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.inner.state.is_readable)
+            .field(<span class="string">&quot;buffer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/codec/framed_read.rs.html#190">self</a>.<a href="../../../src/tokio_util/codec/framed_read.rs.html#138">read_buffer</a>())
+            .finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

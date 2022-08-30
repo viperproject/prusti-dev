@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/sync/cancellation_token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cancellation_token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/sync/cancellation_token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cancellation_token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -222,229 +222,229 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
-</pre><pre class="rust"><code><span class="doccomment">//! An asynchronously awaitable `CancellationToken`.</span>
-<span class="doccomment">//! The token allows to signal a cancellation request to one or more tasks.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/guard.rs.html#1-27">guard</a>;
-<span class="kw">mod</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#1-373">tree_node</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! An asynchronously awaitable `CancellationToken`.
+//! The token allows to signal a cancellation request to one or more tasks.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio_util/sync/cancellation_token/guard.rs.html#1-27">guard</a>;
+<span class="kw">mod </span><a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#1-373">tree_node</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/guard.rs.html#6">guard::DropGuard</a>;
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="../../../src/tokio_util/sync/cancellation_token/guard.rs.html#6">guard::DropGuard</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="doccomment">/// A token which can be used to signal a cancellation request to one or more</span>
-<span class="doccomment">/// tasks.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Tasks can call [`CancellationToken::cancelled()`] in order to</span>
-<span class="doccomment">/// obtain a Future which will be resolved when cancellation is requested.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Cancellation can be requested through the [`CancellationToken::cancel`] method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use tokio::select;</span>
-<span class="doccomment">/// use tokio_util::sync::CancellationToken;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     let token = CancellationToken::new();</span>
-<span class="doccomment">///     let cloned_token = token.clone();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     let join_handle = tokio::spawn(async move {</span>
-<span class="doccomment">///         // Wait for either cancellation or a very long time</span>
-<span class="doccomment">///         select! {</span>
-<span class="doccomment">///             _ = cloned_token.cancelled() =&gt; {</span>
-<span class="doccomment">///                 // The token was cancelled</span>
-<span class="doccomment">///                 5</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///             _ = tokio::time::sleep(std::time::Duration::from_secs(9999)) =&gt; {</span>
-<span class="doccomment">///                 99</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     tokio::spawn(async move {</span>
-<span class="doccomment">///         tokio::time::sleep(std::time::Duration::from_millis(10)).await;</span>
-<span class="doccomment">///         token.cancel();</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     assert_eq!(5, join_handle.await.unwrap());</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CancellationToken</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">tree_node::TreeNode</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A token which can be used to signal a cancellation request to one or more
+/// tasks.
+///
+/// Tasks can call [`CancellationToken::cancelled()`] in order to
+/// obtain a Future which will be resolved when cancellation is requested.
+///
+/// Cancellation can be requested through the [`CancellationToken::cancel`] method.
+///
+/// # Examples
+///
+/// ```no_run
+/// use tokio::select;
+/// use tokio_util::sync::CancellationToken;
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let token = CancellationToken::new();
+///     let cloned_token = token.clone();
+///
+///     let join_handle = tokio::spawn(async move {
+///         // Wait for either cancellation or a very long time
+///         select! {
+///             _ = cloned_token.cancelled() =&gt; {
+///                 // The token was cancelled
+///                 5
+///             }
+///             _ = tokio::time::sleep(std::time::Duration::from_secs(9999)) =&gt; {
+///                 99
+///             }
+///         }
+///     });
+///
+///     tokio::spawn(async move {
+///         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+///         token.cancel();
+///     });
+///
+///     assert_eq!(5, join_handle.await.unwrap());
+/// }
+/// ```
+</span><span class="kw">pub struct </span>CancellationToken {
+    inner: Arc&lt;<a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#46">tree_node::TreeNode</a>&gt;,
 }
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// A Future that is resolved once the corresponding [`CancellationToken`]</span>
-    <span class="doccomment">/// is cancelled.</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WaitForCancellationFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">cancellation_token</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a>,
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">future</span>: <span class="ident">tokio::sync::futures::Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// A Future that is resolved once the corresponding [`CancellationToken`]
+    /// is cancelled.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>WaitForCancellationFuture&lt;<span class="lifetime">&#39;a</span>&gt; {
+        cancellation_token: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a>,
+        <span class="attribute">#[pin]
+        </span>future: tokio::sync::futures::Notified&lt;<span class="lifetime">&#39;a</span>&gt;,
     }
 }
 
-<span class="comment">// ===== impl CancellationToken =====</span>
+<span class="comment">// ===== impl CancellationToken =====
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">core::fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">core::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#72">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;CancellationToken&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;is_cancelled&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#72">self</a>.<a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#167">is_cancelled</a>())
-            .<span class="ident">finish</span>()
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">core::fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+        <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#72">f</a>.debug_struct(<span class="string">&quot;CancellationToken&quot;</span>)
+            .field(<span class="string">&quot;is_cancelled&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#72">self</a>.<a href="../../../src/tokio_util/sync/cancellation_token.rs.html#167">is_cancelled</a>())
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#255">tree_node::increase_handle_refcount</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#80">self</a>.<span class="ident">inner</span>);
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#80">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#255">tree_node::increase_handle_refcount</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#80">self</a>.inner);
+        <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+            inner: <a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#80">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#269">tree_node::decrease_handle_refcount</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#89">self</a>.<span class="ident">inner</span>);
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#269">tree_node::decrease_handle_refcount</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#89">self</a>.inner);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-        <span class="ident">CancellationToken::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+        CancellationToken::new()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-    <span class="doccomment">/// Creates a new CancellationToken in the non-cancelled state.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">tree_node::TreeNode::new</span>()),
+<span class="kw">impl </span><a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+    <span class="doccomment">/// Creates a new CancellationToken in the non-cancelled state.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+        <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+            inner: Arc::new(tree_node::TreeNode::new()),
         }
     }
 
-    <span class="doccomment">/// Creates a `CancellationToken` which will get cancelled whenever the</span>
-    <span class="doccomment">/// current token gets cancelled.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the current token is already cancelled, the child token will get</span>
-    <span class="doccomment">/// returned in cancelled state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::select;</span>
-    <span class="doccomment">/// use tokio_util::sync::CancellationToken;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let token = CancellationToken::new();</span>
-    <span class="doccomment">///     let child_token = token.child_token();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let join_handle = tokio::spawn(async move {</span>
-    <span class="doccomment">///         // Wait for either cancellation or a very long time</span>
-    <span class="doccomment">///         select! {</span>
-    <span class="doccomment">///             _ = child_token.cancelled() =&gt; {</span>
-    <span class="doccomment">///                 // The token was cancelled</span>
-    <span class="doccomment">///                 5</span>
-    <span class="doccomment">///             }</span>
-    <span class="doccomment">///             _ = tokio::time::sleep(std::time::Duration::from_secs(9999)) =&gt; {</span>
-    <span class="doccomment">///                 99</span>
-    <span class="doccomment">///             }</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     tokio::spawn(async move {</span>
-    <span class="doccomment">///         tokio::time::sleep(std::time::Duration::from_millis(10)).await;</span>
-    <span class="doccomment">///         token.cancel();</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     assert_eq!(5, join_handle.await.unwrap());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">child_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#87">tree_node::child_node</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#146">self</a>.<span class="ident">inner</span>),
+    <span class="doccomment">/// Creates a `CancellationToken` which will get cancelled whenever the
+    /// current token gets cancelled.
+    ///
+    /// If the current token is already cancelled, the child token will get
+    /// returned in cancelled state.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::select;
+    /// use tokio_util::sync::CancellationToken;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let token = CancellationToken::new();
+    ///     let child_token = token.child_token();
+    ///
+    ///     let join_handle = tokio::spawn(async move {
+    ///         // Wait for either cancellation or a very long time
+    ///         select! {
+    ///             _ = child_token.cancelled() =&gt; {
+    ///                 // The token was cancelled
+    ///                 5
+    ///             }
+    ///             _ = tokio::time::sleep(std::time::Duration::from_secs(9999)) =&gt; {
+    ///                 99
+    ///             }
+    ///         }
+    ///     });
+    ///
+    ///     tokio::spawn(async move {
+    ///         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+    ///         token.cancel();
+    ///     });
+    ///
+    ///     assert_eq!(5, join_handle.await.unwrap());
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>child_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+        <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#54">CancellationToken</a> {
+            inner: <a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#87">tree_node::child_node</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#146">self</a>.inner),
         }
     }
 
-    <span class="doccomment">/// Cancel the [`CancellationToken`] and all child tokens which had been</span>
-    <span class="doccomment">/// derived from it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will wake up all tasks which are waiting for cancellation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Be aware that cancellation is not an atomic operation. It is possible</span>
-    <span class="doccomment">/// for another thread running in parallel with a call to `cancel` to first</span>
-    <span class="doccomment">/// receive `true` from `is_cancelled` on one child node, and then receive</span>
-    <span class="doccomment">/// `false` from `is_cancelled` on another child node. However, once the</span>
-    <span class="doccomment">/// call to `cancel` returns, all child nodes have been fully cancelled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#303">tree_node::cancel</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#162">self</a>.<span class="ident">inner</span>);
+    <span class="doccomment">/// Cancel the [`CancellationToken`] and all child tokens which had been
+    /// derived from it.
+    ///
+    /// This will wake up all tasks which are waiting for cancellation.
+    ///
+    /// Be aware that cancellation is not an atomic operation. It is possible
+    /// for another thread running in parallel with a call to `cancel` to first
+    /// receive `true` from `is_cancelled` on one child node, and then receive
+    /// `false` from `is_cancelled` on another child node. However, once the
+    /// call to `cancel` returns, all child nodes have been fully cancelled.
+    </span><span class="kw">pub fn </span>cancel(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#303">tree_node::cancel</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#162">self</a>.inner);
     }
 
-    <span class="doccomment">/// Returns `true` if the `CancellationToken` is cancelled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_cancelled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#82">tree_node::is_cancelled</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#167">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns `true` if the `CancellationToken` is cancelled.
+    </span><span class="kw">pub fn </span>is_cancelled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#82">tree_node::is_cancelled</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#167">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns a `Future` that gets fulfilled when cancellation is requested.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The future will complete immediately if the token is already cancelled</span>
-    <span class="doccomment">/// when this method is called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is cancel safe.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancelled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">WaitForCancellationFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#58-67">WaitForCancellationFuture</a> {
-            <span class="ident">cancellation_token</span>: <a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#179">self</a>,
-            <span class="ident">future</span>: <a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#179">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#64">notified</a>(),
+    <span class="doccomment">/// Returns a `Future` that gets fulfilled when cancellation is requested.
+    ///
+    /// The future will complete immediately if the token is already cancelled
+    /// when this method is called.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is cancel safe.
+    </span><span class="kw">pub fn </span>cancelled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WaitForCancellationFuture&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#58-67">WaitForCancellationFuture</a> {
+            cancellation_token: <a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#179">self</a>,
+            future: <a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#179">self</a>.inner.<a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#64">notified</a>(),
         }
     }
 
-    <span class="doccomment">/// Creates a `DropGuard` for this token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returned guard will cancel this token (and all its children) on drop</span>
-    <span class="doccomment">/// unless disarmed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drop_guard</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/guard.rs.html#6">DropGuard</a> {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token/guard.rs.html#6">DropGuard</a> { <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#190">self</a>) }
+    <span class="doccomment">/// Creates a `DropGuard` for this token.
+    ///
+    /// Returned guard will cancel this token (and all its children) on drop
+    /// unless disarmed.
+    </span><span class="kw">pub fn </span>drop_guard(<span class="self">self</span>) -&gt; <a href="../../../src/tokio_util/sync/cancellation_token/guard.rs.html#6">DropGuard</a> {
+        <a href="../../../src/tokio_util/sync/cancellation_token/guard.rs.html#6">DropGuard</a> { inner: <span class="prelude-val">Some</span>(<a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#190">self</a>) }
     }
 }
 
-<span class="comment">// ===== impl WaitForCancellationFuture =====</span>
+<span class="comment">// ===== impl WaitForCancellationFuture =====
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">core::fmt::Debug</a> <span class="kw">for</span> <span class="ident">WaitForCancellationFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">core::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#198">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;WaitForCancellationFuture&quot;</span>).<span class="ident">finish</span>()
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">core::fmt::Debug</a> <span class="kw">for </span>WaitForCancellationFuture&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
+        <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#198">f</a>.debug_struct(<span class="string">&quot;WaitForCancellationFuture&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">WaitForCancellationFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>WaitForCancellationFuture&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Output = ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#206">self</a>.<a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#58-67">project</a>();
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">cancellation_token</span>.<span class="ident">is_cancelled</span>() {
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(());
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/tokio_util/sync/cancellation_token.rs.html#206">self</a>.<a href="../../../src/tokio_util/sync/cancellation_token.rs.html#58-67">project</a>();
+        <span class="kw">loop </span>{
+            <span class="kw">if </span>this.cancellation_token.is_cancelled() {
+                <span class="kw">return </span>Poll::Ready(());
             }
 
-            <span class="comment">// No wakeups can be lost here because there is always a call to</span>
-            <span class="comment">// `is_cancelled` between the creation of the future and the call to</span>
-            <span class="comment">// `poll`, and the code that sets the cancelled flag does so before</span>
-            <span class="comment">// waking the `Notified`.</span>
-            <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">future</span>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>() {
-                <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+            <span class="comment">// No wakeups can be lost here because there is always a call to
+            // `is_cancelled` between the creation of the future and the call to
+            // `poll`, and the code that sets the cancelled flag does so before
+            // waking the `Notified`.
+            </span><span class="kw">if </span>this.future.as_mut().poll(cx).is_pending() {
+                <span class="kw">return </span>Poll::Pending;
             }
 
-            <a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#207">this</a>.<span class="ident">future</span>.<span class="ident">set</span>(<a class="ident" href="../../../src/tokio_util/sync/cancellation_token.rs.html#207">this</a>.<span class="ident">cancellation_token</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#64">notified</a>());
+            <a href="../../../src/tokio_util/sync/cancellation_token.rs.html#207">this</a>.future.set(<a href="../../../src/tokio_util/sync/cancellation_token.rs.html#207">this</a>.cancellation_token.inner.<a href="../../../src/tokio_util/sync/cancellation_token/tree_node.rs.html#64">notified</a>());
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

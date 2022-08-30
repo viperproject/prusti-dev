@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/enter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>enter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/enter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>enter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -204,131 +204,131 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cell</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cell::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>std::marker::PhantomData;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">EnterContext</span> {
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rt&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
-    <span class="ident">Entered</span> {
-        <span class="ident">allow_blocking</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>EnterContext {
+    <span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;rt&quot;</span>), allow(dead_code))]
+    </span>Entered {
+        allow_blocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     },
-    <span class="ident">NotEntered</span>,
+    NotEntered,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#6">EnterContext</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_entered</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, <span class="ident">EnterContext::Entered</span> { .. })
+<span class="kw">impl </span><a href="../../../src/tokio/runtime/enter.rs.html#6">EnterContext</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_entered(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, EnterContext::Entered { .. })
     }
 }
 
-<a class="macro" href="../../../src/tokio/macros/thread_local.rs.html#15-17">thread_local!</a>(<span class="kw">static</span> <span class="ident">ENTERED</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">EnterContext</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">const</span> { <span class="ident">Cell::new</span>(<span class="ident">EnterContext::NotEntered</span>) });
+<a class="macro" href="../../../src/tokio/macros/thread_local.rs.html#15-17">thread_local!</a>(<span class="kw">static </span>ENTERED: Cell&lt;EnterContext&gt; = <span class="kw">const </span>{ Cell::new(EnterContext::NotEntered) });
 
-<span class="doccomment">/// Represents an executor context.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Enter</span> {
-    <span class="ident">_p</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Represents an executor context.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Enter {
+    _p: PhantomData&lt;RefCell&lt;()&gt;&gt;,
 }
 
-<span class="macro">cfg_rt!</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#15"><span class="kw">crate</span>::park::thread::ParkError</a>;
+<span class="macro">cfg_rt! </span>{
+    <span class="kw">use </span><a href="../../../src/tokio/park/thread.rs.html#15"><span class="kw">crate</span>::park::thread::ParkError</a>;
 
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-    <span class="doccomment">/// Marks the current thread as being within the dynamic extent of an</span>
-    <span class="doccomment">/// executor.</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">enter</span>(<span class="ident">allow_blocking</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">enter</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#50">try_enter</a>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#35">allow_blocking</a>) {
-            <span class="kw">return</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#36">enter</a>;
+    <span class="doccomment">/// Marks the current thread as being within the dynamic extent of an
+    /// executor.
+    </span><span class="attribute">#[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enter(allow_blocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(enter) = <a href="../../../src/tokio/runtime/enter.rs.html#50">try_enter</a>(<a href="../../../src/tokio/runtime/enter.rs.html#35">allow_blocking</a>) {
+            <span class="kw">return </span><a href="../../../src/tokio/runtime/enter.rs.html#36">enter</a>;
         }
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
             <span class="string">&quot;Cannot start a runtime from within a runtime. This happens \
             because a function (like `block_on`) attempted to block the \
             current thread while the thread is being used to drive \
-            asynchronous tasks.&quot;</span>
-        );
+            asynchronous tasks.&quot;
+        </span>);
     }
 
-    <span class="doccomment">/// Tries to enter a runtime context, returns `None` if already in a runtime</span>
-    <span class="doccomment">/// context.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_enter</span>(<span class="ident">allow_blocking</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">get</span>().<span class="ident">is_entered</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#51">c</a>.<span class="ident">set</span>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> { <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#50">allow_blocking</a> });
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> { <span class="ident">_p</span>: <span class="ident">PhantomData</span> })
+    <span class="doccomment">/// Tries to enter a runtime context, returns `None` if already in a runtime
+    /// context.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_enter(allow_blocking: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a>&gt; {
+        <a href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.with(|c| {
+            <span class="kw">if </span>c.get().is_entered() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <a href="../../../src/tokio/runtime/enter.rs.html#51">c</a>.set(<a href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> { <a href="../../../src/tokio/runtime/enter.rs.html#50">allow_blocking</a> });
+                <span class="prelude-val">Some</span>(<a href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> { _p: PhantomData })
             }
         })
     }
 }
 
-<span class="comment">// Forces the current &quot;entered&quot; state to be cleared while the closure</span>
-<span class="comment">// is executed.</span>
-<span class="comment">//</span>
-<span class="comment">// # Warning</span>
-<span class="comment">//</span>
-<span class="comment">// This is hidden for a reason. Do not use without fully understanding</span>
-<span class="comment">// executors. Misusing can easily cause your program to deadlock.</span>
-<span class="macro">cfg_rt_multi_thread!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">exit</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span> {
-        <span class="comment">// Reset in case the closure panics</span>
-        <span class="kw">struct</span> <span class="ident">Reset</span>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#6">EnterContext</a>);
-        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#72">Reset</a> {
-            <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-                <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">c</span>.<span class="ident">get</span>().<span class="ident">is_entered</span>(), <span class="string">&quot;closure claimed permanent executor&quot;</span>);
-                    <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#75">c</a>.<span class="ident">set</span>(<a class="self" href="../../../src/tokio/runtime/enter.rs.html#74">self</a>.<span class="number">0</span>);
+<span class="comment">// Forces the current &quot;entered&quot; state to be cleared while the closure
+// is executed.
+//
+// # Warning
+//
+// This is hidden for a reason. Do not use without fully understanding
+// executors. Misusing can easily cause your program to deadlock.
+</span><span class="macro">cfg_rt_multi_thread! </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exit&lt;F: FnOnce() -&gt; R, R&gt;(f: F) -&gt; R {
+        <span class="comment">// Reset in case the closure panics
+        </span><span class="kw">struct </span>Reset(<a href="../../../src/tokio/runtime/enter.rs.html#6">EnterContext</a>);
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/tokio/runtime/enter.rs.html#72">Reset</a> {
+            <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+                <a href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.with(|c| {
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!c.get().is_entered(), <span class="string">&quot;closure claimed permanent executor&quot;</span>);
+                    <a href="../../../src/tokio/runtime/enter.rs.html#75">c</a>.set(<a class="self" href="../../../src/tokio/runtime/enter.rs.html#74">self</a>.<span class="number">0</span>);
                 });
             }
         }
 
-        <span class="kw">let</span> <span class="ident">was</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#82">c</a>.<span class="ident">get</span>();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">e</span>.<span class="ident">is_entered</span>(), <span class="string">&quot;asked to exit when not entered&quot;</span>);
-            <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#82">c</a>.<span class="ident">set</span>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#11">EnterContext::NotEntered</a>);
-            <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#83">e</a>
+        <span class="kw">let </span>was = <a href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.with(|c| {
+            <span class="kw">let </span>e = <a href="../../../src/tokio/runtime/enter.rs.html#82">c</a>.get();
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(e.is_entered(), <span class="string">&quot;asked to exit when not entered&quot;</span>);
+            <a href="../../../src/tokio/runtime/enter.rs.html#82">c</a>.set(<a href="../../../src/tokio/runtime/enter.rs.html#11">EnterContext::NotEntered</a>);
+            <a href="../../../src/tokio/runtime/enter.rs.html#83">e</a>
         });
 
-        <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#72">Reset</a>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#82">was</a>);
-        <span class="comment">// dropping _reset after f() will reset ENTERED</span>
-        <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#70">f</a>()
+        <span class="kw">let </span>_reset = <a href="../../../src/tokio/runtime/enter.rs.html#72">Reset</a>(<a href="../../../src/tokio/runtime/enter.rs.html#82">was</a>);
+        <span class="comment">// dropping _reset after f() will reset ENTERED
+        </span><a href="../../../src/tokio/runtime/enter.rs.html#70">f</a>()
     }
 }
 
-<span class="macro">cfg_rt!</span> {
-    <span class="doccomment">/// Disallows blocking in the current runtime context until the guard is dropped.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">disallow_blocking</span>() -&gt; <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#114">DisallowBlockingGuard</a> {
-        <span class="kw">let</span> <span class="ident">reset</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> {
-                <span class="ident">allow_blocking</span>: <span class="bool-val">true</span>,
-            } <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#98">c</a>.<span class="ident">get</span>()
+<span class="macro">cfg_rt! </span>{
+    <span class="doccomment">/// Disallows blocking in the current runtime context until the guard is dropped.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>disallow_blocking() -&gt; <a href="../../../src/tokio/runtime/enter.rs.html#114">DisallowBlockingGuard</a> {
+        <span class="kw">let </span>reset = <a href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.with(|c| {
+            <span class="kw">if let </span><a href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> {
+                allow_blocking: <span class="bool-val">true</span>,
+            } = <a href="../../../src/tokio/runtime/enter.rs.html#98">c</a>.get()
             {
-                <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#98">c</a>.<span class="ident">set</span>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> {
-                    <span class="ident">allow_blocking</span>: <span class="bool-val">false</span>,
+                <a href="../../../src/tokio/runtime/enter.rs.html#98">c</a>.set(<a href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> {
+                    allow_blocking: <span class="bool-val">false</span>,
                 });
-                <span class="bool-val">true</span>
-            } <span class="kw">else</span> {
-                <span class="bool-val">false</span>
-            }
+                <span class="bool-val">true
+            </span>} <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>}
         });
-        <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#114">DisallowBlockingGuard</a>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#98">reset</a>)
+        <a href="../../../src/tokio/runtime/enter.rs.html#114">DisallowBlockingGuard</a>(<a href="../../../src/tokio/runtime/enter.rs.html#98">reset</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DisallowBlockingGuard</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#114">DisallowBlockingGuard</a> {
-        <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> {
-                <span class="comment">// XXX: Do we want some kind of assertion here, or is &quot;best effort&quot; okay?</span>
-                <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> {
-                        <span class="ident">allow_blocking</span>: <span class="bool-val">false</span>,
-                    } <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#119">c</a>.<span class="ident">get</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DisallowBlockingGuard(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
+    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/tokio/runtime/enter.rs.html#114">DisallowBlockingGuard</a> {
+        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+            <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>{
+                <span class="comment">// XXX: Do we want some kind of assertion here, or is &quot;best effort&quot; okay?
+                </span><a href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.with(|c| {
+                    <span class="kw">if let </span><a href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> {
+                        allow_blocking: <span class="bool-val">false</span>,
+                    } = <a href="../../../src/tokio/runtime/enter.rs.html#119">c</a>.get()
                     {
-                        <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#119">c</a>.<span class="ident">set</span>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> {
-                            <span class="ident">allow_blocking</span>: <span class="bool-val">true</span>,
+                        <a href="../../../src/tokio/runtime/enter.rs.html#119">c</a>.set(<a href="../../../src/tokio/runtime/enter.rs.html#8">EnterContext::Entered</a> {
+                            allow_blocking: <span class="bool-val">true</span>,
                         });
                     }
                 })
@@ -337,78 +337,78 @@
     }
 }
 
-<span class="macro">cfg_rt_multi_thread!</span> {
-    <span class="doccomment">/// Returns true if in a runtime context.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">context</span>() -&gt; <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#6">EnterContext</a> {
-        <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#137">c</a>.<span class="ident">get</span>())
+<span class="macro">cfg_rt_multi_thread! </span>{
+    <span class="doccomment">/// Returns true if in a runtime context.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>context() -&gt; <a href="../../../src/tokio/runtime/enter.rs.html#6">EnterContext</a> {
+        <a href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.with(|c| <a href="../../../src/tokio/runtime/enter.rs.html#137">c</a>.get())
     }
 }
 
-<span class="macro">cfg_rt!</span> {
-    <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> {
-        <span class="doccomment">/// Blocks the thread on the specified future, returning the value with</span>
-        <span class="doccomment">/// which that future completes.</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">block_on</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F::Output</span>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#15">ParkError</a><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>,
+<span class="macro">cfg_rt! </span>{
+    <span class="kw">impl </span><a href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> {
+        <span class="doccomment">/// Blocks the thread on the specified future, returning the value with
+        /// which that future completes.
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>block_on&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output, <a href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>&gt;
+        <span class="kw">where
+            </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>,
         {
-            <span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#225"><span class="kw">crate</span>::park::thread::CachedParkThread</a>;
+            <span class="kw">use </span><a href="../../../src/tokio/park/thread.rs.html#225"><span class="kw">crate</span>::park::thread::CachedParkThread</a>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">park</span> <span class="op">=</span> <span class="ident">CachedParkThread::new</span>();
-            <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#151">park</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#252">block_on</a>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#145">f</a>)
+            <span class="kw">let </span><span class="kw-2">mut </span>park = CachedParkThread::new();
+            <a href="../../../src/tokio/runtime/enter.rs.html#151">park</a>.<a href="../../../src/tokio/park/thread.rs.html#252">block_on</a>(<a href="../../../src/tokio/runtime/enter.rs.html#145">f</a>)
         }
 
-        <span class="doccomment">/// Blocks the thread on the specified future for **at most** `timeout`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the future completes before `timeout`, the result is returned. If</span>
-        <span class="doccomment">/// `timeout` elapses, then `Err` is returned.</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">block_on_timeout</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F::Output</span>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#15">ParkError</a><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>,
+        <span class="doccomment">/// Blocks the thread on the specified future for **at most** `timeout`
+        ///
+        /// If the future completes before `timeout`, the result is returned. If
+        /// `timeout` elapses, then `Err` is returned.
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>block_on_timeout&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F, timeout: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output, <a href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>&gt;
+        <span class="kw">where
+            </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>,
         {
-            <span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#49"><span class="kw">crate</span>::park::Park</a>;
-            <span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#225"><span class="kw">crate</span>::park::thread::CachedParkThread</a>;
-            <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
-            <span class="kw">use</span> <span class="ident">std::task::Poll::Ready</span>;
-            <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>;
+            <span class="kw">use </span><a href="../../../src/tokio/park/mod.rs.html#49"><span class="kw">crate</span>::park::Park</a>;
+            <span class="kw">use </span><a href="../../../src/tokio/park/thread.rs.html#225"><span class="kw">crate</span>::park::thread::CachedParkThread</a>;
+            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
+            <span class="kw">use </span>std::task::Poll::Ready;
+            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">park</span> <span class="op">=</span> <span class="ident">CachedParkThread::new</span>();
-            <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">park</span>.<span class="ident">get_unpark</span>()<span class="question-mark">?</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/enter.rs.html#170">waker</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>park = CachedParkThread::new();
+            <span class="kw">let </span>waker = park.get_unpark()<span class="question-mark">?</span>.<a href="../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span><a href="../../../src/tokio/runtime/enter.rs.html#170">waker</a>);
 
-            <a class="macro" href="../../../src/tokio/macros/pin.rs.html#125-144">pin!</a>(<span class="ident">f</span>);
-            <span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">Instant::now</span>() <span class="op">+</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#159">timeout</a>;
+            <a class="macro" href="../../../src/tokio/macros/pin.rs.html#125-144">pin!</a>(f);
+            <span class="kw">let </span>when = Instant::now() + <a href="../../../src/tokio/runtime/enter.rs.html#159">timeout</a>;
 
-            <span class="kw">loop</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Ready</span>(<span class="ident">v</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#173">f</a>.<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#171">cx</a>)) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#177">v</a>);
+            <span class="kw">loop </span>{
+                <span class="kw">if let </span>Ready(v) = <a href="../../../src/tokio/coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(|| <a href="../../../src/tokio/runtime/enter.rs.html#173">f</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/tokio/runtime/enter.rs.html#171">cx</a>)) {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/tokio/runtime/enter.rs.html#177">v</a>);
                 }
 
-                <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
+                <span class="kw">let </span>now = Instant::now();
 
-                <span class="kw">if</span> <span class="ident">now</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">when</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(());
+                <span class="kw">if </span>now &gt;= when {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(());
                 }
 
-                <span class="ident">park</span>.<span class="ident">park_timeout</span>(<span class="ident">when</span> <span class="op">-</span> <span class="ident">now</span>)<span class="question-mark">?</span>;
+                park.park_timeout(when - now)<span class="question-mark">?</span>;
             }
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#194">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Enter&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio/runtime/enter.rs.html#194">f</a>.debug_struct(<span class="string">&quot;Enter&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">c</span>.<span class="ident">get</span>().<span class="ident">is_entered</span>());
-            <a class="ident" href="../../../src/tokio/runtime/enter.rs.html#201">c</a>.<span class="ident">set</span>(<a class="ident" href="../../../src/tokio/runtime/enter.rs.html#11">EnterContext::NotEntered</a>);
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/tokio/runtime/enter.rs.html#23">Enter</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a href="../../../src/tokio/runtime/enter.rs.html#20">ENTERED</a>.with(|c| {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(c.get().is_entered());
+            <a href="../../../src/tokio/runtime/enter.rs.html#201">c</a>.set(<a href="../../../src/tokio/runtime/enter.rs.html#11">EnterContext::NotEntered</a>);
         });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/process_expire_borrows.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>process_expire_borrows.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/process_expire_borrows.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>process_expire_borrows.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -595,602 +595,602 @@
 <span id="595">595</span>
 <span id="596">596</span>
 <span id="597">597</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#13">action::Action</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#29">borrows</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#20">path_ctxt::PathCtxt</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#247">FoldUnfold</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
-    <span class="ident">foldunfold</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#1099-1101">prepend_join</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>},
-    <a class="ident" href="../../../../src/prusti_viper/encoder/encoder.rs.html#65">Encoder</a>,
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#13">action::Action</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#29">borrows</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#20">path_ctxt::PathCtxt</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#247">FoldUnfold</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>};
+<span class="kw">use </span><span class="kw">crate</span>::encoder::{
+    foldunfold::{<a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#1099-1101">prepend_join</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>},
+    <a href="../../../../src/prusti_viper/encoder/encoder.rs.html#65">Encoder</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../../log/index.html">log</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">prusti_common</span>::{<a class="ident" href="../../../../prusti_common/report/index.html">report</a>, <a class="ident" href="../../../../prusti_common/utils/to_string/trait.ToString.html">utils::to_string::ToString</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
-<span class="kw">use</span> <span class="ident">vir_crate::polymorphic</span>::{<a class="self" href="../../../../vir/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>, <a class="ident" href="../../../../vir/gen/polymorphic/cfg/visitor/trait.CfgReplacer.html">CfgReplacer</a>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder</a>};
+<span class="kw">use </span><a href="../../../../log/index.html">log</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span>prusti_common::{<a href="../../../../prusti_common/report/index.html">report</a>, <a href="../../../../prusti_common/utils/to_string/trait.ToString.html">utils::to_string::ToString</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
+<span class="kw">use </span>vir_crate::polymorphic::{<span class="self"><a href="../../../../vir/polymorphic/index.html">self</a> </span><span class="kw">as </span>vir, <a href="../../../../vir/gen/polymorphic/cfg/visitor/trait.CfgReplacer.html">CfgReplacer</a>, <a href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">ExprFolder</a>};
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">FoldUnfold</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Generates Viper statements that expire all the borrows from the given `dag`. The</span>
-    <span class="doccomment">/// `surrounding_pctxt` will be modified to reflect the path context after the borrows have</span>
-    <span class="doccomment">/// been expired.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">process_expire_borrows</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">dag</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
-        <span class="ident">surrounding_pctxt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-        <span class="ident">surrounding_block_index</span>: <a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
-        <span class="ident">new_cfg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
-        <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a><span class="op">&gt;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;[enter] process_expire_borrows dag=[{:?}]&quot;</span>, <span class="ident">dag</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; FoldUnfold&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="doccomment">/// Generates Viper statements that expire all the borrows from the given `dag`. The
+    /// `surrounding_pctxt` will be modified to reflect the path context after the borrows have
+    /// been expired.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>process_expire_borrows(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        dag: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
+        surrounding_pctxt: <span class="kw-2">&amp;mut </span>PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;,
+        surrounding_block_index: <a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
+        new_cfg: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
+        label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt;, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;[enter] process_expire_borrows dag=[{:?}]&quot;</span>, dag);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cfg</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#569">build_initial_cfg</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#17">dag</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>cfg = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#569">build_initial_cfg</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#17">dag</a>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">final_pctxt</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#20">PathCtxt</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; <span class="ident">cfg</span>.<span class="ident">basic_blocks</span>.<span class="ident">len</span>()];
+        <span class="kw">let </span><span class="kw-2">mut </span>final_pctxt: Vec&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#20">PathCtxt</a>&gt;&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; cfg.basic_blocks.len()];
 
-        <span class="kw">for</span> <span class="ident">curr_block_index</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">cfg</span>.<span class="ident">basic_blocks</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">dump_debug_info</span> {
-                <span class="ident">dump_borrows_cfg</span>(
-                    <span class="self">self</span>.<span class="ident">encoder</span>,
-                    <span class="ident">dag</span>,
-                    <span class="kw-2">&amp;</span><span class="ident">cfg</span>,
-                    <span class="ident">surrounding_block_index</span>,
-                    <span class="ident">curr_block_index</span>,
+        <span class="kw">for </span>curr_block_index <span class="kw">in </span><span class="number">0</span>..cfg.basic_blocks.len() {
+            <span class="kw">if </span><span class="self">self</span>.dump_debug_info {
+                dump_borrows_cfg(
+                    <span class="self">self</span>.encoder,
+                    dag,
+                    <span class="kw-2">&amp;</span>cfg,
+                    surrounding_block_index,
+                    curr_block_index,
                 );
             }
 
-            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">pctxt</span>, <span class="ident">curr_block_pre_statements</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_initial_pctxt</span>(
-                <span class="ident">dag</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">cfg</span>,
-                <span class="ident">surrounding_pctxt</span>,
-                <span class="ident">surrounding_block_index</span>,
-                <span class="ident">new_cfg</span>,
-                <span class="ident">curr_block_index</span>,
-                <span class="kw-2">&amp;</span><span class="ident">final_pctxt</span>,
+            <span class="kw">let </span>(<span class="kw-2">mut </span>pctxt, curr_block_pre_statements) = <span class="self">self</span>.construct_initial_pctxt(
+                dag,
+                <span class="kw-2">&amp;mut </span>cfg,
+                surrounding_pctxt,
+                surrounding_block_index,
+                new_cfg,
+                curr_block_index,
+                <span class="kw-2">&amp;</span>final_pctxt,
             )<span class="question-mark">?</span>;
-            <span class="ident">cfg</span>.<span class="ident">basic_blocks</span>[<span class="ident">curr_block_index</span>]
-                .<span class="ident">statements</span>
-                .<span class="ident">extend</span>(<span class="ident">curr_block_pre_statements</span>);
+            cfg.basic_blocks[curr_block_index]
+                .statements
+                .extend(curr_block_pre_statements);
 
-            <span class="kw">let</span> <span class="ident">curr_block</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">cfg</span>.<span class="ident">basic_blocks</span>[<span class="ident">curr_block_index</span>];
-            <span class="self">self</span>.<span class="ident">process_node</span>(
-                <span class="ident">surrounding_pctxt</span>,
-                <span class="ident">surrounding_block_index</span>,
-                <span class="ident">new_cfg</span>,
-                <span class="ident">curr_block</span>,
-                <span class="ident">curr_block_index</span>,
-                <span class="ident">label</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">pctxt</span>,
-                <span class="self">self</span>.<span class="ident">method_pos</span>,
+            <span class="kw">let </span>curr_block = <span class="kw-2">&amp;mut </span>cfg.basic_blocks[curr_block_index];
+            <span class="self">self</span>.process_node(
+                surrounding_pctxt,
+                surrounding_block_index,
+                new_cfg,
+                curr_block,
+                curr_block_index,
+                label,
+                <span class="kw-2">&amp;mut </span>pctxt,
+                <span class="self">self</span>.method_pos,
             )<span class="question-mark">?</span>;
 
-            <span class="ident">final_pctxt</span>[<span class="ident">curr_block_index</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">pctxt</span>);
+            final_pctxt[curr_block_index] = <span class="prelude-val">Some</span>(pctxt);
         }
 
-        <span class="comment">// Merge all pctxts with reborrowed_nodes.is_empty() into one.</span>
-        <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#18">surrounding_pctxt</a> <span class="op">=</span> <span class="ident">construct_final_pctxt</span>(<span class="ident">dag</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cfg</span>, <span class="kw-2">&amp;</span><span class="ident">final_pctxt</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Merge all pctxts with reborrowed_nodes.is_empty() into one.
+        </span><span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#18">surrounding_pctxt</a> = construct_final_pctxt(dag, <span class="kw-2">&amp;mut </span>cfg, <span class="kw-2">&amp;</span>final_pctxt)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">final_statements</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#413">generate_final_statements</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#25">cfg</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#21">label</a>);
+        <span class="kw">let </span>final_statements = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#413">generate_final_statements</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#25">cfg</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#21">label</a>);
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
             <span class="string">&quot;[exit] process_expire_borrows = [\n{}\n]&quot;</span>,
-            <span class="ident">final_statements</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_string</span>())
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                .<span class="ident">join</span>(<span class="string">&quot;\n  &quot;</span>)
+            final_statements
+                .iter()
+                .map(|s| s.to_string())
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                .join(<span class="string">&quot;\n  &quot;</span>)
         );
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#71">final_statements</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#71">final_statements</a>)
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">construct_initial_pctxt</span>(
+    <span class="attribute">#[allow(clippy::too_many_arguments)]
+    </span><span class="kw">fn </span>construct_initial_pctxt(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">dag</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
-        <span class="ident">cfg</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
-        <span class="ident">surrounding_pctxt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-        <span class="ident">surrounding_block_index</span>: <a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
-        <span class="ident">new_cfg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
-        <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">final_pctxt</span>: <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a><span class="op">&gt;</span>), <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">curr_block</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#87">cfg</a>.<span class="ident">basic_blocks</span>[<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#91">curr_block_index</a>];
-        <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">curr_block</span>.<span class="ident">predecessors</span>.<span class="ident">is_empty</span>() {
-            <span class="self">self</span>.<span class="ident">construct_initial_pctxt_no_predecessors</span>(
-                <span class="ident">dag</span>,
-                <span class="ident">cfg</span>,
-                <span class="ident">surrounding_pctxt</span>,
-                <span class="ident">surrounding_block_index</span>,
-                <span class="ident">new_cfg</span>,
-                <span class="ident">curr_block_index</span>,
-            )<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">pctxt</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_initial_pctxt_with_predecessors</span>(
-                <span class="ident">dag</span>,
-                <span class="ident">cfg</span>,
-                <span class="ident">surrounding_pctxt</span>,
-                <span class="ident">surrounding_block_index</span>,
-                <span class="ident">new_cfg</span>,
-                <span class="ident">curr_block_index</span>,
-                <span class="ident">final_pctxt</span>,
+        dag: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
+        cfg: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
+        surrounding_pctxt: <span class="kw-2">&amp;mut </span>PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;,
+        surrounding_block_index: <a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
+        new_cfg: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
+        curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        final_pctxt: <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;&gt;],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;, Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt;), <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+        <span class="kw">let </span>curr_block = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#87">cfg</a>.basic_blocks[<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#91">curr_block_index</a>];
+        <span class="prelude-val">Ok</span>(<span class="kw">if </span>curr_block.predecessors.is_empty() {
+            <span class="self">self</span>.construct_initial_pctxt_no_predecessors(
+                dag,
+                cfg,
+                surrounding_pctxt,
+                surrounding_block_index,
+                new_cfg,
+                curr_block_index,
+            )<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            <span class="kw">let </span>pctxt = <span class="self">self</span>.construct_initial_pctxt_with_predecessors(
+                dag,
+                cfg,
+                surrounding_pctxt,
+                surrounding_block_index,
+                new_cfg,
+                curr_block_index,
+                final_pctxt,
             )<span class="question-mark">?</span>;
-            (<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#105">pctxt</a>, <span class="ident">Vec::new</span>())
+            (<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#105">pctxt</a>, Vec::new())
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">construct_initial_pctxt_no_predecessors</span>(
+    <span class="kw">fn </span>construct_initial_pctxt_no_predecessors(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">dag</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
-        <span class="ident">cfg</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
-        <span class="ident">surrounding_pctxt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-        <span class="ident">surrounding_block_index</span>: <a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
-        <span class="ident">new_cfg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
-        <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a><span class="op">&gt;</span>), <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">curr_block</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#121">cfg</a>.<span class="ident">basic_blocks</span>[<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#125">curr_block_index</a>];
-        <span class="kw">let</span> <span class="ident">curr_node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#127">curr_block</a>.<span class="ident">node</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pctxt</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#122">surrounding_pctxt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_block_pre_statements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">end_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#123">surrounding_block_index</a>;
-        <span class="kw">let</span> <span class="ident">start_block</span> <span class="op">=</span>
-            <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#119">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#385-389">get_cfg_block_of_last_borrow</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#123">surrounding_block_index</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#128">curr_node</a>.<span class="ident">borrow</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">start_block</span>.<span class="ident">weak_eq</span>(<span class="kw-2">&amp;</span><span class="ident">end_block</span>) {
-            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#124">new_cfg</a>.<span class="ident">find_path</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#132">start_block</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#131">end_block</a>).<span class="ident">unwrap</span>();
+        dag: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
+        cfg: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
+        surrounding_pctxt: <span class="kw-2">&amp;mut </span>PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;,
+        surrounding_block_index: <a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
+        new_cfg: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
+        curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;, Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt;), <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+        <span class="kw">let </span>curr_block = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#121">cfg</a>.basic_blocks[<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#125">curr_block_index</a>];
+        <span class="kw">let </span>curr_node = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#127">curr_block</a>.node;
+        <span class="kw">let </span><span class="kw-2">mut </span>pctxt = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#122">surrounding_pctxt</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>curr_block_pre_statements = Vec::new();
+        <span class="kw">let </span>end_block = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#123">surrounding_block_index</a>;
+        <span class="kw">let </span>start_block =
+            <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#119">self</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#385-389">get_cfg_block_of_last_borrow</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#123">surrounding_block_index</a>, <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#128">curr_node</a>.borrow);
+        <span class="kw">if </span>!start_block.weak_eq(<span class="kw-2">&amp;</span>end_block) {
+            <span class="kw">let </span>path = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#124">new_cfg</a>.find_path(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#132">start_block</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#131">end_block</a>).unwrap();
             <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
                 <span class="string">&quot;process_expire_borrows borrow={:?} path={:?}&quot;</span>,
-                <span class="ident">curr_node</span>.<span class="ident">borrow</span>,
-                <span class="ident">path</span>
+                curr_node.borrow,
+                path
             );
-            <span class="kw">let</span> <span class="ident">dropped_permissions</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#122">surrounding_pctxt</a>
-                .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#56">log</a>()
-                .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#76-80">collect_dropped_permissions</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#135">path</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#120">dag</a>);
+            <span class="kw">let </span>dropped_permissions = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#122">surrounding_pctxt</a>
+                .<a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#56">log</a>()
+                .<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#76-80">collect_dropped_permissions</a>(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#135">path</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#120">dag</a>);
             <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
                 <span class="string">&quot;process_expire_borrows borrow={:?} dropped_permissions={:?}&quot;</span>,
-                <span class="ident">curr_node</span>.<span class="ident">borrow</span>,
-                <span class="ident">dropped_permissions</span>
+                curr_node.borrow,
+                dropped_permissions
             );
-            <span class="kw">for</span> <span class="ident">perm</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">dropped_permissions</span> {
-                <span class="kw">let</span> <span class="ident">comment</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;restored (from log): {}&quot;</span>, <span class="ident">perm</span>);
-                <span class="ident">curr_block_pre_statements</span>.<span class="ident">push</span>(<span class="ident">vir::Stmt::comment</span>(<span class="ident">comment</span>));
+            <span class="kw">for </span>perm <span class="kw">in </span><span class="kw-2">&amp;</span>dropped_permissions {
+                <span class="kw">let </span>comment = <span class="macro">format!</span>(<span class="string">&quot;restored (from log): {}&quot;</span>, perm);
+                curr_block_pre_statements.push(vir::Stmt::comment(comment));
             }
-            <span class="ident">pctxt</span>
-                .<span class="ident">mut_state</span>()
-                .<span class="ident">restore_dropped_perms</span>(<span class="ident">dropped_permissions</span>.<span class="ident">into_iter</span>())<span class="question-mark">?</span>;
+            pctxt
+                .mut_state()
+                .restore_dropped_perms(dropped_permissions.into_iter())<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#129">pctxt</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#130">curr_block_pre_statements</a>))
+        <span class="prelude-val">Ok</span>((<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#129">pctxt</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#130">curr_block_pre_statements</a>))
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">construct_initial_pctxt_with_predecessors</span>(
+    <span class="attribute">#[allow(clippy::too_many_arguments)]
+    </span><span class="kw">fn </span>construct_initial_pctxt_with_predecessors(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">dag</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
-        <span class="ident">cfg</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
-        <span class="ident">surrounding_pctxt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-        <span class="ident">surrounding_block_index</span>: <a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
-        <span class="ident">new_cfg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
-        <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">final_pctxt</span>: <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">curr_block</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#164">cfg</a>.<span class="ident">basic_blocks</span>[<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#168">curr_block_index</a>];
-        <span class="kw">let</span> <span class="ident">curr_node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#171">curr_block</a>.<span class="ident">node</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">incoming_pctxt</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">predecessor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">curr_block</span>.<span class="ident">predecessors</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pctxt</span> <span class="op">=</span> <span class="ident">final_pctxt</span>[<span class="ident">predecessor</span>].<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">predecessor_node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">cfg</span>.<span class="ident">basic_blocks</span>[<span class="ident">predecessor</span>].<span class="ident">node</span>;
-            <span class="kw">let</span> <span class="ident">end_block</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">get_cfg_block_of_last_borrow</span>(<span class="ident">surrounding_block_index</span>, <span class="kw-2">&amp;</span><span class="ident">predecessor_node</span>.<span class="ident">borrow</span>);
-            <span class="kw">let</span> <span class="ident">start_block</span> <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">get_cfg_block_of_last_borrow</span>(<span class="ident">surrounding_block_index</span>, <span class="kw-2">&amp;</span><span class="ident">curr_node</span>.<span class="ident">borrow</span>);
-            <span class="kw">if</span> <span class="ident">start_block</span> <span class="op">!</span><span class="op">=</span> <span class="ident">end_block</span> {
-                <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">new_cfg</span>.<span class="ident">find_path</span>(<span class="ident">start_block</span>, <span class="ident">end_block</span>).<span class="ident">unwrap</span>();
+        dag: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
+        cfg: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
+        surrounding_pctxt: <span class="kw-2">&amp;mut </span>PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;,
+        surrounding_block_index: <a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
+        new_cfg: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
+        curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        final_pctxt: <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;&gt;],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+        <span class="kw">let </span>curr_block = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#164">cfg</a>.basic_blocks[<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#168">curr_block_index</a>];
+        <span class="kw">let </span>curr_node = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#171">curr_block</a>.node;
+        <span class="kw">let </span><span class="kw-2">mut </span>incoming_pctxt = Vec::new();
+        <span class="kw">for </span><span class="kw-2">&amp;</span>predecessor <span class="kw">in </span><span class="kw-2">&amp;</span>curr_block.predecessors {
+            <span class="kw">let </span><span class="kw-2">mut </span>pctxt = final_pctxt[predecessor].as_ref().unwrap().clone();
+            <span class="kw">let </span>predecessor_node = <span class="kw-2">&amp;</span>cfg.basic_blocks[predecessor].node;
+            <span class="kw">let </span>end_block = <span class="self">self
+                </span>.get_cfg_block_of_last_borrow(surrounding_block_index, <span class="kw-2">&amp;</span>predecessor_node.borrow);
+            <span class="kw">let </span>start_block =
+                <span class="self">self</span>.get_cfg_block_of_last_borrow(surrounding_block_index, <span class="kw-2">&amp;</span>curr_node.borrow);
+            <span class="kw">if </span>start_block != end_block {
+                <span class="kw">let </span>path = new_cfg.find_path(start_block, end_block).unwrap();
                 <span class="macro">trace!</span>(
                     <span class="string">&quot;process_expire_borrows borrow={:?} path={:?}&quot;</span>,
-                    <span class="ident">curr_node</span>.<span class="ident">borrow</span>,
-                    <span class="ident">path</span>
+                    curr_node.borrow,
+                    path
                 );
-                <span class="kw">let</span> <span class="ident">dropped_permissions</span> <span class="op">=</span> <span class="ident">surrounding_pctxt</span>
-                    .<span class="ident">log</span>()
-                    .<span class="ident">collect_dropped_permissions</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>, <span class="ident">dag</span>);
+                <span class="kw">let </span>dropped_permissions = surrounding_pctxt
+                    .log()
+                    .collect_dropped_permissions(<span class="kw-2">&amp;</span>path, dag);
                 <span class="macro">trace!</span>(
                     <span class="string">&quot;process_expire_borrows borrow={:?} dropped_permissions={}&quot;</span>,
-                    <span class="ident">curr_node</span>.<span class="ident">borrow</span>,
-                    <span class="ident">dropped_permissions</span>.<span class="ident">iter</span>().<span class="ident">to_string</span>()
+                    curr_node.borrow,
+                    dropped_permissions.iter().to_string()
                 );
-                <span class="kw">for</span> <span class="ident">perm</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">dropped_permissions</span> {
-                    <span class="kw">let</span> <span class="ident">comment</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;restored (from log): {}&quot;</span>, <span class="ident">perm</span>);
-                    <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> (<span class="ident">predecessor</span>, <span class="ident">curr_block_index</span>);
-                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">cfg</span>.<span class="ident">edges</span>.<span class="ident">entry</span>(<span class="ident">key</span>).<span class="ident">or_insert_with</span>(<span class="ident">Vec::new</span>);
-                    <span class="ident">entry</span>.<span class="ident">push</span>(<span class="ident">vir::Stmt::comment</span>(<span class="ident">comment</span>));
+                <span class="kw">for </span>perm <span class="kw">in </span><span class="kw-2">&amp;</span>dropped_permissions {
+                    <span class="kw">let </span>comment = <span class="macro">format!</span>(<span class="string">&quot;restored (from log): {}&quot;</span>, perm);
+                    <span class="kw">let </span>key = (predecessor, curr_block_index);
+                    <span class="kw">let </span>entry = cfg.edges.entry(key).or_insert_with(Vec::new);
+                    entry.push(vir::Stmt::comment(comment));
                 }
-                <span class="ident">pctxt</span>
-                    .<span class="ident">mut_state</span>()
-                    .<span class="ident">restore_dropped_perms</span>(<span class="ident">dropped_permissions</span>.<span class="ident">into_iter</span>())<span class="question-mark">?</span>;
+                pctxt
+                    .mut_state()
+                    .restore_dropped_perms(dropped_permissions.into_iter())<span class="question-mark">?</span>;
             }
-            <span class="ident">incoming_pctxt</span>.<span class="ident">push</span>(<span class="ident">pctxt</span>);
+            incoming_pctxt.push(pctxt);
         }
-        <span class="kw">let</span> <span class="ident">incoming_pctxt_refs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#173">incoming_pctxt</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> (<span class="ident">actions</span>, <span class="kw-2">mut</span> <span class="ident">pctxt</span>) <span class="op">=</span> <span class="ident">prepend_join</span>(<span class="ident">incoming_pctxt_refs</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">src_index</span>, <span class="ident">action</span>) <span class="kw">in</span> <span class="ident">curr_block</span>.<span class="ident">predecessors</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="kw-2">&amp;</span><span class="ident">actions</span>) {
-            <span class="macro">assert!</span>(<span class="ident">src_index</span> <span class="op">&lt;</span> <span class="ident">curr_block_index</span>);
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">action</span>.<span class="ident">is_empty</span>() {
-                <span class="comment">//let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stmts_to_add</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">for</span> <span class="ident">a</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">action</span>.<span class="number">0</span> {
-                    <span class="ident">stmts_to_add</span>.<span class="ident">push</span>(<span class="ident">a</span>.<span class="ident">to_stmt</span>());
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Action::Drop</span>(<span class="ident">perm</span>, <span class="ident">missing_perm</span>) <span class="op">=</span> <span class="ident">a</span> {
-                        <span class="kw">if</span> <span class="ident">dag</span>.<span class="ident">in_borrowed_places</span>(<span class="ident">missing_perm</span>.<span class="ident">get_place</span>())
-                            <span class="op">&amp;&amp;</span> <span class="ident">perm</span>.<span class="ident">get_perm_amount</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">vir::PermAmount::Read</span>
+        <span class="kw">let </span>incoming_pctxt_refs = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#173">incoming_pctxt</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>(actions, <span class="kw-2">mut </span>pctxt) = prepend_join(incoming_pctxt_refs)<span class="question-mark">?</span>;
+        <span class="kw">for </span>(<span class="kw-2">&amp;</span>src_index, action) <span class="kw">in </span>curr_block.predecessors.iter().zip(<span class="kw-2">&amp;</span>actions) {
+            <span class="macro">assert!</span>(src_index &lt; curr_block_index);
+            <span class="kw">if </span>!action.is_empty() {
+                <span class="comment">//let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
+                </span><span class="kw">let </span><span class="kw-2">mut </span>stmts_to_add = Vec::new();
+                <span class="kw">for </span>a <span class="kw">in </span><span class="kw-2">&amp;</span>action.<span class="number">0 </span>{
+                    stmts_to_add.push(a.to_stmt());
+                    <span class="kw">if let </span>Action::Drop(perm, missing_perm) = a {
+                        <span class="kw">if </span>dag.in_borrowed_places(missing_perm.get_place())
+                            &amp;&amp; perm.get_perm_amount() != vir::PermAmount::Read
                         {
-                            <span class="kw">let</span> <span class="ident">comment</span> <span class="op">=</span> <span class="ident">vir::Stmt::comment</span>(<span class="macro">format!</span>(
+                            <span class="kw">let </span>comment = vir::Stmt::comment(<span class="macro">format!</span>(
                                 <span class="string">&quot;restored (in branch merge): {} ({})&quot;</span>,
-                                <span class="ident">perm</span>, <span class="ident">missing_perm</span>
+                                perm, missing_perm
                             ));
-                            <span class="ident">stmts_to_add</span>.<span class="ident">push</span>(<span class="ident">comment</span>);
-                            <span class="ident">pctxt</span>.<span class="ident">mut_state</span>().<span class="ident">restore_dropped_perm</span>(<span class="ident">perm</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+                            stmts_to_add.push(comment);
+                            pctxt.mut_state().restore_dropped_perm(perm.clone())<span class="question-mark">?</span>;
                         }
                     }
                 }
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> (<span class="ident">src_index</span>, <span class="ident">curr_block_index</span>);
-                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">cfg</span>.<span class="ident">edges</span>.<span class="ident">entry</span>(<span class="ident">key</span>).<span class="ident">or_insert_with</span>(<span class="ident">Vec::new</span>);
-                <span class="ident">entry</span>.<span class="ident">extend</span>(<span class="ident">stmts_to_add</span>);
+                <span class="kw">let </span>key = (src_index, curr_block_index);
+                <span class="kw">let </span>entry = cfg.edges.entry(key).or_insert_with(Vec::new);
+                entry.extend(stmts_to_add);
             }
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#209">pctxt</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#209">pctxt</a>)
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">process_node</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">surrounding_pctxt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-        <span class="ident">surrounding_block_index</span>: <a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
-        <span class="ident">new_cfg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
-        <span class="ident">curr_block</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#11">borrows::BasicBlock</a>,
-        <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
-        <span class="ident">pctxt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-        <span class="ident">method_pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">vir::Position</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">curr_node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#244">curr_block</a>.<span class="ident">node</span>;
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;process_node: {:?}&quot;</span>, <span class="ident">curr_node</span>);
-        <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">curr_node</span>.<span class="ident">stmts</span> {
-            <span class="macro">trace!</span>(<span class="string">&quot;stmt: {}&quot;</span>, <span class="ident">s</span>);
+    <span class="attribute">#[allow(clippy::too_many_arguments)]
+    </span><span class="kw">fn </span>process_node(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        surrounding_pctxt: <span class="kw-2">&amp;mut </span>PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;,
+        surrounding_block_index: <a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
+        new_cfg: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>,
+        curr_block: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#11">borrows::BasicBlock</a>,
+        curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+        pctxt: <span class="kw-2">&amp;mut </span>PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;,
+        method_pos: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">vir::Position</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+        <span class="kw">let </span>curr_node = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#244">curr_block</a>.node;
+        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;process_node: {:?}&quot;</span>, curr_node);
+        <span class="kw">for </span>s <span class="kw">in </span><span class="kw-2">&amp;</span>curr_node.stmts {
+            <span class="macro">trace!</span>(<span class="string">&quot;stmt: {}&quot;</span>, s);
         }
 
-        <span class="kw">for</span> (<span class="ident">stmt_index</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <span class="ident">curr_node</span>.<span class="ident">stmts</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+        <span class="kw">for </span>(stmt_index, stmt) <span class="kw">in </span>curr_node.stmts.iter().enumerate() {
             <span class="macro">trace!</span>(
                 <span class="string">&quot;process_expire_borrows block={} ({:?}) stmt={}&quot;</span>,
-                <span class="ident">curr_block_index</span>,
-                <span class="ident">curr_node</span>.<span class="ident">borrow</span>,
-                <span class="ident">stmt</span>
+                curr_block_index,
+                curr_node.borrow,
+                stmt
             );
-            <span class="kw">let</span> <span class="ident">new_stmts</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">replace_stmt</span>(
-                <span class="ident">stmt_index</span>,
-                <span class="ident">stmt</span>,
+            <span class="kw">let </span>new_stmts = <span class="self">self</span>.replace_stmt(
+                stmt_index,
+                stmt,
                 <span class="bool-val">false</span>,
-                <span class="ident">pctxt</span>,
-                <span class="ident">surrounding_block_index</span>,
-                <span class="ident">new_cfg</span>,
-                <span class="ident">label</span>,
+                pctxt,
+                surrounding_block_index,
+                new_cfg,
+                label,
             )<span class="question-mark">?</span>;
-            <span class="ident">curr_block</span>.<span class="ident">statements</span>.<span class="ident">extend</span>(<span class="ident">new_stmts</span>);
+            curr_block.statements.extend(new_stmts);
         }
 
-        <span class="comment">// Remove read permissions.</span>
-        <span class="kw">let</span> <span class="ident">duplicated_perms</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#241">surrounding_pctxt</a>
-            .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#56">log</a>()
-            .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#112-115">get_duplicated_read_permissions</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#250">curr_node</a>.<span class="ident">borrow</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">maybe_original_place</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">for</span> (<span class="kw-2">mut</span> <span class="ident">read_access</span>, <span class="ident">original_place</span>) <span class="kw">in</span> <span class="ident">duplicated_perms</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">place</span>) <span class="op">=</span> <span class="ident">curr_node</span>.<span class="ident">place</span> {
+        <span class="comment">// Remove read permissions.
+        </span><span class="kw">let </span>duplicated_perms = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#241">surrounding_pctxt</a>
+            .<a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#56">log</a>()
+            .<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#112-115">get_duplicated_read_permissions</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#250">curr_node</a>.borrow);
+        <span class="kw">let </span><span class="kw-2">mut </span>maybe_original_place = <span class="prelude-val">None</span>;
+        <span class="kw">for </span>(<span class="kw-2">mut </span>read_access, original_place) <span class="kw">in </span>duplicated_perms {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>place) = curr_node.place {
                 <span class="macro">trace!</span>(
                     <span class="string">&quot;place={} original_place={} read_access={}&quot;</span>,
-                    <span class="ident">place</span>,
-                    <span class="ident">original_place</span>,
-                    <span class="ident">read_access</span>
+                    place,
+                    original_place,
+                    read_access
                 );
-                <span class="ident">read_access</span> <span class="op">=</span> <span class="ident">read_access</span>.<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><span class="ident">original_place</span>, <span class="ident">place</span>);
+                read_access = read_access.replace_place(<span class="kw-2">&amp;</span>original_place, place);
             }
-            <span class="ident">maybe_original_place</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">original_place</span>);
-            <span class="kw">let</span> <span class="ident">stmt</span> <span class="op">=</span> <span class="ident">vir::Stmt::Exhale</span>(<span class="ident">vir::Exhale</span> {
-                <span class="ident">expr</span>: <span class="ident">read_access</span>,
-                <span class="ident">position</span>: <span class="ident">method_pos</span>,
+            maybe_original_place = <span class="prelude-val">Some</span>(original_place);
+            <span class="kw">let </span>stmt = vir::Stmt::Exhale(vir::Exhale {
+                expr: read_access,
+                position: method_pos,
             });
-            <span class="kw">let</span> <span class="ident">new_stmts</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">replace_stmt</span>(
-                <span class="ident">curr_block</span>.<span class="ident">statements</span>.<span class="ident">len</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">stmt</span>,
+            <span class="kw">let </span>new_stmts = <span class="self">self</span>.replace_stmt(
+                curr_block.statements.len(),
+                <span class="kw-2">&amp;</span>stmt,
                 <span class="bool-val">false</span>,
-                <span class="ident">pctxt</span>,
-                <span class="ident">surrounding_block_index</span>,
-                <span class="ident">new_cfg</span>,
-                <span class="ident">label</span>,
+                pctxt,
+                surrounding_block_index,
+                new_cfg,
+                label,
             )<span class="question-mark">?</span>;
-            <span class="ident">curr_block</span>.<span class="ident">statements</span>.<span class="ident">extend</span>(<span class="ident">new_stmts</span>);
+            curr_block.statements.extend(new_stmts);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">original_place</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#279">maybe_original_place</a> {
-            <span class="kw">if</span> <span class="ident">pctxt</span>.<span class="ident">state</span>().<span class="ident">contains_acc</span>(<span class="kw-2">&amp;</span><span class="ident">original_place</span>) {
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#247">pctxt</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#68">mut_state</a>().<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#412">insert_moved</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#306">original_place</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(original_place) = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#279">maybe_original_place</a> {
+            <span class="kw">if </span>pctxt.state().contains_acc(<span class="kw-2">&amp;</span>original_place) {
+                <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#247">pctxt</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#68">mut_state</a>().<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#412">insert_moved</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#306">original_place</a>);
             }
         }
-        <span class="comment">// Restore write permissions.</span>
-        <span class="comment">// Currently, we have a simplified version that restores write permissions only when</span>
-        <span class="comment">// all borrows in the conflict set are dead. This is sound, but less complete.</span>
-        <span class="comment">// TODO: Implement properly so that we can restore write permissions to the prefix only</span>
-        <span class="comment">// when there is still alive conflicting borrown. For example, when the currently expiring</span>
-        <span class="comment">// borrow borrowed `x.f`, but we still have a conflicting borrow that borrowed `x.f.g`, we</span>
-        <span class="comment">// would need to restore write permissions to `x.f` without doing the same for `x.f.g`.</span>
-        <span class="comment">// This would require making sure that we are unfolded up to `x.f.g` and emit</span>
-        <span class="comment">// restoration for each place segment separately.</span>
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
+        <span class="comment">// Restore write permissions.
+        // Currently, we have a simplified version that restores write permissions only when
+        // all borrows in the conflict set are dead. This is sound, but less complete.
+        // TODO: Implement properly so that we can restore write permissions to the prefix only
+        // when there is still alive conflicting borrown. For example, when the currently expiring
+        // borrow borrowed `x.f`, but we still have a conflicting borrow that borrowed `x.f.g`, we
+        // would need to restore write permissions to `x.f` without doing the same for `x.f.g`.
+        // This would require making sure that we are unfolded up to `x.f.g` and emit
+        // restoration for each place segment separately.
+        </span><a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;curr_node.alive_conflicting_borrows={:?}&quot;</span>,
-            <span class="ident">curr_node</span>.<span class="ident">alive_conflicting_borrows</span>
+            curr_node.alive_conflicting_borrows
         );
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;curr_node.conflicting_borrows={:?}&quot;</span>,
-            <span class="ident">curr_node</span>.<span class="ident">conflicting_borrows</span>
+            curr_node.conflicting_borrows
         );
-        <span class="kw">if</span> <span class="ident">curr_node</span>.<span class="ident">alive_conflicting_borrows</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">borrow</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">curr_node</span>.<span class="ident">conflicting_borrows</span> {
-                <span class="ident">curr_block</span>
-                    .<span class="ident">statements</span>
-                    .<span class="ident">extend</span>(<span class="ident">restore_write_permissions</span>(<span class="ident">borrow</span>, <span class="ident">pctxt</span>)<span class="question-mark">?</span>);
+        <span class="kw">if </span>curr_node.alive_conflicting_borrows.is_empty() {
+            <span class="kw">for </span><span class="kw-2">&amp;</span>borrow <span class="kw">in </span><span class="kw-2">&amp;</span>curr_node.conflicting_borrows {
+                curr_block
+                    .statements
+                    .extend(restore_write_permissions(borrow, pctxt)<span class="question-mark">?</span>);
             }
-            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#244">curr_block</a>
-                .<span class="ident">statements</span>
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="ident">restore_write_permissions</span>(<span class="ident">curr_node</span>.<span class="ident">borrow</span>, <span class="ident">pctxt</span>)<span class="question-mark">?</span>);
+            <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#244">curr_block</a>
+                .statements
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(restore_write_permissions(curr_node.borrow, pctxt)<span class="question-mark">?</span>);
         }
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;curr_node.alive_conflicting_borrows={:?}&quot;</span>,
-            <span class="ident">curr_node</span>.<span class="ident">alive_conflicting_borrows</span>
+            curr_node.alive_conflicting_borrows
         );
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;curr_node.conflicting_borrows={:?}&quot;</span>,
-            <span class="ident">curr_node</span>.<span class="ident">conflicting_borrows</span>
+            curr_node.conflicting_borrows
         );
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">fn</span> <span class="ident">construct_final_pctxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(
-    <span class="ident">dag</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
-    <span class="ident">cfg</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
-    <span class="ident">final_pctxt</span>: <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span><span class="op">&gt;</span>],
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">final_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#353">cfg</a>
-        .<span class="ident">basic_blocks</span>
-        .<span class="ident">iter</span>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">block</span>)<span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#360">block</a>.<span class="ident">successors</span>.<span class="ident">is_empty</span>())
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">i</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#361">i</a>)
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <span class="kw">let</span> <span class="ident">final_pctxts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#356">final_blocks</a>
-        .<span class="ident">iter</span>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#354">final_pctxt</a>[<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#365">i</a>].<span class="ident">as_ref</span>().<span class="ident">unwrap</span>())
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <span class="kw">let</span> (<span class="ident">actions</span>, <span class="kw-2">mut</span> <span class="ident">final_pctxt</span>) <span class="op">=</span> <span class="ident">prepend_join</span>(<span class="ident">final_pctxts</span>)<span class="question-mark">?</span>;
-    <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">i</span>, <span class="ident">action</span>) <span class="kw">in</span> <span class="ident">final_blocks</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">actions</span>.<span class="ident">iter</span>()) {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">action</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stmts_to_add</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">for</span> <span class="ident">a</span> <span class="kw">in</span> <span class="ident">action</span>.<span class="ident">deref</span>() {
-                <span class="ident">stmts_to_add</span>.<span class="ident">push</span>(<span class="ident">a</span>.<span class="ident">to_stmt</span>());
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Action::Drop</span>(<span class="ident">perm</span>, <span class="ident">missing_perm</span>) <span class="op">=</span> <span class="ident">a</span> {
-                    <span class="kw">if</span> <span class="ident">dag</span>.<span class="ident">in_borrowed_places</span>(<span class="ident">missing_perm</span>.<span class="ident">get_place</span>())
-                        <span class="op">&amp;&amp;</span> <span class="ident">perm</span>.<span class="ident">get_perm_amount</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">vir::PermAmount::Read</span>
+<span class="kw">fn </span>construct_final_pctxt&lt;<span class="lifetime">&#39;p</span>&gt;(
+    dag: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
+    cfg: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
+    final_pctxt: <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;&gt;],
+) -&gt; <span class="prelude-ty">Result</span>&lt;PathCtxt&lt;<span class="lifetime">&#39;p</span>&gt;, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+    <span class="kw">let </span>final_blocks: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#353">cfg</a>
+        .basic_blocks
+        .iter()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(<span class="kw">_</span>, block)| <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#360">block</a>.successors.is_empty())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, <span class="kw">_</span>)| <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#361">i</a>)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span>final_pctxts: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#356">final_blocks</a>
+        .iter()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|i| <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#354">final_pctxt</a>[<span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#365">i</a>].as_ref().unwrap())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span>(actions, <span class="kw-2">mut </span>final_pctxt) = prepend_join(final_pctxts)<span class="question-mark">?</span>;
+    <span class="kw">for </span>(<span class="kw-2">&amp;</span>i, action) <span class="kw">in </span>final_blocks.iter().zip(actions.iter()) {
+        <span class="kw">if </span>!action.is_empty() {
+            <span class="kw">let </span><span class="kw-2">mut </span>stmts_to_add = Vec::new();
+            <span class="kw">for </span>a <span class="kw">in </span>action.deref() {
+                stmts_to_add.push(a.to_stmt());
+                <span class="kw">if let </span>Action::Drop(perm, missing_perm) = a {
+                    <span class="kw">if </span>dag.in_borrowed_places(missing_perm.get_place())
+                        &amp;&amp; perm.get_perm_amount() != vir::PermAmount::Read
                     {
-                        <span class="kw">let</span> <span class="ident">comment</span> <span class="op">=</span>
-                            <span class="macro">format!</span>(<span class="string">&quot;restored (in branch merge): {} ({})&quot;</span>, <span class="ident">perm</span>, <span class="ident">missing_perm</span>);
-                        <span class="ident">stmts_to_add</span>.<span class="ident">push</span>(<span class="ident">vir::Stmt::comment</span>(<span class="ident">comment</span>));
-                        <span class="ident">final_pctxt</span>.<span class="ident">mut_state</span>().<span class="ident">restore_dropped_perm</span>(<span class="ident">perm</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+                        <span class="kw">let </span>comment =
+                            <span class="macro">format!</span>(<span class="string">&quot;restored (in branch merge): {} ({})&quot;</span>, perm, missing_perm);
+                        stmts_to_add.push(vir::Stmt::comment(comment));
+                        final_pctxt.mut_state().restore_dropped_perm(perm.clone())<span class="question-mark">?</span>;
                     }
                 }
             }
-            <span class="comment">//let stmts_to_add = action.iter().map(|a| a.to_stmt());</span>
-            <span class="ident">cfg</span>.<span class="ident">basic_blocks</span>[<span class="ident">i</span>].<span class="ident">statements</span>.<span class="ident">extend</span>(<span class="ident">stmts_to_add</span>);
+            <span class="comment">//let stmts_to_add = action.iter().map(|a| a.to_stmt());
+            </span>cfg.basic_blocks[i].statements.extend(stmts_to_add);
         }
     }
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#367">final_pctxt</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#367">final_pctxt</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">dump_borrows_cfg</span>(
-    <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/encoder.rs.html#65">Encoder</a>,
-    <span class="ident">dag</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
-    <span class="ident">cfg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
-    <span class="ident">surrounding_block_index</span>: <a class="ident" href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
-    <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="kw">fn </span>dump_borrows_cfg(
+    encoder: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/encoder.rs.html#65">Encoder</a>,
+    dag: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>,
+    cfg: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>,
+    surrounding_block_index: <a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgBlockIndex.html">vir::CfgBlockIndex</a>,
+    curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 ) {
-    <span class="kw">let</span> <span class="ident">source_path</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#392">encoder</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().<span class="ident">name</span>.<span class="ident">source_path</span>();
-    <span class="kw">let</span> <span class="ident">source_filename</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#398">source_path</a>.<span class="ident">file_name</span>().<span class="ident">unwrap</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
-    <span class="ident">report::log::report_with_writer</span>(
+    <span class="kw">let </span>source_path = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#392">encoder</a>.<a href="../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().name.source_path();
+    <span class="kw">let </span>source_filename = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#398">source_path</a>.file_name().unwrap().to_str().unwrap();
+    report::log::report_with_writer(
         <span class="string">&quot;graphviz_reborrowing_dag_during_foldunfold&quot;</span>,
         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
             <span class="string">&quot;{}.{:?}.{}.{}.dot&quot;</span>,
-            <span class="ident">source_filename</span>,
-            <span class="ident">dag</span>,
-            <span class="ident">surrounding_block_index</span>.<span class="ident">index</span>(),
-            <span class="ident">curr_block_index</span>,
+            source_filename,
+            dag,
+            surrounding_block_index.index(),
+            curr_block_index,
         ),
-        <span class="op">|</span><span class="ident">writer</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#394">cfg</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">to_graphviz</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#409">writer</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#396">curr_block_index</a>),
+        |writer| <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#394">cfg</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">to_graphviz</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#409">writer</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#396">curr_block_index</a>),
     );
 }
 
-<span class="kw">fn</span> <span class="ident">generate_final_statements</span>(<span class="ident">cfg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>, <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stmts</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="ident">cfg</span>.<span class="ident">basic_blocks</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="ident">stmts</span>.<span class="ident">push</span>(<span class="ident">vir::Stmt::If</span>(<span class="ident">vir::If</span> {
-            <span class="ident">guard</span>: <span class="ident">block</span>.<span class="ident">guard</span>.<span class="ident">clone</span>(),
-            <span class="ident">then_stmts</span>: <span class="ident">patch_places</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">statements</span>, <span class="ident">label</span>),
-            <span class="ident">else_stmts</span>: <span class="macro">vec!</span>[],
+<span class="kw">fn </span>generate_final_statements(cfg: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a>, label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>stmts = Vec::new();
+    <span class="kw">for </span>(i, block) <span class="kw">in </span>cfg.basic_blocks.iter().enumerate() {
+        stmts.push(vir::Stmt::If(vir::If {
+            guard: block.guard.clone(),
+            then_stmts: patch_places(<span class="kw-2">&amp;</span>block.statements, label),
+            else_stmts: <span class="macro">vec!</span>[],
         }));
-        <span class="kw">for</span> ((<span class="ident">from</span>, <span class="ident">to</span>), <span class="ident">statements</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">cfg</span>.<span class="ident">edges</span> {
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">from</span> <span class="op">==</span> <span class="ident">i</span> {
-                <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">vir::Expr::and</span>(
-                    <span class="ident">block</span>.<span class="ident">guard</span>.<span class="ident">clone</span>(),
-                    <span class="ident">cfg</span>.<span class="ident">basic_blocks</span>[<span class="kw-2">*</span><span class="ident">to</span>].<span class="ident">current_guard</span>.<span class="ident">clone</span>(),
+        <span class="kw">for </span>((from, to), statements) <span class="kw">in </span><span class="kw-2">&amp;</span>cfg.edges {
+            <span class="kw">if </span><span class="kw-2">*</span>from == i {
+                <span class="kw">let </span>condition = vir::Expr::and(
+                    block.guard.clone(),
+                    cfg.basic_blocks[<span class="kw-2">*</span>to].current_guard.clone(),
                 );
-                <span class="ident">stmts</span>.<span class="ident">push</span>(<span class="ident">vir::Stmt::If</span>(<span class="ident">vir::If</span> {
-                    <span class="ident">guard</span>: <span class="ident">condition</span>,
-                    <span class="ident">then_stmts</span>: <span class="ident">patch_places</span>(<span class="ident">statements</span>, <span class="ident">label</span>),
-                    <span class="ident">else_stmts</span>: <span class="macro">vec!</span>[],
+                stmts.push(vir::Stmt::If(vir::If {
+                    guard: condition,
+                    then_stmts: patch_places(statements, label),
+                    else_stmts: <span class="macro">vec!</span>[],
                 }));
             }
         }
     }
-    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#414">stmts</a>
+    <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#414">stmts</a>
 }
 
-<span class="doccomment">/// Wrap `_1.val_ref.f.g.` into `old[label](_1.val_ref).f.g`. This is needed</span>
-<span class="doccomment">/// to make `_1.val_ref` reachable inside a package statement of a magic wand.</span>
-<span class="kw">fn</span> <span class="ident">patch_places</span>(<span class="ident">stmts</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>], <span class="ident">maybe_label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#440">maybe_label</a> {
-        <span class="kw">struct</span> <span class="ident">PlacePatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+<span class="doccomment">/// Wrap `_1.val_ref.f.g.` into `old[label](_1.val_ref).f.g`. This is needed
+/// to make `_1.val_ref` reachable inside a package statement of a magic wand.
+</span><span class="kw">fn </span>patch_places(stmts: <span class="kw-2">&amp;</span>[<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>], maybe_label: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#440">maybe_label</a> {
+        <span class="kw">struct </span>PlacePatcher&lt;<span class="lifetime">&#39;a</span>&gt; {
+            label: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
         }
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for</span> <span class="ident">PlacePatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">fold</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">e</a> {
-                    <span class="ident">vir::Expr::Field</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
-                        <span class="ident">base</span>: <span class="kw">box</span> <span class="ident">vir::Expr::Local</span>(<span class="kw">_</span>),
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for </span>PlacePatcher&lt;<span class="lifetime">&#39;a</span>&gt; {
+            <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+                <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">e</a> {
+                    vir::Expr::Field(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> {
+                        base: <span class="kw">box </span>vir::Expr::Local(<span class="kw">_</span>),
                         ..
-                    }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">e</a>.<span class="ident">old</span>(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">self</a>.<span class="ident">label</span>),
-                    <span class="kw">_</span> =&gt; <span class="ident">vir::default_fold_expr</span>(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">e</a>),
+                    }) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">e</a>.old(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">self</a>.label),
+                    <span class="kw">_ </span>=&gt; vir::default_fold_expr(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">self</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#446">e</a>),
                 }
             }
-            <span class="kw">fn</span> <span class="ident">fold_labelled_old</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">labelled_old</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-                <span class="comment">// Do not replace places that are already old.</span>
-                <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#455">labelled_old</a>)
+            <span class="kw">fn </span>fold_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, labelled_old: <a href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+                <span class="comment">// Do not replace places that are already old.
+                </span>vir::Expr::LabelledOld(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#455">labelled_old</a>)
             }
         }
-        <span class="kw">fn</span> <span class="ident">patch_expr</span>(<span class="ident">label</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#442">PlacePatcher</a> { <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">label</a> }.<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">fold</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">expr</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="kw">fn </span>patch_expr(label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, expr: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+            <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#442">PlacePatcher</a> { <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">label</a> }.<a href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprFolder.html">fold</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         }
-        <span class="kw">fn</span> <span class="ident">patch_args</span>(<span class="ident">label</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#463">args</a>.<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">arg</span>.<span class="ident">is_place</span>());
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">patch_expr</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#463">label</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#465">arg</a>)
+        <span class="kw">fn </span>patch_args(label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, args: <span class="kw-2">&amp;</span>[<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>]) -&gt; Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
+            <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#463">args</a>.iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|arg| {
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(arg.is_place());
+                    <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">patch_expr</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#463">label</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#465">arg</a>)
                 })
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
         }
-        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#440">stmts</a>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#473">stmt</a> {
-                <span class="ident">vir::Stmt::Comment</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">vir::Stmt::ApplyMagicWand</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">vir::Stmt::TransferPerm</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">vir::Stmt::Assign</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#473">stmt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">vir::Stmt::Inhale</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Inhale.html">vir::Inhale</a> { <span class="ident">expr</span> }) =&gt; <span class="ident">vir::Stmt::Inhale</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Inhale.html">vir::Inhale</a> {
-                    <span class="ident">expr</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">patch_expr</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#441">label</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#478">expr</a>),
+        <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#440">stmts</a>
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|stmt| <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#473">stmt</a> {
+                vir::Stmt::Comment(<span class="kw">_</span>)
+                | vir::Stmt::ApplyMagicWand(<span class="kw">_</span>)
+                | vir::Stmt::TransferPerm(<span class="kw">_</span>)
+                | vir::Stmt::Assign(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#473">stmt</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                vir::Stmt::Inhale(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Inhale.html">vir::Inhale</a> { expr }) =&gt; vir::Stmt::Inhale(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Inhale.html">vir::Inhale</a> {
+                    expr: <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">patch_expr</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#441">label</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#478">expr</a>),
                 }),
-                <span class="ident">vir::Stmt::Exhale</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Exhale.html">vir::Exhale</a> { <span class="ident">expr</span>, <span class="ident">position</span> }) =&gt; {
-                    <span class="ident">vir::Stmt::Exhale</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Exhale.html">vir::Exhale</a> {
-                        <span class="ident">expr</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">patch_expr</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#441">label</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#481">expr</a>),
-                        <span class="ident">position</span>: <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#481">position</a>,
+                vir::Stmt::Exhale(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Exhale.html">vir::Exhale</a> { expr, position }) =&gt; {
+                    vir::Stmt::Exhale(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Exhale.html">vir::Exhale</a> {
+                        expr: <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#460">patch_expr</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#441">label</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#481">expr</a>),
+                        position: <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#481">position</a>,
                     })
                 }
-                <span class="ident">vir::Stmt::Fold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a> {
-                    <span class="kw-2">ref</span> <span class="ident">predicate</span>,
-                    <span class="kw-2">ref</span> <span class="ident">arguments</span>,
-                    <span class="ident">permission</span>,
-                    <span class="ident">enum_variant</span>,
-                    <span class="ident">position</span>,
-                }) =&gt; <span class="ident">vir::Stmt::Fold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a> {
-                    <span class="ident">predicate</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#488">predicate</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <span class="ident">arguments</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#463">patch_args</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#441">label</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#489">arguments</a>),
-                    <span class="ident">permission</span>: <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#490">permission</a>,
-                    <span class="ident">enum_variant</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#491">enum_variant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <span class="ident">position</span>: <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#492">position</a>,
+                vir::Stmt::Fold(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a> {
+                    <span class="kw-2">ref </span>predicate,
+                    <span class="kw-2">ref </span>arguments,
+                    permission,
+                    enum_variant,
+                    position,
+                }) =&gt; vir::Stmt::Fold(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a> {
+                    predicate: <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#488">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    arguments: <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#463">patch_args</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#441">label</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#489">arguments</a>),
+                    permission: <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#490">permission</a>,
+                    enum_variant: <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#491">enum_variant</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    position: <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#492">position</a>,
                 }),
-                <span class="ident">vir::Stmt::Unfold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a> {
-                    <span class="kw-2">ref</span> <span class="ident">predicate</span>,
-                    <span class="kw-2">ref</span> <span class="ident">arguments</span>,
-                    <span class="ident">permission</span>,
-                    <span class="ident">enum_variant</span>,
-                }) =&gt; <span class="ident">vir::Stmt::Unfold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a> {
-                    <span class="ident">predicate</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#501">predicate</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <span class="ident">arguments</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#463">patch_args</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#441">label</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#502">arguments</a>),
-                    <span class="ident">permission</span>: <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#503">permission</a>,
-                    <span class="ident">enum_variant</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#504">enum_variant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                vir::Stmt::Unfold(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a> {
+                    <span class="kw-2">ref </span>predicate,
+                    <span class="kw-2">ref </span>arguments,
+                    permission,
+                    enum_variant,
+                }) =&gt; vir::Stmt::Unfold(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a> {
+                    predicate: <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#501">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    arguments: <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#463">patch_args</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#441">label</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#502">arguments</a>),
+                    permission: <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#503">permission</a>,
+                    enum_variant: <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#504">enum_variant</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 }),
-                <span class="ident">x</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>),
+                x =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{}&quot;</span>, x),
             })
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
-    } <span class="kw">else</span> {
-        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#440">stmts</a>.<span class="ident">to_vec</span>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    } <span class="kw">else </span>{
+        <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#440">stmts</a>.to_vec()
     }
 }
 
-<span class="doccomment">/// Restore `Write` permissions that were converted to `Read` due to borrowing.</span>
-<span class="kw">fn</span> <span class="ident">restore_write_permissions</span>(
-    <span class="ident">borrow</span>: <a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.Borrow.html">vir::borrows::Borrow</a>,
-    <span class="ident">pctxt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#20">PathCtxt</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a><span class="op">&gt;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] restore_write_permissions({:?})&quot;</span>, <span class="ident">borrow</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stmts</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">for</span> <span class="ident">access</span> <span class="kw">in</span> <span class="ident">pctxt</span>.<span class="ident">log</span>().<span class="ident">get_converted_to_read_places</span>(<span class="ident">borrow</span>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;restore_write_permissions access={}&quot;</span>, <span class="ident">access</span>);
-        <span class="kw">let</span> <span class="ident">perm</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">access</span> {
-            <span class="ident">vir::Expr::PredicateAccessPredicate</span>(<span class="ident">vir::PredicateAccessPredicate</span> {
-                <span class="kw">box</span> <span class="kw-2">ref</span> <span class="ident">argument</span>,
-                <span class="ident">permission</span>,
+<span class="doccomment">/// Restore `Write` permissions that were converted to `Read` due to borrowing.
+</span><span class="kw">fn </span>restore_write_permissions(
+    borrow: <a href="../../../../vir/gen/polymorphic/borrows/struct.Borrow.html">vir::borrows::Borrow</a>,
+    pctxt: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#20">PathCtxt</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt;, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] restore_write_permissions({:?})&quot;</span>, borrow);
+    <span class="kw">let </span><span class="kw-2">mut </span>stmts = Vec::new();
+    <span class="kw">for </span>access <span class="kw">in </span>pctxt.log().get_converted_to_read_places(borrow) {
+        <span class="macro">trace!</span>(<span class="string">&quot;restore_write_permissions access={}&quot;</span>, access);
+        <span class="kw">let </span>perm = <span class="kw">match </span>access {
+            vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
+                <span class="kw">box </span><span class="kw-2">ref </span>argument,
+                permission,
                 ..
             }) =&gt; {
-                <span class="macro">assert!</span>(<span class="ident">permission</span> <span class="op">==</span> <span class="ident">vir::PermAmount::Remaining</span>);
-                <span class="ident">Perm::pred</span>(<span class="ident">argument</span>.<span class="ident">clone</span>(), <span class="ident">vir::PermAmount::Read</span>)
+                <span class="macro">assert!</span>(permission == vir::PermAmount::Remaining);
+                Perm::pred(argument.clone(), vir::PermAmount::Read)
             }
-            <span class="ident">vir::Expr::FieldAccessPredicate</span>(<span class="ident">vir::FieldAccessPredicate</span> {
-                <span class="kw">box</span> <span class="kw-2">ref</span> <span class="ident">base</span>,
-                <span class="ident">permission</span>,
+            vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
+                <span class="kw">box </span><span class="kw-2">ref </span>base,
+                permission,
                 ..
             }) =&gt; {
-                <span class="macro">assert!</span>(<span class="ident">permission</span> <span class="op">==</span> <span class="ident">vir::PermAmount::Remaining</span>);
-                <span class="ident">Perm::acc</span>(<span class="ident">base</span>.<span class="ident">clone</span>(), <span class="ident">vir::PermAmount::Read</span>)
+                <span class="macro">assert!</span>(permission == vir::PermAmount::Remaining);
+                Perm::acc(base.clone(), vir::PermAmount::Read)
             }
-            <span class="ident">x</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">x</span>),
+            x =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{:?}&quot;</span>, x),
         };
-        <span class="ident">stmts</span>.<span class="ident">extend</span>(
-            <span class="ident">pctxt</span>
-                .<span class="ident">obtain_permissions</span>(<span class="macro">vec!</span>[<span class="ident">perm</span>])<span class="question-mark">?</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_stmt</span>()),
+        stmts.extend(
+            pctxt
+                .obtain_permissions(<span class="macro">vec!</span>[perm])<span class="question-mark">?
+                </span>.iter()
+                .map(|a| a.to_stmt()),
         );
-        <span class="kw">let</span> <span class="ident">inhale_stmt</span> <span class="op">=</span> <span class="ident">vir::Stmt::Inhale</span>(<span class="ident">vir::Inhale</span> { <span class="ident">expr</span>: <span class="ident">access</span> });
-        <span class="ident">pctxt</span>.<span class="ident">apply_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">inhale_stmt</span>)<span class="question-mark">?</span>;
-        <span class="ident">stmts</span>.<span class="ident">push</span>(<span class="ident">inhale_stmt</span>);
+        <span class="kw">let </span>inhale_stmt = vir::Stmt::Inhale(vir::Inhale { expr: access });
+        pctxt.apply_stmt(<span class="kw-2">&amp;</span>inhale_stmt)<span class="question-mark">?</span>;
+        stmts.push(inhale_stmt);
     }
 
-    <span class="comment">// Log borrow expiration</span>
-    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#522">pctxt</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#52">log_mut</a>().<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#183">log_borrow_expiration</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#521">borrow</a>);
+    <span class="comment">// Log borrow expiration
+    </span><a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#522">pctxt</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#52">log_mut</a>().<a href="../../../../src/prusti_viper/encoder/foldunfold/log.rs.html#183">log_borrow_expiration</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#521">borrow</a>);
 
     <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
         <span class="string">&quot;[exit] restore_write_permissions({:?}) = {}&quot;</span>,
-        <span class="ident">borrow</span>,
-        <span class="ident">vir::stmts_to_str</span>(<span class="kw-2">&amp;</span><span class="ident">stmts</span>)
+        borrow,
+        vir::stmts_to_str(<span class="kw-2">&amp;</span>stmts)
     );
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#525">stmts</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#525">stmts</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">build_initial_cfg</span>(<span class="ident">dag</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>) -&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="ident">borrows::CFG::new</span>();
-    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">dag</span>.<span class="ident">iter</span>() {
-        <span class="macro">trace!</span>(<span class="string">&quot;process_expire_borrows construct cfg node={:?}&quot;</span>, <span class="ident">node</span>);
-        <span class="kw">let</span> <span class="ident">predecessors</span> <span class="op">=</span> <span class="ident">node</span>
-            .<span class="ident">reborrowing_nodes</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">dag</span>.<span class="ident">get_borrow_index</span>(<span class="kw-2">*</span><span class="ident">b</span>))
-            .<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">successors</span> <span class="op">=</span> <span class="ident">node</span>
-            .<span class="ident">reborrowed_nodes</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">dag</span>.<span class="ident">get_borrow_index</span>(<span class="kw-2">*</span><span class="ident">b</span>))
-            .<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">dag</span>.<span class="ident">guard</span>(<span class="ident">node</span>.<span class="ident">borrow</span>);
-        <span class="kw">let</span> <span class="ident">current_guard</span> <span class="op">=</span> <span class="ident">node</span>.<span class="ident">guard</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">statements</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">vir::Stmt::comment</span>(<span class="macro">format!</span>(<span class="string">&quot;expire loan {:?}&quot;</span>, <span class="ident">node</span>.<span class="ident">borrow</span>))];
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">borrows::BasicBlock</span> {
-            <span class="ident">node</span>,
-            <span class="ident">guard</span>,
-            <span class="ident">current_guard</span>,
-            <span class="ident">predecessors</span>,
-            <span class="ident">successors</span>,
-            <span class="ident">statements</span>,
+<span class="kw">fn </span>build_initial_cfg(dag: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/borrows/struct.DAG.html">vir::borrows::DAG</a>) -&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#21">borrows::CFG</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>cfg = borrows::CFG::new();
+    <span class="kw">for </span>node <span class="kw">in </span>dag.iter() {
+        <span class="macro">trace!</span>(<span class="string">&quot;process_expire_borrows construct cfg node={:?}&quot;</span>, node);
+        <span class="kw">let </span>predecessors = node
+            .reborrowing_nodes
+            .iter()
+            .map(|b| dag.get_borrow_index(<span class="kw-2">*</span>b))
+            .collect();
+        <span class="kw">let </span>successors = node
+            .reborrowed_nodes
+            .iter()
+            .map(|b| dag.get_borrow_index(<span class="kw-2">*</span>b))
+            .collect();
+        <span class="kw">let </span>guard = dag.guard(node.borrow);
+        <span class="kw">let </span>current_guard = node.guard.clone();
+        <span class="kw">let </span>statements = <span class="macro">vec!</span>[vir::Stmt::comment(<span class="macro">format!</span>(<span class="string">&quot;expire loan {:?}&quot;</span>, node.borrow))];
+        <span class="kw">let </span>block = borrows::BasicBlock {
+            node,
+            guard,
+            current_guard,
+            predecessors,
+            successors,
+            statements,
         };
-        <span class="ident">cfg</span>.<span class="ident">add_block</span>(<span class="ident">block</span>);
+        cfg.add_block(block);
     }
-    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#570">cfg</a>
+    <a href="../../../../src/prusti_viper/encoder/foldunfold/process_expire_borrows.rs.html#570">cfg</a>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

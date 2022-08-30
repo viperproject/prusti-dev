@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_sets/place_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>place_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_sets/place_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>place_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -189,196 +189,196 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utils</span>::{<a class="self" href="../../../../src/prusti_interface/lib.rs.html#25">self</a>, <a class="ident" href="../../../../src/prusti_interface/utils.rs.html#23">is_prefix</a>};
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{
-    <a class="ident" href="../../../../rustc_hash/type.FxHashSet.html">data_structures::fx::FxHashSet</a>,
-    <span class="ident">middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
+</span><span class="kw">use </span><span class="kw">crate</span>::utils::{<a class="self" href="../../../../src/prusti_interface/lib.rs.html#24">self</a>, <a href="../../../../src/prusti_interface/utils.rs.html#22">is_prefix</a>};
+<span class="kw">use </span>prusti_rustc_interface::{
+    <a href="../../../../rustc_hash/type.FxHashSet.html">data_structures::fx::FxHashSet</a>,
+    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
 };
 
-<span class="doccomment">/// A set of MIR places.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Invariant: we never have a place and any of its descendants in the</span>
-<span class="doccomment">/// set at the same time. For example, having `x.f` and `x.f.g` in the</span>
-<span class="doccomment">/// set at the same time is illegal.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="ident">places</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A set of MIR places.
+///
+/// Invariant: we never have a place and any of its descendants in the
+/// set at the same time. For example, having `x.f` and `x.f.g` in the
+/// set at the same time is illegal.
+</span><span class="attribute">#[derive(Clone, PartialEq, Eq, Debug, Default)]
+</span><span class="kw">pub struct </span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    places: FxHashSet&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::default</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::default()
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#27">self</a>.<span class="ident">places</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#27">place</a>)
+    <span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#27">self</a>.places.contains(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#27">place</a>)
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_prefix_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#30">self</a>.<span class="ident">places</span>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">potential_prefix</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_interface/utils.rs.html#23">is_prefix</a>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#30">place</a>, <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#33">potential_prefix</a>))
+    <span class="kw">pub fn </span>contains_prefix_of(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#30">self</a>.places
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|potential_prefix| <a href="../../../../src/prusti_interface/utils.rs.html#22">is_prefix</a>(<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#30">place</a>, <span class="kw-2">*</span><a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#33">potential_prefix</a>))
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_invariant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">for</span> <span class="ident">place1</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">iter</span>() {
-            <span class="kw">for</span> <span class="ident">place2</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">iter</span>() {
-                <span class="kw">if</span> <span class="ident">place1</span> <span class="op">!</span><span class="op">=</span> <span class="ident">place2</span> {
+    <span class="kw">pub fn </span>check_invariant(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">for </span>place1 <span class="kw">in </span><span class="self">self</span>.places.iter() {
+            <span class="kw">for </span>place2 <span class="kw">in </span><span class="self">self</span>.places.iter() {
+                <span class="kw">if </span>place1 != place2 {
                     <span class="macro">assert!</span>(
-                        <span class="op">!</span><span class="ident">is_prefix</span>(<span class="kw-2">*</span><span class="ident">place1</span>, <span class="kw-2">*</span><span class="ident">place2</span>),
+                        !is_prefix(<span class="kw-2">*</span>place1, <span class="kw-2">*</span>place2),
                         <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        <span class="ident">place2</span>,
-                        <span class="ident">place1</span>
+                        place2,
+                        place1
                     );
                     <span class="macro">assert!</span>(
-                        <span class="op">!</span><span class="ident">is_prefix</span>(<span class="kw-2">*</span><span class="ident">place2</span>, <span class="kw-2">*</span><span class="ident">place1</span>),
+                        !is_prefix(<span class="kw-2">*</span>place2, <span class="kw-2">*</span>place1),
                         <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        <span class="ident">place1</span>,
-                        <span class="ident">place2</span>
+                        place1,
+                        place2
                     );
                 }
             }
         }
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#55">self</a>.<span class="ident">places</span>.<span class="ident">iter</span>()
+    <span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#55">self</a>.places.iter()
     }
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::should_implement_trait</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#59">self</a>.<span class="ident">places</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+    <span class="attribute">#[allow(clippy::should_implement_trait)]
+    </span><span class="kw">pub fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#59">self</a>.places.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
     }
-    <span class="doccomment">/// Insert `place`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
-        <span class="comment">// First, check that the place is not already marked as</span>
-        <span class="comment">// definitely initialized.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">places</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> <span class="ident">is_prefix</span>(<span class="ident">place</span>, <span class="kw-2">*</span><span class="ident">other</span>)) {
-            <span class="comment">// To maintain the invariant that we do not have a place and its</span>
-            <span class="comment">// prefix in the set, we remove all places for which the given</span>
-            <span class="comment">// one is a prefix.</span>
-            <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.<span class="ident">places</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_interface/utils.rs.html#23">is_prefix</a>(<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#71">other</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">place</a>));
-            <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.<span class="ident">places</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">place</a>);
-            <span class="comment">// If all fields of a struct are definitely initialized,</span>
-            <span class="comment">// just keep info that the struct is definitely initialized.</span>
-            <a class="ident" href="../../../../src/prusti_interface/utils.rs.html#120-125">utils::collapse</a>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">mir</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">tcx</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.<span class="ident">places</span>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">place</a>);
+    <span class="doccomment">/// Insert `place`.
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
+        <span class="comment">// First, check that the place is not already marked as
+        // definitely initialized.
+        </span><span class="kw">if </span>!<span class="self">self</span>.places.iter().any(|other| is_prefix(place, <span class="kw-2">*</span>other)) {
+            <span class="comment">// To maintain the invariant that we do not have a place and its
+            // prefix in the set, we remove all places for which the given
+            // one is a prefix.
+            </span><a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.places.retain(|other| !<a href="../../../../src/prusti_interface/utils.rs.html#22">is_prefix</a>(<span class="kw-2">*</span><a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#71">other</a>, <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">place</a>));
+            <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.places.insert(<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">place</a>);
+            <span class="comment">// If all fields of a struct are definitely initialized,
+            // just keep info that the struct is definitely initialized.
+            </span><a href="../../../../src/prusti_interface/utils.rs.html#122-127">utils::collapse</a>(<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">mir</a>, <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">tcx</a>, <span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.places, <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">place</a>);
         }
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#63">self</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
     }
-    <span class="doccomment">/// Remove `place`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#80">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">places</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">old_places</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#80">self</a>.<span class="ident">places</span>);
-        <span class="comment">// If needed, split the place whose part got uninitialized into</span>
-        <span class="comment">// multiple places.</span>
-        <span class="kw">for</span> <span class="ident">other</span> <span class="kw">in</span> <span class="ident">old_places</span>.<span class="ident">into_iter</span>() {
-            <span class="kw">if</span> <span class="ident">is_prefix</span>(<span class="ident">place</span>, <span class="ident">other</span>) {
-                <span class="comment">// We are uninitializing a field of the place `other`.</span>
-                <span class="ident">places</span>.<span class="ident">extend</span>(<span class="ident">utils::expand</span>(<span class="ident">mir</span>, <span class="ident">tcx</span>, <span class="ident">other</span>, <span class="ident">place</span>));
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_prefix</span>(<span class="ident">other</span>, <span class="ident">place</span>) {
-                <span class="comment">// We are uninitializing a place of which only some</span>
-                <span class="comment">// fields are initialized. Just remove all initialized</span>
-                <span class="comment">// fields.</span>
-                <span class="comment">// This happens when the target place is already</span>
-                <span class="comment">// initialized.</span>
-            } <span class="kw">else</span> {
-                <span class="ident">places</span>.<span class="ident">push</span>(<span class="ident">other</span>);
+    <span class="doccomment">/// Remove `place`.
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#80">self</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>places = Vec::new();
+        <span class="kw">let </span>old_places = std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#80">self</a>.places);
+        <span class="comment">// If needed, split the place whose part got uninitialized into
+        // multiple places.
+        </span><span class="kw">for </span>other <span class="kw">in </span>old_places.into_iter() {
+            <span class="kw">if </span>is_prefix(place, other) {
+                <span class="comment">// We are uninitializing a field of the place `other`.
+                </span>places.extend(utils::expand(mir, tcx, other, place));
+            } <span class="kw">else if </span>is_prefix(other, place) {
+                <span class="comment">// We are uninitializing a place of which only some
+                // fields are initialized. Just remove all initialized
+                // fields.
+                // This happens when the target place is already
+                // initialized.
+            </span>} <span class="kw">else </span>{
+                places.push(other);
             }
         }
-        <span class="comment">// Check the invariant.</span>
-        <span class="kw">for</span> <span class="ident">place1</span> <span class="kw">in</span> <span class="ident">places</span>.<span class="ident">iter</span>() {
+        <span class="comment">// Check the invariant.
+        </span><span class="kw">for </span>place1 <span class="kw">in </span>places.iter() {
             <span class="macro">assert!</span>(
-                <span class="op">!</span><span class="ident">is_prefix</span>(<span class="kw-2">*</span><span class="ident">place1</span>, <span class="ident">place</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_prefix</span>(<span class="ident">place</span>, <span class="kw-2">*</span><span class="ident">place1</span>),
+                !is_prefix(<span class="kw-2">*</span>place1, place) &amp;&amp; !is_prefix(place, <span class="kw-2">*</span>place1),
                 <span class="string">&quot;Bug: failed to ensure that there are no prefixes: place={:?} place1={:?}&quot;</span>,
-                <span class="ident">place</span>,
-                <span class="ident">place1</span>
+                place,
+                place1
             );
-            <span class="kw">for</span> <span class="ident">place2</span> <span class="kw">in</span> <span class="ident">places</span>.<span class="ident">iter</span>() {
-                <span class="kw">if</span> <span class="ident">place1</span> <span class="op">!</span><span class="op">=</span> <span class="ident">place2</span> {
+            <span class="kw">for </span>place2 <span class="kw">in </span>places.iter() {
+                <span class="kw">if </span>place1 != place2 {
                     <span class="macro">assert!</span>(
-                        <span class="op">!</span><span class="ident">is_prefix</span>(<span class="kw-2">*</span><span class="ident">place1</span>, <span class="kw-2">*</span><span class="ident">place2</span>),
+                        !is_prefix(<span class="kw-2">*</span>place1, <span class="kw-2">*</span>place2),
                         <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        <span class="ident">place2</span>,
-                        <span class="ident">place1</span>
+                        place2,
+                        place1
                     );
                     <span class="macro">assert!</span>(
-                        <span class="op">!</span><span class="ident">is_prefix</span>(<span class="kw-2">*</span><span class="ident">place2</span>, <span class="kw-2">*</span><span class="ident">place1</span>),
+                        !is_prefix(<span class="kw-2">*</span>place2, <span class="kw-2">*</span>place1),
                         <span class="string">&quot;The place {:?} is a prefix of the place {:?}&quot;</span>,
-                        <span class="ident">place1</span>,
-                        <span class="ident">place2</span>
+                        place1,
+                        place2
                     );
                 }
             }
         }
 
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#80">self</a>.<span class="ident">places</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#82">places</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#80">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#80">self</a>.places = <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#82">places</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#80">self</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
     }
-    <span class="doccomment">/// Compute the intersection of the two place sets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">merge</span>(<span class="ident">place_set1</span>: <span class="kw-2">&amp;</span><span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">place_set2</span>: <span class="kw-2">&amp;</span><span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set1</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set2</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">places</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">propage_places</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place_set1</span>: <span class="kw-2">&amp;</span><span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">place_set2</span>: <span class="kw-2">&amp;</span><span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">|</span> {
-            <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="ident">place_set1</span>.<span class="ident">iter</span>() {
-                <span class="kw">for</span> <span class="ident">potential_prefix</span> <span class="kw">in</span> <span class="ident">place_set2</span>.<span class="ident">iter</span>() {
-                    <span class="kw">if</span> <span class="ident">is_prefix</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="kw-2">*</span><span class="ident">potential_prefix</span>) {
-                        <span class="ident">places</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">place</span>);
+    <span class="doccomment">/// Compute the intersection of the two place sets.
+    </span><span class="kw">pub fn </span>merge(place_set1: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;, place_set2: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+        <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set1</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
+        <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set2</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>places = FxHashSet::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>propage_places = |place_set1: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;, place_set2: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;| {
+            <span class="kw">for </span>place <span class="kw">in </span>place_set1.iter() {
+                <span class="kw">for </span>potential_prefix <span class="kw">in </span>place_set2.iter() {
+                    <span class="kw">if </span>is_prefix(<span class="kw-2">*</span>place, <span class="kw-2">*</span>potential_prefix) {
+                        places.insert(<span class="kw-2">*</span>place);
                         <span class="kw">break</span>;
                     }
                 }
             }
         };
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#134">propage_places</a>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set1</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set2</a>);
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#134">propage_places</a>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set2</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set1</a>);
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span> { <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#133">places</a> };
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#146">result</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#146">result</a>
+        <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#134">propage_places</a>(<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set1</a>, <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set2</a>);
+        <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#134">propage_places</a>(<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set2</a>, <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#130">place_set1</a>);
+        <span class="kw">let </span>result = <span class="self">Self </span>{ <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#133">places</a> };
+        <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#146">result</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
+        <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#146">result</a>
     }
-    <span class="doccomment">/// This function fixes the invariant.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deduplicate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">old_places</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#151">self</a>.<span class="ident">places</span>);
-        <span class="kw">let</span> <span class="ident">places</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#152">old_places</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">to_remove</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">place</span>) <span class="kw">in</span> <span class="ident">places</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">other</span>) <span class="kw">in</span> <span class="ident">places</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">j</span> {
+    <span class="doccomment">/// This function fixes the invariant.
+    </span><span class="kw">pub fn </span>deduplicate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>old_places = std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#151">self</a>.places);
+        <span class="kw">let </span>places: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#152">old_places</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>to_remove = FxHashSet::default();
+        <span class="kw">for </span>(i, place) <span class="kw">in </span>places.iter().enumerate() {
+            <span class="kw">for </span>(j, other) <span class="kw">in </span>places.iter().enumerate() {
+                <span class="kw">if </span>i &lt;= j {
                     <span class="kw">continue</span>;
                 }
-                <span class="kw">if</span> <span class="ident">place</span> <span class="op">==</span> <span class="ident">other</span> {
-                    <span class="ident">to_remove</span>.<span class="ident">insert</span>(<span class="ident">j</span>);
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_prefix</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="kw-2">*</span><span class="ident">other</span>) {
-                    <span class="ident">to_remove</span>.<span class="ident">insert</span>(<span class="ident">i</span>);
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_prefix</span>(<span class="kw-2">*</span><span class="ident">other</span>, <span class="kw-2">*</span><span class="ident">place</span>) {
-                    <span class="ident">to_remove</span>.<span class="ident">insert</span>(<span class="ident">j</span>);
+                <span class="kw">if </span>place == other {
+                    to_remove.insert(j);
+                } <span class="kw">else if </span>is_prefix(<span class="kw-2">*</span>place, <span class="kw-2">*</span>other) {
+                    to_remove.insert(i);
+                } <span class="kw">else if </span>is_prefix(<span class="kw-2">*</span>other, <span class="kw-2">*</span>place) {
+                    to_remove.insert(j);
                 }
             }
         }
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">place</span>) <span class="kw">in</span> <span class="ident">places</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">to_remove</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) {
-                <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">insert</span>(<span class="ident">place</span>);
+        <span class="kw">for </span>(i, place) <span class="kw">in </span>places.into_iter().enumerate() {
+            <span class="kw">if </span>!to_remove.contains(<span class="kw-2">&amp;</span>i) {
+                <span class="self">self</span>.places.insert(place);
             }
         }
-        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#151">self</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
+        <a class="self" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#151">self</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#35">check_invariant</a>();
     }
-    <span class="doccomment">/// Compute the union of the two place sets.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this function may break the invariant that we never</span>
-    <span class="doccomment">/// have a place and its descendants in the set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="ident">place_set1</span>: <span class="kw-2">&amp;</span><span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">place_set2</span>: <span class="kw-2">&amp;</span><span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">places</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#180">place_set1</a>.<span class="ident">places</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#181">places</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#180">place_set2</a>.<a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#55">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
-        <span class="self">Self</span> { <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#181">places</a> }
+    <span class="doccomment">/// Compute the union of the two place sets.
+    ///
+    /// Note that this function may break the invariant that we never
+    /// have a place and its descendants in the set.
+    </span><span class="kw">pub fn </span>union(place_set1: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;, place_set2: <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>places = <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#180">place_set1</a>.places.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#181">places</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#180">place_set2</a>.<a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#55">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+        <span class="self">Self </span>{ <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#181">places</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">places</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#188">places</a> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; From&lt;FxHashSet&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt; <span class="kw">for </span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>from(places: FxHashSet&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#188">places</a> }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

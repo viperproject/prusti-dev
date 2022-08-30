@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.8/src/request.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>request.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../http/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../http/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../http/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.8/src/request.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>request.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../http/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../http/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../http/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1094,1101 +1094,1101 @@
 <span id="1094">1094</span>
 <span id="1095">1095</span>
 <span id="1096">1096</span>
-</pre><pre class="rust"><code><span class="doccomment">//! HTTP request types.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module contains structs related to HTTP requests, notably the</span>
-<span class="doccomment">//! `Request` type itself as well as a builder to create requests. Typically</span>
-<span class="doccomment">//! you&#39;ll import the `http::Request` type rather than reaching into this</span>
-<span class="doccomment">//! module itself.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Creating a `Request` to send</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```no_run</span>
-<span class="doccomment">//! use http::{Request, Response};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut request = Request::builder()</span>
-<span class="doccomment">//!     .uri(&quot;https://www.rust-lang.org/&quot;)</span>
-<span class="doccomment">//!     .header(&quot;User-Agent&quot;, &quot;my-awesome-agent/1.0&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! if needs_awesome_header() {</span>
-<span class="doccomment">//!     request = request.header(&quot;Awesome&quot;, &quot;yes&quot;);</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let response = send(request.body(()).unwrap());</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # fn needs_awesome_header() -&gt; bool {</span>
-<span class="doccomment">//! #     true</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! #</span>
-<span class="doccomment">//! fn send(req: Request&lt;()&gt;) -&gt; Response&lt;()&gt; {</span>
-<span class="doccomment">//!     // ...</span>
-<span class="doccomment">//! # panic!()</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Inspecting a request to see what was sent.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use http::{Request, Response, StatusCode};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! fn respond_to(req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {</span>
-<span class="doccomment">//!     if req.uri() != &quot;/awesome-url&quot; {</span>
-<span class="doccomment">//!         return Response::builder()</span>
-<span class="doccomment">//!             .status(StatusCode::NOT_FOUND)</span>
-<span class="doccomment">//!             .body(())</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     let has_awesome_header = req.headers().contains_key(&quot;Awesome&quot;);</span>
-<span class="doccomment">//!     let body = req.body();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     // ...</span>
-<span class="doccomment">//! # panic!()</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
+</pre><pre class="rust"><code><span class="doccomment">//! HTTP request types.
+//!
+//! This module contains structs related to HTTP requests, notably the
+//! `Request` type itself as well as a builder to create requests. Typically
+//! you&#39;ll import the `http::Request` type rather than reaching into this
+//! module itself.
+//!
+//! # Examples
+//!
+//! Creating a `Request` to send
+//!
+//! ```no_run
+//! use http::{Request, Response};
+//!
+//! let mut request = Request::builder()
+//!     .uri(&quot;https://www.rust-lang.org/&quot;)
+//!     .header(&quot;User-Agent&quot;, &quot;my-awesome-agent/1.0&quot;);
+//!
+//! if needs_awesome_header() {
+//!     request = request.header(&quot;Awesome&quot;, &quot;yes&quot;);
+//! }
+//!
+//! let response = send(request.body(()).unwrap());
+//!
+//! # fn needs_awesome_header() -&gt; bool {
+//! #     true
+//! # }
+//! #
+//! fn send(req: Request&lt;()&gt;) -&gt; Response&lt;()&gt; {
+//!     // ...
+//! # panic!()
+//! }
+//! ```
+//!
+//! Inspecting a request to see what was sent.
+//!
+//! ```
+//! use http::{Request, Response, StatusCode};
+//!
+//! fn respond_to(req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {
+//!     if req.uri() != &quot;/awesome-url&quot; {
+//!         return Response::builder()
+//!             .status(StatusCode::NOT_FOUND)
+//!             .body(())
+//!     }
+//!
+//!     let has_awesome_header = req.headers().contains_key(&quot;Awesome&quot;);
+//!     let body = req.body();
+//!
+//!     // ...
+//! # panic!()
+//! }
+//! ```
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>;
-<span class="kw">use</span> <span class="ident">std::convert</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>;
+<span class="kw">use </span>std::convert::{<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::header</span>::{<a class="ident" href="../../src/http/header/map.rs.html#45">HeaderMap</a>, <a class="ident" href="../../src/http/header/name.rs.html#33">HeaderName</a>, <a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/http/method.rs.html#46"><span class="kw">crate</span>::method::Method</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/http/version.rs.html#26"><span class="kw">crate</span>::version::Version</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>};
+<span class="kw">use </span><span class="kw">crate</span>::header::{<a href="../../src/http/header/map.rs.html#45">HeaderMap</a>, <a href="../../src/http/header/name.rs.html#33">HeaderName</a>, <a href="../../src/http/header/value.rs.html#21">HeaderValue</a>};
+<span class="kw">use </span><a href="../../src/http/method.rs.html#46"><span class="kw">crate</span>::method::Method</a>;
+<span class="kw">use </span><a href="../../src/http/version.rs.html#26"><span class="kw">crate</span>::version::Version</a>;
+<span class="kw">use crate</span>::{<a href="../../src/http/extensions.rs.html#35">Extensions</a>, <span class="prelude-ty">Result</span>, <a href="../../src/http/uri/mod.rs.html#96">Uri</a>};
 
-<span class="doccomment">/// Represents an HTTP request.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An HTTP request consists of a head and a potentially optional body. The body</span>
-<span class="doccomment">/// component is generic, enabling arbitrary types to represent the HTTP body.</span>
-<span class="doccomment">/// For example, the body could be `Vec&lt;u8&gt;`, a `Stream` of byte chunks, or a</span>
-<span class="doccomment">/// value that has been deserialized.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Creating a `Request` to send</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use http::{Request, Response};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut request = Request::builder()</span>
-<span class="doccomment">///     .uri(&quot;https://www.rust-lang.org/&quot;)</span>
-<span class="doccomment">///     .header(&quot;User-Agent&quot;, &quot;my-awesome-agent/1.0&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// if needs_awesome_header() {</span>
-<span class="doccomment">///     request = request.header(&quot;Awesome&quot;, &quot;yes&quot;);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let response = send(request.body(()).unwrap());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # fn needs_awesome_header() -&gt; bool {</span>
-<span class="doccomment">/// #     true</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// fn send(req: Request&lt;()&gt;) -&gt; Response&lt;()&gt; {</span>
-<span class="doccomment">///     // ...</span>
-<span class="doccomment">/// # panic!()</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Inspecting a request to see what was sent.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use http::{Request, Response, StatusCode};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn respond_to(req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {</span>
-<span class="doccomment">///     if req.uri() != &quot;/awesome-url&quot; {</span>
-<span class="doccomment">///         return Response::builder()</span>
-<span class="doccomment">///             .status(StatusCode::NOT_FOUND)</span>
-<span class="doccomment">///             .body(())</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     let has_awesome_header = req.headers().contains_key(&quot;Awesome&quot;);</span>
-<span class="doccomment">///     let body = req.body();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     // ...</span>
-<span class="doccomment">/// # panic!()</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Deserialize a request of bytes via json:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # extern crate serde;</span>
-<span class="doccomment">/// # extern crate serde_json;</span>
-<span class="doccomment">/// # extern crate http;</span>
-<span class="doccomment">/// use http::Request;</span>
-<span class="doccomment">/// use serde::de;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn deserialize&lt;T&gt;(req: Request&lt;Vec&lt;u8&gt;&gt;) -&gt; serde_json::Result&lt;Request&lt;T&gt;&gt;</span>
-<span class="doccomment">///     where for&lt;&#39;de&gt; T: de::Deserialize&lt;&#39;de&gt;,</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     let (parts, body) = req.into_parts();</span>
-<span class="doccomment">///     let body = serde_json::from_slice(&amp;body)?;</span>
-<span class="doccomment">///     Ok(Request::from_parts(parts, body))</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # fn main() {}</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Or alternatively, serialize the body of a request to json</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # extern crate serde;</span>
-<span class="doccomment">/// # extern crate serde_json;</span>
-<span class="doccomment">/// # extern crate http;</span>
-<span class="doccomment">/// use http::Request;</span>
-<span class="doccomment">/// use serde::ser;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn serialize&lt;T&gt;(req: Request&lt;T&gt;) -&gt; serde_json::Result&lt;Request&lt;Vec&lt;u8&gt;&gt;&gt;</span>
-<span class="doccomment">///     where T: ser::Serialize,</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     let (parts, body) = req.into_parts();</span>
-<span class="doccomment">///     let body = serde_json::to_vec(&amp;body)?;</span>
-<span class="doccomment">///     Ok(Request::from_parts(parts, body))</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # fn main() {}</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">head</span>: <a class="ident" href="../../src/http/request.rs.html#166">Parts</a>,
-    <span class="ident">body</span>: <span class="ident">T</span>,
+<span class="doccomment">/// Represents an HTTP request.
+///
+/// An HTTP request consists of a head and a potentially optional body. The body
+/// component is generic, enabling arbitrary types to represent the HTTP body.
+/// For example, the body could be `Vec&lt;u8&gt;`, a `Stream` of byte chunks, or a
+/// value that has been deserialized.
+///
+/// # Examples
+///
+/// Creating a `Request` to send
+///
+/// ```no_run
+/// use http::{Request, Response};
+///
+/// let mut request = Request::builder()
+///     .uri(&quot;https://www.rust-lang.org/&quot;)
+///     .header(&quot;User-Agent&quot;, &quot;my-awesome-agent/1.0&quot;);
+///
+/// if needs_awesome_header() {
+///     request = request.header(&quot;Awesome&quot;, &quot;yes&quot;);
+/// }
+///
+/// let response = send(request.body(()).unwrap());
+///
+/// # fn needs_awesome_header() -&gt; bool {
+/// #     true
+/// # }
+/// #
+/// fn send(req: Request&lt;()&gt;) -&gt; Response&lt;()&gt; {
+///     // ...
+/// # panic!()
+/// }
+/// ```
+///
+/// Inspecting a request to see what was sent.
+///
+/// ```
+/// use http::{Request, Response, StatusCode};
+///
+/// fn respond_to(req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; {
+///     if req.uri() != &quot;/awesome-url&quot; {
+///         return Response::builder()
+///             .status(StatusCode::NOT_FOUND)
+///             .body(())
+///     }
+///
+///     let has_awesome_header = req.headers().contains_key(&quot;Awesome&quot;);
+///     let body = req.body();
+///
+///     // ...
+/// # panic!()
+/// }
+/// ```
+///
+/// Deserialize a request of bytes via json:
+///
+/// ```
+/// # extern crate serde;
+/// # extern crate serde_json;
+/// # extern crate http;
+/// use http::Request;
+/// use serde::de;
+///
+/// fn deserialize&lt;T&gt;(req: Request&lt;Vec&lt;u8&gt;&gt;) -&gt; serde_json::Result&lt;Request&lt;T&gt;&gt;
+///     where for&lt;&#39;de&gt; T: de::Deserialize&lt;&#39;de&gt;,
+/// {
+///     let (parts, body) = req.into_parts();
+///     let body = serde_json::from_slice(&amp;body)?;
+///     Ok(Request::from_parts(parts, body))
+/// }
+/// #
+/// # fn main() {}
+/// ```
+///
+/// Or alternatively, serialize the body of a request to json
+///
+/// ```
+/// # extern crate serde;
+/// # extern crate serde_json;
+/// # extern crate http;
+/// use http::Request;
+/// use serde::ser;
+///
+/// fn serialize&lt;T&gt;(req: Request&lt;T&gt;) -&gt; serde_json::Result&lt;Request&lt;Vec&lt;u8&gt;&gt;&gt;
+///     where T: ser::Serialize,
+/// {
+///     let (parts, body) = req.into_parts();
+///     let body = serde_json::to_vec(&amp;body)?;
+///     Ok(Request::from_parts(parts, body))
+/// }
+/// #
+/// # fn main() {}
+/// ```
+</span><span class="kw">pub struct </span>Request&lt;T&gt; {
+    head: <a href="../../src/http/request.rs.html#166">Parts</a>,
+    body: T,
 }
 
-<span class="doccomment">/// Component parts of an HTTP `Request`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The HTTP request head consists of a method, uri, version, and a set of</span>
-<span class="doccomment">/// header fields.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Parts</span> {
-    <span class="doccomment">/// The request&#39;s method</span>
-    <span class="kw">pub</span> <span class="ident">method</span>: <a class="ident" href="../../src/http/method.rs.html#46">Method</a>,
+<span class="doccomment">/// Component parts of an HTTP `Request`
+///
+/// The HTTP request head consists of a method, uri, version, and a set of
+/// header fields.
+</span><span class="kw">pub struct </span>Parts {
+    <span class="doccomment">/// The request&#39;s method
+    </span><span class="kw">pub </span>method: <a href="../../src/http/method.rs.html#46">Method</a>,
 
-    <span class="doccomment">/// The request&#39;s URI</span>
-    <span class="kw">pub</span> <span class="ident">uri</span>: <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>,
+    <span class="doccomment">/// The request&#39;s URI
+    </span><span class="kw">pub </span>uri: <a href="../../src/http/uri/mod.rs.html#96">Uri</a>,
 
-    <span class="doccomment">/// The request&#39;s version</span>
-    <span class="kw">pub</span> <span class="ident">version</span>: <a class="ident" href="../../src/http/version.rs.html#26">Version</a>,
+    <span class="doccomment">/// The request&#39;s version
+    </span><span class="kw">pub </span>version: <a href="../../src/http/version.rs.html#26">Version</a>,
 
-    <span class="doccomment">/// The request&#39;s headers</span>
-    <span class="kw">pub</span> <span class="ident">headers</span>: <span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// The request&#39;s headers
+    </span><span class="kw">pub </span>headers: HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt;,
 
-    <span class="doccomment">/// The request&#39;s extensions</span>
-    <span class="kw">pub</span> <span class="ident">extensions</span>: <a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a>,
+    <span class="doccomment">/// The request&#39;s extensions
+    </span><span class="kw">pub </span>extensions: <a href="../../src/http/extensions.rs.html#35">Extensions</a>,
 
-    <span class="ident">_priv</span>: (),
+    _priv: (),
 }
 
-<span class="doccomment">/// An HTTP request builder</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type can be used to construct an instance or `Request`</span>
-<span class="doccomment">/// through a builder-like pattern.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span> {
-    <span class="ident">inner</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/http/request.rs.html#166">Parts</a><span class="op">&gt;</span>,
+<span class="doccomment">/// An HTTP request builder
+///
+/// This type can be used to construct an instance or `Request`
+/// through a builder-like pattern.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Builder {
+    inner: <span class="prelude-ty">Result</span>&lt;<a href="../../src/http/request.rs.html#166">Parts</a>&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Request</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new builder-style object to manufacture a `Request`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request = Request::builder()</span>
-    <span class="doccomment">///     .method(&quot;GET&quot;)</span>
-    <span class="doccomment">///     .uri(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .header(&quot;X-Custom-Foo&quot;, &quot;Bar&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a> {
-        <span class="ident">Builder::new</span>()
+<span class="kw">impl </span>Request&lt;()&gt; {
+    <span class="doccomment">/// Creates a new builder-style object to manufacture a `Request`
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request = Request::builder()
+    ///     .method(&quot;GET&quot;)
+    ///     .uri(&quot;https://www.rust-lang.org/&quot;)
+    ///     .header(&quot;X-Custom-Foo&quot;, &quot;Bar&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>builder() -&gt; <a href="../../src/http/request.rs.html#190">Builder</a> {
+        Builder::new()
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with a GET method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::get(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with a GET method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::get(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>get&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
 
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::GET</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#230">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::GET).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#230">uri</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with a PUT method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::put(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">put</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with a PUT method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::put(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>put&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
 
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::PUT</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#253">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::PUT).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#253">uri</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with a POST method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::post(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">post</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with a POST method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::post(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>post&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
 
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::POST</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#276">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::POST).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#276">uri</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with a DELETE method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::delete(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delete</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with a DELETE method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::delete(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>delete&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
 
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::DELETE</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#299">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::DELETE).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#299">uri</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with an OPTIONS method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::options(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// # assert_eq!(*request.method(), Method::OPTIONS);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">options</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with an OPTIONS method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::options(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// # assert_eq!(*request.method(), Method::OPTIONS);
+    /// ```
+    </span><span class="kw">pub fn </span>options&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
 
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::OPTIONS</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#323">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::OPTIONS).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#323">uri</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with a HEAD method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::head(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">head</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with a HEAD method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::head(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>head&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
 
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::HEAD</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#346">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::HEAD).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#346">uri</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with a CONNECT method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::connect(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with a CONNECT method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::connect(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>connect&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
 
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::CONNECT</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#369">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::CONNECT).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#369">uri</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with a PATCH method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::patch(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">patch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with a PATCH method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::patch(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>patch&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::PATCH</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#392">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::PATCH).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#392">uri</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Builder` initialized with a TRACE method and the given URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns an instance of `Builder` which can be used to</span>
-    <span class="doccomment">/// create a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::trace(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trace</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a new `Builder` initialized with a TRACE method and the given URI.
+    ///
+    /// This method returns an instance of `Builder` which can be used to
+    /// create a `Request`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::trace(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>trace&lt;T&gt;(uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
     {
-        <span class="ident">Builder::new</span>().<a class="ident" href="../../src/http/request.rs.html#779-782">method</a>(<span class="ident">Method::TRACE</span>).<a class="ident" href="../../src/http/request.rs.html#827-830">uri</a>(<a class="ident" href="../../src/http/request.rs.html#414">uri</a>)
+        Builder::new().<a href="../../src/http/request.rs.html#779-782">method</a>(Method::TRACE).<a href="../../src/http/request.rs.html#827-830">uri</a>(<a href="../../src/http/request.rs.html#414">uri</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new blank `Request` with the body</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The component parts of this request will be set to their default, e.g.</span>
-    <span class="doccomment">/// the GET method, no headers, etc.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request = Request::new(&quot;hello world&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(*request.method(), Method::GET);</span>
-    <span class="doccomment">/// assert_eq!(*request.body(), &quot;hello world&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">body</span>: <span class="ident">T</span>) -&gt; <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/http/request.rs.html#157">Request</a> {
-            <span class="ident">head</span>: <span class="ident">Parts::new</span>(),
-            <span class="ident">body</span>: <a class="ident" href="../../src/http/request.rs.html#439">body</a>,
+<span class="kw">impl</span>&lt;T&gt; Request&lt;T&gt; {
+    <span class="doccomment">/// Creates a new blank `Request` with the body
+    ///
+    /// The component parts of this request will be set to their default, e.g.
+    /// the GET method, no headers, etc.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request = Request::new(&quot;hello world&quot;);
+    ///
+    /// assert_eq!(*request.method(), Method::GET);
+    /// assert_eq!(*request.body(), &quot;hello world&quot;);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(body: T) -&gt; Request&lt;T&gt; {
+        <a href="../../src/http/request.rs.html#157">Request</a> {
+            head: Parts::new(),
+            body: <a href="../../src/http/request.rs.html#439">body</a>,
         }
     }
 
-    <span class="doccomment">/// Creates a new `Request` with the given components parts and body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request = Request::new(&quot;hello world&quot;);</span>
-    <span class="doccomment">/// let (mut parts, body) = request.into_parts();</span>
-    <span class="doccomment">/// parts.method = Method::POST;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::from_parts(parts, body);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_parts</span>(<span class="ident">parts</span>: <a class="ident" href="../../src/http/request.rs.html#166">Parts</a>, <span class="ident">body</span>: <span class="ident">T</span>) -&gt; <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/http/request.rs.html#157">Request</a> {
-            <span class="ident">head</span>: <a class="ident" href="../../src/http/request.rs.html#459">parts</a>,
-            <span class="ident">body</span>: <a class="ident" href="../../src/http/request.rs.html#459">body</a>,
+    <span class="doccomment">/// Creates a new `Request` with the given components parts and body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request = Request::new(&quot;hello world&quot;);
+    /// let (mut parts, body) = request.into_parts();
+    /// parts.method = Method::POST;
+    ///
+    /// let request = Request::from_parts(parts, body);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>from_parts(parts: <a href="../../src/http/request.rs.html#166">Parts</a>, body: T) -&gt; Request&lt;T&gt; {
+        <a href="../../src/http/request.rs.html#157">Request</a> {
+            head: <a href="../../src/http/request.rs.html#459">parts</a>,
+            body: <a href="../../src/http/request.rs.html#459">body</a>,
         }
     }
 
-    <span class="doccomment">/// Returns a reference to the associated HTTP method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// assert_eq!(*request.method(), Method::GET);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/method.rs.html#46">Method</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#476">self</a>.<span class="ident">head</span>.<span class="ident">method</span>
+    <span class="doccomment">/// Returns a reference to the associated HTTP method.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request: Request&lt;()&gt; = Request::default();
+    /// assert_eq!(*request.method(), Method::GET);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/http/method.rs.html#46">Method</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#476">self</a>.head.method
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated HTTP method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let mut request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// *request.method_mut() = Method::PUT;</span>
-    <span class="doccomment">/// assert_eq!(*request.method(), Method::PUT);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/method.rs.html#46">Method</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/request.rs.html#491">self</a>.<span class="ident">head</span>.<span class="ident">method</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated HTTP method.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let mut request: Request&lt;()&gt; = Request::default();
+    /// *request.method_mut() = Method::PUT;
+    /// assert_eq!(*request.method(), Method::PUT);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>method_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/http/method.rs.html#46">Method</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/request.rs.html#491">self</a>.head.method
     }
 
-    <span class="doccomment">/// Returns a reference to the associated URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// assert_eq!(*request.uri(), *&quot;/&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#505">self</a>.<span class="ident">head</span>.<span class="ident">uri</span>
+    <span class="doccomment">/// Returns a reference to the associated URI.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request: Request&lt;()&gt; = Request::default();
+    /// assert_eq!(*request.uri(), *&quot;/&quot;);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>uri(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/http/uri/mod.rs.html#96">Uri</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#505">self</a>.head.uri
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated URI.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let mut request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// *request.uri_mut() = &quot;/hello&quot;.parse().unwrap();</span>
-    <span class="doccomment">/// assert_eq!(*request.uri(), *&quot;/hello&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/request.rs.html#520">self</a>.<span class="ident">head</span>.<span class="ident">uri</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated URI.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let mut request: Request&lt;()&gt; = Request::default();
+    /// *request.uri_mut() = &quot;/hello&quot;.parse().unwrap();
+    /// assert_eq!(*request.uri(), *&quot;/hello&quot;);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>uri_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/request.rs.html#520">self</a>.head.uri
     }
 
-    <span class="doccomment">/// Returns the associated version.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// assert_eq!(request.version(), Version::HTTP_11);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/http/version.rs.html#26">Version</a> {
-        <a class="self" href="../../src/http/request.rs.html#534">self</a>.<span class="ident">head</span>.<span class="ident">version</span>
+    <span class="doccomment">/// Returns the associated version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request: Request&lt;()&gt; = Request::default();
+    /// assert_eq!(request.version(), Version::HTTP_11);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/http/version.rs.html#26">Version</a> {
+        <a class="self" href="../../src/http/request.rs.html#534">self</a>.head.version
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated version.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let mut request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// *request.version_mut() = Version::HTTP_2;</span>
-    <span class="doccomment">/// assert_eq!(request.version(), Version::HTTP_2);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/version.rs.html#26">Version</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/request.rs.html#549">self</a>.<span class="ident">head</span>.<span class="ident">version</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let mut request: Request&lt;()&gt; = Request::default();
+    /// *request.version_mut() = Version::HTTP_2;
+    /// assert_eq!(request.version(), Version::HTTP_2);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>version_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/http/version.rs.html#26">Version</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/request.rs.html#549">self</a>.head.version
     }
 
-    <span class="doccomment">/// Returns a reference to the associated header field map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// assert!(request.headers().is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#563">self</a>.<span class="ident">head</span>.<span class="ident">headers</span>
+    <span class="doccomment">/// Returns a reference to the associated header field map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request: Request&lt;()&gt; = Request::default();
+    /// assert!(request.headers().is_empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#563">self</a>.head.headers
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated header field map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// # use http::header::*;</span>
-    <span class="doccomment">/// let mut request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// request.headers_mut().insert(HOST, HeaderValue::from_static(&quot;world&quot;));</span>
-    <span class="doccomment">/// assert!(!request.headers().is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/request.rs.html#579">self</a>.<span class="ident">head</span>.<span class="ident">headers</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated header field map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// # use http::header::*;
+    /// let mut request: Request&lt;()&gt; = Request::default();
+    /// request.headers_mut().insert(HOST, HeaderValue::from_static(&quot;world&quot;));
+    /// assert!(!request.headers().is_empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt; {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/request.rs.html#579">self</a>.head.headers
     }
 
-    <span class="doccomment">/// Returns a reference to the associated extensions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// assert!(request.extensions().get::&lt;i32&gt;().is_none());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#593">self</a>.<span class="ident">head</span>.<span class="ident">extensions</span>
+    <span class="doccomment">/// Returns a reference to the associated extensions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request: Request&lt;()&gt; = Request::default();
+    /// assert!(request.extensions().get::&lt;i32&gt;().is_none());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/http/extensions.rs.html#35">Extensions</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#593">self</a>.head.extensions
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated extensions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// # use http::header::*;</span>
-    <span class="doccomment">/// let mut request: Request&lt;()&gt; = Request::default();</span>
-    <span class="doccomment">/// request.extensions_mut().insert(&quot;hello&quot;);</span>
-    <span class="doccomment">/// assert_eq!(request.extensions().get(), Some(&amp;&quot;hello&quot;));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extensions_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/request.rs.html#609">self</a>.<span class="ident">head</span>.<span class="ident">extensions</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated extensions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// # use http::header::*;
+    /// let mut request: Request&lt;()&gt; = Request::default();
+    /// request.extensions_mut().insert(&quot;hello&quot;);
+    /// assert_eq!(request.extensions().get(), Some(&amp;&quot;hello&quot;));
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/http/extensions.rs.html#35">Extensions</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/request.rs.html#609">self</a>.head.extensions
     }
 
-    <span class="doccomment">/// Returns a reference to the associated HTTP body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request: Request&lt;String&gt; = Request::default();</span>
-    <span class="doccomment">/// assert!(request.body().is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#623">self</a>.<span class="ident">body</span>
+    <span class="doccomment">/// Returns a reference to the associated HTTP body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request: Request&lt;String&gt; = Request::default();
+    /// assert!(request.body().is_empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#623">self</a>.body
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the associated HTTP body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let mut request: Request&lt;String&gt; = Request::default();</span>
-    <span class="doccomment">/// request.body_mut().push_str(&quot;hello world&quot;);</span>
-    <span class="doccomment">/// assert!(!request.body().is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/http/request.rs.html#638">self</a>.<span class="ident">body</span>
+    <span class="doccomment">/// Returns a mutable reference to the associated HTTP body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let mut request: Request&lt;String&gt; = Request::default();
+    /// request.body_mut().push_str(&quot;hello world&quot;);
+    /// assert!(!request.body().is_empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>body_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/http/request.rs.html#638">self</a>.body
     }
 
-    <span class="doccomment">/// Consumes the request, returning just the body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::Request;</span>
-    <span class="doccomment">/// let request = Request::new(10);</span>
-    <span class="doccomment">/// let body = request.into_body();</span>
-    <span class="doccomment">/// assert_eq!(body, 10);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_body</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../src/http/request.rs.html#653">self</a>.<span class="ident">body</span>
+    <span class="doccomment">/// Consumes the request, returning just the body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::Request;
+    /// let request = Request::new(10);
+    /// let body = request.into_body();
+    /// assert_eq!(body, 10);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>into_body(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../src/http/request.rs.html#653">self</a>.body
     }
 
-    <span class="doccomment">/// Consumes the request returning the head and body parts.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request = Request::new(());</span>
-    <span class="doccomment">/// let (parts, body) = request.into_parts();</span>
-    <span class="doccomment">/// assert_eq!(parts.method, Method::GET);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_parts</span>(<span class="self">self</span>) -&gt; (<a class="ident" href="../../src/http/request.rs.html#166">Parts</a>, <span class="ident">T</span>) {
-        (<a class="self" href="../../src/http/request.rs.html#668">self</a>.<span class="ident">head</span>, <a class="self" href="../../src/http/request.rs.html#668">self</a>.<span class="ident">body</span>)
+    <span class="doccomment">/// Consumes the request returning the head and body parts.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request = Request::new(());
+    /// let (parts, body) = request.into_parts();
+    /// assert_eq!(parts.method, Method::GET);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>into_parts(<span class="self">self</span>) -&gt; (<a href="../../src/http/request.rs.html#166">Parts</a>, T) {
+        (<a class="self" href="../../src/http/request.rs.html#668">self</a>.head, <a class="self" href="../../src/http/request.rs.html#668">self</a>.body)
     }
 
-    <span class="doccomment">/// Consumes the request returning a new request with body mapped to the</span>
-    <span class="doccomment">/// return type of the passed in function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// let request = Request::builder().body(&quot;some string&quot;).unwrap();</span>
-    <span class="doccomment">/// let mapped_request: Request&lt;&amp;[u8]&gt; = request.map(|b| {</span>
-    <span class="doccomment">///   assert_eq!(b, &quot;some string&quot;);</span>
-    <span class="doccomment">///   b.as_bytes()</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// assert_eq!(mapped_request.body(), &amp;&quot;some string&quot;.as_bytes());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">T</span>) -&gt; <span class="ident">U</span>,
+    <span class="doccomment">/// Consumes the request returning a new request with body mapped to the
+    /// return type of the passed in function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// let request = Request::builder().body(&quot;some string&quot;).unwrap();
+    /// let mapped_request: Request&lt;&amp;[u8]&gt; = request.map(|b| {
+    ///   assert_eq!(b, &quot;some string&quot;);
+    ///   b.as_bytes()
+    /// });
+    /// assert_eq!(mapped_request.body(), &amp;&quot;some string&quot;.as_bytes());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>map&lt;F, U&gt;(<span class="self">self</span>, f: F) -&gt; Request&lt;U&gt;
+    <span class="kw">where
+        </span>F: FnOnce(T) -&gt; U,
     {
-        <a class="ident" href="../../src/http/request.rs.html#157">Request</a> {
-            <span class="ident">body</span>: <a class="ident" href="../../src/http/request.rs.html#687">f</a>(<a class="self" href="../../src/http/request.rs.html#687">self</a>.<span class="ident">body</span>),
-            <span class="ident">head</span>: <a class="self" href="../../src/http/request.rs.html#687">self</a>.<span class="ident">head</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">Request::new</span>(<span class="ident">T::default</span>())
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/http/request.rs.html#705">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Request&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;method&quot;</span>, <a class="self" href="../../src/http/request.rs.html#705">self</a>.<a class="ident" href="../../src/http/request.rs.html#476">method</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;uri&quot;</span>, <a class="self" href="../../src/http/request.rs.html#705">self</a>.<a class="ident" href="../../src/http/request.rs.html#505">uri</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#705">self</a>.<a class="ident" href="../../src/http/request.rs.html#534">version</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;headers&quot;</span>, <a class="self" href="../../src/http/request.rs.html#705">self</a>.<a class="ident" href="../../src/http/request.rs.html#563">headers</a>())
-            <span class="comment">// omits Extensions because not useful</span>
-            .<span class="ident">field</span>(<span class="string">&quot;body&quot;</span>, <a class="self" href="../../src/http/request.rs.html#705">self</a>.<a class="ident" href="../../src/http/request.rs.html#623">body</a>())
-            .<span class="ident">finish</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../src/http/request.rs.html#166">Parts</a> {
-    <span class="doccomment">/// Creates a new default instance of `Parts`</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/http/request.rs.html#166">Parts</a> {
-        <a class="ident" href="../../src/http/request.rs.html#166">Parts</a> {
-            <span class="ident">method</span>: <span class="ident">Method::default</span>(),
-            <span class="ident">uri</span>: <span class="ident">Uri::default</span>(),
-            <span class="ident">version</span>: <span class="ident">Version::default</span>(),
-            <span class="ident">headers</span>: <span class="ident">HeaderMap::default</span>(),
-            <span class="ident">extensions</span>: <span class="ident">Extensions::default</span>(),
-            <span class="ident">_priv</span>: (),
+        <a href="../../src/http/request.rs.html#157">Request</a> {
+            body: <a href="../../src/http/request.rs.html#687">f</a>(<a class="self" href="../../src/http/request.rs.html#687">self</a>.body),
+            head: <a class="self" href="../../src/http/request.rs.html#687">self</a>.head,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/http/request.rs.html#166">Parts</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/http/request.rs.html#732">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Parts&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;method&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#732">self</a>.<span class="ident">method</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;uri&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#732">self</a>.<span class="ident">uri</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#732">self</a>.<span class="ident">version</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#732">self</a>.<span class="ident">headers</span>)
-            <span class="comment">// omits Extensions because not useful</span>
-            <span class="comment">// omits _priv because not useful</span>
-            .<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Request&lt;T&gt; {
+    <span class="kw">fn </span>default() -&gt; Request&lt;T&gt; {
+        Request::new(T::default())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/http/request.rs.html#190">Builder</a> {
-    <span class="doccomment">/// Creates a new default instance of `Builder` to construct a `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let req = request::Builder::new()</span>
-    <span class="doccomment">///     .method(&quot;POST&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a> {
-        <span class="ident">Builder::default</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Request&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/http/request.rs.html#705">f</a>.debug_struct(<span class="string">&quot;Request&quot;</span>)
+            .field(<span class="string">&quot;method&quot;</span>, <a class="self" href="../../src/http/request.rs.html#705">self</a>.<a href="../../src/http/request.rs.html#476">method</a>())
+            .field(<span class="string">&quot;uri&quot;</span>, <a class="self" href="../../src/http/request.rs.html#705">self</a>.<a href="../../src/http/request.rs.html#505">uri</a>())
+            .field(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#705">self</a>.<a href="../../src/http/request.rs.html#534">version</a>())
+            .field(<span class="string">&quot;headers&quot;</span>, <a class="self" href="../../src/http/request.rs.html#705">self</a>.<a href="../../src/http/request.rs.html#563">headers</a>())
+            <span class="comment">// omits Extensions because not useful
+            </span>.field(<span class="string">&quot;body&quot;</span>, <a class="self" href="../../src/http/request.rs.html#705">self</a>.<a href="../../src/http/request.rs.html#623">body</a>())
+            .finish()
+    }
+}
+
+<span class="kw">impl </span><a href="../../src/http/request.rs.html#166">Parts</a> {
+    <span class="doccomment">/// Creates a new default instance of `Parts`
+    </span><span class="kw">fn </span>new() -&gt; <a href="../../src/http/request.rs.html#166">Parts</a> {
+        <a href="../../src/http/request.rs.html#166">Parts</a> {
+            method: Method::default(),
+            uri: Uri::default(),
+            version: Version::default(),
+            headers: HeaderMap::default(),
+            extensions: Extensions::default(),
+            _priv: (),
+        }
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/http/request.rs.html#166">Parts</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/http/request.rs.html#732">f</a>.debug_struct(<span class="string">&quot;Parts&quot;</span>)
+            .field(<span class="string">&quot;method&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#732">self</a>.method)
+            .field(<span class="string">&quot;uri&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#732">self</a>.uri)
+            .field(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#732">self</a>.version)
+            .field(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/http/request.rs.html#732">self</a>.headers)
+            <span class="comment">// omits Extensions because not useful
+            // omits _priv because not useful
+            </span>.finish()
+    }
+}
+
+<span class="kw">impl </span><a href="../../src/http/request.rs.html#190">Builder</a> {
+    <span class="doccomment">/// Creates a new default instance of `Builder` to construct a `Request`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let req = request::Builder::new()
+    ///     .method(&quot;POST&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/http/request.rs.html#190">Builder</a> {
+        Builder::default()
     }
 
-    <span class="doccomment">/// Set the HTTP method for this request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will configure the HTTP method of the `Request` that will</span>
-    <span class="doccomment">/// be returned from `Builder::build`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is `GET`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let req = Request::builder()</span>
-    <span class="doccomment">///     .method(&quot;POST&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">method</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/method.rs.html#46">Method</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/method.rs.html#46">Method</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Set the HTTP method for this request.
+    ///
+    /// This function will configure the HTTP method of the `Request` that will
+    /// be returned from `Builder::build`.
+    ///
+    /// By default this is `GET`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let req = Request::builder()
+    ///     .method(&quot;POST&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>method&lt;T&gt;(<span class="self">self</span>, method: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/method.rs.html#46">Method</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/method.rs.html#46">Method</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
     {
-        <a class="self" href="../../src/http/request.rs.html#779">self</a>.<a class="ident" href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="ident">TryFrom::try_from</span>(<span class="ident">method</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/http/request.rs.html#784">head</a>.<span class="ident">method</span> <span class="op">=</span> <a class="ident" href="../../src/http/request.rs.html#785">method</a>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/request.rs.html#784">head</a>)
+        <a class="self" href="../../src/http/request.rs.html#779">self</a>.<a href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <span class="kw">let </span>method = TryFrom::try_from(method).map_err(Into::into)<span class="question-mark">?</span>;
+            <a href="../../src/http/request.rs.html#784">head</a>.method = <a href="../../src/http/request.rs.html#785">method</a>;
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/request.rs.html#784">head</a>)
         })
     }
 
-    <span class="doccomment">/// Get the HTTP Method for this request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is `GET`. If builder has error, returns None.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut req = Request::builder();</span>
-    <span class="doccomment">/// assert_eq!(req.method_ref(),Some(&amp;Method::GET));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// req = req.method(&quot;POST&quot;);</span>
-    <span class="doccomment">/// assert_eq!(req.method_ref(),Some(&amp;Method::POST));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/http/method.rs.html#46">Method</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/request.rs.html#806">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/request.rs.html#807">h</a>.<span class="ident">method</span>)
+    <span class="doccomment">/// Get the HTTP Method for this request.
+    ///
+    /// By default this is `GET`. If builder has error, returns None.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let mut req = Request::builder();
+    /// assert_eq!(req.method_ref(),Some(&amp;Method::GET));
+    ///
+    /// req = req.method(&quot;POST&quot;);
+    /// assert_eq!(req.method_ref(),Some(&amp;Method::POST));
+    /// ```
+    </span><span class="kw">pub fn </span>method_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/http/method.rs.html#46">Method</a>&gt; {
+        <a class="self" href="../../src/http/request.rs.html#806">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="../../src/http/request.rs.html#807">h</a>.method)
     }
 
-    <span class="doccomment">/// Set the URI for this request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will configure the URI of the `Request` that will</span>
-    <span class="doccomment">/// be returned from `Builder::build`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is `/`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let req = Request::builder()</span>
-    <span class="doccomment">///     .uri(&quot;https://www.rust-lang.org/&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">uri</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Set the URI for this request.
+    ///
+    /// This function will configure the URI of the `Request` that will
+    /// be returned from `Builder::build`.
+    ///
+    /// By default this is `/`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let req = Request::builder()
+    ///     .uri(&quot;https://www.rust-lang.org/&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>uri&lt;T&gt;(<span class="self">self</span>, uri: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>: TryFrom&lt;T&gt;,
+        &lt;<a href="../../src/http/uri/mod.rs.html#96">Uri</a> <span class="kw">as </span>TryFrom&lt;T&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
     {
-        <a class="self" href="../../src/http/request.rs.html#827">self</a>.<a class="ident" href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <a class="ident" href="../../src/http/request.rs.html#832">head</a>.<span class="ident">uri</span> <span class="op">=</span> <span class="ident">TryFrom::try_from</span>(<span class="ident">uri</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/request.rs.html#832">head</a>)
+        <a class="self" href="../../src/http/request.rs.html#827">self</a>.<a href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <a href="../../src/http/request.rs.html#832">head</a>.uri = TryFrom::try_from(uri).map_err(Into::into)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/request.rs.html#832">head</a>)
         })
     }
 
-    <span class="doccomment">/// Get the URI for this request</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is `/`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut req = Request::builder();</span>
-    <span class="doccomment">/// assert_eq!(req.uri_ref().unwrap(), &quot;/&quot; );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// req = req.uri(&quot;https://www.rust-lang.org/&quot;);</span>
-    <span class="doccomment">/// assert_eq!(req.uri_ref().unwrap(), &quot;https://www.rust-lang.org/&quot; );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/http/uri/mod.rs.html#96">Uri</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/request.rs.html#853">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/request.rs.html#854">h</a>.<span class="ident">uri</span>)
+    <span class="doccomment">/// Get the URI for this request
+    ///
+    /// By default this is `/`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let mut req = Request::builder();
+    /// assert_eq!(req.uri_ref().unwrap(), &quot;/&quot; );
+    ///
+    /// req = req.uri(&quot;https://www.rust-lang.org/&quot;);
+    /// assert_eq!(req.uri_ref().unwrap(), &quot;https://www.rust-lang.org/&quot; );
+    /// ```
+    </span><span class="kw">pub fn </span>uri_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/http/uri/mod.rs.html#96">Uri</a>&gt; {
+        <a class="self" href="../../src/http/request.rs.html#853">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="../../src/http/request.rs.html#854">h</a>.uri)
     }
 
-    <span class="doccomment">/// Set the HTTP version for this request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will configure the HTTP version of the `Request` that</span>
-    <span class="doccomment">/// will be returned from `Builder::build`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is HTTP/1.1</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let req = Request::builder()</span>
-    <span class="doccomment">///     .version(Version::HTTP_2)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version</span>(<span class="self">self</span>, <span class="ident">version</span>: <a class="ident" href="../../src/http/version.rs.html#26">Version</a>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a> {
-        <a class="self" href="../../src/http/request.rs.html#874">self</a>.<a class="ident" href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <a class="ident" href="../../src/http/request.rs.html#875">head</a>.<span class="ident">version</span> <span class="op">=</span> <a class="ident" href="../../src/http/request.rs.html#874">version</a>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/request.rs.html#875">head</a>)
+    <span class="doccomment">/// Set the HTTP version for this request.
+    ///
+    /// This function will configure the HTTP version of the `Request` that
+    /// will be returned from `Builder::build`.
+    ///
+    /// By default this is HTTP/1.1
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let req = Request::builder()
+    ///     .version(Version::HTTP_2)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>version(<span class="self">self</span>, version: <a href="../../src/http/version.rs.html#26">Version</a>) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a> {
+        <a class="self" href="../../src/http/request.rs.html#874">self</a>.<a href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <a href="../../src/http/request.rs.html#875">head</a>.version = <a href="../../src/http/request.rs.html#874">version</a>;
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/request.rs.html#875">head</a>)
         })
     }
 
-    <span class="doccomment">/// Get the HTTP version for this request</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is HTTP/1.1.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut req = Request::builder();</span>
-    <span class="doccomment">/// assert_eq!(req.version_ref().unwrap(), &amp;Version::HTTP_11 );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// req = req.version(Version::HTTP_2);</span>
-    <span class="doccomment">/// assert_eq!(req.version_ref().unwrap(), &amp;Version::HTTP_2 );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/http/version.rs.html#26">Version</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/request.rs.html#896">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/request.rs.html#897">h</a>.<span class="ident">version</span>)
+    <span class="doccomment">/// Get the HTTP version for this request
+    ///
+    /// By default this is HTTP/1.1.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let mut req = Request::builder();
+    /// assert_eq!(req.version_ref().unwrap(), &amp;Version::HTTP_11 );
+    ///
+    /// req = req.version(Version::HTTP_2);
+    /// assert_eq!(req.version_ref().unwrap(), &amp;Version::HTTP_2 );
+    /// ```
+    </span><span class="kw">pub fn </span>version_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/http/version.rs.html#26">Version</a>&gt; {
+        <a class="self" href="../../src/http/request.rs.html#896">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="../../src/http/request.rs.html#897">h</a>.version)
     }
 
-    <span class="doccomment">/// Appends a header to this request builder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will append the provided key/value as a header to the</span>
-    <span class="doccomment">/// internal `HeaderMap` being constructed. Essentially this is equivalent</span>
-    <span class="doccomment">/// to calling `HeaderMap::append`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">/// # use http::header::HeaderValue;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let req = Request::builder()</span>
-    <span class="doccomment">///     .header(&quot;Accept&quot;, &quot;text/html&quot;)</span>
-    <span class="doccomment">///     .header(&quot;X-Custom-Foo&quot;, &quot;bar&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../src/http/header/name.rs.html#33">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/header/name.rs.html#33">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Appends a header to this request builder.
+    ///
+    /// This function will append the provided key/value as a header to the
+    /// internal `HeaderMap` being constructed. Essentially this is equivalent
+    /// to calling `HeaderMap::append`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    /// # use http::header::HeaderValue;
+    ///
+    /// let req = Request::builder()
+    ///     .header(&quot;Accept&quot;, &quot;text/html&quot;)
+    ///     .header(&quot;X-Custom-Foo&quot;, &quot;bar&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>header&lt;K, V&gt;(<span class="self">self</span>, key: K, value: V) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span><a href="../../src/http/header/name.rs.html#33">HeaderName</a>: TryFrom&lt;K&gt;,
+        &lt;<a href="../../src/http/header/name.rs.html#33">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
+        <a href="../../src/http/header/value.rs.html#21">HeaderValue</a>: TryFrom&lt;V&gt;,
+        &lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../src/http/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
     {
-        <a class="self" href="../../src/http/request.rs.html#918">self</a>.<a class="ident" href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">HeaderName</span> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="ident">key</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">HeaderValue</span> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="ident">value</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/http/request.rs.html#925">head</a>.<span class="ident">headers</span>.<a class="ident" href="../../src/http/header/map.rs.html#1234-1236">append</a>(<a class="ident" href="../../src/http/request.rs.html#926">name</a>, <a class="ident" href="../../src/http/request.rs.html#927">value</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/request.rs.html#925">head</a>)
+        <a class="self" href="../../src/http/request.rs.html#918">self</a>.<a href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <span class="kw">let </span>name = &lt;HeaderName <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(key).map_err(Into::into)<span class="question-mark">?</span>;
+            <span class="kw">let </span>value = &lt;HeaderValue <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(value).map_err(Into::into)<span class="question-mark">?</span>;
+            <a href="../../src/http/request.rs.html#925">head</a>.headers.<a href="../../src/http/header/map.rs.html#1234-1236">append</a>(<a href="../../src/http/request.rs.html#926">name</a>, <a href="../../src/http/request.rs.html#927">value</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/request.rs.html#925">head</a>)
         })
     }
 
-    <span class="doccomment">/// Get header on this request builder.</span>
-    <span class="doccomment">/// when builder has error returns None</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::Request;</span>
-    <span class="doccomment">/// let req = Request::builder()</span>
-    <span class="doccomment">///     .header(&quot;Accept&quot;, &quot;text/html&quot;)</span>
-    <span class="doccomment">///     .header(&quot;X-Custom-Foo&quot;, &quot;bar&quot;);</span>
-    <span class="doccomment">/// let headers = req.headers_ref().unwrap();</span>
-    <span class="doccomment">/// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );</span>
-    <span class="doccomment">/// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/request.rs.html#947">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/request.rs.html#948">h</a>.<span class="ident">headers</span>)
+    <span class="doccomment">/// Get header on this request builder.
+    /// when builder has error returns None
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::Request;
+    /// let req = Request::builder()
+    ///     .header(&quot;Accept&quot;, &quot;text/html&quot;)
+    ///     .header(&quot;X-Custom-Foo&quot;, &quot;bar&quot;);
+    /// let headers = req.headers_ref().unwrap();
+    /// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );
+    /// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );
+    /// ```
+    </span><span class="kw">pub fn </span>headers_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt;&gt; {
+        <a class="self" href="../../src/http/request.rs.html#947">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="../../src/http/request.rs.html#948">h</a>.headers)
     }
 
-    <span class="doccomment">/// Get headers on this request builder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When builder has error returns None.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::{header::HeaderValue, Request};</span>
-    <span class="doccomment">/// let mut req = Request::builder();</span>
-    <span class="doccomment">/// {</span>
-    <span class="doccomment">///   let headers = req.headers_mut().unwrap();</span>
-    <span class="doccomment">///   headers.insert(&quot;Accept&quot;, HeaderValue::from_static(&quot;text/html&quot;));</span>
-    <span class="doccomment">///   headers.insert(&quot;X-Custom-Foo&quot;, HeaderValue::from_static(&quot;bar&quot;));</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// let headers = req.headers_ref().unwrap();</span>
-    <span class="doccomment">/// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );</span>
-    <span class="doccomment">/// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">HeaderMap</span><span class="op">&lt;</span><a class="ident" href="../../src/http/header/value.rs.html#21">HeaderValue</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/request.rs.html#969">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/request.rs.html#970">h</a>.<span class="ident">headers</span>)
+    <span class="doccomment">/// Get headers on this request builder.
+    ///
+    /// When builder has error returns None.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::{header::HeaderValue, Request};
+    /// let mut req = Request::builder();
+    /// {
+    ///   let headers = req.headers_mut().unwrap();
+    ///   headers.insert(&quot;Accept&quot;, HeaderValue::from_static(&quot;text/html&quot;));
+    ///   headers.insert(&quot;X-Custom-Foo&quot;, HeaderValue::from_static(&quot;bar&quot;));
+    /// }
+    /// let headers = req.headers_ref().unwrap();
+    /// assert_eq!( headers[&quot;Accept&quot;], &quot;text/html&quot; );
+    /// assert_eq!( headers[&quot;X-Custom-Foo&quot;], &quot;bar&quot; );
+    /// ```
+    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>HeaderMap&lt;<a href="../../src/http/header/value.rs.html#21">HeaderValue</a>&gt;&gt; {
+        <a class="self" href="../../src/http/request.rs.html#969">self</a>.inner.as_mut().ok().map(|h| <span class="kw-2">&amp;mut </span><a href="../../src/http/request.rs.html#970">h</a>.headers)
     }
 
-    <span class="doccomment">/// Adds an extension to this builder</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let req = Request::builder()</span>
-    <span class="doccomment">///     .extension(&quot;My Extension&quot;)</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(req.extensions().get::&lt;&amp;&#39;static str&gt;(),</span>
-    <span class="doccomment">///            Some(&amp;&quot;My Extension&quot;));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extension</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">extension</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Adds an extension to this builder
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let req = Request::builder()
+    ///     .extension(&quot;My Extension&quot;)
+    ///     .body(())
+    ///     .unwrap();
+    ///
+    /// assert_eq!(req.extensions().get::&lt;&amp;&#39;static str&gt;(),
+    ///            Some(&amp;&quot;My Extension&quot;));
+    /// ```
+    </span><span class="kw">pub fn </span>extension&lt;T&gt;(<span class="self">self</span>, extension: T) -&gt; <a href="../../src/http/request.rs.html#190">Builder</a>
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="../../src/http/request.rs.html#988">self</a>.<a class="ident" href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">head</span><span class="op">|</span> {
-            <a class="ident" href="../../src/http/request.rs.html#992">head</a>.<span class="ident">extensions</span>.<a class="ident" href="../../src/http/extensions.rs.html#62">insert</a>(<a class="ident" href="../../src/http/request.rs.html#988">extension</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/http/request.rs.html#992">head</a>)
+        <a class="self" href="../../src/http/request.rs.html#988">self</a>.<a href="../../src/http/request.rs.html#1064-1066">and_then</a>(<span class="kw">move </span>|<span class="kw-2">mut </span>head| {
+            <a href="../../src/http/request.rs.html#992">head</a>.extensions.<a href="../../src/http/extensions.rs.html#62">insert</a>(<a href="../../src/http/request.rs.html#988">extension</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/http/request.rs.html#992">head</a>)
         })
     }
 
-    <span class="doccomment">/// Get a reference to the extensions for this request builder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the builder has an error, this returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::Request;</span>
-    <span class="doccomment">/// let req = Request::builder().extension(&quot;My Extension&quot;).extension(5u32);</span>
-    <span class="doccomment">/// let extensions = req.extensions_ref().unwrap();</span>
-    <span class="doccomment">/// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));</span>
-    <span class="doccomment">/// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extensions_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/request.rs.html#1011">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/http/request.rs.html#1012">h</a>.<span class="ident">extensions</span>)
+    <span class="doccomment">/// Get a reference to the extensions for this request builder.
+    ///
+    /// If the builder has an error, this returns `None`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::Request;
+    /// let req = Request::builder().extension(&quot;My Extension&quot;).extension(5u32);
+    /// let extensions = req.extensions_ref().unwrap();
+    /// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));
+    /// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));
+    /// ```
+    </span><span class="kw">pub fn </span>extensions_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/http/extensions.rs.html#35">Extensions</a>&gt; {
+        <a class="self" href="../../src/http/request.rs.html#1011">self</a>.inner.as_ref().ok().map(|h| <span class="kw-2">&amp;</span><a href="../../src/http/request.rs.html#1012">h</a>.extensions)
     }
 
-    <span class="doccomment">/// Get a mutable reference to the extensions for this request builder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the builder has an error, this returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::Request;</span>
-    <span class="doccomment">/// let mut req = Request::builder().extension(&quot;My Extension&quot;);</span>
-    <span class="doccomment">/// let mut extensions = req.extensions_mut().unwrap();</span>
-    <span class="doccomment">/// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));</span>
-    <span class="doccomment">/// extensions.insert(5u32);</span>
-    <span class="doccomment">/// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extensions_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/extensions.rs.html#35">Extensions</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/request.rs.html#1029">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/http/request.rs.html#1030">h</a>.<span class="ident">extensions</span>)
+    <span class="doccomment">/// Get a mutable reference to the extensions for this request builder.
+    ///
+    /// If the builder has an error, this returns `None`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use http::Request;
+    /// let mut req = Request::builder().extension(&quot;My Extension&quot;);
+    /// let mut extensions = req.extensions_mut().unwrap();
+    /// assert_eq!(extensions.get::&lt;&amp;&#39;static str&gt;(), Some(&amp;&quot;My Extension&quot;));
+    /// extensions.insert(5u32);
+    /// assert_eq!(extensions.get::&lt;u32&gt;(), Some(&amp;5u32));
+    /// ```
+    </span><span class="kw">pub fn </span>extensions_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../src/http/extensions.rs.html#35">Extensions</a>&gt; {
+        <a class="self" href="../../src/http/request.rs.html#1029">self</a>.inner.as_mut().ok().map(|h| <span class="kw-2">&amp;mut </span><a href="../../src/http/request.rs.html#1030">h</a>.extensions)
     }
 
-    <span class="doccomment">/// &quot;Consumes&quot; this builder, using the provided `body` to return a</span>
-    <span class="doccomment">/// constructed `Request`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function may return an error if any previously configured argument</span>
-    <span class="doccomment">/// failed to parse or get converted to the internal representation. For</span>
-    <span class="doccomment">/// example if an invalid `head` was specified via `header(&quot;Foo&quot;,</span>
-    <span class="doccomment">/// &quot;Bar\r\n&quot;)` the error will be returned when this function is called</span>
-    <span class="doccomment">/// rather than when `header` was called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use http::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let request = Request::builder()</span>
-    <span class="doccomment">///     .body(())</span>
-    <span class="doccomment">///     .unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">body</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/http/request.rs.html#1053">self</a>.<span class="ident">inner</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">head</span><span class="op">|</span> {
-            <a class="ident" href="../../src/http/request.rs.html#157">Request</a> {
-                <a class="ident" href="../../src/http/request.rs.html#1054">head</a>,
-                <a class="ident" href="../../src/http/request.rs.html#1053">body</a>,
+    <span class="doccomment">/// &quot;Consumes&quot; this builder, using the provided `body` to return a
+    /// constructed `Request`.
+    ///
+    /// # Errors
+    ///
+    /// This function may return an error if any previously configured argument
+    /// failed to parse or get converted to the internal representation. For
+    /// example if an invalid `head` was specified via `header(&quot;Foo&quot;,
+    /// &quot;Bar\r\n&quot;)` the error will be returned when this function is called
+    /// rather than when `header` was called.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use http::*;
+    ///
+    /// let request = Request::builder()
+    ///     .body(())
+    ///     .unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>body&lt;T&gt;(<span class="self">self</span>, body: T) -&gt; <span class="prelude-ty">Result</span>&lt;Request&lt;T&gt;&gt; {
+        <a class="self" href="../../src/http/request.rs.html#1053">self</a>.inner.map(<span class="kw">move </span>|head| {
+            <a href="../../src/http/request.rs.html#157">Request</a> {
+                <a href="../../src/http/request.rs.html#1054">head</a>,
+                <a href="../../src/http/request.rs.html#1053">body</a>,
             }
         })
     }
 
-    <span class="comment">// private</span>
+    <span class="comment">// private
 
-    <span class="kw">fn</span> <span class="ident">and_then</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="../../src/http/request.rs.html#166">Parts</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/http/request.rs.html#166">Parts</a><span class="op">&gt;</span>
+    </span><span class="kw">fn </span>and_then&lt;F&gt;(<span class="self">self</span>, func: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnOnce(<a href="../../src/http/request.rs.html#166">Parts</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/http/request.rs.html#166">Parts</a>&gt;
     {
-        <a class="ident" href="../../src/http/request.rs.html#190">Builder</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../src/http/request.rs.html#1064">self</a>.<span class="ident">inner</span>.<span class="ident">and_then</span>(<a class="ident" href="../../src/http/request.rs.html#1064">func</a>),
+        <a href="../../src/http/request.rs.html#190">Builder</a> {
+            inner: <a class="self" href="../../src/http/request.rs.html#1064">self</a>.inner.and_then(<a href="../../src/http/request.rs.html#1064">func</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/http/request.rs.html#190">Builder</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/http/request.rs.html#190">Builder</a> {
-        <a class="ident" href="../../src/http/request.rs.html#190">Builder</a> {
-            <span class="ident">inner</span>: <span class="prelude-val">Ok</span>(<span class="ident">Parts::new</span>()),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/http/request.rs.html#190">Builder</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <a href="../../src/http/request.rs.html#190">Builder</a> {
+        <a href="../../src/http/request.rs.html#190">Builder</a> {
+            inner: <span class="prelude-val">Ok</span>(Parts::new()),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">it_can_map_a_body_from_one_type_to_another</span>() {
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">Request::builder</span>().<span class="ident">body</span>(<span class="string">&quot;some string&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">mapped_request</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
-            <span class="macro">assert_eq!</span>(<span class="ident">s</span>, <span class="string">&quot;some string&quot;</span>);
-            <span class="number">123u32</span>
-        });
-        <span class="macro">assert_eq!</span>(<span class="ident">mapped_request</span>.<span class="ident">body</span>(), <span class="kw-2">&amp;</span><span class="number">123u32</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>it_can_map_a_body_from_one_type_to_another() {
+        <span class="kw">let </span>request = Request::builder().body(<span class="string">&quot;some string&quot;</span>).unwrap();
+        <span class="kw">let </span>mapped_request = request.map(|s| {
+            <span class="macro">assert_eq!</span>(s, <span class="string">&quot;some string&quot;</span>);
+            <span class="number">123u32
+        </span>});
+        <span class="macro">assert_eq!</span>(mapped_request.body(), <span class="kw-2">&amp;</span><span class="number">123u32</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="http" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

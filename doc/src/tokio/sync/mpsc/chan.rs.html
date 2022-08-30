@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mpsc/chan.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chan.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mpsc/chan.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chan.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -403,410 +403,410 @@
 <span id="403">403</span>
 <span id="404">404</span>
 <span id="405">405</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27"><span class="kw">crate</span>::loom::future::AtomicWaker</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/park/thread.rs.html#225"><span class="kw">crate</span>::park::thread::CachedParkThread</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/park/mod.rs.html#49"><span class="kw">crate</span>::park::Park</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#58"><span class="kw">crate</span>::sync::mpsc::error::TryRecvError</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#97"><span class="kw">crate</span>::sync::mpsc::list</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/notify.rs.html#199"><span class="kw">crate</span>::sync::notify::Notify</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27"><span class="kw">crate</span>::loom::future::AtomicWaker</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/park/thread.rs.html#225"><span class="kw">crate</span>::park::thread::CachedParkThread</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/park/mod.rs.html#49"><span class="kw">crate</span>::park::Park</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/error.rs.html#58"><span class="kw">crate</span>::sync::mpsc::error::TryRecvError</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/mod.rs.html#97"><span class="kw">crate</span>::sync::mpsc::list</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/sync/notify.rs.html#199"><span class="kw">crate</span>::sync::notify::Notify</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/index.html">std::process</a>;
-<span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering</span>::{<span class="ident">AcqRel</span>, <span class="ident">Relaxed</span>};
-<span class="kw">use</span> <span class="ident">std::task::Poll</span>::{<span class="ident">Pending</span>, <span class="ident">Ready</span>};
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/process/index.html">std::process</a>;
+<span class="kw">use </span>std::sync::atomic::Ordering::{AcqRel, Relaxed};
+<span class="kw">use </span>std::task::Poll::{Pending, Ready};
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// Channel sender.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Channel sender.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Tx&lt;T, S&gt; {
+    inner: Arc&lt;Chan&lt;T, S&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#23">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Tx&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#23">self</a>.<span class="ident">inner</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T, S: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Tx&lt;T, S&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#23">fmt</a>.debug_struct(<span class="string">&quot;Tx&quot;</span>).field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#23">self</a>.inner).finish()
     }
 }
 
-<span class="doccomment">/// Channel receiver.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Channel receiver.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Rx&lt;T, S: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a>&gt; {
+    inner: Arc&lt;Chan&lt;T, S&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#34">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Rx&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#34">self</a>.<span class="ident">inner</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T, S: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Rx&lt;T, S&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#34">fmt</a>.debug_struct(<span class="string">&quot;Rx&quot;</span>).field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#34">self</a>.inner).finish()
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">Semaphore</span> {
-    <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Semaphore {
+    <span class="kw">fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
-    <span class="kw">fn</span> <span class="ident">add_permit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>);
+    <span class="kw">fn </span>add_permit(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
-    <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>);
+    <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
-    <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 }
 
-<span class="kw">struct</span> <span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Notifies all tasks listening for the receiver being dropped.</span>
-    <span class="ident">notify_rx_closed</span>: <a class="ident" href="../../../../src/tokio/sync/notify.rs.html#199">Notify</a>,
+<span class="kw">struct </span>Chan&lt;T, S&gt; {
+    <span class="doccomment">/// Notifies all tasks listening for the receiver being dropped.
+    </span>notify_rx_closed: <a href="../../../../src/tokio/sync/notify.rs.html#199">Notify</a>,
 
-    <span class="doccomment">/// Handle to the push half of the lock-free list.</span>
-    <span class="ident">tx</span>: <span class="ident">list::Tx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Handle to the push half of the lock-free list.
+    </span>tx: list::Tx&lt;T&gt;,
 
-    <span class="doccomment">/// Coordinates access to channel&#39;s capacity.</span>
-    <span class="ident">semaphore</span>: <span class="ident">S</span>,
+    <span class="doccomment">/// Coordinates access to channel&#39;s capacity.
+    </span>semaphore: S,
 
-    <span class="doccomment">/// Receiver waker. Notified when a value is pushed into the channel.</span>
-    <span class="ident">rx_waker</span>: <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a>,
+    <span class="doccomment">/// Receiver waker. Notified when a value is pushed into the channel.
+    </span>rx_waker: <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a>,
 
-    <span class="doccomment">/// Tracks the number of outstanding sender handles.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When this drops to zero, the send half of the channel is closed.</span>
-    <span class="ident">tx_count</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    <span class="doccomment">/// Tracks the number of outstanding sender handles.
+    ///
+    /// When this drops to zero, the send half of the channel is closed.
+    </span>tx_count: <a href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
 
-    <span class="doccomment">/// Only accessed by `Rx` handle.</span>
-    <span class="ident">rx_fields</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">RxFields</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Only accessed by `Rx` handle.
+    </span>rx_fields: UnsafeCell&lt;RxFields&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Chan&lt;T, S&gt;
+<span class="kw">where
+    </span>S: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Chan&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;tx&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">self</a>.<span class="ident">tx</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;semaphore&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">self</a>.<span class="ident">semaphore</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;rx_waker&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">self</a>.<span class="ident">rx_waker</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;tx_count&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">self</a>.<span class="ident">tx_count</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;rx_fields&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;...&quot;</span>)
-            .<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">fmt</a>.debug_struct(<span class="string">&quot;Chan&quot;</span>)
+            .field(<span class="string">&quot;tx&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">self</a>.tx)
+            .field(<span class="string">&quot;semaphore&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">self</a>.semaphore)
+            .field(<span class="string">&quot;rx_waker&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">self</a>.rx_waker)
+            .field(<span class="string">&quot;tx_count&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#75">self</a>.tx_count)
+            .field(<span class="string">&quot;rx_fields&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;...&quot;</span>)
+            .finish()
     }
 }
 
-<span class="doccomment">/// Fields only accessed by `Rx` handle.</span>
-<span class="kw">struct</span> <span class="ident">RxFields</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Channel receiver. This field is only accessed by the `Receiver` type.</span>
-    <span class="ident">list</span>: <span class="ident">list::Rx</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Fields only accessed by `Rx` handle.
+</span><span class="kw">struct </span>RxFields&lt;T&gt; {
+    <span class="doccomment">/// Channel receiver. This field is only accessed by the `Receiver` type.
+    </span>list: list::Rx&lt;T&gt;,
 
-    <span class="doccomment">/// `true` if `Rx::close` is called.</span>
-    <span class="ident">rx_closed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// `true` if `Rx::close` is called.
+    </span>rx_closed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">RxFields</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#96">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;RxFields&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;list&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#96">self</a>.<span class="ident">list</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;rx_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#96">self</a>.<span class="ident">rx_closed</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>RxFields&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#96">fmt</a>.debug_struct(<span class="string">&quot;RxFields&quot;</span>)
+            .field(<span class="string">&quot;list&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#96">self</a>.list)
+            .field(<span class="string">&quot;rx_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#96">self</a>.rx_closed)
+            .finish()
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>, <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>, <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>, S: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Chan&lt;T, S&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>, S: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Chan&lt;T, S&gt; {}
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a><span class="op">&gt;</span>(<span class="ident">semaphore</span>: <span class="ident">S</span>) -&gt; (<span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#45">list::channel</a>();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>channel&lt;T, S: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a>&gt;(semaphore: S) -&gt; (Tx&lt;T, S&gt;, Rx&lt;T, S&gt;) {
+    <span class="kw">let </span>(tx, rx) = <a href="../../../../src/tokio/sync/mpsc/list.rs.html#45">list::channel</a>();
 
-    <span class="kw">let</span> <span class="ident">chan</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#49">Chan</a> {
-        <span class="ident">notify_rx_closed</span>: <span class="ident">Notify::new</span>(),
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#108">tx</a>,
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#107">semaphore</a>,
-        <span class="ident">rx_waker</span>: <span class="ident">AtomicWaker::new</span>(),
-        <span class="ident">tx_count</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">1</span>),
-        <span class="ident">rx_fields</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#87">RxFields</a> {
-            <span class="ident">list</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#108">rx</a>,
-            <span class="ident">rx_closed</span>: <span class="bool-val">false</span>,
+    <span class="kw">let </span>chan = Arc::new(<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#49">Chan</a> {
+        notify_rx_closed: Notify::new(),
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#108">tx</a>,
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#107">semaphore</a>,
+        rx_waker: AtomicWaker::new(),
+        tx_count: AtomicUsize::new(<span class="number">1</span>),
+        rx_fields: UnsafeCell::new(<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#87">RxFields</a> {
+            list: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#108">rx</a>,
+            rx_closed: <span class="bool-val">false</span>,
         }),
     });
 
-    (<span class="ident">Tx::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#110">chan</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="ident">Rx::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#110">chan</a>))
+    (Tx::new(<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#110">chan</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), Rx::new(<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#110">chan</a>))
 }
 
-<span class="comment">// ===== impl Tx =====</span>
+<span class="comment">// ===== impl Tx =====
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">chan</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#18">Tx</a> { <span class="ident">inner</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#128">chan</a> }
+</span><span class="kw">impl</span>&lt;T, S&gt; Tx&lt;T, S&gt; {
+    <span class="kw">fn </span>new(chan: Arc&lt;Chan&lt;T, S&gt;&gt;) -&gt; Tx&lt;T, S&gt; {
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#18">Tx</a> { inner: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#128">chan</a> }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">semaphore</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">S</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">self</a>.<span class="ident">inner</span>.<span class="ident">semaphore</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>semaphore(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">self</a>.inner.semaphore
     }
 
-    <span class="doccomment">/// Send a message and notify the receiver.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">send</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">value</a>);
+    <span class="doccomment">/// Send a message and notify the receiver.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">self</a>.inner.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">send</a>(<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">value</a>);
     }
 
-    <span class="doccomment">/// Wake the receive half</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">wake_rx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#142">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#303">wake</a>();
+    <span class="doccomment">/// Wake the receive half
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wake_rx(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#142">self</a>.inner.rx_waker.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#303">wake</a>();
     }
 
-    <span class="doccomment">/// Returns `true` if senders belong to the same channel.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">same_channel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="ident">Arc::ptr_eq</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#147">self</a>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#147">other</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns `true` if senders belong to the same channel.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>same_channel(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#147">self</a>.inner, <span class="kw-2">&amp;</span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#147">other</a>.inner)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a><span class="op">&gt;</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#153">self</a>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#46">is_closed</a>()
+<span class="kw">impl</span>&lt;T, S: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a>&gt; Tx&lt;T, S&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#153">self</a>.inner.semaphore.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#46">is_closed</a>()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// In order to avoid a race condition, we first request a notification,</span>
-        <span class="comment">// **then** check whether the semaphore is closed. If the semaphore is</span>
-        <span class="comment">// closed the notification request is dropped.</span>
-        <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">notify_rx_closed</span>.<span class="ident">notified</span>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>closed(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// In order to avoid a race condition, we first request a notification,
+        // **then** check whether the semaphore is closed. If the semaphore is
+        // closed the notification request is dropped.
+        </span><span class="kw">let </span>notified = <span class="self">self</span>.inner.notify_rx_closed.notified();
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">is_closed</span>() {
+        <span class="kw">if </span><span class="self">self</span>.inner.semaphore.is_closed() {
             <span class="kw">return</span>;
         }
-        <span class="ident">notified</span>.<span class="kw">await</span>;
+        notified.<span class="kw">await</span>;
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="comment">// Using a Relaxed ordering here is sufficient as the caller holds a</span>
-        <span class="comment">// strong ref to `self`, preventing a concurrent decrement to zero.</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#171">self</a>.<span class="ident">inner</span>.<span class="ident">tx_count</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Relaxed</span>);
+<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Tx&lt;T, S&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Tx&lt;T, S&gt; {
+        <span class="comment">// Using a Relaxed ordering here is sufficient as the caller holds a
+        // strong ref to `self`, preventing a concurrent decrement to zero.
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#171">self</a>.inner.tx_count.fetch_add(<span class="number">1</span>, Relaxed);
 
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#18">Tx</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#171">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#18">Tx</a> {
+            inner: <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#171">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">tx_count</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">AcqRel</span>) <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
+<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Tx&lt;T, S&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.inner.tx_count.fetch_sub(<span class="number">1</span>, AcqRel) != <span class="number">1 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// Close the list, which sends a `Close` message</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#183">self</a>.<span class="ident">inner</span>.<span class="ident">tx</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#86">close</a>();
+        <span class="comment">// Close the list, which sends a `Close` message
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#183">self</a>.inner.tx.<a href="../../../../src/tokio/sync/mpsc/list.rs.html#86">close</a>();
 
-        <span class="comment">// Notify the receiver</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#183">self</a>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#142">wake_rx</a>();
+        <span class="comment">// Notify the receiver
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#183">self</a>.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#142">wake_rx</a>();
     }
 }
 
-<span class="comment">// ===== impl Rx =====</span>
+<span class="comment">// ===== impl Rx =====
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a><span class="op">&gt;</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">chan</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#29">Rx</a> { <span class="ident">inner</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#199">chan</a> }
+</span><span class="kw">impl</span>&lt;T, S: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a>&gt; Rx&lt;T, S&gt; {
+    <span class="kw">fn </span>new(chan: Arc&lt;Chan&lt;T, S&gt;&gt;) -&gt; Rx&lt;T, S&gt; {
+        <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#29">Rx</a> { inner: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#199">chan</a> }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.<span class="ident">inner</span>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#204">rx_fields_ptr</a> };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.inner.rx_fields.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|rx_fields_ptr| {
+            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#204">rx_fields_ptr</a> };
 
-            <span class="kw">if</span> <span class="ident">rx_fields</span>.<span class="ident">rx_closed</span> {
+            <span class="kw">if </span>rx_fields.rx_closed {
                 <span class="kw">return</span>;
             }
 
-            <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#205">rx_fields</a>.<span class="ident">rx_closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#205">rx_fields</a>.rx_closed = <span class="bool-val">true</span>;
         });
 
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#44">close</a>();
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.<span class="ident">inner</span>.<span class="ident">notify_rx_closed</span>.<a class="ident" href="../../../../src/tokio/sync/notify.rs.html#494">notify_waiters</a>();
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.inner.semaphore.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#44">close</a>();
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.inner.notify_rx_closed.<a href="../../../../src/tokio/sync/notify.rs.html#494">notify_waiters</a>();
     }
 
-    <span class="doccomment">/// Receive the next value</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#34"><span class="kw">super</span>::block::Read</a>::<span class="kw-2">*</span>;
+    <span class="doccomment">/// Receive the next value
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+        <span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#34"><span class="kw">super</span>::block::Read</a>::<span class="kw-2">*</span>;
 
-        <span class="comment">// Keep track of task budget</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
+        <span class="comment">// Keep track of task budget
+        </span><span class="kw">let </span>coop = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
 
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.<span class="ident">inner</span>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#225">rx_fields_ptr</a> };
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.inner.rx_fields.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|rx_fields_ptr| {
+            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#225">rx_fields_ptr</a> };
 
-            <span class="macro">macro_rules!</span> <span class="ident">try_recv</span> {
+            <span class="macro">macro_rules! </span>try_recv {
                 () =&gt; {
-                    <span class="kw">match</span> <span class="ident">rx_fields</span>.<span class="ident">list</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">tx</span>) {
-                        <span class="prelude-val">Some</span>(<span class="ident">Value</span>(<span class="ident">value</span>)) =&gt; {
-                            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">add_permit</span>();
-                            <span class="ident">coop</span>.<span class="ident">made_progress</span>();
-                            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>));
+                    <span class="kw">match </span>rx_fields.list.pop(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.tx) {
+                        <span class="prelude-val">Some</span>(Value(value)) =&gt; {
+                            <span class="self">self</span>.inner.semaphore.add_permit();
+                            coop.made_progress();
+                            <span class="kw">return </span>Ready(<span class="prelude-val">Some</span>(value));
                         }
-                        <span class="prelude-val">Some</span>(<span class="ident">Closed</span>) =&gt; {
-                            <span class="comment">// TODO: This check may not be required as it most</span>
-                            <span class="comment">// likely can only return `true` at this point. A</span>
-                            <span class="comment">// channel is closed when all tx handles are</span>
-                            <span class="comment">// dropped. Dropping a tx handle releases memory,</span>
-                            <span class="comment">// which ensures that if dropping the tx handle is</span>
-                            <span class="comment">// visible, then all messages sent are also visible.</span>
-                            <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">is_idle</span>());
-                            <span class="ident">coop</span>.<span class="ident">made_progress</span>();
-                            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">None</span>);
+                        <span class="prelude-val">Some</span>(Closed) =&gt; {
+                            <span class="comment">// TODO: This check may not be required as it most
+                            // likely can only return `true` at this point. A
+                            // channel is closed when all tx handles are
+                            // dropped. Dropping a tx handle releases memory,
+                            // which ensures that if dropping the tx handle is
+                            // visible, then all messages sent are also visible.
+                            </span><span class="macro">assert!</span>(<span class="self">self</span>.inner.semaphore.is_idle());
+                            coop.made_progress();
+                            <span class="kw">return </span>Ready(<span class="prelude-val">None</span>);
                         }
-                        <span class="prelude-val">None</span> =&gt; {} <span class="comment">// fall through</span>
-                    }
+                        <span class="prelude-val">None </span>=&gt; {} <span class="comment">// fall through
+                    </span>}
                 };
             }
 
             <a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#228-250">try_recv!</a>();
 
-            <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">cx</a>.<span class="ident">waker</span>());
+            <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.inner.rx_waker.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">cx</a>.waker());
 
-            <span class="comment">// It is possible that a value was pushed between attempting to read</span>
-            <span class="comment">// and registering the task, so we have to check the channel a</span>
-            <span class="comment">// second time here.</span>
-            <a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#228-250">try_recv!</a>();
+            <span class="comment">// It is possible that a value was pushed between attempting to read
+            // and registering the task, so we have to check the channel a
+            // second time here.
+            </span><a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#228-250">try_recv!</a>();
 
-            <span class="kw">if</span> <span class="ident">rx_fields</span>.<span class="ident">rx_closed</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">is_idle</span>() {
-                <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#223">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
-                <span class="ident">Ready</span>(<span class="prelude-val">None</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">Pending</span>
+            <span class="kw">if </span>rx_fields.rx_closed &amp;&amp; <span class="self">self</span>.inner.semaphore.is_idle() {
+                <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#223">coop</a>.<a href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+                Ready(<span class="prelude-val">None</span>)
+            } <span class="kw">else </span>{
+                Pending
             }
         })
     }
 
-    <span class="doccomment">/// Try to receive the next value.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#58">TryRecvError</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#34"><span class="kw">super</span>::list::TryPopResult</a>;
+    <span class="doccomment">/// Try to receive the next value.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../../../src/tokio/sync/mpsc/error.rs.html#58">TryRecvError</a>&gt; {
+        <span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/list.rs.html#34"><span class="kw">super</span>::list::TryPopResult</a>;
 
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#274">rx_fields_ptr</a> };
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.inner.rx_fields.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|rx_fields_ptr| {
+            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#274">rx_fields_ptr</a> };
 
-            <span class="macro">macro_rules!</span> <span class="ident">try_recv</span> {
+            <span class="macro">macro_rules! </span>try_recv {
                 () =&gt; {
-                    <span class="kw">match</span> <span class="ident">rx_fields</span>.<span class="ident">list</span>.<span class="ident">try_pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">tx</span>) {
-                        <span class="ident">TryPopResult::Ok</span>(<span class="ident">value</span>) =&gt; {
-                            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">add_permit</span>();
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>);
+                    <span class="kw">match </span>rx_fields.list.try_pop(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.tx) {
+                        TryPopResult::Ok(value) =&gt; {
+                            <span class="self">self</span>.inner.semaphore.add_permit();
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(value);
                         }
-                        <span class="ident">TryPopResult::Closed</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Disconnected</span>),
-                        <span class="ident">TryPopResult::Empty</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>),
-                        <span class="ident">TryPopResult::Busy</span> =&gt; {} <span class="comment">// fall through</span>
-                    }
+                        TryPopResult::Closed =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TryRecvError::Disconnected),
+                        TryPopResult::Empty =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TryRecvError::Empty),
+                        TryPopResult::Busy =&gt; {} <span class="comment">// fall through
+                    </span>}
                 };
             }
 
             <a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#277-289">try_recv!</a>();
 
-            <span class="comment">// If a previous `poll_recv` call has set a waker, we wake it here.</span>
-            <span class="comment">// This allows us to put our own CachedParkThread waker in the</span>
-            <span class="comment">// AtomicWaker slot instead.</span>
-            <span class="comment">//</span>
-            <span class="comment">// This is not a spurious wakeup to `poll_recv` since we just got a</span>
-            <span class="comment">// Busy from `try_pop`, which only happens if there are messages in</span>
-            <span class="comment">// the queue.</span>
-            <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#303">wake</a>();
+            <span class="comment">// If a previous `poll_recv` call has set a waker, we wake it here.
+            // This allows us to put our own CachedParkThread waker in the
+            // AtomicWaker slot instead.
+            //
+            // This is not a spurious wakeup to `poll_recv` since we just got a
+            // Busy from `try_pop`, which only happens if there are messages in
+            // the queue.
+            </span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.inner.rx_waker.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#303">wake</a>();
 
-            <span class="comment">// Park the thread until the problematic send has completed.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">park</span> <span class="op">=</span> <span class="ident">CachedParkThread::new</span>();
-            <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#303">park</a>.<a class="ident" href="../../../../src/tokio/park/mod.rs.html#57">unpark</a>().<a class="ident" href="../../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
-            <span class="kw">loop</span> {
-                <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#304">waker</a>);
-                <span class="comment">// It is possible that the problematic send has now completed,</span>
-                <span class="comment">// so we have to check for messages again.</span>
-                <a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#277-289">try_recv!</a>();
-                <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#303">park</a>.<a class="ident" href="../../../../src/tokio/park/mod.rs.html#70">park</a>().<span class="ident">expect</span>(<span class="string">&quot;park failed&quot;</span>);
+            <span class="comment">// Park the thread until the problematic send has completed.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>park = CachedParkThread::new();
+            <span class="kw">let </span>waker = <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#303">park</a>.<a href="../../../../src/tokio/park/mod.rs.html#57">unpark</a>().<a href="../../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
+            <span class="kw">loop </span>{
+                <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.inner.rx_waker.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#304">waker</a>);
+                <span class="comment">// It is possible that the problematic send has now completed,
+                // so we have to check for messages again.
+                </span><a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#277-289">try_recv!</a>();
+                <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#303">park</a>.<a href="../../../../src/tokio/park/mod.rs.html#70">park</a>().expect(<span class="string">&quot;park failed&quot;</span>);
             }
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#35"><span class="kw">super</span>::block::Read::Value</a>;
+<span class="kw">impl</span>&lt;T, S: <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Rx&lt;T, S&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#35"><span class="kw">super</span>::block::Read::Value</a>;
 
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#317">self</a>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">close</a>();
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#317">self</a>.<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">close</a>();
 
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#317">self</a>.<span class="ident">inner</span>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#322">rx_fields_ptr</a> };
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#317">self</a>.inner.rx_fields.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|rx_fields_ptr| {
+            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#322">rx_fields_ptr</a> };
 
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Value</span>(<span class="kw">_</span>)) <span class="op">=</span> <span class="ident">rx_fields</span>.<span class="ident">list</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">tx</span>) {
-                <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">add_permit</span>();
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(Value(<span class="kw">_</span>)) = rx_fields.list.pop(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.tx) {
+                <span class="self">self</span>.inner.semaphore.add_permit();
             }
         })
     }
 }
 
-<span class="comment">// ===== impl Chan =====</span>
+<span class="comment">// ===== impl Chan =====
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) {
-        <span class="comment">// Push the value</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">self</a>.<span class="ident">tx</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#68">push</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">value</a>);
+</span><span class="kw">impl</span>&lt;T, S&gt; Chan&lt;T, S&gt; {
+    <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) {
+        <span class="comment">// Push the value
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">self</a>.tx.<a href="../../../../src/tokio/sync/mpsc/list.rs.html#68">push</a>(<a href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">value</a>);
 
-        <span class="comment">// Notify the rx task</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">self</a>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#303">wake</a>();
+        <span class="comment">// Notify the rx task
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#335">self</a>.rx_waker.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#303">wake</a>();
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Chan</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#35"><span class="kw">super</span>::block::Read::Value</a>;
+<span class="kw">impl</span>&lt;T, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Chan&lt;T, S&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">use </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#35"><span class="kw">super</span>::block::Read::Value</a>;
 
-        <span class="comment">// Safety: the only owner of the rx fields is Chan, and being</span>
-        <span class="comment">// inside its own Drop means we&#39;re the last ones to touch it.</span>
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#345">self</a>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#350">rx_fields_ptr</a> };
+        <span class="comment">// Safety: the only owner of the rx fields is Chan, and being
+        // inside its own Drop means we&#39;re the last ones to touch it.
+        </span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#345">self</a>.rx_fields.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|rx_fields_ptr| {
+            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#350">rx_fields_ptr</a> };
 
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Value</span>(<span class="kw">_</span>)) <span class="op">=</span> <span class="ident">rx_fields</span>.<span class="ident">list</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tx</span>) {}
-            <span class="kw">unsafe</span> { <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#351">rx_fields</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#343">free_blocks</a>() };
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(Value(<span class="kw">_</span>)) = rx_fields.list.pop(<span class="kw-2">&amp;</span><span class="self">self</span>.tx) {}
+            <span class="kw">unsafe </span>{ <a href="../../../../src/tokio/sync/mpsc/chan.rs.html#351">rx_fields</a>.list.<a href="../../../../src/tokio/sync/mpsc/list.rs.html#343">free_blocks</a>() };
         });
     }
 }
 
-<span class="comment">// ===== impl Semaphore for (::Semaphore, capacity) =====</span>
+<span class="comment">// ===== impl Semaphore for (::Semaphore, capacity) =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a> <span class="kw">for</span> (<a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#36"><span class="kw">crate</span>::sync::batch_semaphore::Semaphore</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">fn</span> <span class="ident">add_permit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#362">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>)
+</span><span class="kw">impl </span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a> <span class="kw">for </span>(<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#36"><span class="kw">crate</span>::sync::batch_semaphore::Semaphore</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">fn </span>add_permit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#362">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#366">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#194">available_permits</a>() <span class="op">==</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#366">self</a>.<span class="number">1</span>
+    <span class="kw">fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#366">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#194">available_permits</a>() == <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#366">self</a>.<span class="number">1
+    </span>}
+
+    <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#370">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#212">close</a>();
     }
 
-    <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#370">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#212">close</a>();
-    }
-
-    <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#374">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#232">is_closed</a>()
+    <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#374">self</a>.<span class="number">0</span>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#232">is_closed</a>()
     }
 }
 
-<span class="comment">// ===== impl Semaphore for AtomicUsize =====</span>
+<span class="comment">// ===== impl Semaphore for AtomicUsize =====
 
-<span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering</span>::{<span class="ident">Acquire</span>, <span class="ident">Release</span>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/usize/index.html">std::usize</a>;
+</span><span class="kw">use </span>std::sync::atomic::Ordering::{Acquire, Release};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/usize/index.html">std::usize</a>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a> {
-    <span class="kw">fn</span> <span class="ident">add_permit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#385">self</a>.<span class="ident">fetch_sub</span>(<span class="number">2</span>, <span class="ident">Release</span>);
+<span class="kw">impl </span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#39">Semaphore</a> <span class="kw">for </span><a href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a> {
+    <span class="kw">fn </span>add_permit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span>prev = <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#385">self</a>.fetch_sub(<span class="number">2</span>, Release);
 
-        <span class="kw">if</span> <span class="ident">prev</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="comment">// Something went wrong</span>
-            <span class="ident">process::abort</span>();
+        <span class="kw">if </span>prev &gt;&gt; <span class="number">1 </span>== <span class="number">0 </span>{
+            <span class="comment">// Something went wrong
+            </span>process::abort();
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#394">self</a>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">0</span>
+    <span class="kw">fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#394">self</a>.load(Acquire) &gt;&gt; <span class="number">1 </span>== <span class="number">0
+    </span>}
+
+    <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#398">self</a>.fetch_or(<span class="number">1</span>, Release);
     }
 
-    <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#398">self</a>.<span class="ident">fetch_or</span>(<span class="number">1</span>, <span class="ident">Release</span>);
-    }
-
-    <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#402">self</a>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">1</span>
-    }
+    <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#402">self</a>.load(Acquire) &amp; <span class="number">1 </span>== <span class="number">1
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/rebase.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rebase.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/rebase.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rebase.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -439,446 +439,446 @@
 <span id="439">439</span>
 <span id="440">440</span>
 <span id="441">441</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">marker</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/marker/index.html">marker</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/build.rs.html#74"><span class="kw">crate</span>::build::CheckoutBuilder</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/index.rs.html#17">Index</a>, <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/signature.rs.html#21">Signature</a>};
+<span class="kw">use </span><a href="../../src/git2/build.rs.html#74"><span class="kw">crate</span>::build::CheckoutBuilder</a>;
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/index.rs.html#17">Index</a>, <a href="../../src/git2/merge.rs.html#21">MergeOptions</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/signature.rs.html#21">Signature</a>};
 
-<span class="doccomment">/// Rebase options</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Use to tell the rebase machinery how to operate.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_rebase_options.html">raw::git_rebase_options</a>,
-    <span class="ident">rewrite_notes_ref</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a><span class="op">&gt;</span>,
-    <span class="ident">merge_options</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a><span class="op">&gt;</span>,
-    <span class="ident">checkout_options</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Rebase options
+///
+/// Use to tell the rebase machinery how to operate.
+</span><span class="kw">pub struct </span>RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+    raw: <a href="../../libgit2_sys/struct.git_rebase_options.html">raw::git_rebase_options</a>,
+    rewrite_notes_ref: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>&gt;,
+    merge_options: <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/merge.rs.html#21">MergeOptions</a>&gt;,
+    checkout_options: <span class="prelude-ty">Option</span>&lt;CheckoutBuilder&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new default set of rebase options.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/rebase.rs.html#11">RebaseOptions</a> {
-            <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
-            <span class="ident">rewrite_notes_ref</span>: <span class="prelude-val">None</span>,
-            <span class="ident">merge_options</span>: <span class="prelude-val">None</span>,
-            <span class="ident">checkout_options</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+    <span class="doccomment">/// Creates a new default set of rebase options.
+    </span><span class="kw">pub fn </span>new() -&gt; RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>opts = <a href="../../src/git2/rebase.rs.html#11">RebaseOptions</a> {
+            raw: <span class="kw">unsafe </span>{ mem::zeroed() },
+            rewrite_notes_ref: <span class="prelude-val">None</span>,
+            merge_options: <span class="prelude-val">None</span>,
+            checkout_options: <span class="prelude-val">None</span>,
         };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="kw">unsafe</span> { <span class="ident">raw::git_rebase_init_options</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">raw</span>, <span class="number">1</span>) }, <span class="number">0</span>);
-        <a class="ident" href="../../src/git2/rebase.rs.html#27">opts</a>
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="kw">unsafe </span>{ raw::git_rebase_init_options(<span class="kw-2">&amp;mut </span>opts.raw, <span class="number">1</span>) }, <span class="number">0</span>);
+        <a href="../../src/git2/rebase.rs.html#27">opts</a>
     }
 
-    <span class="doccomment">/// Used by `Repository::rebase`, this will instruct other clients working on this</span>
-    <span class="doccomment">/// rebase that you want a quiet rebase experience, which they may choose to</span>
-    <span class="doccomment">/// provide in an application-specific manner. This has no effect upon</span>
-    <span class="doccomment">/// libgit2 directly, but is provided for interoperability between Git</span>
-    <span class="doccomment">/// tools.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">quiet</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">quiet</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/rebase.rs.html#42">self</a>.<span class="ident">raw</span>.<span class="ident">quiet</span> <span class="op">=</span> <a class="ident" href="../../src/git2/rebase.rs.html#42">quiet</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-        <a class="self" href="../../src/git2/rebase.rs.html#42">self</a>
-    }
+    <span class="doccomment">/// Used by `Repository::rebase`, this will instruct other clients working on this
+    /// rebase that you want a quiet rebase experience, which they may choose to
+    /// provide in an application-specific manner. This has no effect upon
+    /// libgit2 directly, but is provided for interoperability between Git
+    /// tools.
+    </span><span class="kw">pub fn </span>quiet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quiet: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span>RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+        <a class="self" href="../../src/git2/rebase.rs.html#42">self</a>.raw.quiet = <a href="../../src/git2/rebase.rs.html#42">quiet</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+        <span class="self"><a href="../../src/git2/rebase.rs.html#42">self</a>
+    </span>}
 
-    <span class="doccomment">/// Used by `Repository::rebase`, this will begin an in-memory rebase,</span>
-    <span class="doccomment">/// which will allow callers to step through the rebase operations and</span>
-    <span class="doccomment">/// commit the rebased changes, but will not rewind HEAD or update the</span>
-    <span class="doccomment">/// repository to be in a rebasing state.  This will not interfere with</span>
-    <span class="doccomment">/// the working directory (if there is one).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inmemory</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">inmemory</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/rebase.rs.html#52">self</a>.<span class="ident">raw</span>.<span class="ident">inmemory</span> <span class="op">=</span> <a class="ident" href="../../src/git2/rebase.rs.html#52">inmemory</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-        <a class="self" href="../../src/git2/rebase.rs.html#52">self</a>
-    }
+    <span class="doccomment">/// Used by `Repository::rebase`, this will begin an in-memory rebase,
+    /// which will allow callers to step through the rebase operations and
+    /// commit the rebased changes, but will not rewind HEAD or update the
+    /// repository to be in a rebasing state.  This will not interfere with
+    /// the working directory (if there is one).
+    </span><span class="kw">pub fn </span>inmemory(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inmemory: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span>RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+        <a class="self" href="../../src/git2/rebase.rs.html#52">self</a>.raw.inmemory = <a href="../../src/git2/rebase.rs.html#52">inmemory</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+        <span class="self"><a href="../../src/git2/rebase.rs.html#52">self</a>
+    </span>}
 
-    <span class="doccomment">/// Used by `finish()`, this is the name of the notes reference</span>
-    <span class="doccomment">/// used to rewrite notes for rebased commits when finishing the rebase;</span>
-    <span class="doccomment">/// if NULL, the contents of the configuration option `notes.rewriteRef`</span>
-    <span class="doccomment">/// is examined, unless the configuration option `notes.rewrite.rebase`</span>
-    <span class="doccomment">/// is set to false.  If `notes.rewriteRef` is also NULL, notes will</span>
-    <span class="doccomment">/// not be rewritten.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rewrite_notes_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rewrite_notes_ref</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/rebase.rs.html#63">self</a>.<span class="ident">rewrite_notes_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">CString::new</span>(<a class="ident" href="../../src/git2/rebase.rs.html#63">rewrite_notes_ref</a>).<span class="ident">unwrap</span>());
-        <a class="self" href="../../src/git2/rebase.rs.html#63">self</a>
-    }
+    <span class="doccomment">/// Used by `finish()`, this is the name of the notes reference
+    /// used to rewrite notes for rebased commits when finishing the rebase;
+    /// if NULL, the contents of the configuration option `notes.rewriteRef`
+    /// is examined, unless the configuration option `notes.rewrite.rebase`
+    /// is set to false.  If `notes.rewriteRef` is also NULL, notes will
+    /// not be rewritten.
+    </span><span class="kw">pub fn </span>rewrite_notes_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rewrite_notes_ref: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span>RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+        <a class="self" href="../../src/git2/rebase.rs.html#63">self</a>.rewrite_notes_ref = <span class="prelude-val">Some</span>(CString::new(<a href="../../src/git2/rebase.rs.html#63">rewrite_notes_ref</a>).unwrap());
+        <span class="self"><a href="../../src/git2/rebase.rs.html#63">self</a>
+    </span>}
 
-    <span class="doccomment">/// Options to control how trees are merged during `next()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">merge_options</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <a class="ident" href="../../src/git2/merge.rs.html#21">MergeOptions</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/rebase.rs.html#69">self</a>.<span class="ident">merge_options</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#69">opts</a>);
-        <a class="self" href="../../src/git2/rebase.rs.html#69">self</a>
-    }
+    <span class="doccomment">/// Options to control how trees are merged during `next()`.
+    </span><span class="kw">pub fn </span>merge_options(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opts: <a href="../../src/git2/merge.rs.html#21">MergeOptions</a>) -&gt; <span class="kw-2">&amp;mut </span>RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+        <a class="self" href="../../src/git2/rebase.rs.html#69">self</a>.merge_options = <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#69">opts</a>);
+        <span class="self"><a href="../../src/git2/rebase.rs.html#69">self</a>
+    </span>}
 
-    <span class="doccomment">/// Options to control how files are written during `Repository::rebase`,</span>
-    <span class="doccomment">/// `next()` and `abort()`. Note that a minimum strategy of</span>
-    <span class="doccomment">/// `GIT_CHECKOUT_SAFE` is defaulted in `init` and `next`, and a minimum</span>
-    <span class="doccomment">/// strategy of `GIT_CHECKOUT_FORCE` is defaulted in `abort` to match git</span>
-    <span class="doccomment">/// semantics.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checkout_options</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/rebase.rs.html#79">self</a>.<span class="ident">checkout_options</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#79">opts</a>);
-        <a class="self" href="../../src/git2/rebase.rs.html#79">self</a>
-    }
+    <span class="doccomment">/// Options to control how files are written during `Repository::rebase`,
+    /// `next()` and `abort()`. Note that a minimum strategy of
+    /// `GIT_CHECKOUT_SAFE` is defaulted in `init` and `next`, and a minimum
+    /// strategy of `GIT_CHECKOUT_FORCE` is defaulted in `abort` to match git
+    /// semantics.
+    </span><span class="kw">pub fn </span>checkout_options(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opts: CheckoutBuilder&lt;<span class="lifetime">&#39;cb</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span>RebaseOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+        <a class="self" href="../../src/git2/rebase.rs.html#79">self</a>.checkout_options = <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#79">opts</a>);
+        <span class="self"><a href="../../src/git2/rebase.rs.html#79">self</a>
+    </span>}
 
-    <span class="doccomment">/// Acquire a pointer to the underlying raw options.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_rebase_options.html">raw::git_rebase_options</a> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">opts</span>) <span class="op">=</span> <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.<span class="ident">merge_options</span>.<span class="ident">as_mut</span>().<span class="ident">take</span>() {
-                <span class="ident">ptr::copy_nonoverlapping</span>(<a class="ident" href="../../src/git2/rebase.rs.html#87">opts</a>.<a class="ident" href="../../src/git2/merge.rs.html#172">raw</a>(), <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.<span class="ident">raw</span>.<span class="ident">merge_options</span>, <span class="number">1</span>);
+    <span class="doccomment">/// Acquire a pointer to the underlying raw options.
+    </span><span class="kw">pub fn </span>raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_rebase_options.html">raw::git_rebase_options</a> {
+        <span class="kw">unsafe </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(opts) = <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.merge_options.as_mut().take() {
+                ptr::copy_nonoverlapping(<a href="../../src/git2/rebase.rs.html#87">opts</a>.<a href="../../src/git2/merge.rs.html#172">raw</a>(), <span class="kw-2">&amp;mut </span><a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.raw.merge_options, <span class="number">1</span>);
             }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">opts</span>) <span class="op">=</span> <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.<span class="ident">checkout_options</span>.<span class="ident">as_mut</span>() {
-                <a class="ident" href="../../src/git2/rebase.rs.html#90">opts</a>.<a class="ident" href="../../src/git2/build.rs.html#576">configure</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.<span class="ident">raw</span>.<span class="ident">checkout_options</span>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(opts) = <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.checkout_options.as_mut() {
+                <a href="../../src/git2/rebase.rs.html#90">opts</a>.<a href="../../src/git2/build.rs.html#576">configure</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.raw.checkout_options);
             }
-            <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.<span class="ident">raw</span>.<span class="ident">rewrite_notes_ref</span> <span class="op">=</span> <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>
-                .<span class="ident">rewrite_notes_ref</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/git2/rebase.rs.html#96">s</a>.<span class="ident">as_ptr</span>())
-                .<span class="ident">unwrap_or</span>(<span class="ident">ptr::null</span>());
+            <a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.raw.rewrite_notes_ref = <span class="self"><a href="../../src/git2/rebase.rs.html#85">self</a>
+                </span>.rewrite_notes_ref
+                .as_ref()
+                .map(|s| <a href="../../src/git2/rebase.rs.html#96">s</a>.as_ptr())
+                .unwrap_or(ptr::null());
         }
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.<span class="ident">raw</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/rebase.rs.html#85">self</a>.raw
     }
 }
 
-<span class="doccomment">/// Representation of a rebase</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rebase</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <a class="ident" href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Representation of a rebase
+</span><span class="kw">pub struct </span>Rebase&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a>,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Rebase</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Gets the count of rebase operations that are to be applied.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_rebase_operation_entrycount</span>(<a class="self" href="../../src/git2/rebase.rs.html#111">self</a>.<span class="ident">raw</span>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Rebase&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Gets the count of rebase operations that are to be applied.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">unsafe </span>{ raw::git_rebase_operation_entrycount(<a class="self" href="../../src/git2/rebase.rs.html#111">self</a>.raw) }
     }
 
-    <span class="doccomment">/// Gets the original `HEAD` ref name for merge rebases.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">orig_head_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">name_bytes</span> <span class="op">=</span>
-            <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/rebase.rs.html#116">self</a>, <span class="ident">raw::git_rebase_orig_head_name</span>(<a class="self" href="../../src/git2/rebase.rs.html#116">self</a>.<span class="ident">raw</span>)) };
-        <a class="ident" href="../../src/git2/rebase.rs.html#117">name_bytes</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="ident" href="../../src/git2/rebase.rs.html#119">s</a>).<span class="ident">ok</span>())
+    <span class="doccomment">/// Gets the original `HEAD` ref name for merge rebases.
+    </span><span class="kw">pub fn </span>orig_head_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <span class="kw">let </span>name_bytes =
+            <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/rebase.rs.html#116">self</a>, raw::git_rebase_orig_head_name(<a class="self" href="../../src/git2/rebase.rs.html#116">self</a>.raw)) };
+        <a href="../../src/git2/rebase.rs.html#117">name_bytes</a>.and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/git2/rebase.rs.html#119">s</a>).ok())
     }
 
-    <span class="doccomment">/// Gets the original HEAD id for merge rebases.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">orig_head_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Oid::from_raw_opt</span>(<span class="ident">raw::git_rebase_orig_head_id</span>(<a class="self" href="../../src/git2/rebase.rs.html#123">self</a>.<span class="ident">raw</span>)) }
+    <span class="doccomment">/// Gets the original HEAD id for merge rebases.
+    </span><span class="kw">pub fn </span>orig_head_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>&gt; {
+        <span class="kw">unsafe </span>{ Oid::from_raw_opt(raw::git_rebase_orig_head_id(<a class="self" href="../../src/git2/rebase.rs.html#123">self</a>.raw)) }
     }
 
-    <span class="doccomment">///  Gets the rebase operation specified by the given index.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nth</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RebaseOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">raw::git_rebase_operation_byindex</span>(<a class="self" href="../../src/git2/rebase.rs.html#128">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/rebase.rs.html#128">n</a>);
-            <span class="kw">if</span> <span class="ident">op</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">RebaseOperation::from_raw</span>(<a class="ident" href="../../src/git2/rebase.rs.html#130">op</a>))
+    <span class="doccomment">///  Gets the rebase operation specified by the given index.
+    </span><span class="kw">pub fn </span>nth(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;RebaseOperation&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>op = raw::git_rebase_operation_byindex(<a class="self" href="../../src/git2/rebase.rs.html#128">self</a>.raw, <a href="../../src/git2/rebase.rs.html#128">n</a>);
+            <span class="kw">if </span>op.is_null() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(RebaseOperation::from_raw(<a href="../../src/git2/rebase.rs.html#130">op</a>))
             }
         }
     }
 
-    <span class="doccomment">/// Gets the index of the rebase operation that is currently being applied.</span>
-    <span class="doccomment">/// If the first operation has not yet been applied (because you have called</span>
-    <span class="doccomment">/// `init` but not yet `next`) then this returns None.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">operation_current</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cur</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">raw::git_rebase_operation_current</span>(<a class="self" href="../../src/git2/rebase.rs.html#142">self</a>.<span class="ident">raw</span>) };
-        <span class="kw">if</span> <span class="ident">cur</span> <span class="op">==</span> <span class="ident">raw::GIT_REBASE_NO_OPERATION</span> {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#143">cur</a>)
+    <span class="doccomment">/// Gets the index of the rebase operation that is currently being applied.
+    /// If the first operation has not yet been applied (because you have called
+    /// `init` but not yet `next`) then this returns None.
+    </span><span class="kw">pub fn </span>operation_current(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">let </span>cur = <span class="kw">unsafe </span>{ raw::git_rebase_operation_current(<a class="self" href="../../src/git2/rebase.rs.html#142">self</a>.raw) };
+        <span class="kw">if </span>cur == raw::GIT_REBASE_NO_OPERATION {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#143">cur</a>)
         }
     }
 
-    <span class="doccomment">/// Gets the index produced by the last operation, which is the result of</span>
-    <span class="doccomment">/// `next()` and which will be committed by the next invocation of</span>
-    <span class="doccomment">/// `commit()`. This is useful for resolving conflicts in an in-memory</span>
-    <span class="doccomment">/// rebase before committing them.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only applicable for in-memory rebases; for rebases within a</span>
-    <span class="doccomment">/// working directory, the changes were applied to the repository&#39;s index.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inmemory_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/index.rs.html#17">Index</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_rebase_inmemory_index</span>(<span class="kw-2">&amp;mut</span> <span class="ident">idx</span>, <span class="self">self</span>.<span class="ident">raw</span>));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/rebase.rs.html#159">idx</a>))
+    <span class="doccomment">/// Gets the index produced by the last operation, which is the result of
+    /// `next()` and which will be committed by the next invocation of
+    /// `commit()`. This is useful for resolving conflicts in an in-memory
+    /// rebase before committing them.
+    ///
+    /// This is only applicable for in-memory rebases; for rebases within a
+    /// working directory, the changes were applied to the repository&#39;s index.
+    </span><span class="kw">pub fn </span>inmemory_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/index.rs.html#17">Index</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>idx = ptr::null_mut();
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_rebase_inmemory_index(<span class="kw-2">&amp;mut </span>idx, <span class="self">self</span>.raw));
+            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/rebase.rs.html#159">idx</a>))
         }
     }
 
-    <span class="doccomment">/// Commits the current patch.  You must have resolved any conflicts that</span>
-    <span class="doccomment">/// were introduced during the patch application from the `git_rebase_next`</span>
-    <span class="doccomment">/// invocation. To keep the author and message from the original commit leave</span>
-    <span class="doccomment">/// them as None</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">commit</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">author</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">committer</span>: <span class="kw-2">&amp;</span><span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">id</span>: <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() };
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::opt_cstr</span>(<span class="ident">message</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_rebase_commit</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">id</span>,
-                <span class="self">self</span>.<span class="ident">raw</span>,
-                <span class="ident">author</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">raw</span>()),
-                <span class="ident">committer</span>.<span class="ident">raw</span>(),
-                <span class="ident">ptr::null</span>(),
-                <span class="ident">message</span>
+    <span class="doccomment">/// Commits the current patch.  You must have resolved any conflicts that
+    /// were introduced during the patch application from the `git_rebase_next`
+    /// invocation. To keep the author and message from the original commit leave
+    /// them as None
+    </span><span class="kw">pub fn </span>commit(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        author: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
+        committer: <span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;_</span>&gt;,
+        message: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>id: <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> = <span class="kw">unsafe </span>{ mem::zeroed() };
+        <span class="kw">let </span>message = <span class="kw">crate</span>::opt_cstr(message)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_rebase_commit(
+                <span class="kw-2">&amp;mut </span>id,
+                <span class="self">self</span>.raw,
+                author.map(|a| a.raw()),
+                committer.raw(),
+                ptr::null(),
+                message
             ));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/rebase.rs.html#176">id</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
+            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/rebase.rs.html#176">id</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
         }
     }
 
-    <span class="doccomment">/// Aborts a rebase that is currently in progress, resetting the repository</span>
-    <span class="doccomment">/// and working directory to their state before rebase began.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abort</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_rebase_abort</span>(<span class="self">self</span>.<span class="ident">raw</span>));
-        }
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Finishes a rebase that is currently in progress once all patches have</span>
-    <span class="doccomment">/// been applied.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">signature</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_rebase_finish</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">signature</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">raw</span>())));
+    <span class="doccomment">/// Aborts a rebase that is currently in progress, resetting the repository
+    /// and working directory to their state before rebase began.
+    </span><span class="kw">pub fn </span>abort(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_rebase_abort(<span class="self">self</span>.raw));
         }
 
         <span class="prelude-val">Ok</span>(())
     }
+
+    <span class="doccomment">/// Finishes a rebase that is currently in progress once all patches have
+    /// been applied.
+    </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>, signature: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;_</span>&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_rebase_finish(<span class="self">self</span>.raw, signature.map(|s| s.raw())));
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">Rebase</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RebaseOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;rebase</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Rebase&lt;<span class="lifetime">&#39;rebase</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;RebaseOperation&lt;<span class="lifetime">&#39;rebase</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;;
 
-    <span class="doccomment">/// Performs the next rebase operation and returns the information about it.</span>
-    <span class="doccomment">/// If the operation is one that applies a patch (which is any operation except</span>
-    <span class="doccomment">/// GitRebaseOperation::Exec) then the patch will be applied and the index and</span>
-    <span class="doccomment">/// working directory will be updated with the changes.  If there are conflicts,</span>
-    <span class="doccomment">/// you will need to address those before committing the changes.</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RebaseOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#21-29">try_call_iter!</a>(<span class="ident">raw::git_rebase_next</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out</span>, <span class="self">self</span>.<span class="ident">raw</span>));
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">RebaseOperation::from_raw</span>(<a class="ident" href="../../src/git2/rebase.rs.html#221">out</a>)))
+    <span class="doccomment">/// Performs the next rebase operation and returns the information about it.
+    /// If the operation is one that applies a patch (which is any operation except
+    /// GitRebaseOperation::Exec) then the patch will be applied and the index and
+    /// working directory will be updated with the changes.  If there are conflicts,
+    /// you will need to address those before committing the changes.
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;RebaseOperation&lt;<span class="lifetime">&#39;rebase</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>out = ptr::null_mut();
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#21-29">try_call_iter!</a>(raw::git_rebase_next(<span class="kw-2">&amp;mut </span>out, <span class="self">self</span>.raw));
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(RebaseOperation::from_raw(<a href="../../src/git2/rebase.rs.html#221">out</a>)))
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">Rebase</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a>) -&gt; <span class="ident">Rebase</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/rebase.rs.html#104">Rebase</a> {
-            <a class="ident" href="../../src/git2/rebase.rs.html#231">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Rebase&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a>;
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a>) -&gt; Rebase&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/rebase.rs.html#104">Rebase</a> {
+            <a href="../../src/git2/rebase.rs.html#231">raw</a>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a> {
-        <a class="self" href="../../src/git2/rebase.rs.html#237">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_rebase.html">raw::git_rebase</a> {
+        <a class="self" href="../../src/git2/rebase.rs.html#237">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Rebase</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_rebase_free</span>(<a class="self" href="../../src/git2/rebase.rs.html#243">self</a>.<span class="ident">raw</span>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Rebase&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{ raw::git_rebase_free(<a class="self" href="../../src/git2/rebase.rs.html#243">self</a>.raw) }
     }
 }
 
-<span class="doccomment">/// A rebase operation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Describes a single instruction/operation to be performed during the</span>
-<span class="doccomment">/// rebase.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RebaseOperationType</span> {
-    <span class="doccomment">/// The given commit is to be cherry-picked. The client should commit the</span>
-    <span class="doccomment">/// changes and continue if there are no conflicts.</span>
-    <span class="ident">Pick</span>,
+<span class="doccomment">/// A rebase operation
+///
+/// Describes a single instruction/operation to be performed during the
+/// rebase.
+</span><span class="attribute">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub enum </span>RebaseOperationType {
+    <span class="doccomment">/// The given commit is to be cherry-picked. The client should commit the
+    /// changes and continue if there are no conflicts.
+    </span>Pick,
 
-    <span class="doccomment">/// The given commit is to be cherry-picked, but the client should prompt</span>
-    <span class="doccomment">/// the user to provide an updated commit message.</span>
-    <span class="ident">Reword</span>,
+    <span class="doccomment">/// The given commit is to be cherry-picked, but the client should prompt
+    /// the user to provide an updated commit message.
+    </span>Reword,
 
-    <span class="doccomment">/// The given commit is to be cherry-picked, but the client should stop to</span>
-    <span class="doccomment">/// allow the user to edit the changes before committing them.</span>
-    <span class="ident">Edit</span>,
+    <span class="doccomment">/// The given commit is to be cherry-picked, but the client should stop to
+    /// allow the user to edit the changes before committing them.
+    </span>Edit,
 
-    <span class="doccomment">/// The given commit is to be squashed into the previous commit. The commit</span>
-    <span class="doccomment">/// message will be merged with the previous message.</span>
-    <span class="ident">Squash</span>,
+    <span class="doccomment">/// The given commit is to be squashed into the previous commit. The commit
+    /// message will be merged with the previous message.
+    </span>Squash,
 
-    <span class="doccomment">/// The given commit is to be squashed into the previous commit. The commit</span>
-    <span class="doccomment">/// message from this commit will be discarded.</span>
-    <span class="ident">Fixup</span>,
+    <span class="doccomment">/// The given commit is to be squashed into the previous commit. The commit
+    /// message from this commit will be discarded.
+    </span>Fixup,
 
-    <span class="doccomment">/// No commit will be cherry-picked. The client should run the given command</span>
-    <span class="doccomment">/// and (if successful) continue.</span>
-    <span class="ident">Exec</span>,
+    <span class="doccomment">/// No commit will be cherry-picked. The client should run the given command
+    /// and (if successful) continue.
+    </span>Exec,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/rebase.rs.html#253">RebaseOperationType</a> {
-    <span class="doccomment">/// Convert from the int into an enum. Returns None if invalid.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/type.git_rebase_operation_t.html">raw::git_rebase_operation_t</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/rebase.rs.html#253">RebaseOperationType</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/git2/rebase.rs.html#281">raw</a> {
-            <span class="ident">raw::GIT_REBASE_OPERATION_PICK</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#256">RebaseOperationType::Pick</a>),
-            <span class="ident">raw::GIT_REBASE_OPERATION_REWORD</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#260">RebaseOperationType::Reword</a>),
-            <span class="ident">raw::GIT_REBASE_OPERATION_EDIT</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#264">RebaseOperationType::Edit</a>),
-            <span class="ident">raw::GIT_REBASE_OPERATION_SQUASH</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#268">RebaseOperationType::Squash</a>),
-            <span class="ident">raw::GIT_REBASE_OPERATION_FIXUP</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#272">RebaseOperationType::Fixup</a>),
-            <span class="ident">raw::GIT_REBASE_OPERATION_EXEC</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/rebase.rs.html#276">RebaseOperationType::Exec</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span><a href="../../src/git2/rebase.rs.html#253">RebaseOperationType</a> {
+    <span class="doccomment">/// Convert from the int into an enum. Returns None if invalid.
+    </span><span class="kw">pub fn </span>from_raw(raw: <a href="../../libgit2_sys/type.git_rebase_operation_t.html">raw::git_rebase_operation_t</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/rebase.rs.html#253">RebaseOperationType</a>&gt; {
+        <span class="kw">match </span><a href="../../src/git2/rebase.rs.html#281">raw</a> {
+            raw::GIT_REBASE_OPERATION_PICK =&gt; <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#256">RebaseOperationType::Pick</a>),
+            raw::GIT_REBASE_OPERATION_REWORD =&gt; <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#260">RebaseOperationType::Reword</a>),
+            raw::GIT_REBASE_OPERATION_EDIT =&gt; <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#264">RebaseOperationType::Edit</a>),
+            raw::GIT_REBASE_OPERATION_SQUASH =&gt; <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#268">RebaseOperationType::Squash</a>),
+            raw::GIT_REBASE_OPERATION_FIXUP =&gt; <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#272">RebaseOperationType::Fixup</a>),
+            raw::GIT_REBASE_OPERATION_EXEC =&gt; <span class="prelude-val">Some</span>(<a href="../../src/git2/rebase.rs.html#276">RebaseOperationType::Exec</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="doccomment">/// A rebase operation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Describes a single instruction/operation to be performed during the</span>
-<span class="doccomment">/// rebase.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RebaseOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_rebase_operation.html">raw::git_rebase_operation</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="ident">Rebase</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A rebase operation
+///
+/// Describes a single instruction/operation to be performed during the
+/// rebase.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>RebaseOperation&lt;<span class="lifetime">&#39;rebase</span>&gt; {
+    raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_rebase_operation.html">raw::git_rebase_operation</a>,
+    _marker: marker::PhantomData&lt;Rebase&lt;<span class="lifetime">&#39;rebase</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span> <span class="ident">RebaseOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The type of rebase operation</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/rebase.rs.html#253">RebaseOperationType</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="ident">RebaseOperationType::from_raw</span>((<span class="kw-2">*</span><a class="self" href="../../src/git2/rebase.rs.html#306">self</a>.<span class="ident">raw</span>).<span class="ident">kind</span>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;rebase</span>&gt; RebaseOperation&lt;<span class="lifetime">&#39;rebase</span>&gt; {
+    <span class="doccomment">/// The type of rebase operation
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/rebase.rs.html#253">RebaseOperationType</a>&gt; {
+        <span class="kw">unsafe </span>{ RebaseOperationType::from_raw((<span class="kw-2">*</span><a class="self" href="../../src/git2/rebase.rs.html#306">self</a>.raw).kind) }
     }
 
-    <span class="doccomment">/// The commit ID being cherry-picked. This will be populated for all</span>
-    <span class="doccomment">/// operations except those of type `GIT_REBASE_OPERATION_EXEC`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/rebase.rs.html#312">self</a>.<span class="ident">raw</span>).<span class="ident">id</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>) }
+    <span class="doccomment">/// The commit ID being cherry-picked. This will be populated for all
+    /// operations except those of type `GIT_REBASE_OPERATION_EXEC`.
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/oid.rs.html#15">Oid</a> {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/rebase.rs.html#312">self</a>.raw).id <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) }
     }
 
-    <span class="doccomment">///The executable the user has requested be run.  This will only</span>
-    <span class="doccomment">/// be populated for operations of type RebaseOperationType::Exec</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/rebase.rs.html#318">self</a>, (<span class="kw-2">*</span><a class="self" href="../../src/git2/rebase.rs.html#318">self</a>.<span class="ident">raw</span>).<span class="ident">exec</span>).<span class="ident">unwrap</span>()).<span class="ident">ok</span>() }
+    <span class="doccomment">///The executable the user has requested be run.  This will only
+    /// be populated for operations of type RebaseOperationType::Exec
+    </span><span class="kw">pub fn </span>exec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/rebase.rs.html#318">self</a>, (<span class="kw-2">*</span><a class="self" href="../../src/git2/rebase.rs.html#318">self</a>.raw).exec).unwrap()).ok() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">RebaseOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_rebase_operation.html">raw::git_rebase_operation</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_rebase_operation.html">raw::git_rebase_operation</a>) -&gt; <span class="ident">RebaseOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;rebase</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/rebase.rs.html#299">RebaseOperation</a> {
-            <a class="ident" href="../../src/git2/rebase.rs.html#325">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;rebase</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>RebaseOperation&lt;<span class="lifetime">&#39;rebase</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_rebase_operation.html">raw::git_rebase_operation</a>;
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_rebase_operation.html">raw::git_rebase_operation</a>) -&gt; RebaseOperation&lt;<span class="lifetime">&#39;rebase</span>&gt; {
+        <a href="../../src/git2/rebase.rs.html#299">RebaseOperation</a> {
+            <a href="../../src/git2/rebase.rs.html#325">raw</a>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_rebase_operation.html">raw::git_rebase_operation</a> {
-        <a class="self" href="../../src/git2/rebase.rs.html#331">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_rebase_operation.html">raw::git_rebase_operation</a> {
+        <a class="self" href="../../src/git2/rebase.rs.html#331">self</a>.raw
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">RebaseOperationType</span>, <span class="ident">RebaseOptions</span>, <span class="ident">Signature</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs</span>, <span class="ident">path</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use crate</span>::{RebaseOperationType, RebaseOptions, Signature};
+    <span class="kw">use </span>std::{fs, path};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="ident">head_target</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>().<span class="ident">target</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">tip</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">head_target</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">tip</span>.<span class="ident">author</span>();
-        <span class="kw">let</span> <span class="ident">tree</span> <span class="op">=</span> <span class="ident">tip</span>.<span class="ident">tree</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span>head_target = repo.head().unwrap().target().unwrap();
+        <span class="kw">let </span>tip = repo.find_commit(head_target).unwrap();
+        <span class="kw">let </span>sig = tip.author();
+        <span class="kw">let </span>tree = tip.tree().unwrap();
 
-        <span class="comment">// We just want to see the iteration work so we can create commits with</span>
-        <span class="comment">// no changes</span>
-        <span class="kw">let</span> <span class="ident">c1</span> <span class="op">=</span> <span class="ident">repo</span>
-            .<span class="ident">commit</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="string">&quot;foo&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">tree</span>, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">tip</span>])
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">c1</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">c1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">c2</span> <span class="op">=</span> <span class="ident">repo</span>
-            .<span class="ident">commit</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="string">&quot;foo&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">tree</span>, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">c1</span>])
-            .<span class="ident">unwrap</span>();
+        <span class="comment">// We just want to see the iteration work so we can create commits with
+        // no changes
+        </span><span class="kw">let </span>c1 = repo
+            .commit(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>sig, <span class="string">&quot;foo&quot;</span>, <span class="kw-2">&amp;</span>tree, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>tip])
+            .unwrap();
+        <span class="kw">let </span>c1 = repo.find_commit(c1).unwrap();
+        <span class="kw">let </span>c2 = repo
+            .commit(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>sig, <span class="string">&quot;foo&quot;</span>, <span class="kw-2">&amp;</span>tree, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>c1])
+            .unwrap();
 
-        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_reference</span>(<span class="string">&quot;refs/heads/main&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">branch</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">reference_to_annotated_commit</span>(<span class="kw-2">&amp;</span><span class="ident">head</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">upstream</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_annotated_commit</span>(<span class="ident">tip</span>.<span class="ident">id</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rebase</span> <span class="op">=</span> <span class="ident">repo</span>
-            .<span class="ident">rebase</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">upstream</span>), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let </span>head = repo.find_reference(<span class="string">&quot;refs/heads/main&quot;</span>).unwrap();
+        <span class="kw">let </span>branch = repo.reference_to_annotated_commit(<span class="kw-2">&amp;</span>head).unwrap();
+        <span class="kw">let </span>upstream = repo.find_annotated_commit(tip.id()).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>rebase = repo
+            .rebase(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>branch), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>upstream), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+            .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="ident">rebase</span>.<span class="ident">orig_head_name</span>());
-        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="ident">c2</span>), <span class="ident">rebase</span>.<span class="ident">orig_head_id</span>());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), rebase.orig_head_name());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(c2), rebase.orig_head_id());
 
-        <span class="macro">assert_eq!</span>(<span class="ident">rebase</span>.<span class="ident">len</span>(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(rebase.len(), <span class="number">2</span>);
         {
-            <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">rebase</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">op</span>.<span class="ident">kind</span>(), <span class="prelude-val">Some</span>(<span class="ident">RebaseOperationType::Pick</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">op</span>.<span class="ident">id</span>(), <span class="ident">c1</span>.<span class="ident">id</span>());
+            <span class="kw">let </span>op = rebase.next().unwrap().unwrap();
+            <span class="macro">assert_eq!</span>(op.kind(), <span class="prelude-val">Some</span>(RebaseOperationType::Pick));
+            <span class="macro">assert_eq!</span>(op.id(), c1.id());
         }
         {
-            <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">rebase</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">op</span>.<span class="ident">kind</span>(), <span class="prelude-val">Some</span>(<span class="ident">RebaseOperationType::Pick</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">op</span>.<span class="ident">id</span>(), <span class="ident">c2</span>);
+            <span class="kw">let </span>op = rebase.next().unwrap().unwrap();
+            <span class="macro">assert_eq!</span>(op.kind(), <span class="prelude-val">Some</span>(RebaseOperationType::Pick));
+            <span class="macro">assert_eq!</span>(op.id(), c2);
         }
         {
-            <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">rebase</span>.<span class="ident">next</span>();
-            <span class="macro">assert!</span>(<span class="ident">op</span>.<span class="ident">is_none</span>());
+            <span class="kw">let </span>op = rebase.next();
+            <span class="macro">assert!</span>(op.is_none());
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">keeping_original_author_msg</span>() {
-        <span class="kw">let</span> (<span class="ident">td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="ident">head_target</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>().<span class="ident">target</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">tip</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">head_target</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">Signature::now</span>(<span class="string">&quot;testname&quot;</span>, <span class="string">&quot;testemail&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">index</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>keeping_original_author_msg() {
+        <span class="kw">let </span>(td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span>head_target = repo.head().unwrap().target().unwrap();
+        <span class="kw">let </span>tip = repo.find_commit(head_target).unwrap();
+        <span class="kw">let </span>sig = Signature::now(<span class="string">&quot;testname&quot;</span>, <span class="string">&quot;testemail&quot;</span>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>index = repo.index().unwrap();
 
-        <span class="ident">fs::File::create</span>(<span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;file_a&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">index</span>.<span class="ident">add_path</span>(<span class="ident">path::Path::new</span>(<span class="string">&quot;file_a&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">index</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">tree_id_a</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">write_tree</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">tree_a</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_tree</span>(<span class="ident">tree_id_a</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">c1</span> <span class="op">=</span> <span class="ident">repo</span>
-            .<span class="ident">commit</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="string">&quot;A&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">tree_a</span>, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">tip</span>])
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">c1</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">c1</span>).<span class="ident">unwrap</span>();
+        fs::File::create(td.path().join(<span class="string">&quot;file_a&quot;</span>)).unwrap();
+        index.add_path(path::Path::new(<span class="string">&quot;file_a&quot;</span>)).unwrap();
+        index.write().unwrap();
+        <span class="kw">let </span>tree_id_a = index.write_tree().unwrap();
+        <span class="kw">let </span>tree_a = repo.find_tree(tree_id_a).unwrap();
+        <span class="kw">let </span>c1 = repo
+            .commit(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>sig, <span class="string">&quot;A&quot;</span>, <span class="kw-2">&amp;</span>tree_a, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>tip])
+            .unwrap();
+        <span class="kw">let </span>c1 = repo.find_commit(c1).unwrap();
 
-        <span class="ident">fs::File::create</span>(<span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;file_b&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">index</span>.<span class="ident">add_path</span>(<span class="ident">path::Path::new</span>(<span class="string">&quot;file_b&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">index</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">tree_id_b</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">write_tree</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">tree_b</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_tree</span>(<span class="ident">tree_id_b</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">c2</span> <span class="op">=</span> <span class="ident">repo</span>
-            .<span class="ident">commit</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="string">&quot;B&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">tree_b</span>, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">c1</span>])
-            .<span class="ident">unwrap</span>();
+        fs::File::create(td.path().join(<span class="string">&quot;file_b&quot;</span>)).unwrap();
+        index.add_path(path::Path::new(<span class="string">&quot;file_b&quot;</span>)).unwrap();
+        index.write().unwrap();
+        <span class="kw">let </span>tree_id_b = index.write_tree().unwrap();
+        <span class="kw">let </span>tree_b = repo.find_tree(tree_id_b).unwrap();
+        <span class="kw">let </span>c2 = repo
+            .commit(<span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>), <span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>sig, <span class="string">&quot;B&quot;</span>, <span class="kw-2">&amp;</span>tree_b, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>c1])
+            .unwrap();
 
-        <span class="kw">let</span> <span class="ident">branch</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_annotated_commit</span>(<span class="ident">c2</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">upstream</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_annotated_commit</span>(<span class="ident">tip</span>.<span class="ident">id</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span>: <span class="ident">RebaseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Default::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rebase</span> <span class="op">=</span> <span class="ident">repo</span>
-            .<span class="ident">rebase</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">upstream</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>))
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let </span>branch = repo.find_annotated_commit(c2).unwrap();
+        <span class="kw">let </span>upstream = repo.find_annotated_commit(tip.id()).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>opts: RebaseOptions&lt;<span class="lifetime">&#39;_</span>&gt; = Default::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>rebase = repo
+            .rebase(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>branch), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>upstream), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>opts))
+            .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">rebase</span>.<span class="ident">len</span>(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(rebase.len(), <span class="number">2</span>);
 
         {
-            <span class="ident">rebase</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">rebase</span>.<span class="ident">commit</span>(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">commit</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">commit</span>.<span class="ident">message</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;A&quot;</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">commit</span>.<span class="ident">author</span>().<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;testname&quot;</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">commit</span>.<span class="ident">author</span>().<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;testemail&quot;</span>));
+            rebase.next().unwrap().unwrap();
+            <span class="kw">let </span>id = rebase.commit(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>sig, <span class="prelude-val">None</span>).unwrap();
+            <span class="kw">let </span>commit = repo.find_commit(id).unwrap();
+            <span class="macro">assert_eq!</span>(commit.message(), <span class="prelude-val">Some</span>(<span class="string">&quot;A&quot;</span>));
+            <span class="macro">assert_eq!</span>(commit.author().name(), <span class="prelude-val">Some</span>(<span class="string">&quot;testname&quot;</span>));
+            <span class="macro">assert_eq!</span>(commit.author().email(), <span class="prelude-val">Some</span>(<span class="string">&quot;testemail&quot;</span>));
         }
 
         {
-            <span class="ident">rebase</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">rebase</span>.<span class="ident">commit</span>(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">commit</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">commit</span>.<span class="ident">message</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;B&quot;</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">commit</span>.<span class="ident">author</span>().<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;testname&quot;</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">commit</span>.<span class="ident">author</span>().<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;testemail&quot;</span>));
+            rebase.next().unwrap().unwrap();
+            <span class="kw">let </span>id = rebase.commit(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>sig, <span class="prelude-val">None</span>).unwrap();
+            <span class="kw">let </span>commit = repo.find_commit(id).unwrap();
+            <span class="macro">assert_eq!</span>(commit.message(), <span class="prelude-val">Some</span>(<span class="string">&quot;B&quot;</span>));
+            <span class="macro">assert_eq!</span>(commit.author().name(), <span class="prelude-val">Some</span>(<span class="string">&quot;testname&quot;</span>));
+            <span class="macro">assert_eq!</span>(commit.author().email(), <span class="prelude-val">Some</span>(<span class="string">&quot;testemail&quot;</span>));
         }
-        <span class="ident">rebase</span>.<span class="ident">finish</span>(<span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
+        rebase.finish(<span class="prelude-val">None</span>).unwrap();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

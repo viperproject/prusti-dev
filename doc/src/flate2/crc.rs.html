@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.24/src/crc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>crc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../flate2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../flate2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.24/src/crc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>crc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../flate2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../flate2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -182,189 +182,189 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Simple CRC bindings backed by miniz.c</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Simple CRC bindings backed by miniz.c
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <a class="ident" href="../../crc32fast/struct.Hasher.html">crc32fast::Hasher</a>;
+<span class="kw">use </span><a href="../../crc32fast/struct.Hasher.html">crc32fast::Hasher</a>;
 
-<span class="doccomment">/// The CRC calculated by a [`CrcReader`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`CrcReader`]: struct.CrcReader.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Crc</span> {
-    <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    <span class="ident">hasher</span>: <a class="ident" href="../../crc32fast/struct.Hasher.html">Hasher</a>,
+<span class="doccomment">/// The CRC calculated by a [`CrcReader`].
+///
+/// [`CrcReader`]: struct.CrcReader.html
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Crc {
+    amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    hasher: <a href="../../crc32fast/struct.Hasher.html">Hasher</a>,
 }
 
-<span class="doccomment">/// A wrapper around a [`Read`] that calculates the CRC.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CrcReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">R</span>,
-    <span class="ident">crc</span>: <a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a>,
+<span class="doccomment">/// A wrapper around a [`Read`] that calculates the CRC.
+///
+/// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>CrcReader&lt;R&gt; {
+    inner: R,
+    crc: <a href="../../src/flate2/crc.rs.html#12">Crc</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/flate2/crc.rs.html#12">Crc</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a> {
-    <span class="doccomment">/// Create a new CRC.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a> {
-        <a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a> {
-            <span class="ident">amt</span>: <span class="number">0</span>,
-            <span class="ident">hasher</span>: <span class="ident">Hasher::new</span>(),
+<span class="kw">impl </span><a href="../../src/flate2/crc.rs.html#12">Crc</a> {
+    <span class="doccomment">/// Create a new CRC.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/flate2/crc.rs.html#12">Crc</a> {
+        <a href="../../src/flate2/crc.rs.html#12">Crc</a> {
+            amt: <span class="number">0</span>,
+            hasher: Hasher::new(),
         }
     }
 
-    <span class="doccomment">/// Returns the current crc32 checksum.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../src/flate2/crc.rs.html#42">self</a>.<span class="ident">hasher</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">finalize</span>()
+    <span class="doccomment">/// Returns the current crc32 checksum.
+    </span><span class="kw">pub fn </span>sum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../src/flate2/crc.rs.html#42">self</a>.hasher.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().finalize()
     }
 
-    <span class="doccomment">/// The number of bytes that have been used to calculate the CRC.</span>
-    <span class="doccomment">/// This value is only accurate if the amount is lower than 2&lt;sup&gt;32&lt;/sup&gt;.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">amount</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../src/flate2/crc.rs.html#48">self</a>.<span class="ident">amt</span>
+    <span class="doccomment">/// The number of bytes that have been used to calculate the CRC.
+    /// This value is only accurate if the amount is lower than 2&lt;sup&gt;32&lt;/sup&gt;.
+    </span><span class="kw">pub fn </span>amount(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../src/flate2/crc.rs.html#48">self</a>.amt
     }
 
-    <span class="doccomment">/// Update the CRC with the bytes in `data`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="../../src/flate2/crc.rs.html#53">self</a>.<span class="ident">amt</span> <span class="op">=</span> <a class="self" href="../../src/flate2/crc.rs.html#53">self</a>.<span class="ident">amt</span>.<span class="ident">wrapping_add</span>(<a class="ident" href="../../src/flate2/crc.rs.html#53">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-        <a class="self" href="../../src/flate2/crc.rs.html#53">self</a>.<span class="ident">hasher</span>.<span class="ident">update</span>(<a class="ident" href="../../src/flate2/crc.rs.html#53">data</a>);
+    <span class="doccomment">/// Update the CRC with the bytes in `data`.
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+        <a class="self" href="../../src/flate2/crc.rs.html#53">self</a>.amt = <a class="self" href="../../src/flate2/crc.rs.html#53">self</a>.amt.wrapping_add(<a href="../../src/flate2/crc.rs.html#53">data</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+        <a class="self" href="../../src/flate2/crc.rs.html#53">self</a>.hasher.update(<a href="../../src/flate2/crc.rs.html#53">data</a>);
     }
 
-    <span class="doccomment">/// Reset the CRC.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/flate2/crc.rs.html#59">self</a>.<span class="ident">amt</span> <span class="op">=</span> <span class="number">0</span>;
-        <a class="self" href="../../src/flate2/crc.rs.html#59">self</a>.<span class="ident">hasher</span>.<span class="ident">reset</span>();
+    <span class="doccomment">/// Reset the CRC.
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/flate2/crc.rs.html#59">self</a>.amt = <span class="number">0</span>;
+        <a class="self" href="../../src/flate2/crc.rs.html#59">self</a>.hasher.reset();
     }
 
-    <span class="doccomment">/// Combine the CRC with the CRC for the subsequent block of bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">combine</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">additional_crc</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a>) {
-        <a class="self" href="../../src/flate2/crc.rs.html#65">self</a>.<span class="ident">amt</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/flate2/crc.rs.html#65">additional_crc</a>.<span class="ident">amt</span>;
-        <a class="self" href="../../src/flate2/crc.rs.html#65">self</a>.<span class="ident">hasher</span>.<span class="ident">combine</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/flate2/crc.rs.html#65">additional_crc</a>.<span class="ident">hasher</span>);
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <span class="ident">CrcReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new CrcReader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>) -&gt; <span class="ident">CrcReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/flate2/crc.rs.html#21">CrcReader</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/flate2/crc.rs.html#73">r</a>,
-            <span class="ident">crc</span>: <span class="ident">Crc::new</span>(),
-        }
+    <span class="doccomment">/// Combine the CRC with the CRC for the subsequent block of bytes.
+    </span><span class="kw">pub fn </span>combine(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional_crc: <span class="kw-2">&amp;</span><a href="../../src/flate2/crc.rs.html#12">Crc</a>) {
+        <a class="self" href="../../src/flate2/crc.rs.html#65">self</a>.amt += <a href="../../src/flate2/crc.rs.html#65">additional_crc</a>.amt;
+        <a class="self" href="../../src/flate2/crc.rs.html#65">self</a>.hasher.combine(<span class="kw-2">&amp;</span><a href="../../src/flate2/crc.rs.html#65">additional_crc</a>.hasher);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">CrcReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Get the Crc for this CrcReader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/flate2/crc.rs.html#83">self</a>.<span class="ident">crc</span>
-    }
-
-    <span class="doccomment">/// Get the reader that is wrapped by this CrcReader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <a class="self" href="../../src/flate2/crc.rs.html#88">self</a>.<span class="ident">inner</span>
-    }
-
-    <span class="doccomment">/// Get the reader that is wrapped by this CrcReader by reference.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/flate2/crc.rs.html#93">self</a>.<span class="ident">inner</span>
-    }
-
-    <span class="doccomment">/// Get a mutable reference to the reader that is wrapped by this CrcReader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/flate2/crc.rs.html#98">self</a>.<span class="ident">inner</span>
-    }
-
-    <span class="doccomment">/// Reset the Crc in this CrcReader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/flate2/crc.rs.html#103">self</a>.<span class="ident">crc</span>.<a class="ident" href="../../src/flate2/crc.rs.html#59">reset</a>();
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">CrcReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">amt</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">read</span>(<span class="ident">into</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../src/flate2/crc.rs.html#109">self</a>.<span class="ident">crc</span>.<a class="ident" href="../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/flate2/crc.rs.html#109">into</a>[..<a class="ident" href="../../src/flate2/crc.rs.html#110">amt</a>]);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/flate2/crc.rs.html#110">amt</a>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for</span> <span class="ident">CrcReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fill_buf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../src/flate2/crc.rs.html#117">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>()
-    }
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">data</span>) <span class="op">=</span> <a class="self" href="../../src/flate2/crc.rs.html#120">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>() {
-            <a class="self" href="../../src/flate2/crc.rs.html#120">self</a>.<span class="ident">crc</span>.<a class="ident" href="../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/flate2/crc.rs.html#121">data</a>[..<a class="ident" href="../../src/flate2/crc.rs.html#120">amt</a>]);
-        }
-        <a class="self" href="../../src/flate2/crc.rs.html#120">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="ident" href="../../src/flate2/crc.rs.html#120">amt</a>);
-    }
-}
-
-<span class="doccomment">/// A wrapper around a [`Write`] that calculates the CRC.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CrcWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">W</span>,
-    <span class="ident">crc</span>: <a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> <span class="ident">CrcWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Get the Crc for this CrcWriter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/flate2/crc.rs.html#12">Crc</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/flate2/crc.rs.html#139">self</a>.<span class="ident">crc</span>
-    }
-
-    <span class="doccomment">/// Get the writer that is wrapped by this CrcWriter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">W</span> {
-        <a class="self" href="../../src/flate2/crc.rs.html#144">self</a>.<span class="ident">inner</span>
-    }
-
-    <span class="doccomment">/// Get the writer that is wrapped by this CrcWriter by reference.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">W</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/flate2/crc.rs.html#149">self</a>.<span class="ident">inner</span>
-    }
-
-    <span class="doccomment">/// Get a mutable reference to the writer that is wrapped by this CrcWriter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">W</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/flate2/crc.rs.html#154">self</a>.<span class="ident">inner</span>
-    }
-
-    <span class="doccomment">/// Reset the Crc in this CrcWriter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/flate2/crc.rs.html#159">self</a>.<span class="ident">crc</span>.<a class="ident" href="../../src/flate2/crc.rs.html#59">reset</a>();
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <span class="ident">CrcWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new CrcWriter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">w</span>: <span class="ident">W</span>) -&gt; <span class="ident">CrcWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/flate2/crc.rs.html#132">CrcWriter</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/flate2/crc.rs.html#166">w</a>,
-            <span class="ident">crc</span>: <span class="ident">Crc::new</span>(),
+<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; CrcReader&lt;R&gt; {
+    <span class="doccomment">/// Create a new CrcReader.
+    </span><span class="kw">pub fn </span>new(r: R) -&gt; CrcReader&lt;R&gt; {
+        <a href="../../src/flate2/crc.rs.html#21">CrcReader</a> {
+            inner: <a href="../../src/flate2/crc.rs.html#73">r</a>,
+            crc: Crc::new(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">CrcWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">amt</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../src/flate2/crc.rs.html#175">self</a>.<span class="ident">crc</span>.<a class="ident" href="../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/flate2/crc.rs.html#175">buf</a>[..<a class="ident" href="../../src/flate2/crc.rs.html#176">amt</a>]);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/flate2/crc.rs.html#176">amt</a>)
+<span class="kw">impl</span>&lt;R&gt; CrcReader&lt;R&gt; {
+    <span class="doccomment">/// Get the Crc for this CrcReader.
+    </span><span class="kw">pub fn </span>crc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/flate2/crc.rs.html#12">Crc</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/flate2/crc.rs.html#83">self</a>.crc
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../src/flate2/crc.rs.html#181">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+    <span class="doccomment">/// Get the reader that is wrapped by this CrcReader.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; R {
+        <a class="self" href="../../src/flate2/crc.rs.html#88">self</a>.inner
+    }
+
+    <span class="doccomment">/// Get the reader that is wrapped by this CrcReader by reference.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/flate2/crc.rs.html#93">self</a>.inner
+    }
+
+    <span class="doccomment">/// Get a mutable reference to the reader that is wrapped by this CrcReader.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>R {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/flate2/crc.rs.html#98">self</a>.inner
+    }
+
+    <span class="doccomment">/// Reset the Crc in this CrcReader.
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/flate2/crc.rs.html#103">self</a>.crc.<a href="../../src/flate2/crc.rs.html#59">reset</a>();
+    }
+}
+
+<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>CrcReader&lt;R&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">let </span>amt = <span class="self">self</span>.inner.read(into)<span class="question-mark">?</span>;
+        <a class="self" href="../../src/flate2/crc.rs.html#109">self</a>.crc.<a href="../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a href="../../src/flate2/crc.rs.html#109">into</a>[..<a href="../../src/flate2/crc.rs.html#110">amt</a>]);
+        <span class="prelude-val">Ok</span>(<a href="../../src/flate2/crc.rs.html#110">amt</a>)
+    }
+}
+
+<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for </span>CrcReader&lt;R&gt; {
+    <span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../src/flate2/crc.rs.html#117">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>()
+    }
+    <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(data) = <a class="self" href="../../src/flate2/crc.rs.html#120">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>() {
+            <a class="self" href="../../src/flate2/crc.rs.html#120">self</a>.crc.<a href="../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a href="../../src/flate2/crc.rs.html#121">data</a>[..<a href="../../src/flate2/crc.rs.html#120">amt</a>]);
+        }
+        <a class="self" href="../../src/flate2/crc.rs.html#120">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../src/flate2/crc.rs.html#120">amt</a>);
+    }
+}
+
+<span class="doccomment">/// A wrapper around a [`Write`] that calculates the CRC.
+///
+/// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>CrcWriter&lt;W&gt; {
+    inner: W,
+    crc: <a href="../../src/flate2/crc.rs.html#12">Crc</a>,
+}
+
+<span class="kw">impl</span>&lt;W&gt; CrcWriter&lt;W&gt; {
+    <span class="doccomment">/// Get the Crc for this CrcWriter.
+    </span><span class="kw">pub fn </span>crc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/flate2/crc.rs.html#12">Crc</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/flate2/crc.rs.html#139">self</a>.crc
+    }
+
+    <span class="doccomment">/// Get the writer that is wrapped by this CrcWriter.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; W {
+        <a class="self" href="../../src/flate2/crc.rs.html#144">self</a>.inner
+    }
+
+    <span class="doccomment">/// Get the writer that is wrapped by this CrcWriter by reference.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/flate2/crc.rs.html#149">self</a>.inner
+    }
+
+    <span class="doccomment">/// Get a mutable reference to the writer that is wrapped by this CrcWriter.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/flate2/crc.rs.html#154">self</a>.inner
+    }
+
+    <span class="doccomment">/// Reset the Crc in this CrcWriter.
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/flate2/crc.rs.html#159">self</a>.crc.<a href="../../src/flate2/crc.rs.html#59">reset</a>();
+    }
+}
+
+<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; CrcWriter&lt;W&gt; {
+    <span class="doccomment">/// Create a new CrcWriter.
+    </span><span class="kw">pub fn </span>new(w: W) -&gt; CrcWriter&lt;W&gt; {
+        <a href="../../src/flate2/crc.rs.html#132">CrcWriter</a> {
+            inner: <a href="../../src/flate2/crc.rs.html#166">w</a>,
+            crc: Crc::new(),
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>CrcWriter&lt;W&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">let </span>amt = <span class="self">self</span>.inner.write(buf)<span class="question-mark">?</span>;
+        <a class="self" href="../../src/flate2/crc.rs.html#175">self</a>.crc.<a href="../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a href="../../src/flate2/crc.rs.html#175">buf</a>[..<a href="../../src/flate2/crc.rs.html#176">amt</a>]);
+        <span class="prelude-val">Ok</span>(<a href="../../src/flate2/crc.rs.html#176">amt</a>)
+    }
+
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../src/flate2/crc.rs.html#181">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

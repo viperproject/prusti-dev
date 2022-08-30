@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num_cpus-1.13.1/src/linux.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linux.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../num_cpus/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../num_cpus/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../num_cpus/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num_cpus-1.13.1/src/linux.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linux.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../num_cpus/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../num_cpus/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../num_cpus/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -416,358 +416,358 @@
 <span id="416">416</span>
 <span id="417">417</span>
 <span id="418">418</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <span class="ident">std::path</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">std::sync::Once</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
+<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
+<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">std::sync::Once</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../libc/index.html">libc</a>;
+<span class="kw">use </span><a href="../../libc/index.html">libc</a>;
 
-<span class="macro">macro_rules!</span> <span class="ident">debug</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) =&gt; ({
-        <span class="kw">if</span> <span class="bool-val">false</span> {
-        <span class="comment">//if true {</span>
-            <span class="macro">println!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
+<span class="macro">macro_rules! </span>debug {
+    ($(<span class="macro-nonterminal">$args</span>:expr),<span class="kw-2">*</span>) =&gt; ({
+        <span class="kw">if </span><span class="bool-val">false </span>{
+        <span class="comment">//if true {
+            </span><span class="macro">println!</span>($(<span class="macro-nonterminal">$args</span>),<span class="kw-2">*</span>);
         }
     });
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">some</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; {{
-        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;NONE: {:?}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>));
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
+<span class="macro">macro_rules! </span>some {
+    (<span class="macro-nonterminal">$e</span>:expr) =&gt; {{
+        <span class="kw">match </span><span class="macro-nonterminal">$e </span>{
+            <span class="prelude-val">Some</span>(v) =&gt; v,
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="macro">debug!</span>(<span class="string">&quot;NONE: {:?}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$e</span>));
+                <span class="kw">return </span><span class="prelude-val">None</span>;
             }
         }
     }};
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_num_cpus</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">match</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#110">cgroups_num_cpus</a>() {
-        <span class="prelude-val">Some</span>(<span class="ident">n</span>) =&gt; <a class="ident" href="../../src/num_cpus/linux.rs.html#34">n</a>,
-        <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/num_cpus/linux.rs.html#39">logical_cpus</a>(),
+<span class="kw">pub fn </span>get_num_cpus() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">match </span><a href="../../src/num_cpus/linux.rs.html#110">cgroups_num_cpus</a>() {
+        <span class="prelude-val">Some</span>(n) =&gt; <a href="../../src/num_cpus/linux.rs.html#34">n</a>,
+        <span class="prelude-val">None </span>=&gt; <a href="../../src/num_cpus/linux.rs.html#39">logical_cpus</a>(),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">logical_cpus</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span>: <a class="ident" href="../../libc/unix/linux_like/linux/struct.cpu_set_t.html">libc::cpu_set_t</a> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() };
-    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::sched_getaffinity</span>(<span class="number">0</span>, <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">libc::cpu_set_t</span><span class="op">&gt;</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">set</span>) } <span class="op">==</span> <span class="number">0</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">libc::CPU_SETSIZE</span> <span class="kw">as</span> <span class="ident">usize</span> {
-            <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::CPU_ISSET</span>(<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">set</span>) } {
-                <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
-            }
+<span class="kw">fn </span>logical_cpus() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>set: <a href="../../libc/unix/linux_like/linux/struct.cpu_set_t.html">libc::cpu_set_t</a> = <span class="kw">unsafe </span>{ mem::zeroed() };
+    <span class="kw">if unsafe </span>{ libc::sched_getaffinity(<span class="number">0</span>, mem::size_of::&lt;libc::cpu_set_t&gt;(), <span class="kw-2">&amp;mut </span>set) } == <span class="number">0 </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>count: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0</span>;
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..libc::CPU_SETSIZE <span class="kw">as </span>usize {
+            <span class="kw">if unsafe </span>{ libc::CPU_ISSET(i, <span class="kw-2">&amp;</span>set) } {
+                count += <span class="number">1
+            </span>}
         }
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#42">count</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
-    } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="ident">cpus</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::sysconf</span>(<span class="ident">libc::_SC_NPROCESSORS_ONLN</span>) };
-        <span class="kw">if</span> <span class="ident">cpus</span> <span class="op">&lt;</span> <span class="number">1</span> {
-            <span class="number">1</span>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../src/num_cpus/linux.rs.html#50">cpus</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        <a href="../../src/num_cpus/linux.rs.html#42">count</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>cpus = <span class="kw">unsafe </span>{ libc::sysconf(libc::_SC_NPROCESSORS_ONLN) };
+        <span class="kw">if </span>cpus &lt; <span class="number">1 </span>{
+            <span class="number">1
+        </span>} <span class="kw">else </span>{
+            <a href="../../src/num_cpus/linux.rs.html#50">cpus</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_num_physical_cpus</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">File::open</span>(<span class="string">&quot;/proc/cpuinfo&quot;</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <a class="ident" href="../../src/num_cpus/linux.rs.html#61">val</a>,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#32">get_num_cpus</a>(),
+<span class="kw">pub fn </span>get_num_physical_cpus() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">let </span>file = <span class="kw">match </span>File::open(<span class="string">&quot;/proc/cpuinfo&quot;</span>) {
+        <span class="prelude-val">Ok</span>(val) =&gt; <a href="../../src/num_cpus/linux.rs.html#61">val</a>,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><a href="../../src/num_cpus/linux.rs.html#32">get_num_cpus</a>(),
     };
-    <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#60">file</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">physid</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cores</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chgcount</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">reader</span>.<span class="ident">lines</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <span class="ident">result</span>.<span class="ident">ok</span>()) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">split</span>(<span class="string">&#39;:&#39;</span>);
-        <span class="kw">let</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="kw">match</span> (<span class="ident">it</span>.<span class="ident">next</span>(), <span class="ident">it</span>.<span class="ident">next</span>()) {
-            (<span class="prelude-val">Some</span>(<span class="ident">key</span>), <span class="prelude-val">Some</span>(<span class="ident">value</span>)) =&gt; (<span class="ident">key</span>.<span class="ident">trim</span>(), <span class="ident">value</span>.<span class="ident">trim</span>()),
-            <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
+    <span class="kw">let </span>reader = BufReader::new(<a href="../../src/num_cpus/linux.rs.html#60">file</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>physid: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>cores: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>chgcount = <span class="number">0</span>;
+    <span class="kw">for </span>line <span class="kw">in </span>reader.lines().filter_map(|result| result.ok()) {
+        <span class="kw">let </span><span class="kw-2">mut </span>it = line.split(<span class="string">&#39;:&#39;</span>);
+        <span class="kw">let </span>(key, value) = <span class="kw">match </span>(it.next(), it.next()) {
+            (<span class="prelude-val">Some</span>(key), <span class="prelude-val">Some</span>(value)) =&gt; (key.trim(), value.trim()),
+            <span class="kw">_ </span>=&gt; <span class="kw">continue</span>,
         };
-        <span class="kw">if</span> <span class="ident">key</span> <span class="op">==</span> <span class="string">&quot;physical id&quot;</span> {
-            <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">parse</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <span class="ident">physid</span> <span class="op">=</span> <span class="ident">val</span>,
+        <span class="kw">if </span>key == <span class="string">&quot;physical id&quot; </span>{
+            <span class="kw">match </span>value.parse() {
+                <span class="prelude-val">Ok</span>(val) =&gt; physid = val,
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
             };
-            <span class="ident">chgcount</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            chgcount += <span class="number">1</span>;
         }
-        <span class="kw">if</span> <span class="ident">key</span> <span class="op">==</span> <span class="string">&quot;cpu cores&quot;</span> {
-            <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">parse</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <span class="ident">cores</span> <span class="op">=</span> <span class="ident">val</span>,
+        <span class="kw">if </span>key == <span class="string">&quot;cpu cores&quot; </span>{
+            <span class="kw">match </span>value.parse() {
+                <span class="prelude-val">Ok</span>(val) =&gt; cores = val,
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
             };
-            <span class="ident">chgcount</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            chgcount += <span class="number">1</span>;
         }
-        <span class="kw">if</span> <span class="ident">chgcount</span> <span class="op">==</span> <span class="number">2</span> {
-            <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">physid</span>, <span class="ident">cores</span>);
-            <span class="ident">chgcount</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">if </span>chgcount == <span class="number">2 </span>{
+            map.insert(physid, cores);
+            chgcount = <span class="number">0</span>;
         }
     }
-    <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#65">map</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="number">0</span>, <span class="op">|</span><span class="ident">acc</span>, (<span class="kw">_</span>, <span class="ident">cores</span>)<span class="op">|</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#94">acc</a> <span class="op">+</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#94">cores</a>);
+    <span class="kw">let </span>count = <a href="../../src/num_cpus/linux.rs.html#65">map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="number">0</span>, |acc, (<span class="kw">_</span>, cores)| <a href="../../src/num_cpus/linux.rs.html#94">acc</a> + <a href="../../src/num_cpus/linux.rs.html#94">cores</a>);
 
-    <span class="kw">if</span> <span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#32">get_num_cpus</a>()
-    } <span class="kw">else</span> {
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#94">count</a>
+    <span class="kw">if </span>count == <span class="number">0 </span>{
+        <a href="../../src/num_cpus/linux.rs.html#32">get_num_cpus</a>()
+    } <span class="kw">else </span>{
+        <a href="../../src/num_cpus/linux.rs.html#94">count</a>
     }
 }
 
-<span class="doccomment">/// Cached CPUs calculated from cgroups.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If 0, check logical cpus.</span>
-<span class="comment">// Allow deprecation warnings, we want to work on older rustc</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">warnings</span>)]</span>
-<span class="kw">static</span> <span class="ident">CGROUPS_CPUS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> <span class="op">=</span> <span class="ident">::std::sync::atomic::ATOMIC_USIZE_INIT</span>;
+<span class="doccomment">/// Cached CPUs calculated from cgroups.
+///
+/// If 0, check logical cpus.
+</span><span class="comment">// Allow deprecation warnings, we want to work on older rustc
+</span><span class="attribute">#[allow(warnings)]
+</span><span class="kw">static </span>CGROUPS_CPUS: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> = ::std::sync::atomic::ATOMIC_USIZE_INIT;
 
-<span class="kw">fn</span> <span class="ident">cgroups_num_cpus</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">warnings</span>)]</span>
-    <span class="kw">static</span> <span class="ident">ONCE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> <span class="op">=</span> <span class="ident">::std::sync::ONCE_INIT</span>;
+<span class="kw">fn </span>cgroups_num_cpus() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="attribute">#[allow(warnings)]
+    </span><span class="kw">static </span>ONCE: <a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> = ::std::sync::ONCE_INIT;
 
-    <a class="ident" href="../../src/num_cpus/linux.rs.html#112">ONCE</a>.<span class="ident">call_once</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#125">init_cgroups</a>);
+    <a href="../../src/num_cpus/linux.rs.html#112">ONCE</a>.call_once(<a href="../../src/num_cpus/linux.rs.html#125">init_cgroups</a>);
 
-    <span class="kw">let</span> <span class="ident">cpus</span> <span class="op">=</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#108">CGROUPS_CPUS</a>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+    <span class="kw">let </span>cpus = <a href="../../src/num_cpus/linux.rs.html#108">CGROUPS_CPUS</a>.load(Ordering::Acquire);
 
-    <span class="kw">if</span> <span class="ident">cpus</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#116">cpus</a>)
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
-    }
+    <span class="kw">if </span>cpus &gt; <span class="number">0 </span>{
+        <span class="prelude-val">Some</span>(<a href="../../src/num_cpus/linux.rs.html#116">cpus</a>)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">fn</span> <span class="ident">init_cgroups</span>() {
-    <span class="comment">// Should only be called once</span>
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">CGROUPS_CPUS</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">==</span> <span class="number">0</span>);
+<span class="kw">fn </span>init_cgroups() {
+    <span class="comment">// Should only be called once
+    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(CGROUPS_CPUS.load(Ordering::SeqCst) == <span class="number">0</span>);
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">quota</span>) <span class="op">=</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#141-144">load_cgroups</a>(<span class="string">&quot;/proc/self/cgroup&quot;</span>, <span class="string">&quot;/proc/self/mountinfo&quot;</span>) {
-        <span class="kw">if</span> <span class="ident">quota</span> <span class="op">==</span> <span class="number">0</span> {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(quota) = <a href="../../src/num_cpus/linux.rs.html#141-144">load_cgroups</a>(<span class="string">&quot;/proc/self/cgroup&quot;</span>, <span class="string">&quot;/proc/self/mountinfo&quot;</span>) {
+        <span class="kw">if </span>quota == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">logical</span> <span class="op">=</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#39">logical_cpus</a>();
-        <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">::std::cmp::min</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#129">quota</a>, <a class="ident" href="../../src/num_cpus/linux.rs.html#134">logical</a>);
+        <span class="kw">let </span>logical = <a href="../../src/num_cpus/linux.rs.html#39">logical_cpus</a>();
+        <span class="kw">let </span>count = ::std::cmp::min(<a href="../../src/num_cpus/linux.rs.html#129">quota</a>, <a href="../../src/num_cpus/linux.rs.html#134">logical</a>);
 
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#108">CGROUPS_CPUS</a>.<span class="ident">store</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#135">count</a>, <span class="ident">Ordering::SeqCst</span>);
+        <a href="../../src/num_cpus/linux.rs.html#108">CGROUPS_CPUS</a>.store(<a href="../../src/num_cpus/linux.rs.html#135">count</a>, Ordering::SeqCst);
     }
 }
 
-<span class="kw">fn</span> <span class="ident">load_cgroups</span><span class="op">&lt;</span><span class="ident">P1</span>, <span class="ident">P2</span><span class="op">&gt;</span>(<span class="ident">cgroup_proc</span>: <span class="ident">P1</span>, <span class="ident">mountinfo_proc</span>: <span class="ident">P2</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P1</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>,
-    <span class="ident">P2</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>,
+<span class="kw">fn </span>load_cgroups&lt;P1, P2&gt;(cgroup_proc: P1, mountinfo_proc: P2) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;
+<span class="kw">where
+    </span>P1: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
+    P2: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
 {
-    <span class="kw">let</span> <span class="ident">subsys</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">Subsys::load_cpu</span>(<span class="ident">cgroup_proc</span>));
-    <span class="kw">let</span> <span class="ident">mntinfo</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">MountInfo::load_cpu</span>(<span class="ident">mountinfo_proc</span>));
-    <span class="kw">let</span> <span class="ident">cgroup</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">Cgroup::translate</span>(<span class="ident">mntinfo</span>, <span class="ident">subsys</span>));
-    <a class="ident" href="../../src/num_cpus/linux.rs.html#148">cgroup</a>.<a class="ident" href="../../src/num_cpus/linux.rs.html#187">cpu_quota</a>()
+    <span class="kw">let </span>subsys = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(Subsys::load_cpu(cgroup_proc));
+    <span class="kw">let </span>mntinfo = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(MountInfo::load_cpu(mountinfo_proc));
+    <span class="kw">let </span>cgroup = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(Cgroup::translate(mntinfo, subsys));
+    <a href="../../src/num_cpus/linux.rs.html#148">cgroup</a>.<a href="../../src/num_cpus/linux.rs.html#187">cpu_quota</a>()
 }
 
-<span class="kw">struct</span> <span class="ident">Cgroup</span> {
-    <span class="ident">base</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
+<span class="kw">struct </span>Cgroup {
+    base: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
 }
 
-<span class="kw">struct</span> <span class="ident">MountInfo</span> {
-    <span class="ident">root</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">mount_point</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+<span class="kw">struct </span>MountInfo {
+    root: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    mount_point: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="kw">struct</span> <span class="ident">Subsys</span> {
-    <span class="ident">base</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+<span class="kw">struct </span>Subsys {
+    base: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#152">Cgroup</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dir</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) -&gt; <a class="ident" href="../../src/num_cpus/linux.rs.html#152">Cgroup</a> {
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#152">Cgroup</a> { <span class="ident">base</span>: <a class="ident" href="../../src/num_cpus/linux.rs.html#166">dir</a> }
+<span class="kw">impl </span><a href="../../src/num_cpus/linux.rs.html#152">Cgroup</a> {
+    <span class="kw">fn </span>new(dir: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) -&gt; <a href="../../src/num_cpus/linux.rs.html#152">Cgroup</a> {
+        <a href="../../src/num_cpus/linux.rs.html#152">Cgroup</a> { base: <a href="../../src/num_cpus/linux.rs.html#166">dir</a> }
     }
 
-    <span class="kw">fn</span> <span class="ident">translate</span>(<span class="ident">mntinfo</span>: <a class="ident" href="../../src/num_cpus/linux.rs.html#156">MountInfo</a>, <span class="ident">subsys</span>: <a class="ident" href="../../src/num_cpus/linux.rs.html#161">Subsys</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/num_cpus/linux.rs.html#152">Cgroup</a><span class="op">&gt;</span> {
-        <span class="comment">// Translate the subsystem directory via the host paths.</span>
-        <a class="macro" href="../../src/num_cpus/linux.rs.html#11-18">debug!</a>(
+    <span class="kw">fn </span>translate(mntinfo: <a href="../../src/num_cpus/linux.rs.html#156">MountInfo</a>, subsys: <a href="../../src/num_cpus/linux.rs.html#161">Subsys</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/num_cpus/linux.rs.html#152">Cgroup</a>&gt; {
+        <span class="comment">// Translate the subsystem directory via the host paths.
+        </span><a class="macro" href="../../src/num_cpus/linux.rs.html#11-18">debug!</a>(
             <span class="string">&quot;subsys = {:?}; root = {:?}; mount_point = {:?}&quot;</span>,
-            <span class="ident">subsys</span>.<span class="ident">base</span>, <span class="ident">mntinfo</span>.<span class="ident">root</span>, <span class="ident">mntinfo</span>.<span class="ident">mount_point</span>
+            subsys.base, mntinfo.root, mntinfo.mount_point
         );
 
-        <span class="kw">let</span> <span class="ident">rel_from_root</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">subsys</span>.<span class="ident">base</span>).<span class="ident">strip_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">mntinfo</span>.<span class="ident">root</span>).<span class="ident">ok</span>());
+        <span class="kw">let </span>rel_from_root = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(Path::new(<span class="kw-2">&amp;</span>subsys.base).strip_prefix(<span class="kw-2">&amp;</span>mntinfo.root).ok());
 
-        <a class="macro" href="../../src/num_cpus/linux.rs.html#11-18">debug!</a>(<span class="string">&quot;rel_from_root: {:?}&quot;</span>, <span class="ident">rel_from_root</span>);
+        <a class="macro" href="../../src/num_cpus/linux.rs.html#11-18">debug!</a>(<span class="string">&quot;rel_from_root: {:?}&quot;</span>, rel_from_root);
 
-        <span class="comment">// join(mp.MountPoint, relPath)</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#170">mntinfo</a>.<span class="ident">mount_point</span>);
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#182">path</a>.<span class="ident">push</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#177">rel_from_root</a>);
-        <span class="prelude-val">Some</span>(<span class="ident">Cgroup::new</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#182">path</a>))
+        <span class="comment">// join(mp.MountPoint, relPath)
+        </span><span class="kw">let </span><span class="kw-2">mut </span>path = PathBuf::from(<a href="../../src/num_cpus/linux.rs.html#170">mntinfo</a>.mount_point);
+        <a href="../../src/num_cpus/linux.rs.html#182">path</a>.push(<a href="../../src/num_cpus/linux.rs.html#177">rel_from_root</a>);
+        <span class="prelude-val">Some</span>(Cgroup::new(<a href="../../src/num_cpus/linux.rs.html#182">path</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">cpu_quota</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">quota_us</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="self">self</span>.<span class="ident">quota_us</span>());
-        <span class="kw">let</span> <span class="ident">period_us</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="self">self</span>.<span class="ident">period_us</span>());
+    <span class="kw">fn </span>cpu_quota(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">let </span>quota_us = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="self">self</span>.quota_us());
+        <span class="kw">let </span>period_us = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="self">self</span>.period_us());
 
-        <span class="comment">// protect against dividing by zero</span>
-        <span class="kw">if</span> <span class="ident">period_us</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="comment">// protect against dividing by zero
+        </span><span class="kw">if </span>period_us == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="comment">// Ceil the division, since we want to be able to saturate</span>
-        <span class="comment">// the available CPUs, and flooring would leave a CPU un-utilized.</span>
+        <span class="comment">// Ceil the division, since we want to be able to saturate
+        // the available CPUs, and flooring would leave a CPU un-utilized.
 
-        <span class="prelude-val">Some</span>((<a class="ident" href="../../src/num_cpus/linux.rs.html#188">quota_us</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> <span class="op">/</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#189">period_us</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>).<span class="ident">ceil</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        </span><span class="prelude-val">Some</span>((<a href="../../src/num_cpus/linux.rs.html#188">quota_us</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> / <a href="../../src/num_cpus/linux.rs.html#189">period_us</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>).ceil() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">quota_us</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/num_cpus/linux.rs.html#202">self</a>.<a class="ident" href="../../src/num_cpus/linux.rs.html#210">param</a>(<span class="string">&quot;cpu.cfs_quota_us&quot;</span>)
+    <span class="kw">fn </span>quota_us(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../src/num_cpus/linux.rs.html#202">self</a>.<a href="../../src/num_cpus/linux.rs.html#210">param</a>(<span class="string">&quot;cpu.cfs_quota_us&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">period_us</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/num_cpus/linux.rs.html#206">self</a>.<a class="ident" href="../../src/num_cpus/linux.rs.html#210">param</a>(<span class="string">&quot;cpu.cfs_period_us&quot;</span>)
+    <span class="kw">fn </span>period_us(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../src/num_cpus/linux.rs.html#206">self</a>.<a href="../../src/num_cpus/linux.rs.html#210">param</a>(<span class="string">&quot;cpu.cfs_period_us&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">param</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">param</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">File::open</span>(<span class="self">self</span>.<span class="ident">base</span>.<span class="ident">join</span>(<span class="ident">param</span>)).<span class="ident">ok</span>());
+    <span class="kw">fn </span>param(<span class="kw-2">&amp;</span><span class="self">self</span>, param: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>file = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(File::open(<span class="self">self</span>.base.join(param)).ok());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">file</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="ident">ok</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+        <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(file.read_to_string(<span class="kw-2">&amp;mut </span>buf).ok());
 
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#213">buf</a>.<span class="ident">trim</span>().<span class="ident">parse</span>().<span class="ident">ok</span>()
+        <a href="../../src/num_cpus/linux.rs.html#213">buf</a>.trim().parse().ok()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#156">MountInfo</a> {
-    <span class="kw">fn</span> <span class="ident">load_cpu</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">proc_path</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/num_cpus/linux.rs.html#156">MountInfo</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">File::open</span>(<span class="ident">proc_path</span>).<span class="ident">ok</span>());
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#222">file</a>);
+<span class="kw">impl </span><a href="../../src/num_cpus/linux.rs.html#156">MountInfo</a> {
+    <span class="kw">fn </span>load_cpu&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(proc_path: P) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/num_cpus/linux.rs.html#156">MountInfo</a>&gt; {
+        <span class="kw">let </span>file = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(File::open(proc_path).ok());
+        <span class="kw">let </span>file = BufReader::new(<a href="../../src/num_cpus/linux.rs.html#222">file</a>);
 
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#223">file</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">lines</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#226">result</a>.<span class="ident">ok</span>())
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="ident">MountInfo::parse_line</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a href="../../src/num_cpus/linux.rs.html#223">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">lines</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|result| <a href="../../src/num_cpus/linux.rs.html#226">result</a>.ok())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(MountInfo::parse_line)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">parse_line</span>(<span class="ident">line</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/num_cpus/linux.rs.html#156">MountInfo</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#231">line</a>.<span class="ident">split</span>(<span class="string">&#39; &#39;</span>);
+    <span class="kw">fn </span>parse_line(line: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/num_cpus/linux.rs.html#156">MountInfo</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>fields = <a href="../../src/num_cpus/linux.rs.html#231">line</a>.split(<span class="string">&#39; &#39;</span>);
 
-        <span class="comment">// 7 5 0:6 &lt;/&gt; /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup rw,cpu,cpuacct</span>
-        <span class="kw">let</span> <span class="ident">mnt_root</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">fields</span>.<span class="ident">nth</span>(<span class="number">3</span>));
-        <span class="comment">// 7 5 0:6 / &lt;/sys/fs/cgroup/cpu,cpuacct&gt; rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup rw,cpu,cpuacct</span>
-        <span class="kw">let</span> <span class="ident">mnt_point</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">fields</span>.<span class="ident">next</span>());
+        <span class="comment">// 7 5 0:6 &lt;/&gt; /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup rw,cpu,cpuacct
+        </span><span class="kw">let </span>mnt_root = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(fields.nth(<span class="number">3</span>));
+        <span class="comment">// 7 5 0:6 / &lt;/sys/fs/cgroup/cpu,cpuacct&gt; rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup rw,cpu,cpuacct
+        </span><span class="kw">let </span>mnt_point = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(fields.next());
 
-        <span class="comment">// Ignore all fields until the separator(-).</span>
-        <span class="comment">// Note: there could be zero or more optional fields before hyphen.</span>
-        <span class="comment">// See: https://man7.org/linux/man-pages/man5/proc.5.html</span>
-        <span class="comment">// 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 &lt;-&gt; cgroup cgroup rw,cpu,cpuacct</span>
-        <span class="comment">// Note: we cannot use `?` here because we need to support Rust 1.13.</span>
-        <span class="kw">match</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#232">fields</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#244">s</a> <span class="op">==</span> <span class="string">&quot;-&quot;</span>) {
+        <span class="comment">// Ignore all fields until the separator(-).
+        // Note: there could be zero or more optional fields before hyphen.
+        // See: https://man7.org/linux/man-pages/man5/proc.5.html
+        // 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 &lt;-&gt; cgroup cgroup rw,cpu,cpuacct
+        // Note: we cannot use `?` here because we need to support Rust 1.13.
+        </span><span class="kw">match </span><a href="../../src/num_cpus/linux.rs.html#232">fields</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|<span class="kw-2">&amp;</span>s| <a href="../../src/num_cpus/linux.rs.html#244">s</a> == <span class="string">&quot;-&quot;</span>) {
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
 
-        <span class="comment">// 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - &lt;cgroup&gt; cgroup rw,cpu,cpuacct</span>
-        <span class="kw">if</span> <span class="ident">fields</span>.<span class="ident">next</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;cgroup&quot;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="comment">// 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - &lt;cgroup&gt; cgroup rw,cpu,cpuacct
+        </span><span class="kw">if </span>fields.next() != <span class="prelude-val">Some</span>(<span class="string">&quot;cgroup&quot;</span>) {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="comment">// 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup &lt;rw,cpu,cpuacct&gt;</span>
-        <span class="kw">let</span> <span class="ident">super_opts</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">fields</span>.<span class="ident">nth</span>(<span class="number">1</span>));
+        <span class="comment">// 7 5 0:6 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime shared:7 - cgroup cgroup &lt;rw,cpu,cpuacct&gt;
+        </span><span class="kw">let </span>super_opts = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(fields.nth(<span class="number">1</span>));
 
-        <span class="comment">// We only care about the &#39;cpu&#39; option</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">super_opts</span>.<span class="ident">split</span>(<span class="string">&#39;,&#39;</span>).<span class="ident">any</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> <span class="ident">opt</span> <span class="op">==</span> <span class="string">&quot;cpu&quot;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="comment">// We only care about the &#39;cpu&#39; option
+        </span><span class="kw">if </span>!super_opts.split(<span class="string">&#39;,&#39;</span>).any(|opt| opt == <span class="string">&quot;cpu&quot;</span>) {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#156">MountInfo</a> {
-            <span class="ident">root</span>: <a class="ident" href="../../src/num_cpus/linux.rs.html#235">mnt_root</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
-            <span class="ident">mount_point</span>: <a class="ident" href="../../src/num_cpus/linux.rs.html#237">mnt_point</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+        <span class="prelude-val">Some</span>(<a href="../../src/num_cpus/linux.rs.html#156">MountInfo</a> {
+            root: <a href="../../src/num_cpus/linux.rs.html#235">mnt_root</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+            mount_point: <a href="../../src/num_cpus/linux.rs.html#237">mnt_point</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
         })
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#161">Subsys</a> {
-    <span class="kw">fn</span> <span class="ident">load_cpu</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">proc_path</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/num_cpus/linux.rs.html#161">Subsys</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">File::open</span>(<span class="ident">proc_path</span>).<span class="ident">ok</span>());
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/num_cpus/linux.rs.html#271">file</a>);
+<span class="kw">impl </span><a href="../../src/num_cpus/linux.rs.html#161">Subsys</a> {
+    <span class="kw">fn </span>load_cpu&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(proc_path: P) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/num_cpus/linux.rs.html#161">Subsys</a>&gt; {
+        <span class="kw">let </span>file = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(File::open(proc_path).ok());
+        <span class="kw">let </span>file = BufReader::new(<a href="../../src/num_cpus/linux.rs.html#271">file</a>);
 
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#272">file</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">lines</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#275">result</a>.<span class="ident">ok</span>())
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="ident">Subsys::parse_line</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a href="../../src/num_cpus/linux.rs.html#272">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">lines</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|result| <a href="../../src/num_cpus/linux.rs.html#275">result</a>.ok())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(Subsys::parse_line)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">parse_line</span>(<span class="ident">line</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/num_cpus/linux.rs.html#161">Subsys</a><span class="op">&gt;</span> {
-        <span class="comment">// Example format:</span>
-        <span class="comment">// 11:cpu,cpuacct:/</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#280">line</a>.<span class="ident">split</span>(<span class="string">&#39;:&#39;</span>);
+    <span class="kw">fn </span>parse_line(line: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/num_cpus/linux.rs.html#161">Subsys</a>&gt; {
+        <span class="comment">// Example format:
+        // 11:cpu,cpuacct:/
+        </span><span class="kw">let </span><span class="kw-2">mut </span>fields = <a href="../../src/num_cpus/linux.rs.html#280">line</a>.split(<span class="string">&#39;:&#39;</span>);
 
-        <span class="kw">let</span> <span class="ident">sub_systems</span> <span class="op">=</span> <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(<span class="ident">fields</span>.<span class="ident">nth</span>(<span class="number">1</span>));
+        <span class="kw">let </span>sub_systems = <a class="macro" href="../../src/num_cpus/linux.rs.html#20-30">some!</a>(fields.nth(<span class="number">1</span>));
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">sub_systems</span>.<span class="ident">split</span>(<span class="string">&#39;,&#39;</span>).<span class="ident">any</span>(<span class="op">|</span><span class="ident">sub</span><span class="op">|</span> <span class="ident">sub</span> <span class="op">==</span> <span class="string">&quot;cpu&quot;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="kw">if </span>!sub_systems.split(<span class="string">&#39;,&#39;</span>).any(|sub| sub == <span class="string">&quot;cpu&quot;</span>) {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <a class="ident" href="../../src/num_cpus/linux.rs.html#283">fields</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> <a class="ident" href="../../src/num_cpus/linux.rs.html#161">Subsys</a> {
-            <span class="ident">base</span>: <a class="ident" href="../../src/num_cpus/linux.rs.html#291">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+        <a href="../../src/num_cpus/linux.rs.html#283">fields</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|path| <a href="../../src/num_cpus/linux.rs.html#161">Subsys</a> {
+            base: <a href="../../src/num_cpus/linux.rs.html#291">path</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cgroup</span>, <span class="ident">MountInfo</span>, <span class="ident">Subsys</span>};
-    <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::{Cgroup, MountInfo, Subsys};
+    <span class="kw">use </span>std::path::{Path, PathBuf};
 
-    <span class="comment">// `static_in_const` feature is not stable in Rust 1.13.</span>
-    <span class="kw">static</span> <span class="ident">FIXTURES_PROC</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;fixtures/cgroups/proc/cgroups&quot;</span>;
+    <span class="comment">// `static_in_const` feature is not stable in Rust 1.13.
+    </span><span class="kw">static </span>FIXTURES_PROC: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;fixtures/cgroups/proc/cgroups&quot;</span>;
 
-    <span class="kw">static</span> <span class="ident">FIXTURES_CGROUPS</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;fixtures/cgroups/cgroups&quot;</span>;
+    <span class="kw">static </span>FIXTURES_CGROUPS: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;fixtures/cgroups/cgroups&quot;</span>;
 
-    <span class="macro">macro_rules!</span> <span class="ident">join</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">base</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>:<span class="ident">expr</span>),<span class="op">+</span>) =&gt; ({
-            <span class="ident">Path::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">base</span>)
-                $(.<span class="ident">join</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>))<span class="op">+</span>
+    <span class="macro">macro_rules! </span>join {
+        (<span class="macro-nonterminal">$base</span>:expr, $(<span class="macro-nonterminal">$path</span>:expr),+) =&gt; ({
+            Path::new(<span class="macro-nonterminal">$base</span>)
+                $(.join(<span class="macro-nonterminal">$path</span>))+
         })
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_load_mountinfo</span>() {
-        <span class="comment">// test only one optional fields</span>
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="macro">join!</span>(<span class="ident">FIXTURES_PROC</span>, <span class="string">&quot;mountinfo&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_load_mountinfo() {
+        <span class="comment">// test only one optional fields
+        </span><span class="kw">let </span>path = <span class="macro">join!</span>(FIXTURES_PROC, <span class="string">&quot;mountinfo&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">mnt_info</span> <span class="op">=</span> <span class="ident">MountInfo::load_cpu</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>mnt_info = MountInfo::load_cpu(path).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">mnt_info</span>.<span class="ident">root</span>, <span class="string">&quot;/&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">mnt_info</span>.<span class="ident">mount_point</span>, <span class="string">&quot;/sys/fs/cgroup/cpu,cpuacct&quot;</span>);
+        <span class="macro">assert_eq!</span>(mnt_info.root, <span class="string">&quot;/&quot;</span>);
+        <span class="macro">assert_eq!</span>(mnt_info.mount_point, <span class="string">&quot;/sys/fs/cgroup/cpu,cpuacct&quot;</span>);
 
-        <span class="comment">// test zero optional field</span>
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="macro">join!</span>(<span class="ident">FIXTURES_PROC</span>, <span class="string">&quot;mountinfo_zero_opt&quot;</span>);
+        <span class="comment">// test zero optional field
+        </span><span class="kw">let </span>path = <span class="macro">join!</span>(FIXTURES_PROC, <span class="string">&quot;mountinfo_zero_opt&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">mnt_info</span> <span class="op">=</span> <span class="ident">MountInfo::load_cpu</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>mnt_info = MountInfo::load_cpu(path).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">mnt_info</span>.<span class="ident">root</span>, <span class="string">&quot;/&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">mnt_info</span>.<span class="ident">mount_point</span>, <span class="string">&quot;/sys/fs/cgroup/cpu,cpuacct&quot;</span>);
+        <span class="macro">assert_eq!</span>(mnt_info.root, <span class="string">&quot;/&quot;</span>);
+        <span class="macro">assert_eq!</span>(mnt_info.mount_point, <span class="string">&quot;/sys/fs/cgroup/cpu,cpuacct&quot;</span>);
 
-        <span class="comment">// test multi optional fields</span>
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="macro">join!</span>(<span class="ident">FIXTURES_PROC</span>, <span class="string">&quot;mountinfo_multi_opt&quot;</span>);
+        <span class="comment">// test multi optional fields
+        </span><span class="kw">let </span>path = <span class="macro">join!</span>(FIXTURES_PROC, <span class="string">&quot;mountinfo_multi_opt&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">mnt_info</span> <span class="op">=</span> <span class="ident">MountInfo::load_cpu</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>mnt_info = MountInfo::load_cpu(path).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">mnt_info</span>.<span class="ident">root</span>, <span class="string">&quot;/&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">mnt_info</span>.<span class="ident">mount_point</span>, <span class="string">&quot;/sys/fs/cgroup/cpu,cpuacct&quot;</span>);
+        <span class="macro">assert_eq!</span>(mnt_info.root, <span class="string">&quot;/&quot;</span>);
+        <span class="macro">assert_eq!</span>(mnt_info.mount_point, <span class="string">&quot;/sys/fs/cgroup/cpu,cpuacct&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_load_subsys</span>() {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="macro">join!</span>(<span class="ident">FIXTURES_PROC</span>, <span class="string">&quot;cgroup&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_load_subsys() {
+        <span class="kw">let </span>path = <span class="macro">join!</span>(FIXTURES_PROC, <span class="string">&quot;cgroup&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">subsys</span> <span class="op">=</span> <span class="ident">Subsys::load_cpu</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>subsys = Subsys::load_cpu(path).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">subsys</span>.<span class="ident">base</span>, <span class="string">&quot;/&quot;</span>);
+        <span class="macro">assert_eq!</span>(subsys.base, <span class="string">&quot;/&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_cgroup_mount</span>() {
-        <span class="kw">let</span> <span class="ident">cases</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_cgroup_mount() {
+        <span class="kw">let </span>cases = <span class="kw-2">&amp;</span>[
             (<span class="string">&quot;/&quot;</span>, <span class="string">&quot;/sys/fs/cgroup/cpu&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;/sys/fs/cgroup/cpu&quot;</span>)),
             (
                 <span class="string">&quot;/docker/01abcd&quot;</span>,
@@ -787,8 +787,8 @@
                 <span class="string">&quot;/docker/01abcd/large&quot;</span>,
                 <span class="prelude-val">Some</span>(<span class="string">&quot;/sys/fs/cgroup/cpu/large&quot;</span>),
             ),
-            <span class="comment">// fails</span>
-            (<span class="string">&quot;/docker/01abcd&quot;</span>, <span class="string">&quot;/sys/fs/cgroup/cpu&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="prelude-val">None</span>),
+            <span class="comment">// fails
+            </span>(<span class="string">&quot;/docker/01abcd&quot;</span>, <span class="string">&quot;/sys/fs/cgroup/cpu&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="prelude-val">None</span>),
             (<span class="string">&quot;/docker/01abcd&quot;</span>, <span class="string">&quot;/sys/fs/cgroup/cpu&quot;</span>, <span class="string">&quot;/docker&quot;</span>, <span class="prelude-val">None</span>),
             (<span class="string">&quot;/docker/01abcd&quot;</span>, <span class="string">&quot;/sys/fs/cgroup/cpu&quot;</span>, <span class="string">&quot;/elsewhere&quot;</span>, <span class="prelude-val">None</span>),
             (
@@ -799,40 +799,40 @@
             ),
         ];
 
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">root</span>, <span class="ident">mount_point</span>, <span class="ident">subsys</span>, <span class="ident">expected</span>) <span class="kw">in</span> <span class="ident">cases</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="ident">mnt_info</span> <span class="op">=</span> <span class="ident">MountInfo</span> {
-                <span class="ident">root</span>: <span class="ident">root</span>.<span class="ident">into</span>(),
-                <span class="ident">mount_point</span>: <span class="ident">mount_point</span>.<span class="ident">into</span>(),
+        <span class="kw">for </span><span class="kw-2">&amp;</span>(root, mount_point, subsys, expected) <span class="kw">in </span>cases.iter() {
+            <span class="kw">let </span>mnt_info = MountInfo {
+                root: root.into(),
+                mount_point: mount_point.into(),
             };
-            <span class="kw">let</span> <span class="ident">subsys</span> <span class="op">=</span> <span class="ident">Subsys</span> {
-                <span class="ident">base</span>: <span class="ident">subsys</span>.<span class="ident">into</span>(),
+            <span class="kw">let </span>subsys = Subsys {
+                base: subsys.into(),
             };
 
-            <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">Cgroup::translate</span>(<span class="ident">mnt_info</span>, <span class="ident">subsys</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">base</span>);
-            <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">map</span>(<span class="ident">PathBuf::from</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">actual</span>, <span class="ident">expected</span>);
+            <span class="kw">let </span>actual = Cgroup::translate(mnt_info, subsys).map(|c| c.base);
+            <span class="kw">let </span>expected = expected.map(PathBuf::from);
+            <span class="macro">assert_eq!</span>(actual, expected);
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_cgroup_cpu_quota</span>() {
-        <span class="kw">let</span> <span class="ident">cgroup</span> <span class="op">=</span> <span class="ident">Cgroup::new</span>(<span class="macro">join!</span>(<span class="ident">FIXTURES_CGROUPS</span>, <span class="string">&quot;good&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">cgroup</span>.<span class="ident">cpu_quota</span>(), <span class="prelude-val">Some</span>(<span class="number">6</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_cgroup_cpu_quota() {
+        <span class="kw">let </span>cgroup = Cgroup::new(<span class="macro">join!</span>(FIXTURES_CGROUPS, <span class="string">&quot;good&quot;</span>));
+        <span class="macro">assert_eq!</span>(cgroup.cpu_quota(), <span class="prelude-val">Some</span>(<span class="number">6</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_cgroup_cpu_quota_divide_by_zero</span>() {
-        <span class="kw">let</span> <span class="ident">cgroup</span> <span class="op">=</span> <span class="ident">Cgroup::new</span>(<span class="macro">join!</span>(<span class="ident">FIXTURES_CGROUPS</span>, <span class="string">&quot;zero-period&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">cgroup</span>.<span class="ident">quota_us</span>().<span class="ident">is_some</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">cgroup</span>.<span class="ident">period_us</span>(), <span class="prelude-val">Some</span>(<span class="number">0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">cgroup</span>.<span class="ident">cpu_quota</span>(), <span class="prelude-val">None</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_cgroup_cpu_quota_divide_by_zero() {
+        <span class="kw">let </span>cgroup = Cgroup::new(<span class="macro">join!</span>(FIXTURES_CGROUPS, <span class="string">&quot;zero-period&quot;</span>));
+        <span class="macro">assert!</span>(cgroup.quota_us().is_some());
+        <span class="macro">assert_eq!</span>(cgroup.period_us(), <span class="prelude-val">Some</span>(<span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(cgroup.cpu_quota(), <span class="prelude-val">None</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_cgroup_cpu_quota_ceil</span>() {
-        <span class="kw">let</span> <span class="ident">cgroup</span> <span class="op">=</span> <span class="ident">Cgroup::new</span>(<span class="macro">join!</span>(<span class="ident">FIXTURES_CGROUPS</span>, <span class="string">&quot;ceil&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">cgroup</span>.<span class="ident">cpu_quota</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_cgroup_cpu_quota_ceil() {
+        <span class="kw">let </span>cgroup = Cgroup::new(<span class="macro">join!</span>(FIXTURES_CGROUPS, <span class="string">&quot;ceil&quot;</span>));
+        <span class="macro">assert_eq!</span>(cgroup.cpu_quota(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="num_cpus" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="num_cpus" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/stopwatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stopwatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/stopwatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stopwatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -119,126 +119,126 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
-</pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
-    <span class="ident">marker::PhantomData</span>,
-    <span class="ident">time</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>},
+</span><span class="kw">use </span>std::{
+    <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
+    marker::PhantomData,
+    time::{<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>},
 };
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LogLevel</span> {
-    <span class="kw">fn</span> <span class="ident">log_start</span>(<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
-    <span class="kw">fn</span> <span class="ident">log_finish</span>(<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>);
+<span class="kw">pub trait </span>LogLevel {
+    <span class="kw">fn </span>log_start(prefix: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
+    <span class="kw">fn </span>log_finish(prefix: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>);
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Stopwatch</span><span class="op">&lt;</span><span class="ident">Level</span>: <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#13">LogLevel</a><span class="op">&gt;</span> {
-    <span class="ident">start_time</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>,
-    <span class="ident">prefix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">section_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">is_finished</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">level</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>Stopwatch&lt;Level: <a href="../../src/prusti_common/stopwatch.rs.html#13">LogLevel</a>&gt; {
+    start_time: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>,
+    prefix: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    section_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    is_finished: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    level: PhantomData&lt;Level&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Stopwatch</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_common/stopwatch.rs.html#118">log_level::Info</a><span class="op">&gt;</span> {
-    <span class="doccomment">/// Starts a stopwatch logging at info level, within the given domain, timing a section with the given name.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span><span class="op">&lt;</span><span class="ident">D</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>, <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a><span class="op">&gt;</span>(<span class="ident">domain</span>: <span class="ident">D</span>, <span class="ident">section_name</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::start_info</span>(<a class="ident" href="../../src/prusti_common/stopwatch.rs.html#28">domain</a>, <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#28">section_name</a>)
+<span class="kw">impl </span>Stopwatch&lt;<a href="../../src/prusti_common/stopwatch.rs.html#118">log_level::Info</a>&gt; {
+    <span class="doccomment">/// Starts a stopwatch logging at info level, within the given domain, timing a section with the given name.
+    </span><span class="kw">pub fn </span>start&lt;D: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>, S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(domain: D, section_name: S) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::start_info(<a href="../../src/prusti_common/stopwatch.rs.html#28">domain</a>, <a href="../../src/prusti_common/stopwatch.rs.html#28">section_name</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Level</span>: <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#13">LogLevel</a><span class="op">&gt;</span> <span class="ident">Stopwatch</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">_start</span>(<span class="ident">prefix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">section_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Level::log_start</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_common/stopwatch.rs.html#34">prefix</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_common/stopwatch.rs.html#34">section_name</a>);
+<span class="kw">impl</span>&lt;Level: <a href="../../src/prusti_common/stopwatch.rs.html#13">LogLevel</a>&gt; Stopwatch&lt;Level&gt; {
+    <span class="kw">fn </span>_start(prefix: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, section_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        Level::log_start(<span class="kw-2">&amp;</span><a href="../../src/prusti_common/stopwatch.rs.html#34">prefix</a>, <span class="kw-2">&amp;</span><a href="../../src/prusti_common/stopwatch.rs.html#34">section_name</a>);
 
-        <span class="self">Self</span> {
-            <span class="ident">start_time</span>: <span class="ident">Instant::now</span>(),
-            <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#34">prefix</a>,
-            <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#34">section_name</a>,
-            <span class="ident">is_finished</span>: <span class="bool-val">false</span>,
-            <span class="ident">level</span>: <span class="ident">PhantomData</span>,
+        <span class="self">Self </span>{
+            start_time: Instant::now(),
+            <a href="../../src/prusti_common/stopwatch.rs.html#34">prefix</a>,
+            <a href="../../src/prusti_common/stopwatch.rs.html#34">section_name</a>,
+            is_finished: <span class="bool-val">false</span>,
+            level: PhantomData,
         }
     }
 
-    <span class="doccomment">/// Finishes up the current section, logging the time taken, and starts timing the next one.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_next</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">section_name</span>: <span class="ident">S</span>) {
-        <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-        <span class="ident">Level::log_finish</span>(
-            <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.<span class="ident">prefix</span>,
-            <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.<span class="ident">section_name</span>,
-            <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#48">now</a>.<span class="ident">duration_since</span>(<a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.<span class="ident">start_time</span>),
+    <span class="doccomment">/// Finishes up the current section, logging the time taken, and starts timing the next one.
+    </span><span class="kw">pub fn </span>start_next&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, section_name: S) {
+        <span class="kw">let </span>now = Instant::now();
+        Level::log_finish(
+            <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.prefix,
+            <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.section_name,
+            <a href="../../src/prusti_common/stopwatch.rs.html#48">now</a>.duration_since(<a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.start_time),
         );
-        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.<span class="ident">section_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#47">section_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="ident">Level::log_start</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.<span class="ident">prefix</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.<span class="ident">section_name</span>);
-        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.<span class="ident">start_time</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#48">now</a>;
+        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.section_name = <a href="../../src/prusti_common/stopwatch.rs.html#47">section_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        Level::log_start(<span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.prefix, <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.section_name);
+        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#47">self</a>.start_time = <a href="../../src/prusti_common/stopwatch.rs.html#48">now</a>;
     }
 
-    <span class="doccomment">/// Finishes up the current section, logging the time taken.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - Note: Simply dropping the stopwatch has the same effect.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#62">self</a>.<a class="ident" href="../../src/prusti_common/stopwatch.rs.html#66">_finish</a>()
+    <span class="doccomment">/// Finishes up the current section, logging the time taken.
+    ///
+    /// - Note: Simply dropping the stopwatch has the same effect.
+    </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#62">self</a>.<a href="../../src/prusti_common/stopwatch.rs.html#66">_finish</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">_finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">start_time</span>.<span class="ident">elapsed</span>();
-        <span class="ident">Level::log_finish</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">prefix</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">section_name</span>, <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#67">duration</a>);
-        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.<span class="ident">is_finished</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#67">duration</a>
+    <span class="kw">fn </span>_finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <span class="kw">let </span>duration = <a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.start_time.elapsed();
+        Level::log_finish(<span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.prefix, <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.section_name, <a href="../../src/prusti_common/stopwatch.rs.html#67">duration</a>);
+        <a class="self" href="../../src/prusti_common/stopwatch.rs.html#66">self</a>.is_finished = <span class="bool-val">true</span>;
+        <a href="../../src/prusti_common/stopwatch.rs.html#67">duration</a>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Level</span>: <a class="ident" href="../../src/prusti_common/stopwatch.rs.html#13">LogLevel</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Stopwatch</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_finished</span> {
-            <a class="self" href="../../src/prusti_common/stopwatch.rs.html#75">self</a>.<a class="ident" href="../../src/prusti_common/stopwatch.rs.html#66">_finish</a>();
+<span class="kw">impl</span>&lt;Level: <a href="../../src/prusti_common/stopwatch.rs.html#13">LogLevel</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Stopwatch&lt;Level&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span>!<span class="self">self</span>.is_finished {
+            <a class="self" href="../../src/prusti_common/stopwatch.rs.html#75">self</a>.<a href="../../src/prusti_common/stopwatch.rs.html#66">_finish</a>();
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">log_level</span> {
-    <span class="kw">use</span> <span class="ident">log</span>::{<a class="ident" href="../../log/macro.error.html">error</a>, <a class="ident" href="../../log/macro.warn.html">warn</a>, <a class="ident" href="../../log/macro.info.html">info</a>, <a class="ident" href="../../log/macro.debug.html">debug</a>, <a class="ident" href="../../log/macro.trace.html">trace</a>};
+<span class="kw">pub mod </span>log_level {
+    <span class="kw">use </span>log::{<a href="../../log/macro.error.html">error</a>, <a href="../../log/macro.warn.html">warn</a>, <a href="../../log/macro.info.html">info</a>, <a href="../../log/macro.debug.html">debug</a>, <a href="../../log/macro.trace.html">trace</a>};
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="macro">macro_rules!</span> <span class="ident">log_level</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">level</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start</span>:<span class="ident">ident</span>) =&gt; {
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>;
+    <span class="macro">macro_rules! </span>log_level {
+        (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$level</span>:ident, <span class="macro-nonterminal">$start</span>:ident) =&gt; {
+            <span class="kw">pub struct </span><span class="macro-nonterminal">$name</span>;
 
-            <span class="kw">impl</span> <span class="ident">LogLevel</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">log_start</span>(<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-                    <span class="macro-nonterminal">$</span><span class="macro">level!</span>(<span class="string">&quot;{}Starting: {}&quot;</span>, <span class="macro-nonterminal">prefix</span>, <span class="ident">name</span>);
+            <span class="kw">impl </span>LogLevel <span class="kw">for </span><span class="macro-nonterminal">$name </span>{
+                <span class="kw">fn </span>log_start(prefix: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) {
+                    <span class="macro-nonterminal">$</span><span class="macro">level!</span>(<span class="string">&quot;{}Starting: {}&quot;</span>, <span class="macro-nonterminal">prefix</span>, name);
                 }
 
-                <span class="kw">fn</span> <span class="ident">log_finish</span>(<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) {
+                <span class="kw">fn </span>log_finish(prefix: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str, duration: Duration) {
                     <span class="macro-nonterminal">$</span><span class="macro">level!</span>(
                         <span class="string">&quot;{}Completed: {} ({}.{:03} seconds)&quot;</span>,
                         <span class="macro-nonterminal">prefix</span>,
-                        <span class="ident">name</span>,
-                        <span class="ident">duration</span>.<span class="ident">as_secs</span>(),
-                        <span class="ident">duration</span>.<span class="ident">subsec_millis</span>()
+                        name,
+                        duration.as_secs(),
+                        duration.subsec_millis()
                     )
                 }
             }
 
-            <span class="kw">impl</span> <span class="ident">Stopwatch</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&gt;</span> {
-                <span class="doccomment">/// Starts a stopwatch logging at this level, within the given domain, timing a section with the given name.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Display</span>, <span class="ident">S</span>: <span class="ident">ToString</span><span class="op">&gt;</span>(<span class="ident">domain</span>: <span class="ident">D</span>, <span class="ident">section_name</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
-                    <span class="ident"><span class="self">Self</span>::_start</span>(<span class="macro">format!</span>(<span class="string">&quot;[{}] &quot;</span>, <span class="ident">domain</span>), <span class="ident">section_name</span>.<span class="ident">to_string</span>())
+            <span class="kw">impl </span>Stopwatch&lt;<span class="macro-nonterminal">$name</span>&gt; {
+                <span class="doccomment">/// Starts a stopwatch logging at this level, within the given domain, timing a section with the given name.
+                </span><span class="kw">pub fn </span><span class="macro-nonterminal">$start</span>&lt;D: Display, S: ToString&gt;(domain: D, section_name: S) -&gt; <span class="self">Self </span>{
+                    <span class="self">Self</span>::_start(<span class="macro">format!</span>(<span class="string">&quot;[{}] &quot;</span>, domain), section_name.to_string())
                 }
             }
         };
     }
 
-    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(<span class="ident">Error</span>, <span class="ident">error</span>, <span class="ident">start_error</span>);
-    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(<span class="ident">Warn</span>, <span class="ident">warn</span>, <span class="ident">start_warn</span>);
-    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(<span class="ident">Info</span>, <span class="ident">info</span>, <span class="ident">start_info</span>);
-    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(<span class="ident">Debug</span>, <span class="ident">debug</span>, <span class="ident">start_debug</span>);
-    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(<span class="ident">Trace</span>, <span class="ident">trace</span>, <span class="ident">start_trace</span>);
+    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(Error, error, start_error);
+    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(Warn, warn, start_warn);
+    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(Info, info, start_info);
+    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(Debug, debug, start_debug);
+    <a class="macro" href="../../src/prusti_common/stopwatch.rs.html#87-114">log_level!</a>(Trace, trace, start_trace);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

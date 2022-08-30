@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_utils/real_edges.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>real_edges.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_utils/real_edges.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>real_edges.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -84,91 +84,91 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::middle::mir</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind</a>};
+</span><span class="kw">use </span>prusti_rustc_interface::middle::mir::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind</a>};
 
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::index::vec::IndexVec</span>;
+<span class="kw">use </span>prusti_rustc_interface::index::vec::IndexVec;
 
-<span class="doccomment">/// A data structure to store the non-virtual CFG edges of a MIR body.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RealEdges</span> {
-    <span class="ident">successors</span>: <span class="ident">IndexVec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">predecessors</span>: <span class="ident">IndexVec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A data structure to store the non-virtual CFG edges of a MIR body.
+</span><span class="kw">pub struct </span>RealEdges {
+    successors: IndexVec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt;&gt;,
+    predecessors: IndexVec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Body.html">mir::Body</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">successors</span>: <span class="ident">IndexVec</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#18">body</a>.<span class="ident">basic_blocks</span>().<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Vec::new</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">predecessors</span>: <span class="ident">IndexVec</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#18">body</a>.<span class="ident">basic_blocks</span>().<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Vec::new</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+<span class="kw">impl </span><a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a> {
+    <span class="kw">pub fn </span>new(body: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Body.html">mir::Body</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>successors: IndexVec&lt;<span class="kw">_</span>, Vec&lt;<span class="kw">_</span>&gt;&gt; =
+            <a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#18">body</a>.basic_blocks.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| Vec::new()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>predecessors: IndexVec&lt;<span class="kw">_</span>, Vec&lt;<span class="kw">_</span>&gt;&gt; =
+            <a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#18">body</a>.basic_blocks.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| Vec::new()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-        <span class="kw">for</span> (<span class="ident">bb</span>, <span class="ident">bb_data</span>) <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
-            <span class="kw">let</span> <span class="ident">targets</span> <span class="op">=</span> <span class="ident">real_targets</span>(<span class="ident">bb_data</span>.<span class="ident">terminator</span>());
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">target</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">targets</span> {
-                <span class="ident">successors</span>[<span class="ident">bb</span>].<span class="ident">push</span>(<span class="ident">target</span>);
-                <span class="ident">predecessors</span>[<span class="ident">target</span>].<span class="ident">push</span>(<span class="ident">bb</span>);
+        <span class="kw">for </span>(bb, bb_data) <span class="kw">in </span>body.basic_blocks.iter_enumerated() {
+            <span class="kw">let </span>targets = real_targets(bb_data.terminator());
+            <span class="kw">for </span><span class="kw-2">&amp;</span>target <span class="kw">in </span><span class="kw-2">&amp;</span>targets {
+                successors[bb].push(target);
+                predecessors[target].push(bb);
             }
         }
 
-        <span class="self">Self</span> {
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#19">successors</a>,
-            <a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#21">predecessors</a>,
+        <span class="self">Self </span>{
+            <a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#19">successors</a>,
+            <a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#21">predecessors</a>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">successors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#38">self</a>.<span class="ident">successors</span>[<a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#38">bb</a>]
+    <span class="kw">pub fn </span>successors(<span class="kw-2">&amp;</span><span class="self">self</span>, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#38">self</a>.successors[<a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#38">bb</a>]
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">predecessors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#42">self</a>.<span class="ident">predecessors</span>[<a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#42">bb</a>]
+    <span class="kw">pub fn </span>predecessors(<span class="kw-2">&amp;</span><span class="self">self</span>, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#42">self</a>.predecessors[<a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#42">bb</a>]
     }
 }
 
-<span class="kw">fn</span> <span class="ident">real_targets</span>(<span class="ident">terminator</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/struct.Terminator.html">mir::Terminator</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#47">terminator</a>.<span class="ident">kind</span> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { <span class="kw-2">ref</span> <span class="ident">target</span> } <span class="op">|</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Assert</a> { <span class="kw-2">ref</span> <span class="ident">target</span>, .. } =&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span><span class="ident">target</span>]
+<span class="kw">fn </span>real_targets(terminator: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/struct.Terminator.html">mir::Terminator</a>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt; {
+    <span class="kw">match </span><a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#47">terminator</a>.kind {
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { <span class="kw-2">ref </span>target } | <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Assert</a> { <span class="kw-2">ref </span>target, .. } =&gt; {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>target]
         }
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::SwitchInt</a> { <span class="kw-2">ref</span> <span class="ident">targets</span>, .. } =&gt; <a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#53">targets</a>.<span class="ident">all_targets</span>().<span class="ident">to_vec</span>(),
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::SwitchInt</a> { <span class="kw-2">ref </span>targets, .. } =&gt; <a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#53">targets</a>.all_targets().to_vec(),
 
-        <span class="ident">TerminatorKind::Resume</span>
-        <span class="op">|</span> <span class="ident">TerminatorKind::Abort</span>
-        <span class="op">|</span> <span class="ident">TerminatorKind::Return</span>
-        <span class="op">|</span> <span class="ident">TerminatorKind::GeneratorDrop</span>
-        <span class="op">|</span> <span class="ident">TerminatorKind::Unreachable</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+        TerminatorKind::Resume
+        | TerminatorKind::Abort
+        | TerminatorKind::Return
+        | TerminatorKind::GeneratorDrop
+        | TerminatorKind::Unreachable =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::DropAndReplace</a> { <span class="kw-2">ref</span> <span class="ident">target</span>, .. }
-        <span class="op">|</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Drop</a> { <span class="kw-2">ref</span> <span class="ident">target</span>, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span><span class="ident">target</span>],
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::DropAndReplace</a> { <span class="kw-2">ref </span>target, .. }
+        | <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Drop</a> { <span class="kw-2">ref </span>target, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>target],
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Call</a> { <span class="ident">target</span>, .. } =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#64">target</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">target</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">target</span>],
-            <span class="prelude-val">None</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Call</a> { target, .. } =&gt; <span class="kw">match </span><a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#64">target</a> {
+            <span class="prelude-val">Some</span>(target) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[target],
+            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         },
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseEdge</a> {
-            <span class="kw-2">ref</span> <span class="ident">real_target</span>, ..
-        } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span><span class="ident">real_target</span>],
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseEdge</a> {
+            <span class="kw-2">ref </span>real_target, ..
+        } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>real_target],
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseUnwind</a> {
-            <span class="kw-2">ref</span> <span class="ident">real_target</span>, ..
-        } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span><span class="ident">real_target</span>],
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseUnwind</a> {
+            <span class="kw-2">ref </span>real_target, ..
+        } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>real_target],
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Yield</a> { <span class="kw-2">ref</span> <span class="ident">resume</span>, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span><span class="ident">resume</span>],
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Yield</a> { <span class="kw-2">ref </span>resume, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>resume],
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::InlineAsm</a> {
-            <span class="kw-2">ref</span> <span class="ident">destination</span>, ..
-        } =&gt; <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#80">destination</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">target</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">target</span>],
-            <span class="prelude-val">None</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::InlineAsm</a> {
+            <span class="kw-2">ref </span>destination, ..
+        } =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="../../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#80">destination</a> {
+            <span class="prelude-val">Some</span>(target) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[target],
+            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         },
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

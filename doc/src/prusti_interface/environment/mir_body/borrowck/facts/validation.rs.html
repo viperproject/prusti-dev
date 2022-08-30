@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/borrowck/facts/validation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/borrowck/facts/validation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -74,81 +74,81 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>};
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/graph/trait.WithSuccessors.html">data_structures::graph::WithSuccessors</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>};
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<a class="ident" href="../../../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a class="ident" href="../../../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>};
+<span class="kw">use </span>prusti_rustc_interface::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/graph/trait.WithSuccessors.html">data_structures::graph::WithSuccessors</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>};
+<span class="kw">use </span>rustc_hash::{<a href="../../../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
 
-<span class="doccomment">/// Validate that the input facts match the body.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-    <span class="ident">borrowck_input_facts</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>,
-    <span class="ident">location_table</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>,
-    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Validate that the input facts match the body.
+</span><span class="kw">pub fn </span>validate&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+    borrowck_input_facts: <span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>,
+    location_table: <span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>,
+    body: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">location_table</span>.<span class="ident">points</span>.<span class="ident">len</span>(), <span class="ident">location_table</span>.<span class="ident">locations</span>.<span class="ident">len</span>());
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(location_table.points.len(), location_table.locations.len());
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cfg_edges</span> <span class="op">=</span> <span class="ident">FxHashMap</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::default</span>();
-    <span class="kw">for</span> (<span class="ident">from</span>, <span class="ident">to</span>) <span class="kw">in</span> <span class="ident">borrowck_input_facts</span>.<span class="ident">cfg_edge</span>.<span class="ident">clone</span>() {
-        <span class="ident">cfg_edges</span>.<span class="ident">entry</span>(<span class="ident">from</span>).<span class="ident">or_default</span>().<span class="ident">push</span>(<span class="ident">to</span>);
-        <span class="ident">cfg_edges</span>.<span class="ident">entry</span>(<span class="ident">to</span>).<span class="ident">or_default</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>cfg_edges = FxHashMap::&lt;<span class="kw">_</span>, Vec&lt;<span class="kw">_</span>&gt;&gt;::default();
+    <span class="kw">for </span>(from, to) <span class="kw">in </span>borrowck_input_facts.cfg_edge.clone() {
+        cfg_edges.entry(from).or_default().push(to);
+        cfg_edges.entry(to).or_default();
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen_points</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>seen_points = FxHashSet::default();
 
-    <span class="kw">for</span> (<span class="ident">block</span>, <span class="ident">data</span>) <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">mir::Location</span> {
-            <span class="ident">block</span>,
-            <span class="ident">statement_index</span>: <span class="number">0</span>,
+    <span class="kw">for </span>(block, data) <span class="kw">in </span>body.basic_blocks.iter_enumerated() {
+        <span class="kw">let </span><span class="kw-2">mut </span>location = mir::Location {
+            block,
+            statement_index: <span class="number">0</span>,
         };
-        <span class="comment">// Check statements.</span>
-        <span class="kw">while</span> <span class="ident">location</span>.<span class="ident">statement_index</span> <span class="op">&lt;</span> <span class="ident">data</span>.<span class="ident">statements</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">start_point</span> <span class="op">=</span> <span class="ident">location_table</span>.<span class="ident">location_to_point</span>(<span class="ident">RichLocation::Start</span>(<span class="ident">location</span>));
-            <span class="kw">let</span> <span class="ident">mid_point</span> <span class="op">=</span> <span class="ident">location_table</span>.<span class="ident">location_to_point</span>(<span class="ident">RichLocation::Mid</span>(<span class="ident">location</span>));
-            <span class="kw">let</span> <span class="ident">next_start_point</span> <span class="op">=</span>
-                <span class="ident">location_table</span>.<span class="ident">location_to_point</span>(<span class="ident">RichLocation::Start</span>(<span class="ident">mir::Location</span> {
-                    <span class="ident">block</span>: <span class="ident">location</span>.<span class="ident">block</span>,
-                    <span class="ident">statement_index</span>: <span class="ident">location</span>.<span class="ident">statement_index</span> <span class="op">+</span> <span class="number">1</span>,
+        <span class="comment">// Check statements.
+        </span><span class="kw">while </span>location.statement_index &lt; data.statements.len() {
+            <span class="kw">let </span>start_point = location_table.location_to_point(RichLocation::Start(location));
+            <span class="kw">let </span>mid_point = location_table.location_to_point(RichLocation::Mid(location));
+            <span class="kw">let </span>next_start_point =
+                location_table.location_to_point(RichLocation::Start(mir::Location {
+                    block: location.block,
+                    statement_index: location.statement_index + <span class="number">1</span>,
                 }));
-            <span class="macro">assert_eq!</span>(<span class="ident">cfg_edges</span>[<span class="kw-2">&amp;</span><span class="ident">start_point</span>], [<span class="ident">mid_point</span>]);
-            <span class="macro">assert_eq!</span>(<span class="ident">cfg_edges</span>[<span class="kw-2">&amp;</span><span class="ident">mid_point</span>], [<span class="ident">next_start_point</span>]);
+            <span class="macro">assert_eq!</span>(cfg_edges[<span class="kw-2">&amp;</span>start_point], [mid_point]);
+            <span class="macro">assert_eq!</span>(cfg_edges[<span class="kw-2">&amp;</span>mid_point], [next_start_point]);
 
-            <span class="ident">seen_points</span>.<span class="ident">insert</span>(<span class="ident">start_point</span>);
-            <span class="ident">seen_points</span>.<span class="ident">insert</span>(<span class="ident">mid_point</span>);
-            <span class="ident">location</span>.<span class="ident">statement_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            seen_points.insert(start_point);
+            seen_points.insert(mid_point);
+            location.statement_index += <span class="number">1</span>;
         }
 
-        <span class="comment">// Check terminators.</span>
-        <span class="kw">let</span> <span class="ident">start_point</span> <span class="op">=</span> <span class="ident">location_table</span>.<span class="ident">location_to_point</span>(<span class="ident">RichLocation::Start</span>(<span class="ident">location</span>));
-        <span class="kw">let</span> <span class="ident">mid_point</span> <span class="op">=</span> <span class="ident">location_table</span>.<span class="ident">location_to_point</span>(<span class="ident">RichLocation::Mid</span>(<span class="ident">location</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">cfg_edges</span>[<span class="kw-2">&amp;</span><span class="ident">start_point</span>], [<span class="ident">mid_point</span>]);
-        <span class="kw">let</span> <span class="ident">successor_points</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">cfg_edges</span>[<span class="kw-2">&amp;</span><span class="ident">mid_point</span>];
-        <span class="kw">let</span> <span class="ident">successors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>.<span class="ident">successors</span>(<span class="ident">block</span>).<span class="ident">collect</span>();
+        <span class="comment">// Check terminators.
+        </span><span class="kw">let </span>start_point = location_table.location_to_point(RichLocation::Start(location));
+        <span class="kw">let </span>mid_point = location_table.location_to_point(RichLocation::Mid(location));
+        <span class="macro">assert_eq!</span>(cfg_edges[<span class="kw-2">&amp;</span>start_point], [mid_point]);
+        <span class="kw">let </span>successor_points = <span class="kw-2">&amp;</span>cfg_edges[<span class="kw-2">&amp;</span>mid_point];
+        <span class="kw">let </span>successors: Vec&lt;<span class="kw">_</span>&gt; = body.basic_blocks.successors(block).collect();
         <span class="macro">assert_eq!</span>(
-            <span class="ident">successors</span>.<span class="ident">len</span>(),
-            <span class="ident">successor_points</span>.<span class="ident">len</span>(),
+            successors.len(),
+            successor_points.len(),
             <span class="string">&quot;block: {:?}&quot;</span>,
-            <span class="ident">block</span>
+            block
         );
-        <span class="kw">for</span> <span class="ident">successor</span> <span class="kw">in</span> <span class="ident">successors</span> {
-            <span class="kw">let</span> <span class="ident">following_start_point</span> <span class="op">=</span>
-                <span class="ident">location_table</span>.<span class="ident">location_to_point</span>(<span class="ident">RichLocation::Start</span>(<span class="ident">mir::Location</span> {
-                    <span class="ident">block</span>: <span class="ident">successor</span>,
-                    <span class="ident">statement_index</span>: <span class="number">0</span>,
+        <span class="kw">for </span>successor <span class="kw">in </span>successors {
+            <span class="kw">let </span>following_start_point =
+                location_table.location_to_point(RichLocation::Start(mir::Location {
+                    block: successor,
+                    statement_index: <span class="number">0</span>,
                 }));
             <span class="macro">assert!</span>(
-                <span class="ident">successor_points</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">following_start_point</span>),
+                successor_points.contains(<span class="kw-2">&amp;</span>following_start_point),
                 <span class="string">&quot;block: {:?} following_start_point: {:?}&quot;</span>,
-                <span class="ident">block</span>,
-                <span class="ident">following_start_point</span>
+                block,
+                following_start_point
             );
         }
-        <span class="ident">seen_points</span>.<span class="ident">insert</span>(<span class="ident">start_point</span>);
-        <span class="ident">seen_points</span>.<span class="ident">insert</span>(<span class="ident">mid_point</span>);
+        seen_points.insert(start_point);
+        seen_points.insert(mid_point);
     }
 
-    <span class="kw">for</span> (<span class="ident">from</span>, <span class="ident">to</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">borrowck_input_facts</span>.<span class="ident">cfg_edge</span> {
-        <span class="macro">assert!</span>(<span class="ident">seen_points</span>.<span class="ident">contains</span>(<span class="ident">from</span>));
-        <span class="macro">assert!</span>(<span class="ident">seen_points</span>.<span class="ident">contains</span>(<span class="ident">to</span>));
+    <span class="kw">for </span>(from, to) <span class="kw">in </span><span class="kw-2">&amp;</span>borrowck_input_facts.cfg_edge {
+        <span class="macro">assert!</span>(seen_points.contains(from));
+        <span class="macro">assert!</span>(seen_points.contains(to));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

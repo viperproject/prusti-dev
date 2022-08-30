@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/instant.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>instant.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/instant.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>instant.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -221,228 +221,228 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(clippy::trivially_copy_pass_by_ref)]
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="doccomment">/// A measurement of a monotonically nondecreasing clock.</span>
-<span class="doccomment">/// Opaque and useful only with `Duration`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Instants are always guaranteed to be no less than any previously measured</span>
-<span class="doccomment">/// instant when created, and are often useful for tasks such as measuring</span>
-<span class="doccomment">/// benchmarks or timing how long an operation takes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note, however, that instants are not guaranteed to be **steady**. In other</span>
-<span class="doccomment">/// words, each tick of the underlying clock may not be the same length (e.g.</span>
-<span class="doccomment">/// some seconds may be longer than others). An instant may jump forwards or</span>
-<span class="doccomment">/// experience time dilation (slow down or speed up), but it will never go</span>
-<span class="doccomment">/// backwards.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Instants are opaque types that can only be compared to one another. There is</span>
-<span class="doccomment">/// no method to get &quot;the number of seconds&quot; from an instant. Instead, it only</span>
-<span class="doccomment">/// allows measuring the duration between two instants (or comparing two</span>
-<span class="doccomment">/// instants).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The size of an `Instant` struct may vary depending on the target operating</span>
-<span class="doccomment">/// system.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type wraps the inner `std` variant and is used to align the Tokio</span>
-<span class="doccomment">/// clock for uses of `now()`. This can be useful for testing where you can</span>
-<span class="doccomment">/// take advantage of `time::pause()` and `time::advance()`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Instant</span> {
-    <span class="ident">std</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>,
+<span class="doccomment">/// A measurement of a monotonically nondecreasing clock.
+/// Opaque and useful only with `Duration`.
+///
+/// Instants are always guaranteed to be no less than any previously measured
+/// instant when created, and are often useful for tasks such as measuring
+/// benchmarks or timing how long an operation takes.
+///
+/// Note, however, that instants are not guaranteed to be **steady**. In other
+/// words, each tick of the underlying clock may not be the same length (e.g.
+/// some seconds may be longer than others). An instant may jump forwards or
+/// experience time dilation (slow down or speed up), but it will never go
+/// backwards.
+///
+/// Instants are opaque types that can only be compared to one another. There is
+/// no method to get &quot;the number of seconds&quot; from an instant. Instead, it only
+/// allows measuring the duration between two instants (or comparing two
+/// instants).
+///
+/// The size of an `Instant` struct may vary depending on the target operating
+/// system.
+///
+/// # Note
+///
+/// This type wraps the inner `std` variant and is used to align the Tokio
+/// clock for uses of `now()`. This can be useful for testing where you can
+/// take advantage of `time::pause()` and `time::advance()`.
+</span><span class="attribute">#[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub struct </span>Instant {
+    std: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-    <span class="doccomment">/// Returns an instant corresponding to &quot;now&quot;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::time::Instant;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let now = Instant::now();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">now</span>() -&gt; <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <a class="ident" href="../../../src/tokio/time/instant.rs.html#211">variant::now</a>()
+<span class="kw">impl </span><a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    <span class="doccomment">/// Returns an instant corresponding to &quot;now&quot;.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::time::Instant;
+    ///
+    /// let now = Instant::now();
+    /// ```
+    </span><span class="kw">pub fn </span>now() -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+        <a href="../../../src/tokio/time/instant.rs.html#211">variant::now</a>()
     }
 
-    <span class="doccomment">/// Create a `tokio::time::Instant` from a `std::time::Instant`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">std</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>) -&gt; <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> { <a class="ident" href="../../../src/tokio/time/instant.rs.html#53">std</a> }
+    <span class="doccomment">/// Create a `tokio::time::Instant` from a `std::time::Instant`.
+    </span><span class="kw">pub fn </span>from_std(std: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>) -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+        <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> { <a href="../../../src/tokio/time/instant.rs.html#53">std</a> }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">far_future</span>() -&gt; <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <span class="comment">// Roughly 30 years from now.</span>
-        <span class="comment">// API does not provide a way to obtain max `Instant`</span>
-        <span class="comment">// or convert specific date in the future to instant.</span>
-        <span class="comment">// 1000 years overflows on macOS, 100 years overflows on FreeBSD.</span>
-        <span class="ident"><span class="self">Self</span>::now</span>() <span class="op">+</span> <span class="ident">Duration::from_secs</span>(<span class="number">86400</span> <span class="op">*</span> <span class="number">365</span> <span class="op">*</span> <span class="number">30</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>far_future() -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+        <span class="comment">// Roughly 30 years from now.
+        // API does not provide a way to obtain max `Instant`
+        // or convert specific date in the future to instant.
+        // 1000 years overflows on macOS, 100 years overflows on FreeBSD.
+        </span><span class="self">Self</span>::now() + Duration::from_secs(<span class="number">86400 </span>* <span class="number">365 </span>* <span class="number">30</span>)
     }
 
-    <span class="doccomment">/// Convert the value into a `std::time::Instant`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_std</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a> {
-        <a class="self" href="../../../src/tokio/time/instant.rs.html#66">self</a>.<span class="ident">std</span>
+    <span class="doccomment">/// Convert the value into a `std::time::Instant`.
+    </span><span class="kw">pub fn </span>into_std(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a> {
+        <a class="self" href="../../../src/tokio/time/instant.rs.html#66">self</a>.std
     }
 
-    <span class="doccomment">/// Returns the amount of time elapsed from another instant to this one, or</span>
-    <span class="doccomment">/// zero duration if that instant is later than this one.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">duration_since</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">earlier</span>: <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <a class="self" href="../../../src/tokio/time/instant.rs.html#72">self</a>.<span class="ident">std</span>.<span class="ident">saturating_duration_since</span>(<a class="ident" href="../../../src/tokio/time/instant.rs.html#72">earlier</a>.<span class="ident">std</span>)
+    <span class="doccomment">/// Returns the amount of time elapsed from another instant to this one, or
+    /// zero duration if that instant is later than this one.
+    </span><span class="kw">pub fn </span>duration_since(<span class="kw-2">&amp;</span><span class="self">self</span>, earlier: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <a class="self" href="../../../src/tokio/time/instant.rs.html#72">self</a>.std.saturating_duration_since(<a href="../../../src/tokio/time/instant.rs.html#72">earlier</a>.std)
     }
 
-    <span class="doccomment">/// Returns the amount of time elapsed from another instant to this one, or</span>
-    <span class="doccomment">/// None if that instant is later than this one.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::time::{Duration, Instant, sleep};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let now = Instant::now();</span>
-    <span class="doccomment">///     sleep(Duration::new(1, 0)).await;</span>
-    <span class="doccomment">///     let new_now = Instant::now();</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, new_now.checked_duration_since(now));</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, now.checked_duration_since(new_now)); // None</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_duration_since</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">earlier</span>: <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/time/instant.rs.html#93">self</a>.<span class="ident">std</span>.<span class="ident">checked_duration_since</span>(<a class="ident" href="../../../src/tokio/time/instant.rs.html#93">earlier</a>.<span class="ident">std</span>)
+    <span class="doccomment">/// Returns the amount of time elapsed from another instant to this one, or
+    /// None if that instant is later than this one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::time::{Duration, Instant, sleep};
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let now = Instant::now();
+    ///     sleep(Duration::new(1, 0)).await;
+    ///     let new_now = Instant::now();
+    ///     println!(&quot;{:?}&quot;, new_now.checked_duration_since(now));
+    ///     println!(&quot;{:?}&quot;, now.checked_duration_since(new_now)); // None
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>checked_duration_since(<span class="kw-2">&amp;</span><span class="self">self</span>, earlier: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
+        <a class="self" href="../../../src/tokio/time/instant.rs.html#93">self</a>.std.checked_duration_since(<a href="../../../src/tokio/time/instant.rs.html#93">earlier</a>.std)
     }
 
-    <span class="doccomment">/// Returns the amount of time elapsed from another instant to this one, or</span>
-    <span class="doccomment">/// zero duration if that instant is later than this one.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::time::{Duration, Instant, sleep};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let now = Instant::now();</span>
-    <span class="doccomment">///     sleep(Duration::new(1, 0)).await;</span>
-    <span class="doccomment">///     let new_now = Instant::now();</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, new_now.saturating_duration_since(now));</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, now.saturating_duration_since(new_now)); // 0ns</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">saturating_duration_since</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">earlier</span>: <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <a class="self" href="../../../src/tokio/time/instant.rs.html#114">self</a>.<span class="ident">std</span>.<span class="ident">saturating_duration_since</span>(<a class="ident" href="../../../src/tokio/time/instant.rs.html#114">earlier</a>.<span class="ident">std</span>)
+    <span class="doccomment">/// Returns the amount of time elapsed from another instant to this one, or
+    /// zero duration if that instant is later than this one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::time::{Duration, Instant, sleep};
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let now = Instant::now();
+    ///     sleep(Duration::new(1, 0)).await;
+    ///     let new_now = Instant::now();
+    ///     println!(&quot;{:?}&quot;, new_now.saturating_duration_since(now));
+    ///     println!(&quot;{:?}&quot;, now.saturating_duration_since(new_now)); // 0ns
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>saturating_duration_since(<span class="kw-2">&amp;</span><span class="self">self</span>, earlier: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <a class="self" href="../../../src/tokio/time/instant.rs.html#114">self</a>.std.saturating_duration_since(<a href="../../../src/tokio/time/instant.rs.html#114">earlier</a>.std)
     }
 
-    <span class="doccomment">/// Returns the amount of time elapsed since this instant was created,</span>
-    <span class="doccomment">/// or zero duration if that this instant is in the future.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::time::{Duration, Instant, sleep};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let instant = Instant::now();</span>
-    <span class="doccomment">///     let three_secs = Duration::from_secs(3);</span>
-    <span class="doccomment">///     sleep(three_secs).await;</span>
-    <span class="doccomment">///     assert!(instant.elapsed() &gt;= three_secs);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">elapsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <span class="ident">Instant::now</span>().<a class="ident" href="../../../src/tokio/time/instant.rs.html#114">saturating_duration_since</a>(<span class="kw-2">*</span><a class="self" href="../../../src/tokio/time/instant.rs.html#134">self</a>)
+    <span class="doccomment">/// Returns the amount of time elapsed since this instant was created,
+    /// or zero duration if that this instant is in the future.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::time::{Duration, Instant, sleep};
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let instant = Instant::now();
+    ///     let three_secs = Duration::from_secs(3);
+    ///     sleep(three_secs).await;
+    ///     assert!(instant.elapsed() &gt;= three_secs);
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>elapsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        Instant::now().<a href="../../../src/tokio/time/instant.rs.html#114">saturating_duration_since</a>(<span class="kw-2">*</span><a class="self" href="../../../src/tokio/time/instant.rs.html#134">self</a>)
     }
 
-    <span class="doccomment">/// Returns `Some(t)` where `t` is the time `self + duration` if `t` can be</span>
-    <span class="doccomment">/// represented as `Instant` (which means it&#39;s inside the bounds of the</span>
-    <span class="doccomment">/// underlying data structure), `None` otherwise.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/time/instant.rs.html#141">self</a>.<span class="ident">std</span>.<span class="ident">checked_add</span>(<a class="ident" href="../../../src/tokio/time/instant.rs.html#141">duration</a>).<span class="ident">map</span>(<span class="ident">Instant::from_std</span>)
+    <span class="doccomment">/// Returns `Some(t)` where `t` is the time `self + duration` if `t` can be
+    /// represented as `Instant` (which means it&#39;s inside the bounds of the
+    /// underlying data structure), `None` otherwise.
+    </span><span class="kw">pub fn </span>checked_add(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>&gt; {
+        <a class="self" href="../../../src/tokio/time/instant.rs.html#141">self</a>.std.checked_add(<a href="../../../src/tokio/time/instant.rs.html#141">duration</a>).map(Instant::from_std)
     }
 
-    <span class="doccomment">/// Returns `Some(t)` where `t` is the time `self - duration` if `t` can be</span>
-    <span class="doccomment">/// represented as `Instant` (which means it&#39;s inside the bounds of the</span>
-    <span class="doccomment">/// underlying data structure), `None` otherwise.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/time/instant.rs.html#148">self</a>.<span class="ident">std</span>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../src/tokio/time/instant.rs.html#148">duration</a>).<span class="ident">map</span>(<span class="ident">Instant::from_std</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">time</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>) -&gt; <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <span class="ident">Instant::from_std</span>(<a class="ident" href="../../../src/tokio/time/instant.rs.html#154">time</a>)
+    <span class="doccomment">/// Returns `Some(t)` where `t` is the time `self - duration` if `t` can be
+    /// represented as `Instant` (which means it&#39;s inside the bounds of the
+    /// underlying data structure), `None` otherwise.
+    </span><span class="kw">pub fn </span>checked_sub(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>&gt; {
+        <a class="self" href="../../../src/tokio/time/instant.rs.html#148">self</a>.std.checked_sub(<a href="../../../src/tokio/time/instant.rs.html#148">duration</a>).map(Instant::from_std)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">time</span>: <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a> {
-        <a class="ident" href="../../../src/tokio/time/instant.rs.html#160">time</a>.<a class="ident" href="../../../src/tokio/time/instant.rs.html#66">into_std</a>()
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    <span class="kw">fn </span>from(time: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>) -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+        Instant::from_std(<a href="../../../src/tokio/time/instant.rs.html#154">time</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ops::Add</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>;
-
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <span class="ident">Instant::from_std</span>(<a class="self" href="../../../src/tokio/time/instant.rs.html#168">self</a>.<span class="ident">std</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#168">other</a>)
+<span class="kw">impl </span>From&lt;<a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a> {
+    <span class="kw">fn </span>from(time: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a> {
+        <a href="../../../src/tokio/time/instant.rs.html#160">time</a>.<a href="../../../src/tokio/time/instant.rs.html#66">into_std</a>()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ops::AddAssign</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-    <span class="kw">fn</span> <span class="ident">add_assign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
-        <span class="kw-2">*</span><a class="self" href="../../../src/tokio/time/instant.rs.html#174">self</a> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio/time/instant.rs.html#174">self</a> <span class="op">+</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#174">rhs</a>;
+<span class="kw">impl </span>ops::Add&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    <span class="kw">type </span>Output = <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>;
+
+    <span class="kw">fn </span>add(<span class="self">self</span>, other: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+        Instant::from_std(<a class="self" href="../../../src/tokio/time/instant.rs.html#168">self</a>.std + <a href="../../../src/tokio/time/instant.rs.html#168">other</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">ops::Sub</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>;
-
-    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <a class="self" href="../../../src/tokio/time/instant.rs.html#182">self</a>.<span class="ident">std</span>.<span class="ident">saturating_duration_since</span>(<a class="ident" href="../../../src/tokio/time/instant.rs.html#182">rhs</a>.<span class="ident">std</span>)
+<span class="kw">impl </span>ops::AddAssign&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    <span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/tokio/time/instant.rs.html#174">self</a> </span>= <span class="kw-2">*</span><span class="self"><a href="../../../src/tokio/time/instant.rs.html#174">self</a> </span>+ <a href="../../../src/tokio/time/instant.rs.html#174">rhs</a>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ops::Sub</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">ops::Sub</a> <span class="kw">for </span><a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    <span class="kw">type </span>Output = <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>;
 
-    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <span class="ident">Instant::from_std</span>(<a class="self" href="../../../src/tokio/time/instant.rs.html#190">self</a>.<span class="ident">std</span> <span class="op">-</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#190">rhs</a>)
+    <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <a class="self" href="../../../src/tokio/time/instant.rs.html#182">self</a>.std.saturating_duration_since(<a href="../../../src/tokio/time/instant.rs.html#182">rhs</a>.std)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ops::SubAssign</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-    <span class="kw">fn</span> <span class="ident">sub_assign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
-        <span class="kw-2">*</span><a class="self" href="../../../src/tokio/time/instant.rs.html#196">self</a> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio/time/instant.rs.html#196">self</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#196">rhs</a>;
+<span class="kw">impl </span>ops::Sub&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    <span class="kw">type </span>Output = <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>;
+
+    <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+        Instant::from_std(<a class="self" href="../../../src/tokio/time/instant.rs.html#190">self</a>.std - <a href="../../../src/tokio/time/instant.rs.html#190">rhs</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../src/tokio/time/instant.rs.html#202">self</a>.<span class="ident">std</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../src/tokio/time/instant.rs.html#202">fmt</a>)
+<span class="kw">impl </span>ops::SubAssign&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; <span class="kw">for </span><a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    <span class="kw">fn </span>sub_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/tokio/time/instant.rs.html#196">self</a> </span>= <span class="kw-2">*</span><span class="self"><a href="../../../src/tokio/time/instant.rs.html#196">self</a> </span>- <a href="../../../src/tokio/time/instant.rs.html#196">rhs</a>;
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;test-util&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">variant</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../src/tokio/time/instant.rs.html#34"><span class="kw">super</span>::Instant</a>;
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">now</span>() -&gt; <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
-        <span class="ident">Instant::from_std</span>(<span class="ident">std::time::Instant::now</span>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../../src/tokio/time/instant.rs.html#202">self</a>.std.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../src/tokio/time/instant.rs.html#202">fmt</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;test-util&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">variant</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Instant</span>;
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;test-util&quot;</span>))]
+</span><span class="kw">mod </span>variant {
+    <span class="kw">use </span><a href="../../../src/tokio/time/instant.rs.html#34"><span class="kw">super</span>::Instant</a>;
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">now</span>() -&gt; <span class="ident">Instant</span> {
-        <span class="ident"><span class="kw">crate</span>::time::clock::now</span>()
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>now() -&gt; <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a> {
+        Instant::from_std(std::time::Instant::now())
+    }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;test-util&quot;</span>)]
+</span><span class="kw">mod </span>variant {
+    <span class="kw">use </span><span class="kw">super</span>::Instant;
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>now() -&gt; Instant {
+        <span class="kw">crate</span>::time::clock::now()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

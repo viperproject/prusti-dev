@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/async_buf_read_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_buf_read_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/async_buf_read_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_buf_read_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -349,356 +349,356 @@
 <span id="349">349</span>
 <span id="350">350</span>
 <span id="351">351</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::fill_buf</span>::{<a class="ident" href="../../../../src/tokio/io/util/fill_buf.rs.html#21-23">fill_buf</a>, <a class="ident" href="../../../../src/tokio/io/util/fill_buf.rs.html#10-19">FillBuf</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::lines</span>::{<a class="ident" href="../../../../src/tokio/io/util/lines.rs.html#32-34">lines</a>, <a class="ident" href="../../../../src/tokio/io/util/lines.rs.html#10-30">Lines</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_line</span>::{<a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#33-35">read_line</a>, <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#13-31">ReadLine</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_until</span>::{<a class="ident" href="../../../../src/tokio/io/util/read_until.rs.html#29-35">read_until</a>, <a class="ident" href="../../../../src/tokio/io/util/read_until.rs.html#11-27">ReadUntil</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::split</span>::{<a class="ident" href="../../../../src/tokio/io/util/split.rs.html#28-30">split</a>, <a class="ident" href="../../../../src/tokio/io/util/split.rs.html#10-26">Split</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23"><span class="kw">crate</span>::io::AsyncBufRead</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::util::fill_buf::{<a href="../../../../src/tokio/io/util/fill_buf.rs.html#21-23">fill_buf</a>, <a href="../../../../src/tokio/io/util/fill_buf.rs.html#10-19">FillBuf</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::lines::{<a href="../../../../src/tokio/io/util/lines.rs.html#32-34">lines</a>, <a href="../../../../src/tokio/io/util/lines.rs.html#10-30">Lines</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_line::{<a href="../../../../src/tokio/io/util/read_line.rs.html#33-35">read_line</a>, <a href="../../../../src/tokio/io/util/read_line.rs.html#13-31">ReadLine</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_until::{<a href="../../../../src/tokio/io/util/read_until.rs.html#29-35">read_until</a>, <a href="../../../../src/tokio/io/util/read_until.rs.html#11-27">ReadUntil</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::split::{<a href="../../../../src/tokio/io/util/split.rs.html#28-30">split</a>, <a href="../../../../src/tokio/io/util/split.rs.html#10-26">Split</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/io/async_buf_read.rs.html#23"><span class="kw">crate</span>::io::AsyncBufRead</a>;
 
-<span class="macro">cfg_io_util!</span> {
-    <span class="doccomment">/// An extension trait which adds utility methods to [`AsyncBufRead`] types.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`AsyncBufRead`]: crate::io::AsyncBufRead</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsyncBufReadExt</span>: <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> {
-        <span class="doccomment">/// Reads all bytes into `buf` until the delimiter `byte` or EOF is reached.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn read_until(&amp;mut self, byte: u8, buf: &amp;mut Vec&lt;u8&gt;) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will read bytes from the underlying stream until the</span>
-        <span class="doccomment">/// delimiter or EOF is found. Once found, all bytes up to, and including,</span>
-        <span class="doccomment">/// the delimiter (if found) will be appended to `buf`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If successful, this function will return the total number of bytes read.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If this function returns `Ok(0)`, the stream has reached EOF.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will ignore all instances of [`ErrorKind::Interrupted`] and</span>
-        <span class="doccomment">/// will otherwise return any errors returned by [`fill_buf`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If an I/O error is encountered then all bytes read so far will be</span>
-        <span class="doccomment">/// present in `buf` and its length will have been adjusted appropriately.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`fill_buf`]: AsyncBufRead::poll_fill_buf</span>
-        <span class="doccomment">/// [`ErrorKind::Interrupted`]: std::io::ErrorKind::Interrupted</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the method is used as the event in a</span>
-        <span class="doccomment">/// [`tokio::select!`](crate::select) statement and some other branch</span>
-        <span class="doccomment">/// completes first, then some data may have been partially read. Any</span>
-        <span class="doccomment">/// partially read bytes are appended to `buf`, and the method can be</span>
-        <span class="doccomment">/// called again to continue reading until `byte`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method returns the total number of bytes read. If you cancel</span>
-        <span class="doccomment">/// the call to `read_until` and then call it again to continue reading,</span>
-        <span class="doccomment">/// the counter is reset.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`std::io::Cursor`][`Cursor`] is a type that implements `BufRead`. In</span>
-        <span class="doccomment">/// this example, we use [`Cursor`] to read all the bytes in a byte slice</span>
-        <span class="doccomment">/// in hyphen delimited segments:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`Cursor`]: std::io::Cursor</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">/// use tokio::io::AsyncBufReadExt;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// use std::io::Cursor;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() {</span>
-        <span class="doccomment">///     let mut cursor = Cursor::new(b&quot;lorem-ipsum&quot;);</span>
-        <span class="doccomment">///     let mut buf = vec![];</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // cursor is at &#39;l&#39;</span>
-        <span class="doccomment">///     let num_bytes = cursor.read_until(b&#39;-&#39;, &amp;mut buf)</span>
-        <span class="doccomment">///         .await</span>
-        <span class="doccomment">///         .expect(&quot;reading from cursor won&#39;t fail&quot;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     assert_eq!(num_bytes, 6);</span>
-        <span class="doccomment">///     assert_eq!(buf, b&quot;lorem-&quot;);</span>
-        <span class="doccomment">///     buf.clear();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // cursor is at &#39;i&#39;</span>
-        <span class="doccomment">///     let num_bytes = cursor.read_until(b&#39;-&#39;, &amp;mut buf)</span>
-        <span class="doccomment">///         .await</span>
-        <span class="doccomment">///         .expect(&quot;reading from cursor won&#39;t fail&quot;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     assert_eq!(num_bytes, 5);</span>
-        <span class="doccomment">///     assert_eq!(buf, b&quot;ipsum&quot;);</span>
-        <span class="doccomment">///     buf.clear();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // cursor is at EOF</span>
-        <span class="doccomment">///     let num_bytes = cursor.read_until(b&#39;-&#39;, &amp;mut buf)</span>
-        <span class="doccomment">///         .await</span>
-        <span class="doccomment">///         .expect(&quot;reading from cursor won&#39;t fail&quot;);</span>
-        <span class="doccomment">///     assert_eq!(num_bytes, 0);</span>
-        <span class="doccomment">///     assert_eq!(buf, b&quot;&quot;);</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">read_until</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <span class="ident">ReadUntil</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="macro">cfg_io_util! </span>{
+    <span class="doccomment">/// An extension trait which adds utility methods to [`AsyncBufRead`] types.
+    ///
+    /// [`AsyncBufRead`]: crate::io::AsyncBufRead
+    </span><span class="kw">pub trait </span>AsyncBufReadExt: <a href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> {
+        <span class="doccomment">/// Reads all bytes into `buf` until the delimiter `byte` or EOF is reached.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn read_until(&amp;mut self, byte: u8, buf: &amp;mut Vec&lt;u8&gt;) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// This function will read bytes from the underlying stream until the
+        /// delimiter or EOF is found. Once found, all bytes up to, and including,
+        /// the delimiter (if found) will be appended to `buf`.
+        ///
+        /// If successful, this function will return the total number of bytes read.
+        ///
+        /// If this function returns `Ok(0)`, the stream has reached EOF.
+        ///
+        /// # Errors
+        ///
+        /// This function will ignore all instances of [`ErrorKind::Interrupted`] and
+        /// will otherwise return any errors returned by [`fill_buf`].
+        ///
+        /// If an I/O error is encountered then all bytes read so far will be
+        /// present in `buf` and its length will have been adjusted appropriately.
+        ///
+        /// [`fill_buf`]: AsyncBufRead::poll_fill_buf
+        /// [`ErrorKind::Interrupted`]: std::io::ErrorKind::Interrupted
+        ///
+        /// # Cancel safety
+        ///
+        /// If the method is used as the event in a
+        /// [`tokio::select!`](crate::select) statement and some other branch
+        /// completes first, then some data may have been partially read. Any
+        /// partially read bytes are appended to `buf`, and the method can be
+        /// called again to continue reading until `byte`.
+        ///
+        /// This method returns the total number of bytes read. If you cancel
+        /// the call to `read_until` and then call it again to continue reading,
+        /// the counter is reset.
+        ///
+        /// # Examples
+        ///
+        /// [`std::io::Cursor`][`Cursor`] is a type that implements `BufRead`. In
+        /// this example, we use [`Cursor`] to read all the bytes in a byte slice
+        /// in hyphen delimited segments:
+        ///
+        /// [`Cursor`]: std::io::Cursor
+        ///
+        /// ```
+        /// use tokio::io::AsyncBufReadExt;
+        ///
+        /// use std::io::Cursor;
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let mut cursor = Cursor::new(b&quot;lorem-ipsum&quot;);
+        ///     let mut buf = vec![];
+        ///
+        ///     // cursor is at &#39;l&#39;
+        ///     let num_bytes = cursor.read_until(b&#39;-&#39;, &amp;mut buf)
+        ///         .await
+        ///         .expect(&quot;reading from cursor won&#39;t fail&quot;);
+        ///
+        ///     assert_eq!(num_bytes, 6);
+        ///     assert_eq!(buf, b&quot;lorem-&quot;);
+        ///     buf.clear();
+        ///
+        ///     // cursor is at &#39;i&#39;
+        ///     let num_bytes = cursor.read_until(b&#39;-&#39;, &amp;mut buf)
+        ///         .await
+        ///         .expect(&quot;reading from cursor won&#39;t fail&quot;);
+        ///
+        ///     assert_eq!(num_bytes, 5);
+        ///     assert_eq!(buf, b&quot;ipsum&quot;);
+        ///     buf.clear();
+        ///
+        ///     // cursor is at EOF
+        ///     let num_bytes = cursor.read_until(b&#39;-&#39;, &amp;mut buf)
+        ///         .await
+        ///         .expect(&quot;reading from cursor won&#39;t fail&quot;);
+        ///     assert_eq!(num_bytes, 0);
+        ///     assert_eq!(buf, b&quot;&quot;);
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>read_until&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; ReadUntil&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/read_until.rs.html#29-35">read_until</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#96">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#96">byte</a>, <a class="ident" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#96">buf</a>)
+            <a href="../../../../src/tokio/io/util/read_until.rs.html#29-35">read_until</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#96">self</a>, <a href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#96">byte</a>, <a href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#96">buf</a>)
         }
 
-        <span class="doccomment">/// Reads all bytes until a newline (the 0xA byte) is reached, and append</span>
-        <span class="doccomment">/// them to the provided buffer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn read_line(&amp;mut self, buf: &amp;mut String) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will read bytes from the underlying stream until the</span>
-        <span class="doccomment">/// newline delimiter (the 0xA byte) or EOF is found. Once found, all bytes</span>
-        <span class="doccomment">/// up to, and including, the delimiter (if found) will be appended to</span>
-        <span class="doccomment">/// `buf`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If successful, this function will return the total number of bytes read.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If this function returns `Ok(0)`, the stream has reached EOF.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function has the same error semantics as [`read_until`] and will</span>
-        <span class="doccomment">/// also return an error if the read bytes are not valid UTF-8. If an I/O</span>
-        <span class="doccomment">/// error is encountered then `buf` may contain some bytes already read in</span>
-        <span class="doccomment">/// the event that all data read so far was valid UTF-8.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`read_until`]: AsyncBufReadExt::read_until</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is not cancellation safe. If the method is used as the</span>
-        <span class="doccomment">/// event in a [`tokio::select!`](crate::select) statement and some</span>
-        <span class="doccomment">/// other branch completes first, then some data may have been partially</span>
-        <span class="doccomment">/// read, and this data is lost. There are no guarantees regarding the</span>
-        <span class="doccomment">/// contents of `buf` when the call is cancelled. The current</span>
-        <span class="doccomment">/// implementation replaces `buf` with the empty string, but this may</span>
-        <span class="doccomment">/// change in the future.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function does not behave like [`read_until`] because of the</span>
-        <span class="doccomment">/// requirement that a string contains only valid utf-8. If you need a</span>
-        <span class="doccomment">/// cancellation safe `read_line`, there are three options:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///  * Call [`read_until`] with a newline character and manually perform the utf-8 check.</span>
-        <span class="doccomment">///  * The stream returned by [`lines`] has a cancellation safe</span>
-        <span class="doccomment">///    [`next_line`] method.</span>
-        <span class="doccomment">///  * Use [`tokio_util::codec::LinesCodec`][LinesCodec].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [LinesCodec]: https://docs.rs/tokio-util/0.6/tokio_util/codec/struct.LinesCodec.html</span>
-        <span class="doccomment">/// [`read_until`]: Self::read_until</span>
-        <span class="doccomment">/// [`lines`]: Self::lines</span>
-        <span class="doccomment">/// [`next_line`]: crate::io::Lines::next_line</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`std::io::Cursor`][`Cursor`] is a type that implements</span>
-        <span class="doccomment">/// `AsyncBufRead`. In this example, we use [`Cursor`] to read all the</span>
-        <span class="doccomment">/// lines in a byte slice:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`Cursor`]: std::io::Cursor</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">/// use tokio::io::AsyncBufReadExt;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// use std::io::Cursor;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() {</span>
-        <span class="doccomment">///     let mut cursor = Cursor::new(b&quot;foo\nbar&quot;);</span>
-        <span class="doccomment">///     let mut buf = String::new();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // cursor is at &#39;f&#39;</span>
-        <span class="doccomment">///     let num_bytes = cursor.read_line(&amp;mut buf)</span>
-        <span class="doccomment">///         .await</span>
-        <span class="doccomment">///         .expect(&quot;reading from cursor won&#39;t fail&quot;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     assert_eq!(num_bytes, 4);</span>
-        <span class="doccomment">///     assert_eq!(buf, &quot;foo\n&quot;);</span>
-        <span class="doccomment">///     buf.clear();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // cursor is at &#39;b&#39;</span>
-        <span class="doccomment">///     let num_bytes = cursor.read_line(&amp;mut buf)</span>
-        <span class="doccomment">///         .await</span>
-        <span class="doccomment">///         .expect(&quot;reading from cursor won&#39;t fail&quot;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     assert_eq!(num_bytes, 3);</span>
-        <span class="doccomment">///     assert_eq!(buf, &quot;bar&quot;);</span>
-        <span class="doccomment">///     buf.clear();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // cursor is at EOF</span>
-        <span class="doccomment">///     let num_bytes = cursor.read_line(&amp;mut buf)</span>
-        <span class="doccomment">///         .await</span>
-        <span class="doccomment">///         .expect(&quot;reading from cursor won&#39;t fail&quot;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     assert_eq!(num_bytes, 0);</span>
-        <span class="doccomment">///     assert_eq!(buf, &quot;&quot;);</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">read_line</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="ident">ReadLine</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Reads all bytes until a newline (the 0xA byte) is reached, and append
+        /// them to the provided buffer.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn read_line(&amp;mut self, buf: &amp;mut String) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// This function will read bytes from the underlying stream until the
+        /// newline delimiter (the 0xA byte) or EOF is found. Once found, all bytes
+        /// up to, and including, the delimiter (if found) will be appended to
+        /// `buf`.
+        ///
+        /// If successful, this function will return the total number of bytes read.
+        ///
+        /// If this function returns `Ok(0)`, the stream has reached EOF.
+        ///
+        /// # Errors
+        ///
+        /// This function has the same error semantics as [`read_until`] and will
+        /// also return an error if the read bytes are not valid UTF-8. If an I/O
+        /// error is encountered then `buf` may contain some bytes already read in
+        /// the event that all data read so far was valid UTF-8.
+        ///
+        /// [`read_until`]: AsyncBufReadExt::read_until
+        ///
+        /// # Cancel safety
+        ///
+        /// This method is not cancellation safe. If the method is used as the
+        /// event in a [`tokio::select!`](crate::select) statement and some
+        /// other branch completes first, then some data may have been partially
+        /// read, and this data is lost. There are no guarantees regarding the
+        /// contents of `buf` when the call is cancelled. The current
+        /// implementation replaces `buf` with the empty string, but this may
+        /// change in the future.
+        ///
+        /// This function does not behave like [`read_until`] because of the
+        /// requirement that a string contains only valid utf-8. If you need a
+        /// cancellation safe `read_line`, there are three options:
+        ///
+        ///  * Call [`read_until`] with a newline character and manually perform the utf-8 check.
+        ///  * The stream returned by [`lines`] has a cancellation safe
+        ///    [`next_line`] method.
+        ///  * Use [`tokio_util::codec::LinesCodec`][LinesCodec].
+        ///
+        /// [LinesCodec]: https://docs.rs/tokio-util/0.6/tokio_util/codec/struct.LinesCodec.html
+        /// [`read_until`]: Self::read_until
+        /// [`lines`]: Self::lines
+        /// [`next_line`]: crate::io::Lines::next_line
+        ///
+        /// # Examples
+        ///
+        /// [`std::io::Cursor`][`Cursor`] is a type that implements
+        /// `AsyncBufRead`. In this example, we use [`Cursor`] to read all the
+        /// lines in a byte slice:
+        ///
+        /// [`Cursor`]: std::io::Cursor
+        ///
+        /// ```
+        /// use tokio::io::AsyncBufReadExt;
+        ///
+        /// use std::io::Cursor;
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let mut cursor = Cursor::new(b&quot;foo\nbar&quot;);
+        ///     let mut buf = String::new();
+        ///
+        ///     // cursor is at &#39;f&#39;
+        ///     let num_bytes = cursor.read_line(&amp;mut buf)
+        ///         .await
+        ///         .expect(&quot;reading from cursor won&#39;t fail&quot;);
+        ///
+        ///     assert_eq!(num_bytes, 4);
+        ///     assert_eq!(buf, &quot;foo\n&quot;);
+        ///     buf.clear();
+        ///
+        ///     // cursor is at &#39;b&#39;
+        ///     let num_bytes = cursor.read_line(&amp;mut buf)
+        ///         .await
+        ///         .expect(&quot;reading from cursor won&#39;t fail&quot;);
+        ///
+        ///     assert_eq!(num_bytes, 3);
+        ///     assert_eq!(buf, &quot;bar&quot;);
+        ///     buf.clear();
+        ///
+        ///     // cursor is at EOF
+        ///     let num_bytes = cursor.read_line(&amp;mut buf)
+        ///         .await
+        ///         .expect(&quot;reading from cursor won&#39;t fail&quot;);
+        ///
+        ///     assert_eq!(num_bytes, 0);
+        ///     assert_eq!(buf, &quot;&quot;);
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>read_line&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; ReadLine&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/read_line.rs.html#33-35">read_line</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#199">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#199">buf</a>)
+            <a href="../../../../src/tokio/io/util/read_line.rs.html#33-35">read_line</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#199">self</a>, <a href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#199">buf</a>)
         }
 
-        <span class="doccomment">/// Returns a stream of the contents of this reader split on the byte</span>
-        <span class="doccomment">/// `byte`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is the asynchronous equivalent to</span>
-        <span class="doccomment">/// [`BufRead::split`](std::io::BufRead::split).</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The stream returned from this function will yield instances of</span>
-        <span class="doccomment">/// [`io::Result`]`&lt;`[`Option`]`&lt;`[`Vec&lt;u8&gt;`]`&gt;&gt;`. Each vector returned will *not* have</span>
-        <span class="doccomment">/// the delimiter byte at the end.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`io::Result`]: std::io::Result</span>
-        <span class="doccomment">/// [`Option`]: core::option::Option</span>
-        <span class="doccomment">/// [`Vec&lt;u8&gt;`]: std::vec::Vec</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Each item of the stream has the same error semantics as</span>
-        <span class="doccomment">/// [`AsyncBufReadExt::read_until`](AsyncBufReadExt::read_until).</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">/// # use tokio::io::AsyncBufRead;</span>
-        <span class="doccomment">/// use tokio::io::AsyncBufReadExt;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # async fn dox(my_buf_read: impl AsyncBufRead + Unpin) -&gt; std::io::Result&lt;()&gt; {</span>
-        <span class="doccomment">/// let mut segments = my_buf_read.split(b&#39;f&#39;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// while let Some(segment) = segments.next_segment().await? {</span>
-        <span class="doccomment">///     println!(&quot;length = {}&quot;, segment.len())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// # Ok(())</span>
-        <span class="doccomment">/// # }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">Split</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Returns a stream of the contents of this reader split on the byte
+        /// `byte`.
+        ///
+        /// This method is the asynchronous equivalent to
+        /// [`BufRead::split`](std::io::BufRead::split).
+        ///
+        /// The stream returned from this function will yield instances of
+        /// [`io::Result`]`&lt;`[`Option`]`&lt;`[`Vec&lt;u8&gt;`]`&gt;&gt;`. Each vector returned will *not* have
+        /// the delimiter byte at the end.
+        ///
+        /// [`io::Result`]: std::io::Result
+        /// [`Option`]: core::option::Option
+        /// [`Vec&lt;u8&gt;`]: std::vec::Vec
+        ///
+        /// # Errors
+        ///
+        /// Each item of the stream has the same error semantics as
+        /// [`AsyncBufReadExt::read_until`](AsyncBufReadExt::read_until).
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// # use tokio::io::AsyncBufRead;
+        /// use tokio::io::AsyncBufReadExt;
+        ///
+        /// # async fn dox(my_buf_read: impl AsyncBufRead + Unpin) -&gt; std::io::Result&lt;()&gt; {
+        /// let mut segments = my_buf_read.split(b&#39;f&#39;);
+        ///
+        /// while let Some(segment) = segments.next_segment().await? {
+        ///     println!(&quot;length = {}&quot;, segment.len())
+        /// }
+        /// # Ok(())
+        /// # }
+        /// ```
+        </span><span class="kw">fn </span>split(<span class="self">self</span>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; Split&lt;<span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/split.rs.html#28-30">split</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#240">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#240">byte</a>)
+            <a href="../../../../src/tokio/io/util/split.rs.html#28-30">split</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#240">self</a>, <a href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#240">byte</a>)
         }
 
-        <span class="doccomment">/// Returns the contents of the internal buffer, filling it with more</span>
-        <span class="doccomment">/// data from the inner reader if it is empty.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function is a lower-level call. It needs to be paired with the</span>
-        <span class="doccomment">/// [`consume`] method to function properly. When calling this method,</span>
-        <span class="doccomment">/// none of the contents will be &quot;read&quot; in the sense that later calling</span>
-        <span class="doccomment">/// `read` may return the same contents. As such, [`consume`] must be</span>
-        <span class="doccomment">/// called with the number of bytes that are consumed from this buffer</span>
-        <span class="doccomment">/// to ensure that the bytes are never returned twice.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// An empty buffer returned indicates that the stream has reached EOF.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn fill_buf(&amp;mut self) -&gt; io::Result&lt;&amp;[u8]&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will return an I/O error if the underlying reader was</span>
-        <span class="doccomment">/// read, but returned an error.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`consume`]: crate::io::AsyncBufReadExt::consume</span>
-        <span class="kw">fn</span> <span class="ident">fill_buf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">FillBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Returns the contents of the internal buffer, filling it with more
+        /// data from the inner reader if it is empty.
+        ///
+        /// This function is a lower-level call. It needs to be paired with the
+        /// [`consume`] method to function properly. When calling this method,
+        /// none of the contents will be &quot;read&quot; in the sense that later calling
+        /// `read` may return the same contents. As such, [`consume`] must be
+        /// called with the number of bytes that are consumed from this buffer
+        /// to ensure that the bytes are never returned twice.
+        ///
+        /// An empty buffer returned indicates that the stream has reached EOF.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn fill_buf(&amp;mut self) -&gt; io::Result&lt;&amp;[u8]&gt;;
+        /// ```
+        ///
+        /// # Errors
+        ///
+        /// This function will return an I/O error if the underlying reader was
+        /// read, but returned an error.
+        ///
+        /// [`consume`]: crate::io::AsyncBufReadExt::consume
+        </span><span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FillBuf&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/fill_buf.rs.html#21-23">fill_buf</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#271">self</a>)
+            <a href="../../../../src/tokio/io/util/fill_buf.rs.html#21-23">fill_buf</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#271">self</a>)
         }
 
-        <span class="doccomment">/// Tells this buffer that `amt` bytes have been consumed from the</span>
-        <span class="doccomment">/// buffer, so they should no longer be returned in calls to [`read`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function is a lower-level call. It needs to be paired with the</span>
-        <span class="doccomment">/// [`fill_buf`] method to function properly. This function does not</span>
-        <span class="doccomment">/// perform any I/O, it simply informs this object that some amount of</span>
-        <span class="doccomment">/// its buffer, returned from [`fill_buf`], has been consumed and should</span>
-        <span class="doccomment">/// no longer be returned. As such, this function may do odd things if</span>
-        <span class="doccomment">/// [`fill_buf`] isn&#39;t called before calling it.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The `amt` must be less than the number of bytes in the buffer</span>
-        <span class="doccomment">/// returned by [`fill_buf`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`read`]: crate::io::AsyncReadExt::read</span>
-        <span class="doccomment">/// [`fill_buf`]: crate::io::AsyncBufReadExt::fill_buf</span>
-        <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Tells this buffer that `amt` bytes have been consumed from the
+        /// buffer, so they should no longer be returned in calls to [`read`].
+        ///
+        /// This function is a lower-level call. It needs to be paired with the
+        /// [`fill_buf`] method to function properly. This function does not
+        /// perform any I/O, it simply informs this object that some amount of
+        /// its buffer, returned from [`fill_buf`], has been consumed and should
+        /// no longer be returned. As such, this function may do odd things if
+        /// [`fill_buf`] isn&#39;t called before calling it.
+        ///
+        /// The `amt` must be less than the number of bytes in the buffer
+        /// returned by [`fill_buf`].
+        ///
+        /// [`read`]: crate::io::AsyncReadExt::read
+        /// [`fill_buf`]: crate::io::AsyncBufReadExt::fill_buf
+        </span><span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <span class="ident">std::pin::Pin::new</span>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#293">self</a>).<a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#62">consume</a>(<a class="ident" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#293">amt</a>)
+            std::pin::Pin::new(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#293">self</a>).<a href="../../../../src/tokio/io/async_buf_read.rs.html#62">consume</a>(<a href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#293">amt</a>)
         }
 
-        <span class="doccomment">/// Returns a stream over the lines of this reader.</span>
-        <span class="doccomment">/// This method is the async equivalent to [`BufRead::lines`](std::io::BufRead::lines).</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The stream returned from this function will yield instances of</span>
-        <span class="doccomment">/// [`io::Result`]`&lt;`[`Option`]`&lt;`[`String`]`&gt;&gt;`. Each string returned will *not* have a newline</span>
-        <span class="doccomment">/// byte (the 0xA byte) or CRLF (0xD, 0xA bytes) at the end.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`io::Result`]: std::io::Result</span>
-        <span class="doccomment">/// [`Option`]: core::option::Option</span>
-        <span class="doccomment">/// [`String`]: String</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Each line of the stream has the same error semantics as [`AsyncBufReadExt::read_line`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`std::io::Cursor`][`Cursor`] is a type that implements `BufRead`. In</span>
-        <span class="doccomment">/// this example, we use [`Cursor`] to iterate over all the lines in a byte</span>
-        <span class="doccomment">/// slice.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`Cursor`]: std::io::Cursor</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">/// use tokio::io::AsyncBufReadExt;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// use std::io::Cursor;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() {</span>
-        <span class="doccomment">///     let cursor = Cursor::new(b&quot;lorem\nipsum\r\ndolor&quot;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     let mut lines = cursor.lines();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     assert_eq!(lines.next_line().await.unwrap(), Some(String::from(&quot;lorem&quot;)));</span>
-        <span class="doccomment">///     assert_eq!(lines.next_line().await.unwrap(), Some(String::from(&quot;ipsum&quot;)));</span>
-        <span class="doccomment">///     assert_eq!(lines.next_line().await.unwrap(), Some(String::from(&quot;dolor&quot;)));</span>
-        <span class="doccomment">///     assert_eq!(lines.next_line().await.unwrap(), None);</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`AsyncBufReadExt::read_line`]: AsyncBufReadExt::read_line</span>
-        <span class="kw">fn</span> <span class="ident">lines</span>(<span class="self">self</span>) -&gt; <span class="ident">Lines</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="doccomment">/// Returns a stream over the lines of this reader.
+        /// This method is the async equivalent to [`BufRead::lines`](std::io::BufRead::lines).
+        ///
+        /// The stream returned from this function will yield instances of
+        /// [`io::Result`]`&lt;`[`Option`]`&lt;`[`String`]`&gt;&gt;`. Each string returned will *not* have a newline
+        /// byte (the 0xA byte) or CRLF (0xD, 0xA bytes) at the end.
+        ///
+        /// [`io::Result`]: std::io::Result
+        /// [`Option`]: core::option::Option
+        /// [`String`]: String
+        ///
+        /// # Errors
+        ///
+        /// Each line of the stream has the same error semantics as [`AsyncBufReadExt::read_line`].
+        ///
+        /// # Examples
+        ///
+        /// [`std::io::Cursor`][`Cursor`] is a type that implements `BufRead`. In
+        /// this example, we use [`Cursor`] to iterate over all the lines in a byte
+        /// slice.
+        ///
+        /// [`Cursor`]: std::io::Cursor
+        ///
+        /// ```
+        /// use tokio::io::AsyncBufReadExt;
+        ///
+        /// use std::io::Cursor;
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let cursor = Cursor::new(b&quot;lorem\nipsum\r\ndolor&quot;);
+        ///
+        ///     let mut lines = cursor.lines();
+        ///
+        ///     assert_eq!(lines.next_line().await.unwrap(), Some(String::from(&quot;lorem&quot;)));
+        ///     assert_eq!(lines.next_line().await.unwrap(), Some(String::from(&quot;ipsum&quot;)));
+        ///     assert_eq!(lines.next_line().await.unwrap(), Some(String::from(&quot;dolor&quot;)));
+        ///     assert_eq!(lines.next_line().await.unwrap(), None);
+        /// }
+        /// ```
+        ///
+        /// [`AsyncBufReadExt::read_line`]: AsyncBufReadExt::read_line
+        </span><span class="kw">fn </span>lines(<span class="self">self</span>) -&gt; Lines&lt;<span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/lines.rs.html#32-34">lines</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#342">self</a>)
+            <a href="../../../../src/tokio/io/util/lines.rs.html#32-34">lines</a>(<a class="self" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#342">self</a>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#12">AsyncBufReadExt</a> <span class="kw">for</span> <span class="ident">R</span> {}
+<span class="kw">impl</span>&lt;R: <a href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../../src/tokio/io/util/async_buf_read_ext.rs.html#12">AsyncBufReadExt</a> <span class="kw">for </span>R {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

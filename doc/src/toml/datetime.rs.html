@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.9/src/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../toml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../toml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../toml/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.9/src/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../toml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../toml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../toml/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -542,549 +542,549 @@
 <span id="542">542</span>
 <span id="543">543</span>
 <span id="544">544</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <span class="ident">std::str</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>std::str::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>};
 
-<span class="kw">use</span> <span class="ident">serde</span>::{<a class="ident" href="../../serde/de/index.html">de</a>, <a class="ident" href="../../serde/ser/index.html">ser</a>};
+<span class="kw">use </span>serde::{<a href="../../serde/de/index.html">de</a>, <a href="../../serde/ser/index.html">ser</a>};
 
-<span class="doccomment">/// A parsed TOML datetime value</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This structure is intended to represent the datetime primitive type that can</span>
-<span class="doccomment">/// be encoded into TOML documents. This type is a parsed version that contains</span>
-<span class="doccomment">/// all metadata internally.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Currently this type is intentionally conservative and only supports</span>
-<span class="doccomment">/// `to_string` as an accessor. Over time though it&#39;s intended that it&#39;ll grow</span>
-<span class="doccomment">/// more support!</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that if you&#39;re using `Deserialize` to deserialize a TOML document, you</span>
-<span class="doccomment">/// can use this as a placeholder for where you&#39;re expecting a datetime to be</span>
-<span class="doccomment">/// specified.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Also note though that while this type implements `Serialize` and</span>
-<span class="doccomment">/// `Deserialize` it&#39;s only recommended to use this type with the TOML format,</span>
-<span class="doccomment">/// otherwise encoded in other formats it may look a little odd.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Depending on how the option values are used, this struct will correspond</span>
-<span class="doccomment">/// with one of the following four datetimes from the [TOML v1.0.0 spec]:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// | `date`    | `time`    | `offset`  | TOML type          |</span>
-<span class="doccomment">/// | --------- | --------- | --------- | ------------------ |</span>
-<span class="doccomment">/// | `Some(_)` | `Some(_)` | `Some(_)` | [Offset Date-Time] |</span>
-<span class="doccomment">/// | `Some(_)` | `Some(_)` | `None`    | [Local Date-Time]  |</span>
-<span class="doccomment">/// | `Some(_)` | `None`    | `None`    | [Local Date]       |</span>
-<span class="doccomment">/// | `None`    | `Some(_)` | `None`    | [Local Time]       |</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// **1. Offset Date-Time**: If all the optional values are used, `Datetime`</span>
-<span class="doccomment">/// corresponds to an [Offset Date-Time]. From the TOML v1.0.0 spec:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &gt; To unambiguously represent a specific instant in time, you may use an</span>
-<span class="doccomment">/// &gt; RFC 3339 formatted date-time with offset.</span>
-<span class="doccomment">/// &gt;</span>
-<span class="doccomment">/// &gt; ```toml</span>
-<span class="doccomment">/// &gt; odt1 = 1979-05-27T07:32:00Z</span>
-<span class="doccomment">/// &gt; odt2 = 1979-05-27T00:32:00-07:00</span>
-<span class="doccomment">/// &gt; odt3 = 1979-05-27T00:32:00.999999-07:00</span>
-<span class="doccomment">/// &gt; ```</span>
-<span class="doccomment">/// &gt;</span>
-<span class="doccomment">/// &gt; For the sake of readability, you may replace the T delimiter between date</span>
-<span class="doccomment">/// &gt; and time with a space character (as permitted by RFC 3339 section 5.6).</span>
-<span class="doccomment">/// &gt;</span>
-<span class="doccomment">/// &gt; ```toml</span>
-<span class="doccomment">/// &gt; odt4 = 1979-05-27 07:32:00Z</span>
-<span class="doccomment">/// &gt; ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// **2. Local Date-Time**: If `date` and `time` are given but `offset` is</span>
-<span class="doccomment">/// `None`, `Datetime` corresponds to a [Local Date-Time]. From the spec:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &gt; If you omit the offset from an RFC 3339 formatted date-time, it will</span>
-<span class="doccomment">/// &gt; represent the given date-time without any relation to an offset or</span>
-<span class="doccomment">/// &gt; timezone. It cannot be converted to an instant in time without additional</span>
-<span class="doccomment">/// &gt; information. Conversion to an instant, if required, is implementation-</span>
-<span class="doccomment">/// &gt; specific.</span>
-<span class="doccomment">/// &gt;</span>
-<span class="doccomment">/// &gt; ```toml</span>
-<span class="doccomment">/// &gt; ldt1 = 1979-05-27T07:32:00</span>
-<span class="doccomment">/// &gt; ldt2 = 1979-05-27T00:32:00.999999</span>
-<span class="doccomment">/// &gt; ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// **3. Local Date**: If only `date` is given, `Datetime` corresponds to a</span>
-<span class="doccomment">/// [Local Date]; see the docs for [`Date`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// **4. Local Time**: If only `time` is given, `Datetime` corresponds to a</span>
-<span class="doccomment">/// [Local Time]; see the docs for [`Time`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [TOML v1.0.0 spec]: https://toml.io/en/v1.0.0</span>
-<span class="doccomment">/// [Offset Date-Time]: https://toml.io/en/v1.0.0#offset-date-time</span>
-<span class="doccomment">/// [Local Date-Time]: https://toml.io/en/v1.0.0#local-date-time</span>
-<span class="doccomment">/// [Local Date]: https://toml.io/en/v1.0.0#local-date</span>
-<span class="doccomment">/// [Local Time]: https://toml.io/en/v1.0.0#local-time</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Datetime</span> {
-    <span class="doccomment">/// Optional date.</span>
-    <span class="doccomment">/// Required for: *Offset Date-Time*, *Local Date-Time*, *Local Date*.</span>
-    <span class="kw">pub</span> <span class="ident">date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#124">Date</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A parsed TOML datetime value
+///
+/// This structure is intended to represent the datetime primitive type that can
+/// be encoded into TOML documents. This type is a parsed version that contains
+/// all metadata internally.
+///
+/// Currently this type is intentionally conservative and only supports
+/// `to_string` as an accessor. Over time though it&#39;s intended that it&#39;ll grow
+/// more support!
+///
+/// Note that if you&#39;re using `Deserialize` to deserialize a TOML document, you
+/// can use this as a placeholder for where you&#39;re expecting a datetime to be
+/// specified.
+///
+/// Also note though that while this type implements `Serialize` and
+/// `Deserialize` it&#39;s only recommended to use this type with the TOML format,
+/// otherwise encoded in other formats it may look a little odd.
+///
+/// Depending on how the option values are used, this struct will correspond
+/// with one of the following four datetimes from the [TOML v1.0.0 spec]:
+///
+/// | `date`    | `time`    | `offset`  | TOML type          |
+/// | --------- | --------- | --------- | ------------------ |
+/// | `Some(_)` | `Some(_)` | `Some(_)` | [Offset Date-Time] |
+/// | `Some(_)` | `Some(_)` | `None`    | [Local Date-Time]  |
+/// | `Some(_)` | `None`    | `None`    | [Local Date]       |
+/// | `None`    | `Some(_)` | `None`    | [Local Time]       |
+///
+/// **1. Offset Date-Time**: If all the optional values are used, `Datetime`
+/// corresponds to an [Offset Date-Time]. From the TOML v1.0.0 spec:
+///
+/// &gt; To unambiguously represent a specific instant in time, you may use an
+/// &gt; RFC 3339 formatted date-time with offset.
+/// &gt;
+/// &gt; ```toml
+/// &gt; odt1 = 1979-05-27T07:32:00Z
+/// &gt; odt2 = 1979-05-27T00:32:00-07:00
+/// &gt; odt3 = 1979-05-27T00:32:00.999999-07:00
+/// &gt; ```
+/// &gt;
+/// &gt; For the sake of readability, you may replace the T delimiter between date
+/// &gt; and time with a space character (as permitted by RFC 3339 section 5.6).
+/// &gt;
+/// &gt; ```toml
+/// &gt; odt4 = 1979-05-27 07:32:00Z
+/// &gt; ```
+///
+/// **2. Local Date-Time**: If `date` and `time` are given but `offset` is
+/// `None`, `Datetime` corresponds to a [Local Date-Time]. From the spec:
+///
+/// &gt; If you omit the offset from an RFC 3339 formatted date-time, it will
+/// &gt; represent the given date-time without any relation to an offset or
+/// &gt; timezone. It cannot be converted to an instant in time without additional
+/// &gt; information. Conversion to an instant, if required, is implementation-
+/// &gt; specific.
+/// &gt;
+/// &gt; ```toml
+/// &gt; ldt1 = 1979-05-27T07:32:00
+/// &gt; ldt2 = 1979-05-27T00:32:00.999999
+/// &gt; ```
+///
+/// **3. Local Date**: If only `date` is given, `Datetime` corresponds to a
+/// [Local Date]; see the docs for [`Date`].
+///
+/// **4. Local Time**: If only `time` is given, `Datetime` corresponds to a
+/// [Local Time]; see the docs for [`Time`].
+///
+/// [TOML v1.0.0 spec]: https://toml.io/en/v1.0.0
+/// [Offset Date-Time]: https://toml.io/en/v1.0.0#offset-date-time
+/// [Local Date-Time]: https://toml.io/en/v1.0.0#local-date-time
+/// [Local Date]: https://toml.io/en/v1.0.0#local-date
+/// [Local Time]: https://toml.io/en/v1.0.0#local-time
+</span><span class="attribute">#[derive(PartialEq, Clone)]
+</span><span class="kw">pub struct </span>Datetime {
+    <span class="doccomment">/// Optional date.
+    /// Required for: *Offset Date-Time*, *Local Date-Time*, *Local Date*.
+    </span><span class="kw">pub </span>date: <span class="prelude-ty">Option</span>&lt;<a href="../../src/toml/datetime.rs.html#124">Date</a>&gt;,
 
-    <span class="doccomment">/// Optional time.</span>
-    <span class="doccomment">/// Required for: *Offset Date-Time*, *Local Date-Time*, *Local Time*.</span>
-    <span class="kw">pub</span> <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#154">Time</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Optional time.
+    /// Required for: *Offset Date-Time*, *Local Date-Time*, *Local Time*.
+    </span><span class="kw">pub </span>time: <span class="prelude-ty">Option</span>&lt;<a href="../../src/toml/datetime.rs.html#154">Time</a>&gt;,
 
-    <span class="doccomment">/// Optional offset.</span>
-    <span class="doccomment">/// Required for: *Offset Date-Time*.</span>
-    <span class="kw">pub</span> <span class="ident">offset</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#168">Offset</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Optional offset.
+    /// Required for: *Offset Date-Time*.
+    </span><span class="kw">pub </span>offset: <span class="prelude-ty">Option</span>&lt;<a href="../../src/toml/datetime.rs.html#168">Offset</a>&gt;,
 }
 
-<span class="doccomment">/// Error returned from parsing a `Datetime` in the `FromStr` implementation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DatetimeParseError</span> {
-    <span class="ident">_private</span>: (),
+<span class="doccomment">/// Error returned from parsing a `Datetime` in the `FromStr` implementation.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>DatetimeParseError {
+    _private: (),
 }
 
-<span class="comment">// Currently serde itself doesn&#39;t have a datetime type, so we map our `Datetime`</span>
-<span class="comment">// to a special valid in the serde data model. Namely one with these special</span>
-<span class="comment">// fields/struct names.</span>
-<span class="comment">//</span>
-<span class="comment">// In general the TOML encoder/decoder will catch this and not literally emit</span>
-<span class="comment">// these strings but rather emit datetimes as they&#39;re intended.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIELD</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;$__toml_private_datetime&quot;</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;$__toml_private_Datetime&quot;</span>;
+<span class="comment">// Currently serde itself doesn&#39;t have a datetime type, so we map our `Datetime`
+// to a special valid in the serde data model. Namely one with these special
+// fields/struct names.
+//
+// In general the TOML encoder/decoder will catch this and not literally emit
+// these strings but rather emit datetimes as they&#39;re intended.
+</span><span class="kw">pub const </span>FIELD: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;$__toml_private_datetime&quot;</span>;
+<span class="kw">pub const </span>NAME: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;$__toml_private_Datetime&quot;</span>;
 
-<span class="doccomment">/// A parsed TOML date value</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// May be part of a [`Datetime`]. Alone, `Date` corresponds to a [Local Date].</span>
-<span class="doccomment">/// From the TOML v1.0.0 spec:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &gt; If you include only the date portion of an RFC 3339 formatted date-time,</span>
-<span class="doccomment">/// &gt; it will represent that entire day without any relation to an offset or</span>
-<span class="doccomment">/// &gt; timezone.</span>
-<span class="doccomment">/// &gt;</span>
-<span class="doccomment">/// &gt; ```toml</span>
-<span class="doccomment">/// &gt; ld1 = 1979-05-27</span>
-<span class="doccomment">/// &gt; ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [Local Date]: https://toml.io/en/v1.0.0#local-date</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Date</span> {
-    <span class="doccomment">/// Year: four digits</span>
-    <span class="kw">pub</span> <span class="ident">year</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
-    <span class="doccomment">/// Month: 1 to 12</span>
-    <span class="kw">pub</span> <span class="ident">month</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="doccomment">/// Day: 1 to {28, 29, 30, 31} (based on month/year)</span>
-    <span class="kw">pub</span> <span class="ident">day</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+<span class="doccomment">/// A parsed TOML date value
+///
+/// May be part of a [`Datetime`]. Alone, `Date` corresponds to a [Local Date].
+/// From the TOML v1.0.0 spec:
+///
+/// &gt; If you include only the date portion of an RFC 3339 formatted date-time,
+/// &gt; it will represent that entire day without any relation to an offset or
+/// &gt; timezone.
+/// &gt;
+/// &gt; ```toml
+/// &gt; ld1 = 1979-05-27
+/// &gt; ```
+///
+/// [Local Date]: https://toml.io/en/v1.0.0#local-date
+</span><span class="attribute">#[derive(PartialEq, Clone)]
+</span><span class="kw">pub struct </span>Date {
+    <span class="doccomment">/// Year: four digits
+    </span><span class="kw">pub </span>year: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
+    <span class="doccomment">/// Month: 1 to 12
+    </span><span class="kw">pub </span>month: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    <span class="doccomment">/// Day: 1 to {28, 29, 30, 31} (based on month/year)
+    </span><span class="kw">pub </span>day: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="doccomment">/// A parsed TOML time value</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// May be part of a [`Datetime`]. Alone, `Time` corresponds to a [Local Time].</span>
-<span class="doccomment">/// From the TOML v1.0.0 spec:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &gt; If you include only the time portion of an RFC 3339 formatted date-time,</span>
-<span class="doccomment">/// &gt; it will represent that time of day without any relation to a specific</span>
-<span class="doccomment">/// &gt; day or any offset or timezone.</span>
-<span class="doccomment">/// &gt;</span>
-<span class="doccomment">/// &gt; ```toml</span>
-<span class="doccomment">/// &gt; lt1 = 07:32:00</span>
-<span class="doccomment">/// &gt; lt2 = 00:32:00.999999</span>
-<span class="doccomment">/// &gt; ```</span>
-<span class="doccomment">/// &gt;</span>
-<span class="doccomment">/// &gt; Millisecond precision is required. Further precision of fractional</span>
-<span class="doccomment">/// &gt; seconds is implementation-specific. If the value contains greater</span>
-<span class="doccomment">/// &gt; precision than the implementation can support, the additional precision</span>
-<span class="doccomment">/// &gt; must be truncated, not rounded.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [Local Time]: https://toml.io/en/v1.0.0#local-time</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Time</span> {
-    <span class="doccomment">/// Hour: 0 to 23</span>
-    <span class="kw">pub</span> <span class="ident">hour</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="doccomment">/// Minute: 0 to 59</span>
-    <span class="kw">pub</span> <span class="ident">minute</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="doccomment">/// Second: 0 to {58, 59, 60} (based on leap second rules)</span>
-    <span class="kw">pub</span> <span class="ident">second</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    <span class="doccomment">/// Nanosecond: 0 to 999_999_999</span>
-    <span class="kw">pub</span> <span class="ident">nanosecond</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+<span class="doccomment">/// A parsed TOML time value
+///
+/// May be part of a [`Datetime`]. Alone, `Time` corresponds to a [Local Time].
+/// From the TOML v1.0.0 spec:
+///
+/// &gt; If you include only the time portion of an RFC 3339 formatted date-time,
+/// &gt; it will represent that time of day without any relation to a specific
+/// &gt; day or any offset or timezone.
+/// &gt;
+/// &gt; ```toml
+/// &gt; lt1 = 07:32:00
+/// &gt; lt2 = 00:32:00.999999
+/// &gt; ```
+/// &gt;
+/// &gt; Millisecond precision is required. Further precision of fractional
+/// &gt; seconds is implementation-specific. If the value contains greater
+/// &gt; precision than the implementation can support, the additional precision
+/// &gt; must be truncated, not rounded.
+///
+/// [Local Time]: https://toml.io/en/v1.0.0#local-time
+</span><span class="attribute">#[derive(PartialEq, Clone)]
+</span><span class="kw">pub struct </span>Time {
+    <span class="doccomment">/// Hour: 0 to 23
+    </span><span class="kw">pub </span>hour: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    <span class="doccomment">/// Minute: 0 to 59
+    </span><span class="kw">pub </span>minute: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    <span class="doccomment">/// Second: 0 to {58, 59, 60} (based on leap second rules)
+    </span><span class="kw">pub </span>second: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    <span class="doccomment">/// Nanosecond: 0 to 999_999_999
+    </span><span class="kw">pub </span>nanosecond: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
-<span class="doccomment">/// A parsed TOML time offset</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Offset</span> {
-    <span class="doccomment">/// &gt; A suffix which, when applied to a time, denotes a UTC offset of 00:00;</span>
-    <span class="doccomment">/// &gt; often spoken &quot;Zulu&quot; from the ICAO phonetic alphabet representation of</span>
-    <span class="doccomment">/// &gt; the letter &quot;Z&quot;. --- [RFC 3339 section 2]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [RFC 3339 section 2]: https://datatracker.ietf.org/doc/html/rfc3339#section-2</span>
-    <span class="ident">Z</span>,
+<span class="doccomment">/// A parsed TOML time offset
+///
+</span><span class="attribute">#[derive(PartialEq, Clone)]
+</span><span class="kw">pub enum </span>Offset {
+    <span class="doccomment">/// &gt; A suffix which, when applied to a time, denotes a UTC offset of 00:00;
+    /// &gt; often spoken &quot;Zulu&quot; from the ICAO phonetic alphabet representation of
+    /// &gt; the letter &quot;Z&quot;. --- [RFC 3339 section 2]
+    ///
+    /// [RFC 3339 section 2]: https://datatracker.ietf.org/doc/html/rfc3339#section-2
+    </span>Z,
 
-    <span class="doccomment">/// Offset between local time and UTC</span>
-    <span class="ident">Custom</span> {
-        <span class="doccomment">/// Hours: -12 to +12</span>
-        <span class="ident">hours</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>,
+    <span class="doccomment">/// Offset between local time and UTC
+    </span>Custom {
+        <span class="doccomment">/// Hours: -12 to +12
+        </span>hours: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>,
 
-        <span class="doccomment">/// Minutes: 0 to 59</span>
-        <span class="ident">minutes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        <span class="doccomment">/// Minutes: 0 to 59
+        </span>minutes: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     },
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="self" href="../../src/toml/datetime.rs.html#187">self</a>, <a class="ident" href="../../src/toml/datetime.rs.html#187">f</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#80">Datetime</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="self" href="../../src/toml/datetime.rs.html#187">self</a>, <a href="../../src/toml/datetime.rs.html#187">f</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">date</span>) <span class="op">=</span> <a class="self" href="../../src/toml/datetime.rs.html#193">self</a>.<span class="ident">date</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">date</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#80">Datetime</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>date) = <a class="self" href="../../src/toml/datetime.rs.html#193">self</a>.date {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, date)<span class="question-mark">?</span>;
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">time</span>) <span class="op">=</span> <a class="self" href="../../src/toml/datetime.rs.html#193">self</a>.<span class="ident">time</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">date</span>.<span class="ident">is_some</span>() {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;T&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>time) = <a class="self" href="../../src/toml/datetime.rs.html#193">self</a>.time {
+            <span class="kw">if </span><span class="self">self</span>.date.is_some() {
+                <span class="macro">write!</span>(f, <span class="string">&quot;T&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">time</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, time)<span class="question-mark">?</span>;
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">offset</span>) <span class="op">=</span> <a class="self" href="../../src/toml/datetime.rs.html#193">self</a>.<span class="ident">offset</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">offset</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>offset) = <a class="self" href="../../src/toml/datetime.rs.html#193">self</a>.offset {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, offset)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#124">Date</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/toml/datetime.rs.html#211">f</a>, <span class="string">&quot;{:04}-{:02}-{:02}&quot;</span>, <span class="self">self</span>.<span class="ident">year</span>, <span class="self">self</span>.<span class="ident">month</span>, <span class="self">self</span>.<span class="ident">day</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#124">Date</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/toml/datetime.rs.html#211">f</a>, <span class="string">&quot;{:04}-{:02}-{:02}&quot;</span>, <span class="self">self</span>.year, <span class="self">self</span>.month, <span class="self">self</span>.day)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#154">Time</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:02}:{:02}:{:02}&quot;</span>, <span class="self">self</span>.<span class="ident">hour</span>, <span class="self">self</span>.<span class="ident">minute</span>, <span class="self">self</span>.<span class="ident">second</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">nanosecond</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:09}&quot;</span>, <span class="self">self</span>.<span class="ident">nanosecond</span>);
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;.{}&quot;</span>, <span class="ident">s</span>.<span class="ident">trim_end_matches</span>(<span class="string">&#39;0&#39;</span>))<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#154">Time</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:02}:{:02}:{:02}&quot;</span>, <span class="self">self</span>.hour, <span class="self">self</span>.minute, <span class="self">self</span>.second)<span class="question-mark">?</span>;
+        <span class="kw">if </span><span class="self">self</span>.nanosecond != <span class="number">0 </span>{
+            <span class="kw">let </span>s = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:09}&quot;</span>, <span class="self">self</span>.nanosecond);
+            <span class="macro">write!</span>(f, <span class="string">&quot;.{}&quot;</span>, s.trim_end_matches(<span class="string">&#39;0&#39;</span>))<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#168">Offset</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/toml/datetime.rs.html#228">self</a> {
-            <a class="ident" href="../../src/toml/datetime.rs.html#174">Offset::Z</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/toml/datetime.rs.html#228">f</a>, <span class="string">&quot;Z&quot;</span>),
-            <a class="ident" href="../../src/toml/datetime.rs.html#177">Offset::Custom</a> { <span class="ident">hours</span>, <span class="ident">minutes</span> } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/toml/datetime.rs.html#228">f</a>, <span class="string">&quot;{:+03}:{:02}&quot;</span>, <span class="ident">hours</span>, <span class="ident">minutes</span>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#168">Offset</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/toml/datetime.rs.html#228">self</a> </span>{
+            <a href="../../src/toml/datetime.rs.html#174">Offset::Z</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/toml/datetime.rs.html#228">f</a>, <span class="string">&quot;Z&quot;</span>),
+            <a href="../../src/toml/datetime.rs.html#177">Offset::Custom</a> { hours, minutes } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/toml/datetime.rs.html#228">f</a>, <span class="string">&quot;{:+03}:{:02}&quot;</span>, hours, minutes),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#80">Datetime</a> {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">date</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a>, <a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a><span class="op">&gt;</span> {
-        <span class="comment">// Accepted formats:</span>
-        <span class="comment">//</span>
-        <span class="comment">// 0000-00-00T00:00:00.00Z</span>
-        <span class="comment">// 0000-00-00T00:00:00.00</span>
-        <span class="comment">// 0000-00-00</span>
-        <span class="comment">// 00:00:00.00</span>
-        <span class="kw">if</span> <span class="ident">date</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">3</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+    <span class="kw">fn </span>from_str(date: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/toml/datetime.rs.html#80">Datetime</a>, <a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a>&gt; {
+        <span class="comment">// Accepted formats:
+        //
+        // 0000-00-00T00:00:00.00Z
+        // 0000-00-00T00:00:00.00
+        // 0000-00-00
+        // 00:00:00.00
+        </span><span class="kw">if </span>date.len() &lt; <span class="number">3 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset_allowed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#239">date</a>.<span class="ident">chars</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>offset_allowed = <span class="bool-val">true</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>chars = <a href="../../src/toml/datetime.rs.html#239">date</a>.chars();
 
-        <span class="comment">// First up, parse the full date if we can</span>
-        <span class="kw">let</span> <span class="ident">full_date</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">chars</span>.<span class="ident">clone</span>().<span class="ident">nth</span>(<span class="number">2</span>) <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) {
-            <a class="ident" href="../../src/toml/datetime.rs.html#249">offset_allowed</a> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">y1</span> <span class="op">=</span> <span class="ident">u16::from</span>(<span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>);
-            <span class="kw">let</span> <span class="ident">y2</span> <span class="op">=</span> <span class="ident">u16::from</span>(<span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>);
-            <span class="kw">let</span> <span class="ident">y3</span> <span class="op">=</span> <span class="ident">u16::from</span>(<span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>);
-            <span class="kw">let</span> <span class="ident">y4</span> <span class="op">=</span> <span class="ident">u16::from</span>(<span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>);
+        <span class="comment">// First up, parse the full date if we can
+        </span><span class="kw">let </span>full_date = <span class="kw">if </span>chars.clone().nth(<span class="number">2</span>) == <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) {
+            <a href="../../src/toml/datetime.rs.html#249">offset_allowed</a> = <span class="bool-val">false</span>;
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="kw">let </span>y1 = u16::from(digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>);
+            <span class="kw">let </span>y2 = u16::from(digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>);
+            <span class="kw">let </span>y3 = u16::from(digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>);
+            <span class="kw">let </span>y4 = u16::from(digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>);
 
-            <span class="kw">match</span> <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">match </span><a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
                 <span class="prelude-val">Some</span>(<span class="string">&#39;-&#39;</span>) =&gt; {}
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () }),
             }
 
-            <span class="kw">let</span> <span class="ident">m1</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">m2</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>m1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
+            <span class="kw">let </span>m2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
 
-            <span class="kw">match</span> <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">match </span><a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
                 <span class="prelude-val">Some</span>(<span class="string">&#39;-&#39;</span>) =&gt; {}
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () }),
             }
 
-            <span class="kw">let</span> <span class="ident">d1</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">d2</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>d1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
+            <span class="kw">let </span>d2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#124">Date</a> {
-                <span class="ident">year</span>: <a class="ident" href="../../src/toml/datetime.rs.html#257">y1</a> <span class="op">*</span> <span class="number">1000</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#258">y2</a> <span class="op">*</span> <span class="number">100</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#259">y3</a> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#260">y4</a>,
-                <span class="ident">month</span>: <a class="ident" href="../../src/toml/datetime.rs.html#267">m1</a> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#268">m2</a>,
-                <span class="ident">day</span>: <a class="ident" href="../../src/toml/datetime.rs.html#275">d1</a> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#276">d2</a>,
+            <span class="kw">let </span>date = <a href="../../src/toml/datetime.rs.html#124">Date</a> {
+                year: <a href="../../src/toml/datetime.rs.html#257">y1</a> * <span class="number">1000 </span>+ <a href="../../src/toml/datetime.rs.html#258">y2</a> * <span class="number">100 </span>+ <a href="../../src/toml/datetime.rs.html#259">y3</a> * <span class="number">10 </span>+ <a href="../../src/toml/datetime.rs.html#260">y4</a>,
+                month: <a href="../../src/toml/datetime.rs.html#267">m1</a> * <span class="number">10 </span>+ <a href="../../src/toml/datetime.rs.html#268">m2</a>,
+                day: <a href="../../src/toml/datetime.rs.html#275">d1</a> * <span class="number">10 </span>+ <a href="../../src/toml/datetime.rs.html#276">d2</a>,
             };
 
-            <span class="kw">if</span> <span class="ident">date</span>.<span class="ident">month</span> <span class="op">&lt;</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">date</span>.<span class="ident">month</span> <span class="op">&gt;</span> <span class="number">12</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+            <span class="kw">if </span>date.month &lt; <span class="number">1 </span>|| date.month &gt; <span class="number">12 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
             }
-            <span class="kw">if</span> <span class="ident">date</span>.<span class="ident">day</span> <span class="op">&lt;</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">date</span>.<span class="ident">day</span> <span class="op">&gt;</span> <span class="number">31</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+            <span class="kw">if </span>date.day &lt; <span class="number">1 </span>|| date.day &gt; <span class="number">31 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
             }
 
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/toml/datetime.rs.html#278">date</a>)
+            <span class="prelude-val">Some</span>(<a href="../../src/toml/datetime.rs.html#278">date</a>)
         };
 
-        <span class="comment">// Next parse the &quot;partial-time&quot; if available</span>
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-        <span class="kw">let</span> <span class="ident">partial_time</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">full_date</span>.<span class="ident">is_some</span>()
-            <span class="op">&amp;&amp;</span> (<span class="ident">next</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&#39;T&#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">next</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&#39;t&#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">next</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&#39; &#39;</span>))
+        <span class="comment">// Next parse the &quot;partial-time&quot; if available
+        </span><span class="kw">let </span>next = <a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        <span class="kw">let </span>partial_time = <span class="kw">if </span>full_date.is_some()
+            &amp;&amp; (next == <span class="prelude-val">Some</span>(<span class="string">&#39;T&#39;</span>) || next == <span class="prelude-val">Some</span>(<span class="string">&#39;t&#39;</span>) || next == <span class="prelude-val">Some</span>(<span class="string">&#39; &#39;</span>))
         {
-            <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-            <span class="bool-val">true</span>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../src/toml/datetime.rs.html#253">full_date</a>.<span class="ident">is_none</span>()
+            <a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+            <span class="bool-val">true
+        </span>} <span class="kw">else </span>{
+            <a href="../../src/toml/datetime.rs.html#253">full_date</a>.is_none()
         };
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">partial_time</span> {
-            <span class="kw">let</span> <span class="ident">h1</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">h2</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
-            <span class="kw">match</span> <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">let </span>time = <span class="kw">if </span>partial_time {
+            <span class="kw">let </span>h1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
+            <span class="kw">let </span>h2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
+            <span class="kw">match </span><a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
                 <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) =&gt; {}
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () }),
             }
-            <span class="kw">let</span> <span class="ident">m1</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">m2</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
-            <span class="kw">match</span> <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">let </span>m1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
+            <span class="kw">let </span>m2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
+            <span class="kw">match </span><a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
                 <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) =&gt; {}
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () }),
             }
-            <span class="kw">let</span> <span class="ident">s1</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>s1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
+            <span class="kw">let </span>s2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nanosecond</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">if</span> <span class="ident">chars</span>.<span class="ident">clone</span>().<span class="ident">next</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&#39;.&#39;</span>) {
-                <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                <span class="kw">let</span> <span class="ident">whole</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<span class="ident">as_str</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>nanosecond = <span class="number">0</span>;
+            <span class="kw">if </span>chars.clone().next() == <span class="prelude-val">Some</span>(<span class="string">&#39;.&#39;</span>) {
+                <a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                <span class="kw">let </span>whole = <a href="../../src/toml/datetime.rs.html#250">chars</a>.as_str();
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#324">whole</a>.<span class="ident">len</span>();
-                <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">byte</span>) <span class="kw">in</span> <span class="ident">whole</span>.<span class="ident">bytes</span>().<span class="ident">enumerate</span>() {
-                    <span class="kw">match</span> <span class="ident">byte</span> {
-                        <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> =&gt; {
-                            <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">9</span> {
-                                <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="number">10_u32</span>.<span class="ident">pow</span>(<span class="number">8</span> <span class="op">-</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>);
-                                <span class="ident">nanosecond</span> <span class="op">+</span><span class="op">=</span> <span class="ident">p</span> <span class="op">*</span> <span class="ident">u32::from</span>(<span class="ident">byte</span> <span class="op">-</span> <span class="string">b&#39;0&#39;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>end = <a href="../../src/toml/datetime.rs.html#324">whole</a>.len();
+                <span class="kw">for </span>(i, byte) <span class="kw">in </span>whole.bytes().enumerate() {
+                    <span class="kw">match </span>byte {
+                        <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
+                            <span class="kw">if </span>i &lt; <span class="number">9 </span>{
+                                <span class="kw">let </span>p = <span class="number">10_u32</span>.pow(<span class="number">8 </span>- i <span class="kw">as </span>u32);
+                                nanosecond += p * u32::from(byte - <span class="string">b&#39;0&#39;</span>);
                             }
                         }
-                        <span class="kw">_</span> =&gt; {
-                            <span class="ident">end</span> <span class="op">=</span> <span class="ident">i</span>;
+                        <span class="kw">_ </span>=&gt; {
+                            end = i;
                             <span class="kw">break</span>;
                         }
                     }
                 }
-                <span class="kw">if</span> <span class="ident">end</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+                <span class="kw">if </span>end == <span class="number">0 </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
                 }
-                <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#324">whole</a>[<a class="ident" href="../../src/toml/datetime.rs.html#326">end</a>..].<span class="ident">chars</span>();
+                <a href="../../src/toml/datetime.rs.html#250">chars</a> = <a href="../../src/toml/datetime.rs.html#324">whole</a>[<a href="../../src/toml/datetime.rs.html#326">end</a>..].chars();
             }
 
-            <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#154">Time</a> {
-                <span class="ident">hour</span>: <a class="ident" href="../../src/toml/datetime.rs.html#306">h1</a> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#307">h2</a>,
-                <span class="ident">minute</span>: <a class="ident" href="../../src/toml/datetime.rs.html#312">m1</a> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#313">m2</a>,
-                <span class="ident">second</span>: <a class="ident" href="../../src/toml/datetime.rs.html#318">s1</a> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#319">s2</a>,
-                <a class="ident" href="../../src/toml/datetime.rs.html#321">nanosecond</a>,
+            <span class="kw">let </span>time = <a href="../../src/toml/datetime.rs.html#154">Time</a> {
+                hour: <a href="../../src/toml/datetime.rs.html#306">h1</a> * <span class="number">10 </span>+ <a href="../../src/toml/datetime.rs.html#307">h2</a>,
+                minute: <a href="../../src/toml/datetime.rs.html#312">m1</a> * <span class="number">10 </span>+ <a href="../../src/toml/datetime.rs.html#313">m2</a>,
+                second: <a href="../../src/toml/datetime.rs.html#318">s1</a> * <span class="number">10 </span>+ <a href="../../src/toml/datetime.rs.html#319">s2</a>,
+                <a href="../../src/toml/datetime.rs.html#321">nanosecond</a>,
             };
 
-            <span class="kw">if</span> <span class="ident">time</span>.<span class="ident">hour</span> <span class="op">&gt;</span> <span class="number">24</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+            <span class="kw">if </span>time.hour &gt; <span class="number">24 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
             }
-            <span class="kw">if</span> <span class="ident">time</span>.<span class="ident">minute</span> <span class="op">&gt;</span> <span class="number">59</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+            <span class="kw">if </span>time.minute &gt; <span class="number">59 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
             }
-            <span class="kw">if</span> <span class="ident">time</span>.<span class="ident">second</span> <span class="op">&gt;</span> <span class="number">59</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+            <span class="kw">if </span>time.second &gt; <span class="number">59 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
             }
-            <span class="kw">if</span> <span class="ident">time</span>.<span class="ident">nanosecond</span> <span class="op">&gt;</span> <span class="number">999_999_999</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+            <span class="kw">if </span>time.nanosecond &gt; <span class="number">999_999_999 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
             }
 
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/toml/datetime.rs.html#347">time</a>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../src/toml/datetime.rs.html#249">offset_allowed</a> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="prelude-val">None</span>
-        };
+            <span class="prelude-val">Some</span>(<a href="../../src/toml/datetime.rs.html#347">time</a>)
+        } <span class="kw">else </span>{
+            <a href="../../src/toml/datetime.rs.html#249">offset_allowed</a> = <span class="bool-val">false</span>;
+            <span class="prelude-val">None
+        </span>};
 
-        <span class="comment">// And finally, parse the offset</span>
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">offset_allowed</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-            <span class="kw">if</span> <span class="ident">next</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&#39;Z&#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">next</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&#39;z&#39;</span>) {
-                <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/toml/datetime.rs.html#174">Offset::Z</a>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_none</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">sign</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/toml/datetime.rs.html#375">next</a> {
+        <span class="comment">// And finally, parse the offset
+        </span><span class="kw">let </span>offset = <span class="kw">if </span>offset_allowed {
+            <span class="kw">let </span>next = <a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+            <span class="kw">if </span>next == <span class="prelude-val">Some</span>(<span class="string">&#39;Z&#39;</span>) || next == <span class="prelude-val">Some</span>(<span class="string">&#39;z&#39;</span>) {
+                <a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                <span class="prelude-val">Some</span>(<a href="../../src/toml/datetime.rs.html#174">Offset::Z</a>)
+            } <span class="kw">else if </span>next.is_none() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="kw">let </span>sign = <span class="kw">match </span><a href="../../src/toml/datetime.rs.html#375">next</a> {
                     <span class="prelude-val">Some</span>(<span class="string">&#39;+&#39;</span>) =&gt; <span class="number">1</span>,
-                    <span class="prelude-val">Some</span>(<span class="string">&#39;-&#39;</span>) =&gt; <span class="op">-</span><span class="number">1</span>,
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () }),
+                    <span class="prelude-val">Some</span>(<span class="string">&#39;-&#39;</span>) =&gt; -<span class="number">1</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () }),
                 };
-                <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                <span class="kw">let</span> <span class="ident">h1</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>;
-                <span class="kw">let</span> <span class="ident">h2</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>;
-                <span class="kw">match</span> <a class="ident" href="../../src/toml/datetime.rs.html#250">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                <a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                <span class="kw">let </span>h1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>;
+                <span class="kw">let </span>h2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">? </span><span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>;
+                <span class="kw">match </span><a href="../../src/toml/datetime.rs.html#250">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
                     <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>) =&gt; {}
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () }),
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () }),
                 }
-                <span class="kw">let</span> <span class="ident">m1</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">m2</span> <span class="op">=</span> <span class="ident">digit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chars</span>)<span class="question-mark">?</span>;
+                <span class="kw">let </span>m1 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
+                <span class="kw">let </span>m2 = digit(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
 
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/toml/datetime.rs.html#177">Offset::Custom</a> {
-                    <span class="ident">hours</span>: <a class="ident" href="../../src/toml/datetime.rs.html#382">sign</a> <span class="op">*</span> (<a class="ident" href="../../src/toml/datetime.rs.html#388">h1</a> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#389">h2</a>),
-                    <span class="ident">minutes</span>: <a class="ident" href="../../src/toml/datetime.rs.html#394">m1</a> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> <a class="ident" href="../../src/toml/datetime.rs.html#395">m2</a>,
+                <span class="prelude-val">Some</span>(<a href="../../src/toml/datetime.rs.html#177">Offset::Custom</a> {
+                    hours: <a href="../../src/toml/datetime.rs.html#382">sign</a> * (<a href="../../src/toml/datetime.rs.html#388">h1</a> * <span class="number">10 </span>+ <a href="../../src/toml/datetime.rs.html#389">h2</a>),
+                    minutes: <a href="../../src/toml/datetime.rs.html#394">m1</a> * <span class="number">10 </span>+ <a href="../../src/toml/datetime.rs.html#395">m2</a>,
                 })
             }
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
 
-        <span class="comment">// Return an error if we didn&#39;t hit eof, otherwise return our parsed</span>
-        <span class="comment">// date</span>
-        <span class="kw">if</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">is_some</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () });
+        <span class="comment">// Return an error if we didn&#39;t hit eof, otherwise return our parsed
+        // date
+        </span><span class="kw">if </span>chars.next().is_some() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () });
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a> {
-            <span class="ident">date</span>: <a class="ident" href="../../src/toml/datetime.rs.html#253">full_date</a>,
-            <a class="ident" href="../../src/toml/datetime.rs.html#305">time</a>,
-            <a class="ident" href="../../src/toml/datetime.rs.html#374">offset</a>,
+        <span class="prelude-val">Ok</span>(<a href="../../src/toml/datetime.rs.html#80">Datetime</a> {
+            date: <a href="../../src/toml/datetime.rs.html#253">full_date</a>,
+            <a href="../../src/toml/datetime.rs.html#305">time</a>,
+            <a href="../../src/toml/datetime.rs.html#374">offset</a>,
         })
     }
 }
 
-<span class="kw">fn</span> <span class="ident">digit</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;mut</span> <span class="ident">str::Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../src/toml/datetime.rs.html#420">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="string">&#39;0&#39;</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#422">c</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/toml/datetime.rs.html#422">c</a> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;9&#39;</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/toml/datetime.rs.html#422">c</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">-</span> <span class="string">b&#39;0&#39;</span>),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { <span class="ident">_private</span>: () }),
+<span class="kw">fn </span>digit(chars: <span class="kw-2">&amp;mut </span>str::Chars&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a>&gt; {
+    <span class="kw">match </span><a href="../../src/toml/datetime.rs.html#420">chars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="prelude-val">Some</span>(c) <span class="kw">if </span><span class="string">&#39;0&#39; </span>&lt;= <a href="../../src/toml/datetime.rs.html#422">c</a> &amp;&amp; <a href="../../src/toml/datetime.rs.html#422">c</a> &lt;= <span class="string">&#39;9&#39; </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../src/toml/datetime.rs.html#422">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> - <span class="string">b&#39;0&#39;</span>),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> { _private: () }),
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../serde/ser/trait.Serialize.html">ser::Serialize</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a> {
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../serde/ser/trait.Serializer.html">ser::Serializer</a>,
+<span class="kw">impl </span><a href="../../serde/ser/trait.Serialize.html">ser::Serialize</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#80">Datetime</a> {
+    <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
+    <span class="kw">where
+        </span>S: <a href="../../serde/ser/trait.Serializer.html">ser::Serializer</a>,
     {
-        <span class="kw">use</span> <a class="ident" href="../../serde/ser/trait.SerializeStruct.html">serde::ser::SerializeStruct</a>;
+        <span class="kw">use </span><a href="../../serde/ser/trait.SerializeStruct.html">serde::ser::SerializeStruct</a>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">serializer</span>.<span class="ident">serialize_struct</span>(<span class="ident">NAME</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
-        <span class="ident">s</span>.<span class="ident">serialize_field</span>(<span class="ident">FIELD</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/toml/datetime.rs.html#434">s</a>.<a class="ident" href="../../serde/ser/trait.SerializeStruct.html">end</a>()
+        <span class="kw">let </span><span class="kw-2">mut </span>s = serializer.serialize_struct(NAME, <span class="number">1</span>)<span class="question-mark">?</span>;
+        s.serialize_field(FIELD, <span class="kw-2">&amp;</span><span class="self">self</span>.to_string())<span class="question-mark">?</span>;
+        <a href="../../src/toml/datetime.rs.html#434">s</a>.<a href="../../serde/ser/trait.SerializeStruct.html">end</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a>, <span class="ident">D::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#80">Datetime</a> {
+    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/toml/datetime.rs.html#80">Datetime</a>, D::Error&gt;
+    <span class="kw">where
+        </span>D: de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">struct</span> <span class="ident">DatetimeVisitor</span>;
+        <span class="kw">struct </span>DatetimeVisitor;
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#445">DatetimeVisitor</a> {
-            <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a>;
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#445">DatetimeVisitor</a> {
+            <span class="kw">type </span>Value = <a href="../../src/toml/datetime.rs.html#80">Datetime</a>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a class="ident" href="../../src/toml/datetime.rs.html#450">formatter</a>.<span class="ident">write_str</span>(<span class="string">&quot;a TOML datetime&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+                <a href="../../src/toml/datetime.rs.html#450">formatter</a>.write_str(<span class="string">&quot;a TOML datetime&quot;</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_map</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a>, <span class="ident">V::Error</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">V</span>: <span class="ident">de::MapAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            <span class="kw">fn </span>visit_map&lt;V&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/toml/datetime.rs.html#80">Datetime</a>, V::Error&gt;
+            <span class="kw">where
+                </span>V: de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">visitor</span>.<span class="ident">next_key</span>::<span class="op">&lt;</span><span class="ident">DatetimeKey</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_none</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../serde/de/trait.Error.html">de::Error::custom</a>(<span class="string">&quot;datetime key not found&quot;</span>));
+                <span class="kw">let </span>value = visitor.next_key::&lt;DatetimeKey&gt;()<span class="question-mark">?</span>;
+                <span class="kw">if </span>value.is_none() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../serde/de/trait.Error.html">de::Error::custom</a>(<span class="string">&quot;datetime key not found&quot;</span>));
                 }
-                <span class="kw">let</span> <span class="ident">v</span>: <a class="ident" href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a> <span class="op">=</span> <span class="ident">visitor</span>.<span class="ident">next_value</span>()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/toml/datetime.rs.html#462">v</a>.<span class="ident">value</span>)
+                <span class="kw">let </span>v: <a href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a> = visitor.next_value()<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<a href="../../src/toml/datetime.rs.html#462">v</a>.value)
             }
         }
 
-        <span class="kw">static</span> <span class="ident">FIELDS</span>: [<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>; <span class="number">1</span>] <span class="op">=</span> [<a class="ident" href="../../src/toml/datetime.rs.html#106">FIELD</a>];
-        <a class="ident" href="../../src/toml/datetime.rs.html#441">deserializer</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_struct</a>(<a class="ident" href="../../src/toml/datetime.rs.html#107">NAME</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/toml/datetime.rs.html#467">FIELDS</a>, <a class="ident" href="../../src/toml/datetime.rs.html#445">DatetimeVisitor</a>)
+        <span class="kw">static </span>FIELDS: [<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>; <span class="number">1</span>] = [<a href="../../src/toml/datetime.rs.html#106">FIELD</a>];
+        <a href="../../src/toml/datetime.rs.html#441">deserializer</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_struct</a>(<a href="../../src/toml/datetime.rs.html#107">NAME</a>, <span class="kw-2">&amp;</span><a href="../../src/toml/datetime.rs.html#467">FIELDS</a>, <a href="../../src/toml/datetime.rs.html#445">DatetimeVisitor</a>)
     }
 }
 
-<span class="kw">struct</span> <span class="ident">DatetimeKey</span>;
+<span class="kw">struct </span>DatetimeKey;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#472">DatetimeKey</a> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#472">DatetimeKey</a>, <span class="ident">D::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#472">DatetimeKey</a> {
+    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/toml/datetime.rs.html#472">DatetimeKey</a>, D::Error&gt;
+    <span class="kw">where
+        </span>D: de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">struct</span> <span class="ident">FieldVisitor</span>;
+        <span class="kw">struct </span>FieldVisitor;
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#479">FieldVisitor</a> {
-            <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> ();
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#479">FieldVisitor</a> {
+            <span class="kw">type </span>Value = ();
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a class="ident" href="../../src/toml/datetime.rs.html#484">formatter</a>.<span class="ident">write_str</span>(<span class="string">&quot;a valid datetime field&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+                <a href="../../src/toml/datetime.rs.html#484">formatter</a>.write_str(<span class="string">&quot;a valid datetime field&quot;</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">E</span>: <a class="ident" href="../../serde/de/trait.Error.html">de::Error</a>,
+            <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;
+            <span class="kw">where
+                </span>E: <a href="../../serde/de/trait.Error.html">de::Error</a>,
             {
-                <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">FIELD</span> {
+                <span class="kw">if </span>s == FIELD {
                     <span class="prelude-val">Ok</span>(())
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../serde/de/trait.Error.html">de::Error::custom</a>(<span class="string">&quot;expected field with custom name&quot;</span>))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Err</span>(<a href="../../serde/de/trait.Error.html">de::Error::custom</a>(<span class="string">&quot;expected field with custom name&quot;</span>))
                 }
             }
         }
 
-        <span class="ident">deserializer</span>.<span class="ident">deserialize_identifier</span>(<span class="ident">FieldVisitor</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/toml/datetime.rs.html#472">DatetimeKey</a>)
+        deserializer.deserialize_identifier(FieldVisitor)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../src/toml/datetime.rs.html#472">DatetimeKey</a>)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DatetimeFromString</span> {
-    <span class="kw">pub</span> <span class="ident">value</span>: <a class="ident" href="../../src/toml/datetime.rs.html#80">Datetime</a>,
+<span class="kw">pub struct </span>DatetimeFromString {
+    <span class="kw">pub </span>value: <a href="../../src/toml/datetime.rs.html#80">Datetime</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a>, <span class="ident">D::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a> {
+    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a>, D::Error&gt;
+    <span class="kw">where
+        </span>D: de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">struct</span> <span class="ident">Visitor</span>;
+        <span class="kw">struct </span>Visitor;
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#514">Visitor</a> {
-            <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <a class="ident" href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a>;
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#514">Visitor</a> {
+            <span class="kw">type </span>Value = <a href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a class="ident" href="../../src/toml/datetime.rs.html#519">formatter</a>.<span class="ident">write_str</span>(<span class="string">&quot;string containing a datetime&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+                <a href="../../src/toml/datetime.rs.html#519">formatter</a>.write_str(<span class="string">&quot;string containing a datetime&quot;</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a>, <span class="ident">E</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">E</span>: <a class="ident" href="../../serde/de/trait.Error.html">de::Error</a>,
+            <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a>, E&gt;
+            <span class="kw">where
+                </span>E: <a href="../../serde/de/trait.Error.html">de::Error</a>,
             {
-                <span class="kw">match</span> <a class="ident" href="../../src/toml/datetime.rs.html#523">s</a>.<span class="ident">parse</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">date</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a> { <span class="ident">value</span>: <a class="ident" href="../../src/toml/datetime.rs.html#528">date</a> }),
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../serde/de/trait.Error.html">de::Error::custom</a>(<a class="ident" href="../../src/toml/datetime.rs.html#529">e</a>)),
+                <span class="kw">match </span><a href="../../src/toml/datetime.rs.html#523">s</a>.parse() {
+                    <span class="prelude-val">Ok</span>(date) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/toml/datetime.rs.html#505">DatetimeFromString</a> { value: <a href="../../src/toml/datetime.rs.html#528">date</a> }),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="../../serde/de/trait.Error.html">de::Error::custom</a>(<a href="../../src/toml/datetime.rs.html#529">e</a>)),
                 }
             }
         }
 
-        <a class="ident" href="../../src/toml/datetime.rs.html#510">deserializer</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a class="ident" href="../../src/toml/datetime.rs.html#514">Visitor</a>)
+        <a href="../../src/toml/datetime.rs.html#510">deserializer</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="../../src/toml/datetime.rs.html#514">Visitor</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="string">&quot;failed to parse datetime&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a class="ident" href="../../src/toml/datetime.rs.html#539">f</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="string">&quot;failed to parse datetime&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/toml/datetime.rs.html#539">f</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="../../src/toml/datetime.rs.html#96">DatetimeParseError</a> {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="toml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="toml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

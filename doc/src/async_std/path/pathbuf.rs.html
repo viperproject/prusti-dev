@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/path/pathbuf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pathbuf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/path/pathbuf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pathbuf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -377,382 +377,382 @@
 <span id="375">375</span>
 <span id="376">376</span>
 <span id="377">377</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::borrow</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">Borrow</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">Cow</a>};
-<span class="kw">use</span> <span class="ident">std::ffi</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
-<span class="kw">use</span> <span class="ident">std::iter</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/iter/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">FromIterator</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
-<span class="kw">use</span> <a class="ident" href="../../../async_std/sync/struct.Arc.html">std::sync::Arc</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::{<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">Borrow</a>, <a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">Cow</a>};
+<span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
+<span class="kw">use </span>std::iter::{<a class="self" href="https://doc.rust-lang.org/nightly/core/iter/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">FromIterator</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+<span class="kw">use </span><a href="../../../async_std/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/async_std/path/path.rs.html#49"><span class="kw">crate</span>::path::Path</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/async_std/lib.rs.html#309"><span class="kw">crate</span>::prelude</a>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stream</span>::{<a class="self" href="../../../src/async_std/lib.rs.html#303">self</a>, <a class="ident" href="../../../src/async_std/stream/from_stream.rs.html#118">FromStream</a>, <a class="ident" href="../../../src/async_std/stream/into_stream.rs.html#18">IntoStream</a>};
+<span class="kw">use </span><a href="../../../src/async_std/path/path.rs.html#49"><span class="kw">crate</span>::path::Path</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../src/async_std/lib.rs.html#309"><span class="kw">crate</span>::prelude</a>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::stream::{<a class="self" href="../../../src/async_std/lib.rs.html#303">self</a>, <a href="../../../src/async_std/stream/from_stream.rs.html#118">FromStream</a>, <a href="../../../src/async_std/stream/into_stream.rs.html#18">IntoStream</a>};
 
-<span class="doccomment">/// This struct is an async version of [`std::path::PathBuf`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`std::path::Path`]: https://doc.rust-lang.org/std/path/struct.PathBuf.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PathBuf</span> {
-    <span class="ident">inner</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>,
+<span class="doccomment">/// This struct is an async version of [`std::path::PathBuf`].
+///
+/// [`std::path::Path`]: https://doc.rust-lang.org/std/path/struct.PathBuf.html
+</span><span class="attribute">#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub struct </span>PathBuf {
+    inner: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="doccomment">/// Allocates an empty `PathBuf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use async_std::path::PathBuf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let path = PathBuf::new();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-        <span class="ident">std::path::PathBuf::new</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="doccomment">/// Allocates an empty `PathBuf`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use async_std::path::PathBuf;
+    ///
+    /// let path = PathBuf::new();
+    /// ```
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+        std::path::PathBuf::new().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="doccomment">/// Coerces to a [`Path`] slice.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Path`]: struct.Path.html</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use async_std::path::{Path, PathBuf};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let p = PathBuf::from(&quot;/test&quot;);</span>
-    <span class="doccomment">/// assert_eq!(Path::new(&quot;/test&quot;), p.as_path());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#51">self</a>.<span class="ident">inner</span>.<span class="ident">as_path</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <span class="doccomment">/// Coerces to a [`Path`] slice.
+    ///
+    /// [`Path`]: struct.Path.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use async_std::path::{Path, PathBuf};
+    ///
+    /// let p = PathBuf::from(&quot;/test&quot;);
+    /// assert_eq!(Path::new(&quot;/test&quot;), p.as_path());
+    /// ```
+    </span><span class="kw">pub fn </span>as_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/async_std/path/path.rs.html#49">Path</a> {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#51">self</a>.inner.as_path().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="doccomment">/// Extends `self` with `path`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `path` is absolute, it replaces the current path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Windows:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * if `path` has a root but no prefix (e.g., `\windows`), it</span>
-    <span class="doccomment">///   replaces everything except for the prefix (if any) of `self`.</span>
-    <span class="doccomment">/// * if `path` has a prefix but no root, it replaces `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Pushing a relative path extends the existing path:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use async_std::path::PathBuf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut path = PathBuf::from(&quot;/tmp&quot;);</span>
-    <span class="doccomment">/// path.push(&quot;file.bk&quot;);</span>
-    <span class="doccomment">/// assert_eq!(path, PathBuf::from(&quot;/tmp/file.bk&quot;));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Pushing an absolute path replaces the existing path:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use async_std::path::PathBuf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut path = PathBuf::from(&quot;/tmp&quot;);</span>
-    <span class="doccomment">/// path.push(&quot;/etc&quot;);</span>
-    <span class="doccomment">/// assert_eq!(path, PathBuf::from(&quot;/etc&quot;));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#86">self</a>.<span class="ident">inner</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#86">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    <span class="doccomment">/// Extends `self` with `path`.
+    ///
+    /// If `path` is absolute, it replaces the current path.
+    ///
+    /// On Windows:
+    ///
+    /// * if `path` has a root but no prefix (e.g., `\windows`), it
+    ///   replaces everything except for the prefix (if any) of `self`.
+    /// * if `path` has a prefix but no root, it replaces `self`.
+    ///
+    /// # Examples
+    ///
+    /// Pushing a relative path extends the existing path:
+    ///
+    /// ```
+    /// use async_std::path::PathBuf;
+    ///
+    /// let mut path = PathBuf::from(&quot;/tmp&quot;);
+    /// path.push(&quot;file.bk&quot;);
+    /// assert_eq!(path, PathBuf::from(&quot;/tmp/file.bk&quot;));
+    /// ```
+    ///
+    /// Pushing an absolute path replaces the existing path:
+    ///
+    /// ```
+    /// use async_std::path::PathBuf;
+    ///
+    /// let mut path = PathBuf::from(&quot;/tmp&quot;);
+    /// path.push(&quot;/etc&quot;);
+    /// assert_eq!(path, PathBuf::from(&quot;/etc&quot;));
+    /// ```
+    </span><span class="kw">pub fn </span>push&lt;P: AsRef&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P) {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#86">self</a>.inner.push(<a href="../../../src/async_std/path/pathbuf.rs.html#86">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
     }
 
-    <span class="doccomment">/// Truncates `self` to [`self.parent`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `false` and does nothing if [`self.parent`] is [`None`].</span>
-    <span class="doccomment">/// Otherwise, returns `true`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None</span>
-    <span class="doccomment">/// [`self.parent`]: struct.PathBuf.html#method.parent</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use async_std::path::{Path, PathBuf};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut p = PathBuf::from(&quot;/test/test.rs&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// p.pop();</span>
-    <span class="doccomment">/// assert_eq!(Path::new(&quot;/test&quot;), p);</span>
-    <span class="doccomment">/// p.pop();</span>
-    <span class="doccomment">/// assert_eq!(Path::new(&quot;/&quot;), p);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#110">self</a>.<span class="ident">inner</span>.<span class="ident">pop</span>()
+    <span class="doccomment">/// Truncates `self` to [`self.parent`].
+    ///
+    /// Returns `false` and does nothing if [`self.parent`] is [`None`].
+    /// Otherwise, returns `true`.
+    ///
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`self.parent`]: struct.PathBuf.html#method.parent
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use async_std::path::{Path, PathBuf};
+    ///
+    /// let mut p = PathBuf::from(&quot;/test/test.rs&quot;);
+    ///
+    /// p.pop();
+    /// assert_eq!(Path::new(&quot;/test&quot;), p);
+    /// p.pop();
+    /// assert_eq!(Path::new(&quot;/&quot;), p);
+    /// ```
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#110">self</a>.inner.pop()
     }
 
-    <span class="doccomment">/// Updates [`self.file_name`] to `file_name`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If [`self.file_name`] was [`None`], this is equivalent to pushing</span>
-    <span class="doccomment">/// `file_name`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Otherwise it is equivalent to calling [`pop`] and then pushing</span>
-    <span class="doccomment">/// `file_name`. The new path will be a sibling of the original path.</span>
-    <span class="doccomment">/// (That is, it will have the same parent.)</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`self.file_name`]: struct.PathBuf.html#method.file_name</span>
-    <span class="doccomment">/// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None</span>
-    <span class="doccomment">/// [`pop`]: struct.PathBuf.html#method.pop</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use async_std::path::PathBuf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = PathBuf::from(&quot;/&quot;);</span>
-    <span class="doccomment">/// assert!(buf.file_name() == None);</span>
-    <span class="doccomment">/// buf.set_file_name(&quot;bar&quot;);</span>
-    <span class="doccomment">/// assert!(buf == PathBuf::from(&quot;/bar&quot;));</span>
-    <span class="doccomment">/// assert!(buf.file_name().is_some());</span>
-    <span class="doccomment">/// buf.set_file_name(&quot;baz.txt&quot;);</span>
-    <span class="doccomment">/// assert!(buf == PathBuf::from(&quot;/baz.txt&quot;));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_file_name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">file_name</span>: <span class="ident">S</span>) {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#140">self</a>.<span class="ident">inner</span>.<span class="ident">set_file_name</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#140">file_name</a>)
+    <span class="doccomment">/// Updates [`self.file_name`] to `file_name`.
+    ///
+    /// If [`self.file_name`] was [`None`], this is equivalent to pushing
+    /// `file_name`.
+    ///
+    /// Otherwise it is equivalent to calling [`pop`] and then pushing
+    /// `file_name`. The new path will be a sibling of the original path.
+    /// (That is, it will have the same parent.)
+    ///
+    /// [`self.file_name`]: struct.PathBuf.html#method.file_name
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`pop`]: struct.PathBuf.html#method.pop
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use async_std::path::PathBuf;
+    ///
+    /// let mut buf = PathBuf::from(&quot;/&quot;);
+    /// assert!(buf.file_name() == None);
+    /// buf.set_file_name(&quot;bar&quot;);
+    /// assert!(buf == PathBuf::from(&quot;/bar&quot;));
+    /// assert!(buf.file_name().is_some());
+    /// buf.set_file_name(&quot;baz.txt&quot;);
+    /// assert!(buf == PathBuf::from(&quot;/baz.txt&quot;));
+    /// ```
+    </span><span class="kw">pub fn </span>set_file_name&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, file_name: S) {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#140">self</a>.inner.set_file_name(<a href="../../../src/async_std/path/pathbuf.rs.html#140">file_name</a>)
     }
 
-    <span class="doccomment">/// Updates [`self.extension`] to `extension`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `false` and does nothing if [`self.file_name`] is [`None`],</span>
-    <span class="doccomment">/// returns `true` and updates the extension otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If [`self.extension`] is [`None`], the extension is added; otherwise</span>
-    <span class="doccomment">/// it is replaced.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`self.file_name`]: struct.PathBuf.html#method.file_name</span>
-    <span class="doccomment">/// [`self.extension`]: struct.PathBuf.html#method.extension</span>
-    <span class="doccomment">/// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use async_std::path::{Path, PathBuf};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut p = PathBuf::from(&quot;/feel/the&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// p.set_extension(&quot;force&quot;);</span>
-    <span class="doccomment">/// assert_eq!(Path::new(&quot;/feel/the.force&quot;), p.as_path());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// p.set_extension(&quot;dark_side&quot;);</span>
-    <span class="doccomment">/// assert_eq!(Path::new(&quot;/feel/the.dark_side&quot;), p.as_path());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_extension</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">extension</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#169">self</a>.<span class="ident">inner</span>.<span class="ident">set_extension</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#169">extension</a>)
+    <span class="doccomment">/// Updates [`self.extension`] to `extension`.
+    ///
+    /// Returns `false` and does nothing if [`self.file_name`] is [`None`],
+    /// returns `true` and updates the extension otherwise.
+    ///
+    /// If [`self.extension`] is [`None`], the extension is added; otherwise
+    /// it is replaced.
+    ///
+    /// [`self.file_name`]: struct.PathBuf.html#method.file_name
+    /// [`self.extension`]: struct.PathBuf.html#method.extension
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use async_std::path::{Path, PathBuf};
+    ///
+    /// let mut p = PathBuf::from(&quot;/feel/the&quot;);
+    ///
+    /// p.set_extension(&quot;force&quot;);
+    /// assert_eq!(Path::new(&quot;/feel/the.force&quot;), p.as_path());
+    ///
+    /// p.set_extension(&quot;dark_side&quot;);
+    /// assert_eq!(Path::new(&quot;/feel/the.dark_side&quot;), p.as_path());
+    /// ```
+    </span><span class="kw">pub fn </span>set_extension&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, extension: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#169">self</a>.inner.set_extension(<a href="../../../src/async_std/path/pathbuf.rs.html#169">extension</a>)
     }
 
-    <span class="doccomment">/// Consumes the `PathBuf`, returning its internal [`OsString`] storage.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`OsString`]: https://doc.rust-lang.org/std/ffi/struct.OsString.html</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use async_std::path::PathBuf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let p = PathBuf::from(&quot;/the/head&quot;);</span>
-    <span class="doccomment">/// let os_str = p.into_os_string();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_os_string</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#185">self</a>.<span class="ident">inner</span>.<span class="ident">into_os_string</span>()
+    <span class="doccomment">/// Consumes the `PathBuf`, returning its internal [`OsString`] storage.
+    ///
+    /// [`OsString`]: https://doc.rust-lang.org/std/ffi/struct.OsString.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use async_std::path::PathBuf;
+    ///
+    /// let p = PathBuf::from(&quot;/the/head&quot;);
+    /// let os_str = p.into_os_string();
+    /// ```
+    </span><span class="kw">pub fn </span>into_os_string(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#185">self</a>.inner.into_os_string()
     }
 
-    <span class="doccomment">/// Converts this `PathBuf` into a [boxed][`Box`] [`Path`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Box`]: https://doc.rust-lang.org/std/boxed/struct.Box.html</span>
-    <span class="doccomment">/// [`Path`]: struct.Path.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_boxed_path</span>(<span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">rw</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="self" href="../../../src/async_std/path/pathbuf.rs.html#193">self</a>.<span class="ident">inner</span>.<span class="ident">into_boxed_path</span>()) <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a>;
-        <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#194">rw</a>) }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">boxed</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#200">boxed</a>.<a class="ident" href="../../../src/async_std/path/path.rs.html#817">into_path_buf</a>()
+    <span class="doccomment">/// Converts this `PathBuf` into a [boxed][`Box`] [`Path`].
+    ///
+    /// [`Box`]: https://doc.rust-lang.org/std/boxed/struct.Box.html
+    /// [`Path`]: struct.Path.html
+    </span><span class="kw">pub fn </span>into_boxed_path(<span class="self">self</span>) -&gt; Box&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+        <span class="kw">let </span>rw = Box::into_raw(<a class="self" href="../../../src/async_std/path/pathbuf.rs.html#193">self</a>.inner.into_boxed_path()) <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../src/async_std/path/path.rs.html#49">Path</a>;
+        <span class="kw">unsafe </span>{ Box::from_raw(<a href="../../../src/async_std/path/pathbuf.rs.html#194">rw</a>) }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">p</span>: <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#206">p</a>.<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#193">into_boxed_path</a>()
+<span class="kw">impl </span>From&lt;Box&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>from(boxed: Box&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt;) -&gt; <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+        <a href="../../../src/async_std/path/pathbuf.rs.html#200">boxed</a>.<a href="../../../src/async_std/path/path.rs.html#817">into_path_buf</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#213">self</a>.<a class="ident" href="../../../src/async_std/path/path.rs.html#155">to_path_buf</a>().<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#193">into_boxed_path</a>()
+<span class="kw">impl </span>From&lt;<a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>&gt; <span class="kw">for </span>Box&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+    <span class="kw">fn </span>from(p: <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; Box&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+        <a href="../../../src/async_std/path/pathbuf.rs.html#206">p</a>.<a href="../../../src/async_std/path/pathbuf.rs.html#193">into_boxed_path</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-        <span class="ident">PathBuf::from</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#219">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">to_os_string</span>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Box&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#213">self</a>.<a href="../../../src/async_std/path/path.rs.html#155">to_path_buf</a>().<a href="../../../src/async_std/path/pathbuf.rs.html#193">into_boxed_path</a>()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>) -&gt; <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> { <span class="ident">inner</span>: <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#225">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;&gt; From&lt;<span class="kw-2">&amp;</span>T&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span>T) -&gt; <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+        PathBuf::from(<a href="../../../src/async_std/path/pathbuf.rs.html#219">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().to_os_string())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">path_buf</span>: <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#231">path_buf</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>from(s: <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>) -&gt; <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+        <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> { inner: <a href="../../../src/async_std/path/pathbuf.rs.html#225">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-        <span class="ident">PathBuf::from</span>(<span class="ident">OsString::from</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#237">s</a>))
+<span class="kw">impl </span>From&lt;<a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
+    <span class="kw">fn </span>from(path_buf: <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
+        <a href="../../../src/async_std/path/pathbuf.rs.html#231">path_buf</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">core::convert::Infallible</a>;
-
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">PathBuf::from</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#245">s</a>))
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>from(s: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+        PathBuf::from(OsString::from(<a href="../../../src/async_std/path/pathbuf.rs.html#237">s</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">PathBuf::new</span>();
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#252">buf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#251">iter</a>);
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#252">buf</a>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">core::convert::Infallible</a>;
+
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="prelude-val">Ok</span>(PathBuf::from(<a href="../../../src/async_std/path/pathbuf.rs.html#245">s</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">iter::Extend</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) {
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#259">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#259">self</a>.<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#86">push</a>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#260">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()));
+<span class="kw">impl</span>&lt;P: AsRef&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt;&gt; FromIterator&lt;P&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>from_iter&lt;I: IntoIterator&lt;Item = P&gt;&gt;(iter: I) -&gt; <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = PathBuf::new();
+        <a href="../../../src/async_std/path/pathbuf.rs.html#252">buf</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/async_std/path/pathbuf.rs.html#251">iter</a>);
+        <a href="../../../src/async_std/path/pathbuf.rs.html#252">buf</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a>;
-
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a> {
-        <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/async_std/path/pathbuf.rs.html#267">self</a>.<span class="ident">inner</span>)
+<span class="kw">impl</span>&lt;P: AsRef&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt;&gt; iter::Extend&lt;P&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = P&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I) {
+        <a href="../../../src/async_std/path/pathbuf.rs.html#259">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<span class="kw">move </span>|p| <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#259">self</a>.<a href="../../../src/async_std/path/pathbuf.rs.html#86">push</a>(<a href="../../../src/async_std/path/pathbuf.rs.html#260">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()));
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Borrow</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#273">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">type </span>Target = <a href="../../../src/async_std/path/path.rs.html#49">Path</a>;
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/async_std/path/path.rs.html#49">Path</a> {
+        Path::new(<span class="kw-2">&amp;</span><a class="self" href="../../../src/async_std/path/pathbuf.rs.html#267">self</a>.inner)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-        <span class="ident">Cow::Owned</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#280">s</a>)
+<span class="kw">impl </span>Borrow&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/async_std/path/path.rs.html#49">Path</a> {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#273">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-        <span class="ident">Cow::Borrowed</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#287">p</a>.<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#51">as_path</a>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, <a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(s: <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, <a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+        Cow::Owned(<a href="../../../src/async_std/path/pathbuf.rs.html#280">s</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">p</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#294">p</a>.<span class="ident">into_owned</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, <a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(p: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, <a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+        Cow::Borrowed(<a href="../../../src/async_std/path/pathbuf.rs.html#287">p</a>.<a href="../../../src/async_std/path/pathbuf.rs.html#51">as_path</a>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">arc</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Arc::from</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#301">s</a>.<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#185">into_os_string</a>());
-        <span class="kw">unsafe</span> { <span class="ident">Arc::from_raw</span>(<span class="ident">Arc::into_raw</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#302">arc</a>) <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;Cow&lt;<span class="lifetime">&#39;a</span>, <a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(p: Cow&lt;<span class="lifetime">&#39;a</span>, <a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/async_std/path/pathbuf.rs.html#294">p</a>.into_owned()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rc</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; <span class="ident">Rc</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">rc</span>: <span class="ident">Rc</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Rc::from</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#309">s</a>.<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#185">into_os_string</a>());
-        <span class="kw">unsafe</span> { <span class="ident">Rc::from_raw</span>(<span class="ident">Rc::into_raw</span>(<a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#310">rc</a>) <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a>) }
+<span class="kw">impl </span>From&lt;<a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>&gt; <span class="kw">for </span>Arc&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(s: <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; Arc&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+        <span class="kw">let </span>arc: Arc&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; = Arc::from(<a href="../../../src/async_std/path/pathbuf.rs.html#301">s</a>.<a href="../../../src/async_std/path/pathbuf.rs.html#185">into_os_string</a>());
+        <span class="kw">unsafe </span>{ Arc::from_raw(Arc::into_raw(<a href="../../../src/async_std/path/pathbuf.rs.html#302">arc</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../src/async_std/path/path.rs.html#49">Path</a>) }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#316">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+<span class="kw">impl </span>From&lt;<a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>&gt; <span class="kw">for </span>Rc&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(s: <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a>) -&gt; Rc&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; {
+        <span class="kw">let </span>rc: Rc&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; = Rc::from(<a href="../../../src/async_std/path/pathbuf.rs.html#309">s</a>.<a href="../../../src/async_std/path/pathbuf.rs.html#185">into_os_string</a>());
+        <span class="kw">unsafe </span>{ Rc::from_raw(Rc::into_raw(<a href="../../../src/async_std/path/pathbuf.rs.html#310">rc</a>) <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../src/async_std/path/path.rs.html#49">Path</a>) }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">stream::Extend</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">stream</span>: <span class="ident">S</span>,
-    ) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">IntoStream</span><span class="op">&gt;</span><span class="ident">::IntoStream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#316">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+    }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+</span><span class="kw">impl</span>&lt;P: AsRef&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt;&gt; stream::Extend&lt;P&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>extend&lt;<span class="lifetime">&#39;a</span>, S: IntoStream&lt;Item = P&gt; + <span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        stream: S,
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;a </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;
+    <span class="kw">where
+        </span>&lt;S <span class="kw">as </span>IntoStream&gt;::IntoStream: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     {
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#325">stream</a>.<a class="ident" href="../../../src/async_std/stream/into_stream.rs.html#26">into_stream</a>();
+        <span class="kw">let </span>stream = <a href="../../../src/async_std/path/pathbuf.rs.html#325">stream</a>.<a href="../../../src/async_std/stream/into_stream.rs.html#26">into_stream</a>();
 
-        <span class="ident">Box::pin</span>(<span class="kw">async</span> <span class="kw">move</span> {
-            <a class="macro" href="../../../pin_utils/pin_utils/macro.pin_mut.html">pin_utils::pin_mut!</a>(<span class="ident">stream</span>);
+        Box::pin(<span class="kw">async move </span>{
+            <a class="macro" href="../../../pin_utils/pin_utils/macro.pin_mut.html">pin_utils::pin_mut!</a>(stream);
 
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">next</span>().<span class="kw">await</span> {
-                <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">item</span>.<span class="ident">as_ref</span>());
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = stream.next().<span class="kw">await </span>{
+                <span class="self">self</span>.push(item.as_ref());
             }
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;b</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_stream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="ident">stream</span>: <span class="ident">S</span>,
-    ) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">IntoStream</span><span class="op">&gt;</span><span class="ident">::IntoStream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, P: AsRef&lt;<a href="../../../src/async_std/path/path.rs.html#49">Path</a>&gt; + <span class="lifetime">&#39;b </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; FromStream&lt;P&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_stream&lt;<span class="lifetime">&#39;a</span>, S: IntoStream&lt;Item = P&gt; + <span class="lifetime">&#39;a</span>&gt;(
+        stream: S,
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="self">Self</span>&gt; + <span class="lifetime">&#39;a </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;
+    <span class="kw">where
+        </span>&lt;S <span class="kw">as </span>IntoStream&gt;::IntoStream: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     {
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#346">stream</a>.<a class="ident" href="../../../src/async_std/stream/into_stream.rs.html#26">into_stream</a>();
+        <span class="kw">let </span>stream = <a href="../../../src/async_std/path/pathbuf.rs.html#346">stream</a>.<a href="../../../src/async_std/stream/into_stream.rs.html#26">into_stream</a>();
 
-        <span class="ident">Box::pin</span>(<span class="kw">async</span> <span class="kw">move</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>();
-            <span class="ident">stream::extend</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out</span>, <span class="ident">stream</span>).<span class="kw">await</span>;
-            <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#354">out</a>
+        Box::pin(<span class="kw">async move </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="self">Self</span>::new();
+            stream::extend(<span class="kw-2">&amp;mut </span>out, stream).<span class="kw">await</span>;
+            <a href="../../../src/async_std/path/pathbuf.rs.html#354">out</a>
         })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>) -&gt; <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-        <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> { <span class="ident">inner</span>: <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#362">path</a> }
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>from(path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>) -&gt; <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+        <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> { inner: <a href="../../../src/async_std/path/pathbuf.rs.html#362">path</a> }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#368">self</a>.<span class="ident">inner</span>
+<span class="kw">impl </span>Into&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a> {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#368">self</a>.inner
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a> {
-        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#374">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+<span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>&gt; <span class="kw">for </span><a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a> {
+        <a class="self" href="../../../src/async_std/path/pathbuf.rs.html#374">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

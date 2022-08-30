@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/borrowck/facts.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>facts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/borrowck/facts.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>facts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -115,132 +115,122 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+</span><span class="kw">use </span>prusti_rustc_interface::{
+    borrowck::consumers::{LocationTable, RichLocation, RustcFacts},
+    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>,
+    polonius_engine::FactTypes,
+};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">cell::RefCell</a>, <a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">rc::Rc</a>};
 
+<span class="kw">pub type </span>Region = &lt;RustcFacts <span class="kw">as </span>FactTypes&gt;::Origin;
+<span class="kw">pub type </span>Loan = &lt;RustcFacts <span class="kw">as </span>FactTypes&gt;::Loan;
+<span class="kw">pub type </span>PointIndex = &lt;RustcFacts <span class="kw">as </span>FactTypes&gt;::Point;
+<span class="kw">pub type </span>Variable = &lt;RustcFacts <span class="kw">as </span>FactTypes&gt;::Variable;
+<span class="kw">pub type </span>Path = &lt;RustcFacts <span class="kw">as </span>FactTypes&gt;::Path;
 
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::polonius_engine::FactTypes</span>;
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::borrowck::consumers</span>::{<span class="ident">RustcFacts</span>, <span class="ident">LocationTable</span>, <span class="ident">RichLocation</span>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
+<span class="kw">pub type </span>AllInputFacts = prusti_rustc_interface::borrowck::consumers::PoloniusInput;
+<span class="kw">pub type </span>AllOutputFacts = prusti_rustc_interface::borrowck::consumers::PoloniusOutput;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Region</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">RustcFacts</span> <span class="kw">as</span> <span class="ident">FactTypes</span><span class="op">&gt;</span><span class="ident">::Origin</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Loan</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">RustcFacts</span> <span class="kw">as</span> <span class="ident">FactTypes</span><span class="op">&gt;</span><span class="ident">::Loan</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PointIndex</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">RustcFacts</span> <span class="kw">as</span> <span class="ident">FactTypes</span><span class="op">&gt;</span><span class="ident">::Point</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Variable</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">RustcFacts</span> <span class="kw">as</span> <span class="ident">FactTypes</span><span class="op">&gt;</span><span class="ident">::Variable</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Path</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">RustcFacts</span> <span class="kw">as</span> <span class="ident">FactTypes</span><span class="op">&gt;</span><span class="ident">::Path</span>;
-
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AllInputFacts</span> <span class="op">=</span> <span class="ident">prusti_rustc_interface::borrowck::consumers::PoloniusInput</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AllOutputFacts</span> <span class="op">=</span> <span class="ident">prusti_rustc_interface::borrowck::consumers::PoloniusOutput</span>;
-
-<span class="kw">trait</span> <span class="ident">LocationTableExt</span> {
-    <span class="kw">fn</span> <span class="ident">to_mir_location</span>(<span class="self">self</span>, <span class="ident">point</span>: <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#17">PointIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>;
+<span class="kw">trait </span>LocationTableExt {
+    <span class="kw">fn </span>to_mir_location(<span class="self">self</span>, point: <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#16">PointIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#24">LocationTableExt</a> <span class="kw">for</span> <span class="ident">LocationTable</span> {
-    <span class="kw">fn</span> <span class="ident">to_mir_location</span>(<span class="self">self</span>, <span class="ident">point</span>: <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#17">PointIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#29">self</a>.<span class="ident">to_location</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#29">point</a>) {
-            <span class="ident">RichLocation::Start</span>(<span class="ident">location</span>) <span class="op">|</span> <span class="ident">RichLocation::Mid</span>(<span class="ident">location</span>) =&gt; <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#31">location</a>,
+<span class="kw">impl </span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#23">LocationTableExt</a> <span class="kw">for </span>LocationTable {
+    <span class="kw">fn </span>to_mir_location(<span class="self">self</span>, point: <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#16">PointIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+        <span class="kw">match </span><a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#28">self</a>.to_location(<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#28">point</a>) {
+            RichLocation::Start(location) | RichLocation::Mid(location) =&gt; <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#30">location</a>,
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BorrowckFacts</span> {
-    <span class="doccomment">/// Polonius input facts.</span>
-    <span class="kw">pub</span> <span class="ident">input_facts</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#21">AllInputFacts</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Polonius output facts.</span>
-    <span class="kw">pub</span> <span class="ident">output_facts</span>: <span class="ident">Rc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#22">AllOutputFacts</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// The table that maps Polonius points to locations in the table.</span>
-    <span class="kw">pub</span> <span class="ident">location_table</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LocationTable</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>BorrowckFacts {
+    <span class="doccomment">/// Polonius input facts.
+    </span><span class="kw">pub </span>input_facts: RefCell&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#20">AllInputFacts</a>&gt;&gt;,
+    <span class="doccomment">/// Polonius output facts.
+    </span><span class="kw">pub </span>output_facts: Rc&lt;<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#21">AllOutputFacts</a>&gt;,
+    <span class="doccomment">/// The table that maps Polonius points to locations in the table.
+    </span><span class="kw">pub </span>location_table: RefCell&lt;<span class="prelude-ty">Option</span>&lt;LocationTable&gt;&gt;,
 }
 
-<span class="doccomment">/// The type of the point. Either the start of a statement or in the</span>
-<span class="doccomment">/// middle of it.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PointType</span> {
-    <span class="ident">Start</span>,
-    <span class="ident">Mid</span>,
+<span class="doccomment">/// The type of the point. Either the start of a statement or in the
+/// middle of it.
+</span><span class="attribute">#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+</span><span class="kw">pub enum </span>PointType {
+    Start,
+    Mid,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">std::cmp::PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType</a> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> (<a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#54">self</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#54">other</a>) {
-            (<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Start</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Start</a>) =&gt; <span class="ident">std::cmp::Ordering::Equal</span>,
-            (<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Start</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#50">PointType::Mid</a>) =&gt; <span class="ident">std::cmp::Ordering::Less</span>,
-            (<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#50">PointType::Mid</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Start</a>) =&gt; <span class="ident">std::cmp::Ordering::Greater</span>,
-            (<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#50">PointType::Mid</a>, <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#50">PointType::Mid</a>) =&gt; <span class="ident">std::cmp::Ordering::Equal</span>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">std::cmp::PartialOrd</a> <span class="kw">for </span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#47">PointType</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#47">PointType</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a>&gt; {
+        <span class="kw">let </span>res = <span class="kw">match </span>(<a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#53">self</a>, <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#53">other</a>) {
+            (<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType::Start</a>, <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType::Start</a>) =&gt; std::cmp::Ordering::Equal,
+            (<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType::Start</a>, <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Mid</a>) =&gt; std::cmp::Ordering::Less,
+            (<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Mid</a>, <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType::Start</a>) =&gt; std::cmp::Ordering::Greater,
+            (<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Mid</a>, <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Mid</a>) =&gt; std::cmp::Ordering::Equal,
         };
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#55">res</a>)
+        <span class="prelude-val">Some</span>(<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#54">res</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">std::cmp::Ord</a> <span class="kw">for</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType</a> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a> {
-        <a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#66">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#66">other</a>).<span class="ident">unwrap</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">std::cmp::Ord</a> <span class="kw">for </span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#47">PointType</a> {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#47">PointType</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">std::cmp::Ordering</a> {
+        <a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#65">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#65">other</a>).unwrap()
     }
 }
 
-<span class="doccomment">/// A program point used in the borrow checker analysis.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Point</span> {
-    <span class="kw">pub</span> <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-    <span class="kw">pub</span> <span class="ident">typ</span>: <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType</a>,
+<span class="doccomment">/// A program point used in the borrow checker analysis.
+</span><span class="attribute">#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
+</span><span class="kw">pub struct </span>Point {
+    <span class="kw">pub </span>location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+    <span class="kw">pub </span>typ: <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#47">PointType</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#73">Point</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#72">Point</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#79">f</a>,
+            <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#78">f</a>,
             <span class="string">&quot;{:?}:{:?}:{:?}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">location</span>.<span class="ident">block</span>,
-            <span class="self">self</span>.<span class="ident">location</span>.<span class="ident">statement_index</span>,
-            <span class="self">self</span>.<span class="ident">typ</span>
+            <span class="self">self</span>.location.block, <span class="self">self</span>.location.statement_index, <span class="self">self</span>.typ
         )
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interner</span> {
-    <span class="ident">location_table</span>: <span class="ident">LocationTable</span>,
+<span class="kw">pub struct </span>Interner {
+    location_table: LocationTable,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#90">Interner</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">location_table</span>: <span class="ident">LocationTable</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#95">location_table</a> }
+<span class="kw">impl </span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#87">Interner</a> {
+    <span class="kw">pub fn </span>new(location_table: LocationTable) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#92">location_table</a> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_point_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">point</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#73">Point</a>) -&gt; <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#17">PointIndex</a> {
-        <span class="comment">// self.points.get_index(point)</span>
-        <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#99">point</a>.<span class="ident">typ</span> {
-            <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Start</a> =&gt; <a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#99">self</a>.<span class="ident">location_table</span>.<span class="ident">start_index</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#99">point</a>.<span class="ident">location</span>),
-            <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#50">PointType::Mid</a> =&gt; <a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#99">self</a>.<span class="ident">location_table</span>.<span class="ident">mid_index</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#99">point</a>.<span class="ident">location</span>),
+    <span class="kw">pub fn </span>get_point_index(<span class="kw-2">&amp;</span><span class="self">self</span>, point: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#72">Point</a>) -&gt; <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#16">PointIndex</a> {
+        <span class="comment">// self.points.get_index(point)
+        </span><span class="kw">match </span><a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#96">point</a>.typ {
+            <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType::Start</a> =&gt; <a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#96">self</a>.location_table.start_index(<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#96">point</a>.location),
+            <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Mid</a> =&gt; <a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#96">self</a>.location_table.mid_index(<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#96">point</a>.location),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_point</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#17">PointIndex</a>) -&gt; <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#73">Point</a> {
-        <span class="comment">// self.points.get_element(index)</span>
-        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#107">self</a>.<span class="ident">location_table</span>.<span class="ident">to_location</span>(<a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#107">index</a>) {
-            <span class="ident">RichLocation::Start</span>(<span class="ident">location</span>) =&gt; {
-                <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#73">Point</a> {
-                    <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#110">location</a>, <span class="ident">typ</span>: <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Start</a>
-                }
-            }
-            <span class="ident">RichLocation::Mid</span>(<span class="ident">location</span>) =&gt; {
-                <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#73">Point</a> {
-                    <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#115">location</a>, <span class="ident">typ</span>: <a class="ident" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#50">PointType::Mid</a>
-                }
-            }
+    <span class="kw">pub fn </span>get_point(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#16">PointIndex</a>) -&gt; <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#72">Point</a> {
+        <span class="comment">// self.points.get_element(index)
+        </span><span class="kw">match </span><a class="self" href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#104">self</a>.location_table.to_location(<a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#104">index</a>) {
+            RichLocation::Start(location) =&gt; <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#72">Point</a> {
+                <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#107">location</a>,
+                typ: <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#48">PointType::Start</a>,
+            },
+            RichLocation::Mid(location) =&gt; <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#72">Point</a> {
+                <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#111">location</a>,
+                typ: <a href="../../../../src/prusti_interface/environment/borrowck/facts.rs.html#49">PointType::Mid</a>,
+            },
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

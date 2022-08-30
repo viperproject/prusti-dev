@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -269,276 +269,276 @@
 <span id="269">269</span>
 <span id="270">270</span>
 <span id="271">271</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Core task module.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Safety</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The functions in this module are private to the `task` module. All of them</span>
-<span class="doccomment">//! should be considered `unsafe` to use, but are not marked as such since it</span>
-<span class="doccomment">//! would be too noisy.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Make sure to consult the relevant safety section of each function before</span>
-<span class="doccomment">//! use.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Core task module.
+//!
+//! # Safety
+//!
+//! The functions in this module are private to the `task` module. All of them
+//! should be considered `unsafe` to use, but are not marked as such since it
+//! would be too noisy.
+//!
+//! Make sure to consult the relevant safety section of each function before
+//! use.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task::raw</span>::{<a class="self" href="../../../../src/tokio/runtime/task/mod.rs.html#172">self</a>, <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#12">Vtable</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7"><span class="kw">crate</span>::runtime::task::state::State</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/mod.rs.html#41"><span class="kw">crate</span>::util::linked_list</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::raw::{<a class="self" href="../../../../src/tokio/runtime/task/mod.rs.html#172">self</a>, <a href="../../../../src/tokio/runtime/task/raw.rs.html#12">Vtable</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/runtime/task/state.rs.html#7"><span class="kw">crate</span>::runtime::task::state::State</a>;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/util/mod.rs.html#41"><span class="kw">crate</span>::util::linked_list</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="doccomment">/// The task cell. Contains the components of the task.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It is critical for `Header` to be the first field as the task structure will</span>
-<span class="doccomment">/// be referenced by both *mut Cell and *mut Header.</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Hot task state data</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">header</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>,
+<span class="doccomment">/// The task cell. Contains the components of the task.
+///
+/// It is critical for `Header` to be the first field as the task structure will
+/// be referenced by both *mut Cell and *mut Header.
+</span><span class="attribute">#[repr(C)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Cell&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, S&gt; {
+    <span class="doccomment">/// Hot task state data
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) header: <a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>,
 
-    <span class="doccomment">/// Either the future or output, depending on the execution stage.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">core</span>: <span class="ident">Core</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Either the future or output, depending on the execution stage.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) core: Core&lt;T, S&gt;,
 
-    <span class="doccomment">/// Cold data</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">trailer</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>,
+    <span class="doccomment">/// Cold data
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) trailer: <a href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">CoreStage</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> {
-    <span class="ident">stage</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Stage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CoreStage&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; {
+    stage: UnsafeCell&lt;Stage&lt;T&gt;&gt;,
 }
 
-<span class="doccomment">/// The core of the task.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Holds the future or output, depending on the stage of execution.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Core</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Scheduler used to drive this future.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">scheduler</span>: <span class="ident">S</span>,
+<span class="doccomment">/// The core of the task.
+///
+/// Holds the future or output, depending on the stage of execution.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Core&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, S&gt; {
+    <span class="doccomment">/// Scheduler used to drive this future.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) scheduler: S,
 
-    <span class="doccomment">/// Either the future or the output.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">stage</span>: <span class="ident">CoreStage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Either the future or the output.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) stage: CoreStage&lt;T&gt;,
 
-    <span class="doccomment">/// The task&#39;s ID, used for populating `JoinError`s.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">task_id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>,
+    <span class="doccomment">/// The task&#39;s ID, used for populating `JoinError`s.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) task_id: <a href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>,
 }
 
-<span class="doccomment">/// Crate public as this is also needed by the pool.</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Header</span> {
-    <span class="doccomment">/// Task state.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7">State</a>,
+<span class="doccomment">/// Crate public as this is also needed by the pool.
+</span><span class="attribute">#[repr(C)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Header {
+    <span class="doccomment">/// Task state.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) state: <a href="../../../../src/tokio/runtime/task/state.rs.html#7">State</a>,
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">owned</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) owned: UnsafeCell&lt;linked_list::Pointers&lt;<a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>&gt;&gt;,
 
-    <span class="doccomment">/// Pointer to next task, used with the injection queue.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">queue_next</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Pointer to next task, used with the injection queue.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) queue_next: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;<a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>&gt;&gt;&gt;,
 
-    <span class="doccomment">/// Table of function pointers for executing actions on the task.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">vtable</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#12">Vtable</a>,
+    <span class="doccomment">/// Table of function pointers for executing actions on the task.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../../../src/tokio/runtime/task/raw.rs.html#12">Vtable</a>,
 
-    <span class="doccomment">/// This integer contains the id of the OwnedTasks or LocalOwnedTasks that</span>
-    <span class="doccomment">/// this task is stored in. If the task is not in any list, should be the</span>
-    <span class="doccomment">/// id of the list that it was previously in, or zero if it has never been</span>
-    <span class="doccomment">/// in any list.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Once a task has been bound to a list, it can never be bound to another</span>
-    <span class="doccomment">/// list, even if removed from the first list.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The id is not unset when removed from a list because we want to be able</span>
-    <span class="doccomment">/// to read the id without synchronization, even if it is concurrently being</span>
-    <span class="doccomment">/// removed from the list.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">owner_id</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// This integer contains the id of the OwnedTasks or LocalOwnedTasks that
+    /// this task is stored in. If the task is not in any list, should be the
+    /// id of the list that it was previously in, or zero if it has never been
+    /// in any list.
+    ///
+    /// Once a task has been bound to a list, it can never be bound to another
+    /// list, even if removed from the first list.
+    ///
+    /// The id is not unset when removed from a list because we want to be able
+    /// to read the id without synchronization, even if it is concurrently being
+    /// removed from the list.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) owner_id: UnsafeCell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
 
-    <span class="doccomment">/// The tracing ID for this instrumented task.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">tracing::Id</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The tracing ID for this instrumented task.
+    </span><span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) id: <span class="prelude-ty">Option</span>&lt;tracing::Id&gt;,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {}
 
-<span class="doccomment">/// Cold data is stored after the future.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Trailer</span> {
-    <span class="doccomment">/// Consumer task waiting on completion of this task.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">waker</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Cold data is stored after the future.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Trailer {
+    <span class="doccomment">/// Consumer task waiting on completion of this task.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) waker: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
 }
 
-<span class="doccomment">/// Either the future or the output.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">Stage</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> {
-    <span class="ident">Running</span>(<span class="ident">T</span>),
-    <span class="ident">Finished</span>(<span class="ident"><span class="kw">super</span>::Result</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span>),
-    <span class="ident">Consumed</span>,
+<span class="doccomment">/// Either the future or the output.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Stage&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; {
+    Running(T),
+    Finished(<span class="kw">super</span>::Result&lt;T::Output&gt;),
+    Consumed,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a><span class="op">&gt;</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Allocates a new task cell, containing the header, trailer, and core</span>
-    <span class="doccomment">/// structures.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">future</span>: <span class="ident">T</span>, <span class="ident">scheduler</span>: <span class="ident">S</span>, <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7">State</a>, <span class="ident">task_id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">future</span>.<span class="ident">id</span>();
-        <span class="ident">Box::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#28">Cell</a> {
-            <span class="ident">header</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
-                <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#108">state</a>,
-                <span class="ident">owned</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">linked_list::Pointers::new</span>()),
-                <span class="ident">queue_next</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
-                <span class="ident">vtable</span>: <span class="ident">raw::vtable</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>(),
-                <span class="ident">owner_id</span>: <span class="ident">UnsafeCell::new</span>(<span class="number">0</span>),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                <span class="ident">id</span>,
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>&gt; Cell&lt;T, S&gt; {
+    <span class="doccomment">/// Allocates a new task cell, containing the header, trailer, and core
+    /// structures.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(future: T, scheduler: S, state: <a href="../../../../src/tokio/runtime/task/state.rs.html#7">State</a>, task_id: <a href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>) -&gt; Box&lt;Cell&lt;T, S&gt;&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>id = future.id();
+        Box::new(<a href="../../../../src/tokio/runtime/task/core.rs.html#28">Cell</a> {
+            header: <a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
+                <a href="../../../../src/tokio/runtime/task/core.rs.html#108">state</a>,
+                owned: UnsafeCell::new(linked_list::Pointers::new()),
+                queue_next: UnsafeCell::new(<span class="prelude-val">None</span>),
+                vtable: raw::vtable::&lt;T, S&gt;(),
+                owner_id: UnsafeCell::new(<span class="number">0</span>),
+                <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                </span>id,
             },
-            <span class="ident">core</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#46">Core</a> {
-                <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#108">scheduler</a>,
-                <span class="ident">stage</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#39">CoreStage</a> {
-                    <span class="ident">stage</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#100">Stage::Running</a>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#108">future</a>)),
+            core: <a href="../../../../src/tokio/runtime/task/core.rs.html#46">Core</a> {
+                <a href="../../../../src/tokio/runtime/task/core.rs.html#108">scheduler</a>,
+                stage: <a href="../../../../src/tokio/runtime/task/core.rs.html#39">CoreStage</a> {
+                    stage: UnsafeCell::new(<a href="../../../../src/tokio/runtime/task/core.rs.html#100">Stage::Running</a>(<a href="../../../../src/tokio/runtime/task/core.rs.html#108">future</a>)),
                 },
-                <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#108">task_id</a>,
+                <a href="../../../../src/tokio/runtime/task/core.rs.html#108">task_id</a>,
             },
-            <span class="ident">trailer</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a> {
-                <span class="ident">waker</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
+            trailer: <a href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a> {
+                waker: UnsafeCell::new(<span class="prelude-val">None</span>),
             },
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <span class="ident">CoreStage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">with_mut</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">*mut</span> <span class="ident">Stage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
-        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#136">self</a>.<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#136">f</a>)
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; CoreStage&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_mut&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">*mut </span>Stage&lt;T&gt;) -&gt; R) -&gt; R {
+        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#136">self</a>.stage.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<a href="../../../../src/tokio/runtime/task/core.rs.html#136">f</a>)
     }
 
-    <span class="doccomment">/// Polls the future.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must ensure it is safe to mutate the `state` field. This</span>
-    <span class="doccomment">/// requires ensuring mutual exclusion between any concurrent thread that</span>
-    <span class="doccomment">/// might modify the future or output field.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The mutual exclusion is implemented by `Harness` and the `Lifecycle`</span>
-    <span class="doccomment">/// component of the task state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `self` must also be pinned. This is handled by storing the task on the</span>
-    <span class="doccomment">/// heap.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cx</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> {
-            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#153">self</a>.<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
-                <span class="comment">// Safety: The caller ensures mutual exclusion to the field.</span>
-                <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#155">ptr</a> } {
-                    <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#100">Stage::Running</a>(<span class="ident">future</span>) =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#158">future</a>,
-                    <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;unexpected stage&quot;</span>),
+    <span class="doccomment">/// Polls the future.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure it is safe to mutate the `state` field. This
+    /// requires ensuring mutual exclusion between any concurrent thread that
+    /// might modify the future or output field.
+    ///
+    /// The mutual exclusion is implemented by `Harness` and the `Lifecycle`
+    /// component of the task state.
+    ///
+    /// `self` must also be pinned. This is handled by storing the task on the
+    /// heap.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>poll(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>cx: Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T::Output&gt; {
+        <span class="kw">let </span>res = {
+            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#153">self</a>.stage.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| {
+                <span class="comment">// Safety: The caller ensures mutual exclusion to the field.
+                </span><span class="kw">let </span>future = <span class="kw">match unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/runtime/task/core.rs.html#155">ptr</a> } {
+                    <a href="../../../../src/tokio/runtime/task/core.rs.html#100">Stage::Running</a>(future) =&gt; <a href="../../../../src/tokio/runtime/task/core.rs.html#158">future</a>,
+                    <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;unexpected stage&quot;</span>),
                 };
 
-                <span class="comment">// Safety: The caller ensures the future is pinned.</span>
-                <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#157">future</a>) };
+                <span class="comment">// Safety: The caller ensures the future is pinned.
+                </span><span class="kw">let </span>future = <span class="kw">unsafe </span>{ Pin::new_unchecked(<a href="../../../../src/tokio/runtime/task/core.rs.html#157">future</a>) };
 
-                <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#163">future</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#153">cx</a>)
+                <a href="../../../../src/tokio/runtime/task/core.rs.html#163">future</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/runtime/task/core.rs.html#153">cx</a>)
             })
         };
 
-        <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_ready</span>() {
-            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#153">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
+        <span class="kw">if </span>res.is_ready() {
+            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#153">self</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
         }
 
-        <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#154">res</a>
+        <a href="../../../../src/tokio/runtime/task/core.rs.html#154">res</a>
     }
 
-    <span class="doccomment">/// Drops the future.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must ensure it is safe to mutate the `stage` field.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">drop_future_or_output</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Safety: the caller ensures mutual exclusion to the field.</span>
-        <span class="kw">unsafe</span> {
-            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#181">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#217">set_stage</a>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#102">Stage::Consumed</a>);
-        }
-    }
-
-    <span class="doccomment">/// Stores the task output.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must ensure it is safe to mutate the `stage` field.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">store_output</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">output</span>: <span class="ident"><span class="kw">super</span>::Result</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span>) {
-        <span class="comment">// Safety: the caller ensures mutual exclusion to the field.</span>
-        <span class="kw">unsafe</span> {
-            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#193">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#217">set_stage</a>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#101">Stage::Finished</a>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#193">output</a>));
+    <span class="doccomment">/// Drops the future.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure it is safe to mutate the `stage` field.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>drop_future_or_output(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Safety: the caller ensures mutual exclusion to the field.
+        </span><span class="kw">unsafe </span>{
+            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#181">self</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#217">set_stage</a>(<a href="../../../../src/tokio/runtime/task/core.rs.html#102">Stage::Consumed</a>);
         }
     }
 
-    <span class="doccomment">/// Takes the task output.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must ensure it is safe to mutate the `stage` field.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">take_output</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="kw">super</span>::Result</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+    <span class="doccomment">/// Stores the task output.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure it is safe to mutate the `stage` field.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>store_output(<span class="kw-2">&amp;</span><span class="self">self</span>, output: <span class="kw">super</span>::Result&lt;T::Output&gt;) {
+        <span class="comment">// Safety: the caller ensures mutual exclusion to the field.
+        </span><span class="kw">unsafe </span>{
+            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#193">self</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#217">set_stage</a>(<a href="../../../../src/tokio/runtime/task/core.rs.html#101">Stage::Finished</a>(<a href="../../../../src/tokio/runtime/task/core.rs.html#193">output</a>));
+        }
+    }
 
-        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#205">self</a>.<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
-            <span class="comment">// Safety:: the caller ensures mutual exclusion to the field.</span>
-            <span class="kw">match</span> <span class="ident">mem::replace</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#208">ptr</a> }, <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#102">Stage::Consumed</a>) {
-                <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#101">Stage::Finished</a>(<span class="ident">output</span>) =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#211">output</a>,
-                <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;JoinHandle polled after completion&quot;</span>),
+    <span class="doccomment">/// Takes the task output.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure it is safe to mutate the `stage` field.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_output(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">super</span>::Result&lt;T::Output&gt; {
+        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+
+        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#205">self</a>.stage.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| {
+            <span class="comment">// Safety:: the caller ensures mutual exclusion to the field.
+            </span><span class="kw">match </span>mem::replace(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/runtime/task/core.rs.html#208">ptr</a> }, <a href="../../../../src/tokio/runtime/task/core.rs.html#102">Stage::Consumed</a>) {
+                <a href="../../../../src/tokio/runtime/task/core.rs.html#101">Stage::Finished</a>(output) =&gt; <a href="../../../../src/tokio/runtime/task/core.rs.html#211">output</a>,
+                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;JoinHandle polled after completion&quot;</span>),
             }
         })
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_stage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stage</span>: <span class="ident">Stage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#217">self</a>.<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#218">ptr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#217">stage</a>)
+    <span class="kw">unsafe fn </span>set_stage(<span class="kw-2">&amp;</span><span class="self">self</span>, stage: Stage&lt;T&gt;) {
+        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#217">self</a>.stage.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/core.rs.html#218">ptr</a> = <a href="../../../../src/tokio/runtime/task/core.rs.html#217">stage</a>)
     }
 }
 
-<span class="macro">cfg_rt_multi_thread!</span> {
-    <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">next</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a><span class="op">&gt;</span><span class="op">&gt;</span>) {
-            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#224">self</a>.<span class="ident">queue_next</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#225">ptr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#224">next</a>);
+<span class="macro">cfg_rt_multi_thread! </span>{
+    <span class="kw">impl </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>set_next(<span class="kw-2">&amp;</span><span class="self">self</span>, next: <span class="prelude-ty">Option</span>&lt;NonNull&lt;<a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>&gt;&gt;) {
+            <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#224">self</a>.queue_next.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/core.rs.html#225">ptr</a> = <a href="../../../../src/tokio/runtime/task/core.rs.html#224">next</a>);
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
-    <span class="comment">// safety: The caller must guarantee exclusive access to this field, and</span>
-    <span class="comment">// must ensure that the id is either 0 or the id of the OwnedTasks</span>
-    <span class="comment">// containing this task.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_owner_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">owner</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#234">self</a>.<span class="ident">owner_id</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#235">ptr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#234">owner</a>);
+<span class="kw">impl </span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
+    <span class="comment">// safety: The caller must guarantee exclusive access to this field, and
+    // must ensure that the id is either 0 or the id of the OwnedTasks
+    // containing this task.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>set_owner_id(<span class="kw-2">&amp;</span><span class="self">self</span>, owner: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#234">self</a>.owner_id.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/core.rs.html#235">ptr</a> = <a href="../../../../src/tokio/runtime/task/core.rs.html#234">owner</a>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_owner_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="comment">// safety: If there are concurrent writes, then that write has violated</span>
-        <span class="comment">// the safety requirements on `set_owner_id`.</span>
-        <span class="kw">unsafe</span> { <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#238">self</a>.<span class="ident">owner_id</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#241">ptr</a>) }
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>) {
-        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#246">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#247">ptr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#246">waker</a>;
-        });
-    }
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">will_wake</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#252">self</a>.<span class="ident">waker</span>
-            .<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#254">ptr</a>).<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">will_wake</span>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#252">waker</a>))
-    }
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wake_join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#257">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#258">ptr</a> } {
-            <span class="prelude-val">Some</span>(<span class="ident">waker</span>) =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#259">waker</a>.<span class="ident">wake_by_ref</span>(),
-            <span class="prelude-val">None</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;waker missing&quot;</span>),
-        });
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_owner_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <span class="comment">// safety: If there are concurrent writes, then that write has violated
+        // the safety requirements on `set_owner_id`.
+        </span><span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#238">self</a>.owner_id.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| <span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/core.rs.html#241">ptr</a>) }
     }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">loom</span>))]</span>
-<span class="kw">fn</span> <span class="ident">header_lte_cache_line</span>() {
-    <span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
+<span class="kw">impl </span><a href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>set_waker(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;) {
+        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#246">self</a>.waker.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| {
+            <span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/core.rs.html#247">ptr</a> = <a href="../../../../src/tokio/runtime/task/core.rs.html#246">waker</a>;
+        });
+    }
 
-    <span class="macro">assert!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Header</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">8</span> <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span>());
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>will_wake(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#252">self</a>.waker
+            .<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| (<span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/core.rs.html#254">ptr</a>).as_ref().unwrap().will_wake(<a href="../../../../src/tokio/runtime/task/core.rs.html#252">waker</a>))
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wake_join(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#257">self</a>.waker.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(|ptr| <span class="kw">match unsafe </span>{ <span class="kw-2">&amp;*</span><a href="../../../../src/tokio/runtime/task/core.rs.html#258">ptr</a> } {
+            <span class="prelude-val">Some</span>(waker) =&gt; <a href="../../../../src/tokio/runtime/task/core.rs.html#259">waker</a>.wake_by_ref(),
+            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;waker missing&quot;</span>),
+        });
+    }
+}
+
+<span class="attribute">#[test]
+#[cfg(not(loom))]
+</span><span class="kw">fn </span>header_lte_cache_line() {
+    <span class="kw">use </span>std::mem::size_of;
+
+    <span class="macro">assert!</span>(size_of::&lt;Header&gt;() &lt;= <span class="number">8 </span>* size_of::&lt;<span class="kw-2">*const </span>()&gt;());
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

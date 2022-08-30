@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/rwlock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rwlock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/rwlock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rwlock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1078,1085 +1078,1085 @@
 <span id="1078">1078</span>
 <span id="1079">1079</span>
 <span id="1080">1080</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sync::batch_semaphore</span>::{<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209"><span class="kw">crate</span>::sync::mutex::TryLockError</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::trace</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::sync::batch_semaphore::{<a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>, <a href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a>};
+<span class="kw">use </span><a href="../../../src/tokio/sync/mutex.rs.html#209"><span class="kw">crate</span>::sync::mutex::TryLockError</a>;
+<span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::util::trace;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#1-170">owned_read_guard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#1-279">owned_write_guard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/tokio/sync/rwlock/owned_write_guard_mapped.rs.html#1-191">owned_write_guard_mapped</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/tokio/sync/rwlock/read_guard.rs.html#1-177">read_guard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/tokio/sync/rwlock/write_guard.rs.html#1-282">write_guard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#1-197">write_guard_mapped</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#17">owned_read_guard::OwnedRwLockReadGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#18">owned_write_guard::OwnedRwLockWriteGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/rwlock/owned_write_guard_mapped.rs.html#17">owned_write_guard_mapped::OwnedRwLockMappedWriteGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/rwlock/read_guard.rs.html#15">read_guard::RwLockReadGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/rwlock/write_guard.rs.html#17">write_guard::RwLockWriteGuard</a>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">write_guard_mapped::RwLockMappedWriteGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#1-170">owned_read_guard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#1-279">owned_write_guard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/owned_write_guard_mapped.rs.html#1-191">owned_write_guard_mapped</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/read_guard.rs.html#1-177">read_guard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/write_guard.rs.html#1-282">write_guard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#1-197">write_guard_mapped</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#17">owned_read_guard::OwnedRwLockReadGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#18">owned_write_guard::OwnedRwLockWriteGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/owned_write_guard_mapped.rs.html#17">owned_write_guard_mapped::OwnedRwLockMappedWriteGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/read_guard.rs.html#15">read_guard::RwLockReadGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/write_guard.rs.html#17">write_guard::RwLockWriteGuard</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">write_guard_mapped::RwLockMappedWriteGuard</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">loom</span>))]</span>
-<span class="kw">const</span> <span class="ident">MAX_READS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="ident">std::u32::MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3</span>;
+<span class="attribute">#[cfg(not(loom))]
+</span><span class="kw">const </span>MAX_READS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = std::u32::MAX &gt;&gt; <span class="number">3</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">loom</span>)]</span>
-<span class="kw">const</span> <span class="ident">MAX_READS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="attribute">#[cfg(loom)]
+</span><span class="kw">const </span>MAX_READS: u32 = <span class="number">10</span>;
 
-<span class="doccomment">/// An asynchronous reader-writer lock.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type of lock allows a number of readers or at most one writer at any</span>
-<span class="doccomment">/// point in time. The write portion of this lock typically allows modification</span>
-<span class="doccomment">/// of the underlying data (exclusive access) and the read portion of this lock</span>
-<span class="doccomment">/// typically allows for read-only access (shared access).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In comparison, a [`Mutex`] does not distinguish between readers or writers</span>
-<span class="doccomment">/// that acquire the lock, therefore causing any tasks waiting for the lock to</span>
-<span class="doccomment">/// become available to yield. An `RwLock` will allow any number of readers to</span>
-<span class="doccomment">/// acquire the lock as long as a writer is not holding the lock.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The priority policy of Tokio&#39;s read-write lock is _fair_ (or</span>
-<span class="doccomment">/// [_write-preferring_]), in order to ensure that readers cannot starve</span>
-<span class="doccomment">/// writers. Fairness is ensured using a first-in, first-out queue for the tasks</span>
-<span class="doccomment">/// awaiting the lock; if a task that wishes to acquire the write lock is at the</span>
-<span class="doccomment">/// head of the queue, read locks will not be given out until the write lock has</span>
-<span class="doccomment">/// been released. This is in contrast to the Rust standard library&#39;s</span>
-<span class="doccomment">/// `std::sync::RwLock`, where the priority policy is dependent on the</span>
-<span class="doccomment">/// operating system&#39;s implementation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The type parameter `T` represents the data that this lock protects. It is</span>
-<span class="doccomment">/// required that `T` satisfies [`Send`] to be shared across threads. The RAII guards</span>
-<span class="doccomment">/// returned from the locking methods implement [`Deref`](trait@std::ops::Deref)</span>
-<span class="doccomment">/// (and [`DerefMut`](trait@std::ops::DerefMut)</span>
-<span class="doccomment">/// for the `write` methods) to allow access to the content of the lock.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use tokio::sync::RwLock;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     let lock = RwLock::new(5);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     // many reader locks can be held at once</span>
-<span class="doccomment">///     {</span>
-<span class="doccomment">///         let r1 = lock.read().await;</span>
-<span class="doccomment">///         let r2 = lock.read().await;</span>
-<span class="doccomment">///         assert_eq!(*r1, 5);</span>
-<span class="doccomment">///         assert_eq!(*r2, 5);</span>
-<span class="doccomment">///     } // read locks are dropped at this point</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     // only one write lock may be held, however</span>
-<span class="doccomment">///     {</span>
-<span class="doccomment">///         let mut w = lock.write().await;</span>
-<span class="doccomment">///         *w += 1;</span>
-<span class="doccomment">///         assert_eq!(*w, 6);</span>
-<span class="doccomment">///     } // write lock is dropped here</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Mutex`]: struct@super::Mutex</span>
-<span class="doccomment">/// [`RwLock`]: struct@RwLock</span>
-<span class="doccomment">/// [`RwLockReadGuard`]: struct@RwLockReadGuard</span>
-<span class="doccomment">/// [`RwLockWriteGuard`]: struct@RwLockWriteGuard</span>
-<span class="doccomment">/// [`Send`]: trait@std::marker::Send</span>
-<span class="doccomment">/// [_write-preferring_]: https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock#Priority_policies</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
+<span class="doccomment">/// An asynchronous reader-writer lock.
+///
+/// This type of lock allows a number of readers or at most one writer at any
+/// point in time. The write portion of this lock typically allows modification
+/// of the underlying data (exclusive access) and the read portion of this lock
+/// typically allows for read-only access (shared access).
+///
+/// In comparison, a [`Mutex`] does not distinguish between readers or writers
+/// that acquire the lock, therefore causing any tasks waiting for the lock to
+/// become available to yield. An `RwLock` will allow any number of readers to
+/// acquire the lock as long as a writer is not holding the lock.
+///
+/// The priority policy of Tokio&#39;s read-write lock is _fair_ (or
+/// [_write-preferring_]), in order to ensure that readers cannot starve
+/// writers. Fairness is ensured using a first-in, first-out queue for the tasks
+/// awaiting the lock; if a task that wishes to acquire the write lock is at the
+/// head of the queue, read locks will not be given out until the write lock has
+/// been released. This is in contrast to the Rust standard library&#39;s
+/// `std::sync::RwLock`, where the priority policy is dependent on the
+/// operating system&#39;s implementation.
+///
+/// The type parameter `T` represents the data that this lock protects. It is
+/// required that `T` satisfies [`Send`] to be shared across threads. The RAII guards
+/// returned from the locking methods implement [`Deref`](trait@std::ops::Deref)
+/// (and [`DerefMut`](trait@std::ops::DerefMut)
+/// for the `write` methods) to allow access to the content of the lock.
+///
+/// # Examples
+///
+/// ```
+/// use tokio::sync::RwLock;
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let lock = RwLock::new(5);
+///
+///     // many reader locks can be held at once
+///     {
+///         let r1 = lock.read().await;
+///         let r2 = lock.read().await;
+///         assert_eq!(*r1, 5);
+///         assert_eq!(*r2, 5);
+///     } // read locks are dropped at this point
+///
+///     // only one write lock may be held, however
+///     {
+///         let mut w = lock.write().await;
+///         *w += 1;
+///         assert_eq!(*w, 6);
+///     } // write lock is dropped here
+/// }
+/// ```
+///
+/// [`Mutex`]: struct@super::Mutex
+/// [`RwLock`]: struct@RwLock
+/// [`RwLockReadGuard`]: struct@RwLockReadGuard
+/// [`RwLockWriteGuard`]: struct@RwLockWriteGuard
+/// [`Send`]: trait@std::marker::Send
+/// [_write-preferring_]: https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock#Priority_policies
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>RwLock&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span>resource_span: tracing::Span,
 
-    <span class="comment">// maximum number of concurrent readers</span>
-    <span class="ident">mr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    <span class="comment">// maximum number of concurrent readers
+    </span>mr: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 
-    <span class="comment">//semaphore to coordinate read and write access to T</span>
-    <span class="ident">s</span>: <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>,
+    <span class="comment">//semaphore to coordinate read and write access to T
+    </span>s: <a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>,
 
-    <span class="comment">//inner data T</span>
-    <span class="ident">c</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="comment">//inner data T
+    </span>c: UnsafeCell&lt;T&gt;,
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">loom</span>))]</span>
-<span class="kw">fn</span> <span class="ident">bounds</span>() {
-    <span class="kw">fn</span> <span class="ident">check_send</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span>() {}
-    <span class="kw">fn</span> <span class="ident">check_sync</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sync</span><span class="op">&gt;</span>() {}
-    <span class="kw">fn</span> <span class="ident">check_unpin</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Unpin</span><span class="op">&gt;</span>() {}
-    <span class="comment">// This has to take a value, since the async fn&#39;s return type is unnameable.</span>
-    <span class="kw">fn</span> <span class="ident">check_send_sync_val</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">_t</span>: <span class="ident">T</span>) {}
+<span class="attribute">#[test]
+#[cfg(not(loom))]
+</span><span class="kw">fn </span>bounds() {
+    <span class="kw">fn </span>check_send&lt;T: Send&gt;() {}
+    <span class="kw">fn </span>check_sync&lt;T: Sync&gt;() {}
+    <span class="kw">fn </span>check_unpin&lt;T: Unpin&gt;() {}
+    <span class="comment">// This has to take a value, since the async fn&#39;s return type is unnameable.
+    </span><span class="kw">fn </span>check_send_sync_val&lt;T: Send + Sync&gt;(_t: T) {}
 
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_sync</span>::<span class="op">&lt;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_unpin</span>::<span class="op">&lt;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    check_send::&lt;RwLock&lt;u32&gt;&gt;();
+    check_sync::&lt;RwLock&lt;u32&gt;&gt;();
+    check_unpin::&lt;RwLock&lt;u32&gt;&gt;();
 
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_sync</span>::<span class="op">&lt;</span><span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_unpin</span>::<span class="op">&lt;</span><span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    check_send::&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
+    check_sync::&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
+    check_unpin::&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
 
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockReadGuard</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_sync</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockReadGuard</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_unpin</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockReadGuard</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    check_send::&lt;OwnedRwLockReadGuard&lt;u32, i32&gt;&gt;();
+    check_sync::&lt;OwnedRwLockReadGuard&lt;u32, i32&gt;&gt;();
+    check_unpin::&lt;OwnedRwLockReadGuard&lt;u32, i32&gt;&gt;();
 
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_sync</span>::<span class="op">&lt;</span><span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_unpin</span>::<span class="op">&lt;</span><span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    check_send::&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
+    check_sync::&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
+    check_unpin::&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
 
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">RwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_sync</span>::<span class="op">&lt;</span><span class="ident">RwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_unpin</span>::<span class="op">&lt;</span><span class="ident">RwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    check_send::&lt;RwLockMappedWriteGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
+    check_sync::&lt;RwLockMappedWriteGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
+    check_unpin::&lt;RwLockMappedWriteGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
 
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_sync</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_unpin</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    check_send::&lt;OwnedRwLockWriteGuard&lt;u32&gt;&gt;();
+    check_sync::&lt;OwnedRwLockWriteGuard&lt;u32&gt;&gt;();
+    check_unpin::&lt;OwnedRwLockWriteGuard&lt;u32&gt;&gt;();
 
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_sync</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_unpin</span>::<span class="op">&lt;</span><span class="ident">OwnedRwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    check_send::&lt;OwnedRwLockMappedWriteGuard&lt;u32, i32&gt;&gt;();
+    check_sync::&lt;OwnedRwLockMappedWriteGuard&lt;u32, i32&gt;&gt;();
+    check_unpin::&lt;OwnedRwLockMappedWriteGuard&lt;u32, i32&gt;&gt;();
 
-    <span class="kw">let</span> <span class="ident">rwlock</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">RwLock::new</span>(<span class="number">0</span>));
-    <span class="ident">check_send_sync_val</span>(<span class="ident">rwlock</span>.<span class="ident">read</span>());
-    <span class="ident">check_send_sync_val</span>(<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">rwlock</span>).<span class="ident">read_owned</span>());
-    <span class="ident">check_send_sync_val</span>(<span class="ident">rwlock</span>.<span class="ident">write</span>());
-    <span class="ident">check_send_sync_val</span>(<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">rwlock</span>).<span class="ident">write_owned</span>());
+    <span class="kw">let </span>rwlock = Arc::new(RwLock::new(<span class="number">0</span>));
+    check_send_sync_val(rwlock.read());
+    check_send_sync_val(Arc::clone(<span class="kw-2">&amp;</span>rwlock).read_owned());
+    check_send_sync_val(rwlock.write());
+    check_send_sync_val(Arc::clone(<span class="kw-2">&amp;</span>rwlock).write_owned());
 }
 
-<span class="comment">// As long as T: Send + Sync, it&#39;s fine to send and share RwLock&lt;T&gt; between threads.</span>
-<span class="comment">// If T were not Send, sending and sharing a RwLock&lt;T&gt; would be bad, since you can access T through</span>
-<span class="comment">// RwLock&lt;T&gt;.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="comment">// NB: These impls need to be explicit since we&#39;re storing a raw pointer.</span>
-<span class="comment">// Safety: Stores a raw pointer to `T`, so if `T` is `Sync`, the lock guard over</span>
-<span class="comment">// `T` is `Send`.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="comment">// T is required to be `Send` because an OwnedRwLockReadGuard can be used to drop the value held in</span>
-<span class="comment">// the RwLock, unlike RwLockReadGuard.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">OwnedRwLockReadGuard</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
-    <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+<span class="comment">// As long as T: Send + Sync, it&#39;s fine to send and share RwLock&lt;T&gt; between threads.
+// If T were not Send, sending and sharing a RwLock&lt;T&gt; would be bad, since you can access T through
+// RwLock&lt;T&gt;.
+</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>RwLock&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>RwLock&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="comment">// NB: These impls need to be explicit since we&#39;re storing a raw pointer.
+// Safety: Stores a raw pointer to `T`, so if `T` is `Sync`, the lock guard over
+// `T` is `Send`.
+</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="comment">// T is required to be `Send` because an OwnedRwLockReadGuard can be used to drop the value held in
+// the RwLock, unlike RwLockReadGuard.
+</span><span class="kw">unsafe impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>OwnedRwLockReadGuard&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+    U: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
 {
 }
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">OwnedRwLockReadGuard</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
-    <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+<span class="kw">unsafe impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>OwnedRwLockReadGuard&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+    U: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
 {
 }
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">OwnedRwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">RwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">OwnedRwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
-    <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>OwnedRwLockWriteGuard&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>RwLockMappedWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>OwnedRwLockMappedWriteGuard&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+    U: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
 {
 }
-<span class="comment">// Safety: Stores a raw pointer to `T`, so if `T` is `Sync`, the lock guard over</span>
-<span class="comment">// `T` is `Send` - but since this is also provides mutable access, we need to</span>
-<span class="comment">// make sure that `T` is `Send` since its value can be sent across thread</span>
-<span class="comment">// boundaries.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">OwnedRwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">RwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">OwnedRwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
-    <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+<span class="comment">// Safety: Stores a raw pointer to `T`, so if `T` is `Sync`, the lock guard over
+// `T` is `Send` - but since this is also provides mutable access, we need to
+// make sure that `T` is `Send` since its value can be sent across thread
+// boundaries.
+</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>OwnedRwLockWriteGuard&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>RwLockMappedWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>OwnedRwLockMappedWriteGuard&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
+    U: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>,
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new instance of an `RwLock&lt;T&gt;` which is unlocked.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let lock = RwLock::new(5);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; RwLock&lt;T&gt; {
+    <span class="doccomment">/// Creates a new instance of an `RwLock&lt;T&gt;` which is unlocked.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::RwLock;
+    ///
+    /// let lock = RwLock::new(5);
+    /// ```
+    </span><span class="attribute">#[track_caller]
+    </span><span class="kw">pub fn </span>new(value: T) -&gt; RwLock&lt;T&gt;
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">std::panic::Location::caller</span>();
-            <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = {
+            <span class="kw">let </span>location = std::panic::Location::caller();
+            <span class="kw">let </span>resource_span = <span class="macro">tracing::trace_span!</span>(
                 <span class="string">&quot;runtime.resource&quot;</span>,
-                <span class="ident">concrete_type</span> <span class="op">=</span> <span class="string">&quot;RwLock&quot;</span>,
-                <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;Sync&quot;</span>,
-                <span class="ident">loc</span>.<span class="ident">file</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">file</span>(),
-                <span class="ident">loc</span>.<span class="ident">line</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">line</span>(),
-                <span class="ident">loc</span>.<span class="ident">col</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">column</span>(),
+                concrete_type = <span class="string">&quot;RwLock&quot;</span>,
+                kind = <span class="string">&quot;Sync&quot;</span>,
+                loc.file = location.file(),
+                loc.line = location.line(),
+                loc.col = location.column(),
             );
 
-            <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            resource_span.in_scope(|| {
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">max_readers</span> <span class="op">=</span> <span class="ident">MAX_READS</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    max_readers = MAX_READS,
                 );
 
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">write_locked</span> <span class="op">=</span> <span class="bool-val">false</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    write_locked = <span class="bool-val">false</span>,
                 );
 
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">current_readers</span> <span class="op">=</span> <span class="number">0</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    current_readers = <span class="number">0</span>,
                 );
             });
 
-            <span class="ident">resource_span</span>
+            resource_span
         };
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Semaphore::new</span>(<span class="ident">MAX_READS</span> <span class="kw">as</span> <span class="ident">usize</span>));
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>s = resource_span.in_scope(|| Semaphore::new(MAX_READS <span class="kw">as </span>usize));
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Semaphore::new</span>(<a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#25">MAX_READS</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>s = Semaphore::new(<a href="../../../src/tokio/sync/rwlock.rs.html#25">MAX_READS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#90">RwLock</a> {
-            <span class="ident">mr</span>: <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#25">MAX_READS</a>,
-            <span class="ident">c</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#206">value</a>),
-            <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#246">s</a>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        <a href="../../../src/tokio/sync/rwlock.rs.html#90">RwLock</a> {
+            mr: <a href="../../../src/tokio/sync/rwlock.rs.html#25">MAX_READS</a>,
+            c: UnsafeCell::new(<a href="../../../src/tokio/sync/rwlock.rs.html#206">value</a>),
+            <a href="../../../src/tokio/sync/rwlock.rs.html#246">s</a>,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 
-    <span class="doccomment">/// Creates a new instance of an `RwLock&lt;T&gt;` which is unlocked</span>
-    <span class="doccomment">/// and allows a maximum of `max_reads` concurrent readers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let lock = RwLock::with_max_readers(5, 1024);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `max_reads` is more than `u32::MAX &gt;&gt; 3`.</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_max_readers</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">max_reads</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Creates a new instance of an `RwLock&lt;T&gt;` which is unlocked
+    /// and allows a maximum of `max_reads` concurrent readers.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::RwLock;
+    ///
+    /// let lock = RwLock::with_max_readers(5, 1024);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `max_reads` is more than `u32::MAX &gt;&gt; 3`.
+    </span><span class="attribute">#[track_caller]
+    </span><span class="kw">pub fn </span>with_max_readers(value: T, max_reads: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; RwLock&lt;T&gt;
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="ident">max_reads</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_READS</span>,
+            max_reads &lt;= MAX_READS,
             <span class="string">&quot;a RwLock may not be created with more than {} readers&quot;</span>,
-            <span class="ident">MAX_READS</span>
+            MAX_READS
         );
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">std::panic::Location::caller</span>();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = {
+            <span class="kw">let </span>location = std::panic::Location::caller();
 
-            <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(
+            <span class="kw">let </span>resource_span = <span class="macro">tracing::trace_span!</span>(
                 <span class="string">&quot;runtime.resource&quot;</span>,
-                <span class="ident">concrete_type</span> <span class="op">=</span> <span class="string">&quot;RwLock&quot;</span>,
-                <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;Sync&quot;</span>,
-                <span class="ident">loc</span>.<span class="ident">file</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">file</span>(),
-                <span class="ident">loc</span>.<span class="ident">line</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">line</span>(),
-                <span class="ident">loc</span>.<span class="ident">col</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">column</span>(),
+                concrete_type = <span class="string">&quot;RwLock&quot;</span>,
+                kind = <span class="string">&quot;Sync&quot;</span>,
+                loc.file = location.file(),
+                loc.line = location.line(),
+                loc.col = location.column(),
             );
 
-            <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+            resource_span.in_scope(|| {
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">max_readers</span> <span class="op">=</span> <span class="ident">max_reads</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    max_readers = max_reads,
                 );
 
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">write_locked</span> <span class="op">=</span> <span class="bool-val">false</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    write_locked = <span class="bool-val">false</span>,
                 );
 
                 <span class="macro">tracing::trace!</span>(
-                    <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                    <span class="ident">current_readers</span> <span class="op">=</span> <span class="number">0</span>,
+                    target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                    current_readers = <span class="number">0</span>,
                 );
             });
 
-            <span class="ident">resource_span</span>
+            resource_span
         };
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Semaphore::new</span>(<span class="ident">max_reads</span> <span class="kw">as</span> <span class="ident">usize</span>));
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>s = resource_span.in_scope(|| Semaphore::new(max_reads <span class="kw">as </span>usize));
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Semaphore::new</span>(<a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#272">max_reads</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>s = Semaphore::new(<a href="../../../src/tokio/sync/rwlock.rs.html#272">max_reads</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#90">RwLock</a> {
-            <span class="ident">mr</span>: <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#272">max_reads</a>,
-            <span class="ident">c</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#272">value</a>),
-            <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#319">s</a>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        <a href="../../../src/tokio/sync/rwlock.rs.html#90">RwLock</a> {
+            mr: <a href="../../../src/tokio/sync/rwlock.rs.html#272">max_reads</a>,
+            c: UnsafeCell::new(<a href="../../../src/tokio/sync/rwlock.rs.html#272">value</a>),
+            <a href="../../../src/tokio/sync/rwlock.rs.html#319">s</a>,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 
-    <span class="doccomment">/// Creates a new instance of an `RwLock&lt;T&gt;` which is unlocked.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// static LOCK: RwLock&lt;i32&gt; = RwLock::const_new(5);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parking_lot&quot;</span>, <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">loom</span>, <span class="ident">test</span>))))]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parking_lot&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">const_new</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Sized</span>,
+    <span class="doccomment">/// Creates a new instance of an `RwLock&lt;T&gt;` which is unlocked.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::RwLock;
+    ///
+    /// static LOCK: RwLock&lt;i32&gt; = RwLock::const_new(5);
+    /// ```
+    </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;parking_lot&quot;</span>, not(all(loom, test))))]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;parking_lot&quot;</span>)))]
+    </span><span class="kw">pub const fn </span>const_new(value: T) -&gt; RwLock&lt;T&gt;
+    <span class="kw">where
+        </span>T: Sized,
     {
-        <span class="ident">RwLock</span> {
-            <span class="ident">mr</span>: <span class="ident">MAX_READS</span>,
-            <span class="ident">c</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">value</span>),
-            <span class="ident">s</span>: <span class="ident">Semaphore::const_new</span>(<span class="ident">MAX_READS</span> <span class="kw">as</span> <span class="ident">usize</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="ident">tracing::Span::none</span>(),
+        RwLock {
+            mr: MAX_READS,
+            c: UnsafeCell::new(value),
+            s: Semaphore::const_new(MAX_READS <span class="kw">as </span>usize),
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: tracing::Span::none(),
         }
     }
 
-    <span class="doccomment">/// Creates a new instance of an `RwLock&lt;T&gt;` which is unlocked</span>
-    <span class="doccomment">/// and allows a maximum of `max_reads` concurrent readers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// static LOCK: RwLock&lt;i32&gt; = RwLock::const_with_max_readers(5, 1024);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parking_lot&quot;</span>, <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">loom</span>, <span class="ident">test</span>))))]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parking_lot&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">const_with_max_readers</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="kw-2">mut</span> <span class="ident">max_reads</span>: <span class="ident">u32</span>) -&gt; <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Sized</span>,
+    <span class="doccomment">/// Creates a new instance of an `RwLock&lt;T&gt;` which is unlocked
+    /// and allows a maximum of `max_reads` concurrent readers.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::RwLock;
+    ///
+    /// static LOCK: RwLock&lt;i32&gt; = RwLock::const_with_max_readers(5, 1024);
+    /// ```
+    </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;parking_lot&quot;</span>, not(all(loom, test))))]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;parking_lot&quot;</span>)))]
+    </span><span class="kw">pub const fn </span>const_with_max_readers(value: T, <span class="kw-2">mut </span>max_reads: u32) -&gt; RwLock&lt;T&gt;
+    <span class="kw">where
+        </span>T: Sized,
     {
-        <span class="ident">max_reads</span> <span class="op">&amp;=</span> <span class="ident">MAX_READS</span>;
-        <span class="ident">RwLock</span> {
-            <span class="ident">mr</span>: <span class="ident">max_reads</span>,
-            <span class="ident">c</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">value</span>),
-            <span class="ident">s</span>: <span class="ident">Semaphore::const_new</span>(<span class="ident">max_reads</span> <span class="kw">as</span> <span class="ident">usize</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="ident">tracing::Span::none</span>(),
+        max_reads &amp;= MAX_READS;
+        RwLock {
+            mr: max_reads,
+            c: UnsafeCell::new(value),
+            s: Semaphore::const_new(max_reads <span class="kw">as </span>usize),
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: tracing::Span::none(),
         }
     }
 
-    <span class="doccomment">/// Locks this `RwLock` with shared read access, causing the current task</span>
-    <span class="doccomment">/// to yield until the lock has been acquired.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The calling task will yield until there are no writers which hold the</span>
-    <span class="doccomment">/// lock. There may be other readers inside the lock when the task resumes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that under the priority policy of [`RwLock`], read locks are not</span>
-    <span class="doccomment">/// granted until prior write locks, to prevent starvation. Therefore</span>
-    <span class="doccomment">/// deadlock may occur if a read lock is held by the current task, a write</span>
-    <span class="doccomment">/// lock attempt is made, and then a subsequent read lock attempt is made</span>
-    <span class="doccomment">/// by the current task.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will drop this read access of the `RwLock`</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method uses a queue to fairly distribute locks in the order they</span>
-    <span class="doccomment">/// were requested. Cancelling a call to `read` makes you lose your place in</span>
-    <span class="doccomment">/// the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let lock = Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///     let c_lock = lock.clone();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let n = lock.read().await;</span>
-    <span class="doccomment">///     assert_eq!(*n, 1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     tokio::spawn(async move {</span>
-    <span class="doccomment">///         // While main has an active read lock, we acquire one too.</span>
-    <span class="doccomment">///         let r = c_lock.read().await;</span>
-    <span class="doccomment">///         assert_eq!(*r, 1);</span>
-    <span class="doccomment">///     }).await.expect(&quot;The spawned task has panicked&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Drop the guard after the spawned task finishes.</span>
-    <span class="doccomment">///     drop(n);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">trace::async_op</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="number">1</span>),
-            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+    <span class="doccomment">/// Locks this `RwLock` with shared read access, causing the current task
+    /// to yield until the lock has been acquired.
+    ///
+    /// The calling task will yield until there are no writers which hold the
+    /// lock. There may be other readers inside the lock when the task resumes.
+    ///
+    /// Note that under the priority policy of [`RwLock`], read locks are not
+    /// granted until prior write locks, to prevent starvation. Therefore
+    /// deadlock may occur if a read lock is held by the current task, a write
+    /// lock attempt is made, and then a subsequent read lock attempt is made
+    /// by the current task.
+    ///
+    /// Returns an RAII guard which will drop this read access of the `RwLock`
+    /// when dropped.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method uses a queue to fairly distribute locks in the order they
+    /// were requested. Cancelling a call to `read` makes you lose your place in
+    /// the queue.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let lock = Arc::new(RwLock::new(1));
+    ///     let c_lock = lock.clone();
+    ///
+    ///     let n = lock.read().await;
+    ///     assert_eq!(*n, 1);
+    ///
+    ///     tokio::spawn(async move {
+    ///         // While main has an active read lock, we acquire one too.
+    ///         let r = c_lock.read().await;
+    ///         assert_eq!(*r, 1);
+    ///     }).await.expect(&quot;The spawned task has panicked&quot;);
+    ///
+    ///     // Drop the guard after the spawned task finishes.
+    ///     drop(n);
+    /// }
+    /// ```
+    </span><span class="kw">pub async fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>inner = trace::async_op(
+            || <span class="self">self</span>.s.acquire(<span class="number">1</span>),
+            <span class="self">self</span>.resource_span.clone(),
             <span class="string">&quot;RwLock::read&quot;</span>,
             <span class="string">&quot;poll&quot;</span>,
             <span class="bool-val">false</span>,
         );
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="number">1</span>);
+        <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>inner = <span class="self">self</span>.s.acquire(<span class="number">1</span>);
 
-        <span class="ident">inner</span>.<span class="kw">await</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and we have a</span>
-            <span class="comment">// handle to it through the Arc, which means that this can never happen.</span>
-            <span class="macro">unreachable!</span>()
+        inner.<span class="kw">await</span>.unwrap_or_else(|<span class="kw">_</span>| {
+            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and we have a
+            // handle to it through the Arc, which means that this can never happen.
+            </span><span class="macro">unreachable!</span>()
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">current_readers</span> <span class="op">=</span> <span class="number">1</span>,
-            <span class="ident">current_readers</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;add&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            current_readers = <span class="number">1</span>,
+            current_readers.op = <span class="string">&quot;add&quot;</span>,
             )
         });
 
-        <span class="ident">RwLockReadGuard</span> {
-            <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">s</span>,
-            <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">get</span>(),
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+        RwLockReadGuard {
+            s: <span class="kw-2">&amp;</span><span class="self">self</span>.s,
+            data: <span class="self">self</span>.c.get(),
+            marker: marker::PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: <span class="self">self</span>.resource_span.clone(),
         }
     }
 
-    <span class="doccomment">/// Blockingly locks this `RwLock` with shared read access.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is intended for use cases where you</span>
-    <span class="doccomment">/// need to use this rwlock in asynchronous code as well as in synchronous code.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will drop the read access of this `RwLock` when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if called within an asynchronous execution context.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///   - If you find yourself in an asynchronous execution context and needing</span>
-    <span class="doccomment">///     to call some (synchronous) function which performs one of these</span>
-    <span class="doccomment">///     `blocking_` operations, then consider wrapping that call inside</span>
-    <span class="doccomment">///     [`spawn_blocking()`][crate::runtime::Handle::spawn_blocking]</span>
-    <span class="doccomment">///     (or [`block_in_place()`][crate::task::block_in_place]).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let rwlock = Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///     let mut write_lock = rwlock.write().await;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let blocking_task = tokio::task::spawn_blocking({</span>
-    <span class="doccomment">///         let rwlock = Arc::clone(&amp;rwlock);</span>
-    <span class="doccomment">///         move || {</span>
-    <span class="doccomment">///             // This shall block until the `write_lock` is released.</span>
-    <span class="doccomment">///             let read_lock = rwlock.blocking_read();</span>
-    <span class="doccomment">///             assert_eq!(*read_lock, 0);</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     *write_lock -= 1;</span>
-    <span class="doccomment">///     drop(write_lock); // release the lock.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Await the completion of the blocking task.</span>
-    <span class="doccomment">///     blocking_task.await.unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Assert uncontended.</span>
-    <span class="doccomment">///     assert!(rwlock.try_write().is_ok());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blocking_read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#511">self</a>.<a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#425">read</a>())
+    <span class="doccomment">/// Blockingly locks this `RwLock` with shared read access.
+    ///
+    /// This method is intended for use cases where you
+    /// need to use this rwlock in asynchronous code as well as in synchronous code.
+    ///
+    /// Returns an RAII guard which will drop the read access of this `RwLock` when dropped.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if called within an asynchronous execution context.
+    ///
+    ///   - If you find yourself in an asynchronous execution context and needing
+    ///     to call some (synchronous) function which performs one of these
+    ///     `blocking_` operations, then consider wrapping that call inside
+    ///     [`spawn_blocking()`][crate::runtime::Handle::spawn_blocking]
+    ///     (or [`block_in_place()`][crate::task::block_in_place]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let rwlock = Arc::new(RwLock::new(1));
+    ///     let mut write_lock = rwlock.write().await;
+    ///
+    ///     let blocking_task = tokio::task::spawn_blocking({
+    ///         let rwlock = Arc::clone(&amp;rwlock);
+    ///         move || {
+    ///             // This shall block until the `write_lock` is released.
+    ///             let read_lock = rwlock.blocking_read();
+    ///             assert_eq!(*read_lock, 0);
+    ///         }
+    ///     });
+    ///
+    ///     *write_lock -= 1;
+    ///     drop(write_lock); // release the lock.
+    ///
+    ///     // Await the completion of the blocking task.
+    ///     blocking_task.await.unwrap();
+    ///
+    ///     // Assert uncontended.
+    ///     assert!(rwlock.try_write().is_ok());
+    /// }
+    /// ```
+    </span><span class="attribute">#[track_caller]
+    #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
+    </span><span class="kw">pub fn </span>blocking_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <a href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#511">self</a>.<a href="../../../src/tokio/sync/rwlock.rs.html#425">read</a>())
     }
 
-    <span class="doccomment">/// Locks this `RwLock` with shared read access, causing the current task</span>
-    <span class="doccomment">/// to yield until the lock has been acquired.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The calling task will yield until there are no writers which hold the</span>
-    <span class="doccomment">/// lock. There may be other readers inside the lock when the task resumes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is identical to [`RwLock::read`], except that the returned</span>
-    <span class="doccomment">/// guard references the `RwLock` with an [`Arc`] rather than by borrowing</span>
-    <span class="doccomment">/// it. Therefore, the `RwLock` must be wrapped in an `Arc` to call this</span>
-    <span class="doccomment">/// method, and the guard will live for the `&#39;static` lifetime, as it keeps</span>
-    <span class="doccomment">/// the `RwLock` alive by holding an `Arc`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that under the priority policy of [`RwLock`], read locks are not</span>
-    <span class="doccomment">/// granted until prior write locks, to prevent starvation. Therefore</span>
-    <span class="doccomment">/// deadlock may occur if a read lock is held by the current task, a write</span>
-    <span class="doccomment">/// lock attempt is made, and then a subsequent read lock attempt is made</span>
-    <span class="doccomment">/// by the current task.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will drop this read access of the `RwLock`</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method uses a queue to fairly distribute locks in the order they</span>
-    <span class="doccomment">/// were requested. Cancelling a call to `read_owned` makes you lose your</span>
-    <span class="doccomment">/// place in the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let lock = Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///     let c_lock = lock.clone();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let n = lock.read_owned().await;</span>
-    <span class="doccomment">///     assert_eq!(*n, 1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     tokio::spawn(async move {</span>
-    <span class="doccomment">///         // While main has an active read lock, we acquire one too.</span>
-    <span class="doccomment">///         let r = c_lock.read_owned().await;</span>
-    <span class="doccomment">///         assert_eq!(*r, 1);</span>
-    <span class="doccomment">///     }).await.expect(&quot;The spawned task has panicked&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Drop the guard after the spawned task finishes.</span>
-    <span class="doccomment">///     drop(n);</span>
-    <span class="doccomment">///}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">OwnedRwLockReadGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">trace::async_op</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="number">1</span>),
-            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+    <span class="doccomment">/// Locks this `RwLock` with shared read access, causing the current task
+    /// to yield until the lock has been acquired.
+    ///
+    /// The calling task will yield until there are no writers which hold the
+    /// lock. There may be other readers inside the lock when the task resumes.
+    ///
+    /// This method is identical to [`RwLock::read`], except that the returned
+    /// guard references the `RwLock` with an [`Arc`] rather than by borrowing
+    /// it. Therefore, the `RwLock` must be wrapped in an `Arc` to call this
+    /// method, and the guard will live for the `&#39;static` lifetime, as it keeps
+    /// the `RwLock` alive by holding an `Arc`.
+    ///
+    /// Note that under the priority policy of [`RwLock`], read locks are not
+    /// granted until prior write locks, to prevent starvation. Therefore
+    /// deadlock may occur if a read lock is held by the current task, a write
+    /// lock attempt is made, and then a subsequent read lock attempt is made
+    /// by the current task.
+    ///
+    /// Returns an RAII guard which will drop this read access of the `RwLock`
+    /// when dropped.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method uses a queue to fairly distribute locks in the order they
+    /// were requested. Cancelling a call to `read_owned` makes you lose your
+    /// place in the queue.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let lock = Arc::new(RwLock::new(1));
+    ///     let c_lock = lock.clone();
+    ///
+    ///     let n = lock.read_owned().await;
+    ///     assert_eq!(*n, 1);
+    ///
+    ///     tokio::spawn(async move {
+    ///         // While main has an active read lock, we acquire one too.
+    ///         let r = c_lock.read_owned().await;
+    ///         assert_eq!(*r, 1);
+    ///     }).await.expect(&quot;The spawned task has panicked&quot;);
+    ///
+    ///     // Drop the guard after the spawned task finishes.
+    ///     drop(n);
+    ///}
+    /// ```
+    </span><span class="kw">pub async fn </span>read_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; OwnedRwLockReadGuard&lt;T&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>inner = trace::async_op(
+            || <span class="self">self</span>.s.acquire(<span class="number">1</span>),
+            <span class="self">self</span>.resource_span.clone(),
             <span class="string">&quot;RwLock::read_owned&quot;</span>,
             <span class="string">&quot;poll&quot;</span>,
             <span class="bool-val">false</span>,
         );
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="number">1</span>);
+        <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>inner = <span class="self">self</span>.s.acquire(<span class="number">1</span>);
 
-        <span class="ident">inner</span>.<span class="kw">await</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and we have a</span>
-            <span class="comment">// handle to it through the Arc, which means that this can never happen.</span>
-            <span class="macro">unreachable!</span>()
+        inner.<span class="kw">await</span>.unwrap_or_else(|<span class="kw">_</span>| {
+            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and we have a
+            // handle to it through the Arc, which means that this can never happen.
+            </span><span class="macro">unreachable!</span>()
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">current_readers</span> <span class="op">=</span> <span class="number">1</span>,
-            <span class="ident">current_readers</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;add&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            current_readers = <span class="number">1</span>,
+            current_readers.op = <span class="string">&quot;add&quot;</span>,
             )
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-        <span class="ident">OwnedRwLockReadGuard</span> {
-            <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">get</span>(),
-            <span class="ident">lock</span>: <span class="ident">ManuallyDrop::new</span>(<span class="self">self</span>),
-            <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        OwnedRwLockReadGuard {
+            data: <span class="self">self</span>.c.get(),
+            lock: ManuallyDrop::new(<span class="self">self</span>),
+            _p: PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 
-    <span class="doccomment">/// Attempts to acquire this `RwLock` with shared read access.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the access couldn&#39;t be acquired immediately, returns [`TryLockError`].</span>
-    <span class="doccomment">/// Otherwise, an RAII guard is returned which will release read access</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TryLockError`]: TryLockError</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let lock = Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///     let c_lock = lock.clone();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let v = lock.try_read().unwrap();</span>
-    <span class="doccomment">///     assert_eq!(*v, 1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     tokio::spawn(async move {</span>
-    <span class="doccomment">///         // While main has an active read lock, we acquire one too.</span>
-    <span class="doccomment">///         let n = c_lock.read().await;</span>
-    <span class="doccomment">///         assert_eq!(*n, 1);</span>
-    <span class="doccomment">///     }).await.expect(&quot;The spawned task has panicked&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Drop the guard when spawned task finishes.</span>
-    <span class="doccomment">///     drop(v);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">permit</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#640">permit</a>,
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    <span class="doccomment">/// Attempts to acquire this `RwLock` with shared read access.
+    ///
+    /// If the access couldn&#39;t be acquired immediately, returns [`TryLockError`].
+    /// Otherwise, an RAII guard is returned which will release read access
+    /// when dropped.
+    ///
+    /// [`TryLockError`]: TryLockError
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let lock = Arc::new(RwLock::new(1));
+    ///     let c_lock = lock.clone();
+    ///
+    ///     let v = lock.try_read().unwrap();
+    ///     assert_eq!(*v, 1);
+    ///
+    ///     tokio::spawn(async move {
+    ///         // While main has an active read lock, we acquire one too.
+    ///         let n = c_lock.read().await;
+    ///         assert_eq!(*n, 1);
+    ///     }).await.expect(&quot;The spawned task has panicked&quot;);
+    ///
+    ///     // Drop the guard when spawned task finishes.
+    ///     drop(v);
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="../../../src/tokio/sync/rwlock.rs.html#640">permit</a>,
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">current_readers</span> <span class="op">=</span> <span class="number">1</span>,
-            <span class="ident">current_readers</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;add&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            current_readers = <span class="number">1</span>,
+            current_readers.op = <span class="string">&quot;add&quot;</span>,
             )
         });
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/rwlock/read_guard.rs.html#15">RwLockReadGuard</a> {
-            <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.<span class="ident">s</span>,
-            <span class="ident">data</span>: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.<span class="ident">c</span>.<span class="ident">get</span>(),
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/rwlock/read_guard.rs.html#15">RwLockReadGuard</a> {
+            s: <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.s,
+            data: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#638">self</a>.c.get(),
+            marker: marker::PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: <span class="self">self</span>.resource_span.clone(),
         })
     }
 
-    <span class="doccomment">/// Attempts to acquire this `RwLock` with shared read access.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the access couldn&#39;t be acquired immediately, returns [`TryLockError`].</span>
-    <span class="doccomment">/// Otherwise, an RAII guard is returned which will release read access</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is identical to [`RwLock::try_read`], except that the</span>
-    <span class="doccomment">/// returned guard references the `RwLock` with an [`Arc`] rather than by</span>
-    <span class="doccomment">/// borrowing it. Therefore, the `RwLock` must be wrapped in an `Arc` to</span>
-    <span class="doccomment">/// call this method, and the guard will live for the `&#39;static` lifetime,</span>
-    <span class="doccomment">/// as it keeps the `RwLock` alive by holding an `Arc`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TryLockError`]: TryLockError</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let lock = Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///     let c_lock = lock.clone();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let v = lock.try_read_owned().unwrap();</span>
-    <span class="doccomment">///     assert_eq!(*v, 1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     tokio::spawn(async move {</span>
-    <span class="doccomment">///         // While main has an active read lock, we acquire one too.</span>
-    <span class="doccomment">///         let n = c_lock.read_owned().await;</span>
-    <span class="doccomment">///         assert_eq!(*n, 1);</span>
-    <span class="doccomment">///     }).await.expect(&quot;The spawned task has panicked&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Drop the guard when spawned task finishes.</span>
-    <span class="doccomment">///     drop(v);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_read_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OwnedRwLockReadGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">permit</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#703">permit</a>,
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    <span class="doccomment">/// Attempts to acquire this `RwLock` with shared read access.
+    ///
+    /// If the access couldn&#39;t be acquired immediately, returns [`TryLockError`].
+    /// Otherwise, an RAII guard is returned which will release read access
+    /// when dropped.
+    ///
+    /// This method is identical to [`RwLock::try_read`], except that the
+    /// returned guard references the `RwLock` with an [`Arc`] rather than by
+    /// borrowing it. Therefore, the `RwLock` must be wrapped in an `Arc` to
+    /// call this method, and the guard will live for the `&#39;static` lifetime,
+    /// as it keeps the `RwLock` alive by holding an `Arc`.
+    ///
+    /// [`TryLockError`]: TryLockError
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let lock = Arc::new(RwLock::new(1));
+    ///     let c_lock = lock.clone();
+    ///
+    ///     let v = lock.try_read_owned().unwrap();
+    ///     assert_eq!(*v, 1);
+    ///
+    ///     tokio::spawn(async move {
+    ///         // While main has an active read lock, we acquire one too.
+    ///         let n = c_lock.read_owned().await;
+    ///         assert_eq!(*n, 1);
+    ///     }).await.expect(&quot;The spawned task has panicked&quot;);
+    ///
+    ///     // Drop the guard when spawned task finishes.
+    ///     drop(v);
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>try_read_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedRwLockReadGuard&lt;T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="../../../src/tokio/sync/rwlock.rs.html#703">permit</a>,
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">current_readers</span> <span class="op">=</span> <span class="number">1</span>,
-            <span class="ident">current_readers</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;add&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            current_readers = <span class="number">1</span>,
+            current_readers.op = <span class="string">&quot;add&quot;</span>,
             )
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#17">OwnedRwLockReadGuard</a> {
-            <span class="ident">data</span>: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>.<span class="ident">c</span>.<span class="ident">get</span>(),
-            <span class="ident">lock</span>: <span class="ident">ManuallyDrop::new</span>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>),
-            <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/rwlock/owned_read_guard.rs.html#17">OwnedRwLockReadGuard</a> {
+            data: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>.c.get(),
+            lock: ManuallyDrop::new(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#701">self</a>),
+            _p: PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         })
     }
 
-    <span class="doccomment">/// Locks this `RwLock` with exclusive write access, causing the current</span>
-    <span class="doccomment">/// task to yield until the lock has been acquired.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The calling task will yield while other writers or readers currently</span>
-    <span class="doccomment">/// have access to the lock.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will drop the write access of this `RwLock`</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method uses a queue to fairly distribute locks in the order they</span>
-    <span class="doccomment">/// were requested. Cancelling a call to `write` makes you lose your place</span>
-    <span class="doccomment">/// in the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///   let lock = RwLock::new(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///   let mut n = lock.write().await;</span>
-    <span class="doccomment">///   *n = 2;</span>
-    <span class="doccomment">///}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">trace::async_op</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="self">self</span>.<span class="ident">mr</span>),
-            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+    <span class="doccomment">/// Locks this `RwLock` with exclusive write access, causing the current
+    /// task to yield until the lock has been acquired.
+    ///
+    /// The calling task will yield while other writers or readers currently
+    /// have access to the lock.
+    ///
+    /// Returns an RAII guard which will drop the write access of this `RwLock`
+    /// when dropped.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method uses a queue to fairly distribute locks in the order they
+    /// were requested. Cancelling a call to `write` makes you lose your place
+    /// in the queue.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///   let lock = RwLock::new(1);
+    ///
+    ///   let mut n = lock.write().await;
+    ///   *n = 2;
+    ///}
+    /// ```
+    </span><span class="kw">pub async fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>inner = trace::async_op(
+            || <span class="self">self</span>.s.acquire(<span class="self">self</span>.mr),
+            <span class="self">self</span>.resource_span.clone(),
             <span class="string">&quot;RwLock::write&quot;</span>,
             <span class="string">&quot;poll&quot;</span>,
             <span class="bool-val">false</span>,
         );
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="self">self</span>.<span class="ident">mr</span>);
+        <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>inner = <span class="self">self</span>.s.acquire(<span class="self">self</span>.mr);
 
-        <span class="ident">inner</span>.<span class="kw">await</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and we have a</span>
-            <span class="comment">// handle to it through the Arc, which means that this can never happen.</span>
-            <span class="macro">unreachable!</span>()
+        inner.<span class="kw">await</span>.unwrap_or_else(|<span class="kw">_</span>| {
+            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and we have a
+            // handle to it through the Arc, which means that this can never happen.
+            </span><span class="macro">unreachable!</span>()
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">write_locked</span> <span class="op">=</span> <span class="bool-val">true</span>,
-            <span class="ident">write_locked</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            write_locked = <span class="bool-val">true</span>,
+            write_locked.op = <span class="string">&quot;override&quot;</span>,
             )
         });
 
-        <span class="ident">RwLockWriteGuard</span> {
-            <span class="ident">permits_acquired</span>: <span class="self">self</span>.<span class="ident">mr</span>,
-            <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">s</span>,
-            <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">get</span>(),
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+        RwLockWriteGuard {
+            permits_acquired: <span class="self">self</span>.mr,
+            s: <span class="kw-2">&amp;</span><span class="self">self</span>.s,
+            data: <span class="self">self</span>.c.get(),
+            marker: marker::PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: <span class="self">self</span>.resource_span.clone(),
         }
     }
 
-    <span class="doccomment">/// Blockingly locks this `RwLock` with exclusive write access.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is intended for use cases where you</span>
-    <span class="doccomment">/// need to use this rwlock in asynchronous code as well as in synchronous code.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will drop the write access of this `RwLock` when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if called within an asynchronous execution context.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///   - If you find yourself in an asynchronous execution context and needing</span>
-    <span class="doccomment">///     to call some (synchronous) function which performs one of these</span>
-    <span class="doccomment">///     `blocking_` operations, then consider wrapping that call inside</span>
-    <span class="doccomment">///     [`spawn_blocking()`][crate::runtime::Handle::spawn_blocking]</span>
-    <span class="doccomment">///     (or [`block_in_place()`][crate::task::block_in_place]).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::{sync::RwLock};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let rwlock =  Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///     let read_lock = rwlock.read().await;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let blocking_task = tokio::task::spawn_blocking({</span>
-    <span class="doccomment">///         let rwlock = Arc::clone(&amp;rwlock);</span>
-    <span class="doccomment">///         move || {</span>
-    <span class="doccomment">///             // This shall block until the `read_lock` is released.</span>
-    <span class="doccomment">///             let mut write_lock = rwlock.blocking_write();</span>
-    <span class="doccomment">///             *write_lock = 2;</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     assert_eq!(*read_lock, 1);</span>
-    <span class="doccomment">///     // Release the last outstanding read lock.</span>
-    <span class="doccomment">///     drop(read_lock);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Await the completion of the blocking task.</span>
-    <span class="doccomment">///     blocking_task.await.unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Assert uncontended.</span>
-    <span class="doccomment">///     let read_lock = rwlock.try_read().unwrap();</span>
-    <span class="doccomment">///     assert_eq!(*read_lock, 2);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blocking_write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#846">self</a>.<a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#757">write</a>())
+    <span class="doccomment">/// Blockingly locks this `RwLock` with exclusive write access.
+    ///
+    /// This method is intended for use cases where you
+    /// need to use this rwlock in asynchronous code as well as in synchronous code.
+    ///
+    /// Returns an RAII guard which will drop the write access of this `RwLock` when dropped.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if called within an asynchronous execution context.
+    ///
+    ///   - If you find yourself in an asynchronous execution context and needing
+    ///     to call some (synchronous) function which performs one of these
+    ///     `blocking_` operations, then consider wrapping that call inside
+    ///     [`spawn_blocking()`][crate::runtime::Handle::spawn_blocking]
+    ///     (or [`block_in_place()`][crate::task::block_in_place]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::{sync::RwLock};
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let rwlock =  Arc::new(RwLock::new(1));
+    ///     let read_lock = rwlock.read().await;
+    ///
+    ///     let blocking_task = tokio::task::spawn_blocking({
+    ///         let rwlock = Arc::clone(&amp;rwlock);
+    ///         move || {
+    ///             // This shall block until the `read_lock` is released.
+    ///             let mut write_lock = rwlock.blocking_write();
+    ///             *write_lock = 2;
+    ///         }
+    ///     });
+    ///
+    ///     assert_eq!(*read_lock, 1);
+    ///     // Release the last outstanding read lock.
+    ///     drop(read_lock);
+    ///
+    ///     // Await the completion of the blocking task.
+    ///     blocking_task.await.unwrap();
+    ///
+    ///     // Assert uncontended.
+    ///     let read_lock = rwlock.try_read().unwrap();
+    ///     assert_eq!(*read_lock, 2);
+    /// }
+    /// ```
+    </span><span class="attribute">#[track_caller]
+    #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
+    </span><span class="kw">pub fn </span>blocking_write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <a href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#846">self</a>.<a href="../../../src/tokio/sync/rwlock.rs.html#757">write</a>())
     }
 
-    <span class="doccomment">/// Locks this `RwLock` with exclusive write access, causing the current</span>
-    <span class="doccomment">/// task to yield until the lock has been acquired.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The calling task will yield while other writers or readers currently</span>
-    <span class="doccomment">/// have access to the lock.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is identical to [`RwLock::write`], except that the returned</span>
-    <span class="doccomment">/// guard references the `RwLock` with an [`Arc`] rather than by borrowing</span>
-    <span class="doccomment">/// it. Therefore, the `RwLock` must be wrapped in an `Arc` to call this</span>
-    <span class="doccomment">/// method, and the guard will live for the `&#39;static` lifetime, as it keeps</span>
-    <span class="doccomment">/// the `RwLock` alive by holding an `Arc`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will drop the write access of this `RwLock`</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method uses a queue to fairly distribute locks in the order they</span>
-    <span class="doccomment">/// were requested. Cancelling a call to `write_owned` makes you lose your</span>
-    <span class="doccomment">/// place in the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///   let lock = Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///   let mut n = lock.write_owned().await;</span>
-    <span class="doccomment">///   *n = 2;</span>
-    <span class="doccomment">///}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">OwnedRwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">trace::async_op</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="self">self</span>.<span class="ident">mr</span>),
-            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+    <span class="doccomment">/// Locks this `RwLock` with exclusive write access, causing the current
+    /// task to yield until the lock has been acquired.
+    ///
+    /// The calling task will yield while other writers or readers currently
+    /// have access to the lock.
+    ///
+    /// This method is identical to [`RwLock::write`], except that the returned
+    /// guard references the `RwLock` with an [`Arc`] rather than by borrowing
+    /// it. Therefore, the `RwLock` must be wrapped in an `Arc` to call this
+    /// method, and the guard will live for the `&#39;static` lifetime, as it keeps
+    /// the `RwLock` alive by holding an `Arc`.
+    ///
+    /// Returns an RAII guard which will drop the write access of this `RwLock`
+    /// when dropped.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method uses a queue to fairly distribute locks in the order they
+    /// were requested. Cancelling a call to `write_owned` makes you lose your
+    /// place in the queue.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///   let lock = Arc::new(RwLock::new(1));
+    ///
+    ///   let mut n = lock.write_owned().await;
+    ///   *n = 2;
+    ///}
+    /// ```
+    </span><span class="kw">pub async fn </span>write_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; OwnedRwLockWriteGuard&lt;T&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>inner = trace::async_op(
+            || <span class="self">self</span>.s.acquire(<span class="self">self</span>.mr),
+            <span class="self">self</span>.resource_span.clone(),
             <span class="string">&quot;RwLock::write_owned&quot;</span>,
             <span class="string">&quot;poll&quot;</span>,
             <span class="bool-val">false</span>,
         );
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="self">self</span>.<span class="ident">mr</span>);
+        <span class="attribute">#[cfg(not(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>inner = <span class="self">self</span>.s.acquire(<span class="self">self</span>.mr);
 
-        <span class="ident">inner</span>.<span class="kw">await</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and we have a</span>
-            <span class="comment">// handle to it through the Arc, which means that this can never happen.</span>
-            <span class="macro">unreachable!</span>()
+        inner.<span class="kw">await</span>.unwrap_or_else(|<span class="kw">_</span>| {
+            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and we have a
+            // handle to it through the Arc, which means that this can never happen.
+            </span><span class="macro">unreachable!</span>()
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">write_locked</span> <span class="op">=</span> <span class="bool-val">true</span>,
-            <span class="ident">write_locked</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            write_locked = <span class="bool-val">true</span>,
+            write_locked.op = <span class="string">&quot;override&quot;</span>,
             )
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-        <span class="ident">OwnedRwLockWriteGuard</span> {
-            <span class="ident">permits_acquired</span>: <span class="self">self</span>.<span class="ident">mr</span>,
-            <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">get</span>(),
-            <span class="ident">lock</span>: <span class="ident">ManuallyDrop::new</span>(<span class="self">self</span>),
-            <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        OwnedRwLockWriteGuard {
+            permits_acquired: <span class="self">self</span>.mr,
+            data: <span class="self">self</span>.c.get(),
+            lock: ManuallyDrop::new(<span class="self">self</span>),
+            _p: PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 
-    <span class="doccomment">/// Attempts to acquire this `RwLock` with exclusive write access.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the access couldn&#39;t be acquired immediately, returns [`TryLockError`].</span>
-    <span class="doccomment">/// Otherwise, an RAII guard is returned which will release write access</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TryLockError`]: TryLockError</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let rw = RwLock::new(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let v = rw.read().await;</span>
-    <span class="doccomment">///     assert_eq!(*v, 1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     assert!(rw.try_write().is_err());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.<span class="ident">mr</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">permit</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#951">permit</a>,
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    <span class="doccomment">/// Attempts to acquire this `RwLock` with exclusive write access.
+    ///
+    /// If the access couldn&#39;t be acquired immediately, returns [`TryLockError`].
+    /// Otherwise, an RAII guard is returned which will release write access
+    /// when dropped.
+    ///
+    /// [`TryLockError`]: TryLockError
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let rw = RwLock::new(1);
+    ///
+    ///     let v = rw.read().await;
+    ///     assert_eq!(*v, 1);
+    ///
+    ///     assert!(rw.try_write().is_err());
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>try_write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.mr) {
+            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="../../../src/tokio/sync/rwlock.rs.html#951">permit</a>,
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">write_locked</span> <span class="op">=</span> <span class="bool-val">true</span>,
-            <span class="ident">write_locked</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            write_locked = <span class="bool-val">true</span>,
+            write_locked.op = <span class="string">&quot;override&quot;</span>,
             )
         });
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/rwlock/write_guard.rs.html#17">RwLockWriteGuard</a> {
-            <span class="ident">permits_acquired</span>: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.<span class="ident">mr</span>,
-            <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.<span class="ident">s</span>,
-            <span class="ident">data</span>: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.<span class="ident">c</span>.<span class="ident">get</span>(),
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/rwlock/write_guard.rs.html#17">RwLockWriteGuard</a> {
+            permits_acquired: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.mr,
+            s: <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.s,
+            data: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#949">self</a>.c.get(),
+            marker: marker::PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: <span class="self">self</span>.resource_span.clone(),
         })
     }
 
-    <span class="doccomment">/// Attempts to acquire this `RwLock` with exclusive write access.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the access couldn&#39;t be acquired immediately, returns [`TryLockError`].</span>
-    <span class="doccomment">/// Otherwise, an RAII guard is returned which will release write access</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is identical to [`RwLock::try_write`], except that the</span>
-    <span class="doccomment">/// returned guard references the `RwLock` with an [`Arc`] rather than by</span>
-    <span class="doccomment">/// borrowing it. Therefore, the `RwLock` must be wrapped in an `Arc` to</span>
-    <span class="doccomment">/// call this method, and the guard will live for the `&#39;static` lifetime,</span>
-    <span class="doccomment">/// as it keeps the `RwLock` alive by holding an `Arc`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TryLockError`]: TryLockError</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let rw = Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let v = Arc::clone(&amp;rw).read_owned().await;</span>
-    <span class="doccomment">///     assert_eq!(*v, 1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     assert!(rw.try_write_owned().is_err());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_write_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OwnedRwLockWriteGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.<span class="ident">mr</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">permit</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#1007">permit</a>,
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    <span class="doccomment">/// Attempts to acquire this `RwLock` with exclusive write access.
+    ///
+    /// If the access couldn&#39;t be acquired immediately, returns [`TryLockError`].
+    /// Otherwise, an RAII guard is returned which will release write access
+    /// when dropped.
+    ///
+    /// This method is identical to [`RwLock::try_write`], except that the
+    /// returned guard references the `RwLock` with an [`Arc`] rather than by
+    /// borrowing it. Therefore, the `RwLock` must be wrapped in an `Arc` to
+    /// call this method, and the guard will live for the `&#39;static` lifetime,
+    /// as it keeps the `RwLock` alive by holding an `Arc`.
+    ///
+    /// [`TryLockError`]: TryLockError
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::RwLock;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let rw = Arc::new(RwLock::new(1));
+    ///
+    ///     let v = Arc::clone(&amp;rw).read_owned().await;
+    ///     assert_eq!(*v, 1);
+    ///
+    ///     assert!(rw.try_write_owned().is_err());
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>try_write_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedRwLockWriteGuard&lt;T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.mr) {
+            <span class="prelude-val">Ok</span>(permit) =&gt; <a href="../../../src/tokio/sync/rwlock.rs.html#1007">permit</a>,
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#60">TryAcquireError::NoPermits</a>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/batch_semaphore.rs.html#57">TryAcquireError::Closed</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">write_locked</span> <span class="op">=</span> <span class="bool-val">true</span>,
-            <span class="ident">write_locked</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            write_locked = <span class="bool-val">true</span>,
+            write_locked.op = <span class="string">&quot;override&quot;</span>,
             )
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#18">OwnedRwLockWriteGuard</a> {
-            <span class="ident">permits_acquired</span>: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.<span class="ident">mr</span>,
-            <span class="ident">data</span>: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.<span class="ident">c</span>.<span class="ident">get</span>(),
-            <span class="ident">lock</span>: <span class="ident">ManuallyDrop::new</span>(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>),
-            <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/rwlock/owned_write_guard.rs.html#18">OwnedRwLockWriteGuard</a> {
+            permits_acquired: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.mr,
+            data: <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>.c.get(),
+            lock: ManuallyDrop::new(<a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1005">self</a>),
+            _p: PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         })
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the underlying data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Since this call borrows the `RwLock` mutably, no actual locking needs to</span>
-    <span class="doccomment">/// take place -- the mutable borrow statically guarantees no locks exist.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::RwLock;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn main() {</span>
-    <span class="doccomment">///     let mut lock = RwLock::new(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let n = lock.get_mut();</span>
-    <span class="doccomment">///     *n = 2;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw">unsafe</span> {
-            <span class="comment">// Safety: This is https://github.com/rust-lang/rust/pull/76936</span>
-            <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1051">self</a>.<span class="ident">c</span>.<span class="ident">get</span>()
+    <span class="doccomment">/// Returns a mutable reference to the underlying data.
+    ///
+    /// Since this call borrows the `RwLock` mutably, no actual locking needs to
+    /// take place -- the mutable borrow statically guarantees no locks exist.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::RwLock;
+    ///
+    /// fn main() {
+    ///     let mut lock = RwLock::new(1);
+    ///
+    ///     let n = lock.get_mut();
+    ///     *n = 2;
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">unsafe </span>{
+            <span class="comment">// Safety: This is https://github.com/rust-lang/rust/pull/76936
+            </span><span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1051">self</a>.c.get()
         }
     }
 
-    <span class="doccomment">/// Consumes the lock, returning the underlying data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Consumes the lock, returning the underlying data.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1059">self</a>.<span class="ident">c</span>.<span class="ident">into_inner</span>()
+        <a class="self" href="../../../src/tokio/sync/rwlock.rs.html#1059">self</a>.c.into_inner()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<a class="ident" href="../../../src/tokio/sync/rwlock.rs.html#1068">s</a>)
+<span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>RwLock&lt;T&gt; {
+    <span class="kw">fn </span>from(s: T) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(<a href="../../../src/tokio/sync/rwlock.rs.html#1068">s</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>RwLock&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
 {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">T::default</span>())
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(T::default())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

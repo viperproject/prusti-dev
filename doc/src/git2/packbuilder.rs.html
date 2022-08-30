@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/packbuilder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>packbuilder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/packbuilder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>packbuilder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -411,418 +411,418 @@
 <span id="411">411</span>
 <span id="412">412</span>
 <span id="413">413</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/git2/lib.rs.html#655">panic</a>, <a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/buf.rs.html#13">Buf</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a>, <a class="ident" href="../../src/git2/revwalk.rs.html#10">Revwalk</a>};
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../src/git2/lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/buf.rs.html#13">Buf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/revwalk.rs.html#10">Revwalk</a>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Copy</span>)]</span>
-<span class="doccomment">/// Stages that are reported by the `PackBuilder` progress callback.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PackBuilderStage</span> {
-    <span class="doccomment">/// Adding objects to the pack</span>
-    <span class="ident">AddingObjects</span>,
-    <span class="doccomment">/// Deltafication of the pack</span>
-    <span class="ident">Deltafication</span>,
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug, Copy)]
+</span><span class="doccomment">/// Stages that are reported by the `PackBuilder` progress callback.
+</span><span class="kw">pub enum </span>PackBuilderStage {
+    <span class="doccomment">/// Adding objects to the pack
+    </span>AddingObjects,
+    <span class="doccomment">/// Deltafication of the pack
+    </span>Deltafication,
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ProgressCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ForEachCb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="kw">pub type </span>ProgressCb&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
+<span class="kw">pub type </span>ForEachCb&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
 
-<span class="doccomment">/// A builder for creating a packfile</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PackBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_packbuilder.html">raw::git_packbuilder</a>,
-    <span class="ident">_progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ProgressCb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A builder for creating a packfile
+</span><span class="kw">pub struct </span>PackBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_packbuilder.html">raw::git_packbuilder</a>,
+    _progress: <span class="prelude-ty">Option</span>&lt;Box&lt;Box&lt;ProgressCb&lt;<span class="lifetime">&#39;repo</span>&gt;&gt;&gt;&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../src/git2/repo.rs.html#108">Repository</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">PackBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Insert a single object. For an optimal pack it&#39;s mandatory to insert</span>
-    <span class="doccomment">/// objects in recency order, commits followed by trees and blobs.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_object</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::opt_cstr</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_insert</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">id</span>.<span class="ident">raw</span>(), <span class="ident">name</span>));
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; PackBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Insert a single object. For an optimal pack it&#39;s mandatory to insert
+    /// objects in recency order, commits followed by trees and blobs.
+    </span><span class="kw">pub fn </span>insert_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../../src/git2/oid.rs.html#15">Oid</a>, name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>name = <span class="kw">crate</span>::opt_cstr(name)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_insert(<span class="self">self</span>.raw, id.raw(), name));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Insert a root tree object. This will add the tree as well as all</span>
-    <span class="doccomment">/// referenced trees and blobs.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_tree</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_insert_tree</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">id</span>.<span class="ident">raw</span>()));
+    <span class="doccomment">/// Insert a root tree object. This will add the tree as well as all
+    /// referenced trees and blobs.
+    </span><span class="kw">pub fn </span>insert_tree(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_insert_tree(<span class="self">self</span>.raw, id.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Insert a commit object. This will add a commit as well as the completed</span>
-    <span class="doccomment">/// referenced tree.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_commit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_insert_commit</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">id</span>.<span class="ident">raw</span>()));
+    <span class="doccomment">/// Insert a commit object. This will add a commit as well as the completed
+    /// referenced tree.
+    </span><span class="kw">pub fn </span>insert_commit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_insert_commit(<span class="self">self</span>.raw, id.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Insert objects as given by the walk. Those commits and all objects they</span>
-    <span class="doccomment">/// reference will be inserted into the packbuilder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_walk</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">walk</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_insert_walk</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">walk</span>.<span class="ident">raw</span>()));
+    <span class="doccomment">/// Insert objects as given by the walk. Those commits and all objects they
+    /// reference will be inserted into the packbuilder.
+    </span><span class="kw">pub fn </span>insert_walk(<span class="kw-2">&amp;mut </span><span class="self">self</span>, walk: <span class="kw-2">&amp;mut </span>Revwalk&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_insert_walk(<span class="self">self</span>.raw, walk.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Recursively insert an object and its referenced objects. Insert the</span>
-    <span class="doccomment">/// object as well as any object it references.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_recursive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::opt_cstr</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_insert_recur</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">id</span>.<span class="ident">raw</span>(), <span class="ident">name</span>));
+    <span class="doccomment">/// Recursively insert an object and its referenced objects. Insert the
+    /// object as well as any object it references.
+    </span><span class="kw">pub fn </span>insert_recursive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../../src/git2/oid.rs.html#15">Oid</a>, name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>name = <span class="kw">crate</span>::opt_cstr(name)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_insert_recur(<span class="self">self</span>.raw, id.raw(), name));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Write the contents of the packfile to an in-memory buffer. The contents</span>
-    <span class="doccomment">/// of the buffer will become a valid packfile, even though there will be</span>
-    <span class="doccomment">/// no attached index.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_buf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/buf.rs.html#13">Buf</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_write_buf</span>(<span class="ident">buf</span>.<span class="ident">raw</span>(), <span class="self">self</span>.<span class="ident">raw</span>));
+    <span class="doccomment">/// Write the contents of the packfile to an in-memory buffer. The contents
+    /// of the buffer will become a valid packfile, even though there will be
+    /// no attached index.
+    </span><span class="kw">pub fn </span>write_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../src/git2/buf.rs.html#13">Buf</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_write_buf(buf.raw(), <span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Create the new pack and pass each object to the callback.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">foreach</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// Create the new pack and pass each object to the callback.
+    </span><span class="kw">pub fn </span>foreach&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cb: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cb</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/packbuilder.rs.html#88">cb</a> <span class="kw">as</span> <span class="kw-2">&amp;mut</span> <span class="ident">ForEachCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/packbuilder.rs.html#92">cb</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-        <span class="kw">let</span> <span class="ident">foreach</span>: <span class="ident">raw::git_packbuilder_foreach_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#234">foreach_c</a>);
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_foreach</span>(
-                <span class="self">self</span>.<span class="ident">raw</span>,
-                <span class="ident">foreach</span>,
-                <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
-            ));
+        <span class="kw">let </span><span class="kw-2">mut </span>cb = <span class="kw-2">&amp;mut </span><a href="../../src/git2/packbuilder.rs.html#88">cb</a> <span class="kw">as </span><span class="kw-2">&amp;mut </span>ForEachCb&lt;<span class="lifetime">&#39;_</span>&gt;;
+        <span class="kw">let </span>ptr = <span class="kw-2">&amp;mut </span><a href="../../src/git2/packbuilder.rs.html#92">cb</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="kw">let </span>foreach: raw::git_packbuilder_foreach_cb = <span class="prelude-val">Some</span>(<a href="../../src/git2/packbuilder.rs.html#234">foreach_c</a>);
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_foreach(
+                <span class="self">self</span>.raw,
+                foreach,
+                ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
+            </span>));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// `progress` will be called with progress information during pack</span>
-    <span class="doccomment">/// building. Be aware that this is called inline with pack building</span>
-    <span class="doccomment">/// operations, so performance may be affected.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// There can only be one progress callback attached, this will replace any</span>
-    <span class="doccomment">/// existing one. See `unset_progress_callback` to remove the current</span>
-    <span class="doccomment">/// progress callback without attaching a new one.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_progress_callback</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">progress</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;repo</span>,
+    <span class="doccomment">/// `progress` will be called with progress information during pack
+    /// building. Be aware that this is called inline with pack building
+    /// operations, so performance may be affected.
+    ///
+    /// There can only be one progress callback attached, this will replace any
+    /// existing one. See `unset_progress_callback` to remove the current
+    /// progress callback without attaching a new one.
+    </span><span class="kw">pub fn </span>set_progress_callback&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, progress: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<a href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;repo</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">progress</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#112">progress</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ProgressCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/git2/packbuilder.rs.html#116">progress</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-        <span class="kw">let</span> <span class="ident">progress_c</span>: <span class="ident">raw::git_packbuilder_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#250-255">progress_c</a>);
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_set_callbacks</span>(
-                <span class="self">self</span>.<span class="ident">raw</span>,
-                <span class="ident">progress_c</span>,
-                <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
-            ));
+        <span class="kw">let </span><span class="kw-2">mut </span>progress = Box::new(Box::new(<a href="../../src/git2/packbuilder.rs.html#112">progress</a>) <span class="kw">as </span>Box&lt;ProgressCb&lt;<span class="lifetime">&#39;_</span>&gt;&gt;);
+        <span class="kw">let </span>ptr = <span class="kw-2">&amp;mut *</span><a href="../../src/git2/packbuilder.rs.html#116">progress</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="kw">let </span>progress_c: raw::git_packbuilder_progress = <span class="prelude-val">Some</span>(<a href="../../src/git2/packbuilder.rs.html#250-255">progress_c</a>);
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_set_callbacks(
+                <span class="self">self</span>.raw,
+                progress_c,
+                ptr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
+            </span>));
         }
-        <a class="self" href="../../src/git2/packbuilder.rs.html#112">self</a>.<span class="ident">_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#116">progress</a>);
+        <a class="self" href="../../src/git2/packbuilder.rs.html#112">self</a>._progress = <span class="prelude-val">Some</span>(<a href="../../src/git2/packbuilder.rs.html#116">progress</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Remove the current progress callback.  See `set_progress_callback` to</span>
-    <span class="doccomment">/// set the progress callback.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unset_progress_callback</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_packbuilder_set_callbacks</span>(
-                <span class="self">self</span>.<span class="ident">raw</span>,
+    <span class="doccomment">/// Remove the current progress callback.  See `set_progress_callback` to
+    /// set the progress callback.
+    </span><span class="kw">pub fn </span>unset_progress_callback(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_packbuilder_set_callbacks(
+                <span class="self">self</span>.raw,
                 <span class="prelude-val">None</span>,
-                <span class="ident">ptr::null_mut</span>()
+                ptr::null_mut()
             ));
-            <a class="self" href="../../src/git2/packbuilder.rs.html#132">self</a>.<span class="ident">_progress</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+            <a class="self" href="../../src/git2/packbuilder.rs.html#132">self</a>._progress = <span class="prelude-val">None</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Set the number of threads to be used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the number of threads to be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_threads</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">threads</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_packbuilder_set_threads</span>(<a class="self" href="../../src/git2/packbuilder.rs.html#147">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/packbuilder.rs.html#147">threads</a>) }
+    <span class="doccomment">/// Set the number of threads to be used.
+    ///
+    /// Returns the number of threads to be used.
+    </span><span class="kw">pub fn </span>set_threads(<span class="kw-2">&amp;mut </span><span class="self">self</span>, threads: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="kw">unsafe </span>{ raw::git_packbuilder_set_threads(<a class="self" href="../../src/git2/packbuilder.rs.html#147">self</a>.raw, <a href="../../src/git2/packbuilder.rs.html#147">threads</a>) }
     }
 
-    <span class="doccomment">/// Get the total number of objects the packbuilder will write out.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">object_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_packbuilder_object_count</span>(<a class="self" href="../../src/git2/packbuilder.rs.html#152">self</a>.<span class="ident">raw</span>) }
+    <span class="doccomment">/// Get the total number of objects the packbuilder will write out.
+    </span><span class="kw">pub fn </span>object_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">unsafe </span>{ raw::git_packbuilder_object_count(<a class="self" href="../../src/git2/packbuilder.rs.html#152">self</a>.raw) }
     }
 
-    <span class="doccomment">/// Get the number of objects the packbuilder has already written out.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">written</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_packbuilder_written</span>(<a class="self" href="../../src/git2/packbuilder.rs.html#157">self</a>.<span class="ident">raw</span>) }
+    <span class="doccomment">/// Get the number of objects the packbuilder has already written out.
+    </span><span class="kw">pub fn </span>written(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">unsafe </span>{ raw::git_packbuilder_written(<a class="self" href="../../src/git2/packbuilder.rs.html#157">self</a>.raw) }
     }
 
-    <span class="doccomment">/// Get the packfile&#39;s hash. A packfile&#39;s name is derived from the sorted</span>
-    <span class="doccomment">/// hashing of all object names. This is only correct after the packfile</span>
-    <span class="doccomment">/// has been written.</span>
-    <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;use `name()` to retrieve the filename&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">object_count</span>() <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="ident">raw::git_packbuilder_hash</span>(<a class="self" href="../../src/git2/packbuilder.rs.html#166">self</a>.<span class="ident">raw</span>))) }
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="doccomment">/// Get the packfile&#39;s hash. A packfile&#39;s name is derived from the sorted
+    /// hashing of all object names. This is only correct after the packfile
+    /// has been written.
+    </span><span class="attribute">#[deprecated = <span class="string">&quot;use `name()` to retrieve the filename&quot;</span>]
+    #[allow(deprecated)]
+    </span><span class="kw">pub fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.object_count() == <span class="number">0 </span>{
+            <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(raw::git_packbuilder_hash(<a class="self" href="../../src/git2/packbuilder.rs.html#166">self</a>.raw))) }
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Get the unique name for the resulting packfile.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The packfile&#39;s name is derived from the packfile&#39;s content. This is only</span>
-    <span class="doccomment">/// correct after the packfile has been written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the packfile has not been written or if the name is</span>
-    <span class="doccomment">/// not valid utf-8.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/packbuilder.rs.html#181">self</a>.<a class="ident" href="../../src/git2/packbuilder.rs.html#189">name_bytes</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="ident" href="../../src/git2/packbuilder.rs.html#182">s</a>).<span class="ident">ok</span>())
+    <span class="doccomment">/// Get the unique name for the resulting packfile.
+    ///
+    /// The packfile&#39;s name is derived from the packfile&#39;s content. This is only
+    /// correct after the packfile has been written.
+    ///
+    /// Returns `None` if the packfile has not been written or if the name is
+    /// not valid utf-8.
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a class="self" href="../../src/git2/packbuilder.rs.html#181">self</a>.<a href="../../src/git2/packbuilder.rs.html#189">name_bytes</a>().and_then(|s| <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/git2/packbuilder.rs.html#182">s</a>).ok())
     }
 
-    <span class="doccomment">/// Get the unique name for the resulting packfile, in bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The packfile&#39;s name is derived from the packfile&#39;s content. This is only</span>
-    <span class="doccomment">/// correct after the packfile has been written.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/packbuilder.rs.html#189">self</a>, <span class="ident">raw::git_packbuilder_name</span>(<a class="self" href="../../src/git2/packbuilder.rs.html#189">self</a>.<span class="ident">raw</span>)) }
+    <span class="doccomment">/// Get the unique name for the resulting packfile, in bytes.
+    ///
+    /// The packfile&#39;s name is derived from the packfile&#39;s content. This is only
+    /// correct after the packfile has been written.
+    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/packbuilder.rs.html#189">self</a>, raw::git_packbuilder_name(<a class="self" href="../../src/git2/packbuilder.rs.html#189">self</a>.raw)) }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">PackBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_packbuilder.html">raw::git_packbuilder</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_packbuilder.html">raw::git_packbuilder</a>) -&gt; <span class="ident">PackBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/packbuilder.rs.html#23">PackBuilder</a> {
-            <span class="ident">raw</span>: <a class="ident" href="../../src/git2/packbuilder.rs.html#196">ptr</a>,
-            <span class="ident">_progress</span>: <span class="prelude-val">None</span>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>PackBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_packbuilder.html">raw::git_packbuilder</a>;
+    <span class="kw">unsafe fn </span>from_raw(ptr: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_packbuilder.html">raw::git_packbuilder</a>) -&gt; PackBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/packbuilder.rs.html#23">PackBuilder</a> {
+            raw: <a href="../../src/git2/packbuilder.rs.html#196">ptr</a>,
+            _progress: <span class="prelude-val">None</span>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_packbuilder.html">raw::git_packbuilder</a> {
-        <a class="self" href="../../src/git2/packbuilder.rs.html#203">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_packbuilder.html">raw::git_packbuilder</a> {
+        <a class="self" href="../../src/git2/packbuilder.rs.html#203">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">PackBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">raw::git_packbuilder_set_callbacks</span>(<a class="self" href="../../src/git2/packbuilder.rs.html#209">self</a>.<span class="ident">raw</span>, <span class="prelude-val">None</span>, <span class="ident">ptr::null_mut</span>());
-            <span class="ident">raw::git_packbuilder_free</span>(<a class="self" href="../../src/git2/packbuilder.rs.html#209">self</a>.<span class="ident">raw</span>);
-        }
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <a class="ident" href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <a class="ident" href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>) -&gt; <a class="ident" href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a> {
-        <span class="kw">match</span> <a class="ident" href="../../src/git2/packbuilder.rs.html#219">raw</a> {
-            <span class="ident">raw::GIT_PACKBUILDER_ADDING_OBJECTS</span> =&gt; <a class="ident" href="../../src/git2/packbuilder.rs.html#14">PackBuilderStage::AddingObjects</a>,
-            <span class="ident">raw::GIT_PACKBUILDER_DELTAFICATION</span> =&gt; <a class="ident" href="../../src/git2/packbuilder.rs.html#16">PackBuilderStage::Deltafication</a>,
-            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unknown git diff binary kind&quot;</span>),
-        }
-    }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/git2/packbuilder.rs.html#226">self</a> {
-            <a class="ident" href="../../src/git2/packbuilder.rs.html#14">PackBuilderStage::AddingObjects</a> =&gt; <span class="ident">raw::GIT_PACKBUILDER_ADDING_OBJECTS</span>,
-            <a class="ident" href="../../src/git2/packbuilder.rs.html#16">PackBuilderStage::Deltafication</a> =&gt; <span class="ident">raw::GIT_PACKBUILDER_DELTAFICATION</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>PackBuilder&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            raw::git_packbuilder_set_callbacks(<a class="self" href="../../src/git2/packbuilder.rs.html#209">self</a>.raw, <span class="prelude-val">None</span>, ptr::null_mut());
+            raw::git_packbuilder_free(<a class="self" href="../../src/git2/packbuilder.rs.html#209">self</a>.raw);
         }
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">foreach_c</span>(<span class="ident">buf</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">size</span>: <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#234">buf</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/git2/packbuilder.rs.html#234">size</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="kw">impl </span><a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span><a href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a> {
+    <span class="kw">type </span>Raw = <a href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>;
+    <span class="kw">unsafe fn </span>from_raw(raw: <a href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>) -&gt; <a href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a> {
+        <span class="kw">match </span><a href="../../src/git2/packbuilder.rs.html#219">raw</a> {
+            raw::GIT_PACKBUILDER_ADDING_OBJECTS =&gt; <a href="../../src/git2/packbuilder.rs.html#14">PackBuilderStage::AddingObjects</a>,
+            raw::GIT_PACKBUILDER_DELTAFICATION =&gt; <a href="../../src/git2/packbuilder.rs.html#16">PackBuilderStage::Deltafication</a>,
+            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unknown git diff binary kind&quot;</span>),
+        }
+    }
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/git2/packbuilder.rs.html#226">self</a> </span>{
+            <a href="../../src/git2/packbuilder.rs.html#14">PackBuilderStage::AddingObjects</a> =&gt; raw::GIT_PACKBUILDER_ADDING_OBJECTS,
+            <a href="../../src/git2/packbuilder.rs.html#16">PackBuilderStage::Deltafication</a> =&gt; raw::GIT_PACKBUILDER_DELTAFICATION,
+        }
+    }
+}
 
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../src/git2/packbuilder.rs.html#234">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">&amp;mut</span> <span class="ident">ForEachCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
-            (<span class="kw-2">*</span><a class="ident" href="../../src/git2/packbuilder.rs.html#239">data</a>)(<a class="ident" href="../../src/git2/packbuilder.rs.html#236">buf</a>)
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>foreach_c(buf: <span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, size: <a href="../../libc/unix/type.size_t.html">size_t</a>, data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>buf = slice::from_raw_parts(<a href="../../src/git2/packbuilder.rs.html#234">buf</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/git2/packbuilder.rs.html#234">size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+
+        <span class="kw">let </span>r = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| {
+            <span class="kw">let </span>data = <a href="../../src/git2/packbuilder.rs.html#234">data</a> <span class="kw">as </span><span class="kw-2">*mut &amp;mut </span>ForEachCb&lt;<span class="lifetime">&#39;_</span>&gt;;
+            (<span class="kw-2">*</span><a href="../../src/git2/packbuilder.rs.html#239">data</a>)(<a href="../../src/git2/packbuilder.rs.html#236">buf</a>)
         });
-        <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <span class="op">-</span><span class="number">1</span>
-        }
+        <span class="kw">if </span>r == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+            <span class="number">0
+        </span>} <span class="kw">else </span>{
+            -<span class="number">1
+        </span>}
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">progress_c</span>(
-    <span class="ident">stage</span>: <a class="ident" href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>,
-    <span class="ident">current</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">total</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">stage</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/packbuilder.rs.html#251">stage</a>);
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>progress_c(
+    stage: <a href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>,
+    current: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
+    total: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
+    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>stage = <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/packbuilder.rs.html#251">stage</a>);
 
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../src/git2/packbuilder.rs.html#254">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ProgressCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-            (<span class="kw-2">*</span><a class="ident" href="../../src/git2/packbuilder.rs.html#260">data</a>)(<a class="ident" href="../../src/git2/packbuilder.rs.html#257">stage</a>, <a class="ident" href="../../src/git2/packbuilder.rs.html#252">current</a>, <a class="ident" href="../../src/git2/packbuilder.rs.html#253">total</a>)
+        <span class="kw">let </span>r = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| {
+            <span class="kw">let </span>data = <a href="../../src/git2/packbuilder.rs.html#254">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>Box&lt;ProgressCb&lt;<span class="lifetime">&#39;_</span>&gt;&gt;;
+            (<span class="kw-2">*</span><a href="../../src/git2/packbuilder.rs.html#260">data</a>)(<a href="../../src/git2/packbuilder.rs.html#257">stage</a>, <a href="../../src/git2/packbuilder.rs.html#252">current</a>, <a href="../../src/git2/packbuilder.rs.html#253">total</a>)
         });
-        <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <span class="op">-</span><span class="number">1</span>
-        }
+        <span class="kw">if </span>r == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+            <span class="number">0
+        </span>} <span class="kw">else </span>{
+            -<span class="number">1
+        </span>}
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Buf</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::Buf;
 
-    <span class="kw">fn</span> <span class="ident">pack_header</span>(<span class="ident">len</span>: <span class="ident">u8</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        [].<span class="ident">iter</span>()
-            .<span class="ident">chain</span>(<span class="string">b&quot;PACK&quot;</span>) <span class="comment">// signature</span>
-            .<span class="ident">chain</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>]) <span class="comment">// version number</span>
-            .<span class="ident">chain</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="ident">len</span>]) <span class="comment">// number of objects</span>
-            .<span class="ident">cloned</span>()
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    <span class="kw">fn </span>pack_header(len: u8) -&gt; Vec&lt;u8&gt; {
+        [].iter()
+            .chain(<span class="string">b&quot;PACK&quot;</span>) <span class="comment">// signature
+            </span>.chain(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>]) <span class="comment">// version number
+            </span>.chain(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, len]) <span class="comment">// number of objects
+            </span>.cloned()
+            .collect::&lt;Vec&lt;u8&gt;&gt;()
     }
 
-    <span class="kw">fn</span> <span class="ident">empty_pack_header</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="ident">pack_header</span>(<span class="number">0</span>)
-            .<span class="ident">iter</span>()
-            .<span class="ident">chain</span>(<span class="kw-2">&amp;</span>[
-                <span class="number">0x02</span>, <span class="number">0x9d</span>, <span class="number">0x08</span>, <span class="number">0x82</span>, <span class="number">0x3b</span>, <span class="comment">// ^</span>
-                <span class="number">0xd8</span>, <span class="number">0xa8</span>, <span class="number">0xea</span>, <span class="number">0xb5</span>, <span class="number">0x10</span>, <span class="comment">// | SHA-1 of the zero</span>
-                <span class="number">0xad</span>, <span class="number">0x6a</span>, <span class="number">0xc7</span>, <span class="number">0x5c</span>, <span class="number">0x82</span>, <span class="comment">// | object pack header</span>
-                <span class="number">0x3c</span>, <span class="number">0xfd</span>, <span class="number">0x3e</span>, <span class="number">0xd3</span>, <span class="number">0x1e</span>,
-            ]) <span class="comment">// v</span>
-            .<span class="ident">cloned</span>()
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    <span class="kw">fn </span>empty_pack_header() -&gt; Vec&lt;u8&gt; {
+        pack_header(<span class="number">0</span>)
+            .iter()
+            .chain(<span class="kw-2">&amp;</span>[
+                <span class="number">0x02</span>, <span class="number">0x9d</span>, <span class="number">0x08</span>, <span class="number">0x82</span>, <span class="number">0x3b</span>, <span class="comment">// ^
+                </span><span class="number">0xd8</span>, <span class="number">0xa8</span>, <span class="number">0xea</span>, <span class="number">0xb5</span>, <span class="number">0x10</span>, <span class="comment">// | SHA-1 of the zero
+                </span><span class="number">0xad</span>, <span class="number">0x6a</span>, <span class="number">0xc7</span>, <span class="number">0x5c</span>, <span class="number">0x82</span>, <span class="comment">// | object pack header
+                </span><span class="number">0x3c</span>, <span class="number">0xfd</span>, <span class="number">0x3e</span>, <span class="number">0xd3</span>, <span class="number">0x1e</span>,
+            ]) <span class="comment">// v
+            </span>.cloned()
+            .collect::&lt;Vec&lt;u8&gt;&gt;()
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="ident">_builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span>_builder = <span class="macro">t!</span>(repo.packbuilder());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke_write_buf</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
-        <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">write_buf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        {
-            <span class="macro">assert!</span>(<span class="ident">builder</span>.<span class="ident">hash</span>().<span class="ident">unwrap</span>().<span class="ident">is_zero</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke_write_buf() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="macro">t!</span>(repo.packbuilder());
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = Buf::new();
+        <span class="macro">t!</span>(builder.write_buf(<span class="kw-2">&amp;mut </span>buf));
+        <span class="attribute">#[allow(deprecated)]
+        </span>{
+            <span class="macro">assert!</span>(builder.hash().unwrap().is_zero());
         }
-        <span class="macro">assert!</span>(<span class="ident">builder</span>.<span class="ident">name</span>().<span class="ident">is_none</span>());
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">buf</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">empty_pack_header</span>());
+        <span class="macro">assert!</span>(builder.name().is_none());
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>buf, <span class="kw-2">&amp;*</span>empty_pack_header());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke_foreach</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="ident">::new</span>();
-        <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">foreach</span>(<span class="op">|</span><span class="ident">bytes</span><span class="op">|</span> {
-            <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="ident">bytes</span>);
-            <span class="bool-val">true</span>
-        }));
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">buf</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">empty_pack_header</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke_foreach() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="macro">t!</span>(repo.packbuilder());
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::&lt;u8&gt;::new();
+        <span class="macro">t!</span>(builder.foreach(|bytes| {
+            buf.extend(bytes);
+            <span class="bool-val">true
+        </span>}));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>buf, <span class="kw-2">&amp;*</span>empty_pack_header());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">insert_write_buf</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
-        <span class="kw">let</span> (<span class="ident">commit</span>, <span class="ident">_tree</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo</span>);
-        <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">insert_object</span>(<span class="ident">commit</span>, <span class="prelude-val">None</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">builder</span>.<span class="ident">object_count</span>(), <span class="number">1</span>);
-        <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">write_buf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
-        <span class="comment">// Just check that the correct number of objects are written</span>
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">0</span>..<span class="number">12</span>], <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">pack_header</span>(<span class="number">1</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>insert_write_buf() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="macro">t!</span>(repo.packbuilder());
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = Buf::new();
+        <span class="kw">let </span>(commit, _tree) = <span class="kw">crate</span>::test::commit(<span class="kw-2">&amp;</span>repo);
+        <span class="macro">t!</span>(builder.insert_object(commit, <span class="prelude-val">None</span>));
+        <span class="macro">assert_eq!</span>(builder.object_count(), <span class="number">1</span>);
+        <span class="macro">t!</span>(builder.write_buf(<span class="kw-2">&amp;mut </span>buf));
+        <span class="comment">// Just check that the correct number of objects are written
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buf[<span class="number">0</span>..<span class="number">12</span>], <span class="kw-2">&amp;*</span>pack_header(<span class="number">1</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">insert_tree_write_buf</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
-        <span class="kw">let</span> (<span class="ident">_commit</span>, <span class="ident">tree</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo</span>);
-        <span class="comment">// will insert the tree itself and the blob, 2 objects</span>
-        <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">insert_tree</span>(<span class="ident">tree</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">builder</span>.<span class="ident">object_count</span>(), <span class="number">2</span>);
-        <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">write_buf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
-        <span class="comment">// Just check that the correct number of objects are written</span>
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">0</span>..<span class="number">12</span>], <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">pack_header</span>(<span class="number">2</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>insert_tree_write_buf() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="macro">t!</span>(repo.packbuilder());
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = Buf::new();
+        <span class="kw">let </span>(_commit, tree) = <span class="kw">crate</span>::test::commit(<span class="kw-2">&amp;</span>repo);
+        <span class="comment">// will insert the tree itself and the blob, 2 objects
+        </span><span class="macro">t!</span>(builder.insert_tree(tree));
+        <span class="macro">assert_eq!</span>(builder.object_count(), <span class="number">2</span>);
+        <span class="macro">t!</span>(builder.write_buf(<span class="kw-2">&amp;mut </span>buf));
+        <span class="comment">// Just check that the correct number of objects are written
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buf[<span class="number">0</span>..<span class="number">12</span>], <span class="kw-2">&amp;*</span>pack_header(<span class="number">2</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">insert_commit_write_buf</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
-        <span class="kw">let</span> (<span class="ident">commit</span>, <span class="ident">_tree</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo</span>);
-        <span class="comment">// will insert the commit, its tree and the blob, 3 objects</span>
-        <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">insert_commit</span>(<span class="ident">commit</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">builder</span>.<span class="ident">object_count</span>(), <span class="number">3</span>);
-        <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">write_buf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
-        <span class="comment">// Just check that the correct number of objects are written</span>
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">0</span>..<span class="number">12</span>], <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">pack_header</span>(<span class="number">3</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>insert_commit_write_buf() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="macro">t!</span>(repo.packbuilder());
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = Buf::new();
+        <span class="kw">let </span>(commit, _tree) = <span class="kw">crate</span>::test::commit(<span class="kw-2">&amp;</span>repo);
+        <span class="comment">// will insert the commit, its tree and the blob, 3 objects
+        </span><span class="macro">t!</span>(builder.insert_commit(commit));
+        <span class="macro">assert_eq!</span>(builder.object_count(), <span class="number">3</span>);
+        <span class="macro">t!</span>(builder.write_buf(<span class="kw-2">&amp;mut </span>buf));
+        <span class="comment">// Just check that the correct number of objects are written
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buf[<span class="number">0</span>..<span class="number">12</span>], <span class="kw-2">&amp;*</span>pack_header(<span class="number">3</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">progress_callback</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">progress_called</span> <span class="op">=</span> <span class="bool-val">false</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>progress_callback() {
+        <span class="kw">let </span><span class="kw-2">mut </span>progress_called = <span class="bool-val">false</span>;
         {
-            <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
-            <span class="kw">let</span> (<span class="ident">commit</span>, <span class="ident">_tree</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo</span>);
-            <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">set_progress_callback</span>(<span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> {
-                <span class="ident">progress_called</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="bool-val">true</span>
-            }));
-            <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">insert_commit</span>(<span class="ident">commit</span>));
-            <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">write_buf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Buf::new</span>()));
+            <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+            <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="macro">t!</span>(repo.packbuilder());
+            <span class="kw">let </span>(commit, _tree) = <span class="kw">crate</span>::test::commit(<span class="kw-2">&amp;</span>repo);
+            <span class="macro">t!</span>(builder.set_progress_callback(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
+                progress_called = <span class="bool-val">true</span>;
+                <span class="bool-val">true
+            </span>}));
+            <span class="macro">t!</span>(builder.insert_commit(commit));
+            <span class="macro">t!</span>(builder.write_buf(<span class="kw-2">&amp;mut </span>Buf::new()));
         }
-        <span class="macro">assert_eq!</span>(<span class="ident">progress_called</span>, <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(progress_called, <span class="bool-val">true</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">clear_progress_callback</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">progress_called</span> <span class="op">=</span> <span class="bool-val">false</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>clear_progress_callback() {
+        <span class="kw">let </span><span class="kw-2">mut </span>progress_called = <span class="bool-val">false</span>;
         {
-            <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
-            <span class="kw">let</span> (<span class="ident">commit</span>, <span class="ident">_tree</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo</span>);
-            <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">set_progress_callback</span>(<span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> {
-                <span class="ident">progress_called</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="bool-val">true</span>
-            }));
-            <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">unset_progress_callback</span>());
-            <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">insert_commit</span>(<span class="ident">commit</span>));
-            <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">write_buf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Buf::new</span>()));
+            <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+            <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="macro">t!</span>(repo.packbuilder());
+            <span class="kw">let </span>(commit, _tree) = <span class="kw">crate</span>::test::commit(<span class="kw-2">&amp;</span>repo);
+            <span class="macro">t!</span>(builder.set_progress_callback(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
+                progress_called = <span class="bool-val">true</span>;
+                <span class="bool-val">true
+            </span>}));
+            <span class="macro">t!</span>(builder.unset_progress_callback());
+            <span class="macro">t!</span>(builder.insert_commit(commit));
+            <span class="macro">t!</span>(builder.write_buf(<span class="kw-2">&amp;mut </span>Buf::new()));
         }
-        <span class="macro">assert_eq!</span>(<span class="ident">progress_called</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(progress_called, <span class="bool-val">false</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set_threads</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">packbuilder</span>());
-        <span class="kw">let</span> <span class="ident">used</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">set_threads</span>(<span class="number">4</span>);
-        <span class="comment">// Will be 1 if not compiled with threading.</span>
-        <span class="macro">assert!</span>(<span class="ident">used</span> <span class="op">==</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">used</span> <span class="op">==</span> <span class="number">4</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>set_threads() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="macro">t!</span>(repo.packbuilder());
+        <span class="kw">let </span>used = builder.set_threads(<span class="number">4</span>);
+        <span class="comment">// Will be 1 if not compiled with threading.
+        </span><span class="macro">assert!</span>(used == <span class="number">1 </span>|| used == <span class="number">4</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

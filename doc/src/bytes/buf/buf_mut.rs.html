@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/buf_mut.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_mut.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/buf_mut.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_mut.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1144,1151 +1144,1151 @@
 <span id="1144">1144</span>
 <span id="1145">1145</span>
 <span id="1146">1146</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::buf</span>::{<a class="ident" href="../../../src/bytes/buf/mod.rs.html#23">limit</a>, <a class="ident" href="../../../src/bytes/buf/chain.rs.html#32">Chain</a>, <a class="ident" href="../../../src/bytes/buf/limit.rs.html#9">Limit</a>, <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::buf</span>::{<a class="ident" href="../../../src/bytes/buf/mod.rs.html#30">writer</a>, <a class="ident" href="../../../src/bytes/buf/writer.rs.html#11">Writer</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::buf::{<a href="../../../src/bytes/buf/mod.rs.html#23">limit</a>, <a href="../../../src/bytes/buf/chain.rs.html#32">Chain</a>, <a href="../../../src/bytes/buf/limit.rs.html#9">Limit</a>, <a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::buf::{<a href="../../../src/bytes/buf/mod.rs.html#30">writer</a>, <a href="../../../src/bytes/buf/writer.rs.html#11">Writer</a>};
 
-<span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/usize/index.html">usize</a>};
+<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a href="https://doc.rust-lang.org/nightly/core/usize/index.html">usize</a>};
 
-<span class="kw">use</span> <span class="ident">alloc</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">boxed::Box</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">vec::Vec</a>};
+<span class="kw">use </span>alloc::{<a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">boxed::Box</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">vec::Vec</a>};
 
-<span class="doccomment">/// A trait for values that provide sequential write access to bytes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Write bytes to a buffer</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A buffer stores bytes in memory such that write operations are infallible.</span>
-<span class="doccomment">/// The underlying storage may or may not be in contiguous memory. A `BufMut`</span>
-<span class="doccomment">/// value is a cursor into the buffer. Writing to `BufMut` advances the cursor</span>
-<span class="doccomment">/// position.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The simplest `BufMut` is a `Vec&lt;u8&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use bytes::BufMut;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut buf = vec![];</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// buf.put(&amp;b&quot;hello world&quot;[..]);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(buf, b&quot;hello world&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">BufMut</span> {
-    <span class="doccomment">/// Returns the number of bytes that can be written from the current</span>
-    <span class="doccomment">/// position until the end of the buffer is reached.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This value is greater than or equal to the length of the slice returned</span>
-    <span class="doccomment">/// by `chunk_mut()`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Writing to a `BufMut` may involve allocating more memory on the fly.</span>
-    <span class="doccomment">/// Implementations may fail before reaching the number of bytes indicated</span>
-    <span class="doccomment">/// by this method if they encounter an allocation failure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut dst = [0; 10];</span>
-    <span class="doccomment">/// let mut buf = &amp;mut dst[..];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let original_remaining = buf.remaining_mut();</span>
-    <span class="doccomment">/// buf.put(&amp;b&quot;hello&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(original_remaining - 5, buf.remaining_mut());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Implementer notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Implementations of `remaining_mut` should ensure that the return value</span>
-    <span class="doccomment">/// does not change unless a call is made to `advance_mut` or any other</span>
-    <span class="doccomment">/// function that is documented to change the `BufMut`&#39;s current position.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `remaining_mut` may return value smaller than actual available space.</span>
-    <span class="kw">fn</span> <span class="ident">remaining_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+<span class="doccomment">/// A trait for values that provide sequential write access to bytes.
+///
+/// Write bytes to a buffer
+///
+/// A buffer stores bytes in memory such that write operations are infallible.
+/// The underlying storage may or may not be in contiguous memory. A `BufMut`
+/// value is a cursor into the buffer. Writing to `BufMut` advances the cursor
+/// position.
+///
+/// The simplest `BufMut` is a `Vec&lt;u8&gt;`.
+///
+/// ```
+/// use bytes::BufMut;
+///
+/// let mut buf = vec![];
+///
+/// buf.put(&amp;b&quot;hello world&quot;[..]);
+///
+/// assert_eq!(buf, b&quot;hello world&quot;);
+/// ```
+</span><span class="kw">pub unsafe trait </span>BufMut {
+    <span class="doccomment">/// Returns the number of bytes that can be written from the current
+    /// position until the end of the buffer is reached.
+    ///
+    /// This value is greater than or equal to the length of the slice returned
+    /// by `chunk_mut()`.
+    ///
+    /// Writing to a `BufMut` may involve allocating more memory on the fly.
+    /// Implementations may fail before reaching the number of bytes indicated
+    /// by this method if they encounter an allocation failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut dst = [0; 10];
+    /// let mut buf = &amp;mut dst[..];
+    ///
+    /// let original_remaining = buf.remaining_mut();
+    /// buf.put(&amp;b&quot;hello&quot;[..]);
+    ///
+    /// assert_eq!(original_remaining - 5, buf.remaining_mut());
+    /// ```
+    ///
+    /// # Implementer notes
+    ///
+    /// Implementations of `remaining_mut` should ensure that the return value
+    /// does not change unless a call is made to `advance_mut` or any other
+    /// function that is documented to change the `BufMut`&#39;s current position.
+    ///
+    /// # Note
+    ///
+    /// `remaining_mut` may return value smaller than actual available space.
+    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-    <span class="doccomment">/// Advance the internal cursor of the BufMut</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The next call to `chunk_mut` will return a slice starting `cnt` bytes</span>
-    <span class="doccomment">/// further into the underlying buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is unsafe because there is no guarantee that the bytes</span>
-    <span class="doccomment">/// being advanced past have been initialized.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = Vec::with_capacity(16);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Write some data</span>
-    <span class="doccomment">/// buf.chunk_mut()[0..2].copy_from_slice(b&quot;he&quot;);</span>
-    <span class="doccomment">/// unsafe { buf.advance_mut(2) };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // write more bytes</span>
-    <span class="doccomment">/// buf.chunk_mut()[0..3].copy_from_slice(b&quot;llo&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// unsafe { buf.advance_mut(3); }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(5, buf.len());</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;hello&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function **may** panic if `cnt &gt; self.remaining_mut()`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Implementer notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is recommended for implementations of `advance_mut` to panic if</span>
-    <span class="doccomment">/// `cnt &gt; self.remaining_mut()`. If the implementation does not panic,</span>
-    <span class="doccomment">/// the call must behave as if `cnt == self.remaining_mut()`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A call with `cnt == 0` should never panic and be a no-op.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">advance_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <span class="doccomment">/// Advance the internal cursor of the BufMut
+    ///
+    /// The next call to `chunk_mut` will return a slice starting `cnt` bytes
+    /// further into the underlying buffer.
+    ///
+    /// This function is unsafe because there is no guarantee that the bytes
+    /// being advanced past have been initialized.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = Vec::with_capacity(16);
+    ///
+    /// // Write some data
+    /// buf.chunk_mut()[0..2].copy_from_slice(b&quot;he&quot;);
+    /// unsafe { buf.advance_mut(2) };
+    ///
+    /// // write more bytes
+    /// buf.chunk_mut()[0..3].copy_from_slice(b&quot;llo&quot;);
+    ///
+    /// unsafe { buf.advance_mut(3); }
+    ///
+    /// assert_eq!(5, buf.len());
+    /// assert_eq!(buf, b&quot;hello&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function **may** panic if `cnt &gt; self.remaining_mut()`.
+    ///
+    /// # Implementer notes
+    ///
+    /// It is recommended for implementations of `advance_mut` to panic if
+    /// `cnt &gt; self.remaining_mut()`. If the implementation does not panic,
+    /// the call must behave as if `cnt == self.remaining_mut()`.
+    ///
+    /// A call with `cnt == 0` should never panic and be a no-op.
+    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-    <span class="doccomment">/// Returns true if there is space in `self` for more bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is equivalent to `self.remaining_mut() != 0`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut dst = [0; 5];</span>
-    <span class="doccomment">/// let mut buf = &amp;mut dst[..];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(buf.has_remaining_mut());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buf.put(&amp;b&quot;hello&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(!buf.has_remaining_mut());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">has_remaining_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#124">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>() <span class="op">&gt;</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns true if there is space in `self` for more bytes.
+    ///
+    /// This is equivalent to `self.remaining_mut() != 0`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut dst = [0; 5];
+    /// let mut buf = &amp;mut dst[..];
+    ///
+    /// assert!(buf.has_remaining_mut());
+    ///
+    /// buf.put(&amp;b&quot;hello&quot;[..]);
+    ///
+    /// assert!(!buf.has_remaining_mut());
+    /// ```
+    </span><span class="kw">fn </span>has_remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#124">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>() &gt; <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns a mutable slice starting at the current BufMut position and of</span>
-    <span class="doccomment">/// length between 0 and `BufMut::remaining_mut()`. Note that this *can* be shorter than the</span>
-    <span class="doccomment">/// whole remainder of the buffer (this allows non-continuous implementation).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a lower level function. Most operations are done with other</span>
-    <span class="doccomment">/// functions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned byte slice may represent uninitialized memory.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = Vec::with_capacity(16);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// unsafe {</span>
-    <span class="doccomment">///     // MaybeUninit::as_mut_ptr</span>
-    <span class="doccomment">///     buf.chunk_mut()[0..].as_mut_ptr().write(b&#39;h&#39;);</span>
-    <span class="doccomment">///     buf.chunk_mut()[1..].as_mut_ptr().write(b&#39;e&#39;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     buf.advance_mut(2);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     buf.chunk_mut()[0..].as_mut_ptr().write(b&#39;l&#39;);</span>
-    <span class="doccomment">///     buf.chunk_mut()[1..].as_mut_ptr().write(b&#39;l&#39;);</span>
-    <span class="doccomment">///     buf.chunk_mut()[2..].as_mut_ptr().write(b&#39;o&#39;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     buf.advance_mut(3);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(5, buf.len());</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;hello&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Implementer notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function should never panic. `chunk_mut` should return an empty</span>
-    <span class="doccomment">/// slice **if and only if** `remaining_mut()` returns 0. In other words,</span>
-    <span class="doccomment">/// `chunk_mut()` returning an empty slice implies that `remaining_mut()` will</span>
-    <span class="doccomment">/// return 0 and `remaining_mut()` returning 0 implies that `chunk_mut()` will</span>
-    <span class="doccomment">/// return an empty slice.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function may trigger an out-of-memory abort if it tries to allocate</span>
-    <span class="doccomment">/// memory and fails to do so.</span>
-    <span class="comment">// The `chunk_mut` method was previously called `bytes_mut`. This alias makes the</span>
-    <span class="comment">// rename more easily discoverable.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;bytes_mut&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">chunk_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a>;
+    <span class="doccomment">/// Returns a mutable slice starting at the current BufMut position and of
+    /// length between 0 and `BufMut::remaining_mut()`. Note that this *can* be shorter than the
+    /// whole remainder of the buffer (this allows non-continuous implementation).
+    ///
+    /// This is a lower level function. Most operations are done with other
+    /// functions.
+    ///
+    /// The returned byte slice may represent uninitialized memory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = Vec::with_capacity(16);
+    ///
+    /// unsafe {
+    ///     // MaybeUninit::as_mut_ptr
+    ///     buf.chunk_mut()[0..].as_mut_ptr().write(b&#39;h&#39;);
+    ///     buf.chunk_mut()[1..].as_mut_ptr().write(b&#39;e&#39;);
+    ///
+    ///     buf.advance_mut(2);
+    ///
+    ///     buf.chunk_mut()[0..].as_mut_ptr().write(b&#39;l&#39;);
+    ///     buf.chunk_mut()[1..].as_mut_ptr().write(b&#39;l&#39;);
+    ///     buf.chunk_mut()[2..].as_mut_ptr().write(b&#39;o&#39;);
+    ///
+    ///     buf.advance_mut(3);
+    /// }
+    ///
+    /// assert_eq!(5, buf.len());
+    /// assert_eq!(buf, b&quot;hello&quot;);
+    /// ```
+    ///
+    /// # Implementer notes
+    ///
+    /// This function should never panic. `chunk_mut` should return an empty
+    /// slice **if and only if** `remaining_mut()` returns 0. In other words,
+    /// `chunk_mut()` returning an empty slice implies that `remaining_mut()` will
+    /// return 0 and `remaining_mut()` returning 0 implies that `chunk_mut()` will
+    /// return an empty slice.
+    ///
+    /// This function may trigger an out-of-memory abort if it tries to allocate
+    /// memory and fails to do so.
+    </span><span class="comment">// The `chunk_mut` method was previously called `bytes_mut`. This alias makes the
+    // rename more easily discoverable.
+    </span><span class="attribute">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;bytes_mut&quot;</span>))]
+    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a>;
 
-    <span class="doccomment">/// Transfer bytes into `self` from `src` and advance the cursor by the</span>
-    <span class="doccomment">/// number of bytes written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buf.put_u8(b&#39;h&#39;);</span>
-    <span class="doccomment">/// buf.put(&amp;b&quot;ello&quot;[..]);</span>
-    <span class="doccomment">/// buf.put(&amp;b&quot; world&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;hello world&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `self` does not have enough capacity to contain `src`.</span>
-    <span class="kw">fn</span> <span class="ident">put</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76"><span class="kw">super</span>::Buf</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">T</span>)
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Transfer bytes into `self` from `src` and advance the cursor by the
+    /// number of bytes written.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    ///
+    /// buf.put_u8(b&#39;h&#39;);
+    /// buf.put(&amp;b&quot;ello&quot;[..]);
+    /// buf.put(&amp;b&quot; world&quot;[..]);
+    ///
+    /// assert_eq!(buf, b&quot;hello world&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self` does not have enough capacity to contain `src`.
+    </span><span class="kw">fn </span>put&lt;T: <a href="../../../src/bytes/buf/buf_impl.rs.html#76"><span class="kw">super</span>::Buf</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>src: T)
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">remaining_mut</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">src</span>.<span class="ident">remaining</span>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.remaining_mut() &gt;= src.remaining());
 
-        <span class="kw">while</span> <span class="ident">src</span>.<span class="ident">has_remaining</span>() {
-            <span class="kw">let</span> <span class="ident">l</span>;
+        <span class="kw">while </span>src.has_remaining() {
+            <span class="kw">let </span>l;
 
-            <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">chunk</span>();
-                <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">chunk_mut</span>();
-                <span class="ident">l</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="ident">s</span>.<span class="ident">len</span>(), <span class="ident">d</span>.<span class="ident">len</span>());
+            <span class="kw">unsafe </span>{
+                <span class="kw">let </span>s = src.chunk();
+                <span class="kw">let </span>d = <span class="self">self</span>.chunk_mut();
+                l = cmp::min(s.len(), d.len());
 
-                <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>(), <span class="ident">d</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>, <span class="ident">l</span>);
+                ptr::copy_nonoverlapping(s.as_ptr(), d.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>u8, l);
             }
 
-            <span class="ident">src</span>.<span class="ident">advance</span>(<span class="ident">l</span>);
-            <span class="kw">unsafe</span> {
-                <span class="self">self</span>.<span class="ident">advance_mut</span>(<span class="ident">l</span>);
+            src.advance(l);
+            <span class="kw">unsafe </span>{
+                <span class="self">self</span>.advance_mut(l);
             }
         }
     }
 
-    <span class="doccomment">/// Transfer bytes into `self` from `src` and advance the cursor by the</span>
-    <span class="doccomment">/// number of bytes written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `self` must have enough remaining capacity to contain all of `src`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut dst = [0; 6];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// {</span>
-    <span class="doccomment">///     let mut buf = &amp;mut dst[..];</span>
-    <span class="doccomment">///     buf.put_slice(b&quot;hello&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     assert_eq!(1, buf.remaining_mut());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(b&quot;hello\0&quot;, &amp;dst);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">put_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">off</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="doccomment">/// Transfer bytes into `self` from `src` and advance the cursor by the
+    /// number of bytes written.
+    ///
+    /// `self` must have enough remaining capacity to contain all of `src`.
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut dst = [0; 6];
+    ///
+    /// {
+    ///     let mut buf = &amp;mut dst[..];
+    ///     buf.put_slice(b&quot;hello&quot;);
+    ///
+    ///     assert_eq!(1, buf.remaining_mut());
+    /// }
+    ///
+    /// assert_eq!(b&quot;hello\0&quot;, &amp;dst);
+    /// ```
+    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+        <span class="kw">let </span><span class="kw-2">mut </span>off = <span class="number">0</span>;
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">remaining_mut</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">src</span>.<span class="ident">len</span>(),
+            <span class="self">self</span>.remaining_mut() &gt;= src.len(),
             <span class="string">&quot;buffer overflow; remaining = {}; src = {}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">remaining_mut</span>(),
-            <span class="ident">src</span>.<span class="ident">len</span>()
+            <span class="self">self</span>.remaining_mut(),
+            src.len()
         );
 
-        <span class="kw">while</span> <span class="ident">off</span> <span class="op">&lt;</span> <span class="ident">src</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">cnt</span>;
+        <span class="kw">while </span>off &lt; src.len() {
+            <span class="kw">let </span>cnt;
 
-            <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">chunk_mut</span>();
-                <span class="ident">cnt</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="ident">dst</span>.<span class="ident">len</span>(), <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">off</span>);
+            <span class="kw">unsafe </span>{
+                <span class="kw">let </span>dst = <span class="self">self</span>.chunk_mut();
+                cnt = cmp::min(dst.len(), src.len() - off);
 
-                <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">src</span>[<span class="ident">off</span>..].<span class="ident">as_ptr</span>(), <span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>, <span class="ident">cnt</span>);
+                ptr::copy_nonoverlapping(src[off..].as_ptr(), dst.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>u8, cnt);
 
-                <span class="ident">off</span> <span class="op">+</span><span class="op">=</span> <span class="ident">cnt</span>;
+                off += cnt;
             }
 
-            <span class="kw">unsafe</span> {
-                <span class="self">self</span>.<span class="ident">advance_mut</span>(<span class="ident">cnt</span>);
+            <span class="kw">unsafe </span>{
+                <span class="self">self</span>.advance_mut(cnt);
             }
         }
     }
 
-    <span class="doccomment">/// Put `cnt` bytes `val` into `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Logically equivalent to calling `self.put_u8(val)` `cnt` times, but may work faster.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `self` must have at least `cnt` remaining capacity.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut dst = [0; 6];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// {</span>
-    <span class="doccomment">///     let mut buf = &amp;mut dst[..];</span>
-    <span class="doccomment">///     buf.put_bytes(b&#39;a&#39;, 4);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     assert_eq!(2, buf.remaining_mut());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(b&quot;aaaa\0\0&quot;, &amp;dst);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">cnt</span> {
-            <span class="self">self</span>.<span class="ident">put_u8</span>(<span class="ident">val</span>);
+    <span class="doccomment">/// Put `cnt` bytes `val` into `self`.
+    ///
+    /// Logically equivalent to calling `self.put_u8(val)` `cnt` times, but may work faster.
+    ///
+    /// `self` must have at least `cnt` remaining capacity.
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut dst = [0; 6];
+    ///
+    /// {
+    ///     let mut buf = &amp;mut dst[..];
+    ///     buf.put_bytes(b&#39;a&#39;, 4);
+    ///
+    ///     assert_eq!(2, buf.remaining_mut());
+    /// }
+    ///
+    /// assert_eq!(b&quot;aaaa\0\0&quot;, &amp;dst);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">for _ in </span><span class="number">0</span>..cnt {
+            <span class="self">self</span>.put_u8(val);
         }
     }
 
-    <span class="doccomment">/// Writes an unsigned 8 bit integer to `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 1.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u8(0x01);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x01&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> [<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#317">n</a>];
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#317">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#318">src</a>);
+    <span class="doccomment">/// Writes an unsigned 8 bit integer to `self`.
+    ///
+    /// The current position is advanced by 1.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u8(0x01);
+    /// assert_eq!(buf, b&quot;\x01&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
+        <span class="kw">let </span>src = [<a href="../../../src/bytes/buf/buf_mut.rs.html#317">n</a>];
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#317">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#318">src</a>);
     }
 
-    <span class="doccomment">/// Writes a signed 8 bit integer to `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 1.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i8(0x01);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x01&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) {
-        <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> [<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#340">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#340">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#341">src</a>)
+    <span class="doccomment">/// Writes a signed 8 bit integer to `self`.
+    ///
+    /// The current position is advanced by 1.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i8(0x01);
+    /// assert_eq!(buf, b&quot;\x01&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) {
+        <span class="kw">let </span>src = [<a href="../../../src/bytes/buf/buf_mut.rs.html#340">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>];
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#340">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#341">src</a>)
     }
 
-    <span class="doccomment">/// Writes an unsigned 16 bit integer to `self` in big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 2.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u16(0x0809);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x08\x09&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#363">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#363">n</a>.<span class="ident">to_be_bytes</span>())
+    <span class="doccomment">/// Writes an unsigned 16 bit integer to `self` in big-endian byte order.
+    ///
+    /// The current position is advanced by 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u16(0x0809);
+    /// assert_eq!(buf, b&quot;\x08\x09&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#363">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#363">n</a>.to_be_bytes())
     }
 
-    <span class="doccomment">/// Writes an unsigned 16 bit integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 2.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u16_le(0x0809);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x09\x08&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#385">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#385">n</a>.<span class="ident">to_le_bytes</span>())
+    <span class="doccomment">/// Writes an unsigned 16 bit integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u16_le(0x0809);
+    /// assert_eq!(buf, b&quot;\x09\x08&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#385">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#385">n</a>.to_le_bytes())
     }
 
-    <span class="doccomment">/// Writes a signed 16 bit integer to `self` in big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 2.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i16(0x0809);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x08\x09&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#407">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#407">n</a>.<span class="ident">to_be_bytes</span>())
+    <span class="doccomment">/// Writes a signed 16 bit integer to `self` in big-endian byte order.
+    ///
+    /// The current position is advanced by 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i16(0x0809);
+    /// assert_eq!(buf, b&quot;\x08\x09&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#407">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#407">n</a>.to_be_bytes())
     }
 
-    <span class="doccomment">/// Writes a signed 16 bit integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 2.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i16_le(0x0809);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x09\x08&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#429">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#429">n</a>.<span class="ident">to_le_bytes</span>())
+    <span class="doccomment">/// Writes a signed 16 bit integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i16_le(0x0809);
+    /// assert_eq!(buf, b&quot;\x09\x08&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#429">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#429">n</a>.to_le_bytes())
     }
 
-    <span class="doccomment">/// Writes an unsigned 32 bit integer to `self` in big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 4.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u32(0x0809A0A1);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x08\x09\xA0\xA1&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#451">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#451">n</a>.<span class="ident">to_be_bytes</span>())
+    <span class="doccomment">/// Writes an unsigned 32 bit integer to `self` in big-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u32(0x0809A0A1);
+    /// assert_eq!(buf, b&quot;\x08\x09\xA0\xA1&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#451">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#451">n</a>.to_be_bytes())
     }
 
-    <span class="doccomment">/// Writes an unsigned 32 bit integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 4.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u32_le(0x0809A0A1);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\xA1\xA0\x09\x08&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#473">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#473">n</a>.<span class="ident">to_le_bytes</span>())
+    <span class="doccomment">/// Writes an unsigned 32 bit integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u32_le(0x0809A0A1);
+    /// assert_eq!(buf, b&quot;\xA1\xA0\x09\x08&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#473">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#473">n</a>.to_le_bytes())
     }
 
-    <span class="doccomment">/// Writes a signed 32 bit integer to `self` in big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 4.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i32(0x0809A0A1);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x08\x09\xA0\xA1&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#495">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#495">n</a>.<span class="ident">to_be_bytes</span>())
+    <span class="doccomment">/// Writes a signed 32 bit integer to `self` in big-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i32(0x0809A0A1);
+    /// assert_eq!(buf, b&quot;\x08\x09\xA0\xA1&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#495">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#495">n</a>.to_be_bytes())
     }
 
-    <span class="doccomment">/// Writes a signed 32 bit integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 4.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i32_le(0x0809A0A1);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\xA1\xA0\x09\x08&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#517">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#517">n</a>.<span class="ident">to_le_bytes</span>())
+    <span class="doccomment">/// Writes a signed 32 bit integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i32_le(0x0809A0A1);
+    /// assert_eq!(buf, b&quot;\xA1\xA0\x09\x08&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#517">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#517">n</a>.to_le_bytes())
     }
 
-    <span class="doccomment">/// Writes an unsigned 64 bit integer to `self` in the big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 8.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u64(0x0102030405060708);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#539">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#539">n</a>.<span class="ident">to_be_bytes</span>())
+    <span class="doccomment">/// Writes an unsigned 64 bit integer to `self` in the big-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u64(0x0102030405060708);
+    /// assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#539">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#539">n</a>.to_be_bytes())
     }
 
-    <span class="doccomment">/// Writes an unsigned 64 bit integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 8.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u64_le(0x0102030405060708);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x08\x07\x06\x05\x04\x03\x02\x01&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#561">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#561">n</a>.<span class="ident">to_le_bytes</span>())
+    <span class="doccomment">/// Writes an unsigned 64 bit integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u64_le(0x0102030405060708);
+    /// assert_eq!(buf, b&quot;\x08\x07\x06\x05\x04\x03\x02\x01&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#561">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#561">n</a>.to_le_bytes())
     }
 
-    <span class="doccomment">/// Writes a signed 64 bit integer to `self` in the big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 8.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i64(0x0102030405060708);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#583">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#583">n</a>.<span class="ident">to_be_bytes</span>())
+    <span class="doccomment">/// Writes a signed 64 bit integer to `self` in the big-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i64(0x0102030405060708);
+    /// assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#583">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#583">n</a>.to_be_bytes())
     }
 
-    <span class="doccomment">/// Writes a signed 64 bit integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 8.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i64_le(0x0102030405060708);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x08\x07\x06\x05\x04\x03\x02\x01&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#605">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#605">n</a>.<span class="ident">to_le_bytes</span>())
+    <span class="doccomment">/// Writes a signed 64 bit integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i64_le(0x0102030405060708);
+    /// assert_eq!(buf, b&quot;\x08\x07\x06\x05\x04\x03\x02\x01&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#605">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#605">n</a>.to_le_bytes())
     }
 
-    <span class="doccomment">/// Writes an unsigned 128 bit integer to `self` in the big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 16.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u128(0x01020304050607080910111213141516);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#627">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#627">n</a>.<span class="ident">to_be_bytes</span>())
+    <span class="doccomment">/// Writes an unsigned 128 bit integer to `self` in the big-endian byte order.
+    ///
+    /// The current position is advanced by 16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u128(0x01020304050607080910111213141516);
+    /// assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#627">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#627">n</a>.to_be_bytes())
     }
 
-    <span class="doccomment">/// Writes an unsigned 128 bit integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 16.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_u128_le(0x01020304050607080910111213141516);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_u128_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#649">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#649">n</a>.<span class="ident">to_le_bytes</span>())
+    <span class="doccomment">/// Writes an unsigned 128 bit integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_u128_le(0x01020304050607080910111213141516);
+    /// assert_eq!(buf, b&quot;\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#649">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#649">n</a>.to_le_bytes())
     }
 
-    <span class="doccomment">/// Writes a signed 128 bit integer to `self` in the big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 16.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i128(0x01020304050607080910111213141516);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#671">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#671">n</a>.<span class="ident">to_be_bytes</span>())
+    <span class="doccomment">/// Writes a signed 128 bit integer to `self` in the big-endian byte order.
+    ///
+    /// The current position is advanced by 16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i128(0x01020304050607080910111213141516);
+    /// assert_eq!(buf, b&quot;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#671">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#671">n</a>.to_be_bytes())
     }
 
-    <span class="doccomment">/// Writes a signed 128 bit integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 16.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_i128_le(0x01020304050607080910111213141516);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_i128_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#693">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#693">n</a>.<span class="ident">to_le_bytes</span>())
+    <span class="doccomment">/// Writes a signed 128 bit integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_i128_le(0x01020304050607080910111213141516);
+    /// assert_eq!(buf, b&quot;\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#693">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#693">n</a>.to_le_bytes())
     }
 
-    <span class="doccomment">/// Writes an unsigned n-byte integer to `self` in big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by `nbytes`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_uint(0x010203, 3);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x01\x02\x03&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_uint</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#715">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#715">n</a>.<span class="ident">to_be_bytes</span>()[<span class="ident">mem::size_of_val</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#715">n</a>) <span class="op">-</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#715">nbytes</a>..]);
+    <span class="doccomment">/// Writes an unsigned n-byte integer to `self` in big-endian byte order.
+    ///
+    /// The current position is advanced by `nbytes`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_uint(0x010203, 3);
+    /// assert_eq!(buf, b&quot;\x01\x02\x03&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_uint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#715">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#715">n</a>.to_be_bytes()[mem::size_of_val(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#715">n</a>) - <a href="../../../src/bytes/buf/buf_mut.rs.html#715">nbytes</a>..]);
     }
 
-    <span class="doccomment">/// Writes an unsigned n-byte integer to `self` in the little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by `nbytes`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_uint_le(0x010203, 3);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x03\x02\x01&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_uint_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#737">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#737">n</a>.<span class="ident">to_le_bytes</span>()[<span class="number">0</span>..<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#737">nbytes</a>]);
+    <span class="doccomment">/// Writes an unsigned n-byte integer to `self` in the little-endian byte order.
+    ///
+    /// The current position is advanced by `nbytes`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_uint_le(0x010203, 3);
+    /// assert_eq!(buf, b&quot;\x03\x02\x01&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_uint_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#737">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#737">n</a>.to_le_bytes()[<span class="number">0</span>..<a href="../../../src/bytes/buf/buf_mut.rs.html#737">nbytes</a>]);
     }
 
-    <span class="doccomment">/// Writes low `nbytes` of a signed integer to `self` in big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by `nbytes`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_int(0x0504010203, 3);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x01\x02\x03&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self` or if `nbytes` is greater than 8.</span>
-    <span class="kw">fn</span> <span class="ident">put_int</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#759">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#759">n</a>.<span class="ident">to_be_bytes</span>()[<span class="ident">mem::size_of_val</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#759">n</a>) <span class="op">-</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#759">nbytes</a>..]);
+    <span class="doccomment">/// Writes low `nbytes` of a signed integer to `self` in big-endian byte order.
+    ///
+    /// The current position is advanced by `nbytes`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_int(0x0504010203, 3);
+    /// assert_eq!(buf, b&quot;\x01\x02\x03&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self` or if `nbytes` is greater than 8.
+    </span><span class="kw">fn </span>put_int(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#759">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#759">n</a>.to_be_bytes()[mem::size_of_val(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#759">n</a>) - <a href="../../../src/bytes/buf/buf_mut.rs.html#759">nbytes</a>..]);
     }
 
-    <span class="doccomment">/// Writes low `nbytes` of a signed integer to `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by `nbytes`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_int_le(0x0504010203, 3);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x03\x02\x01&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self` or if `nbytes` is greater than 8.</span>
-    <span class="kw">fn</span> <span class="ident">put_int_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, <span class="ident">nbytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#781">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#781">n</a>.<span class="ident">to_le_bytes</span>()[<span class="number">0</span>..<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#781">nbytes</a>]);
+    <span class="doccomment">/// Writes low `nbytes` of a signed integer to `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by `nbytes`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_int_le(0x0504010203, 3);
+    /// assert_eq!(buf, b&quot;\x03\x02\x01&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self` or if `nbytes` is greater than 8.
+    </span><span class="kw">fn </span>put_int_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>, nbytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#781">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#240">put_slice</a>(<span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/buf_mut.rs.html#781">n</a>.to_le_bytes()[<span class="number">0</span>..<a href="../../../src/bytes/buf/buf_mut.rs.html#781">nbytes</a>]);
     }
 
-    <span class="doccomment">/// Writes  an IEEE754 single-precision (4 bytes) floating point number to</span>
-    <span class="doccomment">/// `self` in big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 4.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_f32(1.2f32);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x3F\x99\x99\x9A&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_f32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#804">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#451">put_u32</a>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#804">n</a>.<span class="ident">to_bits</span>());
+    <span class="doccomment">/// Writes  an IEEE754 single-precision (4 bytes) floating point number to
+    /// `self` in big-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_f32(1.2f32);
+    /// assert_eq!(buf, b&quot;\x3F\x99\x99\x9A&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#804">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#451">put_u32</a>(<a href="../../../src/bytes/buf/buf_mut.rs.html#804">n</a>.to_bits());
     }
 
-    <span class="doccomment">/// Writes  an IEEE754 single-precision (4 bytes) floating point number to</span>
-    <span class="doccomment">/// `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 4.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_f32_le(1.2f32);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x9A\x99\x99\x3F&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_f32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#827">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#473">put_u32_le</a>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#827">n</a>.<span class="ident">to_bits</span>());
+    <span class="doccomment">/// Writes  an IEEE754 single-precision (4 bytes) floating point number to
+    /// `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 4.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_f32_le(1.2f32);
+    /// assert_eq!(buf, b&quot;\x9A\x99\x99\x3F&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#827">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#473">put_u32_le</a>(<a href="../../../src/bytes/buf/buf_mut.rs.html#827">n</a>.to_bits());
     }
 
-    <span class="doccomment">/// Writes  an IEEE754 double-precision (8 bytes) floating point number to</span>
-    <span class="doccomment">/// `self` in big-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 8.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_f64(1.2f64);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x3F\xF3\x33\x33\x33\x33\x33\x33&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_f64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#850">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#539">put_u64</a>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#850">n</a>.<span class="ident">to_bits</span>());
+    <span class="doccomment">/// Writes  an IEEE754 double-precision (8 bytes) floating point number to
+    /// `self` in big-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_f64(1.2f64);
+    /// assert_eq!(buf, b&quot;\x3F\xF3\x33\x33\x33\x33\x33\x33&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#850">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#539">put_u64</a>(<a href="../../../src/bytes/buf/buf_mut.rs.html#850">n</a>.to_bits());
     }
 
-    <span class="doccomment">/// Writes  an IEEE754 double-precision (8 bytes) floating point number to</span>
-    <span class="doccomment">/// `self` in little-endian byte order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The current position is advanced by 8.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![];</span>
-    <span class="doccomment">/// buf.put_f64_le(1.2f64);</span>
-    <span class="doccomment">/// assert_eq!(buf, b&quot;\x33\x33\x33\x33\x33\x33\xF3\x3F&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is not enough remaining capacity in</span>
-    <span class="doccomment">/// `self`.</span>
-    <span class="kw">fn</span> <span class="ident">put_f64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#873">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#561">put_u64_le</a>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#873">n</a>.<span class="ident">to_bits</span>());
+    <span class="doccomment">/// Writes  an IEEE754 double-precision (8 bytes) floating point number to
+    /// `self` in little-endian byte order.
+    ///
+    /// The current position is advanced by 8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut buf = vec![];
+    /// buf.put_f64_le(1.2f64);
+    /// assert_eq!(buf, b&quot;\x33\x33\x33\x33\x33\x33\xF3\x3F&quot;);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is not enough remaining capacity in
+    /// `self`.
+    </span><span class="kw">fn </span>put_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#873">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#561">put_u64_le</a>(<a href="../../../src/bytes/buf/buf_mut.rs.html#873">n</a>.to_bits());
     }
 
-    <span class="doccomment">/// Creates an adaptor which can write at most `limit` bytes to `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let arr = &amp;mut [0u8; 128][..];</span>
-    <span class="doccomment">/// assert_eq!(arr.remaining_mut(), 128);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let dst = arr.limit(10);</span>
-    <span class="doccomment">/// assert_eq!(dst.remaining_mut(), 10);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">limit</span>(<span class="self">self</span>, <span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">Limit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Creates an adaptor which can write at most `limit` bytes to `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let arr = &amp;mut [0u8; 128][..];
+    /// assert_eq!(arr.remaining_mut(), 128);
+    ///
+    /// let dst = arr.limit(10);
+    /// assert_eq!(dst.remaining_mut(), 10);
+    /// ```
+    </span><span class="kw">fn </span>limit(<span class="self">self</span>, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Limit&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a class="ident" href="../../../src/bytes/buf/limit.rs.html#14">limit::new</a>(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#890">self</a>, <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#890">limit</a>)
+        <a href="../../../src/bytes/buf/limit.rs.html#14">limit::new</a>(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#890">self</a>, <a href="../../../src/bytes/buf/buf_mut.rs.html#890">limit</a>)
     }
 
-    <span class="doccomment">/// Creates an adaptor which implements the `Write` trait for `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function returns a new value which implements `Write` by adapting</span>
-    <span class="doccomment">/// the `Write` trait functions to the `BufMut` trait functions. Given that</span>
-    <span class="doccomment">/// `BufMut` operations are infallible, none of the `Write` functions will</span>
-    <span class="doccomment">/// return with `Err`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">/// use std::io::Write;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![].writer();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let num = buf.write(&amp;b&quot;hello world&quot;[..]).unwrap();</span>
-    <span class="doccomment">/// assert_eq!(11, num);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = buf.into_inner();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(*buf, b&quot;hello world&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">writer</span>(<span class="self">self</span>) -&gt; <span class="ident">Writer</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Creates an adaptor which implements the `Write` trait for `self`.
+    ///
+    /// This function returns a new value which implements `Write` by adapting
+    /// the `Write` trait functions to the `BufMut` trait functions. Given that
+    /// `BufMut` operations are infallible, none of the `Write` functions will
+    /// return with `Err`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    /// use std::io::Write;
+    ///
+    /// let mut buf = vec![].writer();
+    ///
+    /// let num = buf.write(&amp;b&quot;hello world&quot;[..]).unwrap();
+    /// assert_eq!(11, num);
+    ///
+    /// let buf = buf.into_inner();
+    ///
+    /// assert_eq!(*buf, b&quot;hello world&quot;[..]);
+    /// ```
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">fn </span>writer(<span class="self">self</span>) -&gt; Writer&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a class="ident" href="../../../src/bytes/buf/writer.rs.html#15">writer::new</a>(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#920">self</a>)
+        <a href="../../../src/bytes/buf/writer.rs.html#15">writer::new</a>(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#920">self</a>)
     }
 
-    <span class="doccomment">/// Creates an adapter which will chain this buffer with another.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned `BufMut` instance will first write to all bytes from</span>
-    <span class="doccomment">/// `self`. Afterwards, it will write to `next`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut a = [0u8; 5];</span>
-    <span class="doccomment">/// let mut b = [0u8; 6];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut chain = (&amp;mut a[..]).chain_mut(&amp;mut b[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// chain.put_slice(b&quot;hello world&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(&amp;a[..], b&quot;hello&quot;);</span>
-    <span class="doccomment">/// assert_eq!(&amp;b[..], b&quot; world&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">chain_mut</span><span class="op">&lt;</span><span class="ident">U</span>: <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">next</span>: <span class="ident">U</span>) -&gt; <span class="ident">Chain</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Creates an adapter which will chain this buffer with another.
+    ///
+    /// The returned `BufMut` instance will first write to all bytes from
+    /// `self`. Afterwards, it will write to `next`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut a = [0u8; 5];
+    /// let mut b = [0u8; 6];
+    ///
+    /// let mut chain = (&amp;mut a[..]).chain_mut(&amp;mut b[..]);
+    ///
+    /// chain.put_slice(b&quot;hello world&quot;);
+    ///
+    /// assert_eq!(&amp;a[..], b&quot;hello&quot;);
+    /// assert_eq!(&amp;b[..], b&quot; world&quot;);
+    /// ```
+    </span><span class="kw">fn </span>chain_mut&lt;U: <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>&gt;(<span class="self">self</span>, next: U) -&gt; Chain&lt;<span class="self">Self</span>, U&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="ident">Chain::new</span>(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#947">self</a>, <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#947">next</a>)
+        Chain::new(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#947">self</a>, <a href="../../../src/bytes/buf/buf_mut.rs.html#947">next</a>)
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">deref_forward_bufmut</span> {
+<span class="macro">macro_rules! </span>deref_forward_bufmut {
     () =&gt; {
-        <span class="kw">fn</span> <span class="ident">remaining_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">remaining_mut</span>()
+        <span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+            (<span class="kw-2">**</span><span class="self">self</span>).remaining_mut()
         }
 
-        <span class="kw">fn</span> <span class="ident">chunk_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">UninitSlice</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">chunk_mut</span>()
+        <span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>UninitSlice {
+            (<span class="kw-2">**</span><span class="self">self</span>).chunk_mut()
         }
 
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">advance_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <span class="ident">usize</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">advance_mut</span>(<span class="ident">cnt</span>)
+        <span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize) {
+            (<span class="kw-2">**</span><span class="self">self</span>).advance_mut(cnt)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_slice</span>(<span class="ident">src</span>)
+        <span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[u8]) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_slice(src)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_u8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_u8</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u8) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u8(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_i8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i8</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_i8</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i8) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i8(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_u16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u16</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_u16</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u16(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_u16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u16</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_u16_le</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u16) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u16_le(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_i16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i16</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_i16</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i16(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_i16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i16</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_i16_le</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i16) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i16_le(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_u32</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u32(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_u32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_u32_le</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u32_le(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_i32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_i32</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i32(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_i32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_i32_le</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i32) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i32_le(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u64</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_u64</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u64(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_u64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u64</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_u64_le</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u64) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_u64_le(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_i64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i64</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_i64</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i64(n)
         }
 
-        <span class="kw">fn</span> <span class="ident">put_i64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i64</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">put_i64_le</span>(<span class="ident">n</span>)
+        <span class="kw">fn </span>put_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: i64) {
+            (<span class="kw-2">**</span><span class="self">self</span>).put_i64_le(n)
         }
     };
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
+<span class="kw">unsafe impl</span>&lt;T: <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {
     <a class="macro" href="../../../src/bytes/buf/buf_mut.rs.html#955-1029">deref_forward_bufmut!</a>();
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">unsafe impl</span>&lt;T: <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for </span>Box&lt;T&gt; {
     <a class="macro" href="../../../src/bytes/buf/buf_mut.rs.html#955-1029">deref_forward_bufmut!</a>();
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">remaining_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1041">self</a>.<span class="ident">len</span>()
+<span class="kw">unsafe impl </span><a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1041">self</a>.len()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunk_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
-        <span class="comment">// UninitSlice is repr(transparent), so safe to transmute</span>
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1046">self</a> <span class="kw">as</span> <span class="kw-2">*mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
+        <span class="comment">// UninitSlice is repr(transparent), so safe to transmute
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="kw-2">*</span><span class="self"><a href="../../../src/bytes/buf/buf_mut.rs.html#1046">self</a> </span><span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">advance_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="comment">// Lifetime dance taken from `impl Write for &amp;mut [u8]`.</span>
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="ident">core::mem::replace</span>(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1052">self</a>, <span class="kw-2">&amp;mut</span> []).<span class="ident">split_at_mut</span>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1052">cnt</a>);
-        <span class="kw-2">*</span><a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1052">self</a> <span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1054">b</a>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="comment">// Lifetime dance taken from `impl Write for &amp;mut [u8]`.
+        </span><span class="kw">let </span>(<span class="kw">_</span>, b) = core::mem::replace(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1052">self</a>, <span class="kw-2">&amp;mut </span>[]).split_at_mut(<a href="../../../src/bytes/buf/buf_mut.rs.html#1052">cnt</a>);
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/bytes/buf/buf_mut.rs.html#1052">self</a> </span>= <a href="../../../src/bytes/buf/buf_mut.rs.html#1054">b</a>;
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">put_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1059">self</a>[..<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1059">src</a>.<span class="ident">len</span>()].<span class="ident">copy_from_slice</span>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1059">src</a>);
-        <span class="kw">unsafe</span> {
-            <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1059">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1059">src</a>.<span class="ident">len</span>());
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1059">self</a>[..<a href="../../../src/bytes/buf/buf_mut.rs.html#1059">src</a>.len()].copy_from_slice(<a href="../../../src/bytes/buf/buf_mut.rs.html#1059">src</a>);
+        <span class="kw">unsafe </span>{
+            <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1059">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a href="../../../src/bytes/buf/buf_mut.rs.html#1059">src</a>.len());
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">put_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">remaining_mut</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">cnt</span>);
-        <span class="kw">unsafe</span> {
-            <span class="ident">ptr::write_bytes</span>(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1066">self</a>.<span class="ident">as_mut_ptr</span>(), <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1066">val</a>, <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1066">cnt</a>);
-            <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1066">self</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1066">cnt</a>);
+    <span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.remaining_mut() &gt;= cnt);
+        <span class="kw">unsafe </span>{
+            ptr::write_bytes(<a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1066">self</a>.as_mut_ptr(), <a href="../../../src/bytes/buf/buf_mut.rs.html#1066">val</a>, <a href="../../../src/bytes/buf/buf_mut.rs.html#1066">cnt</a>);
+            <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1066">self</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a href="../../../src/bytes/buf/buf_mut.rs.html#1066">cnt</a>);
         }
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">remaining_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="comment">// A vector can never have more than isize::MAX bytes</span>
-        <span class="ident">core::isize::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">-</span> <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1077">self</a>.<span class="ident">len</span>()
+<span class="kw">unsafe impl </span><a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="comment">// A vector can never have more than isize::MAX bytes
+        </span>core::isize::MAX <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1077">self</a>.len()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">advance_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1083">self</a>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1083">self</a>.<span class="ident">capacity</span>() <span class="op">-</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1084">len</a>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>len = <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1083">self</a>.len();
+        <span class="kw">let </span>remaining = <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1083">self</a>.capacity() - <a href="../../../src/bytes/buf/buf_mut.rs.html#1084">len</a>;
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="ident">cnt</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">remaining</span>,
+            cnt &lt;= remaining,
             <span class="string">&quot;cannot advance past `remaining_mut`: {:?} &lt;= {:?}&quot;</span>,
-            <span class="ident">cnt</span>,
-            <span class="ident">remaining</span>
+            cnt,
+            remaining
         );
 
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1083">self</a>.<span class="ident">set_len</span>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1084">len</a> <span class="op">+</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1083">cnt</a>);
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1083">self</a>.set_len(<a href="../../../src/bytes/buf/buf_mut.rs.html#1084">len</a> + <a href="../../../src/bytes/buf/buf_mut.rs.html#1083">cnt</a>);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunk_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">capacity</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">len</span>() {
-            <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1098">self</a>.<span class="ident">reserve</span>(<span class="number">64</span>); <span class="comment">// Grow the vec</span>
-        }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
+        <span class="kw">if </span><span class="self">self</span>.capacity() == <span class="self">self</span>.len() {
+            <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1098">self</a>.reserve(<span class="number">64</span>); <span class="comment">// Grow the vec
+        </span>}
 
-        <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1098">self</a>.<span class="ident">capacity</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1098">self</a>.<span class="ident">len</span>();
+        <span class="kw">let </span>cap = <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1098">self</a>.capacity();
+        <span class="kw">let </span>len = <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1098">self</a>.len();
 
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1098">self</a>.<span class="ident">as_mut_ptr</span>();
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="ident">UninitSlice::from_raw_parts_mut</span>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1106">ptr</a>, <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1103">cap</a>)[<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1104">len</a>..] }
+        <span class="kw">let </span>ptr = <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1098">self</a>.as_mut_ptr();
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut </span>UninitSlice::from_raw_parts_mut(<a href="../../../src/bytes/buf/buf_mut.rs.html#1106">ptr</a>, <a href="../../../src/bytes/buf/buf_mut.rs.html#1103">cap</a>)[<a href="../../../src/bytes/buf/buf_mut.rs.html#1104">len</a>..] }
     }
 
-    <span class="comment">// Specialize these methods so they can skip checking `remaining_mut`</span>
-    <span class="comment">// and `advance_mut`.</span>
-    <span class="kw">fn</span> <span class="ident">put</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76"><span class="kw">super</span>::Buf</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">T</span>)
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="comment">// Specialize these methods so they can skip checking `remaining_mut`
+    // and `advance_mut`.
+    </span><span class="kw">fn </span>put&lt;T: <a href="../../../src/bytes/buf/buf_impl.rs.html#76"><span class="kw">super</span>::Buf</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>src: T)
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="comment">// In case the src isn&#39;t contiguous, reserve upfront</span>
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1112">self</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1112">src</a>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>());
+        <span class="comment">// In case the src isn&#39;t contiguous, reserve upfront
+        </span><a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1112">self</a>.reserve(<a href="../../../src/bytes/buf/buf_mut.rs.html#1112">src</a>.<a href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>());
 
-        <span class="kw">while</span> <span class="ident">src</span>.<span class="ident">has_remaining</span>() {
-            <span class="kw">let</span> <span class="ident">l</span>;
+        <span class="kw">while </span>src.has_remaining() {
+            <span class="kw">let </span>l;
 
-            <span class="comment">// a block to contain the src.bytes() borrow</span>
-            {
-                <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">chunk</span>();
-                <span class="ident">l</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>();
-                <span class="self">self</span>.<span class="ident">extend_from_slice</span>(<span class="ident">s</span>);
+            <span class="comment">// a block to contain the src.bytes() borrow
+            </span>{
+                <span class="kw">let </span>s = src.chunk();
+                l = s.len();
+                <span class="self">self</span>.extend_from_slice(s);
             }
 
-            <span class="ident">src</span>.<span class="ident">advance</span>(<span class="ident">l</span>);
+            src.advance(l);
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">put_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1134">self</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1134">src</a>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1134">self</a>.extend_from_slice(<a href="../../../src/bytes/buf/buf_mut.rs.html#1134">src</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">put_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1138">self</a>.<span class="ident">len</span>().<span class="ident">checked_add</span>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1138">cnt</a>).<span class="ident">unwrap</span>();
-        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1138">self</a>.<span class="ident">resize</span>(<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1139">new_len</a>, <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#1138">val</a>);
+    <span class="kw">fn </span>put_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>new_len = <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1138">self</a>.len().checked_add(<a href="../../../src/bytes/buf/buf_mut.rs.html#1138">cnt</a>).unwrap();
+        <a class="self" href="../../../src/bytes/buf/buf_mut.rs.html#1138">self</a>.resize(<a href="../../../src/bytes/buf/buf_mut.rs.html#1139">new_len</a>, <a href="../../../src/bytes/buf/buf_mut.rs.html#1138">val</a>);
     }
 }
 
-<span class="comment">// The existence of this function makes the compiler catch if the BufMut</span>
-<span class="comment">// trait is &quot;object-safe&quot; or not.</span>
-<span class="kw">fn</span> <span class="ident">_assert_trait_object</span>(<span class="ident">_b</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>) {}
+<span class="comment">// The existence of this function makes the compiler catch if the BufMut
+// trait is &quot;object-safe&quot; or not.
+</span><span class="kw">fn </span>_assert_trait_object(_b: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>) {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

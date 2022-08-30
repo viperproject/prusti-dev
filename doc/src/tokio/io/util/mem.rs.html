@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -293,300 +293,300 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
-</pre><pre class="rust"><code><span class="doccomment">//! In-process memory IO types.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! In-process memory IO types.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a class="ident" href="../../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a href="../../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">sync::Arc</a>,
-    <span class="ident">task</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>},
+<span class="kw">use </span>bytes::{<a href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
+<span class="kw">use </span>std::{
+    <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
+    <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">sync::Arc</a>,
+    task::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>},
 };
 
-<span class="doccomment">/// A bidirectional pipe to read and write bytes in memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A pair of `DuplexStream`s are created together, and they act as a &quot;channel&quot;</span>
-<span class="doccomment">/// that can be used as in-memory IO types. Writing to one of the pairs will</span>
-<span class="doccomment">/// allow that data to be read from the other, and vice versa.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Closing a `DuplexStream`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If one end of the `DuplexStream` channel is dropped, any pending reads on</span>
-<span class="doccomment">/// the other side will continue to read data until the buffer is drained, then</span>
-<span class="doccomment">/// they will signal EOF by returning 0 bytes. Any writes to the other side,</span>
-<span class="doccomment">/// including pending ones (that are waiting for free space in the buffer) will</span>
-<span class="doccomment">/// return `Err(BrokenPipe)` immediately.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # async fn ex() -&gt; std::io::Result&lt;()&gt; {</span>
-<span class="doccomment">/// # use tokio::io::{AsyncReadExt, AsyncWriteExt};</span>
-<span class="doccomment">/// let (mut client, mut server) = tokio::io::duplex(64);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// client.write_all(b&quot;ping&quot;).await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut buf = [0u8; 4];</span>
-<span class="doccomment">/// server.read_exact(&amp;mut buf).await?;</span>
-<span class="doccomment">/// assert_eq!(&amp;buf, b&quot;ping&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// server.write_all(b&quot;pong&quot;).await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// client.read_exact(&amp;mut buf).await?;</span>
-<span class="doccomment">/// assert_eq!(&amp;buf, b&quot;pong&quot;);</span>
-<span class="doccomment">/// # Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io-util&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DuplexStream</span> {
-    <span class="ident">read</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">write</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A bidirectional pipe to read and write bytes in memory.
+///
+/// A pair of `DuplexStream`s are created together, and they act as a &quot;channel&quot;
+/// that can be used as in-memory IO types. Writing to one of the pairs will
+/// allow that data to be read from the other, and vice versa.
+///
+/// # Closing a `DuplexStream`
+///
+/// If one end of the `DuplexStream` channel is dropped, any pending reads on
+/// the other side will continue to read data until the buffer is drained, then
+/// they will signal EOF by returning 0 bytes. Any writes to the other side,
+/// including pending ones (that are waiting for free space in the buffer) will
+/// return `Err(BrokenPipe)` immediately.
+///
+/// # Example
+///
+/// ```
+/// # async fn ex() -&gt; std::io::Result&lt;()&gt; {
+/// # use tokio::io::{AsyncReadExt, AsyncWriteExt};
+/// let (mut client, mut server) = tokio::io::duplex(64);
+///
+/// client.write_all(b&quot;ping&quot;).await?;
+///
+/// let mut buf = [0u8; 4];
+/// server.read_exact(&amp;mut buf).await?;
+/// assert_eq!(&amp;buf, b&quot;ping&quot;);
+///
+/// server.write_all(b&quot;pong&quot;).await?;
+///
+/// client.read_exact(&amp;mut buf).await?;
+/// assert_eq!(&amp;buf, b&quot;pong&quot;);
+/// # Ok(())
+/// # }
+/// ```
+</span><span class="attribute">#[derive(Debug)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;io-util&quot;</span>)))]
+</span><span class="kw">pub struct </span>DuplexStream {
+    read: Arc&lt;Mutex&lt;<a href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a>&gt;&gt;,
+    write: Arc&lt;Mutex&lt;<a href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a>&gt;&gt;,
 }
 
-<span class="doccomment">/// A unidirectional IO over a piece of memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Data can be written to the pipe, and reading will return that data.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Pipe</span> {
-    <span class="doccomment">/// The buffer storing the bytes written, also read from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Using a `BytesMut` because it has efficient `Buf` and `BufMut`</span>
-    <span class="doccomment">/// functionality already. Additionally, it can try to copy data in the</span>
-    <span class="doccomment">/// same buffer if there read index has advanced far enough.</span>
-    <span class="ident">buffer</span>: <a class="ident" href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
-    <span class="doccomment">/// Determines if the write side has been closed.</span>
-    <span class="ident">is_closed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="doccomment">/// The maximum amount of bytes that can be written before returning</span>
-    <span class="doccomment">/// `Poll::Pending`.</span>
-    <span class="ident">max_buf_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="doccomment">/// If the `read` side has been polled and is pending, this is the waker</span>
-    <span class="doccomment">/// for that parked task.</span>
-    <span class="ident">read_waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// If the `write` side has filled the `max_buf_size` and returned</span>
-    <span class="doccomment">/// `Poll::Pending`, this is the waker for that parked task.</span>
-    <span class="ident">write_waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A unidirectional IO over a piece of memory.
+///
+/// Data can be written to the pipe, and reading will return that data.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Pipe {
+    <span class="doccomment">/// The buffer storing the bytes written, also read from.
+    ///
+    /// Using a `BytesMut` because it has efficient `Buf` and `BufMut`
+    /// functionality already. Additionally, it can try to copy data in the
+    /// same buffer if there read index has advanced far enough.
+    </span>buffer: <a href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+    <span class="doccomment">/// Determines if the write side has been closed.
+    </span>is_closed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// The maximum amount of bytes that can be written before returning
+    /// `Poll::Pending`.
+    </span>max_buf_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// If the `read` side has been polled and is pending, this is the waker
+    /// for that parked task.
+    </span>read_waker: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
+    <span class="doccomment">/// If the `write` side has filled the `max_buf_size` and returned
+    /// `Poll::Pending`, this is the waker for that parked task.
+    </span>write_waker: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;,
 }
 
-<span class="comment">// ===== impl DuplexStream =====</span>
+<span class="comment">// ===== impl DuplexStream =====
 
-<span class="doccomment">/// Create a new pair of `DuplexStream`s that act like a pair of connected sockets.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `max_buf_size` argument is the maximum amount of bytes that can be</span>
-<span class="doccomment">/// written to a side before the write returns `Poll::Pending`.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io-util&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">duplex</span>(<span class="ident">max_buf_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a>) {
-    <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">Pipe::new</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#85">max_buf_size</a>)));
-    <span class="kw">let</span> <span class="ident">two</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">Pipe::new</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#85">max_buf_size</a>)));
+</span><span class="doccomment">/// Create a new pair of `DuplexStream`s that act like a pair of connected sockets.
+///
+/// The `max_buf_size` argument is the maximum amount of bytes that can be
+/// written to a side before the write returns `Poll::Pending`.
+</span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;io-util&quot;</span>)))]
+</span><span class="kw">pub fn </span>duplex(max_buf_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a>, <a href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a>) {
+    <span class="kw">let </span>one = Arc::new(Mutex::new(Pipe::new(<a href="../../../../src/tokio/io/util/mem.rs.html#85">max_buf_size</a>)));
+    <span class="kw">let </span>two = Arc::new(Mutex::new(Pipe::new(<a href="../../../../src/tokio/io/util/mem.rs.html#85">max_buf_size</a>)));
 
     (
-        <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
-            <span class="ident">read</span>: <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#86">one</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">write</span>: <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#87">two</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+            read: <a href="../../../../src/tokio/io/util/mem.rs.html#86">one</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            write: <a href="../../../../src/tokio/io/util/mem.rs.html#87">two</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         },
-        <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
-            <span class="ident">read</span>: <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#87">two</a>,
-            <span class="ident">write</span>: <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#86">one</a>,
+        <a href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+            read: <a href="../../../../src/tokio/io/util/mem.rs.html#87">two</a>,
+            write: <a href="../../../../src/tokio/io/util/mem.rs.html#86">one</a>,
         },
     )
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
-    <span class="comment">// Previous rustc required this `self` to be `mut`, even though newer</span>
-    <span class="comment">// versions recognize it isn&#39;t needed to call `lock()`. So for</span>
-    <span class="comment">// compatibility, we include the `mut` and `allow` the lint.</span>
-    <span class="comment">//</span>
-    <span class="comment">// See https://github.com/rust-lang/rust/issues/73592</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#109">self</a>.<span class="ident">read</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a class="ident" href="../../../../src/tokio/io/async_read.rs.html#53-57">poll_read</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#110">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#111">buf</a>)
+<span class="kw">impl </span><a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+    <span class="comment">// Previous rustc required this `self` to be `mut`, even though newer
+    // versions recognize it isn&#39;t needed to call `lock()`. So for
+    // compatibility, we include the `mut` and `allow` the lint.
+    //
+    // See https://github.com/rust-lang/rust/issues/73592
+    </span><span class="attribute">#[allow(unused_mut)]
+    </span><span class="kw">fn </span>poll_read(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#109">self</a>.read.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a href="../../../../src/tokio/io/async_read.rs.html#53-57">poll_read</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#110">cx</a>, <a href="../../../../src/tokio/io/util/mem.rs.html#111">buf</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#120">self</a>.<span class="ident">write</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a class="ident" href="../../../../src/tokio/io/async_write.rs.html#58-62">poll_write</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#121">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#122">buf</a>)
+<span class="kw">impl </span><a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><a href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+    <span class="attribute">#[allow(unused_mut)]
+    </span><span class="kw">fn </span>poll_write(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;std::io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#120">self</a>.write.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a href="../../../../src/tokio/io/async_write.rs.html#58-62">poll_write</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#121">cx</a>, <a href="../../../../src/tokio/io/util/mem.rs.html#122">buf</a>)
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#129">self</a>.<span class="ident">write</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a class="ident" href="../../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#130">cx</a>)
+    <span class="attribute">#[allow(unused_mut)]
+    </span><span class="kw">fn </span>poll_flush(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#129">self</a>.write.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a href="../../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#130">cx</a>)
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#137">self</a>.<span class="ident">write</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a class="ident" href="../../../../src/tokio/io/async_write.rs.html#133">poll_shutdown</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#138">cx</a>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// notify the other side of the closure</span>
-        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#145">self</a>.<span class="ident">write</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#165">close_write</a>();
-        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#145">self</a>.<span class="ident">read</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#173">close_read</a>();
+    <span class="attribute">#[allow(unused_mut)]
+    </span><span class="kw">fn </span>poll_shutdown(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#137">self</a>.write.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a href="../../../../src/tokio/io/async_write.rs.html#133">poll_shutdown</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#138">cx</a>)
     }
 }
 
-<span class="comment">// ===== impl Pipe =====</span>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// notify the other side of the closure
+        </span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#145">self</a>.write.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<a href="../../../../src/tokio/io/util/mem.rs.html#165">close_write</a>();
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#145">self</a>.read.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<a href="../../../../src/tokio/io/util/mem.rs.html#173">close_read</a>();
+    }
+}
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max_buf_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
-            <span class="ident">buffer</span>: <span class="ident">BytesMut::new</span>(),
-            <span class="ident">is_closed</span>: <span class="bool-val">false</span>,
-            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#155">max_buf_size</a>,
-            <span class="ident">read_waker</span>: <span class="prelude-val">None</span>,
-            <span class="ident">write_waker</span>: <span class="prelude-val">None</span>,
+<span class="comment">// ===== impl Pipe =====
+
+</span><span class="kw">impl </span><a href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
+    <span class="kw">fn </span>new(max_buf_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
+            buffer: BytesMut::new(),
+            is_closed: <span class="bool-val">false</span>,
+            <a href="../../../../src/tokio/io/util/mem.rs.html#155">max_buf_size</a>,
+            read_waker: <span class="prelude-val">None</span>,
+            write_waker: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">close_write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#165">self</a>.<span class="ident">is_closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="comment">// needs to notify any readers that no more data will come</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#165">self</a>.<span class="ident">read_waker</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#168">waker</a>.<span class="ident">wake</span>();
+    <span class="kw">fn </span>close_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#165">self</a>.is_closed = <span class="bool-val">true</span>;
+        <span class="comment">// needs to notify any readers that no more data will come
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#165">self</a>.read_waker.take() {
+            <a href="../../../../src/tokio/io/util/mem.rs.html#168">waker</a>.wake();
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">close_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#173">self</a>.<span class="ident">is_closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="comment">// needs to notify any writers that they have to abort</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#173">self</a>.<span class="ident">write_waker</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#176">waker</a>.<span class="ident">wake</span>();
+    <span class="kw">fn </span>close_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#173">self</a>.is_closed = <span class="bool-val">true</span>;
+        <span class="comment">// needs to notify any writers that they have to abort
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#173">self</a>.write_waker.take() {
+            <a href="../../../../src/tokio/io/util/mem.rs.html#176">waker</a>.wake();
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_read_internal</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">has_remaining</span>() {
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">buffer</span>.<a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#184">buf</a>.<a class="ident" href="../../../../src/tokio/io/read_buf.rs.html#179">remaining</a>());
-            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#184">buf</a>.<a class="ident" href="../../../../src/tokio/io/read_buf.rs.html#248">put_slice</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">buffer</span>[..<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#187">max</a>]);
-            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">buffer</span>.<a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#187">max</a>);
-            <span class="kw">if</span> <span class="ident">max</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="comment">// The passed `buf` might have been empty, don&#39;t wake up if</span>
-                <span class="comment">// no bytes have been moved.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">write_waker</span>.<span class="ident">take</span>() {
-                    <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#193">waker</a>.<span class="ident">wake</span>();
+    <span class="kw">fn </span>poll_read_internal(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.buffer.has_remaining() {
+            <span class="kw">let </span>max = <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.buffer.<a href="../../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#184">buf</a>.<a href="../../../../src/tokio/io/read_buf.rs.html#179">remaining</a>());
+            <a href="../../../../src/tokio/io/util/mem.rs.html#184">buf</a>.<a href="../../../../src/tokio/io/read_buf.rs.html#248">put_slice</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.buffer[..<a href="../../../../src/tokio/io/util/mem.rs.html#187">max</a>]);
+            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.buffer.<a href="../../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#187">max</a>);
+            <span class="kw">if </span>max &gt; <span class="number">0 </span>{
+                <span class="comment">// The passed `buf` might have been empty, don&#39;t wake up if
+                // no bytes have been moved.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.write_waker.take() {
+                    <a href="../../../../src/tokio/io/util/mem.rs.html#193">waker</a>.wake();
                 }
             }
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_closed</span> {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
-        } <span class="kw">else</span> {
-            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">read_waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#183">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <span class="ident">Poll::Pending</span>
+            Poll::Ready(<span class="prelude-val">Ok</span>(()))
+        } <span class="kw">else if </span><span class="self">self</span>.is_closed {
+            Poll::Ready(<span class="prelude-val">Ok</span>(()))
+        } <span class="kw">else </span>{
+            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.read_waker = <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/io/util/mem.rs.html#183">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            Poll::Pending
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_write_internal</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_closed</span> {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">std::io::ErrorKind::BrokenPipe</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+    <span class="kw">fn </span>poll_write_internal(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;std::io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_closed {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(std::io::ErrorKind::BrokenPipe.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
         }
-        <span class="kw">let</span> <span class="ident">avail</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">max_buf_size</span> <span class="op">-</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">buffer</span>.<span class="ident">len</span>();
-        <span class="kw">if</span> <span class="ident">avail</span> <span class="op">==</span> <span class="number">0</span> {
-            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">write_waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#208">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+        <span class="kw">let </span>avail = <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.max_buf_size - <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.buffer.len();
+        <span class="kw">if </span>avail == <span class="number">0 </span>{
+            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.write_waker = <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/io/util/mem.rs.html#208">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="kw">return </span>Poll::Pending;
         }
 
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#209">buf</a>.<span class="ident">len</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#214">avail</a>);
-        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#209">buf</a>[..<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#220">len</a>]);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">read_waker</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#222">waker</a>.<span class="ident">wake</span>();
+        <span class="kw">let </span>len = <a href="../../../../src/tokio/io/util/mem.rs.html#209">buf</a>.len().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#214">avail</a>);
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.buffer.extend_from_slice(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/io/util/mem.rs.html#209">buf</a>[..<a href="../../../../src/tokio/io/util/mem.rs.html#220">len</a>]);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.read_waker.take() {
+            <a href="../../../../src/tokio/io/util/mem.rs.html#222">waker</a>.wake();
         }
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#220">len</a>))
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
-    <span class="macro">cfg_coop!</span> {
-        <span class="kw">fn</span> <span class="ident">poll_read</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
-
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#232">self</a>.<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#181-185">poll_read_internal</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#233">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#234">buf</a>);
-            <span class="kw">if</span> <span class="ident">ret</span>.<span class="ident">is_ready</span>() {
-                <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#236">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
-            }
-            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#238">ret</a>
-        }
-    }
-
-    <span class="macro">cfg_not_coop!</span> {
-        <span class="kw">fn</span> <span class="ident">poll_read</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">poll_read_internal</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
-        }
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/io/util/mem.rs.html#220">len</a>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
-    <span class="macro">cfg_coop!</span> {
-        <span class="kw">fn</span> <span class="ident">poll_write</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
+<span class="kw">impl </span><a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span><a href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
+    <span class="macro">cfg_coop! </span>{
+        <span class="kw">fn </span>poll_read(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+        ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
+            <span class="kw">let </span>coop = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
 
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#260">self</a>.<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#206-210">poll_write_internal</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#261">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#262">buf</a>);
-            <span class="kw">if</span> <span class="ident">ret</span>.<span class="ident">is_ready</span>() {
-                <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#264">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+            <span class="kw">let </span>ret = <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#232">self</a>.<a href="../../../../src/tokio/io/util/mem.rs.html#181-185">poll_read_internal</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#233">cx</a>, <a href="../../../../src/tokio/io/util/mem.rs.html#234">buf</a>);
+            <span class="kw">if </span>ret.is_ready() {
+                <a href="../../../../src/tokio/io/util/mem.rs.html#236">coop</a>.<a href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
             }
-            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#266">ret</a>
+            <a href="../../../../src/tokio/io/util/mem.rs.html#238">ret</a>
         }
     }
 
-    <span class="macro">cfg_not_coop!</span> {
-        <span class="kw">fn</span> <span class="ident">poll_write</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">poll_write_internal</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
+    <span class="macro">cfg_not_coop! </span>{
+        <span class="kw">fn </span>poll_read(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+        ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
+            <span class="self">self</span>.poll_read_internal(cx, buf)
+        }
+    }
+}
+
+<span class="kw">impl </span><a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span><a href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
+    <span class="macro">cfg_coop! </span>{
+        <span class="kw">fn </span>poll_write(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        ) -&gt; Poll&lt;std::io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+            <span class="kw">let </span>coop = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
+
+            <span class="kw">let </span>ret = <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#260">self</a>.<a href="../../../../src/tokio/io/util/mem.rs.html#206-210">poll_write_internal</a>(<a href="../../../../src/tokio/io/util/mem.rs.html#261">cx</a>, <a href="../../../../src/tokio/io/util/mem.rs.html#262">buf</a>);
+            <span class="kw">if </span>ret.is_ready() {
+                <a href="../../../../src/tokio/io/util/mem.rs.html#264">coop</a>.<a href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+            }
+            <a href="../../../../src/tokio/io/util/mem.rs.html#266">ret</a>
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+    <span class="macro">cfg_not_coop! </span>{
+        <span class="kw">fn </span>poll_write(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;</span>[u8],
+        ) -&gt; Poll&lt;std::io::Result&lt;usize&gt;&gt; {
+            <span class="self">self</span>.poll_write_internal(cx, buf)
+        }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#289">self</a>.<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#165">close_write</a>();
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
+        Poll::Ready(<span class="prelude-val">Ok</span>(()))
+    }
+
+    <span class="kw">fn </span>poll_shutdown(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#289">self</a>.<a href="../../../../src/tokio/io/util/mem.rs.html#165">close_write</a>();
+        Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

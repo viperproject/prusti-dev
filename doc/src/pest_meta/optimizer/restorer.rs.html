@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest_meta-2.2.1/src/optimizer/restorer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>restorer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../pest_meta/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pest_meta-2.3.0/src/optimizer/restorer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>restorer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../pest_meta/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../pest_meta/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -151,158 +151,158 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
-</pre><pre class="rust"><code><span class="comment">// pest. The Elegant Parser</span>
-<span class="comment">// Copyright (c) 2018 Dragoș Tiselice</span>
-<span class="comment">//</span>
-<span class="comment">// Licensed under the Apache License, Version 2.0</span>
-<span class="comment">// &lt;LICENSE-APACHE or http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT</span>
-<span class="comment">// license &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your</span>
-<span class="comment">// option. All files in the project carrying such notice may not be copied,</span>
-<span class="comment">// modified, or distributed except according to those terms.</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
+</pre><pre class="rust"><code><span class="comment">// pest. The Elegant Parser
+// Copyright (c) 2018 Dragoș Tiselice
+//
+// Licensed under the Apache License, Version 2.0
+// &lt;LICENSE-APACHE or http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT
+// license &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your
+// option. All files in the project carrying such notice may not be copied,
+// modified, or distributed except according to those terms.
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/pest_meta/lib.rs.html#20"><span class="kw">crate</span>::optimizer</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="../../../src/pest_meta/lib.rs.html#20"><span class="kw">crate</span>::optimizer</a>::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">restore_on_err</span>(
-    <span class="ident">rule</span>: <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#91">OptimizedRule</a>,
-    <span class="ident">rules</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a><span class="op">&gt;</span>,
-) -&gt; <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#91">OptimizedRule</a> {
-    <span class="kw">let</span> <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#91">OptimizedRule</a> { <span class="ident">name</span>, <span class="ident">ty</span>, <span class="ident">expr</span> } <span class="op">=</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#14">rule</a>;
-    <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#17">expr</a>.<a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#169-171">map_bottom_up</a>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#22-25">wrap_branching_exprs</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#18">expr</a>, <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#15">rules</a>));
-    <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#91">OptimizedRule</a> { <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#17">name</a>, <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#17">ty</a>, <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#18">expr</a> }
+<span class="kw">pub fn </span>restore_on_err(
+    rule: <a href="../../../src/pest_meta/optimizer/mod.rs.html#91">OptimizedRule</a>,
+    rules: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a>&gt;,
+) -&gt; <a href="../../../src/pest_meta/optimizer/mod.rs.html#91">OptimizedRule</a> {
+    <span class="kw">let </span><a href="../../../src/pest_meta/optimizer/mod.rs.html#91">OptimizedRule</a> { name, ty, expr } = <a href="../../../src/pest_meta/optimizer/restorer.rs.html#14">rule</a>;
+    <span class="kw">let </span>expr = <a href="../../../src/pest_meta/optimizer/restorer.rs.html#17">expr</a>.<a href="../../../src/pest_meta/optimizer/mod.rs.html#169-171">map_bottom_up</a>(|expr| <a href="../../../src/pest_meta/optimizer/restorer.rs.html#22-25">wrap_branching_exprs</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#18">expr</a>, <a href="../../../src/pest_meta/optimizer/restorer.rs.html#15">rules</a>));
+    <a href="../../../src/pest_meta/optimizer/mod.rs.html#91">OptimizedRule</a> { <a href="../../../src/pest_meta/optimizer/restorer.rs.html#17">name</a>, <a href="../../../src/pest_meta/optimizer/restorer.rs.html#17">ty</a>, <a href="../../../src/pest_meta/optimizer/restorer.rs.html#18">expr</a> }
 }
 
-<span class="kw">fn</span> <span class="ident">wrap_branching_exprs</span>(
-    <span class="ident">expr</span>: <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a>,
-    <span class="ident">rules</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a><span class="op">&gt;</span>,
-) -&gt; <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#23">expr</a> {
-        <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#108">OptimizedExpr::Opt</a>(<span class="ident">expr</span>) =&gt; {
-            <span class="kw">if</span> <span class="ident">child_modifies_state</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>, <span class="ident">rules</span>, <span class="kw-2">&amp;mut</span> <span class="ident">HashMap::new</span>()) {
-                <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#108">OptimizedExpr::Opt</a>(<span class="ident">Box::new</span>(<a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#112">OptimizedExpr::RestoreOnErr</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#27">expr</a>)))
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#108">OptimizedExpr::Opt</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#27">expr</a>)
+<span class="kw">fn </span>wrap_branching_exprs(
+    expr: <a href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a>,
+    rules: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a>&gt;,
+) -&gt; <a href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a> {
+    <span class="kw">match </span><a href="../../../src/pest_meta/optimizer/restorer.rs.html#23">expr</a> {
+        <a href="../../../src/pest_meta/optimizer/mod.rs.html#108">OptimizedExpr::Opt</a>(expr) =&gt; {
+            <span class="kw">if </span>child_modifies_state(<span class="kw-2">&amp;</span>expr, rules, <span class="kw-2">&amp;mut </span>HashMap::new()) {
+                <a href="../../../src/pest_meta/optimizer/mod.rs.html#108">OptimizedExpr::Opt</a>(Box::new(<a href="../../../src/pest_meta/optimizer/mod.rs.html#112">OptimizedExpr::RestoreOnErr</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#27">expr</a>)))
+            } <span class="kw">else </span>{
+                <a href="../../../src/pest_meta/optimizer/mod.rs.html#108">OptimizedExpr::Opt</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#27">expr</a>)
             }
         }
-        <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#107">OptimizedExpr::Choice</a>(<span class="ident">lhs</span>, <span class="ident">rhs</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">wrapped_lhs</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">child_modifies_state</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="ident">rules</span>, <span class="kw-2">&amp;mut</span> <span class="ident">HashMap::new</span>()) {
-                <span class="ident">Box::new</span>(<a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#112">OptimizedExpr::RestoreOnErr</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#34">lhs</a>))
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#34">lhs</a>
+        <a href="../../../src/pest_meta/optimizer/mod.rs.html#107">OptimizedExpr::Choice</a>(lhs, rhs) =&gt; {
+            <span class="kw">let </span>wrapped_lhs = <span class="kw">if </span>child_modifies_state(<span class="kw-2">&amp;</span>lhs, rules, <span class="kw-2">&amp;mut </span>HashMap::new()) {
+                Box::new(<a href="../../../src/pest_meta/optimizer/mod.rs.html#112">OptimizedExpr::RestoreOnErr</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#34">lhs</a>))
+            } <span class="kw">else </span>{
+                <a href="../../../src/pest_meta/optimizer/restorer.rs.html#34">lhs</a>
             };
-            <span class="kw">let</span> <span class="ident">wrapped_rhs</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">child_modifies_state</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>, <span class="ident">rules</span>, <span class="kw-2">&amp;mut</span> <span class="ident">HashMap::new</span>()) {
-                <span class="ident">Box::new</span>(<a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#112">OptimizedExpr::RestoreOnErr</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#34">rhs</a>))
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#34">rhs</a>
+            <span class="kw">let </span>wrapped_rhs = <span class="kw">if </span>child_modifies_state(<span class="kw-2">&amp;</span>rhs, rules, <span class="kw-2">&amp;mut </span>HashMap::new()) {
+                Box::new(<a href="../../../src/pest_meta/optimizer/mod.rs.html#112">OptimizedExpr::RestoreOnErr</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#34">rhs</a>))
+            } <span class="kw">else </span>{
+                <a href="../../../src/pest_meta/optimizer/restorer.rs.html#34">rhs</a>
             };
-            <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#107">OptimizedExpr::Choice</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#35">wrapped_lhs</a>, <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#40">wrapped_rhs</a>)
+            <a href="../../../src/pest_meta/optimizer/mod.rs.html#107">OptimizedExpr::Choice</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#35">wrapped_lhs</a>, <a href="../../../src/pest_meta/optimizer/restorer.rs.html#40">wrapped_rhs</a>)
         }
-        <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#109">OptimizedExpr::Rep</a>(<span class="ident">expr</span>) =&gt; {
-            <span class="kw">if</span> <span class="ident">child_modifies_state</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>, <span class="ident">rules</span>, <span class="kw-2">&amp;mut</span> <span class="ident">HashMap::new</span>()) {
-                <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#109">OptimizedExpr::Rep</a>(<span class="ident">Box::new</span>(<a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#112">OptimizedExpr::RestoreOnErr</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#47">expr</a>)))
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#109">OptimizedExpr::Rep</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#47">expr</a>)
+        <a href="../../../src/pest_meta/optimizer/mod.rs.html#109">OptimizedExpr::Rep</a>(expr) =&gt; {
+            <span class="kw">if </span>child_modifies_state(<span class="kw-2">&amp;</span>expr, rules, <span class="kw-2">&amp;mut </span>HashMap::new()) {
+                <a href="../../../src/pest_meta/optimizer/mod.rs.html#109">OptimizedExpr::Rep</a>(Box::new(<a href="../../../src/pest_meta/optimizer/mod.rs.html#112">OptimizedExpr::RestoreOnErr</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#47">expr</a>)))
+            } <span class="kw">else </span>{
+                <a href="../../../src/pest_meta/optimizer/mod.rs.html#109">OptimizedExpr::Rep</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#47">expr</a>)
             }
         }
-        <span class="kw">_</span> =&gt; <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#23">expr</a>,
+        <span class="kw">_ </span>=&gt; <a href="../../../src/pest_meta/optimizer/restorer.rs.html#23">expr</a>,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">child_modifies_state</span>(
-    <span class="ident">expr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a>,
-    <span class="ident">rules</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a><span class="op">&gt;</span>,
-    <span class="ident">cache</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#59">expr</a>.<a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#116">iter_top_down</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#63">expr</a> {
-        <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#111">OptimizedExpr::Push</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-        <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#102">OptimizedExpr::Ident</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="kw">if</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#65">name</a> <span class="op">==</span> <span class="string">&quot;DROP&quot;</span> =&gt; <span class="bool-val">true</span>,
-        <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#102">OptimizedExpr::Ident</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="kw">if</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#66">name</a> <span class="op">==</span> <span class="string">&quot;POP&quot;</span> =&gt; <span class="bool-val">true</span>,
-        <a class="ident" href="../../../src/pest_meta/optimizer/mod.rs.html#102">OptimizedExpr::Ident</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>).<span class="ident">cloned</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">option</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#68">option</a> {
-                <span class="prelude-val">Some</span>(<span class="ident">cached</span>) =&gt; <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#69">cached</a>,
-                <span class="prelude-val">None</span> =&gt; {
-                    <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(), <span class="prelude-val">Some</span>(<span class="bool-val">false</span>));
-                    <span class="bool-val">false</span>
-                }
+<span class="kw">fn </span>child_modifies_state(
+    expr: <span class="kw-2">&amp;</span><a href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a>,
+    rules: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../src/pest_meta/optimizer/mod.rs.html#98">OptimizedExpr</a>&gt;,
+    cache: <span class="kw-2">&amp;mut </span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;&gt;,
+) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="../../../src/pest_meta/optimizer/restorer.rs.html#59">expr</a>.<a href="../../../src/pest_meta/optimizer/mod.rs.html#116">iter_top_down</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|expr| <span class="kw">match </span><a href="../../../src/pest_meta/optimizer/restorer.rs.html#63">expr</a> {
+        <a href="../../../src/pest_meta/optimizer/mod.rs.html#111">OptimizedExpr::Push</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+        <a href="../../../src/pest_meta/optimizer/mod.rs.html#102">OptimizedExpr::Ident</a>(<span class="kw-2">ref </span>name) <span class="kw">if </span><a href="../../../src/pest_meta/optimizer/restorer.rs.html#65">name</a> == <span class="string">&quot;DROP&quot; </span>=&gt; <span class="bool-val">true</span>,
+        <a href="../../../src/pest_meta/optimizer/mod.rs.html#102">OptimizedExpr::Ident</a>(<span class="kw-2">ref </span>name) <span class="kw">if </span><a href="../../../src/pest_meta/optimizer/restorer.rs.html#66">name</a> == <span class="string">&quot;POP&quot; </span>=&gt; <span class="bool-val">true</span>,
+        <a href="../../../src/pest_meta/optimizer/mod.rs.html#102">OptimizedExpr::Ident</a>(<span class="kw-2">ref </span>name) =&gt; <span class="kw">match </span><a href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>.get(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>).cloned() {
+            <span class="prelude-val">Some</span>(option) =&gt; <span class="kw">match </span><a href="../../../src/pest_meta/optimizer/restorer.rs.html#68">option</a> {
+                <span class="prelude-val">Some</span>(cached) =&gt; <a href="../../../src/pest_meta/optimizer/restorer.rs.html#69">cached</a>,
+                <span class="prelude-val">None </span>=&gt; {
+                    <a href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>.insert(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(), <span class="prelude-val">Some</span>(<span class="bool-val">false</span>));
+                    <span class="bool-val">false
+                </span>}
             },
-            <span class="prelude-val">None</span> =&gt; {
-                <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(), <span class="prelude-val">None</span>);
+            <span class="prelude-val">None </span>=&gt; {
+                <a href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>.insert(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(), <span class="prelude-val">None</span>);
 
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#60">rules</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">expr</span>) =&gt; <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#58-62">child_modifies_state</a>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#79">expr</a>, <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#60">rules</a>, <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>),
-                    <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+                <span class="kw">let </span>result = <span class="kw">match </span><a href="../../../src/pest_meta/optimizer/restorer.rs.html#60">rules</a>.get(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>) {
+                    <span class="prelude-val">Some</span>(expr) =&gt; <a href="../../../src/pest_meta/optimizer/restorer.rs.html#58-62">child_modifies_state</a>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#79">expr</a>, <a href="../../../src/pest_meta/optimizer/restorer.rs.html#60">rules</a>, <a href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>),
+                    <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
                 };
 
-                <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(), <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#78">result</a>));
+                <a href="../../../src/pest_meta/optimizer/restorer.rs.html#61">cache</a>.insert(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#67">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(), <span class="prelude-val">Some</span>(<a href="../../../src/pest_meta/optimizer/restorer.rs.html#78">result</a>));
 
-                <a class="ident" href="../../../src/pest_meta/optimizer/restorer.rs.html#78">result</a>
+                <a href="../../../src/pest_meta/optimizer/restorer.rs.html#78">result</a>
             }
         },
-        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     })
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::optimizer::OptimizedExpr</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::optimizer::OptimizedExpr::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">restore_no_stack_children</span>() {
-        <span class="kw">let</span> <span class="ident">rules</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">OptimizedRule</span> {
-            <span class="ident">name</span>: <span class="string">&quot;rule&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident">ty</span>: <span class="ident">RuleType::Normal</span>,
-            <span class="ident">expr</span>: <span class="macro">box_tree!</span>(<span class="ident">Opt</span>(<span class="ident">Str</span>(<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>()))),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>restore_no_stack_children() {
+        <span class="kw">let </span>rules = <span class="macro">vec!</span>[OptimizedRule {
+            name: <span class="string">&quot;rule&quot;</span>.to_owned(),
+            ty: RuleType::Normal,
+            expr: <span class="macro">box_tree!</span>(Opt(Str(<span class="string">&quot;a&quot;</span>.to_string()))),
         }];
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">restore_on_err</span>(<span class="ident">rules</span>[<span class="number">0</span>].<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">to_hash_map</span>(<span class="kw-2">&amp;</span><span class="ident">rules</span>)),
-            <span class="ident">rules</span>[<span class="number">0</span>].<span class="ident">clone</span>()
+            restore_on_err(rules[<span class="number">0</span>].clone(), <span class="kw-2">&amp;</span>to_hash_map(<span class="kw-2">&amp;</span>rules)),
+            rules[<span class="number">0</span>].clone()
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">restore_with_child_stack_ops</span>() {
-        <span class="kw">let</span> <span class="ident">rules</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">OptimizedRule</span> {
-            <span class="ident">name</span>: <span class="string">&quot;rule&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident">ty</span>: <span class="ident">RuleType::Normal</span>,
-            <span class="ident">expr</span>: <span class="macro">box_tree!</span>(<span class="ident">Rep</span>(<span class="ident">Push</span>(<span class="ident">Str</span>(<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>())))),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>restore_with_child_stack_ops() {
+        <span class="kw">let </span>rules = <span class="macro">vec!</span>[OptimizedRule {
+            name: <span class="string">&quot;rule&quot;</span>.to_owned(),
+            ty: RuleType::Normal,
+            expr: <span class="macro">box_tree!</span>(Rep(Push(Str(<span class="string">&quot;a&quot;</span>.to_string())))),
         }];
 
-        <span class="kw">let</span> <span class="ident">restored</span> <span class="op">=</span> <span class="ident">OptimizedRule</span> {
-            <span class="ident">name</span>: <span class="string">&quot;rule&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident">ty</span>: <span class="ident">RuleType::Normal</span>,
-            <span class="ident">expr</span>: <span class="macro">box_tree!</span>(<span class="ident">Rep</span>(<span class="ident">RestoreOnErr</span>(<span class="ident">Push</span>(<span class="ident">Str</span>(<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>()))))),
+        <span class="kw">let </span>restored = OptimizedRule {
+            name: <span class="string">&quot;rule&quot;</span>.to_owned(),
+            ty: RuleType::Normal,
+            expr: <span class="macro">box_tree!</span>(Rep(RestoreOnErr(Push(Str(<span class="string">&quot;a&quot;</span>.to_string()))))),
         };
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">restore_on_err</span>(<span class="ident">rules</span>[<span class="number">0</span>].<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">to_hash_map</span>(<span class="kw-2">&amp;</span><span class="ident">rules</span>)),
-            <span class="ident">restored</span>
+            restore_on_err(rules[<span class="number">0</span>].clone(), <span class="kw-2">&amp;</span>to_hash_map(<span class="kw-2">&amp;</span>rules)),
+            restored
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">restore_choice_branch_with_and_branch_without</span>() {
-        <span class="kw">let</span> <span class="ident">rules</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">OptimizedRule</span> {
-            <span class="ident">name</span>: <span class="string">&quot;rule&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident">ty</span>: <span class="ident">RuleType::Normal</span>,
-            <span class="ident">expr</span>: <span class="macro">box_tree!</span>(<span class="ident">Choice</span>(<span class="ident">Push</span>(<span class="ident">Str</span>(<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>())), <span class="ident">Str</span>(<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>()))),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>restore_choice_branch_with_and_branch_without() {
+        <span class="kw">let </span>rules = <span class="macro">vec!</span>[OptimizedRule {
+            name: <span class="string">&quot;rule&quot;</span>.to_owned(),
+            ty: RuleType::Normal,
+            expr: <span class="macro">box_tree!</span>(Choice(Push(Str(<span class="string">&quot;a&quot;</span>.to_string())), Str(<span class="string">&quot;a&quot;</span>.to_string()))),
         }];
 
-        <span class="kw">let</span> <span class="ident">restored</span> <span class="op">=</span> <span class="ident">OptimizedRule</span> {
-            <span class="ident">name</span>: <span class="string">&quot;rule&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident">ty</span>: <span class="ident">RuleType::Normal</span>,
-            <span class="ident">expr</span>: <span class="macro">box_tree!</span>(<span class="ident">Choice</span>(
-                <span class="ident">RestoreOnErr</span>(<span class="ident">Push</span>(<span class="ident">Str</span>(<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>()))),
-                <span class="ident">Str</span>(<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>())
+        <span class="kw">let </span>restored = OptimizedRule {
+            name: <span class="string">&quot;rule&quot;</span>.to_owned(),
+            ty: RuleType::Normal,
+            expr: <span class="macro">box_tree!</span>(Choice(
+                RestoreOnErr(Push(Str(<span class="string">&quot;a&quot;</span>.to_string()))),
+                Str(<span class="string">&quot;a&quot;</span>.to_string())
             )),
         };
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">restore_on_err</span>(<span class="ident">rules</span>[<span class="number">0</span>].<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">to_hash_map</span>(<span class="kw-2">&amp;</span><span class="ident">rules</span>)),
-            <span class="ident">restored</span>
+            restore_on_err(rules[<span class="number">0</span>].clone(), <span class="kw-2">&amp;</span>to_hash_map(<span class="kw-2">&amp;</span>rules)),
+            restored
         );
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="pest_meta" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="pest_meta" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

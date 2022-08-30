@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/specifications/constraints.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>constraints.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/specifications/constraints.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>constraints.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -264,271 +264,271 @@
 <span id="264">264</span>
 <span id="265">265</span>
 <span id="266">266</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::mir::specifications</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#26">interface::FunctionCallEncodingQuery</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#33">SpecQuery</a>};
-<span class="kw">use</span> <span class="ident">log</span>::{<a class="ident" href="../../../../../log/macro.debug.html">debug</a>, <a class="ident" href="../../../../../log/macro.trace.html">trace</a>};
-<span class="kw">use</span> <span class="ident">prusti_interface</span>::{
-    <a class="ident" href="../../../../../prusti_interface/environment/struct.Environment.html">environment::Environment</a>,
-    <span class="ident">specs::typed</span>::{<a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>, <a class="ident" href="../../../../../prusti_interface/specs/typed/enum.SpecConstraintKind.html">SpecConstraintKind</a>, <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.SpecGraph.html">SpecGraph</a>},
-    <a class="ident" href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::mir::specifications::{<a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#26">interface::FunctionCallEncodingQuery</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#33">SpecQuery</a>};
+<span class="kw">use </span>log::{<a href="../../../../../log/macro.debug.html">debug</a>, <a href="../../../../../log/macro.trace.html">trace</a>};
+<span class="kw">use </span>prusti_interface::{
+    <a href="../../../../../prusti_interface/environment/struct.Environment.html">environment::Environment</a>,
+    specs::typed::{<a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>, <a href="../../../../../prusti_interface/specs/typed/enum.SpecConstraintKind.html">SpecConstraintKind</a>, <a href="../../../../../prusti_interface/specs/typed/struct.SpecGraph.html">SpecGraph</a>},
+    <a href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>,
 };
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{
-    <span class="ident">errors::MultiSpan</span>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">hir::def_id::DefId</a>,
-    <span class="ident">middle</span>::{
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>,
-        <span class="ident">ty::subst</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">Subst</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">SubstsRef</a>},
+<span class="kw">use </span>prusti_rustc_interface::{
+    errors::MultiSpan,
+    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">hir::def_id::DefId</a>,
+    middle::{
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>,
+        ty::subst::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">Subst</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">SubstsRef</a>},
     },
-    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">span::Span</a>,
+    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">span::Span</a>,
 };
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">ConstraintResolver</span><span class="op">&lt;</span><span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">resolve</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec</span> <span class="self">self</span>,
-        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">query</span>: <span class="kw-2">&amp;</span><span class="ident">SpecQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;spec</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>, <a class="ident" href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a><span class="op">&gt;</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>ConstraintResolver&lt;<span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span>&gt; {
+    <span class="kw">fn </span>resolve(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><span class="self">self</span>,
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        query: <span class="kw-2">&amp;</span>SpecQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>, <a href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">resolve_emit_err</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec</span> <span class="self">self</span>,
-        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">query</span>: <span class="kw-2">&amp;</span><span class="ident">SpecQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;spec</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#26">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#19-23">resolve</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#27">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#28">query</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">resolved_spec</span>) =&gt; {
+    <span class="kw">fn </span>resolve_emit_err(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><span class="self">self</span>,
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        query: <span class="kw-2">&amp;</span>SpecQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#26">self</a>.<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#19-23">resolve</a>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#27">env</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#28">query</a>) {
+            <span class="prelude-val">Ok</span>(resolved_spec) =&gt; {
                 <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Resolved spec: {resolved_spec:?}&quot;</span>);
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#31">resolved_spec</a>)
+                <span class="prelude-val">Some</span>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#31">resolved_spec</a>)
             }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#35">e</a>.<span class="ident">emit</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#27">env</a>.<span class="ident">diagnostic</span>);
-                <span class="prelude-val">None</span>
-            }
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#35">e</a>.emit(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#27">env</a>.diagnostic);
+                <span class="prelude-val">None
+            </span>}
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span><span class="op">&gt;</span> <span class="ident">ConstraintResolver</span><span class="op">&lt;</span><span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">SpecGraph</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span>&gt; ConstraintResolver&lt;<span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>, <span class="lifetime">&#39;tcx</span>&gt;
+    <span class="kw">for </span>SpecGraph&lt;<a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>&gt;
 {
-    <span class="kw">fn</span> <span class="ident">resolve</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec</span> <span class="self">self</span>,
-        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">query</span>: <span class="kw-2">&amp;</span><span class="ident">SpecQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;spec</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>, <a class="ident" href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a><span class="op">&gt;</span> {
+    <span class="kw">fn </span>resolve(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><span class="self">self</span>,
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        query: <span class="kw-2">&amp;</span>SpecQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>, <a href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>&gt; {
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Resolving spec constraints for {query:?}&quot;</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">prusti_common::config::enable_ghost_constraints</span>() {
+        <span class="kw">if </span>!prusti_common::config::enable_ghost_constraints() {
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Ghost constraints are disabled, using base spec&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.<span class="ident">base_spec</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.base_spec);
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">specs_with_constraints</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span><span class="self">self</span>.specs_with_constraints.is_empty() {
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Spec has no constraints, using base spec&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.<span class="ident">base_spec</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.base_spec);
         }
 
-        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#49">query</a> {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#38">SpecQuery::GetProcKind</a>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#39">SpecQuery::FetchSpan</a>(<span class="kw">_</span>) =&gt; {
-                <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;No need to resolve obligations for cause {:?}&quot;</span>, <span class="ident">query</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.<span class="ident">base_spec</span>);
+        <span class="kw">let </span>context = <span class="kw">match </span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#49">query</a> {
+            <a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#38">SpecQuery::GetProcKind</a>(<span class="kw">_</span>, <span class="kw">_</span>) | <a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#39">SpecQuery::FetchSpan</a>(<span class="kw">_</span>) =&gt; {
+                <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;No need to resolve obligations for cause {:?}&quot;</span>, query);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.base_spec);
             }
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#35">SpecQuery::FunctionCallEncoding</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#26">FunctionCallEncodingQuery</a> {
-                <span class="ident">called_def_id</span>,
-                <span class="ident">caller_def_id</span>,
-                <span class="ident">call_substs</span>,
-            }) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#118">ConstraintSolvingContext</a> {
-                <span class="ident">proc_def_id</span>: <span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#69">called_def_id</a>,
-                <span class="ident">caller_proc_def_id</span>: <span class="prelude-val">Some</span>(<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#70">caller_def_id</a>),
-                <span class="ident">substs</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#71">call_substs</a>,
+            <a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#35">SpecQuery::FunctionCallEncoding</a>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#26">FunctionCallEncodingQuery</a> {
+                called_def_id,
+                caller_def_id,
+                call_substs,
+            }) =&gt; <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#118">ConstraintSolvingContext</a> {
+                proc_def_id: <span class="kw-2">*</span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#69">called_def_id</a>,
+                caller_proc_def_id: <span class="prelude-val">Some</span>(<span class="kw-2">*</span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#70">caller_def_id</a>),
+                substs: <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#71">call_substs</a>,
             },
-            <span class="comment">// Obligations are resolved for function definition encodings to account</span>
-            <span class="comment">// for ghost constraints on traits (behavioral subtyping rules will be checked</span>
-            <span class="comment">// against the resolved spec).</span>
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#34">SpecQuery::FunctionDefEncoding</a>(<span class="ident">proc_def_id</span>, <span class="ident">substs</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#118">ConstraintSolvingContext</a> {
-                <span class="ident">proc_def_id</span>: <span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#80">proc_def_id</a>,
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#80">substs</a>,
-                <span class="ident">caller_proc_def_id</span>: <span class="prelude-val">None</span>,
+            <span class="comment">// Obligations are resolved for function definition encodings to account
+            // for ghost constraints on traits (behavioral subtyping rules will be checked
+            // against the resolved spec).
+            </span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#34">SpecQuery::FunctionDefEncoding</a>(proc_def_id, substs) =&gt; <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#118">ConstraintSolvingContext</a> {
+                proc_def_id: <span class="kw-2">*</span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#80">proc_def_id</a>,
+                <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#80">substs</a>,
+                caller_proc_def_id: <span class="prelude-val">None</span>,
             },
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">applicable_specs</span> <span class="op">=</span>
-            <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.<span class="ident">specs_with_constraints</span>
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">constraint_kind</span>, <span class="ident">spec</span>)<span class="op">|</span> {
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#124-129">constraint_fulfilled</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#48">env</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#63">context</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#90">constraint_kind</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#90">spec</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>applicable_specs =
+            <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.specs_with_constraints
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(constraint_kind, spec)| {
+                    <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#124-129">constraint_fulfilled</a>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#48">env</a>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#63">context</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#90">constraint_kind</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#90">spec</a>)
                 });
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">constraint_kind</span>, <span class="ident">spec_with_constraints</span>)) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#87">applicable_specs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="kw">if</span> <span class="ident">applicable_specs</span>.<span class="ident">next</span>().<span class="ident">is_some</span>() {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#48">env</a>.<span class="ident">query</span>.<span class="ident">get_def_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#63">context</a>.<span class="ident">proc_def_id</span>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PrustiError::unsupported</span>(<span class="string">&quot;Multiple different applicable specification obligations found, which is currently not supported in Prusti&quot;</span>, <span class="ident">MultiSpan::from_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#96">span</a>)).<span class="ident">add_note</span>(
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((constraint_kind, spec_with_constraints)) = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#87">applicable_specs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">if </span>applicable_specs.next().is_some() {
+                <span class="kw">let </span>span = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#48">env</a>.query.get_def_span(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#63">context</a>.proc_def_id);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(PrustiError::unsupported(<span class="string">&quot;Multiple different applicable specification obligations found, which is currently not supported in Prusti&quot;</span>, MultiSpan::from_span(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#96">span</a>)).add_note(
                     <span class="string">&quot;This error is triggered because of a call to this function&quot;</span>,
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#63">context</a>.<span class="ident">caller_proc_def_id</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">caller</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#48">env</a>.<span class="ident">query</span>.<span class="ident">get_def_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#99">caller</a>)),
+                    <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#63">context</a>.caller_proc_def_id.map(|caller| <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#48">env</a>.query.get_def_span(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#99">caller</a>)),
                 ));
             }
 
-            <span class="comment">// Sanity check: The base spec and spec with constraints is trusted</span>
-            <span class="comment">// This should be ensured when collecting the specs</span>
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="prelude-val">Some</span>(<span class="bool-val">true</span>), <span class="self">self</span>.<span class="ident">base_spec</span>.<span class="ident">trusted</span>.<span class="ident">extract_inherit</span>());
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="prelude-val">Some</span>(<span class="bool-val">true</span>), <span class="ident">spec_with_constraints</span>.<span class="ident">trusted</span>.<span class="ident">extract_inherit</span>());
+            <span class="comment">// Sanity check: The base spec and spec with constraints is trusted
+            // This should be ensured when collecting the specs
+            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="prelude-val">Some</span>(<span class="bool-val">true</span>), <span class="self">self</span>.base_spec.trusted.extract_inherit());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="prelude-val">Some</span>(<span class="bool-val">true</span>), spec_with_constraints.trusted.extract_inherit());
 
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Resolved to constrained spec with constraint {constraint_kind:?}&quot;</span>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#94">spec_with_constraints</a>)
-        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#94">spec_with_constraints</a>)
+        } <span class="kw">else </span>{
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;No constrained spec applicable, using base spec&quot;</span>);
-            <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.<span class="ident">base_spec</span>)
+            <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#47">self</a>.base_spec)
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ConstraintSolvingContext</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="ident">proc_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-    <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">caller_proc_def_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>ConstraintSolvingContext&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    proc_def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    caller_proc_def_id: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;,
 }
 
-<span class="kw">fn</span> <span class="ident">constraint_fulfilled</span><span class="op">&lt;</span><span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span><span class="op">&gt;</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ConstraintSolvingContext</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">obligation</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../prusti_interface/specs/typed/enum.SpecConstraintKind.html">SpecConstraintKind</a>,
-    <span class="ident">proc_spec</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>,
-) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#127">obligation</a> {
-        <span class="ident">SpecConstraintKind::ResolveGenericParamTraitBounds</span> =&gt; {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#142-146">trait_bounds::resolve</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#125">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#126">context</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#128">proc_spec</a>)
+<span class="kw">fn </span>constraint_fulfilled&lt;<span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span>&gt;(
+    env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    context: <span class="kw-2">&amp;</span>ConstraintSolvingContext&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    obligation: <span class="kw-2">&amp;</span><a href="../../../../../prusti_interface/specs/typed/enum.SpecConstraintKind.html">SpecConstraintKind</a>,
+    proc_spec: <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>,
+) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">match </span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#127">obligation</a> {
+        SpecConstraintKind::ResolveGenericParamTraitBounds =&gt; {
+            <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#142-146">trait_bounds::resolve</a>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#125">env</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#126">context</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#128">proc_spec</a>)
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">trait_bounds</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">prusti_interface</span>::{<a class="ident" href="../../../../../prusti_interface/utils/fn.has_trait_bounds_ghost_constraint.html">utils::has_trait_bounds_ghost_constraint</a>, <a class="ident" href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>};
-    <span class="kw">use</span> <a class="ident" href="../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+<span class="kw">pub mod </span>trait_bounds {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>prusti_interface::{<a href="../../../../../prusti_interface/utils/fn.has_trait_bounds_ghost_constraint.html">utils::has_trait_bounds_ghost_constraint</a>, <a href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>};
+    <span class="kw">use </span><a href="../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">resolve</span><span class="op">&lt;</span><span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span><span class="op">&gt;</span>(
-        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ConstraintSolvingContext</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">proc_spec</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>,
-    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Trait bound constraint resolving for {:?}&quot;</span>, <span class="ident">context</span>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>resolve&lt;<span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span>&gt;(
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        context: <span class="kw-2">&amp;</span>ConstraintSolvingContext&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        proc_spec: <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>,
+    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Trait bound constraint resolving for {:?}&quot;</span>, context);
 
-        <span class="kw">let</span> <span class="ident">param_env_constraint</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#221-224">extract_param_env</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#143">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#145">proc_spec</a>);
-        <span class="kw">let</span> <span class="ident">param_env_constraint</span> <span class="op">=</span>
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#184-188">perform_param_env_substitutions</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#143">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#144">context</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#149">param_env_constraint</a>);
+        <span class="kw">let </span>param_env_constraint = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#221-224">extract_param_env</a>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#143">env</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#145">proc_spec</a>);
+        <span class="kw">let </span>param_env_constraint =
+            <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#184-188">perform_param_env_substitutions</a>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#143">env</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#144">context</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#149">param_env_constraint</a>);
 
-        <span class="comment">// There is no caller when encoding a function.</span>
-        <span class="comment">// We still resolve obligations to account for constrained specs on a trait</span>
-        <span class="comment">// for which we encode its implementation. The corresponding encoding will</span>
-        <span class="comment">// contain a behavioral subtyping check which will be performed on the</span>
-        <span class="comment">// resolved spec.</span>
-        <span class="kw">let</span> <span class="ident">param_env_lookup</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">caller_def_id</span>) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#144">context</a>.<span class="ident">caller_proc_def_id</span> {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#158">caller_def_id</a>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#144">context</a>.<span class="ident">proc_def_id</span>
+        <span class="comment">// There is no caller when encoding a function.
+        // We still resolve obligations to account for constrained specs on a trait
+        // for which we encode its implementation. The corresponding encoding will
+        // contain a behavioral subtyping check which will be performed on the
+        // resolved spec.
+        </span><span class="kw">let </span>param_env_lookup = <span class="kw">if let </span><span class="prelude-val">Some</span>(caller_def_id) = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#144">context</a>.caller_proc_def_id {
+            <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#158">caller_def_id</a>
+        } <span class="kw">else </span>{
+            <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#144">context</a>.proc_def_id
         };
 
-        <span class="kw">let</span> <span class="ident">all_bounds_satisfied</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#150">param_env_constraint</a>
-            .<span class="ident">caller_bounds</span>()
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span><span class="ident">predicate</span><span class="op">|</span> {
-                <span class="comment">// Normalize any associated type projections.</span>
-                <span class="comment">// This needs to be done because ghost constraints might contain &quot;deeply nested&quot;</span>
-                <span class="comment">// associated types, e.g. `T: A&lt;SomeAssocType = &lt;Self as B&gt;::OtherAssocType`</span>
-                <span class="comment">// where `&lt;Self as B&gt;::OtherAssocType` can be normalized to some concrete type.</span>
-                <span class="kw">let</span> <span class="ident">normalized_predicate</span> <span class="op">=</span>
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#143">env</a>.<span class="ident">query</span>.<span class="ident">resolve_assoc_types</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#167">predicate</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#158">param_env_lookup</a>);
+        <span class="kw">let </span>all_bounds_satisfied = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#150">param_env_constraint</a>
+            .caller_bounds()
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|predicate| {
+                <span class="comment">// Normalize any associated type projections.
+                // This needs to be done because ghost constraints might contain &quot;deeply nested&quot;
+                // associated types, e.g. `T: A&lt;SomeAssocType = &lt;Self as B&gt;::OtherAssocType`
+                // where `&lt;Self as B&gt;::OtherAssocType` can be normalized to some concrete type.
+                </span><span class="kw">let </span>normalized_predicate =
+                    <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#143">env</a>.query.resolve_assoc_types(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#167">predicate</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#158">param_env_lookup</a>);
 
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#143">env</a>.<span class="ident">query</span>
-                    .<span class="ident">evaluate_predicate</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#172">normalized_predicate</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#158">param_env_lookup</a>)
+                <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#143">env</a>.query
+                    .evaluate_predicate(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#172">normalized_predicate</a>, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#158">param_env_lookup</a>)
             });
 
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Constraint fulfilled: {all_bounds_satisfied}&quot;</span>);
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#164">all_bounds_satisfied</a>
+        <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#164">all_bounds_satisfied</a>
     }
 
-    <span class="doccomment">/// Substitutes the param environment</span>
-    <span class="kw">fn</span> <span class="ident">perform_param_env_substitutions</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span><span class="op">&gt;</span>(
-        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ConstraintSolvingContext</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">param_env</span>: <span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Unsubstituted constraints: {:#?}&quot;</span>, <span class="ident">param_env</span>);
+    <span class="doccomment">/// Substitutes the param environment
+    </span><span class="kw">fn </span>perform_param_env_substitutions&lt;<span class="lifetime">&#39;env</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span>&gt;(
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        context: <span class="kw-2">&amp;</span>ConstraintSolvingContext&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        param_env: ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ) -&gt; ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+        <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Unsubstituted constraints: {:#?}&quot;</span>, param_env);
 
-        <span class="kw">let</span> <span class="ident">maybe_trait_method</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#185">env</a>
-            .<span class="ident">query</span>
-            .<span class="ident">find_trait_method_substs</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#186">context</a>.<span class="ident">proc_def_id</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#186">context</a>.<span class="ident">substs</span>);
-        <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">trait_substs</span>)) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#191">maybe_trait_method</a> {
-            <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Applying trait substs {:?}&quot;</span>, <span class="ident">trait_substs</span>);
-            <span class="ident">ty::EarlyBinder</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#187">param_env</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">subst</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#185">env</a>.<span class="ident">tcx</span>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#194">trait_substs</a>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#187">param_env</a>
+        <span class="kw">let </span>maybe_trait_method = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#185">env</a>
+            .query
+            .find_trait_method_substs(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#186">context</a>.proc_def_id, <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#186">context</a>.substs);
+        <span class="kw">let </span>param_env = <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, trait_substs)) = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#191">maybe_trait_method</a> {
+            <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Applying trait substs {:?}&quot;</span>, trait_substs);
+            ty::EarlyBinder(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#187">param_env</a>).<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">subst</a>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#185">env</a>.tcx(), <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#194">trait_substs</a>)
+        } <span class="kw">else </span>{
+            <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#187">param_env</a>
         };
 
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;Constraints after substituting trait substs: {:#?}&quot;</span>,
-            <span class="ident">param_env</span>
+            param_env
         );
 
-        <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">substs</span>.<span class="ident">is_empty</span>() {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#194">param_env</a>
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Applying call substs {:?}&quot;</span>, <span class="ident">context</span>.<span class="ident">substs</span>);
-            <span class="ident">ty::EarlyBinder</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#194">param_env</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">subst</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#185">env</a>.<span class="ident">tcx</span>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#186">context</a>.<span class="ident">substs</span>)
+        <span class="kw">let </span>param_env = <span class="kw">if </span>context.substs.is_empty() {
+            <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#194">param_env</a>
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Applying call substs {:?}&quot;</span>, context.substs);
+            ty::EarlyBinder(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#194">param_env</a>).<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">subst</a>(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#185">env</a>.tcx(), <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#186">context</a>.substs)
         };
 
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;Constraints after substituting call substs: {:#?}&quot;</span>,
-            <span class="ident">param_env</span>
+            param_env
         );
 
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#206">param_env</a>
+        <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#206">param_env</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">extract_param_env</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">spec</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>,
-    ) -&gt; <span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">param_envs</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+    <span class="kw">fn </span>extract_param_env&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;(
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        spec: <span class="kw-2">&amp;</span><a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>,
+    ) -&gt; ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>param_envs: FxHashMap&lt;ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;, Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>&gt;&gt; = FxHashMap::default();
 
-        <span class="kw">let</span> <span class="ident">pres</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#223">spec</a>
-            .<span class="ident">pres</span>
-            .<span class="ident">expect_empty_or_inherent</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>();
-        <span class="kw">let</span> <span class="ident">posts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#223">spec</a>
-            .<span class="ident">posts</span>
-            .<span class="ident">expect_empty_or_inherent</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>();
-        <span class="kw">for</span> <span class="ident">spec_id</span> <span class="kw">in</span> <span class="ident">pres</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">posts</span>.<span class="ident">iter</span>()) {
-            <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">tcx</span>().<span class="ident">param_env</span>(<span class="ident">spec_id</span>);
-            <span class="kw">let</span> <span class="ident">spec_span</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">query</span>.<span class="ident">get_def_span</span>(<span class="ident">spec_id</span>);
-            <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">query</span>.<span class="ident">get_attributes</span>(<span class="kw-2">*</span><span class="ident">spec_id</span>);
-            <span class="kw">if</span> <span class="ident">has_trait_bounds_ghost_constraint</span>(<span class="ident">attrs</span>) {
-                <span class="ident">param_envs</span>
-                    .<span class="ident">entry</span>(<span class="ident">param_env</span>)
-                    .<span class="ident">or_insert</span>(<span class="macro">vec!</span>[])
-                    .<span class="ident">push</span>(<span class="ident">spec_span</span>);
+        <span class="kw">let </span>pres: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#223">spec</a>
+            .pres
+            .expect_empty_or_inherent()
+            .cloned()
+            .unwrap_or_default();
+        <span class="kw">let </span>posts: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#223">spec</a>
+            .posts
+            .expect_empty_or_inherent()
+            .cloned()
+            .unwrap_or_default();
+        <span class="kw">for </span>spec_id <span class="kw">in </span>pres.iter().chain(posts.iter()) {
+            <span class="kw">let </span>param_env = env.tcx().param_env(spec_id);
+            <span class="kw">let </span>spec_span = env.query.get_def_span(spec_id);
+            <span class="kw">let </span>attrs = env.query.get_attributes(<span class="kw-2">*</span>spec_id);
+            <span class="kw">if </span>has_trait_bounds_ghost_constraint(attrs) {
+                param_envs
+                    .entry(param_env)
+                    .or_insert(<span class="macro">vec!</span>[])
+                    .push(spec_span);
             }
         }
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(
-            <span class="ident">param_envs</span>.<span class="ident">len</span>(),
+            param_envs.len(),
             <span class="number">0</span>,
-            <span class="string">&quot;Could not extract trait bound obligations from contract&quot;</span>
-        );
-        <span class="kw">if</span> <span class="ident">param_envs</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
-            <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#225">param_envs</a>.<span class="ident">values</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <span class="ident">PrustiError::unsupported</span>(
+            <span class="string">&quot;Could not extract trait bound obligations from contract&quot;
+        </span>);
+        <span class="kw">if </span>param_envs.len() &gt; <span class="number">1 </span>{
+            <span class="kw">let </span>spans = <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#225">param_envs</a>.values().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            PrustiError::unsupported(
                 <span class="string">&quot;Multiple ghost constraints with different bounds defined&quot;</span>,
-                <span class="ident">MultiSpan::from_spans</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#255">spans</a>),
+                MultiSpan::from_spans(<a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#255">spans</a>),
             )
-            .<span class="ident">add_note</span>(<span class="string">&quot;This is currently not supported.&quot;</span>, <span class="prelude-val">None</span>)
-            .<span class="ident">emit</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#222">env</a>.<span class="ident">diagnostic</span>);
+            .add_note(<span class="string">&quot;This is currently not supported.&quot;</span>, <span class="prelude-val">None</span>)
+            .emit(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#222">env</a>.diagnostic);
         }
 
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#225">param_envs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#264">k</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>()
+        <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#225">param_envs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(k, <span class="kw">_</span>)| <a href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#264">k</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.11/src/backoff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backoff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../crossbeam_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.11/src/backoff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backoff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../crossbeam_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -294,301 +294,301 @@
 <span id="294">294</span>
 <span id="295">295</span>
 <span id="296">296</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/crossbeam_utils/lib.rs.html#67"><span class="kw">crate</span>::primitive::sync::atomic</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">core::cell::Cell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/crossbeam_utils/lib.rs.html#67"><span class="kw">crate</span>::primitive::sync::atomic</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">core::cell::Cell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
 
-<span class="kw">const</span> <span class="ident">SPIN_LIMIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">6</span>;
-<span class="kw">const</span> <span class="ident">YIELD_LIMIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">10</span>;
+<span class="kw">const </span>SPIN_LIMIT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">6</span>;
+<span class="kw">const </span>YIELD_LIMIT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">10</span>;
 
-<span class="doccomment">/// Performs exponential backoff in spin loops.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Backing off in spin loops reduces contention and improves overall performance.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This primitive can execute *YIELD* and *PAUSE* instructions, yield the current thread to the OS</span>
-<span class="doccomment">/// scheduler, and tell when is a good time to block the thread using a different synchronization</span>
-<span class="doccomment">/// mechanism. Each step of the back off procedure takes roughly twice as long as the previous</span>
-<span class="doccomment">/// step.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Backing off in a lock-free loop:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use crossbeam_utils::Backoff;</span>
-<span class="doccomment">/// use std::sync::atomic::AtomicUsize;</span>
-<span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn fetch_mul(a: &amp;AtomicUsize, b: usize) -&gt; usize {</span>
-<span class="doccomment">///     let backoff = Backoff::new();</span>
-<span class="doccomment">///     loop {</span>
-<span class="doccomment">///         let val = a.load(SeqCst);</span>
-<span class="doccomment">///         if a.compare_exchange(val, val.wrapping_mul(b), SeqCst, SeqCst).is_ok() {</span>
-<span class="doccomment">///             return val;</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///         backoff.spin();</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Waiting for an [`AtomicBool`] to become `true`:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use crossbeam_utils::Backoff;</span>
-<span class="doccomment">/// use std::sync::atomic::AtomicBool;</span>
-<span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn spin_wait(ready: &amp;AtomicBool) {</span>
-<span class="doccomment">///     let backoff = Backoff::new();</span>
-<span class="doccomment">///     while !ready.load(SeqCst) {</span>
-<span class="doccomment">///         backoff.snooze();</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Waiting for an [`AtomicBool`] to become `true` and parking the thread after a long wait.</span>
-<span class="doccomment">/// Note that whoever sets the atomic variable to `true` must notify the parked thread by calling</span>
-<span class="doccomment">/// [`unpark()`]:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use crossbeam_utils::Backoff;</span>
-<span class="doccomment">/// use std::sync::atomic::AtomicBool;</span>
-<span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
-<span class="doccomment">/// use std::thread;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn blocking_wait(ready: &amp;AtomicBool) {</span>
-<span class="doccomment">///     let backoff = Backoff::new();</span>
-<span class="doccomment">///     while !ready.load(SeqCst) {</span>
-<span class="doccomment">///         if backoff.is_completed() {</span>
-<span class="doccomment">///             thread::park();</span>
-<span class="doccomment">///         } else {</span>
-<span class="doccomment">///             backoff.snooze();</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`is_completed`]: Backoff::is_completed</span>
-<span class="doccomment">/// [`std::thread::park()`]: std::thread::park</span>
-<span class="doccomment">/// [`Condvar`]: std::sync::Condvar</span>
-<span class="doccomment">/// [`AtomicBool`]: std::sync::atomic::AtomicBool</span>
-<span class="doccomment">/// [`unpark()`]: std::thread::Thread::unpark</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Backoff</span> {
-    <span class="ident">step</span>: <span class="ident">Cell</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Performs exponential backoff in spin loops.
+///
+/// Backing off in spin loops reduces contention and improves overall performance.
+///
+/// This primitive can execute *YIELD* and *PAUSE* instructions, yield the current thread to the OS
+/// scheduler, and tell when is a good time to block the thread using a different synchronization
+/// mechanism. Each step of the back off procedure takes roughly twice as long as the previous
+/// step.
+///
+/// # Examples
+///
+/// Backing off in a lock-free loop:
+///
+/// ```
+/// use crossbeam_utils::Backoff;
+/// use std::sync::atomic::AtomicUsize;
+/// use std::sync::atomic::Ordering::SeqCst;
+///
+/// fn fetch_mul(a: &amp;AtomicUsize, b: usize) -&gt; usize {
+///     let backoff = Backoff::new();
+///     loop {
+///         let val = a.load(SeqCst);
+///         if a.compare_exchange(val, val.wrapping_mul(b), SeqCst, SeqCst).is_ok() {
+///             return val;
+///         }
+///         backoff.spin();
+///     }
+/// }
+/// ```
+///
+/// Waiting for an [`AtomicBool`] to become `true`:
+///
+/// ```
+/// use crossbeam_utils::Backoff;
+/// use std::sync::atomic::AtomicBool;
+/// use std::sync::atomic::Ordering::SeqCst;
+///
+/// fn spin_wait(ready: &amp;AtomicBool) {
+///     let backoff = Backoff::new();
+///     while !ready.load(SeqCst) {
+///         backoff.snooze();
+///     }
+/// }
+/// ```
+///
+/// Waiting for an [`AtomicBool`] to become `true` and parking the thread after a long wait.
+/// Note that whoever sets the atomic variable to `true` must notify the parked thread by calling
+/// [`unpark()`]:
+///
+/// ```
+/// use crossbeam_utils::Backoff;
+/// use std::sync::atomic::AtomicBool;
+/// use std::sync::atomic::Ordering::SeqCst;
+/// use std::thread;
+///
+/// fn blocking_wait(ready: &amp;AtomicBool) {
+///     let backoff = Backoff::new();
+///     while !ready.load(SeqCst) {
+///         if backoff.is_completed() {
+///             thread::park();
+///         } else {
+///             backoff.snooze();
+///         }
+///     }
+/// }
+/// ```
+///
+/// [`is_completed`]: Backoff::is_completed
+/// [`std::thread::park()`]: std::thread::park
+/// [`Condvar`]: std::sync::Condvar
+/// [`AtomicBool`]: std::sync::atomic::AtomicBool
+/// [`unpark()`]: std::thread::Thread::unpark
+</span><span class="kw">pub struct </span>Backoff {
+    step: Cell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> {
-    <span class="doccomment">/// Creates a new `Backoff`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use crossbeam_utils::Backoff;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let backoff = Backoff::new();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> { <span class="ident">step</span>: <span class="ident">Cell::new</span>(<span class="number">0</span>) }
+<span class="kw">impl </span><a href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> {
+    <span class="doccomment">/// Creates a new `Backoff`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crossbeam_utils::Backoff;
+    ///
+    /// let backoff = Backoff::new();
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <a href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> { step: Cell::new(<span class="number">0</span>) }
     }
 
-    <span class="doccomment">/// Resets the `Backoff`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use crossbeam_utils::Backoff;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let backoff = Backoff::new();</span>
-    <span class="doccomment">/// backoff.reset();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../src/crossbeam_utils/backoff.rs.html#110">self</a>.<span class="ident">step</span>.<span class="ident">set</span>(<span class="number">0</span>);
+    <span class="doccomment">/// Resets the `Backoff`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crossbeam_utils::Backoff;
+    ///
+    /// let backoff = Backoff::new();
+    /// backoff.reset();
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../src/crossbeam_utils/backoff.rs.html#110">self</a>.step.set(<span class="number">0</span>);
     }
 
-    <span class="doccomment">/// Backs off in a lock-free loop.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method should be used when we need to retry an operation because another thread made</span>
-    <span class="doccomment">/// progress.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The processor may yield using the *YIELD* or *PAUSE* instruction.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Backing off in a lock-free loop:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use crossbeam_utils::Backoff;</span>
-    <span class="doccomment">/// use std::sync::atomic::AtomicUsize;</span>
-    <span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn fetch_mul(a: &amp;AtomicUsize, b: usize) -&gt; usize {</span>
-    <span class="doccomment">///     let backoff = Backoff::new();</span>
-    <span class="doccomment">///     loop {</span>
-    <span class="doccomment">///         let val = a.load(SeqCst);</span>
-    <span class="doccomment">///         if a.compare_exchange(val, val.wrapping_mul(b), SeqCst, SeqCst).is_ok() {</span>
-    <span class="doccomment">///             return val;</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///         backoff.spin();</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let a = AtomicUsize::new(7);</span>
-    <span class="doccomment">/// assert_eq!(fetch_mul(&amp;a, 8), 7);</span>
-    <span class="doccomment">/// assert_eq!(a.load(SeqCst), 56);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">step</span>.<span class="ident">get</span>().<span class="ident">min</span>(<span class="ident">SPIN_LIMIT</span>) {
-            <span class="comment">// TODO(taiki-e): once we bump the minimum required Rust version to 1.49+,</span>
-            <span class="comment">// use [`core::hint::spin_loop`] instead.</span>
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident">atomic::spin_loop_hint</span>();
+    <span class="doccomment">/// Backs off in a lock-free loop.
+    ///
+    /// This method should be used when we need to retry an operation because another thread made
+    /// progress.
+    ///
+    /// The processor may yield using the *YIELD* or *PAUSE* instruction.
+    ///
+    /// # Examples
+    ///
+    /// Backing off in a lock-free loop:
+    ///
+    /// ```
+    /// use crossbeam_utils::Backoff;
+    /// use std::sync::atomic::AtomicUsize;
+    /// use std::sync::atomic::Ordering::SeqCst;
+    ///
+    /// fn fetch_mul(a: &amp;AtomicUsize, b: usize) -&gt; usize {
+    ///     let backoff = Backoff::new();
+    ///     loop {
+    ///         let val = a.load(SeqCst);
+    ///         if a.compare_exchange(val, val.wrapping_mul(b), SeqCst, SeqCst).is_ok() {
+    ///             return val;
+    ///         }
+    ///         backoff.spin();
+    ///     }
+    /// }
+    ///
+    /// let a = AtomicUsize::new(7);
+    /// assert_eq!(fetch_mul(&amp;a, 8), 7);
+    /// assert_eq!(a.load(SeqCst), 56);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>spin(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">1 </span>&lt;&lt; <span class="self">self</span>.step.get().min(SPIN_LIMIT) {
+            <span class="comment">// TODO(taiki-e): once we bump the minimum required Rust version to 1.49+,
+            // use [`core::hint::spin_loop`] instead.
+            </span><span class="attribute">#[allow(deprecated)]
+            </span>atomic::spin_loop_hint();
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">step</span>.<span class="ident">get</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">SPIN_LIMIT</span> {
-            <a class="self" href="../../src/crossbeam_utils/backoff.rs.html#146">self</a>.<span class="ident">step</span>.<span class="ident">set</span>(<a class="self" href="../../src/crossbeam_utils/backoff.rs.html#146">self</a>.<span class="ident">step</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>);
+        <span class="kw">if </span><span class="self">self</span>.step.get() &lt;= SPIN_LIMIT {
+            <a class="self" href="../../src/crossbeam_utils/backoff.rs.html#146">self</a>.step.set(<a class="self" href="../../src/crossbeam_utils/backoff.rs.html#146">self</a>.step.get() + <span class="number">1</span>);
         }
     }
 
-    <span class="doccomment">/// Backs off in a blocking loop.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method should be used when we need to wait for another thread to make progress.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The processor may yield using the *YIELD* or *PAUSE* instruction and the current thread</span>
-    <span class="doccomment">/// may yield by giving up a timeslice to the OS scheduler.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In `#[no_std]` environments, this method is equivalent to [`spin`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If possible, use [`is_completed`] to check when it is advised to stop using backoff and</span>
-    <span class="doccomment">/// block the current thread using a different synchronization mechanism instead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`spin`]: Backoff::spin</span>
-    <span class="doccomment">/// [`is_completed`]: Backoff::is_completed</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Waiting for an [`AtomicBool`] to become `true`:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use crossbeam_utils::Backoff;</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use std::sync::atomic::AtomicBool;</span>
-    <span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
-    <span class="doccomment">/// use std::thread;</span>
-    <span class="doccomment">/// use std::time::Duration;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn spin_wait(ready: &amp;AtomicBool) {</span>
-    <span class="doccomment">///     let backoff = Backoff::new();</span>
-    <span class="doccomment">///     while !ready.load(SeqCst) {</span>
-    <span class="doccomment">///         backoff.snooze();</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let ready = Arc::new(AtomicBool::new(false));</span>
-    <span class="doccomment">/// let ready2 = ready.clone();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// thread::spawn(move || {</span>
-    <span class="doccomment">///     thread::sleep(Duration::from_millis(100));</span>
-    <span class="doccomment">///     ready2.store(true, SeqCst);</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(ready.load(SeqCst), false);</span>
-    <span class="doccomment">/// spin_wait(&amp;ready);</span>
-    <span class="doccomment">/// assert_eq!(ready.load(SeqCst), true);</span>
-    <span class="doccomment">/// # std::thread::sleep(std::time::Duration::from_millis(500)); // wait for background threads closed: https://github.com/rust-lang/miri/issues/1371</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`AtomicBool`]: std::sync::atomic::AtomicBool</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">snooze</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">step</span>.<span class="ident">get</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">SPIN_LIMIT</span> {
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">step</span>.<span class="ident">get</span>() {
-                <span class="comment">// TODO(taiki-e): once we bump the minimum required Rust version to 1.49+,</span>
-                <span class="comment">// use [`core::hint::spin_loop`] instead.</span>
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-                <span class="ident">atomic::spin_loop_hint</span>();
+    <span class="doccomment">/// Backs off in a blocking loop.
+    ///
+    /// This method should be used when we need to wait for another thread to make progress.
+    ///
+    /// The processor may yield using the *YIELD* or *PAUSE* instruction and the current thread
+    /// may yield by giving up a timeslice to the OS scheduler.
+    ///
+    /// In `#[no_std]` environments, this method is equivalent to [`spin`].
+    ///
+    /// If possible, use [`is_completed`] to check when it is advised to stop using backoff and
+    /// block the current thread using a different synchronization mechanism instead.
+    ///
+    /// [`spin`]: Backoff::spin
+    /// [`is_completed`]: Backoff::is_completed
+    ///
+    /// # Examples
+    ///
+    /// Waiting for an [`AtomicBool`] to become `true`:
+    ///
+    /// ```
+    /// use crossbeam_utils::Backoff;
+    /// use std::sync::Arc;
+    /// use std::sync::atomic::AtomicBool;
+    /// use std::sync::atomic::Ordering::SeqCst;
+    /// use std::thread;
+    /// use std::time::Duration;
+    ///
+    /// fn spin_wait(ready: &amp;AtomicBool) {
+    ///     let backoff = Backoff::new();
+    ///     while !ready.load(SeqCst) {
+    ///         backoff.snooze();
+    ///     }
+    /// }
+    ///
+    /// let ready = Arc::new(AtomicBool::new(false));
+    /// let ready2 = ready.clone();
+    ///
+    /// thread::spawn(move || {
+    ///     thread::sleep(Duration::from_millis(100));
+    ///     ready2.store(true, SeqCst);
+    /// });
+    ///
+    /// assert_eq!(ready.load(SeqCst), false);
+    /// spin_wait(&amp;ready);
+    /// assert_eq!(ready.load(SeqCst), true);
+    /// # std::thread::sleep(std::time::Duration::from_millis(500)); // wait for background threads closed: https://github.com/rust-lang/miri/issues/1371
+    /// ```
+    ///
+    /// [`AtomicBool`]: std::sync::atomic::AtomicBool
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>snooze(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.step.get() &lt;= SPIN_LIMIT {
+            <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">1 </span>&lt;&lt; <span class="self">self</span>.step.get() {
+                <span class="comment">// TODO(taiki-e): once we bump the minimum required Rust version to 1.49+,
+                // use [`core::hint::spin_loop`] instead.
+                </span><span class="attribute">#[allow(deprecated)]
+                </span>atomic::spin_loop_hint();
             }
-        } <span class="kw">else</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">step</span>.<span class="ident">get</span>() {
-                <span class="comment">// TODO(taiki-e): once we bump the minimum required Rust version to 1.49+,</span>
-                <span class="comment">// use [`core::hint::spin_loop`] instead.</span>
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-                <span class="ident">atomic::spin_loop_hint</span>();
+        } <span class="kw">else </span>{
+            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+            </span><span class="kw">for _ in </span><span class="number">0</span>..<span class="number">1 </span>&lt;&lt; <span class="self">self</span>.step.get() {
+                <span class="comment">// TODO(taiki-e): once we bump the minimum required Rust version to 1.49+,
+                // use [`core::hint::spin_loop`] instead.
+                </span><span class="attribute">#[allow(deprecated)]
+                </span>atomic::spin_loop_hint();
             }
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-            <span class="ident">::std::thread::yield_now</span>();
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+            </span>::std::thread::yield_now();
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">step</span>.<span class="ident">get</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">YIELD_LIMIT</span> {
-            <a class="self" href="../../src/crossbeam_utils/backoff.rs.html#209">self</a>.<span class="ident">step</span>.<span class="ident">set</span>(<a class="self" href="../../src/crossbeam_utils/backoff.rs.html#209">self</a>.<span class="ident">step</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>);
+        <span class="kw">if </span><span class="self">self</span>.step.get() &lt;= YIELD_LIMIT {
+            <a class="self" href="../../src/crossbeam_utils/backoff.rs.html#209">self</a>.step.set(<a class="self" href="../../src/crossbeam_utils/backoff.rs.html#209">self</a>.step.get() + <span class="number">1</span>);
         }
     }
 
-    <span class="doccomment">/// Returns `true` if exponential backoff has completed and blocking the thread is advised.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Waiting for an [`AtomicBool`] to become `true` and parking the thread after a long wait:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use crossbeam_utils::Backoff;</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use std::sync::atomic::AtomicBool;</span>
-    <span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
-    <span class="doccomment">/// use std::thread;</span>
-    <span class="doccomment">/// use std::time::Duration;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn blocking_wait(ready: &amp;AtomicBool) {</span>
-    <span class="doccomment">///     let backoff = Backoff::new();</span>
-    <span class="doccomment">///     while !ready.load(SeqCst) {</span>
-    <span class="doccomment">///         if backoff.is_completed() {</span>
-    <span class="doccomment">///             thread::park();</span>
-    <span class="doccomment">///         } else {</span>
-    <span class="doccomment">///             backoff.snooze();</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let ready = Arc::new(AtomicBool::new(false));</span>
-    <span class="doccomment">/// let ready2 = ready.clone();</span>
-    <span class="doccomment">/// let waiter = thread::current();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// thread::spawn(move || {</span>
-    <span class="doccomment">///     thread::sleep(Duration::from_millis(100));</span>
-    <span class="doccomment">///     ready2.store(true, SeqCst);</span>
-    <span class="doccomment">///     waiter.unpark();</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(ready.load(SeqCst), false);</span>
-    <span class="doccomment">/// blocking_wait(&amp;ready);</span>
-    <span class="doccomment">/// assert_eq!(ready.load(SeqCst), true);</span>
-    <span class="doccomment">/// # std::thread::sleep(std::time::Duration::from_millis(500)); // wait for background threads closed: https://github.com/rust-lang/miri/issues/1371</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`AtomicBool`]: std::sync::atomic::AtomicBool</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_completed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/crossbeam_utils/backoff.rs.html#278">self</a>.<span class="ident">step</span>.<span class="ident">get</span>() <span class="op">&gt;</span> <a class="ident" href="../../src/crossbeam_utils/backoff.rs.html#6">YIELD_LIMIT</a>
+    <span class="doccomment">/// Returns `true` if exponential backoff has completed and blocking the thread is advised.
+    ///
+    /// # Examples
+    ///
+    /// Waiting for an [`AtomicBool`] to become `true` and parking the thread after a long wait:
+    ///
+    /// ```
+    /// use crossbeam_utils::Backoff;
+    /// use std::sync::Arc;
+    /// use std::sync::atomic::AtomicBool;
+    /// use std::sync::atomic::Ordering::SeqCst;
+    /// use std::thread;
+    /// use std::time::Duration;
+    ///
+    /// fn blocking_wait(ready: &amp;AtomicBool) {
+    ///     let backoff = Backoff::new();
+    ///     while !ready.load(SeqCst) {
+    ///         if backoff.is_completed() {
+    ///             thread::park();
+    ///         } else {
+    ///             backoff.snooze();
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// let ready = Arc::new(AtomicBool::new(false));
+    /// let ready2 = ready.clone();
+    /// let waiter = thread::current();
+    ///
+    /// thread::spawn(move || {
+    ///     thread::sleep(Duration::from_millis(100));
+    ///     ready2.store(true, SeqCst);
+    ///     waiter.unpark();
+    /// });
+    ///
+    /// assert_eq!(ready.load(SeqCst), false);
+    /// blocking_wait(&amp;ready);
+    /// assert_eq!(ready.load(SeqCst), true);
+    /// # std::thread::sleep(std::time::Duration::from_millis(500)); // wait for background threads closed: https://github.com/rust-lang/miri/issues/1371
+    /// ```
+    ///
+    /// [`AtomicBool`]: std::sync::atomic::AtomicBool
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_completed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/crossbeam_utils/backoff.rs.html#278">self</a>.step.get() &gt; <a href="../../src/crossbeam_utils/backoff.rs.html#6">YIELD_LIMIT</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/crossbeam_utils/backoff.rs.html#284">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Backoff&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;step&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/crossbeam_utils/backoff.rs.html#284">self</a>.<span class="ident">step</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;is_completed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/crossbeam_utils/backoff.rs.html#284">self</a>.<a class="ident" href="../../src/crossbeam_utils/backoff.rs.html#278">is_completed</a>())
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/crossbeam_utils/backoff.rs.html#284">f</a>.debug_struct(<span class="string">&quot;Backoff&quot;</span>)
+            .field(<span class="string">&quot;step&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/crossbeam_utils/backoff.rs.html#284">self</a>.step)
+            .field(<span class="string">&quot;is_completed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/crossbeam_utils/backoff.rs.html#284">self</a>.<a href="../../src/crossbeam_utils/backoff.rs.html#278">is_completed</a>())
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> {
-        <span class="ident">Backoff::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../src/crossbeam_utils/backoff.rs.html#80">Backoff</a> {
+        Backoff::new()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

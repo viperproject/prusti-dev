@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tar-0.4.38/src/builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tar/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tar/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tar/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tar-0.4.38/src/builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tar/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tar/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tar/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -661,668 +661,668 @@
 <span id="661">661</span>
 <span id="662">662</span>
 <span id="663">663</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/index.html">std::fs</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/index.html">std::fs</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::header</span>::{<a class="ident" href="../../src/tar/header.rs.html#1589">path2bytes</a>, <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/tar/lib.rs.html#42">other</a>, <a class="ident" href="../../src/tar/entry_type.rs.html#9">EntryType</a>, <a class="ident" href="../../src/tar/header.rs.html#22">Header</a>};
+<span class="kw">use </span><span class="kw">crate</span>::header::{<a href="../../src/tar/header.rs.html#1589">path2bytes</a>, <a href="../../src/tar/header.rs.html#30">HeaderMode</a>};
+<span class="kw">use crate</span>::{<a href="../../src/tar/lib.rs.html#42">other</a>, <a href="../../src/tar/entry_type.rs.html#9">EntryType</a>, <a href="../../src/tar/header.rs.html#22">Header</a>};
 
-<span class="doccomment">/// A structure for building archives</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This structure has methods for building up an archive from scratch into any</span>
-<span class="doccomment">/// arbitrary writer.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> {
-    <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>,
-    <span class="ident">follow</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">finished</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">obj</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A structure for building archives
+///
+/// This structure has methods for building up an archive from scratch into any
+/// arbitrary writer.
+</span><span class="kw">pub struct </span>Builder&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; {
+    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    finished: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    obj: <span class="prelude-ty">Option</span>&lt;W&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <span class="ident">Builder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new archive builder with the underlying object as the</span>
-    <span class="doccomment">/// destination of all data written. The builder will use</span>
-    <span class="doccomment">/// `HeaderMode::Complete` by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">obj</span>: <span class="ident">W</span>) -&gt; <span class="ident">Builder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/tar/builder.rs.html#14">Builder</a> {
-            <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#33">HeaderMode::Complete</a>,
-            <span class="ident">follow</span>: <span class="bool-val">true</span>,
-            <span class="ident">finished</span>: <span class="bool-val">false</span>,
-            <span class="ident">obj</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tar/builder.rs.html#25">obj</a>),
+<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; Builder&lt;W&gt; {
+    <span class="doccomment">/// Create a new archive builder with the underlying object as the
+    /// destination of all data written. The builder will use
+    /// `HeaderMode::Complete` by default.
+    </span><span class="kw">pub fn </span>new(obj: W) -&gt; Builder&lt;W&gt; {
+        <a href="../../src/tar/builder.rs.html#14">Builder</a> {
+            mode: <a href="../../src/tar/header.rs.html#33">HeaderMode::Complete</a>,
+            follow: <span class="bool-val">true</span>,
+            finished: <span class="bool-val">false</span>,
+            obj: <span class="prelude-val">Some</span>(<a href="../../src/tar/builder.rs.html#25">obj</a>),
         }
     }
 
-    <span class="doccomment">/// Changes the HeaderMode that will be used when reading fs Metadata for</span>
-    <span class="doccomment">/// methods that implicitly read metadata for an input Path. Notably, this</span>
-    <span class="doccomment">/// does _not_ apply to `append(Header)`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>) {
-        <a class="self" href="../../src/tar/builder.rs.html#37">self</a>.<span class="ident">mode</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#37">mode</a>;
+    <span class="doccomment">/// Changes the HeaderMode that will be used when reading fs Metadata for
+    /// methods that implicitly read metadata for an input Path. Notably, this
+    /// does _not_ apply to `append(Header)`.
+    </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>) {
+        <a class="self" href="../../src/tar/builder.rs.html#37">self</a>.mode = <a href="../../src/tar/builder.rs.html#37">mode</a>;
     }
 
-    <span class="doccomment">/// Follow symlinks, archiving the contents of the file they point to rather</span>
-    <span class="doccomment">/// than adding a symlink to the archive. Defaults to true.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">follow_symlinks</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">follow</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../src/tar/builder.rs.html#43">self</a>.<span class="ident">follow</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#43">follow</a>;
+    <span class="doccomment">/// Follow symlinks, archiving the contents of the file they point to rather
+    /// than adding a symlink to the archive. Defaults to true.
+    </span><span class="kw">pub fn </span>follow_symlinks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../src/tar/builder.rs.html#43">self</a>.follow = <a href="../../src/tar/builder.rs.html#43">follow</a>;
     }
 
-    <span class="doccomment">/// Gets shared reference to the underlying object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">W</span> {
-        <a class="self" href="../../src/tar/builder.rs.html#48">self</a>.<span class="ident">obj</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
+    <span class="doccomment">/// Gets shared reference to the underlying object.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
+        <a class="self" href="../../src/tar/builder.rs.html#48">self</a>.obj.as_ref().unwrap()
     }
 
-    <span class="doccomment">/// Gets mutable reference to the underlying object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care must be taken while writing to the underlying</span>
-    <span class="doccomment">/// object. But, e.g. `get_mut().flush()` is claimed to be safe and</span>
-    <span class="doccomment">/// useful in the situations when one needs to be ensured that</span>
-    <span class="doccomment">/// tar entry was flushed to the disk.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">W</span> {
-        <a class="self" href="../../src/tar/builder.rs.html#58">self</a>.<span class="ident">obj</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>()
+    <span class="doccomment">/// Gets mutable reference to the underlying object.
+    ///
+    /// Note that care must be taken while writing to the underlying
+    /// object. But, e.g. `get_mut().flush()` is claimed to be safe and
+    /// useful in the situations when one needs to be ensured that
+    /// tar entry was flushed to the disk.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
+        <a class="self" href="../../src/tar/builder.rs.html#58">self</a>.obj.as_mut().unwrap()
     }
 
-    <span class="doccomment">/// Unwrap this archive, returning the underlying object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will finish writing the archive if the `finish` function</span>
-    <span class="doccomment">/// hasn&#39;t yet been called, returning any I/O error which happens during</span>
-    <span class="doccomment">/// that operation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">finished</span> {
-            <span class="self">self</span>.<span class="ident">finish</span>()<span class="question-mark">?</span>;
+    <span class="doccomment">/// Unwrap this archive, returning the underlying object.
+    ///
+    /// This function will finish writing the archive if the `finish` function
+    /// hasn&#39;t yet been called, returning any I/O error which happens during
+    /// that operation.
+    </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;W&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.finished {
+            <span class="self">self</span>.finish()<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/tar/builder.rs.html#67">self</a>.<span class="ident">obj</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>())
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/tar/builder.rs.html#67">self</a>.obj.take().unwrap())
     }
 
-    <span class="doccomment">/// Adds a new entry to this archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will append the header specified, followed by contents of</span>
-    <span class="doccomment">/// the stream specified by `data`. To produce a valid archive the `size`</span>
-    <span class="doccomment">/// field of `header` must be the same as the length of the stream that&#39;s</span>
-    <span class="doccomment">/// being written. Additionally the checksum for the header should have been</span>
-    <span class="doccomment">/// set via the `set_cksum` method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this will not attempt to seek the archive to a valid position,</span>
-    <span class="doccomment">/// so if the archive is in the middle of a read or some other similar</span>
-    <span class="doccomment">/// operation then this may corrupt the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also note that after all entries have been written to an archive the</span>
-    <span class="doccomment">/// `finish` function needs to be called to finish writing the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will return an error for any intermittent I/O error which</span>
-    <span class="doccomment">/// occurs when either reading or writing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tar::{Builder, Header};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut header = Header::new_gnu();</span>
-    <span class="doccomment">/// header.set_path(&quot;foo&quot;).unwrap();</span>
-    <span class="doccomment">/// header.set_size(4);</span>
-    <span class="doccomment">/// header.set_cksum();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut data: &amp;[u8] = &amp;[1, 2, 3, 4];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut ar = Builder::new(Vec::new());</span>
-    <span class="doccomment">/// ar.append(&amp;header, data).unwrap();</span>
-    <span class="doccomment">/// let data = ar.into_inner().unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">header</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/header.rs.html#22">Header</a>, <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">R</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../src/tar/builder.rs.html#409">append</a>(<a class="self" href="../../src/tar/builder.rs.html#110">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a class="ident" href="../../src/tar/builder.rs.html#110">header</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tar/builder.rs.html#110">data</a>)
+    <span class="doccomment">/// Adds a new entry to this archive.
+    ///
+    /// This function will append the header specified, followed by contents of
+    /// the stream specified by `data`. To produce a valid archive the `size`
+    /// field of `header` must be the same as the length of the stream that&#39;s
+    /// being written. Additionally the checksum for the header should have been
+    /// set via the `set_cksum` method.
+    ///
+    /// Note that this will not attempt to seek the archive to a valid position,
+    /// so if the archive is in the middle of a read or some other similar
+    /// operation then this may corrupt the archive.
+    ///
+    /// Also note that after all entries have been written to an archive the
+    /// `finish` function needs to be called to finish writing the archive.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error for any intermittent I/O error which
+    /// occurs when either reading or writing.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tar::{Builder, Header};
+    ///
+    /// let mut header = Header::new_gnu();
+    /// header.set_path(&quot;foo&quot;).unwrap();
+    /// header.set_size(4);
+    /// header.set_cksum();
+    ///
+    /// let mut data: &amp;[u8] = &amp;[1, 2, 3, 4];
+    ///
+    /// let mut ar = Builder::new(Vec::new());
+    /// ar.append(&amp;header, data).unwrap();
+    /// let data = ar.into_inner().unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>append&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <span class="kw-2">&amp;</span><a href="../../src/tar/header.rs.html#22">Header</a>, <span class="kw-2">mut </span>data: R) -&gt; io::Result&lt;()&gt; {
+        <a href="../../src/tar/builder.rs.html#409">append</a>(<a class="self" href="../../src/tar/builder.rs.html#110">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a href="../../src/tar/builder.rs.html#110">header</a>, <span class="kw-2">&amp;mut </span><a href="../../src/tar/builder.rs.html#110">data</a>)
     }
 
-    <span class="doccomment">/// Adds a new entry to this archive with the specified path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will set the specified path in the given header, which may</span>
-    <span class="doccomment">/// require appending a GNU long-name extension entry to the archive first.</span>
-    <span class="doccomment">/// The checksum for the header will be automatically updated via the</span>
-    <span class="doccomment">/// `set_cksum` method after setting the path. No other metadata in the</span>
-    <span class="doccomment">/// header will be modified.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Then it will append the header, followed by contents of the stream</span>
-    <span class="doccomment">/// specified by `data`. To produce a valid archive the `size` field of</span>
-    <span class="doccomment">/// `header` must be the same as the length of the stream that&#39;s being</span>
-    <span class="doccomment">/// written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this will not attempt to seek the archive to a valid position,</span>
-    <span class="doccomment">/// so if the archive is in the middle of a read or some other similar</span>
-    <span class="doccomment">/// operation then this may corrupt the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also note that after all entries have been written to an archive the</span>
-    <span class="doccomment">/// `finish` function needs to be called to finish writing the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will return an error for any intermittent I/O error which</span>
-    <span class="doccomment">/// occurs when either reading or writing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tar::{Builder, Header};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut header = Header::new_gnu();</span>
-    <span class="doccomment">/// header.set_size(4);</span>
-    <span class="doccomment">/// header.set_cksum();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut data: &amp;[u8] = &amp;[1, 2, 3, 4];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut ar = Builder::new(Vec::new());</span>
-    <span class="doccomment">/// ar.append_data(&amp;mut header, &quot;really/long/path/to/foo&quot;, data).unwrap();</span>
-    <span class="doccomment">/// let data = ar.into_inner().unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_data</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>, <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">header</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tar/header.rs.html#22">Header</a>,
-        <span class="ident">path</span>: <span class="ident">P</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="ident">prepare_header_path</span>(<span class="self">self</span>.<span class="ident">get_mut</span>(), <span class="ident">header</span>, <span class="ident">path</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/tar/builder.rs.html#156">header</a>.<a class="ident" href="../../src/tar/header.rs.html#699">set_cksum</a>();
-        <a class="self" href="../../src/tar/builder.rs.html#155">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#110">append</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#156">header</a>, <a class="ident" href="../../src/tar/builder.rs.html#158">data</a>)
+    <span class="doccomment">/// Adds a new entry to this archive with the specified path.
+    ///
+    /// This function will set the specified path in the given header, which may
+    /// require appending a GNU long-name extension entry to the archive first.
+    /// The checksum for the header will be automatically updated via the
+    /// `set_cksum` method after setting the path. No other metadata in the
+    /// header will be modified.
+    ///
+    /// Then it will append the header, followed by contents of the stream
+    /// specified by `data`. To produce a valid archive the `size` field of
+    /// `header` must be the same as the length of the stream that&#39;s being
+    /// written.
+    ///
+    /// Note that this will not attempt to seek the archive to a valid position,
+    /// so if the archive is in the middle of a read or some other similar
+    /// operation then this may corrupt the archive.
+    ///
+    /// Also note that after all entries have been written to an archive the
+    /// `finish` function needs to be called to finish writing the archive.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error for any intermittent I/O error which
+    /// occurs when either reading or writing.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tar::{Builder, Header};
+    ///
+    /// let mut header = Header::new_gnu();
+    /// header.set_size(4);
+    /// header.set_cksum();
+    ///
+    /// let mut data: &amp;[u8] = &amp;[1, 2, 3, 4];
+    ///
+    /// let mut ar = Builder::new(Vec::new());
+    /// ar.append_data(&amp;mut header, &quot;really/long/path/to/foo&quot;, data).unwrap();
+    /// let data = ar.into_inner().unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>append_data&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>,
+        path: P,
+        data: R,
+    ) -&gt; io::Result&lt;()&gt; {
+        prepare_header_path(<span class="self">self</span>.get_mut(), header, path.as_ref())<span class="question-mark">?</span>;
+        <a href="../../src/tar/builder.rs.html#156">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
+        <a class="self" href="../../src/tar/builder.rs.html#155">self</a>.<a href="../../src/tar/builder.rs.html#110">append</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#156">header</a>, <a href="../../src/tar/builder.rs.html#158">data</a>)
     }
 
-    <span class="doccomment">/// Adds a new link (symbolic or hard) entry to this archive with the specified path and target.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is similar to [`Self::append_data`] which supports long filenames,</span>
-    <span class="doccomment">/// but also supports long link targets using GNU extensions if necessary.</span>
-    <span class="doccomment">/// You must set the entry type to either [`EntryType::Link`] or [`EntryType::Symlink`].</span>
-    <span class="doccomment">/// The `set_cksum` method will be invoked after setting the path. No other metadata in the</span>
-    <span class="doccomment">/// header will be modified.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you are intending to use GNU extensions, you must use this method over calling</span>
-    <span class="doccomment">/// [`Header::set_link_name`] because that function will fail on long links.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Similar constraints around the position of the archive and completion</span>
-    <span class="doccomment">/// apply as with [`Self::append_data`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will return an error for any intermittent I/O error which</span>
-    <span class="doccomment">/// occurs when either reading or writing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tar::{Builder, Header, EntryType};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut ar = Builder::new(Vec::new());</span>
-    <span class="doccomment">/// let mut header = Header::new_gnu();</span>
-    <span class="doccomment">/// header.set_username(&quot;foo&quot;);</span>
-    <span class="doccomment">/// header.set_entry_type(EntryType::Symlink);</span>
-    <span class="doccomment">/// header.set_size(0);</span>
-    <span class="doccomment">/// ar.append_link(&amp;mut header, &quot;really/long/path/to/foo&quot;, &quot;other/really/long/target&quot;).unwrap();</span>
-    <span class="doccomment">/// let data = ar.into_inner().unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_link</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>, <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">header</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tar/header.rs.html#22">Header</a>,
-        <span class="ident">path</span>: <span class="ident">P</span>,
-        <span class="ident">target</span>: <span class="ident">T</span>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../src/tar/builder.rs.html#198">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#206">_append_link</a>(<a class="ident" href="../../src/tar/builder.rs.html#199">header</a>, <a class="ident" href="../../src/tar/builder.rs.html#200">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a class="ident" href="../../src/tar/builder.rs.html#201">target</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+    <span class="doccomment">/// Adds a new link (symbolic or hard) entry to this archive with the specified path and target.
+    ///
+    /// This function is similar to [`Self::append_data`] which supports long filenames,
+    /// but also supports long link targets using GNU extensions if necessary.
+    /// You must set the entry type to either [`EntryType::Link`] or [`EntryType::Symlink`].
+    /// The `set_cksum` method will be invoked after setting the path. No other metadata in the
+    /// header will be modified.
+    ///
+    /// If you are intending to use GNU extensions, you must use this method over calling
+    /// [`Header::set_link_name`] because that function will fail on long links.
+    ///
+    /// Similar constraints around the position of the archive and completion
+    /// apply as with [`Self::append_data`].
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error for any intermittent I/O error which
+    /// occurs when either reading or writing.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tar::{Builder, Header, EntryType};
+    ///
+    /// let mut ar = Builder::new(Vec::new());
+    /// let mut header = Header::new_gnu();
+    /// header.set_username(&quot;foo&quot;);
+    /// header.set_entry_type(EntryType::Symlink);
+    /// header.set_size(0);
+    /// ar.append_link(&amp;mut header, &quot;really/long/path/to/foo&quot;, &quot;other/really/long/target&quot;).unwrap();
+    /// let data = ar.into_inner().unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>append_link&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;, T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>,
+        path: P,
+        target: T,
+    ) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../src/tar/builder.rs.html#198">self</a>.<a href="../../src/tar/builder.rs.html#206">_append_link</a>(<a href="../../src/tar/builder.rs.html#199">header</a>, <a href="../../src/tar/builder.rs.html#200">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../src/tar/builder.rs.html#201">target</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
     }
 
-    <span class="kw">fn</span> <span class="ident">_append_link</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">header</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tar/header.rs.html#22">Header</a>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="ident">prepare_header_path</span>(<span class="self">self</span>.<span class="ident">get_mut</span>(), <span class="ident">header</span>, <span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="ident">prepare_header_link</span>(<span class="self">self</span>.<span class="ident">get_mut</span>(), <span class="ident">header</span>, <span class="ident">target</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/tar/builder.rs.html#206">header</a>.<a class="ident" href="../../src/tar/header.rs.html#699">set_cksum</a>();
-        <a class="self" href="../../src/tar/builder.rs.html#206">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#110">append</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#206">header</a>, <span class="ident">std::io::empty</span>())
+    <span class="kw">fn </span>_append_link(<span class="kw-2">&amp;mut </span><span class="self">self</span>, header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, target: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
+        prepare_header_path(<span class="self">self</span>.get_mut(), header, path)<span class="question-mark">?</span>;
+        prepare_header_link(<span class="self">self</span>.get_mut(), header, target)<span class="question-mark">?</span>;
+        <a href="../../src/tar/builder.rs.html#206">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
+        <a class="self" href="../../src/tar/builder.rs.html#206">self</a>.<a href="../../src/tar/builder.rs.html#110">append</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#206">header</a>, std::io::empty())
     }
 
-    <span class="doccomment">/// Adds a file on the local filesystem to this archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will open the file specified by `path` and insert the file</span>
-    <span class="doccomment">/// into the archive with the appropriate metadata set, returning any I/O</span>
-    <span class="doccomment">/// error which occurs while writing. The path name for the file inside of</span>
-    <span class="doccomment">/// this archive will be the same as `path`, and it is required that the</span>
-    <span class="doccomment">/// path is a relative path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this will not attempt to seek the archive to a valid position,</span>
-    <span class="doccomment">/// so if the archive is in the middle of a read or some other similar</span>
-    <span class="doccomment">/// operation then this may corrupt the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also note that after all files have been written to an archive the</span>
-    <span class="doccomment">/// `finish` function needs to be called to finish writing the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tar::Builder;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut ar = Builder::new(Vec::new());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ar.append_path(&quot;foo/bar.txt&quot;).unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_path</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#237">self</a>.<span class="ident">mode</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let</span> <span class="ident">follow</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#237">self</a>.<span class="ident">follow</span>;
-        <a class="ident" href="../../src/tar/builder.rs.html#423-429">append_path_with_name</a>(<a class="self" href="../../src/tar/builder.rs.html#237">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a class="ident" href="../../src/tar/builder.rs.html#237">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <span class="prelude-val">None</span>, <a class="ident" href="../../src/tar/builder.rs.html#238">mode</a>, <a class="ident" href="../../src/tar/builder.rs.html#239">follow</a>)
+    <span class="doccomment">/// Adds a file on the local filesystem to this archive.
+    ///
+    /// This function will open the file specified by `path` and insert the file
+    /// into the archive with the appropriate metadata set, returning any I/O
+    /// error which occurs while writing. The path name for the file inside of
+    /// this archive will be the same as `path`, and it is required that the
+    /// path is a relative path.
+    ///
+    /// Note that this will not attempt to seek the archive to a valid position,
+    /// so if the archive is in the middle of a read or some other similar
+    /// operation then this may corrupt the archive.
+    ///
+    /// Also note that after all files have been written to an archive the
+    /// `finish` function needs to be called to finish writing the archive.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tar::Builder;
+    ///
+    /// let mut ar = Builder::new(Vec::new());
+    ///
+    /// ar.append_path(&quot;foo/bar.txt&quot;).unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>append_path&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#237">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>follow = <a class="self" href="../../src/tar/builder.rs.html#237">self</a>.follow;
+        <a href="../../src/tar/builder.rs.html#423-429">append_path_with_name</a>(<a class="self" href="../../src/tar/builder.rs.html#237">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a href="../../src/tar/builder.rs.html#237">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <span class="prelude-val">None</span>, <a href="../../src/tar/builder.rs.html#238">mode</a>, <a href="../../src/tar/builder.rs.html#239">follow</a>)
     }
 
-    <span class="doccomment">/// Adds a file on the local filesystem to this archive under another name.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will open the file specified by `path` and insert the file</span>
-    <span class="doccomment">/// into the archive as `name` with appropriate metadata set, returning any</span>
-    <span class="doccomment">/// I/O error which occurs while writing. The path name for the file inside</span>
-    <span class="doccomment">/// of this archive will be `name` is required to be a relative path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this will not attempt to seek the archive to a valid position,</span>
-    <span class="doccomment">/// so if the archive is in the middle of a read or some other similar</span>
-    <span class="doccomment">/// operation then this may corrupt the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note if the `path` is a directory. This will just add an entry to the archive,</span>
-    <span class="doccomment">/// rather than contents of the directory.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also note that after all files have been written to an archive the</span>
-    <span class="doccomment">/// `finish` function needs to be called to finish writing the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tar::Builder;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut ar = Builder::new(Vec::new());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Insert the local file &quot;foo/bar.txt&quot; in the archive but with the name</span>
-    <span class="doccomment">/// // &quot;bar/foo.txt&quot;.</span>
-    <span class="doccomment">/// ar.append_path_with_name(&quot;foo/bar.txt&quot;, &quot;bar/foo.txt&quot;).unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_path_with_name</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>, <span class="ident">N</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">path</span>: <span class="ident">P</span>,
-        <span class="ident">name</span>: <span class="ident">N</span>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.<span class="ident">mode</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let</span> <span class="ident">follow</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.<span class="ident">follow</span>;
-        <a class="ident" href="../../src/tar/builder.rs.html#423-429">append_path_with_name</a>(
-            <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#58">get_mut</a>(),
-            <a class="ident" href="../../src/tar/builder.rs.html#273">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tar/builder.rs.html#274">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()),
-            <a class="ident" href="../../src/tar/builder.rs.html#276">mode</a>,
-            <a class="ident" href="../../src/tar/builder.rs.html#277">follow</a>,
+    <span class="doccomment">/// Adds a file on the local filesystem to this archive under another name.
+    ///
+    /// This function will open the file specified by `path` and insert the file
+    /// into the archive as `name` with appropriate metadata set, returning any
+    /// I/O error which occurs while writing. The path name for the file inside
+    /// of this archive will be `name` is required to be a relative path.
+    ///
+    /// Note that this will not attempt to seek the archive to a valid position,
+    /// so if the archive is in the middle of a read or some other similar
+    /// operation then this may corrupt the archive.
+    ///
+    /// Note if the `path` is a directory. This will just add an entry to the archive,
+    /// rather than contents of the directory.
+    ///
+    /// Also note that after all files have been written to an archive the
+    /// `finish` function needs to be called to finish writing the archive.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tar::Builder;
+    ///
+    /// let mut ar = Builder::new(Vec::new());
+    ///
+    /// // Insert the local file &quot;foo/bar.txt&quot; in the archive but with the name
+    /// // &quot;bar/foo.txt&quot;.
+    /// ar.append_path_with_name(&quot;foo/bar.txt&quot;, &quot;bar/foo.txt&quot;).unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>append_path_with_name&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;, N: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        path: P,
+        name: N,
+    ) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>follow = <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.follow;
+        <a href="../../src/tar/builder.rs.html#423-429">append_path_with_name</a>(
+            <a class="self" href="../../src/tar/builder.rs.html#272">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(),
+            <a href="../../src/tar/builder.rs.html#273">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
+            <span class="prelude-val">Some</span>(<a href="../../src/tar/builder.rs.html#274">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()),
+            <a href="../../src/tar/builder.rs.html#276">mode</a>,
+            <a href="../../src/tar/builder.rs.html#277">follow</a>,
         )
     }
 
-    <span class="doccomment">/// Adds a file to this archive with the given path as the name of the file</span>
-    <span class="doccomment">/// in the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will use the metadata of `file` to populate a `Header`, and it will</span>
-    <span class="doccomment">/// then append the file to the archive with the name `path`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this will not attempt to seek the archive to a valid position,</span>
-    <span class="doccomment">/// so if the archive is in the middle of a read or some other similar</span>
-    <span class="doccomment">/// operation then this may corrupt the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also note that after all files have been written to an archive the</span>
-    <span class="doccomment">/// `finish` function needs to be called to finish writing the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use std::fs::File;</span>
-    <span class="doccomment">/// use tar::Builder;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut ar = Builder::new(Vec::new());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Open the file at one location, but insert it into the archive with a</span>
-    <span class="doccomment">/// // different name.</span>
-    <span class="doccomment">/// let mut f = File::open(&quot;foo/bar/baz.txt&quot;).unwrap();</span>
-    <span class="doccomment">/// ar.append_file(&quot;bar/baz.txt&quot;, &amp;mut f).unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">file</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#313">self</a>.<span class="ident">mode</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../src/tar/builder.rs.html#516-521">append_file</a>(<a class="self" href="../../src/tar/builder.rs.html#313">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a class="ident" href="../../src/tar/builder.rs.html#313">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a class="ident" href="../../src/tar/builder.rs.html#313">file</a>, <a class="ident" href="../../src/tar/builder.rs.html#314">mode</a>)
+    <span class="doccomment">/// Adds a file to this archive with the given path as the name of the file
+    /// in the archive.
+    ///
+    /// This will use the metadata of `file` to populate a `Header`, and it will
+    /// then append the file to the archive with the name `path`.
+    ///
+    /// Note that this will not attempt to seek the archive to a valid position,
+    /// so if the archive is in the middle of a read or some other similar
+    /// operation then this may corrupt the archive.
+    ///
+    /// Also note that after all files have been written to an archive the
+    /// `finish` function needs to be called to finish writing the archive.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use std::fs::File;
+    /// use tar::Builder;
+    ///
+    /// let mut ar = Builder::new(Vec::new());
+    ///
+    /// // Open the file at one location, but insert it into the archive with a
+    /// // different name.
+    /// let mut f = File::open(&quot;foo/bar/baz.txt&quot;).unwrap();
+    /// ar.append_file(&quot;bar/baz.txt&quot;, &amp;mut f).unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>append_file&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P, file: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#313">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="../../src/tar/builder.rs.html#516-521">append_file</a>(<a class="self" href="../../src/tar/builder.rs.html#313">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a href="../../src/tar/builder.rs.html#313">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../src/tar/builder.rs.html#313">file</a>, <a href="../../src/tar/builder.rs.html#314">mode</a>)
     }
 
-    <span class="doccomment">/// Adds a directory to this archive with the given path as the name of the</span>
-    <span class="doccomment">/// directory in the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will use `stat` to populate a `Header`, and it will then append the</span>
-    <span class="doccomment">/// directory to the archive with the name `path`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this will not attempt to seek the archive to a valid position,</span>
-    <span class="doccomment">/// so if the archive is in the middle of a read or some other similar</span>
-    <span class="doccomment">/// operation then this may corrupt the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note this will not add the contents of the directory to the archive.</span>
-    <span class="doccomment">/// See `append_dir_all` for recusively adding the contents of the directory.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also note that after all files have been written to an archive the</span>
-    <span class="doccomment">/// `finish` function needs to be called to finish writing the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::fs;</span>
-    <span class="doccomment">/// use tar::Builder;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut ar = Builder::new(Vec::new());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Use the directory at one location, but insert it into the archive</span>
-    <span class="doccomment">/// // with a different name.</span>
-    <span class="doccomment">/// ar.append_dir(&quot;bardir&quot;, &quot;.&quot;).unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_dir</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">Q</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">src_path</span>: <span class="ident">Q</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>,
-        <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds a directory to this archive with the given path as the name of the
+    /// directory in the archive.
+    ///
+    /// This will use `stat` to populate a `Header`, and it will then append the
+    /// directory to the archive with the name `path`.
+    ///
+    /// Note that this will not attempt to seek the archive to a valid position,
+    /// so if the archive is in the middle of a read or some other similar
+    /// operation then this may corrupt the archive.
+    ///
+    /// Note this will not add the contents of the directory to the archive.
+    /// See `append_dir_all` for recusively adding the contents of the directory.
+    ///
+    /// Also note that after all files have been written to an archive the
+    /// `finish` function needs to be called to finish writing the archive.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::fs;
+    /// use tar::Builder;
+    ///
+    /// let mut ar = Builder::new(Vec::new());
+    ///
+    /// // Use the directory at one location, but insert it into the archive
+    /// // with a different name.
+    /// ar.append_dir(&quot;bardir&quot;, &quot;.&quot;).unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>append_dir&lt;P, Q&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P, src_path: Q) -&gt; io::Result&lt;()&gt;
+    <span class="kw">where
+        </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
+        Q: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
     {
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#346">self</a>.<span class="ident">mode</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../src/tar/builder.rs.html#526-531">append_dir</a>(<a class="self" href="../../src/tar/builder.rs.html#346">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a class="ident" href="../../src/tar/builder.rs.html#346">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a class="ident" href="../../src/tar/builder.rs.html#346">src_path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a class="ident" href="../../src/tar/builder.rs.html#351">mode</a>)
+        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#346">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="../../src/tar/builder.rs.html#526-531">append_dir</a>(<a class="self" href="../../src/tar/builder.rs.html#346">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(), <a href="../../src/tar/builder.rs.html#346">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../src/tar/builder.rs.html#346">src_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../src/tar/builder.rs.html#351">mode</a>)
     }
 
-    <span class="doccomment">/// Adds a directory and all of its contents (recursively) to this archive</span>
-    <span class="doccomment">/// with the given path as the name of the directory in the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this will not attempt to seek the archive to a valid position,</span>
-    <span class="doccomment">/// so if the archive is in the middle of a read or some other similar</span>
-    <span class="doccomment">/// operation then this may corrupt the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also note that after all files have been written to an archive the</span>
-    <span class="doccomment">/// `finish` function needs to be called to finish writing the archive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::fs;</span>
-    <span class="doccomment">/// use tar::Builder;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut ar = Builder::new(Vec::new());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Use the directory at one location, but insert it into the archive</span>
-    <span class="doccomment">/// // with a different name.</span>
-    <span class="doccomment">/// ar.append_dir_all(&quot;bardir&quot;, &quot;.&quot;).unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_dir_all</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">Q</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">src_path</span>: <span class="ident">Q</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>,
-        <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds a directory and all of its contents (recursively) to this archive
+    /// with the given path as the name of the directory in the archive.
+    ///
+    /// Note that this will not attempt to seek the archive to a valid position,
+    /// so if the archive is in the middle of a read or some other similar
+    /// operation then this may corrupt the archive.
+    ///
+    /// Also note that after all files have been written to an archive the
+    /// `finish` function needs to be called to finish writing the archive.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::fs;
+    /// use tar::Builder;
+    ///
+    /// let mut ar = Builder::new(Vec::new());
+    ///
+    /// // Use the directory at one location, but insert it into the archive
+    /// // with a different name.
+    /// ar.append_dir_all(&quot;bardir&quot;, &quot;.&quot;).unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>append_dir_all&lt;P, Q&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P, src_path: Q) -&gt; io::Result&lt;()&gt;
+    <span class="kw">where
+        </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
+        Q: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
     {
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.<span class="ident">mode</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let</span> <span class="ident">follow</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.<span class="ident">follow</span>;
-        <a class="ident" href="../../src/tar/builder.rs.html#620-626">append_dir_all</a>(
-            <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#58">get_mut</a>(),
-            <a class="ident" href="../../src/tar/builder.rs.html#377">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a class="ident" href="../../src/tar/builder.rs.html#377">src_path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            <a class="ident" href="../../src/tar/builder.rs.html#382">mode</a>,
-            <a class="ident" href="../../src/tar/builder.rs.html#383">follow</a>,
+        <span class="kw">let </span>mode = <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.mode.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>follow = <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.follow;
+        <a href="../../src/tar/builder.rs.html#620-626">append_dir_all</a>(
+            <a class="self" href="../../src/tar/builder.rs.html#377">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>(),
+            <a href="../../src/tar/builder.rs.html#377">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
+            <a href="../../src/tar/builder.rs.html#377">src_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
+            <a href="../../src/tar/builder.rs.html#382">mode</a>,
+            <a href="../../src/tar/builder.rs.html#383">follow</a>,
         )
     }
 
-    <span class="doccomment">/// Finish writing this archive, emitting the termination sections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function should only be called when the archive has been written</span>
-    <span class="doccomment">/// entirely and if an I/O error happens the underlying object still needs</span>
-    <span class="doccomment">/// to be acquired.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In most situations the `into_inner` method should be preferred.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">finished</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="doccomment">/// Finish writing this archive, emitting the termination sections.
+    ///
+    /// This function should only be called when the archive has been written
+    /// entirely and if an I/O error happens the underlying object still needs
+    /// to be acquired.
+    ///
+    /// In most situations the `into_inner` method should be preferred.
+    </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if </span><span class="self">self</span>.finished {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
-        <a class="self" href="../../src/tar/builder.rs.html#400">self</a>.<span class="ident">finished</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../src/tar/builder.rs.html#400">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#58">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span>[<span class="number">0</span>; <span class="number">1024</span>])
+        <a class="self" href="../../src/tar/builder.rs.html#400">self</a>.finished = <span class="bool-val">true</span>;
+        <a class="self" href="../../src/tar/builder.rs.html#400">self</a>.<a href="../../src/tar/builder.rs.html#58">get_mut</a>().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="kw-2">&amp;</span>[<span class="number">0</span>; <span class="number">1024</span>])
     }
 }
 
-<span class="kw">fn</span> <span class="ident">append</span>(<span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, <span class="ident">header</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/header.rs.html#22">Header</a>, <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">dst</span>.<span class="ident">write_all</span>(<span class="ident">header</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">io::copy</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>)<span class="question-mark">?</span>;
+<span class="kw">fn </span>append(<span class="kw-2">mut </span>dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, header: <span class="kw-2">&amp;</span><a href="../../src/tar/header.rs.html#22">Header</a>, <span class="kw-2">mut </span>data: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; io::Result&lt;()&gt; {
+    dst.write_all(header.as_bytes())<span class="question-mark">?</span>;
+    <span class="kw">let </span>len = io::copy(<span class="kw-2">&amp;mut </span>data, <span class="kw-2">&amp;mut </span>dst)<span class="question-mark">?</span>;
 
-    <span class="comment">// Pad with zeros if necessary.</span>
-    <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">512</span>];
-    <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="number">512</span> <span class="op">-</span> (<a class="ident" href="../../src/tar/builder.rs.html#411">len</a> <span class="op">%</span> <span class="number">512</span>);
-    <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">&lt;</span> <span class="number">512</span> {
-        <span class="ident">dst</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">remaining</span> <span class="kw">as</span> <span class="ident">usize</span>])<span class="question-mark">?</span>;
+    <span class="comment">// Pad with zeros if necessary.
+    </span><span class="kw">let </span>buf = [<span class="number">0</span>; <span class="number">512</span>];
+    <span class="kw">let </span>remaining = <span class="number">512 </span>- (<a href="../../src/tar/builder.rs.html#411">len</a> % <span class="number">512</span>);
+    <span class="kw">if </span>remaining &lt; <span class="number">512 </span>{
+        dst.write_all(<span class="kw-2">&amp;</span>buf[..remaining <span class="kw">as </span>usize])<span class="question-mark">?</span>;
     }
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">append_path_with_name</span>(
-    <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>,
-    <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>,
-    <span class="ident">follow</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">stat</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">follow</span> {
-        <span class="ident">fs::metadata</span>(<span class="ident">path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">err</span>.<span class="ident">kind</span>(),
-                <span class="macro">format!</span>(<span class="string">&quot;{} when getting metadata for {}&quot;</span>, <span class="ident">err</span>, <span class="ident">path</span>.<span class="ident">display</span>()),
+<span class="kw">fn </span>append_path_with_name(
+    dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
+    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span>stat = <span class="kw">if </span>follow {
+        fs::metadata(path).map_err(|err| {
+            io::Error::new(
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when getting metadata for {}&quot;</span>, err, path.display()),
             )
-        })<span class="question-mark">?</span>
-    } <span class="kw">else</span> {
-        <span class="ident">fs::symlink_metadata</span>(<span class="ident">path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">err</span>.<span class="ident">kind</span>(),
-                <span class="macro">format!</span>(<span class="string">&quot;{} when getting metadata for {}&quot;</span>, <span class="ident">err</span>, <span class="ident">path</span>.<span class="ident">display</span>()),
+        })<span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        fs::symlink_metadata(path).map_err(|err| {
+            io::Error::new(
+                err.kind(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} when getting metadata for {}&quot;</span>, err, path.display()),
             )
-        })<span class="question-mark">?</span>
-    };
-    <span class="kw">let</span> <span class="ident">ar_name</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#426">name</a>.<span class="ident">unwrap_or</span>(<a class="ident" href="../../src/tar/builder.rs.html#425">path</a>);
-    <span class="kw">if</span> <span class="ident">stat</span>.<span class="ident">is_file</span>() {
-        <a class="ident" href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a class="ident" href="../../src/tar/builder.rs.html#424">dst</a>, <a class="ident" href="../../src/tar/builder.rs.html#445">ar_name</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#430">stat</a>, <span class="kw-2">&amp;mut</span> <span class="ident">fs::File::open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>, <a class="ident" href="../../src/tar/builder.rs.html#427">mode</a>, <span class="prelude-val">None</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">stat</span>.<span class="ident">is_dir</span>() {
-        <a class="ident" href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a class="ident" href="../../src/tar/builder.rs.html#424">dst</a>, <a class="ident" href="../../src/tar/builder.rs.html#445">ar_name</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#430">stat</a>, <span class="kw-2">&amp;mut</span> <span class="ident">io::empty</span>(), <a class="ident" href="../../src/tar/builder.rs.html#427">mode</a>, <span class="prelude-val">None</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">stat</span>.<span class="ident">file_type</span>().<span class="ident">is_symlink</span>() {
-        <span class="kw">let</span> <span class="ident">link_name</span> <span class="op">=</span> <span class="ident">fs::read_link</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/tar/builder.rs.html#601-608">append_fs</a>(
-            <a class="ident" href="../../src/tar/builder.rs.html#424">dst</a>,
-            <a class="ident" href="../../src/tar/builder.rs.html#445">ar_name</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#430">stat</a>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">io::empty</span>(),
-            <a class="ident" href="../../src/tar/builder.rs.html#427">mode</a>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#451">link_name</a>),
+        })<span class="question-mark">?
+    </span>};
+    <span class="kw">let </span>ar_name = <a href="../../src/tar/builder.rs.html#426">name</a>.unwrap_or(<a href="../../src/tar/builder.rs.html#425">path</a>);
+    <span class="kw">if </span>stat.is_file() {
+        <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a href="../../src/tar/builder.rs.html#424">dst</a>, <a href="../../src/tar/builder.rs.html#445">ar_name</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#430">stat</a>, <span class="kw-2">&amp;mut </span>fs::File::open(path)<span class="question-mark">?</span>, <a href="../../src/tar/builder.rs.html#427">mode</a>, <span class="prelude-val">None</span>)
+    } <span class="kw">else if </span>stat.is_dir() {
+        <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a href="../../src/tar/builder.rs.html#424">dst</a>, <a href="../../src/tar/builder.rs.html#445">ar_name</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#430">stat</a>, <span class="kw-2">&amp;mut </span>io::empty(), <a href="../../src/tar/builder.rs.html#427">mode</a>, <span class="prelude-val">None</span>)
+    } <span class="kw">else if </span>stat.file_type().is_symlink() {
+        <span class="kw">let </span>link_name = fs::read_link(path)<span class="question-mark">?</span>;
+        <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(
+            <a href="../../src/tar/builder.rs.html#424">dst</a>,
+            <a href="../../src/tar/builder.rs.html#445">ar_name</a>,
+            <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#430">stat</a>,
+            <span class="kw-2">&amp;mut </span>io::empty(),
+            <a href="../../src/tar/builder.rs.html#427">mode</a>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#451">link_name</a>),
         )
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-        {
-            <a class="ident" href="../../src/tar/builder.rs.html#473-478">append_special</a>(<a class="ident" href="../../src/tar/builder.rs.html#424">dst</a>, <a class="ident" href="../../src/tar/builder.rs.html#425">path</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#430">stat</a>, <a class="ident" href="../../src/tar/builder.rs.html#427">mode</a>)
+    } <span class="kw">else </span>{
+        <span class="attribute">#[cfg(unix)]
+        </span>{
+            <a href="../../src/tar/builder.rs.html#473-478">append_special</a>(<a href="../../src/tar/builder.rs.html#424">dst</a>, <a href="../../src/tar/builder.rs.html#425">path</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#430">stat</a>, <a href="../../src/tar/builder.rs.html#427">mode</a>)
         }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">unix</span>))]</span>
-        {
-            <span class="prelude-val">Err</span>(<span class="ident">other</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{} has unknown file type&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>())))
+        <span class="attribute">#[cfg(not(unix))]
+        </span>{
+            <span class="prelude-val">Err</span>(other(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{} has unknown file type&quot;</span>, path.display())))
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">fn</span> <span class="ident">append_special</span>(
-    <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">stat</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>,
-    <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">::std::os::unix::fs</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.FileTypeExt.html">FileTypeExt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">MetadataExt</a>};
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">fn </span>append_special(
+    dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    stat: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>,
+    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">use </span>::std::os::unix::fs::{<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.FileTypeExt.html">FileTypeExt</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">MetadataExt</a>};
 
-    <span class="kw">let</span> <span class="ident">file_type</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#476">stat</a>.<span class="ident">file_type</span>();
-    <span class="kw">let</span> <span class="ident">entry_type</span>;
-    <span class="kw">if</span> <span class="ident">file_type</span>.<span class="ident">is_socket</span>() {
-        <span class="comment">// sockets can&#39;t be archived</span>
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tar/lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+    <span class="kw">let </span>file_type = <a href="../../src/tar/builder.rs.html#476">stat</a>.file_type();
+    <span class="kw">let </span>entry_type;
+    <span class="kw">if </span>file_type.is_socket() {
+        <span class="comment">// sockets can&#39;t be archived
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/tar/lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
             <span class="string">&quot;{}: socket can not be archived&quot;</span>,
-            <span class="ident">path</span>.<span class="ident">display</span>()
+            path.display()
         )));
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">file_type</span>.<span class="ident">is_fifo</span>() {
-        <a class="ident" href="../../src/tar/builder.rs.html#482">entry_type</a> <span class="op">=</span> <a class="ident" href="../../src/tar/entry_type.rs.html#23">EntryType::Fifo</a>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">file_type</span>.<span class="ident">is_char_device</span>() {
-        <a class="ident" href="../../src/tar/builder.rs.html#482">entry_type</a> <span class="op">=</span> <a class="ident" href="../../src/tar/entry_type.rs.html#17">EntryType::Char</a>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">file_type</span>.<span class="ident">is_block_device</span>() {
-        <a class="ident" href="../../src/tar/builder.rs.html#482">entry_type</a> <span class="op">=</span> <a class="ident" href="../../src/tar/entry_type.rs.html#19">EntryType::Block</a>;
-    } <span class="kw">else</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tar/lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} has unknown file type&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>())));
+    } <span class="kw">else if </span>file_type.is_fifo() {
+        <a href="../../src/tar/builder.rs.html#482">entry_type</a> = <a href="../../src/tar/entry_type.rs.html#23">EntryType::Fifo</a>;
+    } <span class="kw">else if </span>file_type.is_char_device() {
+        <a href="../../src/tar/builder.rs.html#482">entry_type</a> = <a href="../../src/tar/entry_type.rs.html#17">EntryType::Char</a>;
+    } <span class="kw">else if </span>file_type.is_block_device() {
+        <a href="../../src/tar/builder.rs.html#482">entry_type</a> = <a href="../../src/tar/entry_type.rs.html#19">EntryType::Block</a>;
+    } <span class="kw">else </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/tar/lib.rs.html#42">other</a>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{} has unknown file type&quot;</span>, path.display())));
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Header::new_gnu</span>();
-    <a class="ident" href="../../src/tar/builder.rs.html#499">header</a>.<a class="ident" href="../../src/tar/header.rs.html#288">set_metadata_in_mode</a>(<a class="ident" href="../../src/tar/builder.rs.html#476">stat</a>, <a class="ident" href="../../src/tar/builder.rs.html#477">mode</a>);
-    <span class="ident">prepare_header_path</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;mut</span> <span class="ident">header</span>, <span class="ident">path</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>header = Header::new_gnu();
+    <a href="../../src/tar/builder.rs.html#499">header</a>.<a href="../../src/tar/header.rs.html#288">set_metadata_in_mode</a>(<a href="../../src/tar/builder.rs.html#476">stat</a>, <a href="../../src/tar/builder.rs.html#477">mode</a>);
+    prepare_header_path(dst, <span class="kw-2">&amp;mut </span>header, path)<span class="question-mark">?</span>;
 
-    <a class="ident" href="../../src/tar/builder.rs.html#499">header</a>.<a class="ident" href="../../src/tar/header.rs.html#679">set_entry_type</a>(<a class="ident" href="../../src/tar/builder.rs.html#482">entry_type</a>);
-    <span class="kw">let</span> <span class="ident">dev_id</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#476">stat</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">rdev</a>();
-    <span class="kw">let</span> <span class="ident">dev_major</span> <span class="op">=</span> ((<a class="ident" href="../../src/tar/builder.rs.html#504">dev_id</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="op">&amp;</span> <span class="number">0xffff_f000</span>) <span class="op">|</span> ((<a class="ident" href="../../src/tar/builder.rs.html#504">dev_id</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="op">&amp;</span> <span class="number">0x0000_0fff</span>);
-    <span class="kw">let</span> <span class="ident">dev_minor</span> <span class="op">=</span> ((<a class="ident" href="../../src/tar/builder.rs.html#504">dev_id</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>) <span class="op">&amp;</span> <span class="number">0xffff_ff00</span>) <span class="op">|</span> ((<a class="ident" href="../../src/tar/builder.rs.html#504">dev_id</a>) <span class="op">&amp;</span> <span class="number">0x0000_00ff</span>);
-    <span class="ident">header</span>.<span class="ident">set_device_major</span>(<span class="ident">dev_major</span> <span class="kw">as</span> <span class="ident">u32</span>)<span class="question-mark">?</span>;
-    <span class="ident">header</span>.<span class="ident">set_device_minor</span>(<span class="ident">dev_minor</span> <span class="kw">as</span> <span class="ident">u32</span>)<span class="question-mark">?</span>;
+    <a href="../../src/tar/builder.rs.html#499">header</a>.<a href="../../src/tar/header.rs.html#679">set_entry_type</a>(<a href="../../src/tar/builder.rs.html#482">entry_type</a>);
+    <span class="kw">let </span>dev_id = <a href="../../src/tar/builder.rs.html#476">stat</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">rdev</a>();
+    <span class="kw">let </span>dev_major = ((<a href="../../src/tar/builder.rs.html#504">dev_id</a> &gt;&gt; <span class="number">32</span>) &amp; <span class="number">0xffff_f000</span>) | ((<a href="../../src/tar/builder.rs.html#504">dev_id</a> &gt;&gt; <span class="number">8</span>) &amp; <span class="number">0x0000_0fff</span>);
+    <span class="kw">let </span>dev_minor = ((<a href="../../src/tar/builder.rs.html#504">dev_id</a> &gt;&gt; <span class="number">12</span>) &amp; <span class="number">0xffff_ff00</span>) | ((<a href="../../src/tar/builder.rs.html#504">dev_id</a>) &amp; <span class="number">0x0000_00ff</span>);
+    header.set_device_major(dev_major <span class="kw">as </span>u32)<span class="question-mark">?</span>;
+    header.set_device_minor(dev_minor <span class="kw">as </span>u32)<span class="question-mark">?</span>;
 
-    <a class="ident" href="../../src/tar/builder.rs.html#499">header</a>.<a class="ident" href="../../src/tar/header.rs.html#699">set_cksum</a>();
-    <span class="ident">dst</span>.<span class="ident">write_all</span>(<span class="ident">header</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
+    <a href="../../src/tar/builder.rs.html#499">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
+    dst.write_all(header.as_bytes())<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">append_file</span>(
-    <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">file</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>,
-    <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">stat</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">metadata</span>()<span class="question-mark">?</span>;
-    <a class="ident" href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a class="ident" href="../../src/tar/builder.rs.html#517">dst</a>, <a class="ident" href="../../src/tar/builder.rs.html#518">path</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#522">stat</a>, <a class="ident" href="../../src/tar/builder.rs.html#519">file</a>, <a class="ident" href="../../src/tar/builder.rs.html#520">mode</a>, <span class="prelude-val">None</span>)
+<span class="kw">fn </span>append_file(
+    dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    file: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>,
+    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span>stat = file.metadata()<span class="question-mark">?</span>;
+    <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a href="../../src/tar/builder.rs.html#517">dst</a>, <a href="../../src/tar/builder.rs.html#518">path</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#522">stat</a>, <a href="../../src/tar/builder.rs.html#519">file</a>, <a href="../../src/tar/builder.rs.html#520">mode</a>, <span class="prelude-val">None</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">append_dir</span>(
-    <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">src_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">stat</span> <span class="op">=</span> <span class="ident">fs::metadata</span>(<span class="ident">src_path</span>)<span class="question-mark">?</span>;
-    <a class="ident" href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a class="ident" href="../../src/tar/builder.rs.html#527">dst</a>, <a class="ident" href="../../src/tar/builder.rs.html#528">path</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#532">stat</a>, <span class="kw-2">&amp;mut</span> <span class="ident">io::empty</span>(), <a class="ident" href="../../src/tar/builder.rs.html#530">mode</a>, <span class="prelude-val">None</span>)
+<span class="kw">fn </span>append_dir(
+    dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    src_path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span>stat = fs::metadata(src_path)<span class="question-mark">?</span>;
+    <a href="../../src/tar/builder.rs.html#601-608">append_fs</a>(<a href="../../src/tar/builder.rs.html#527">dst</a>, <a href="../../src/tar/builder.rs.html#528">path</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#532">stat</a>, <span class="kw-2">&amp;mut </span>io::empty(), <a href="../../src/tar/builder.rs.html#530">mode</a>, <span class="prelude-val">None</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">prepare_header</span>(<span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">entry_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../src/tar/header.rs.html#22">Header</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Header::new_gnu</span>();
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">b&quot;././@LongLink&quot;</span>;
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>.<a class="ident" href="../../src/tar/header.rs.html#249">as_gnu_mut</a>().<span class="ident">unwrap</span>().<span class="ident">name</span>[..<a class="ident" href="../../src/tar/builder.rs.html#538">name</a>.<span class="ident">len</span>()].<span class="ident">clone_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#538">name</a>[..]);
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>.<a class="ident" href="../../src/tar/header.rs.html#465">set_mode</a>(<span class="number">0o644</span>);
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>.<a class="ident" href="../../src/tar/header.rs.html#484">set_uid</a>(<span class="number">0</span>);
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>.<a class="ident" href="../../src/tar/header.rs.html#501">set_gid</a>(<span class="number">0</span>);
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>.<a class="ident" href="../../src/tar/header.rs.html#519">set_mtime</a>(<span class="number">0</span>);
-    <span class="comment">// + 1 to be compliant with GNU tar</span>
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>.<a class="ident" href="../../src/tar/header.rs.html#323">set_size</a>(<a class="ident" href="../../src/tar/builder.rs.html#536">size</a> <span class="op">+</span> <span class="number">1</span>);
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>.<a class="ident" href="../../src/tar/header.rs.html#679">set_entry_type</a>(<span class="ident">EntryType::new</span>(<a class="ident" href="../../src/tar/builder.rs.html#536">entry_type</a>));
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>.<a class="ident" href="../../src/tar/header.rs.html#699">set_cksum</a>();
-    <a class="ident" href="../../src/tar/builder.rs.html#537">header</a>
+<span class="kw">fn </span>prepare_header(size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, entry_type: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../src/tar/header.rs.html#22">Header</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>header = Header::new_gnu();
+    <span class="kw">let </span>name = <span class="string">b&quot;././@LongLink&quot;</span>;
+    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#249">as_gnu_mut</a>().unwrap().name[..<a href="../../src/tar/builder.rs.html#538">name</a>.len()].clone_from_slice(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#538">name</a>[..]);
+    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#465">set_mode</a>(<span class="number">0o644</span>);
+    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#484">set_uid</a>(<span class="number">0</span>);
+    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#501">set_gid</a>(<span class="number">0</span>);
+    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#519">set_mtime</a>(<span class="number">0</span>);
+    <span class="comment">// + 1 to be compliant with GNU tar
+    </span><a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#323">set_size</a>(<a href="../../src/tar/builder.rs.html#536">size</a> + <span class="number">1</span>);
+    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#679">set_entry_type</a>(EntryType::new(<a href="../../src/tar/builder.rs.html#536">entry_type</a>));
+    <a href="../../src/tar/builder.rs.html#537">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
+    <a href="../../src/tar/builder.rs.html#537">header</a>
 }
 
-<span class="kw">fn</span> <span class="ident">prepare_header_path</span>(<span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, <span class="ident">header</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tar/header.rs.html#22">Header</a>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="comment">// Try to encode the path directly in the header, but if it ends up not</span>
-    <span class="comment">// working (probably because it&#39;s too long) then try to use the GNU-specific</span>
-    <span class="comment">// long name extension by emitting an entry which indicates that it&#39;s the</span>
-    <span class="comment">// filename.</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#551">header</a>.<a class="ident" href="../../src/tar/header.rs.html#370">set_path</a>(<a class="ident" href="../../src/tar/builder.rs.html#551">path</a>) {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">path2bytes</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#551">header</a>.<a class="ident" href="../../src/tar/header.rs.html#196">as_old</a>().<span class="ident">name</span>.<span class="ident">len</span>();
-        <span class="comment">// Since `e` isn&#39;t specific enough to let us know the path is indeed too</span>
-        <span class="comment">// long, verify it first before using the extension.</span>
-        <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">max</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tar/builder.rs.html#556">e</a>);
+<span class="kw">fn </span>prepare_header_path(dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; io::Result&lt;()&gt; {
+    <span class="comment">// Try to encode the path directly in the header, but if it ends up not
+    // working (probably because it&#39;s too long) then try to use the GNU-specific
+    // long name extension by emitting an entry which indicates that it&#39;s the
+    // filename.
+    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../src/tar/builder.rs.html#551">header</a>.<a href="../../src/tar/header.rs.html#370">set_path</a>(<a href="../../src/tar/builder.rs.html#551">path</a>) {
+        <span class="kw">let </span>data = path2bytes(<span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
+        <span class="kw">let </span>max = <a href="../../src/tar/builder.rs.html#551">header</a>.<a href="../../src/tar/header.rs.html#196">as_old</a>().name.len();
+        <span class="comment">// Since `e` isn&#39;t specific enough to let us know the path is indeed too
+        // long, verify it first before using the extension.
+        </span><span class="kw">if </span>data.len() &lt; max {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/tar/builder.rs.html#556">e</a>);
         }
-        <span class="kw">let</span> <span class="ident">header2</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#536">prepare_header</a>(<a class="ident" href="../../src/tar/builder.rs.html#557">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">b&#39;L&#39;</span>);
-        <span class="comment">// null-terminated string</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data2</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#557">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(<span class="ident">io::repeat</span>(<span class="number">0</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<span class="number">1</span>));
-        <span class="ident">append</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;</span><span class="ident">header2</span>, <span class="kw-2">&amp;mut</span> <span class="ident">data2</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>header2 = <a href="../../src/tar/builder.rs.html#536">prepare_header</a>(<a href="../../src/tar/builder.rs.html#557">data</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">b&#39;L&#39;</span>);
+        <span class="comment">// null-terminated string
+        </span><span class="kw">let </span><span class="kw-2">mut </span>data2 = <a href="../../src/tar/builder.rs.html#557">data</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(io::repeat(<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<span class="number">1</span>));
+        append(dst, <span class="kw-2">&amp;</span>header2, <span class="kw-2">&amp;mut </span>data2)<span class="question-mark">?</span>;
 
-        <span class="comment">// Truncate the path to store in the header we&#39;re about to emit to</span>
-        <span class="comment">// ensure we&#39;ve got something at least mentioned. Note that we use</span>
-        <span class="comment">// `str`-encoding to be compatible with Windows, but in general the</span>
-        <span class="comment">// entry in the header itself shouldn&#39;t matter too much since extraction</span>
-        <span class="comment">// doesn&#39;t look at it.</span>
-        <span class="kw">let</span> <span class="ident">truncated</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#557">data</a>[..<a class="ident" href="../../src/tar/builder.rs.html#558">max</a>]) {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tar/builder.rs.html#575">s</a>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#557">data</a>[..<a class="ident" href="../../src/tar/builder.rs.html#576">e</a>.<span class="ident">valid_up_to</span>()]).<span class="ident">unwrap</span>(),
+        <span class="comment">// Truncate the path to store in the header we&#39;re about to emit to
+        // ensure we&#39;ve got something at least mentioned. Note that we use
+        // `str`-encoding to be compatible with Windows, but in general the
+        // entry in the header itself shouldn&#39;t matter too much since extraction
+        // doesn&#39;t look at it.
+        </span><span class="kw">let </span>truncated = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#557">data</a>[..<a href="../../src/tar/builder.rs.html#558">max</a>]) {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="../../src/tar/builder.rs.html#575">s</a>,
+            <span class="prelude-val">Err</span>(e) =&gt; <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#557">data</a>[..<a href="../../src/tar/builder.rs.html#576">e</a>.valid_up_to()]).unwrap(),
         };
-        <span class="ident">header</span>.<span class="ident">set_path</span>(<span class="ident">truncated</span>)<span class="question-mark">?</span>;
+        header.set_path(truncated)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">prepare_header_link</span>(
-    <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">header</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tar/header.rs.html#22">Header</a>,
-    <span class="ident">link_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="comment">// Same as previous function but for linkname</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#585">header</a>.<a class="ident" href="../../src/tar/header.rs.html#425">set_link_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#586">link_name</a>) {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">path2bytes</span>(<span class="kw-2">&amp;</span><span class="ident">link_name</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">header</span>.<span class="ident">as_old</span>().<span class="ident">linkname</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tar/builder.rs.html#589">e</a>);
+<span class="kw">fn </span>prepare_header_link(
+    dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    header: <span class="kw-2">&amp;mut </span><a href="../../src/tar/header.rs.html#22">Header</a>,
+    link_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="comment">// Same as previous function but for linkname
+    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../src/tar/builder.rs.html#585">header</a>.<a href="../../src/tar/header.rs.html#425">set_link_name</a>(<span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#586">link_name</a>) {
+        <span class="kw">let </span>data = path2bytes(<span class="kw-2">&amp;</span>link_name)<span class="question-mark">?</span>;
+        <span class="kw">if </span>data.len() &lt; header.as_old().linkname.len() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/tar/builder.rs.html#589">e</a>);
         }
-        <span class="kw">let</span> <span class="ident">header2</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#536">prepare_header</a>(<a class="ident" href="../../src/tar/builder.rs.html#590">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">b&#39;K&#39;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data2</span> <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#590">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(<span class="ident">io::repeat</span>(<span class="number">0</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<span class="number">1</span>));
-        <span class="ident">append</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;</span><span class="ident">header2</span>, <span class="kw-2">&amp;mut</span> <span class="ident">data2</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>header2 = <a href="../../src/tar/builder.rs.html#536">prepare_header</a>(<a href="../../src/tar/builder.rs.html#590">data</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="string">b&#39;K&#39;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>data2 = <a href="../../src/tar/builder.rs.html#590">data</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">chain</a>(io::repeat(<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<span class="number">1</span>));
+        append(dst, <span class="kw-2">&amp;</span>header2, <span class="kw-2">&amp;mut </span>data2)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">append_fs</span>(
-    <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">meta</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>,
-    <span class="ident">read</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
-    <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>,
-    <span class="ident">link_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Header::new_gnu</span>();
+<span class="kw">fn </span>append_fs(
+    dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    meta: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">fs::Metadata</a>,
+    read: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
+    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    link_name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>header = Header::new_gnu();
 
-    <span class="ident">prepare_header_path</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;mut</span> <span class="ident">header</span>, <span class="ident">path</span>)<span class="question-mark">?</span>;
-    <a class="ident" href="../../src/tar/builder.rs.html#609">header</a>.<a class="ident" href="../../src/tar/header.rs.html#288">set_metadata_in_mode</a>(<a class="ident" href="../../src/tar/builder.rs.html#604">meta</a>, <a class="ident" href="../../src/tar/builder.rs.html#606">mode</a>);
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">link_name</span>) <span class="op">=</span> <a class="ident" href="../../src/tar/builder.rs.html#607">link_name</a> {
-        <span class="ident">prepare_header_link</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;mut</span> <span class="ident">header</span>, <span class="ident">link_name</span>)<span class="question-mark">?</span>;
+    prepare_header_path(dst, <span class="kw-2">&amp;mut </span>header, path)<span class="question-mark">?</span>;
+    <a href="../../src/tar/builder.rs.html#609">header</a>.<a href="../../src/tar/header.rs.html#288">set_metadata_in_mode</a>(<a href="../../src/tar/builder.rs.html#604">meta</a>, <a href="../../src/tar/builder.rs.html#606">mode</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(link_name) = <a href="../../src/tar/builder.rs.html#607">link_name</a> {
+        prepare_header_link(dst, <span class="kw-2">&amp;mut </span>header, link_name)<span class="question-mark">?</span>;
     }
-    <a class="ident" href="../../src/tar/builder.rs.html#609">header</a>.<a class="ident" href="../../src/tar/header.rs.html#699">set_cksum</a>();
-    <a class="ident" href="../../src/tar/builder.rs.html#409">append</a>(<a class="ident" href="../../src/tar/builder.rs.html#602">dst</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tar/builder.rs.html#609">header</a>, <a class="ident" href="../../src/tar/builder.rs.html#605">read</a>)
+    <a href="../../src/tar/builder.rs.html#609">header</a>.<a href="../../src/tar/header.rs.html#699">set_cksum</a>();
+    <a href="../../src/tar/builder.rs.html#409">append</a>(<a href="../../src/tar/builder.rs.html#602">dst</a>, <span class="kw-2">&amp;</span><a href="../../src/tar/builder.rs.html#609">header</a>, <a href="../../src/tar/builder.rs.html#605">read</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">append_dir_all</span>(
-    <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">src_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
-    <span class="ident">mode</span>: <a class="ident" href="../../src/tar/header.rs.html#30">HeaderMode</a>,
-    <span class="ident">follow</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(<span class="ident">src_path</span>.<span class="ident">to_path_buf</span>(), <span class="bool-val">true</span>, <span class="bool-val">false</span>)];
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">src</span>, <span class="ident">is_dir</span>, <span class="ident">is_symlink</span>)) <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>() {
-        <span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">src</span>.<span class="ident">strip_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">src_path</span>).<span class="ident">unwrap</span>());
-        <span class="comment">// In case of a symlink pointing to a directory, is_dir is false, but src.is_dir() will return true</span>
-        <span class="kw">if</span> <span class="ident">is_dir</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">is_symlink</span> <span class="op">&amp;&amp;</span> <span class="ident">follow</span> <span class="op">&amp;&amp;</span> <span class="ident">src</span>.<span class="ident">is_dir</span>()) {
-            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">fs::read_dir</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>)<span class="question-mark">?</span> {
-                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span><span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">file_type</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">file_type</span>()<span class="question-mark">?</span>;
-                <span class="ident">stack</span>.<span class="ident">push</span>((<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="ident">file_type</span>.<span class="ident">is_dir</span>(), <span class="ident">file_type</span>.<span class="ident">is_symlink</span>()));
+<span class="kw">fn </span>append_dir_all(
+    dst: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    src_path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    mode: <a href="../../src/tar/header.rs.html#30">HeaderMode</a>,
+    follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>stack = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(src_path.to_path_buf(), <span class="bool-val">true</span>, <span class="bool-val">false</span>)];
+    <span class="kw">while let </span><span class="prelude-val">Some</span>((src, is_dir, is_symlink)) = stack.pop() {
+        <span class="kw">let </span>dest = path.join(src.strip_prefix(<span class="kw-2">&amp;</span>src_path).unwrap());
+        <span class="comment">// In case of a symlink pointing to a directory, is_dir is false, but src.is_dir() will return true
+        </span><span class="kw">if </span>is_dir || (is_symlink &amp;&amp; follow &amp;&amp; src.is_dir()) {
+            <span class="kw">for </span>entry <span class="kw">in </span>fs::read_dir(<span class="kw-2">&amp;</span>src)<span class="question-mark">? </span>{
+                <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
+                <span class="kw">let </span>file_type = entry.file_type()<span class="question-mark">?</span>;
+                stack.push((entry.path(), file_type.is_dir(), file_type.is_symlink()));
             }
-            <span class="kw">if</span> <span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;&quot;</span>) {
-                <span class="ident">append_dir</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="ident">mode</span>)<span class="question-mark">?</span>;
+            <span class="kw">if </span>dest != Path::new(<span class="string">&quot;&quot;</span>) {
+                append_dir(dst, <span class="kw-2">&amp;</span>dest, <span class="kw-2">&amp;</span>src, mode)<span class="question-mark">?</span>;
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">follow</span> <span class="op">&amp;&amp;</span> <span class="ident">is_symlink</span> {
-            <span class="kw">let</span> <span class="ident">stat</span> <span class="op">=</span> <span class="ident">fs::symlink_metadata</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">link_name</span> <span class="op">=</span> <span class="ident">fs::read_link</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>)<span class="question-mark">?</span>;
-            <span class="ident">append_fs</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="kw-2">&amp;</span><span class="ident">stat</span>, <span class="kw-2">&amp;mut</span> <span class="ident">io::empty</span>(), <span class="ident">mode</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">link_name</span>))<span class="question-mark">?</span>;
-        } <span class="kw">else</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-            {
-                <span class="kw">let</span> <span class="ident">stat</span> <span class="op">=</span> <span class="ident">fs::metadata</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">stat</span>.<span class="ident">is_file</span>() {
-                    <span class="ident">append_special</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="kw-2">&amp;</span><span class="ident">stat</span>, <span class="ident">mode</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else if </span>!follow &amp;&amp; is_symlink {
+            <span class="kw">let </span>stat = fs::symlink_metadata(<span class="kw-2">&amp;</span>src)<span class="question-mark">?</span>;
+            <span class="kw">let </span>link_name = fs::read_link(<span class="kw-2">&amp;</span>src)<span class="question-mark">?</span>;
+            append_fs(dst, <span class="kw-2">&amp;</span>dest, <span class="kw-2">&amp;</span>stat, <span class="kw-2">&amp;mut </span>io::empty(), mode, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>link_name))<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            <span class="attribute">#[cfg(unix)]
+            </span>{
+                <span class="kw">let </span>stat = fs::metadata(<span class="kw-2">&amp;</span>src)<span class="question-mark">?</span>;
+                <span class="kw">if </span>!stat.is_file() {
+                    append_special(dst, <span class="kw-2">&amp;</span>dest, <span class="kw-2">&amp;</span>stat, mode)<span class="question-mark">?</span>;
                     <span class="kw">continue</span>;
                 }
             }
-            <span class="ident">append_file</span>(<span class="ident">dst</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="kw-2">&amp;mut</span> <span class="ident">fs::File::open</span>(<span class="ident">src</span>)<span class="question-mark">?</span>, <span class="ident">mode</span>)<span class="question-mark">?</span>;
+            append_file(dst, <span class="kw-2">&amp;</span>dest, <span class="kw-2">&amp;mut </span>fs::File::open(src)<span class="question-mark">?</span>, mode)<span class="question-mark">?</span>;
         }
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Builder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../src/tar/builder.rs.html#660">self</a>.<a class="ident" href="../../src/tar/builder.rs.html#400">finish</a>();
+<span class="kw">impl</span>&lt;W: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Builder&lt;W&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let _ </span>= <a class="self" href="../../src/tar/builder.rs.html#660">self</a>.<a href="../../src/tar/builder.rs.html#400">finish</a>();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

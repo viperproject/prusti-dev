@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/request/proxy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>proxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/request/proxy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>proxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -173,180 +173,180 @@
 <span id="173">173</span>
 <span id="174">174</span>
 <span id="175">175</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/macro.env.html">std::env</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/macro.env.html">std::env</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../url/struct.Url.html">url::Url</a>;
-<span class="kw">use</span> <a class="ident" href="../../../wildmatch/struct.WildMatch.html">wildmatch::WildMatch</a>;
+<span class="kw">use </span><a href="../../../url/struct.Url.html">url::Url</a>;
+<span class="kw">use </span><a href="../../../wildmatch/struct.WildMatch.html">wildmatch::WildMatch</a>;
 
-<span class="kw">fn</span> <span class="ident">get_env</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">env::var</span>(<a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#6">name</a>.<span class="ident">to_ascii_lowercase</span>()).<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">env::var</span>(<a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#6">name</a>.<span class="ident">to_ascii_uppercase</span>())) {
-        <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#8">s</a>),
-        <span class="prelude-val">Err</span>(<span class="ident">env::VarError::NotPresent</span>) =&gt; <span class="prelude-val">None</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">env::VarError::NotUnicode</span>(<span class="kw">_</span>)) =&gt; {
+<span class="kw">fn </span>get_env(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    <span class="kw">match </span>env::var(<a href="../../../src/attohttpc/request/proxy.rs.html#6">name</a>.to_ascii_lowercase()).or_else(|<span class="kw">_</span>| env::var(<a href="../../../src/attohttpc/request/proxy.rs.html#6">name</a>.to_ascii_uppercase())) {
+        <span class="prelude-val">Ok</span>(s) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/attohttpc/request/proxy.rs.html#8">s</a>),
+        <span class="prelude-val">Err</span>(env::VarError::NotPresent) =&gt; <span class="prelude-val">None</span>,
+        <span class="prelude-val">Err</span>(env::VarError::NotUnicode(<span class="kw">_</span>)) =&gt; {
             <a class="macro" href="../../../src/attohttpc/lib.rs.html#60-62">warn!</a>(
                 <span class="string">&quot;Environment variable {} contains non-unicode characters&quot;</span>,
-                <span class="ident">name</span>.<span class="ident">to_ascii_uppercase</span>()
+                name.to_ascii_uppercase()
             );
-            <span class="prelude-val">None</span>
-        }
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">fn</span> <span class="ident">get_env_url</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../url/struct.Url.html">Url</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#6">get_env</a>(<a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#20">name</a>) {
-        <span class="prelude-val">Some</span>(<span class="ident">val</span>) =&gt; <span class="kw">match</span> <span class="ident">Url::parse</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#22">val</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">url</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#23">url</a>.<span class="ident">scheme</span>() {
-                <span class="string">&quot;http&quot;</span> <span class="op">|</span> <span class="string">&quot;https&quot;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#23">url</a>),
-                <span class="kw">_</span> =&gt; {
+<span class="kw">fn </span>get_env_url(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../url/struct.Url.html">Url</a>&gt; {
+    <span class="kw">match </span><a href="../../../src/attohttpc/request/proxy.rs.html#6">get_env</a>(<a href="../../../src/attohttpc/request/proxy.rs.html#20">name</a>) {
+        <span class="prelude-val">Some</span>(val) =&gt; <span class="kw">match </span>Url::parse(<span class="kw-2">&amp;</span><a href="../../../src/attohttpc/request/proxy.rs.html#22">val</a>) {
+            <span class="prelude-val">Ok</span>(url) =&gt; <span class="kw">match </span><a href="../../../src/attohttpc/request/proxy.rs.html#23">url</a>.scheme() {
+                <span class="string">&quot;http&quot; </span>| <span class="string">&quot;https&quot; </span>=&gt; <span class="prelude-val">Some</span>(<a href="../../../src/attohttpc/request/proxy.rs.html#23">url</a>),
+                <span class="kw">_ </span>=&gt; {
                     <a class="macro" href="../../../src/attohttpc/lib.rs.html#60-62">warn!</a>(
                         <span class="string">&quot;Environment variable {} contains unsupported proxy scheme: {}&quot;</span>,
-                        <span class="ident">name</span>.<span class="ident">to_ascii_uppercase</span>(),
-                        <span class="ident">url</span>.<span class="ident">scheme</span>()
+                        name.to_ascii_uppercase(),
+                        url.scheme()
                     );
-                    <span class="prelude-val">None</span>
-                }
+                    <span class="prelude-val">None
+                </span>}
             },
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
+            <span class="prelude-val">Err</span>(err) =&gt; {
                 <a class="macro" href="../../../src/attohttpc/lib.rs.html#60-62">warn!</a>(
                     <span class="string">&quot;Environment variable {} contains invalid URL: {}&quot;</span>,
-                    <span class="ident">name</span>.<span class="ident">to_ascii_uppercase</span>(),
-                    <span class="ident">err</span>
+                    name.to_ascii_uppercase(),
+                    err
                 );
-                <span class="prelude-val">None</span>
-            }
+                <span class="prelude-val">None
+            </span>}
         },
-        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
 
-<span class="doccomment">/// Contains proxy settings and utilities to find which proxy to use for a given URL.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProxySettings</span> {
-    <span class="ident">http_proxy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../url/struct.Url.html">Url</a><span class="op">&gt;</span>,
-    <span class="ident">https_proxy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../url/struct.Url.html">Url</a><span class="op">&gt;</span>,
-    <span class="ident">no_proxy_patterns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../wildmatch/struct.WildMatch.html">WildMatch</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Contains proxy settings and utilities to find which proxy to use for a given URL.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>ProxySettings {
+    http_proxy: <span class="prelude-ty">Option</span>&lt;<a href="../../../url/struct.Url.html">Url</a>&gt;,
+    https_proxy: <span class="prelude-ty">Option</span>&lt;<a href="../../../url/struct.Url.html">Url</a>&gt;,
+    no_proxy_patterns: Vec&lt;<a href="../../../wildmatch/struct.WildMatch.html">WildMatch</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
-    <span class="doccomment">/// Get a new builder for ProxySettings.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#101">ProxySettingsBuilder</a> {
-        <span class="ident">ProxySettingsBuilder::new</span>()
+<span class="kw">impl </span><a href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
+    <span class="doccomment">/// Get a new builder for ProxySettings.
+    </span><span class="kw">pub fn </span>builder() -&gt; <a href="../../../src/attohttpc/request/proxy.rs.html#101">ProxySettingsBuilder</a> {
+        ProxySettingsBuilder::new()
     }
 
-    <span class="doccomment">/// Get the proxy configuration from the environment using the `curl`/Unix proxy conventions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Only `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` are supported.</span>
-    <span class="doccomment">/// `NO_PROXY` supports wildcard patterns.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_env</span>() -&gt; <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
-        <span class="kw">let</span> <span class="ident">http_proxy</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#20">get_env_url</a>(<span class="string">&quot;http_proxy&quot;</span>);
-        <span class="kw">let</span> <span class="ident">https_proxy</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#20">get_env_url</a>(<span class="string">&quot;https_proxy&quot;</span>);
-        <span class="kw">let</span> <span class="ident">no_proxy</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#6">get_env</a>(<span class="string">&quot;no_proxy&quot;</span>);
+    <span class="doccomment">/// Get the proxy configuration from the environment using the `curl`/Unix proxy conventions.
+    ///
+    /// Only `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` are supported.
+    /// `NO_PROXY` supports wildcard patterns.
+    </span><span class="kw">pub fn </span>from_env() -&gt; <a href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
+        <span class="kw">let </span>http_proxy = <a href="../../../src/attohttpc/request/proxy.rs.html#20">get_env_url</a>(<span class="string">&quot;http_proxy&quot;</span>);
+        <span class="kw">let </span>https_proxy = <a href="../../../src/attohttpc/request/proxy.rs.html#20">get_env_url</a>(<span class="string">&quot;https_proxy&quot;</span>);
+        <span class="kw">let </span>no_proxy = <a href="../../../src/attohttpc/request/proxy.rs.html#6">get_env</a>(<span class="string">&quot;no_proxy&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">no_proxy_patterns</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#68">no_proxy</a>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#71">x</a>.<span class="ident">split</span>(<span class="string">&#39;,&#39;</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">pat</span><span class="op">|</span> <span class="ident">WildMatch::new</span>(<a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#71">pat</a>.<span class="ident">trim</span>())).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>())
-            .<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let </span>no_proxy_patterns = <a href="../../../src/attohttpc/request/proxy.rs.html#68">no_proxy</a>
+            .map(|x| <a href="../../../src/attohttpc/request/proxy.rs.html#71">x</a>.split(<span class="string">&#39;,&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|pat| WildMatch::new(<a href="../../../src/attohttpc/request/proxy.rs.html#71">pat</a>.trim())).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;())
+            .unwrap_or_default();
 
-        <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
-            <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#66">http_proxy</a>,
-            <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#67">https_proxy</a>,
-            <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#70">no_proxy_patterns</a>,
+        <a href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
+            <a href="../../../src/attohttpc/request/proxy.rs.html#66">http_proxy</a>,
+            <a href="../../../src/attohttpc/request/proxy.rs.html#67">https_proxy</a>,
+            <a href="../../../src/attohttpc/request/proxy.rs.html#70">no_proxy_patterns</a>,
         }
     }
 
-    <span class="doccomment">/// Get the proxy URL to use for the given URL.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// None is returned if there is no proxy configured for the scheme or if the hostname</span>
-    <span class="doccomment">/// matches a pattern in the no proxy list.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">for_url</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../url/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../url/struct.Url.html">Url</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">host</span>) <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#85">url</a>.<span class="ident">host_str</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">no_proxy_patterns</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">is_match</span>(<span class="ident">host</span>)) {
-                <span class="kw">return</span> <span class="kw">match</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#85">url</a>.<span class="ident">scheme</span>() {
-                    <span class="string">&quot;http&quot;</span> =&gt; <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#85">self</a>.<span class="ident">http_proxy</span>.<span class="ident">as_ref</span>(),
-                    <span class="string">&quot;https&quot;</span> =&gt; <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#85">self</a>.<span class="ident">https_proxy</span>.<span class="ident">as_ref</span>(),
-                    <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Get the proxy URL to use for the given URL.
+    ///
+    /// None is returned if there is no proxy configured for the scheme or if the hostname
+    /// matches a pattern in the no proxy list.
+    </span><span class="kw">pub fn </span>for_url(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span><a href="../../../url/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../url/struct.Url.html">Url</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(host) = <a href="../../../src/attohttpc/request/proxy.rs.html#85">url</a>.host_str() {
+            <span class="kw">if </span>!<span class="self">self</span>.no_proxy_patterns.iter().any(|x| x.is_match(host)) {
+                <span class="kw">return match </span><a href="../../../src/attohttpc/request/proxy.rs.html#85">url</a>.scheme() {
+                    <span class="string">&quot;http&quot; </span>=&gt; <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#85">self</a>.http_proxy.as_ref(),
+                    <span class="string">&quot;https&quot; </span>=&gt; <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#85">self</a>.https_proxy.as_ref(),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
                 };
             }
         }
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="doccomment">/// Utility to build ProxySettings easily.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProxySettingsBuilder</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a>,
+<span class="doccomment">/// Utility to build ProxySettings easily.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>ProxySettingsBuilder {
+    inner: <a href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#101">ProxySettingsBuilder</a> {
-    <span class="doccomment">/// Create a new ProxySetting builder with no initial configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#101">ProxySettingsBuilder</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
-                <span class="ident">http_proxy</span>: <span class="prelude-val">None</span>,
-                <span class="ident">https_proxy</span>: <span class="prelude-val">None</span>,
-                <span class="ident">no_proxy_patterns</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+<span class="kw">impl </span><a href="../../../src/attohttpc/request/proxy.rs.html#101">ProxySettingsBuilder</a> {
+    <span class="doccomment">/// Create a new ProxySetting builder with no initial configuration.
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <a href="../../../src/attohttpc/request/proxy.rs.html#101">ProxySettingsBuilder</a> {
+            inner: <a href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
+                http_proxy: <span class="prelude-val">None</span>,
+                https_proxy: <span class="prelude-val">None</span>,
+                no_proxy_patterns: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             },
         }
     }
 
-    <span class="doccomment">/// Set the proxy for http requests.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http_proxy</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../url/struct.Url.html">Url</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Set the proxy for http requests.
+    </span><span class="kw">pub fn </span>http_proxy&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, val: V) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>V: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../url/struct.Url.html">Url</a>&gt;&gt;,
     {
-        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#118">self</a>.<span class="ident">inner</span>.<span class="ident">http_proxy</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#118">val</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#118">self</a>
-    }
+        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#118">self</a>.inner.http_proxy = <a href="../../../src/attohttpc/request/proxy.rs.html#118">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="self"><a href="../../../src/attohttpc/request/proxy.rs.html#118">self</a>
+    </span>}
 
-    <span class="doccomment">/// Set the proxy for https requests.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">https_proxy</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../url/struct.Url.html">Url</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Set the proxy for https requests.
+    </span><span class="kw">pub fn </span>https_proxy&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, val: V) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>V: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../url/struct.Url.html">Url</a>&gt;&gt;,
     {
-        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#127">self</a>.<span class="ident">inner</span>.<span class="ident">https_proxy</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#127">val</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#127">self</a>
-    }
+        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#127">self</a>.inner.https_proxy = <a href="../../../src/attohttpc/request/proxy.rs.html#127">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="self"><a href="../../../src/attohttpc/request/proxy.rs.html#127">self</a>
+    </span>}
 
-    <span class="doccomment">/// Add a hostname pattern to ignore when finding the proxy to use for a URL.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For instance `*.mycompany.local` will make every hostname which ends with `.mycompany.local`</span>
-    <span class="doccomment">/// not go trough the proxy.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_no_proxy_pattern</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#139">self</a>.<span class="ident">inner</span>.<span class="ident">no_proxy_patterns</span>.<span class="ident">push</span>(<span class="ident">WildMatch::new</span>(<a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#139">pattern</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()));
-        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#139">self</a>
-    }
+    <span class="doccomment">/// Add a hostname pattern to ignore when finding the proxy to use for a URL.
+    ///
+    /// For instance `*.mycompany.local` will make every hostname which ends with `.mycompany.local`
+    /// not go trough the proxy.
+    </span><span class="kw">pub fn </span>add_no_proxy_pattern(<span class="kw-2">mut </span><span class="self">self</span>, pattern: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#139">self</a>.inner.no_proxy_patterns.push(WildMatch::new(<a href="../../../src/attohttpc/request/proxy.rs.html#139">pattern</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()));
+        <span class="self"><a href="../../../src/attohttpc/request/proxy.rs.html#139">self</a>
+    </span>}
 
-    <span class="doccomment">/// Build the settings.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
-        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#145">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Build the settings.
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="../../../src/attohttpc/request/proxy.rs.html#49">ProxySettings</a> {
+        <a class="self" href="../../../src/attohttpc/request/proxy.rs.html#145">self</a>.inner
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/attohttpc/request/proxy.rs.html#101">ProxySettingsBuilder</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">ProxySettingsBuilder::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/attohttpc/request/proxy.rs.html#101">ProxySettingsBuilder</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        ProxySettingsBuilder::new()
     }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_proxy_for_url</span>() {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">ProxySettings</span> {
-        <span class="ident">http_proxy</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;http://proxy1:3128&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()),
-        <span class="ident">https_proxy</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;http://proxy2:3128&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()),
-        <span class="ident">no_proxy_patterns</span>: <span class="macro">vec!</span>[<span class="ident">WildMatch::new</span>(<span class="string">&quot;*.com&quot;</span>)],
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_proxy_for_url() {
+    <span class="kw">let </span>s = ProxySettings {
+        http_proxy: <span class="prelude-val">Some</span>(<span class="string">&quot;http://proxy1:3128&quot;</span>.parse().unwrap()),
+        https_proxy: <span class="prelude-val">Some</span>(<span class="string">&quot;http://proxy2:3128&quot;</span>.parse().unwrap()),
+        no_proxy_patterns: <span class="macro">vec!</span>[WildMatch::new(<span class="string">&quot;*.com&quot;</span>)],
     };
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">s</span>.<span class="ident">for_url</span>(<span class="kw-2">&amp;</span><span class="ident">Url::parse</span>(<span class="string">&quot;http://google.ca&quot;</span>).<span class="ident">unwrap</span>()),
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">&quot;http://proxy1:3128&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>())
+        s.for_url(<span class="kw-2">&amp;</span>Url::parse(<span class="string">&quot;http://google.ca&quot;</span>).unwrap()),
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">&quot;http://proxy1:3128&quot;</span>.parse().unwrap())
     );
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">s</span>.<span class="ident">for_url</span>(<span class="kw-2">&amp;</span><span class="ident">Url::parse</span>(<span class="string">&quot;https://google.ca&quot;</span>).<span class="ident">unwrap</span>()),
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">&quot;http://proxy2:3128&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>())
+        s.for_url(<span class="kw-2">&amp;</span>Url::parse(<span class="string">&quot;https://google.ca&quot;</span>).unwrap()),
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">&quot;http://proxy2:3128&quot;</span>.parse().unwrap())
     );
 
-    <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">for_url</span>(<span class="kw-2">&amp;</span><span class="ident">Url::parse</span>(<span class="string">&quot;https://reddit.com&quot;</span>).<span class="ident">unwrap</span>()), <span class="prelude-val">None</span>);
+    <span class="macro">assert_eq!</span>(s.for_url(<span class="kw-2">&amp;</span>Url::parse(<span class="string">&quot;https://reddit.com&quot;</span>).unwrap()), <span class="prelude-val">None</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

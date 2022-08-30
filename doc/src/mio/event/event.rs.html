@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/event/event.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>event.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../mio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/event/event.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>event.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../mio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -228,235 +228,235 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/mio/lib.rs.html#49">sys</a>, <a class="ident" href="../../../src/mio/token.rs.html#132">Token</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../../src/mio/lib.rs.html#49">sys</a>, <a href="../../../src/mio/token.rs.html#132">Token</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="doccomment">/// A readiness event.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Event` is a readiness state paired with a [`Token`]. It is returned by</span>
-<span class="doccomment">/// [`Poll::poll`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// For more documentation on polling and events, see [`Poll`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Poll::poll`]: ../struct.Poll.html#method.poll</span>
-<span class="doccomment">/// [`Poll`]: ../struct.Poll.html</span>
-<span class="doccomment">/// [`Token`]: ../struct.Token.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Event</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#150">sys::Event</a>,
+<span class="doccomment">/// A readiness event.
+///
+/// `Event` is a readiness state paired with a [`Token`]. It is returned by
+/// [`Poll::poll`].
+///
+/// For more documentation on polling and events, see [`Poll`].
+///
+/// [`Poll::poll`]: ../struct.Poll.html#method.poll
+/// [`Poll`]: ../struct.Poll.html
+/// [`Token`]: ../struct.Token.html
+</span><span class="attribute">#[derive(Clone)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>Event {
+    inner: <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#150">sys::Event</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/mio/event/event.rs.html#17">Event</a> {
-    <span class="doccomment">/// Returns the event&#39;s token.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/mio/token.rs.html#132">Token</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#159">sys::event::token</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#23">self</a>.<span class="ident">inner</span>)
+<span class="kw">impl </span><a href="../../../src/mio/event/event.rs.html#17">Event</a> {
+    <span class="doccomment">/// Returns the event&#39;s token.
+    </span><span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/mio/token.rs.html#132">Token</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#159">sys::event::token</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#23">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns true if the event contains readable readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Out-of-band (OOB) data also triggers readable events. But must</span>
-    <span class="doccomment">/// application don&#39;t actually read OOB data, this could leave an</span>
-    <span class="doccomment">/// application open to a Denial-of-Service (Dos) attack, see</span>
-    <span class="doccomment">/// &lt;https://github.com/sandstorm-io/sandstorm-website/blob/58f93346028c0576e8147627667328eaaf4be9fa/_posts/2015-04-08-osx-security-bug.md&gt;.</span>
-    <span class="doccomment">/// However because Mio uses edge-triggers it will not result in an infinite</span>
-    <span class="doccomment">/// loop as described in the article above.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_readable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#163">sys::event::is_readable</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#37">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns true if the event contains readable readiness.
+    ///
+    /// # Notes
+    ///
+    /// Out-of-band (OOB) data also triggers readable events. But must
+    /// application don&#39;t actually read OOB data, this could leave an
+    /// application open to a Denial-of-Service (Dos) attack, see
+    /// &lt;https://github.com/sandstorm-io/sandstorm-website/blob/58f93346028c0576e8147627667328eaaf4be9fa/_posts/2015-04-08-osx-security-bug.md&gt;.
+    /// However because Mio uses edge-triggers it will not result in an infinite
+    /// loop as described in the article above.
+    </span><span class="kw">pub fn </span>is_readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#163">sys::event::is_readable</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#37">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns true if the event contains writable readiness.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#168">sys::event::is_writable</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#42">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns true if the event contains writable readiness.
+    </span><span class="kw">pub fn </span>is_writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#168">sys::event::is_writable</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#42">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns true if the event contains error readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Error events occur when the socket enters an error state. In this case,</span>
-    <span class="doccomment">/// the socket will also receive a readable or writable event. Reading or</span>
-    <span class="doccomment">/// writing to the socket will result in an error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Method is available on all platforms, but not all platforms trigger the</span>
-    <span class="doccomment">/// error event.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The table below shows what flags are checked on what OS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// | [OS selector] | Flag(s) checked |</span>
-    <span class="doccomment">/// |---------------|-----------------|</span>
-    <span class="doccomment">/// | [epoll]       | `EPOLLERR`      |</span>
-    <span class="doccomment">/// | [kqueue]      | `EV_ERROR` and `EV_EOF` with `fflags` set to `0`. |</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [OS selector]: ../struct.Poll.html#implementation-notes</span>
-    <span class="doccomment">/// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html</span>
-    <span class="doccomment">/// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#172">sys::event::is_error</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#67">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns true if the event contains error readiness.
+    ///
+    /// Error events occur when the socket enters an error state. In this case,
+    /// the socket will also receive a readable or writable event. Reading or
+    /// writing to the socket will result in an error.
+    ///
+    /// # Notes
+    ///
+    /// Method is available on all platforms, but not all platforms trigger the
+    /// error event.
+    ///
+    /// The table below shows what flags are checked on what OS.
+    ///
+    /// | [OS selector] | Flag(s) checked |
+    /// |---------------|-----------------|
+    /// | [epoll]       | `EPOLLERR`      |
+    /// | [kqueue]      | `EV_ERROR` and `EV_EOF` with `fflags` set to `0`. |
+    ///
+    /// [OS selector]: ../struct.Poll.html#implementation-notes
+    /// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html
+    /// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2
+    </span><span class="kw">pub fn </span>is_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#172">sys::event::is_error</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#67">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns true if the event contains read closed readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Read closed readiness can be expected after any of the following have</span>
-    <span class="doccomment">/// occurred:</span>
-    <span class="doccomment">/// * The local stream has shutdown the read half of its socket</span>
-    <span class="doccomment">/// * The local stream has shutdown both the read half and the write half</span>
-    <span class="doccomment">///   of its socket</span>
-    <span class="doccomment">/// * The peer stream has shutdown the write half its socket; this sends a</span>
-    <span class="doccomment">///   `FIN` packet that has been received by the local stream</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Method is a best effort implementation. While some platforms may not</span>
-    <span class="doccomment">/// return readiness when read half is closed, it is guaranteed that</span>
-    <span class="doccomment">/// false-positives will not occur.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The table below shows what flags are checked on what OS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// | [OS selector] | Flag(s) checked |</span>
-    <span class="doccomment">/// |---------------|-----------------|</span>
-    <span class="doccomment">/// | [epoll]       | `EPOLLHUP`, or  |</span>
-    <span class="doccomment">/// |               | `EPOLLIN` and `EPOLLRDHUP` |</span>
-    <span class="doccomment">/// | [kqueue]      | `EV_EOF`        |</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [OS selector]: ../struct.Poll.html#implementation-notes</span>
-    <span class="doccomment">/// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html</span>
-    <span class="doccomment">/// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_read_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#176">sys::event::is_read_closed</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#98">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns true if the event contains read closed readiness.
+    ///
+    /// # Notes
+    ///
+    /// Read closed readiness can be expected after any of the following have
+    /// occurred:
+    /// * The local stream has shutdown the read half of its socket
+    /// * The local stream has shutdown both the read half and the write half
+    ///   of its socket
+    /// * The peer stream has shutdown the write half its socket; this sends a
+    ///   `FIN` packet that has been received by the local stream
+    ///
+    /// Method is a best effort implementation. While some platforms may not
+    /// return readiness when read half is closed, it is guaranteed that
+    /// false-positives will not occur.
+    ///
+    /// The table below shows what flags are checked on what OS.
+    ///
+    /// | [OS selector] | Flag(s) checked |
+    /// |---------------|-----------------|
+    /// | [epoll]       | `EPOLLHUP`, or  |
+    /// |               | `EPOLLIN` and `EPOLLRDHUP` |
+    /// | [kqueue]      | `EV_EOF`        |
+    ///
+    /// [OS selector]: ../struct.Poll.html#implementation-notes
+    /// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html
+    /// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2
+    </span><span class="kw">pub fn </span>is_read_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#176">sys::event::is_read_closed</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#98">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns true if the event contains write closed readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On [epoll] this is essentially a check for `EPOLLHUP` flag as the</span>
-    <span class="doccomment">/// local stream shutting down its write half does not trigger this event.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On [kqueue] the local stream shutting down the write half of its</span>
-    <span class="doccomment">/// socket will trigger this event.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Method is a best effort implementation. While some platforms may not</span>
-    <span class="doccomment">/// return readiness when write half is closed, it is guaranteed that</span>
-    <span class="doccomment">/// false-positives will not occur.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The table below shows what flags are checked on what OS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// | [OS selector] | Flag(s) checked |</span>
-    <span class="doccomment">/// |---------------|-----------------|</span>
-    <span class="doccomment">/// | [epoll]       | `EPOLLHUP`, or  |</span>
-    <span class="doccomment">/// |               | only `EPOLLERR`, or |</span>
-    <span class="doccomment">/// |               | `EPOLLOUT` and `EPOLLERR` |</span>
-    <span class="doccomment">/// | [kqueue]      | `EV_EOF`        |</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [OS selector]: ../struct.Poll.html#implementation-notes</span>
-    <span class="doccomment">/// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html</span>
-    <span class="doccomment">/// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_write_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#184">sys::event::is_write_closed</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#128">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns true if the event contains write closed readiness.
+    ///
+    /// # Notes
+    ///
+    /// On [epoll] this is essentially a check for `EPOLLHUP` flag as the
+    /// local stream shutting down its write half does not trigger this event.
+    ///
+    /// On [kqueue] the local stream shutting down the write half of its
+    /// socket will trigger this event.
+    ///
+    /// Method is a best effort implementation. While some platforms may not
+    /// return readiness when write half is closed, it is guaranteed that
+    /// false-positives will not occur.
+    ///
+    /// The table below shows what flags are checked on what OS.
+    ///
+    /// | [OS selector] | Flag(s) checked |
+    /// |---------------|-----------------|
+    /// | [epoll]       | `EPOLLHUP`, or  |
+    /// |               | only `EPOLLERR`, or |
+    /// |               | `EPOLLOUT` and `EPOLLERR` |
+    /// | [kqueue]      | `EV_EOF`        |
+    ///
+    /// [OS selector]: ../struct.Poll.html#implementation-notes
+    /// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html
+    /// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2
+    </span><span class="kw">pub fn </span>is_write_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#184">sys::event::is_write_closed</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#128">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns true if the event contains priority readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Method is available on all platforms, but not all platforms trigger the</span>
-    <span class="doccomment">/// priority event.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The table below shows what flags are checked on what OS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// | [OS selector] | Flag(s) checked |</span>
-    <span class="doccomment">/// |---------------|-----------------|</span>
-    <span class="doccomment">/// | [epoll]       | `EPOLLPRI`      |</span>
-    <span class="doccomment">/// | [kqueue]      | *Not supported* |</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [OS selector]: ../struct.Poll.html#implementation-notes</span>
-    <span class="doccomment">/// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html</span>
-    <span class="doccomment">/// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_priority</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#194">sys::event::is_priority</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#150">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns true if the event contains priority readiness.
+    ///
+    /// # Notes
+    ///
+    /// Method is available on all platforms, but not all platforms trigger the
+    /// priority event.
+    ///
+    /// The table below shows what flags are checked on what OS.
+    ///
+    /// | [OS selector] | Flag(s) checked |
+    /// |---------------|-----------------|
+    /// | [epoll]       | `EPOLLPRI`      |
+    /// | [kqueue]      | *Not supported* |
+    ///
+    /// [OS selector]: ../struct.Poll.html#implementation-notes
+    /// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html
+    /// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_priority(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#194">sys::event::is_priority</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#150">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns true if the event contains AIO readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Method is available on all platforms, but not all platforms support AIO.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The table below shows what flags are checked on what OS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// | [OS selector] | Flag(s) checked |</span>
-    <span class="doccomment">/// |---------------|-----------------|</span>
-    <span class="doccomment">/// | [epoll]       | *Not supported* |</span>
-    <span class="doccomment">/// | [kqueue]&lt;sup&gt;1&lt;/sup&gt; | `EVFILT_AIO` |</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// 1: Only supported on DragonFly BSD, FreeBSD, iOS and macOS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [OS selector]: ../struct.Poll.html#implementation-notes</span>
-    <span class="doccomment">/// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html</span>
-    <span class="doccomment">/// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_aio</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#198">sys::event::is_aio</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#172">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns true if the event contains AIO readiness.
+    ///
+    /// # Notes
+    ///
+    /// Method is available on all platforms, but not all platforms support AIO.
+    ///
+    /// The table below shows what flags are checked on what OS.
+    ///
+    /// | [OS selector] | Flag(s) checked |
+    /// |---------------|-----------------|
+    /// | [epoll]       | *Not supported* |
+    /// | [kqueue]&lt;sup&gt;1&lt;/sup&gt; | `EVFILT_AIO` |
+    ///
+    /// 1: Only supported on DragonFly BSD, FreeBSD, iOS and macOS.
+    ///
+    /// [OS selector]: ../struct.Poll.html#implementation-notes
+    /// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html
+    /// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2
+    </span><span class="kw">pub fn </span>is_aio(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#198">sys::event::is_aio</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#172">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns true if the event contains LIO readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Method is available on all platforms, but only FreeBSD supports LIO. On</span>
-    <span class="doccomment">/// FreeBSD this method checks the `EVFILT_LIO` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_lio</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#203">sys::event::is_lio</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#182">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns true if the event contains LIO readiness.
+    ///
+    /// # Notes
+    ///
+    /// Method is available on all platforms, but only FreeBSD supports LIO. On
+    /// FreeBSD this method checks the `EVFILT_LIO` flag.
+    </span><span class="kw">pub fn </span>is_lio(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#203">sys::event::is_lio</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#182">self</a>.inner)
     }
 
-    <span class="doccomment">/// Create a reference to an `Event` from a platform specific event.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_sys_event_ref</span>(<span class="ident">sys_event</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#150">sys::Event</a>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/mio/event/event.rs.html#17">Event</a> {
-        <span class="kw">unsafe</span> {
-            <span class="comment">// This is safe because the memory layout of `Event` is</span>
-            <span class="comment">// the same as `sys::Event` due to the `repr(transparent)` attribute.</span>
-            <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../../src/mio/event/event.rs.html#187">sys_event</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#150">sys::Event</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/mio/event/event.rs.html#17">Event</a>)
+    <span class="doccomment">/// Create a reference to an `Event` from a platform specific event.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_sys_event_ref(sys_event: <span class="kw-2">&amp;</span><a href="../../../src/mio/sys/unix/selector/epoll.rs.html#150">sys::Event</a>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/mio/event/event.rs.html#17">Event</a> {
+        <span class="kw">unsafe </span>{
+            <span class="comment">// This is safe because the memory layout of `Event` is
+            // the same as `sys::Event` due to the `repr(transparent)` attribute.
+            </span><span class="kw-2">&amp;*</span>(<a href="../../../src/mio/event/event.rs.html#187">sys_event</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../src/mio/sys/unix/selector/epoll.rs.html#150">sys::Event</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../src/mio/event/event.rs.html#17">Event</a>)
         }
     }
 }
 
-<span class="doccomment">/// When the [alternate] flag is enabled this will print platform specific</span>
-<span class="doccomment">/// details, for example the fields of the `kevent` structure on platforms that</span>
-<span class="doccomment">/// use `kqueue(2)`. Note however that the output of this implementation is</span>
-<span class="doccomment">/// **not** consider a part of the stable API.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [alternate]: fmt::Formatter::alternate</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/event/event.rs.html#17">Event</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">alternate</span> <span class="op">=</span> <a class="ident" href="../../../src/mio/event/event.rs.html#203">f</a>.<span class="ident">alternate</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <a class="ident" href="../../../src/mio/event/event.rs.html#203">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Event&quot;</span>);
-        <a class="ident" href="../../../src/mio/event/event.rs.html#205">d</a>.<span class="ident">field</span>(<span class="string">&quot;token&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#23">token</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;readable&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#37">is_readable</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;writable&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#42">is_writable</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;error&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#67">is_error</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;read_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#98">is_read_closed</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;write_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#128">is_write_closed</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;priority&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#150">is_priority</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;aio&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#172">is_aio</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;lio&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a class="ident" href="../../../src/mio/event/event.rs.html#182">is_lio</a>());
+<span class="doccomment">/// When the [alternate] flag is enabled this will print platform specific
+/// details, for example the fields of the `kevent` structure on platforms that
+/// use `kqueue(2)`. Note however that the output of this implementation is
+/// **not** consider a part of the stable API.
+///
+/// [alternate]: fmt::Formatter::alternate
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/mio/event/event.rs.html#17">Event</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span>alternate = <a href="../../../src/mio/event/event.rs.html#203">f</a>.alternate();
+        <span class="kw">let </span><span class="kw-2">mut </span>d = <a href="../../../src/mio/event/event.rs.html#203">f</a>.debug_struct(<span class="string">&quot;Event&quot;</span>);
+        <a href="../../../src/mio/event/event.rs.html#205">d</a>.field(<span class="string">&quot;token&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#23">token</a>())
+            .field(<span class="string">&quot;readable&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#37">is_readable</a>())
+            .field(<span class="string">&quot;writable&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#42">is_writable</a>())
+            .field(<span class="string">&quot;error&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#67">is_error</a>())
+            .field(<span class="string">&quot;read_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#98">is_read_closed</a>())
+            .field(<span class="string">&quot;write_closed&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#128">is_write_closed</a>())
+            .field(<span class="string">&quot;priority&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#150">is_priority</a>())
+            .field(<span class="string">&quot;aio&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#172">is_aio</a>())
+            .field(<span class="string">&quot;lio&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<a href="../../../src/mio/event/event.rs.html#182">is_lio</a>());
 
-        <span class="kw">if</span> <span class="ident">alternate</span> {
-            <span class="kw">struct</span> <span class="ident">EventDetails</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#150">sys::Event</a>);
+        <span class="kw">if </span>alternate {
+            <span class="kw">struct </span>EventDetails&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/mio/sys/unix/selector/epoll.rs.html#150">sys::Event</a>);
 
-            <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">EventDetails</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                    <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#208">sys::event::debug_details</a>(<a class="ident" href="../../../src/mio/event/event.rs.html#220">f</a>, <a class="self" href="../../../src/mio/event/event.rs.html#220">self</a>.<span class="number">0</span>)
+            <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>EventDetails&lt;<span class="lifetime">&#39;a</span>&gt; {
+                <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+                    <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#208">sys::event::debug_details</a>(<a href="../../../src/mio/event/event.rs.html#220">f</a>, <a class="self" href="../../../src/mio/event/event.rs.html#220">self</a>.<span class="number">0</span>)
                 }
             }
 
-            <a class="ident" href="../../../src/mio/event/event.rs.html#205">d</a>.<span class="ident">field</span>(<span class="string">&quot;details&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/mio/event/event.rs.html#217">EventDetails</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.<span class="ident">inner</span>)).<span class="ident">finish</span>()
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/mio/event/event.rs.html#205">d</a>.<span class="ident">finish</span>()
+            <a href="../../../src/mio/event/event.rs.html#205">d</a>.field(<span class="string">&quot;details&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../src/mio/event/event.rs.html#217">EventDetails</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/event/event.rs.html#203">self</a>.inner)).finish()
+        } <span class="kw">else </span>{
+            <a href="../../../src/mio/event/event.rs.html#205">d</a>.finish()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

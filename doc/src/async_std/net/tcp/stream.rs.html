@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/net/tcp/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/net/tcp/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -446,451 +446,451 @@
 <span id="444">444</span>
 <span id="445">445</span>
 <span id="446">446</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="../../../../async_std/io/struct.IoSlice.html">IoSlice</a>, <a class="ident" href="../../../../async_std/io/struct.IoSliceMut.html">IoSliceMut</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../async_std/net/enum.SocketAddr.html">std::net::SocketAddr</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::io::{<a href="../../../../async_std/io/struct.IoSlice.html">IoSlice</a>, <a href="../../../../async_std/io/struct.IoSliceMut.html">IoSliceMut</a>};
+<span class="kw">use </span><a href="../../../../async_std/net/enum.SocketAddr.html">std::net::SocketAddr</a>;
+<span class="kw">use </span><a href="../../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../async_io/struct.Async.html">async_io::Async</a>;
+<span class="kw">use </span><a href="../../../../async_io/struct.Async.html">async_io::Async</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="self" href="../../../../src/async_std/lib.rs.html#307">self</a>, <a class="ident" href="../../../../async_std/io/trait.Read.html">Read</a>, <a class="ident" href="../../../../async_std/io/trait.Write.html">Write</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/async_std/net/addr.rs.html#45"><span class="kw">crate</span>::net::ToSocketAddrs</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../async_std/sync/struct.Arc.html"><span class="kw">crate</span>::sync::Arc</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::task</span>::{<a class="ident" href="../../../../async_std/task/struct.Context.html">Context</a>, <a class="ident" href="../../../../async_std/task/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../../../../src/async_std/lib.rs.html#307">self</a>, <a href="../../../../async_std/io/trait.Read.html">Read</a>, <a href="../../../../async_std/io/trait.Write.html">Write</a>};
+<span class="kw">use </span><a href="../../../../src/async_std/net/addr.rs.html#45"><span class="kw">crate</span>::net::ToSocketAddrs</a>;
+<span class="kw">use </span><a href="../../../../async_std/sync/struct.Arc.html"><span class="kw">crate</span>::sync::Arc</a>;
+<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../../async_std/task/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// A TCP stream between a local and a remote socket.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A `TcpStream` can either be created by connecting to an endpoint, via the [`connect`] method,</span>
-<span class="doccomment">/// or by [accepting] a connection from a [listener].  It can be read or written to using the</span>
-<span class="doccomment">/// [`AsyncRead`], [`AsyncWrite`], and related extension traits in [`futures::io`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The connection will be closed when the value is dropped. The reading and writing portions of</span>
-<span class="doccomment">/// the connection can also be shut down individually with the [`shutdown`] method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is an async version of [`std::net::TcpStream`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`connect`]: struct.TcpStream.html#method.connect</span>
-<span class="doccomment">/// [accepting]: struct.TcpListener.html#method.accept</span>
-<span class="doccomment">/// [listener]: struct.TcpListener.html</span>
-<span class="doccomment">/// [`AsyncRead`]: https://docs.rs/futures/0.3/futures/io/trait.AsyncRead.html</span>
-<span class="doccomment">/// [`AsyncWrite`]: https://docs.rs/futures/0.3/futures/io/trait.AsyncWrite.html</span>
-<span class="doccomment">/// [`futures::io`]: https://docs.rs/futures/0.3/futures/io/index.html</span>
-<span class="doccomment">/// [`shutdown`]: struct.TcpStream.html#method.shutdown</span>
-<span class="doccomment">/// [`std::net::TcpStream`]: https://doc.rust-lang.org/std/net/struct.TcpStream.html</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// use async_std::net::TcpStream;</span>
-<span class="doccomment">/// use async_std::prelude::*;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-<span class="doccomment">/// stream.write_all(b&quot;hello world&quot;).await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut buf = vec![0u8; 1024];</span>
-<span class="doccomment">/// let n = stream.read(&amp;mut buf).await?;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # Ok(()) }) }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TcpStream</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">watcher</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A TCP stream between a local and a remote socket.
+///
+/// A `TcpStream` can either be created by connecting to an endpoint, via the [`connect`] method,
+/// or by [accepting] a connection from a [listener].  It can be read or written to using the
+/// [`AsyncRead`], [`AsyncWrite`], and related extension traits in [`futures::io`].
+///
+/// The connection will be closed when the value is dropped. The reading and writing portions of
+/// the connection can also be shut down individually with the [`shutdown`] method.
+///
+/// This type is an async version of [`std::net::TcpStream`].
+///
+/// [`connect`]: struct.TcpStream.html#method.connect
+/// [accepting]: struct.TcpListener.html#method.accept
+/// [listener]: struct.TcpListener.html
+/// [`AsyncRead`]: https://docs.rs/futures/0.3/futures/io/trait.AsyncRead.html
+/// [`AsyncWrite`]: https://docs.rs/futures/0.3/futures/io/trait.AsyncWrite.html
+/// [`futures::io`]: https://docs.rs/futures/0.3/futures/io/index.html
+/// [`shutdown`]: struct.TcpStream.html#method.shutdown
+/// [`std::net::TcpStream`]: https://doc.rust-lang.org/std/net/struct.TcpStream.html
+///
+/// ## Examples
+///
+/// ```no_run
+/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+/// #
+/// use async_std::net::TcpStream;
+/// use async_std::prelude::*;
+///
+/// let mut stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;
+/// stream.write_all(b&quot;hello world&quot;).await?;
+///
+/// let mut buf = vec![0u8; 1024];
+/// let n = stream.read(&amp;mut buf).await?;
+/// #
+/// # Ok(()) }) }
+/// ```
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>TcpStream {
+    <span class="kw">pub</span>(<span class="kw">super</span>) watcher: Arc&lt;Async&lt;<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-    <span class="doccomment">/// Creates a new TCP stream connected to the specified address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will create a new TCP socket and attempt to connect it to the `addr`</span>
-    <span class="doccomment">/// provided. The [returned future] will be resolved once the stream has successfully</span>
-    <span class="doccomment">/// connected, or it will return an error if one occurs.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [returned future]: struct.Connect.html</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="../../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a><span class="op">&gt;</span>(<span class="ident">addrs</span>: <span class="ident">A</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="ident">addrs</span>.<span class="ident">to_socket_addrs</span>().<span class="kw">await</span><span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+    <span class="doccomment">/// Creates a new TCP stream connected to the specified address.
+    ///
+    /// This method will create a new TCP socket and attempt to connect it to the `addr`
+    /// provided. The [returned future] will be resolved once the stream has successfully
+    /// connected, or it will return an error if one occurs.
+    ///
+    /// [returned future]: struct.Connect.html
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:0&quot;).await?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>connect&lt;A: <a href="../../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a>&gt;(addrs: A) -&gt; io::Result&lt;<a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>last_err = <span class="prelude-val">None</span>;
+        <span class="kw">let </span>addrs = addrs.to_socket_addrs().<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <span class="ident">addr</span> <span class="kw">in</span> <span class="ident">addrs</span> {
-            <span class="kw">match</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">std::net::TcpStream</span><span class="op">&gt;</span><span class="ident">::connect</span>(<span class="ident">addr</span>).<span class="kw">await</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TcpStream</span> {
-                        <span class="ident">watcher</span>: <span class="ident">Arc::new</span>(<span class="ident">stream</span>),
+        <span class="kw">for </span>addr <span class="kw">in </span>addrs {
+            <span class="kw">match </span>Async::&lt;std::net::TcpStream&gt;::connect(addr).<span class="kw">await </span>{
+                <span class="prelude-val">Ok</span>(stream) =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(TcpStream {
+                        watcher: Arc::new(stream),
                     });
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>);
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    last_err = <span class="prelude-val">Some</span>(e);
                     <span class="kw">continue</span>;
                 }
             }
         }
 
-        <span class="prelude-val">Err</span>(<span class="ident">last_err</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidInput</span>,
+        <span class="prelude-val">Err</span>(last_err.unwrap_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
                 <span class="string">&quot;could not resolve to any addresses&quot;</span>,
             )
         }))
     }
 
-    <span class="doccomment">/// Returns the local address that this stream is connected to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">/// let addr = stream.local_addr()?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#113">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">local_addr</span>()
+    <span class="doccomment">/// Returns the local address that this stream is connected to.
+    ///
+    /// ## Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;
+    /// let addr = stream.local_addr()?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#113">self</a>.watcher.get_ref().local_addr()
     }
 
-    <span class="doccomment">/// Returns the remote address that this stream is connected to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">/// let peer = stream.peer_addr()?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#131">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">peer_addr</span>()
+    <span class="doccomment">/// Returns the remote address that this stream is connected to.
+    ///
+    /// ## Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;
+    /// let peer = stream.peer_addr()?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#131">self</a>.watcher.get_ref().peer_addr()
     }
 
-    <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_ttl`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_ttl`]: #method.set_ttl</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// stream.set_ttl(100)?;</span>
-    <span class="doccomment">/// assert_eq!(stream.ttl()?, 100);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#155">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">ttl</span>()
+    <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.
+    ///
+    /// For more information about this option, see [`set_ttl`].
+    ///
+    /// [`set_ttl`]: #method.set_ttl
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    /// stream.set_ttl(100)?;
+    /// assert_eq!(stream.ttl()?, 100);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>ttl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#155">self</a>.watcher.get_ref().ttl()
     }
 
-    <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This value sets the time-to-live field that is used in every packet sent</span>
-    <span class="doccomment">/// from this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// stream.set_ttl(100)?;</span>
-    <span class="doccomment">/// assert_eq!(stream.ttl()?, 100);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#178">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">set_ttl</span>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#178">ttl</a>)
+    <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.
+    ///
+    /// This value sets the time-to-live field that is used in every packet sent
+    /// from this socket.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    /// stream.set_ttl(100)?;
+    /// assert_eq!(stream.ttl()?, 100);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>set_ttl(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#178">self</a>.watcher.get_ref().set_ttl(<a href="../../../../src/async_std/net/tcp/stream.rs.html#178">ttl</a>)
     }
 
-    <span class="doccomment">/// Receives data on the socket from the remote address to which it is connected, without</span>
-    <span class="doccomment">/// removing that data from the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes peeked.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Successive calls return the same data. This is accomplished by passing `MSG_PEEK` as a flag</span>
-    <span class="doccomment">/// to the underlying `recv` system call.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:8000&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![0; 1024];</span>
-    <span class="doccomment">/// let n = stream.peek(&amp;mut buf).await?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">peek</span>(<span class="ident">buf</span>).<span class="kw">await</span>
+    <span class="doccomment">/// Receives data on the socket from the remote address to which it is connected, without
+    /// removing that data from the queue.
+    ///
+    /// On success, returns the number of bytes peeked.
+    ///
+    /// Successive calls return the same data. This is accomplished by passing `MSG_PEEK` as a flag
+    /// to the underlying `recv` system call.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:8000&quot;).await?;
+    ///
+    /// let mut buf = vec![0; 1024];
+    /// let n = stream.peek(&amp;mut buf).await?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="self">self</span>.watcher.peek(buf).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Gets the value of the `TCP_NODELAY` option on this socket.
+    ///
+    /// For more information about this option, see [`set_nodelay`].
+    ///
+    /// [`set_nodelay`]: #method.set_nodelay
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    /// stream.set_nodelay(true)?;
+    /// assert_eq!(stream.nodelay()?, true);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>nodelay(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#228">self</a>.watcher.get_ref().nodelay()
     }
 
-    <span class="doccomment">/// Gets the value of the `TCP_NODELAY` option on this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_nodelay`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_nodelay`]: #method.set_nodelay</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// stream.set_nodelay(true)?;</span>
-    <span class="doccomment">/// assert_eq!(stream.nodelay()?, true);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nodelay</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#228">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">nodelay</span>()
+    <span class="doccomment">/// Sets the value of the `TCP_NODELAY` option on this socket.
+    ///
+    /// If set, this option disables the Nagle algorithm. This means that
+    /// segments are always sent as soon as possible, even if there is only a
+    /// small amount of data. When not set, data is buffered until there is a
+    /// sufficient amount to send out, thereby avoiding the frequent sending of
+    /// small packets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    /// stream.set_nodelay(true)?;
+    /// assert_eq!(stream.nodelay()?, true);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>set_nodelay(<span class="kw-2">&amp;</span><span class="self">self</span>, nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#254">self</a>.watcher.get_ref().set_nodelay(<a href="../../../../src/async_std/net/tcp/stream.rs.html#254">nodelay</a>)
     }
 
-    <span class="doccomment">/// Sets the value of the `TCP_NODELAY` option on this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If set, this option disables the Nagle algorithm. This means that</span>
-    <span class="doccomment">/// segments are always sent as soon as possible, even if there is only a</span>
-    <span class="doccomment">/// small amount of data. When not set, data is buffered until there is a</span>
-    <span class="doccomment">/// sufficient amount to send out, thereby avoiding the frequent sending of</span>
-    <span class="doccomment">/// small packets.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// stream.set_nodelay(true)?;</span>
-    <span class="doccomment">/// assert_eq!(stream.nodelay()?, true);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nodelay</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#254">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">set_nodelay</span>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#254">nodelay</a>)
-    }
-
-    <span class="doccomment">/// Shuts down the read, write, or both halves of this connection.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will cause all pending and future I/O on the specified portions to return</span>
-    <span class="doccomment">/// immediately with an appropriate value (see the documentation of [`Shutdown`]).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Shutdown`]: https://doc.rust-lang.org/std/net/enum.Shutdown.html</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use std::net::Shutdown;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use async_std::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">/// stream.shutdown(Shutdown::Both)?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">how</span>: <a class="ident" href="../../../../async_std/net/enum.Shutdown.html">std::net::Shutdown</a>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#279">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">shutdown</span>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#279">how</a>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../async_std/io/trait.Read.html">Read</a> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#286">self</a>).<a class="ident" href="../../../../async_std/io/trait.Read.html">poll_read</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#287">cx</a>, <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#288">buf</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_read_vectored</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">bufs</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSliceMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#294">self</a>).<a class="ident" href="../../../../async_std/io/trait.Read.html">poll_read_vectored</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#295">cx</a>, <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#296">bufs</a>)
+    <span class="doccomment">/// Shuts down the read, write, or both halves of this connection.
+    ///
+    /// This method will cause all pending and future I/O on the specified portions to return
+    /// immediately with an appropriate value (see the documentation of [`Shutdown`]).
+    ///
+    /// [`Shutdown`]: https://doc.rust-lang.org/std/net/enum.Shutdown.html
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use std::net::Shutdown;
+    ///
+    /// use async_std::net::TcpStream;
+    ///
+    /// let stream = TcpStream::connect(&quot;127.0.0.1:8080&quot;).await?;
+    /// stream.shutdown(Shutdown::Both)?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>, how: <a href="../../../../async_std/net/enum.Shutdown.html">std::net::Shutdown</a>) -&gt; std::io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#279">self</a>.watcher.get_ref().shutdown(<a href="../../../../src/async_std/net/tcp/stream.rs.html#279">how</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../async_std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#304">self</a>.<span class="ident">watcher</span>).<a class="ident" href="../../../../async_std/io/trait.Read.html">poll_read</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#305">cx</a>, <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#306">buf</a>)
+<span class="kw">impl </span><a href="../../../../async_std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+    <span class="kw">fn </span>poll_read(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#286">self</a>).<a href="../../../../async_std/io/trait.Read.html">poll_read</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#287">cx</a>, <a href="../../../../src/async_std/net/tcp/stream.rs.html#288">buf</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_read_vectored</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">bufs</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSliceMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#312">self</a>.<span class="ident">watcher</span>).<a class="ident" href="../../../../async_std/io/trait.Read.html">poll_read_vectored</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#313">cx</a>, <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#314">bufs</a>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../async_std/io/trait.Write.html">Write</a> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#322">self</a>).<a class="ident" href="../../../../async_std/io/trait.Write.html">poll_write</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#323">cx</a>, <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#324">buf</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#330">self</a>).<a class="ident" href="../../../../async_std/io/trait.Write.html">poll_write_vectored</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#331">cx</a>, <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#332">bufs</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#337">self</a>).<a class="ident" href="../../../../async_std/io/trait.Write.html">poll_flush</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#337">cx</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#341">self</a>).<a class="ident" href="../../../../async_std/io/trait.Write.html">poll_close</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#341">cx</a>)
+    <span class="kw">fn </span>poll_read_vectored(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#294">self</a>).<a href="../../../../async_std/io/trait.Read.html">poll_read_vectored</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#295">cx</a>, <a href="../../../../src/async_std/net/tcp/stream.rs.html#296">bufs</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../async_std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#348">self</a>.<span class="ident">watcher</span>).<a class="ident" href="../../../../async_std/io/trait.Write.html">poll_write</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#349">cx</a>, <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#350">buf</a>)
+<span class="kw">impl </span><a href="../../../../async_std/io/trait.Read.html">Read</a> <span class="kw">for </span><span class="kw-2">&amp;</span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+    <span class="kw">fn </span>poll_read(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#304">self</a>.watcher).<a href="../../../../async_std/io/trait.Read.html">poll_read</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#305">cx</a>, <a href="../../../../src/async_std/net/tcp/stream.rs.html#306">buf</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#356">self</a>.<span class="ident">watcher</span>).<a class="ident" href="../../../../async_std/io/trait.Write.html">poll_write_vectored</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#357">cx</a>, <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#358">bufs</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#363">self</a>.<span class="ident">watcher</span>).<a class="ident" href="../../../../async_std/io/trait.Write.html">poll_flush</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#363">cx</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#367">self</a>.<span class="ident">watcher</span>).<a class="ident" href="../../../../async_std/io/trait.Write.html">poll_close</a>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#367">cx</a>)
+    <span class="kw">fn </span>poll_read_vectored(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#312">self</a>.watcher).<a href="../../../../async_std/io/trait.Read.html">poll_read_vectored</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#313">cx</a>, <a href="../../../../src/async_std/net/tcp/stream.rs.html#314">bufs</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-    <span class="doccomment">/// Converts a `std::net::TcpStream` into its asynchronous equivalent.</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>) -&gt; <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-        <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-            <span class="ident">watcher</span>: <span class="ident">Arc::new</span>(<span class="ident">Async::new</span>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#374">stream</a>).<span class="ident">expect</span>(<span class="string">&quot;TcpStream is known to be good&quot;</span>)),
+<span class="kw">impl </span><a href="../../../../async_std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+    <span class="kw">fn </span>poll_write(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#322">self</a>).<a href="../../../../async_std/io/trait.Write.html">poll_write</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#323">cx</a>, <a href="../../../../src/async_std/net/tcp/stream.rs.html#324">buf</a>)
+    }
+
+    <span class="kw">fn </span>poll_write_vectored(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#330">self</a>).<a href="../../../../async_std/io/trait.Write.html">poll_write_vectored</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#331">cx</a>, <a href="../../../../src/async_std/net/tcp/stream.rs.html#332">bufs</a>)
+    }
+
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#337">self</a>).<a href="../../../../async_std/io/trait.Write.html">poll_flush</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#337">cx</a>)
+    }
+
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#341">self</a>).<a href="../../../../async_std/io/trait.Write.html">poll_close</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#341">cx</a>)
+    }
+}
+
+<span class="kw">impl </span><a href="../../../../async_std/io/trait.Write.html">Write</a> <span class="kw">for </span><span class="kw-2">&amp;</span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+    <span class="kw">fn </span>poll_write(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#348">self</a>.watcher).<a href="../../../../async_std/io/trait.Write.html">poll_write</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#349">cx</a>, <a href="../../../../src/async_std/net/tcp/stream.rs.html#350">buf</a>)
+    }
+
+    <span class="kw">fn </span>poll_write_vectored(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#356">self</a>.watcher).<a href="../../../../async_std/io/trait.Write.html">poll_write_vectored</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#357">cx</a>, <a href="../../../../src/async_std/net/tcp/stream.rs.html#358">bufs</a>)
+    }
+
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#363">self</a>.watcher).<a href="../../../../async_std/io/trait.Write.html">poll_flush</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#363">cx</a>)
+    }
+
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut &amp;*</span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#367">self</a>.watcher).<a href="../../../../async_std/io/trait.Write.html">poll_close</a>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#367">cx</a>)
+    }
+}
+
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>&gt; <span class="kw">for </span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+    <span class="doccomment">/// Converts a `std::net::TcpStream` into its asynchronous equivalent.
+    </span><span class="kw">fn </span>from(stream: <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>) -&gt; <a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+        <a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+            watcher: Arc::new(Async::new(<a href="../../../../src/async_std/net/tcp/stream.rs.html#374">stream</a>).expect(<span class="string">&quot;TcpStream is known to be good&quot;</span>)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::convert::TryFrom</span><span class="op">&lt;</span><a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../async_std/io/struct.Error.html">io::Error</a>;
-    <span class="doccomment">/// Converts a `TcpStream` into its synchronous equivalent.</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">stream</span>: <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::try_unwrap</span>(<span class="ident">stream</span>.<span class="ident">watcher</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::Other</span>,
+<span class="kw">impl </span>std::convert::TryFrom&lt;<a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a> {
+    <span class="kw">type </span>Error = <a href="../../../../async_std/io/struct.Error.html">io::Error</a>;
+    <span class="doccomment">/// Converts a `TcpStream` into its synchronous equivalent.
+    </span><span class="kw">fn </span>try_from(stream: <a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>&gt; {
+        <span class="kw">let </span>inner = Arc::try_unwrap(stream.watcher)
+            .map_err(|<span class="kw">_</span>| io::Error::new(
+                io::ErrorKind::Other,
                 <span class="string">&quot;Cannot convert TcpStream to synchronous: multiple references&quot;</span>,
-            ))<span class="question-mark">?</span>
-            .<span class="ident">into_inner</span>()<span class="question-mark">?</span>;
-        <span class="ident">inner</span>.<span class="ident">set_nonblocking</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#385">inner</a>)
+            ))<span class="question-mark">?
+            </span>.into_inner()<span class="question-mark">?</span>;
+        inner.set_nonblocking(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/async_std/net/tcp/stream.rs.html#385">inner</a>)
     }
 }
 
-<span class="macro">cfg_unix!</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::os::unix::io</span>::{<a class="ident" href="../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a>, <a class="ident" href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a>, <a class="ident" href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
+<span class="macro">cfg_unix! </span>{
+    <span class="kw">use </span><span class="kw">crate</span>::os::unix::io::{<a href="../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a href="../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a>, <a href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a>, <a href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
 
-    <span class="kw">impl</span> <a class="ident" href="../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-        <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
-            <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#400">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<a class="ident" href="../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="kw">impl </span><a href="../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
+            <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#400">self</a>.watcher.get_ref().<a href="../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>) -&gt; <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-            <span class="ident">std::net::TcpStream::from_raw_fd</span>(<a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#406">fd</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <span class="kw">impl </span><a href="../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+        <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>) -&gt; <a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+            std::net::TcpStream::from_raw_fd(<a href="../../../../src/async_std/net/tcp/stream.rs.html#406">fd</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
-        <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
-            <span class="comment">// TODO(stjepang): This does not mean `RawFd` is now the sole owner of the file</span>
-            <span class="comment">// descriptor because it&#39;s possible that there are other clones of this `TcpStream`</span>
-            <span class="comment">// using it at the same time. We should probably document that behavior.</span>
-            <a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#412">self</a>.<a class="ident" href="../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="kw">impl </span><a href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../../src/async_std/net/tcp/stream.rs.html#49">TcpStream</a> {
+        <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
+            <span class="comment">// TODO(stjepang): This does not mean `RawFd` is now the sole owner of the file
+            // descriptor because it&#39;s possible that there are other clones of this `TcpStream`
+            // using it at the same time. We should probably document that behavior.
+            </span><a class="self" href="../../../../src/async_std/net/tcp/stream.rs.html#412">self</a>.<a href="../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
         }
     }
 }
 
-<span class="macro">cfg_windows!</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::os::windows::io</span>::{
-        <span class="ident">RawSocket</span>, <span class="ident">AsRawSocket</span>, <span class="ident">FromRawSocket</span>, <span class="ident">IntoRawSocket</span>
+<span class="macro">cfg_windows! </span>{
+    <span class="kw">use </span><span class="kw">crate</span>::os::windows::io::{
+        RawSocket, AsRawSocket, FromRawSocket, IntoRawSocket
     };
 
-    <span class="kw">impl</span> <span class="ident">AsRawSocket</span> <span class="kw">for</span> <span class="ident">TcpStream</span> {
-        <span class="kw">fn</span> <span class="ident">as_raw_socket</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-            <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">as_raw_socket</span>()
+    <span class="kw">impl </span>AsRawSocket <span class="kw">for </span>TcpStream {
+        <span class="kw">fn </span>as_raw_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawSocket {
+            <span class="self">self</span>.watcher.get_ref().as_raw_socket()
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">FromRawSocket</span> <span class="kw">for</span> <span class="ident">TcpStream</span> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_socket</span>(<span class="ident">handle</span>: <span class="ident">RawSocket</span>) -&gt; <span class="ident">TcpStream</span> {
-            <span class="ident">std::net::TcpStream::from_raw_socket</span>(<span class="ident">handle</span>).<span class="ident">into</span>()
+    <span class="kw">impl </span>FromRawSocket <span class="kw">for </span>TcpStream {
+        <span class="kw">unsafe fn </span>from_raw_socket(handle: RawSocket) -&gt; TcpStream {
+            std::net::TcpStream::from_raw_socket(handle).into()
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">IntoRawSocket</span> <span class="kw">for</span> <span class="ident">TcpStream</span> {
-        <span class="kw">fn</span> <span class="ident">into_raw_socket</span>(<span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-            <span class="comment">// TODO(stjepang): This does not mean `RawFd` is now the sole owner of the file</span>
-            <span class="comment">// descriptor because it&#39;s possible that there are other clones of this `TcpStream`</span>
-            <span class="comment">// using it at the same time. We should probably document that behavior.</span>
-            <span class="self">self</span>.<span class="ident">as_raw_socket</span>()
+    <span class="kw">impl </span>IntoRawSocket <span class="kw">for </span>TcpStream {
+        <span class="kw">fn </span>into_raw_socket(<span class="self">self</span>) -&gt; RawSocket {
+            <span class="comment">// TODO(stjepang): This does not mean `RawFd` is now the sole owner of the file
+            // descriptor because it&#39;s possible that there are other clones of this `TcpStream`
+            // using it at the same time. We should probably document that behavior.
+            </span><span class="self">self</span>.as_raw_socket()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

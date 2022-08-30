@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/bytes_codec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytes_codec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/bytes_codec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytes_codec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -84,91 +84,91 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35"><span class="kw">crate</span>::codec::decoder::Decoder</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio_util/codec/encoder.rs.html#8"><span class="kw">crate</span>::codec::encoder::Encoder</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/tokio_util/codec/decoder.rs.html#35"><span class="kw">crate</span>::codec::decoder::Decoder</a>;
+<span class="kw">use </span><a href="../../../src/tokio_util/codec/encoder.rs.html#8"><span class="kw">crate</span>::codec::encoder::Encoder</a>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 
-<span class="doccomment">/// A simple [`Decoder`] and [`Encoder`] implementation that just ships bytes around.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Decoder`]: crate::codec::Decoder</span>
-<span class="doccomment">/// [`Encoder`]: crate::codec::Encoder</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Turn an [`AsyncRead`] into a stream of `Result&lt;`[`BytesMut`]`, `[`Error`]`&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`AsyncRead`]: tokio::io::AsyncRead</span>
-<span class="doccomment">/// [`BytesMut`]: bytes::BytesMut</span>
-<span class="doccomment">/// [`Error`]: std::io::Error</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # mod hidden {</span>
-<span class="doccomment">/// # #[allow(unused_imports)]</span>
-<span class="doccomment">/// use tokio::fs::File;</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// use tokio::io::AsyncRead;</span>
-<span class="doccomment">/// use tokio_util::codec::{FramedRead, BytesCodec};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # enum File {}</span>
-<span class="doccomment">/// # impl File {</span>
-<span class="doccomment">/// #     async fn open(_name: &amp;str) -&gt; Result&lt;impl AsyncRead, std::io::Error&gt; {</span>
-<span class="doccomment">/// #         use std::io::Cursor;</span>
-<span class="doccomment">/// #         Ok(Cursor::new(vec![0, 1, 2, 3, 4, 5]))</span>
-<span class="doccomment">/// #     }</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # #[tokio::main(flavor = &quot;current_thread&quot;)]</span>
-<span class="doccomment">/// # async fn main() -&gt; Result&lt;(), std::io::Error&gt; {</span>
-<span class="doccomment">/// let my_async_read = File::open(&quot;filename.txt&quot;).await?;</span>
-<span class="doccomment">/// let my_stream_of_bytes = FramedRead::new(my_async_read, BytesCodec::new());</span>
-<span class="doccomment">/// # Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Hash</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BytesCodec</span>(());
+<span class="doccomment">/// A simple [`Decoder`] and [`Encoder`] implementation that just ships bytes around.
+///
+/// [`Decoder`]: crate::codec::Decoder
+/// [`Encoder`]: crate::codec::Encoder
+///
+/// # Example
+///
+/// Turn an [`AsyncRead`] into a stream of `Result&lt;`[`BytesMut`]`, `[`Error`]`&gt;`.
+///
+/// [`AsyncRead`]: tokio::io::AsyncRead
+/// [`BytesMut`]: bytes::BytesMut
+/// [`Error`]: std::io::Error
+///
+/// ```
+/// # mod hidden {
+/// # #[allow(unused_imports)]
+/// use tokio::fs::File;
+/// # }
+/// use tokio::io::AsyncRead;
+/// use tokio_util::codec::{FramedRead, BytesCodec};
+///
+/// # enum File {}
+/// # impl File {
+/// #     async fn open(_name: &amp;str) -&gt; Result&lt;impl AsyncRead, std::io::Error&gt; {
+/// #         use std::io::Cursor;
+/// #         Ok(Cursor::new(vec![0, 1, 2, 3, 4, 5]))
+/// #     }
+/// # }
+/// #
+/// # #[tokio::main(flavor = &quot;current_thread&quot;)]
+/// # async fn main() -&gt; Result&lt;(), std::io::Error&gt; {
+/// let my_async_read = File::open(&quot;filename.txt&quot;).await?;
+/// let my_stream_of_bytes = FramedRead::new(my_async_read, BytesCodec::new());
+/// # Ok(())
+/// # }
+/// ```
+///
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
+</span><span class="kw">pub struct </span>BytesCodec(());
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
-    <span class="doccomment">/// Creates a new `BytesCodec` for shipping around raw bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
-        <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a>(())
+<span class="kw">impl </span><a href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
+    <span class="doccomment">/// Creates a new `BytesCodec` for shipping around raw bytes.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
+        <a href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span><a href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
+    <span class="kw">type </span>Item = <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>;
+    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#58">buf</a>.<span class="ident">len</span>();
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#58">buf</a>.<span class="ident">split_to</span>(<a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#60">len</a>)))
-        } <span class="kw">else</span> {
+    <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
+        <span class="kw">if </span>!buf.is_empty() {
+            <span class="kw">let </span>len = <a href="../../../src/tokio_util/codec/bytes_codec.rs.html#58">buf</a>.len();
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/bytes_codec.rs.html#58">buf</a>.split_to(<a href="../../../src/tokio_util/codec/bytes_codec.rs.html#60">len</a>)))
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Encoder</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span>Encoder&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
+    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#71">buf</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#71">data</a>.<span class="ident">len</span>());
-        <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#71">buf</a>.<a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#71">data</a>);
+    <span class="kw">fn </span>encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
+        <a href="../../../src/tokio_util/codec/bytes_codec.rs.html#71">buf</a>.reserve(<a href="../../../src/tokio_util/codec/bytes_codec.rs.html#71">data</a>.len());
+        <a href="../../../src/tokio_util/codec/bytes_codec.rs.html#71">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a href="../../../src/tokio_util/codec/bytes_codec.rs.html#71">data</a>);
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Encoder</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span>Encoder&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt; <span class="kw">for </span><a href="../../../src/tokio_util/codec/bytes_codec.rs.html#45">BytesCodec</a> {
+    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#81">buf</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#81">data</a>.<span class="ident">len</span>());
-        <a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#81">buf</a>.<a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a class="ident" href="../../../src/tokio_util/codec/bytes_codec.rs.html#81">data</a>);
+    <span class="kw">fn </span>encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
+        <a href="../../../src/tokio_util/codec/bytes_codec.rs.html#81">buf</a>.reserve(<a href="../../../src/tokio_util/codec/bytes_codec.rs.html#81">data</a>.len());
+        <a href="../../../src/tokio_util/codec/bytes_codec.rs.html#81">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a href="../../../src/tokio_util/codec/bytes_codec.rs.html#81">data</a>);
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

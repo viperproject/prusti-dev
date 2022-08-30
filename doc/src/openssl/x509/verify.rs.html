@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/x509/verify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/x509/verify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -140,147 +140,147 @@
 <span id="140">140</span>
 <span id="141">141</span>
 <span id="142">142</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../bitflags/macro.bitflags.html">bitflags::bitflags</a>;
-<span class="kw">use</span> <a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">std::net::IpAddr</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../bitflags/macro.bitflags.html">bitflags::bitflags</a>;
+<span class="kw">use </span><a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
+<span class="kw">use </span>libc::{<a href="../../../libc/unix/type.c_uint.html">c_uint</a>, <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">std::net::IpAddr</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/lib.rs.html#194"><span class="kw">crate</span>::cvt</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><a href="../../../src/openssl/lib.rs.html#194"><span class="kw">crate</span>::cvt</a>;
+<span class="kw">use </span><a href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<a class="macro" href="../../../bitflags/macro.bitflags.html">bitflags!</a> {
-    <span class="doccomment">/// Flags used to check an `X509` certificate.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509CheckFlags</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a> {
-        <span class="kw">const</span> <span class="ident">ALWAYS_CHECK_SUBJECT</span> <span class="op">=</span> <span class="ident">ffi::X509_CHECK_FLAG_ALWAYS_CHECK_SUBJECT</span>;
-        <span class="kw">const</span> <span class="ident">NO_WILDCARDS</span> <span class="op">=</span> <span class="ident">ffi::X509_CHECK_FLAG_NO_WILDCARDS</span>;
-        <span class="kw">const</span> <span class="ident">NO_PARTIAL_WILDCARDS</span> <span class="op">=</span> <span class="ident">ffi::X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS</span>;
-        <span class="kw">const</span> <span class="ident">MULTI_LABEL_WILDCARDS</span> <span class="op">=</span> <span class="ident">ffi::X509_CHECK_FLAG_MULTI_LABEL_WILDCARDS</span>;
-        <span class="kw">const</span> <span class="ident">SINGLE_LABEL_SUBDOMAINS</span> <span class="op">=</span> <span class="ident">ffi::X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS</span>;
-        <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>))]</span>
-        <span class="kw">const</span> <span class="ident">NEVER_CHECK_SUBJECT</span> <span class="op">=</span> <span class="ident">ffi::X509_CHECK_FLAG_NEVER_CHECK_SUBJECT</span>;
+<a class="macro" href="../../../bitflags/macro.bitflags.html">bitflags! </a>{
+    <span class="doccomment">/// Flags used to check an `X509` certificate.
+    </span><span class="kw">pub struct </span>X509CheckFlags: <a href="../../../libc/unix/type.c_uint.html">c_uint</a> {
+        <span class="kw">const </span>ALWAYS_CHECK_SUBJECT = ffi::X509_CHECK_FLAG_ALWAYS_CHECK_SUBJECT;
+        <span class="kw">const </span>NO_WILDCARDS = ffi::X509_CHECK_FLAG_NO_WILDCARDS;
+        <span class="kw">const </span>NO_PARTIAL_WILDCARDS = ffi::X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS;
+        <span class="kw">const </span>MULTI_LABEL_WILDCARDS = ffi::X509_CHECK_FLAG_MULTI_LABEL_WILDCARDS;
+        <span class="kw">const </span>SINGLE_LABEL_SUBDOMAINS = ffi::X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS;
+        <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.
+        </span><span class="attribute">#[cfg(any(ossl110))]
+        </span><span class="kw">const </span>NEVER_CHECK_SUBJECT = ffi::X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
 
-        <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.10.6&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;renamed to NO_WILDCARDS&quot;</span>)]</span>
-        <span class="kw">const</span> <span class="ident">FLAG_NO_WILDCARDS</span> <span class="op">=</span> <span class="ident">ffi::X509_CHECK_FLAG_NO_WILDCARDS</span>;
+        <span class="attribute">#[deprecated(since = <span class="string">&quot;0.10.6&quot;</span>, note = <span class="string">&quot;renamed to NO_WILDCARDS&quot;</span>)]
+        </span><span class="kw">const </span>FLAG_NO_WILDCARDS = ffi::X509_CHECK_FLAG_NO_WILDCARDS;
     }
 }
 
-<a class="macro" href="../../../bitflags/macro.bitflags.html">bitflags!</a> {
-    <span class="doccomment">/// Flags used to verify an `X509` certificate chain.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509VerifyFlags</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a> {
-        <span class="kw">const</span> <span class="ident">CB_ISSUER_CHECK</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_CB_ISSUER_CHECK</span>;
-        <span class="kw">const</span> <span class="ident">USE_CHECK_TIME</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_USE_CHECK_TIME</span>;
-        <span class="kw">const</span> <span class="ident">CRL_CHECK</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_CRL_CHECK</span>;
-        <span class="kw">const</span> <span class="ident">CRL_CHECK_ALL</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_CRL_CHECK_ALL</span>;
-        <span class="kw">const</span> <span class="ident">IGNORE_CRITICAL</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_IGNORE_CRITICAL</span>;
-        <span class="kw">const</span> <span class="ident">X509_STRICT</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_X509_STRICT</span>;
-        <span class="kw">const</span> <span class="ident">ALLOW_PROXY_CERTS</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_ALLOW_PROXY_CERTS</span>;
-        <span class="kw">const</span> <span class="ident">POLICY_CHECK</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_POLICY_CHECK</span>;
-        <span class="kw">const</span> <span class="ident">EXPLICIT_POLICY</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_EXPLICIT_POLICY</span>;
-        <span class="kw">const</span> <span class="ident">INHIBIT_ANY</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_INHIBIT_ANY</span>;
-        <span class="kw">const</span> <span class="ident">INHIBIT_MAP</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_INHIBIT_MAP</span>;
-        <span class="kw">const</span> <span class="ident">NOTIFY_POLICY</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_NOTIFY_POLICY</span>;
-        <span class="kw">const</span> <span class="ident">EXTENDED_CRL_SUPPORT</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_EXTENDED_CRL_SUPPORT</span>;
-        <span class="kw">const</span> <span class="ident">USE_DELTAS</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_USE_DELTAS</span>;
-        <span class="kw">const</span> <span class="ident">CHECK_SS_SIGNATURE</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_CHECK_SS_SIGNATURE</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-        <span class="kw">const</span> <span class="ident">TRUSTED_FIRST</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_TRUSTED_FIRST</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-        <span class="kw">const</span> <span class="ident">SUITEB_128_LOS_ONLY</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_SUITEB_128_LOS_ONLY</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-        <span class="kw">const</span> <span class="ident">SUITEB_192_LOS</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_SUITEB_128_LOS</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-        <span class="kw">const</span> <span class="ident">SUITEB_128_LOS</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_SUITEB_192_LOS</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-        <span class="kw">const</span> <span class="ident">PARTIAL_CHAIN</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_PARTIAL_CHAIN</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-        <span class="kw">const</span> <span class="ident">NO_ALT_CHAINS</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_NO_ALT_CHAINS</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-        <span class="kw">const</span> <span class="ident">NO_CHECK_TIME</span> <span class="op">=</span> <span class="ident">ffi::X509_V_FLAG_NO_CHECK_TIME</span>;
+<a class="macro" href="../../../bitflags/macro.bitflags.html">bitflags! </a>{
+    <span class="doccomment">/// Flags used to verify an `X509` certificate chain.
+    </span><span class="kw">pub struct </span>X509VerifyFlags: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a> {
+        <span class="kw">const </span>CB_ISSUER_CHECK = ffi::X509_V_FLAG_CB_ISSUER_CHECK;
+        <span class="kw">const </span>USE_CHECK_TIME = ffi::X509_V_FLAG_USE_CHECK_TIME;
+        <span class="kw">const </span>CRL_CHECK = ffi::X509_V_FLAG_CRL_CHECK;
+        <span class="kw">const </span>CRL_CHECK_ALL = ffi::X509_V_FLAG_CRL_CHECK_ALL;
+        <span class="kw">const </span>IGNORE_CRITICAL = ffi::X509_V_FLAG_IGNORE_CRITICAL;
+        <span class="kw">const </span>X509_STRICT = ffi::X509_V_FLAG_X509_STRICT;
+        <span class="kw">const </span>ALLOW_PROXY_CERTS = ffi::X509_V_FLAG_ALLOW_PROXY_CERTS;
+        <span class="kw">const </span>POLICY_CHECK = ffi::X509_V_FLAG_POLICY_CHECK;
+        <span class="kw">const </span>EXPLICIT_POLICY = ffi::X509_V_FLAG_EXPLICIT_POLICY;
+        <span class="kw">const </span>INHIBIT_ANY = ffi::X509_V_FLAG_INHIBIT_ANY;
+        <span class="kw">const </span>INHIBIT_MAP = ffi::X509_V_FLAG_INHIBIT_MAP;
+        <span class="kw">const </span>NOTIFY_POLICY = ffi::X509_V_FLAG_NOTIFY_POLICY;
+        <span class="kw">const </span>EXTENDED_CRL_SUPPORT = ffi::X509_V_FLAG_EXTENDED_CRL_SUPPORT;
+        <span class="kw">const </span>USE_DELTAS = ffi::X509_V_FLAG_USE_DELTAS;
+        <span class="kw">const </span>CHECK_SS_SIGNATURE = ffi::X509_V_FLAG_CHECK_SS_SIGNATURE;
+        <span class="attribute">#[cfg(ossl102)]
+        </span><span class="kw">const </span>TRUSTED_FIRST = ffi::X509_V_FLAG_TRUSTED_FIRST;
+        <span class="attribute">#[cfg(ossl102)]
+        </span><span class="kw">const </span>SUITEB_128_LOS_ONLY = ffi::X509_V_FLAG_SUITEB_128_LOS_ONLY;
+        <span class="attribute">#[cfg(ossl102)]
+        </span><span class="kw">const </span>SUITEB_192_LOS = ffi::X509_V_FLAG_SUITEB_128_LOS;
+        <span class="attribute">#[cfg(ossl102)]
+        </span><span class="kw">const </span>SUITEB_128_LOS = ffi::X509_V_FLAG_SUITEB_192_LOS;
+        <span class="attribute">#[cfg(ossl102)]
+        </span><span class="kw">const </span>PARTIAL_CHAIN = ffi::X509_V_FLAG_PARTIAL_CHAIN;
+        <span class="attribute">#[cfg(ossl110)]
+        </span><span class="kw">const </span>NO_ALT_CHAINS = ffi::X509_V_FLAG_NO_ALT_CHAINS;
+        <span class="attribute">#[cfg(ossl110)]
+        </span><span class="kw">const </span>NO_CHECK_TIME = ffi::X509_V_FLAG_NO_CHECK_TIME;
     }
 }
 
-<a class="macro" href="../../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509_VERIFY_PARAM.html">ffi::X509_VERIFY_PARAM</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::X509_VERIFY_PARAM_free</span>;
+<a class="macro" href="../../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../../openssl_sys/handwritten/types/enum.X509_VERIFY_PARAM.html">ffi::X509_VERIFY_PARAM</a>;
+    <span class="kw">fn </span>drop = ffi::X509_VERIFY_PARAM_free;
 
-    <span class="doccomment">/// Adjust parameters associated with certificate verification.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509VerifyParam</span>;
-    <span class="doccomment">/// Reference to `X509VerifyParam`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509VerifyParamRef</span>;
+    <span class="doccomment">/// Adjust parameters associated with certificate verification.
+    </span><span class="kw">pub struct </span>X509VerifyParam;
+    <span class="doccomment">/// Reference to `X509VerifyParam`.
+    </span><span class="kw">pub struct </span>X509VerifyParamRef;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/verify.rs.html#62-70">X509VerifyParamRef</a> {
-    <span class="doccomment">/// Set the host flags.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_VERIFY_PARAM_set_hostflags</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_hostflags</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">hostflags</span>: <a class="ident" href="../../../src/openssl/x509/verify.rs.html#10-25">X509CheckFlags</a>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">ffi::X509_VERIFY_PARAM_set_hostflags</span>(<a class="self" href="../../../src/openssl/x509/verify.rs.html#75">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../../src/openssl/x509/verify.rs.html#75">hostflags</a>.<span class="ident">bits</span>);
+<span class="kw">impl </span><a href="../../../src/openssl/x509/verify.rs.html#62-70">X509VerifyParamRef</a> {
+    <span class="doccomment">/// Set the host flags.
+    </span><span class="attribute">#[corresponds(X509_VERIFY_PARAM_set_hostflags)]
+    </span><span class="kw">pub fn </span>set_hostflags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hostflags: <a href="../../../src/openssl/x509/verify.rs.html#10-25">X509CheckFlags</a>) {
+        <span class="kw">unsafe </span>{
+            ffi::X509_VERIFY_PARAM_set_hostflags(<a class="self" href="../../../src/openssl/x509/verify.rs.html#75">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="../../../src/openssl/x509/verify.rs.html#75">hostflags</a>.bits);
         }
     }
 
-    <span class="doccomment">/// Set verification flags.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_VERIFY_PARAM_set_flags</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">flags</span>: <a class="ident" href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::X509_VERIFY_PARAM_set_flags</span>(<a class="self" href="../../../src/openssl/x509/verify.rs.html#83">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../../src/openssl/x509/verify.rs.html#83">flags</a>.<span class="ident">bits</span>)).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()) }
+    <span class="doccomment">/// Set verification flags.
+    </span><span class="attribute">#[corresponds(X509_VERIFY_PARAM_set_flags)]
+    </span><span class="kw">pub fn </span>set_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flags: <a href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="../../../src/openssl/lib.rs.html#194">cvt</a>(ffi::X509_VERIFY_PARAM_set_flags(<a class="self" href="../../../src/openssl/x509/verify.rs.html#83">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="../../../src/openssl/x509/verify.rs.html#83">flags</a>.bits)).map(|<span class="kw">_</span>| ()) }
     }
 
-    <span class="doccomment">/// Clear verification flags.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_VERIFY_PARAM_clear_flags</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_flags</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">flags</span>: <a class="ident" href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::X509_VERIFY_PARAM_clear_flags</span>(
-                <a class="self" href="../../../src/openssl/x509/verify.rs.html#89">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../../src/openssl/x509/verify.rs.html#89">flags</a>.<span class="ident">bits</span>,
+    <span class="doccomment">/// Clear verification flags.
+    </span><span class="attribute">#[corresponds(X509_VERIFY_PARAM_clear_flags)]
+    </span><span class="kw">pub fn </span>clear_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flags: <a href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../../src/openssl/lib.rs.html#194">cvt</a>(ffi::X509_VERIFY_PARAM_clear_flags(
+                <a class="self" href="../../../src/openssl/x509/verify.rs.html#89">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../../src/openssl/x509/verify.rs.html#89">flags</a>.bits,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Gets verification flags.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_VERIFY_PARAM_get_flags</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a> {
-        <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi::X509_VERIFY_PARAM_get_flags</span>(<a class="self" href="../../../src/openssl/x509/verify.rs.html#101">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
-        <a class="ident" href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a> { <a class="ident" href="../../../src/openssl/x509/verify.rs.html#102">bits</a> }
+    <span class="doccomment">/// Gets verification flags.
+    </span><span class="attribute">#[corresponds(X509_VERIFY_PARAM_get_flags)]
+    </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a> {
+        <span class="kw">let </span>bits = <span class="kw">unsafe </span>{ ffi::X509_VERIFY_PARAM_get_flags(<a class="self" href="../../../src/openssl/x509/verify.rs.html#101">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
+        <a href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a> { <a href="../../../src/openssl/x509/verify.rs.html#102">bits</a> }
     }
 
-    <span class="doccomment">/// Set the expected DNS hostname.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_VERIFY_PARAM_set1_host</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_host</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">host</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::X509_VERIFY_PARAM_set1_host</span>(
-                <a class="self" href="../../../src/openssl/x509/verify.rs.html#108">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../../src/openssl/x509/verify.rs.html#108">host</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../../src/openssl/x509/verify.rs.html#108">host</a>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Set the expected DNS hostname.
+    </span><span class="attribute">#[corresponds(X509_VERIFY_PARAM_set1_host)]
+    </span><span class="kw">pub fn </span>set_host(<span class="kw-2">&amp;mut </span><span class="self">self</span>, host: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../../src/openssl/lib.rs.html#194">cvt</a>(ffi::X509_VERIFY_PARAM_set1_host(
+                <a class="self" href="../../../src/openssl/x509/verify.rs.html#108">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../../src/openssl/x509/verify.rs.html#108">host</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <a href="../../../src/openssl/x509/verify.rs.html#108">host</a>.len(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Set the expected IPv4 or IPv6 address.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_VERIFY_PARAM_set1_ip</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ip</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ip</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/openssl/x509/verify.rs.html#121">ip</a> {
-                <span class="ident">IpAddr::V4</span>(<span class="ident">addr</span>) =&gt; {
-                    <a class="ident" href="../../../src/openssl/x509/verify.rs.html#123">buf</a>[..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/verify.rs.html#125">addr</a>.<span class="ident">octets</span>());
-                    <span class="number">4</span>
-                }
-                <span class="ident">IpAddr::V6</span>(<span class="ident">addr</span>) =&gt; {
-                    <a class="ident" href="../../../src/openssl/x509/verify.rs.html#123">buf</a>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/verify.rs.html#129">addr</a>.<span class="ident">octets</span>());
-                    <span class="number">16</span>
-                }
+    <span class="doccomment">/// Set the expected IPv4 or IPv6 address.
+    </span><span class="attribute">#[corresponds(X509_VERIFY_PARAM_set1_ip)]
+    </span><span class="kw">pub fn </span>set_ip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ip: <a href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">16</span>];
+            <span class="kw">let </span>len = <span class="kw">match </span><a href="../../../src/openssl/x509/verify.rs.html#121">ip</a> {
+                IpAddr::V4(addr) =&gt; {
+                    <a href="../../../src/openssl/x509/verify.rs.html#123">buf</a>[..<span class="number">4</span>].copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/verify.rs.html#125">addr</a>.octets());
+                    <span class="number">4
+                </span>}
+                IpAddr::V6(addr) =&gt; {
+                    <a href="../../../src/openssl/x509/verify.rs.html#123">buf</a>.copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/verify.rs.html#129">addr</a>.octets());
+                    <span class="number">16
+                </span>}
             };
-            <a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::X509_VERIFY_PARAM_set1_ip</span>(
-                <a class="self" href="../../../src/openssl/x509/verify.rs.html#121">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../../src/openssl/x509/verify.rs.html#123">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../../src/openssl/x509/verify.rs.html#124">len</a>,
+            <a href="../../../src/openssl/lib.rs.html#194">cvt</a>(ffi::X509_VERIFY_PARAM_set1_ip(
+                <a class="self" href="../../../src/openssl/x509/verify.rs.html#121">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../../src/openssl/x509/verify.rs.html#123">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <a href="../../../src/openssl/x509/verify.rs.html#124">len</a>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

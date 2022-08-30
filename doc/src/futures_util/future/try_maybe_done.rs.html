@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/future/try_maybe_done.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_maybe_done.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/future/try_maybe_done.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_maybe_done.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -90,97 +90,97 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Definition of the TryMaybeDone combinator</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Definition of the TryMaybeDone combinator
 
-<span class="kw">use</span> <a class="ident" href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">futures_core::future</span>::{<a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>};
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span><a href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>futures_core::future::{<a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>};
+<span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// A future that may have completed with an error.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is created by the [`try_maybe_done()`] function.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TryMaybeDone</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a><span class="op">&gt;</span> {
-    <span class="doccomment">/// A not-yet-completed future</span>
-    <span class="ident">Future</span>(<span class="comment">/* #[pin] */</span> <span class="ident">Fut</span>),
-    <span class="doccomment">/// The output of the completed future</span>
-    <span class="ident">Done</span>(<span class="ident">Fut::Ok</span>),
-    <span class="doccomment">/// The empty variant after the result of a [`TryMaybeDone`] has been</span>
-    <span class="doccomment">/// taken using the [`take_output`](TryMaybeDone::take_output) method,</span>
-    <span class="doccomment">/// or if the future returned an error.</span>
-    <span class="ident">Gone</span>,
+<span class="doccomment">/// A future that may have completed with an error.
+///
+/// This is created by the [`try_maybe_done()`] function.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>TryMaybeDone&lt;Fut: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>&gt; {
+    <span class="doccomment">/// A not-yet-completed future
+    </span>Future(<span class="comment">/* #[pin] */ </span>Fut),
+    <span class="doccomment">/// The output of the completed future
+    </span>Done(Fut::Ok),
+    <span class="doccomment">/// The empty variant after the result of a [`TryMaybeDone`] has been
+    /// taken using the [`take_output`](TryMaybeDone::take_output) method,
+    /// or if the future returned an error.
+    </span>Gone,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">TryMaybeDone</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;Fut: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>TryMaybeDone&lt;Fut&gt; {}
 
-<span class="doccomment">/// Wraps a future into a `TryMaybeDone`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_maybe_done</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">Fut</span>) -&gt; <span class="ident">TryMaybeDone</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fut::Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#16">TryMaybeDone::Future</a>(<a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#28">future</a>))
+<span class="doccomment">/// Wraps a future into a `TryMaybeDone`
+</span><span class="kw">pub fn </span>try_maybe_done&lt;Fut: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>&gt;(future: Fut) -&gt; TryMaybeDone&lt;Fut&gt; {
+    assert_future::&lt;<span class="prelude-ty">Result</span>&lt;(), Fut::Error&gt;, <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/future/try_maybe_done.rs.html#16">TryMaybeDone::Future</a>(<a href="../../../src/futures_util/future/try_maybe_done.rs.html#28">future</a>))
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a><span class="op">&gt;</span> <span class="ident">TryMaybeDone</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Returns an [`Option`] containing a mutable reference to the output of the future.</span>
-    <span class="doccomment">/// The output of this method will be [`Some`] if and only if the inner</span>
-    <span class="doccomment">/// future has completed successfully and [`take_output`](TryMaybeDone::take_output)</span>
-    <span class="doccomment">/// has not yet been called.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_mut</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Fut::Ok</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#38">self</a>.<span class="ident">get_unchecked_mut</span>() {
-                <a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#18">TryMaybeDone::Done</a>(<span class="ident">res</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#41">res</a>),
-                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;Fut: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>&gt; TryMaybeDone&lt;Fut&gt; {
+    <span class="doccomment">/// Returns an [`Option`] containing a mutable reference to the output of the future.
+    /// The output of this method will be [`Some`] if and only if the inner
+    /// future has completed successfully and [`take_output`](TryMaybeDone::take_output)
+    /// has not yet been called.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>output_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Fut::Ok&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#38">self</a>.get_unchecked_mut() {
+                <a href="../../../src/futures_util/future/try_maybe_done.rs.html#18">TryMaybeDone::Done</a>(res) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/futures_util/future/try_maybe_done.rs.html#41">res</a>),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         }
     }
 
-    <span class="doccomment">/// Attempt to take the output of a `TryMaybeDone` without driving it</span>
-    <span class="doccomment">/// towards completion.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_output</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Fut::Ok</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#50">self</a> {
-            <span class="ident"><span class="self">Self</span>::Done</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="ident"><span class="self">Self</span>::Future</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Gone</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Attempt to take the output of a `TryMaybeDone` without driving it
+    /// towards completion.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>take_output(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Fut::Ok&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self"><a href="../../../src/futures_util/future/try_maybe_done.rs.html#50">self</a> </span>{
+            <span class="self">Self</span>::Done(<span class="kw">_</span>) =&gt; {}
+            <span class="self">Self</span>::Future(<span class="kw">_</span>) | <span class="self">Self</span>::Gone =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         }
-        <span class="kw">unsafe</span> {
-            <span class="kw">match</span> <span class="ident">mem::replace</span>(<a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#50">self</a>.<span class="ident">get_unchecked_mut</span>(), <span class="ident"><span class="self">Self</span>::Gone</span>) {
-                <a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#18">TryMaybeDone::Done</a>(<span class="ident">output</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#57">output</a>),
-                <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">unsafe </span>{
+            <span class="kw">match </span>mem::replace(<a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#50">self</a>.get_unchecked_mut(), <span class="self">Self</span>::Gone) {
+                <a href="../../../src/futures_util/future/try_maybe_done.rs.html#18">TryMaybeDone::Done</a>(output) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/futures_util/future/try_maybe_done.rs.html#57">output</a>),
+                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for</span> <span class="ident">TryMaybeDone</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#65">self</a> {
-            <span class="ident"><span class="self">Self</span>::Future</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::Done</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Gone</span> =&gt; <span class="bool-val">true</span>,
+<span class="kw">impl</span>&lt;Fut: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>&gt; <a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>TryMaybeDone&lt;Fut&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../src/futures_util/future/try_maybe_done.rs.html#65">self</a> </span>{
+            <span class="self">Self</span>::Future(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::Done(<span class="kw">_</span>) | <span class="self">Self</span>::Gone =&gt; <span class="bool-val">true</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">TryMaybeDone</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fut::Error</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;Fut: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>TryMaybeDone&lt;Fut&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), Fut::Error&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#76">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>() {
-                <a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#16">TryMaybeDone::Future</a>(<span class="ident">f</span>) =&gt; <span class="kw">match</span> <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">Pin::new_unchecked</span>(<span class="ident">f</span>).<span class="ident">try_poll</span>(<span class="ident">cx</span>)) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; <a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#76">self</a>.<span class="ident">set</span>(<span class="ident"><span class="self">Self</span>::Done</span>(<a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#80">res</a>)),
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                        <a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#76">self</a>.<span class="ident">set</span>(<span class="ident"><span class="self">Self</span>::Gone</span>);
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#81">e</a>));
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#76">self</a>.as_mut().get_unchecked_mut() {
+                <a href="../../../src/futures_util/future/try_maybe_done.rs.html#16">TryMaybeDone::Future</a>(f) =&gt; <span class="kw">match </span><a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(Pin::new_unchecked(f).try_poll(cx)) {
+                    <span class="prelude-val">Ok</span>(res) =&gt; <a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#76">self</a>.set(<span class="self">Self</span>::Done(<a href="../../../src/futures_util/future/try_maybe_done.rs.html#80">res</a>)),
+                    <span class="prelude-val">Err</span>(e) =&gt; {
+                        <a class="self" href="../../../src/futures_util/future/try_maybe_done.rs.html#76">self</a>.set(<span class="self">Self</span>::Gone);
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/futures_util/future/try_maybe_done.rs.html#81">e</a>));
                     }
                 },
-                <a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#18">TryMaybeDone::Done</a>(<span class="kw">_</span>) =&gt; {}
-                <a class="ident" href="../../../src/futures_util/future/try_maybe_done.rs.html#22">TryMaybeDone::Gone</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;TryMaybeDone polled after value taken&quot;</span>),
+                <a href="../../../src/futures_util/future/try_maybe_done.rs.html#18">TryMaybeDone::Done</a>(<span class="kw">_</span>) =&gt; {}
+                <a href="../../../src/futures_util/future/try_maybe_done.rs.html#22">TryMaybeDone::Gone</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;TryMaybeDone polled after value taken&quot;</span>),
             }
         }
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+        Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

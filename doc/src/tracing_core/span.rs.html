@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
                         <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -341,346 +341,346 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Spans represent periods of time in the execution of a program.</span>
-<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/field.rs.html#158"><span class="kw">crate</span>::field::FieldSet</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/parent.rs.html#4"><span class="kw">crate</span>::parent::Parent</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html"><span class="kw">crate</span>::stdlib::num::NonZeroU64</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/tracing_core/lib.rs.html#274">field</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>};
+</pre><pre class="rust"><code><span class="doccomment">//! Spans represent periods of time in the execution of a program.
+</span><span class="kw">use </span><a href="../../src/tracing_core/field.rs.html#158"><span class="kw">crate</span>::field::FieldSet</a>;
+<span class="kw">use </span><a href="../../src/tracing_core/parent.rs.html#4"><span class="kw">crate</span>::parent::Parent</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html"><span class="kw">crate</span>::stdlib::num::NonZeroU64</a>;
+<span class="kw">use crate</span>::{<a href="../../src/tracing_core/lib.rs.html#274">field</a>, <a href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>};
 
-<span class="doccomment">/// Identifies a span within the context of a subscriber.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// They are generated by [`Subscriber`]s for each span as it is created, by</span>
-<span class="doccomment">/// the [`new_span`] trait method. See the documentation for that method for</span>
-<span class="doccomment">/// more information on span ID generation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-<span class="doccomment">/// [`new_span`]: super::subscriber::Subscriber::new_span</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Id</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html">NonZeroU64</a>);
+<span class="doccomment">/// Identifies a span within the context of a subscriber.
+///
+/// They are generated by [`Subscriber`]s for each span as it is created, by
+/// the [`new_span`] trait method. See the documentation for that method for
+/// more information on span ID generation.
+///
+/// [`Subscriber`]: super::subscriber::Subscriber
+/// [`new_span`]: super::subscriber::Subscriber::new_span
+</span><span class="attribute">#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>Id(<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html">NonZeroU64</a>);
 
-<span class="doccomment">/// Attributes provided to a `Subscriber` describing a new span when it is</span>
-<span class="doccomment">/// created.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
-    <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">parent</span>: <a class="ident" href="../../src/tracing_core/parent.rs.html#4">Parent</a>,
+<span class="doccomment">/// Attributes provided to a `Subscriber` describing a new span when it is
+/// created.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Attributes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
+    values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;,
+    parent: <a href="../../src/tracing_core/parent.rs.html#4">Parent</a>,
 }
 
-<span class="doccomment">/// A set of fields recorded by a span.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Record</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A set of fields recorded by a span.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Record&lt;<span class="lifetime">&#39;a</span>&gt; {
+    values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="doccomment">/// Indicates what [the `Subscriber` considers] the &quot;current&quot; span.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// As subscribers may not track a notion of a current span, this has three</span>
-<span class="doccomment">/// possible states:</span>
-<span class="doccomment">/// - &quot;unknown&quot;, indicating that the subscriber does not track a current span,</span>
-<span class="doccomment">/// - &quot;none&quot;, indicating that the current context is known to not be in a span,</span>
-<span class="doccomment">/// - &quot;some&quot;, with the current span&#39;s [`Id`] and [`Metadata`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [the `Subscriber` considers]: super::subscriber::Subscriber::current_span</span>
-<span class="doccomment">/// [`Metadata`]: super::metadata::Metadata</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Current</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#49">CurrentInner</a>,
+<span class="doccomment">/// Indicates what [the `Subscriber` considers] the &quot;current&quot; span.
+///
+/// As subscribers may not track a notion of a current span, this has three
+/// possible states:
+/// - &quot;unknown&quot;, indicating that the subscriber does not track a current span,
+/// - &quot;none&quot;, indicating that the current context is known to not be in a span,
+/// - &quot;some&quot;, with the current span&#39;s [`Id`] and [`Metadata`].
+///
+/// [the `Subscriber` considers]: super::subscriber::Subscriber::current_span
+/// [`Metadata`]: super::metadata::Metadata
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Current {
+    inner: <a href="../../src/tracing_core/span.rs.html#49">CurrentInner</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">CurrentInner</span> {
-    <span class="ident">Current</span> {
-        <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a>,
-        <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>CurrentInner {
+    Current {
+        id: <a href="../../src/tracing_core/span.rs.html#16">Id</a>,
+        metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
     },
     <span class="prelude-val">None</span>,
-    <span class="ident">Unknown</span>,
+    Unknown,
 }
 
-<span class="comment">// ===== impl Span =====</span>
+<span class="comment">// ===== impl Span =====
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a> {
-    <span class="doccomment">/// Constructs a new span ID from the given `u64`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
-    <span class="doccomment">///     &lt;strong&gt;Note&lt;/strong&gt;: Span IDs must be greater than zero.</span>
-    <span class="doccomment">/// &lt;/pre&gt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">/// - If the provided `u64` is 0.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">u</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a>(<span class="ident">NonZeroU64::new</span>(<a class="ident" href="../../src/tracing_core/span.rs.html#69">u</a>).<span class="ident">expect</span>(<span class="string">&quot;span IDs must be &gt; 0&quot;</span>))
+</span><span class="kw">impl </span><a href="../../src/tracing_core/span.rs.html#16">Id</a> {
+    <span class="doccomment">/// Constructs a new span ID from the given `u64`.
+    ///
+    /// &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;
+    ///     &lt;strong&gt;Note&lt;/strong&gt;: Span IDs must be greater than zero.
+    /// &lt;/pre&gt;
+    ///
+    /// # Panics
+    /// - If the provided `u64` is 0.
+    </span><span class="kw">pub fn </span>from_u64(u: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/span.rs.html#16">Id</a>(NonZeroU64::new(<a href="../../src/tracing_core/span.rs.html#69">u</a>).expect(<span class="string">&quot;span IDs must be &gt; 0&quot;</span>))
     }
 
-    <span class="doccomment">/// Constructs a new span ID from the given `NonZeroU64`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Unlike [`Id::from_u64`](Id::from_u64()), this will never panic.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_non_zero_u64</span>(<span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html">NonZeroU64</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#77">id</a>)
+    <span class="doccomment">/// Constructs a new span ID from the given `NonZeroU64`.
+    ///
+    /// Unlike [`Id::from_u64`](Id::from_u64()), this will never panic.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>from_non_zero_u64(id: <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html">NonZeroU64</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/span.rs.html#16">Id</a>(<a href="../../src/tracing_core/span.rs.html#77">id</a>)
     }
 
-    <span class="comment">// Allow `into` by-ref since we don&#39;t want to impl Copy for Id</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="doccomment">/// Returns the span&#39;s ID as a `u64`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#84">self</a>.<span class="number">0</span>.<span class="ident">get</span>()
+    <span class="comment">// Allow `into` by-ref since we don&#39;t want to impl Copy for Id
+    </span><span class="attribute">#[allow(clippy::wrong_self_convention)]
+    </span><span class="doccomment">/// Returns the span&#39;s ID as a `u64`.
+    </span><span class="kw">pub fn </span>into_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#84">self</a>.<span class="number">0</span>.get()
     }
 
-    <span class="comment">// Allow `into` by-ref since we don&#39;t want to impl Copy for Id</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="doccomment">/// Returns the span&#39;s ID as a `NonZeroU64`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">into_non_zero_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html">NonZeroU64</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#92">self</a>.<span class="number">0</span>
-    }
+    <span class="comment">// Allow `into` by-ref since we don&#39;t want to impl Copy for Id
+    </span><span class="attribute">#[allow(clippy::wrong_self_convention)]
+    </span><span class="doccomment">/// Returns the span&#39;s ID as a `NonZeroU64`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>into_non_zero_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html">NonZeroU64</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#92">self</a>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a>) -&gt; <span class="self">Self</span> {
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/span.rs.html#98">id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-    }
-}
-
-<span class="comment">// ===== impl Attributes =====</span>
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Returns `Attributes` describing a new child span of the current span,</span>
-    <span class="doccomment">/// with the provided metadata and values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/span.rs.html#21">Attributes</a> {
-            <a class="ident" href="../../src/tracing_core/span.rs.html#108">metadata</a>,
-            <a class="ident" href="../../src/tracing_core/span.rs.html#108">values</a>,
-            <span class="ident">parent</span>: <a class="ident" href="../../src/tracing_core/parent.rs.html#8">Parent::Current</a>,
-        }
-    }
-
-    <span class="doccomment">/// Returns `Attributes` describing a new span at the root of its own trace</span>
-    <span class="doccomment">/// tree, with the provided metadata and values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_root</span>(<span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/span.rs.html#21">Attributes</a> {
-            <a class="ident" href="../../src/tracing_core/span.rs.html#118">metadata</a>,
-            <a class="ident" href="../../src/tracing_core/span.rs.html#118">values</a>,
-            <span class="ident">parent</span>: <a class="ident" href="../../src/tracing_core/parent.rs.html#6">Parent::Root</a>,
-        }
-    }
-
-    <span class="doccomment">/// Returns `Attributes` describing a new child span of the specified</span>
-    <span class="doccomment">/// parent span, with the provided metadata and values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">child_of</span>(
-        <span class="ident">parent</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a>,
-        <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
-        <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/span.rs.html#21">Attributes</a> {
-            <a class="ident" href="../../src/tracing_core/span.rs.html#130">metadata</a>,
-            <a class="ident" href="../../src/tracing_core/span.rs.html#131">values</a>,
-            <span class="ident">parent</span>: <a class="ident" href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#129">parent</a>),
-        }
-    }
-
-    <span class="doccomment">/// Returns a reference to the new span&#39;s metadata.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#141">self</a>.<span class="ident">metadata</span>
-    }
-
-    <span class="doccomment">/// Returns a reference to a `ValueSet` containing any values the new span</span>
-    <span class="doccomment">/// was created with.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#147">self</a>.<span class="ident">values</span>
-    }
-
-    <span class="doccomment">/// Returns true if the new span should be a root.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">parent</span>, <span class="ident">Parent::Root</span>)
-    }
-
-    <span class="doccomment">/// Returns true if the new span&#39;s parent should be determined based on the</span>
-    <span class="doccomment">/// current context.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this is true and the current thread is currently inside a span, then</span>
-    <span class="doccomment">/// that span should be the new span&#39;s parent. Otherwise, if the current</span>
-    <span class="doccomment">/// thread is _not_ inside a span, then the new span will be the root of its</span>
-    <span class="doccomment">/// own trace tree.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_contextual</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">parent</span>, <span class="ident">Parent::Current</span>)
-    }
-
-    <span class="doccomment">/// Returns the new span&#39;s explicitly-specified parent, if there is one.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Otherwise (if the new span is a root or is a child of the current span),</span>
-    <span class="doccomment">/// returns `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/tracing_core/span.rs.html#171">self</a>.<span class="ident">parent</span> {
-            <a class="ident" href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<span class="kw-2">ref</span> <span class="ident">p</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/span.rs.html#173">p</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/// Records all the fields in this set of `Attributes` with the provided</span>
-    <span class="doccomment">/// [Visitor].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [visitor]: super::field::Visit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
-        <a class="self" href="../../src/tracing_core/span.rs.html#182">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#990">record</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#182">visitor</a>)
-    }
-
-    <span class="doccomment">/// Returns `true` if this set of `Attributes` contains a value for the</span>
-    <span class="doccomment">/// given `Field`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#133">field::Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#188">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1016">contains</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#188">field</a>)
-    }
-
-    <span class="doccomment">/// Returns true if this set of `Attributes` contains _no_ values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#193">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1025">is_empty</a>()
-    }
-
-    <span class="doccomment">/// Returns the set of all [fields] defined by this span&#39;s [`Metadata`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that the [`FieldSet`] returned by this method includes *all* the</span>
-    <span class="doccomment">/// fields declared by this span, not just those with values that are recorded</span>
-    <span class="doccomment">/// as part of this set of `Attributes`. Other fields with values not present in</span>
-    <span class="doccomment">/// this `Attributes`&#39; value set may [record] values later.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [fields]: crate::field</span>
-    <span class="doccomment">/// [record]: Attributes::record()</span>
-    <span class="doccomment">/// [`Metadata`]: crate::metadata::Metadata</span>
-    <span class="doccomment">/// [`FieldSet`]: crate::field::FieldSet</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#158">FieldSet</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#208">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1032">field_set</a>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; {
+    <span class="kw">fn </span>from(id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#16">Id</a>) -&gt; <span class="self">Self </span>{
+        <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/span.rs.html#98">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 }
 
-<span class="comment">// ===== impl Record =====</span>
+<span class="comment">// ===== impl Attributes =====
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Record</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs a new `Record` from a `ValueSet`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../src/tracing_core/span.rs.html#217">values</a> }
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Attributes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Returns `Attributes` describing a new child span of the current span,
+    /// with the provided metadata and values.
+    </span><span class="kw">pub fn </span>new(metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/span.rs.html#21">Attributes</a> {
+            <a href="../../src/tracing_core/span.rs.html#108">metadata</a>,
+            <a href="../../src/tracing_core/span.rs.html#108">values</a>,
+            parent: <a href="../../src/tracing_core/parent.rs.html#8">Parent::Current</a>,
+        }
     }
 
-    <span class="doccomment">/// Records all the fields in this `Record` with the provided [Visitor].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [visitor]: super::field::Visit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
-        <a class="self" href="../../src/tracing_core/span.rs.html#224">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#990">record</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#224">visitor</a>)
+    <span class="doccomment">/// Returns `Attributes` describing a new span at the root of its own trace
+    /// tree, with the provided metadata and values.
+    </span><span class="kw">pub fn </span>new_root(metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/span.rs.html#21">Attributes</a> {
+            <a href="../../src/tracing_core/span.rs.html#118">metadata</a>,
+            <a href="../../src/tracing_core/span.rs.html#118">values</a>,
+            parent: <a href="../../src/tracing_core/parent.rs.html#6">Parent::Root</a>,
+        }
     }
 
-    <span class="doccomment">/// Returns the number of fields that would be visited from this `Record`</span>
-    <span class="doccomment">/// when [`Record::record()`] is called</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Record::record()`]: Record::record()</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#232">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1007">len</a>()
+    <span class="doccomment">/// Returns `Attributes` describing a new child span of the specified
+    /// parent span, with the provided metadata and values.
+    </span><span class="kw">pub fn </span>child_of(
+        parent: <a href="../../src/tracing_core/span.rs.html#16">Id</a>,
+        metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
+        values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/span.rs.html#21">Attributes</a> {
+            <a href="../../src/tracing_core/span.rs.html#130">metadata</a>,
+            <a href="../../src/tracing_core/span.rs.html#131">values</a>,
+            parent: <a href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<a href="../../src/tracing_core/span.rs.html#129">parent</a>),
+        }
     }
 
-    <span class="doccomment">/// Returns `true` if this `Record` contains a value for the given `Field`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#133">field::Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#237">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1016">contains</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#237">field</a>)
+    <span class="doccomment">/// Returns a reference to the new span&#39;s metadata.
+    </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt; {
+        <a class="self" href="../../src/tracing_core/span.rs.html#141">self</a>.metadata
     }
 
-    <span class="doccomment">/// Returns true if this `Record` contains _no_ values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#242">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1025">is_empty</a>()
+    <span class="doccomment">/// Returns a reference to a `ValueSet` containing any values the new span
+    /// was created with.
+    </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <a class="self" href="../../src/tracing_core/span.rs.html#147">self</a>.values
+    }
+
+    <span class="doccomment">/// Returns true if the new span should be a root.
+    </span><span class="kw">pub fn </span>is_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.parent, Parent::Root)
+    }
+
+    <span class="doccomment">/// Returns true if the new span&#39;s parent should be determined based on the
+    /// current context.
+    ///
+    /// If this is true and the current thread is currently inside a span, then
+    /// that span should be the new span&#39;s parent. Otherwise, if the current
+    /// thread is _not_ inside a span, then the new span will be the root of its
+    /// own trace tree.
+    </span><span class="kw">pub fn </span>is_contextual(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.parent, Parent::Current)
+    }
+
+    <span class="doccomment">/// Returns the new span&#39;s explicitly-specified parent, if there is one.
+    ///
+    /// Otherwise (if the new span is a root or is a child of the current span),
+    /// returns `None`.
+    </span><span class="kw">pub fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../src/tracing_core/span.rs.html#171">self</a>.parent {
+            <a href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<span class="kw-2">ref </span>p) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/span.rs.html#173">p</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Records all the fields in this set of `Attributes` with the provided
+    /// [Visitor].
+    ///
+    /// [visitor]: super::field::Visit
+    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
+        <a class="self" href="../../src/tracing_core/span.rs.html#182">self</a>.values.<a href="../../src/tracing_core/field.rs.html#990">record</a>(<a href="../../src/tracing_core/span.rs.html#182">visitor</a>)
+    }
+
+    <span class="doccomment">/// Returns `true` if this set of `Attributes` contains a value for the
+    /// given `Field`.
+    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/field.rs.html#133">field::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#188">self</a>.values.<a href="../../src/tracing_core/field.rs.html#1016">contains</a>(<a href="../../src/tracing_core/span.rs.html#188">field</a>)
+    }
+
+    <span class="doccomment">/// Returns true if this set of `Attributes` contains _no_ values.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#193">self</a>.values.<a href="../../src/tracing_core/field.rs.html#1025">is_empty</a>()
+    }
+
+    <span class="doccomment">/// Returns the set of all [fields] defined by this span&#39;s [`Metadata`].
+    ///
+    /// Note that the [`FieldSet`] returned by this method includes *all* the
+    /// fields declared by this span, not just those with values that are recorded
+    /// as part of this set of `Attributes`. Other fields with values not present in
+    /// this `Attributes`&#39; value set may [record] values later.
+    ///
+    /// [fields]: crate::field
+    /// [record]: Attributes::record()
+    /// [`Metadata`]: crate::metadata::Metadata
+    /// [`FieldSet`]: crate::field::FieldSet
+    </span><span class="kw">pub fn </span>fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/tracing_core/field.rs.html#158">FieldSet</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#208">self</a>.values.<a href="../../src/tracing_core/field.rs.html#1032">field_set</a>()
     }
 }
 
-<span class="comment">// ===== impl Current =====</span>
+<span class="comment">// ===== impl Record =====
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a> {
-    <span class="doccomment">/// Constructs a new `Current` that indicates the current context is a span</span>
-    <span class="doccomment">/// with the given `metadata` and `metadata`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { <a class="ident" href="../../src/tracing_core/span.rs.html#252">id</a>, <a class="ident" href="../../src/tracing_core/span.rs.html#252">metadata</a> },
-        }
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Record&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Constructs a new `Record` from a `ValueSet`.
+    </span><span class="kw">pub fn </span>new(values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../src/tracing_core/span.rs.html#217">values</a> }
     }
 
-    <span class="doccomment">/// Constructs a new `Current` that indicates the current context is *not*</span>
-    <span class="doccomment">/// in a span.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#54">CurrentInner::None</a>,
-        }
+    <span class="doccomment">/// Records all the fields in this `Record` with the provided [Visitor].
+    ///
+    /// [visitor]: super::field::Visit
+    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
+        <a class="self" href="../../src/tracing_core/span.rs.html#224">self</a>.values.<a href="../../src/tracing_core/field.rs.html#990">record</a>(<a href="../../src/tracing_core/span.rs.html#224">visitor</a>)
     }
 
-    <span class="doccomment">/// Constructs a new `Current` that indicates the `Subscriber` does not</span>
-    <span class="doccomment">/// track a current span.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unknown</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#55">CurrentInner::Unknown</a>,
-        }
+    <span class="doccomment">/// Returns the number of fields that would be visited from this `Record`
+    /// when [`Record::record()`] is called
+    ///
+    /// [`Record::record()`]: Record::record()
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#232">self</a>.values.<a href="../../src/tracing_core/field.rs.html#1007">len</a>()
     }
 
-    <span class="doccomment">/// Returns `true` if the `Subscriber` that constructed this `Current` tracks a</span>
-    <span class="doccomment">/// current span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this returns `true` and [`id`], [`metadata`], or [`into_inner`]</span>
-    <span class="doccomment">/// return `None`, that indicates that we are currently known to *not* be</span>
-    <span class="doccomment">/// inside a span. If this returns `false`, those methods will also return</span>
-    <span class="doccomment">/// `None`, but in this case, that is because the subscriber does not keep</span>
-    <span class="doccomment">/// track of the currently-entered span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`id`]: Current::id()</span>
-    <span class="doccomment">/// [`metadata`]: Current::metadata()</span>
-    <span class="doccomment">/// [`into_inner`]: Current::into_inner()</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_known</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">!</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">CurrentInner::Unknown</span>)
+    <span class="doccomment">/// Returns `true` if this `Record` contains a value for the given `Field`.
+    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/field.rs.html#133">field::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#237">self</a>.values.<a href="../../src/tracing_core/field.rs.html#1016">contains</a>(<a href="../../src/tracing_core/span.rs.html#237">field</a>)
     }
 
-    <span class="doccomment">/// Consumes `self` and returns the span `Id` and `Metadata` of the current</span>
-    <span class="doccomment">/// span, if one exists and is known.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/tracing_core/span.rs.html#292">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { <span class="ident">id</span>, <span class="ident">metadata</span> } =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../src/tracing_core/span.rs.html#294">id</a>, <a class="ident" href="../../src/tracing_core/span.rs.html#294">metadata</a>)),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/// Borrows the `Id` of the current span, if one exists and is known.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/tracing_core/span.rs.html#300">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { <span class="kw-2">ref</span> <span class="ident">id</span>, .. } =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/span.rs.html#302">id</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/// Borrows the `Metadata` of the current span, if one exists and is known.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/tracing_core/span.rs.html#308">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { <span class="ident">metadata</span>, .. } =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/span.rs.html#310">metadata</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
+    <span class="doccomment">/// Returns true if this `Record` contains _no_ values.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#242">self</a>.values.<a href="../../src/tracing_core/field.rs.html#1025">is_empty</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cur</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/span.rs.html#317">cur</a>.<a class="ident" href="../../src/tracing_core/span.rs.html#300">id</a>()
-    }
-}
+<span class="comment">// ===== impl Current =====
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cur</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/span.rs.html#323">cur</a>.<a class="ident" href="../../src/tracing_core/span.rs.html#300">id</a>().<span class="ident">cloned</span>()
+</span><span class="kw">impl </span><a href="../../src/tracing_core/span.rs.html#44">Current</a> {
+    <span class="doccomment">/// Constructs a new `Current` that indicates the current context is a span
+    /// with the given `metadata` and `metadata`.
+    </span><span class="kw">pub fn </span>new(id: <a href="../../src/tracing_core/span.rs.html#16">Id</a>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: <a href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { <a href="../../src/tracing_core/span.rs.html#252">id</a>, <a href="../../src/tracing_core/span.rs.html#252">metadata</a> },
+        }
     }
-}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cur</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/tracing_core/span.rs.html#329">cur</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { <span class="ident">id</span>, .. } =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/span.rs.html#331">id</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Constructs a new `Current` that indicates the current context is *not*
+    /// in a span.
+    </span><span class="kw">pub fn </span>none() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: <a href="../../src/tracing_core/span.rs.html#54">CurrentInner::None</a>,
+        }
+    }
+
+    <span class="doccomment">/// Constructs a new `Current` that indicates the `Subscriber` does not
+    /// track a current span.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unknown() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: <a href="../../src/tracing_core/span.rs.html#55">CurrentInner::Unknown</a>,
+        }
+    }
+
+    <span class="doccomment">/// Returns `true` if the `Subscriber` that constructed this `Current` tracks a
+    /// current span.
+    ///
+    /// If this returns `true` and [`id`], [`metadata`], or [`into_inner`]
+    /// return `None`, that indicates that we are currently known to *not* be
+    /// inside a span. If this returns `false`, those methods will also return
+    /// `None`, but in this case, that is because the subscriber does not keep
+    /// track of the currently-entered span.
+    ///
+    /// [`id`]: Current::id()
+    /// [`metadata`]: Current::metadata()
+    /// [`into_inner`]: Current::into_inner()
+    </span><span class="kw">pub fn </span>is_known(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        !<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner, CurrentInner::Unknown)
+    }
+
+    <span class="doccomment">/// Consumes `self` and returns the span `Id` and `Metadata` of the current
+    /// span, if one exists and is known.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../../src/tracing_core/span.rs.html#16">Id</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;)&gt; {
+        <span class="kw">match </span><a class="self" href="../../src/tracing_core/span.rs.html#292">self</a>.inner {
+            <a href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { id, metadata } =&gt; <span class="prelude-val">Some</span>((<a href="../../src/tracing_core/span.rs.html#294">id</a>, <a href="../../src/tracing_core/span.rs.html#294">metadata</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Borrows the `Id` of the current span, if one exists and is known.
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../src/tracing_core/span.rs.html#300">self</a>.inner {
+            <a href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { <span class="kw-2">ref </span>id, .. } =&gt; <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/span.rs.html#302">id</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Borrows the `Metadata` of the current span, if one exists and is known.
+    </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../src/tracing_core/span.rs.html#308">self</a>.inner {
+            <a href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { metadata, .. } =&gt; <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/span.rs.html#310">metadata</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cur</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/span.rs.html#44">Current</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/span.rs.html#338">cur</a>.<a class="ident" href="../../src/tracing_core/span.rs.html#308">metadata</a>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#44">Current</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; {
+    <span class="kw">fn </span>from(cur: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#44">Current</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/span.rs.html#317">cur</a>.<a href="../../src/tracing_core/span.rs.html#300">id</a>()
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#44">Current</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; {
+    <span class="kw">fn </span>from(cur: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#44">Current</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/span.rs.html#323">cur</a>.<a href="../../src/tracing_core/span.rs.html#300">id</a>().cloned()
+    }
+}
+
+<span class="kw">impl </span>From&lt;<a href="../../src/tracing_core/span.rs.html#44">Current</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; {
+    <span class="kw">fn </span>from(cur: <a href="../../src/tracing_core/span.rs.html#44">Current</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><a href="../../src/tracing_core/span.rs.html#329">cur</a>.inner {
+            <a href="../../src/tracing_core/span.rs.html#50">CurrentInner::Current</a> { id, .. } =&gt; <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/span.rs.html#331">id</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#44">Current</a>&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
+    <span class="kw">fn </span>from(cur: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/span.rs.html#44">Current</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/span.rs.html#338">cur</a>.<a href="../../src/tracing_core/span.rs.html#308">metadata</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

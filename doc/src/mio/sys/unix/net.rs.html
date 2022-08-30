@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/sys/unix/net.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>net.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../mio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/sys/unix/net.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>net.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../mio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -166,173 +166,173 @@
 <span id="166">166</span>
 <span id="167">167</span>
 <span id="168">168</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">std::mem::size_of</a>;
-<span class="kw">use</span> <span class="ident">std::net</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/struct.SocketAddrV4.html">SocketAddrV4</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/struct.SocketAddrV6.html">SocketAddrV6</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">std::mem::size_of</a>;
+<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/struct.SocketAddrV4.html">SocketAddrV4</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/struct.SocketAddrV6.html">SocketAddrV6</a>};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_ip_socket</span>(<span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <span class="ident">socket_type</span>: <a class="ident" href="../../../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../libc/unix/type.c_int.html">libc::c_int</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#5">addr</a> {
-        <span class="ident">SocketAddr::V4</span>(..) =&gt; <span class="ident">libc::AF_INET</span>,
-        <span class="ident">SocketAddr::V6</span>(..) =&gt; <span class="ident">libc::AF_INET6</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_ip_socket(addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, socket_type: <a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; io::Result&lt;<a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>&gt; {
+    <span class="kw">let </span>domain = <span class="kw">match </span><a href="../../../../src/mio/sys/unix/net.rs.html#5">addr</a> {
+        SocketAddr::V4(..) =&gt; libc::AF_INET,
+        SocketAddr::V6(..) =&gt; libc::AF_INET6,
     };
 
-    <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#15">new_socket</a>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#6">domain</a>, <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#5">socket_type</a>)
+    <a href="../../../../src/mio/sys/unix/net.rs.html#15">new_socket</a>(<a href="../../../../src/mio/sys/unix/net.rs.html#6">domain</a>, <a href="../../../../src/mio/sys/unix/net.rs.html#5">socket_type</a>)
 }
 
-<span class="doccomment">/// Create a new non-blocking socket.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_socket</span>(<span class="ident">domain</span>: <a class="ident" href="../../../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">socket_type</span>: <a class="ident" href="../../../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../libc/unix/type.c_int.html">libc::c_int</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>
-    ))]</span>
-    <span class="kw">let</span> <span class="ident">socket_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#15">socket_type</a> <span class="op">|</span> <span class="ident">libc::SOCK_NONBLOCK</span> <span class="op">|</span> <span class="ident">libc::SOCK_CLOEXEC</span>;
+<span class="doccomment">/// Create a new non-blocking socket.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_socket(domain: <a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>, socket_type: <a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; io::Result&lt;<a href="../../../../libc/unix/type.c_int.html">libc::c_int</a>&gt; {
+    <span class="attribute">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
+    </span><span class="kw">let </span>socket_type = <a href="../../../../src/mio/sys/unix/net.rs.html#15">socket_type</a> | libc::SOCK_NONBLOCK | libc::SOCK_CLOEXEC;
 
-    <span class="comment">// Gives a warning for platforms without SOCK_NONBLOCK.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::let_and_return</span>)]</span>
-    <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <a class="macro" href="../../../../src/mio/sys/unix/mod.rs.html#5-14">syscall!</a>(<span class="ident">socket</span>(<span class="ident">domain</span>, <span class="ident">socket_type</span>, <span class="number">0</span>));
+    <span class="comment">// Gives a warning for platforms without SOCK_NONBLOCK.
+    </span><span class="attribute">#[allow(clippy::let_and_return)]
+    </span><span class="kw">let </span>socket = <a class="macro" href="../../../../src/mio/sys/unix/mod.rs.html#5-14">syscall!</a>(socket(domain, socket_type, <span class="number">0</span>));
 
-    <span class="comment">// Mimick `libstd` and set `SO_NOSIGPIPE` on apple systems.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;apple&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">socket</span><span class="op">|</span> {
-        <span class="macro">syscall!</span>(<span class="ident">setsockopt</span>(
-            <span class="ident">socket</span>,
-            <span class="ident">libc::SOL_SOCKET</span>,
-            <span class="ident">libc::SO_NOSIGPIPE</span>,
-            <span class="kw-2">&amp;</span><span class="number">1</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_int</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_void</span>,
-            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">libc::c_int</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::socklen_t</span>
+    <span class="comment">// Mimick `libstd` and set `SO_NOSIGPIPE` on apple systems.
+    </span><span class="attribute">#[cfg(target_vendor = <span class="string">&quot;apple&quot;</span>)]
+    </span><span class="kw">let </span>socket = socket.and_then(|socket| {
+        <span class="macro">syscall!</span>(setsockopt(
+            socket,
+            libc::SOL_SOCKET,
+            libc::SO_NOSIGPIPE,
+            <span class="kw-2">&amp;</span><span class="number">1 </span><span class="kw">as </span><span class="kw-2">*const </span>libc::c_int <span class="kw">as </span><span class="kw-2">*const </span>libc::c_void,
+            size_of::&lt;libc::c_int&gt;() <span class="kw">as </span>libc::socklen_t
         ))
-        .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">socket</span>)
+        .map(|<span class="kw">_</span>| socket)
     });
 
-    <span class="comment">// Darwin doesn&#39;t have SOCK_NONBLOCK or SOCK_CLOEXEC.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
-    <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">socket</span><span class="op">|</span> {
-        <span class="comment">// For platforms that don&#39;t support flags in socket, we need to</span>
-        <span class="comment">// set the flags ourselves.</span>
-        <span class="macro">syscall!</span>(<span class="ident">fcntl</span>(<span class="ident">socket</span>, <span class="ident">libc::F_SETFL</span>, <span class="ident">libc::O_NONBLOCK</span>))
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">syscall!</span>(<span class="ident">fcntl</span>(<span class="ident">socket</span>, <span class="ident">libc::F_SETFD</span>, <span class="ident">libc::FD_CLOEXEC</span>)).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">socket</span>))
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="comment">// If either of the `fcntl` calls failed, ensure the socket is</span>
-                <span class="comment">// closed and return the error.</span>
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">close</span>(<span class="ident">socket</span>));
-                <span class="ident">e</span>
+    <span class="comment">// Darwin doesn&#39;t have SOCK_NONBLOCK or SOCK_CLOEXEC.
+    </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>))]
+    </span><span class="kw">let </span>socket = socket.and_then(|socket| {
+        <span class="comment">// For platforms that don&#39;t support flags in socket, we need to
+        // set the flags ourselves.
+        </span><span class="macro">syscall!</span>(fcntl(socket, libc::F_SETFL, libc::O_NONBLOCK))
+            .and_then(|<span class="kw">_</span>| <span class="macro">syscall!</span>(fcntl(socket, libc::F_SETFD, libc::FD_CLOEXEC)).map(|<span class="kw">_</span>| socket))
+            .map_err(|e| {
+                <span class="comment">// If either of the `fcntl` calls failed, ensure the socket is
+                // closed and return the error.
+                </span><span class="kw">let _ </span>= <span class="macro">syscall!</span>(close(socket));
+                e
             })
     });
 
-    <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#29">socket</a>
+    <a href="../../../../src/mio/sys/unix/net.rs.html#29">socket</a>
 }
 
-<span class="doccomment">/// A type with the same memory layout as `libc::sockaddr`. Used in converting Rust level</span>
-<span class="doccomment">/// SocketAddr* types into their system representation. The benefit of this specific</span>
-<span class="doccomment">/// type over using `libc::sockaddr_storage` is that this type is exactly as large as it</span>
-<span class="doccomment">/// needs to be and not a lot larger. And it can be initialized cleaner from Rust.</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">union</span> <span class="ident">SocketAddrCRepr</span> {
-    <span class="ident">v4</span>: <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a>,
-    <span class="ident">v6</span>: <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a>,
+<span class="doccomment">/// A type with the same memory layout as `libc::sockaddr`. Used in converting Rust level
+/// SocketAddr* types into their system representation. The benefit of this specific
+/// type over using `libc::sockaddr_storage` is that this type is exactly as large as it
+/// needs to be and not a lot larger. And it can be initialized cleaner from Rust.
+</span><span class="attribute">#[repr(C)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">union </span>SocketAddrCRepr {
+    v4: <a href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a>,
+    v6: <a href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#67">SocketAddrCRepr</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a> {
-        <a class="self" href="../../../../src/mio/sys/unix/net.rs.html#73">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a>
+<span class="kw">impl </span><a href="../../../../src/mio/sys/unix/net.rs.html#67">SocketAddrCRepr</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a> {
+        <span class="self"><a href="../../../../src/mio/sys/unix/net.rs.html#73">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span><a href="../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a>
     }
 }
 
-<span class="doccomment">/// Converts a Rust `SocketAddr` into the system representation.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">socket_addr</span>(<span class="ident">addr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; (<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#67">SocketAddrCRepr</a>, <a class="ident" href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>) {
-    <span class="kw">match</span> <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#79">addr</a> {
-        <span class="ident">SocketAddr::V4</span>(<span class="kw-2">ref</span> <span class="ident">addr</span>) =&gt; {
-            <span class="comment">// `s_addr` is stored as BE on all machine and the array is in BE order.</span>
-            <span class="comment">// So the native endian conversion method is used so that it&#39;s never swapped.</span>
-            <span class="kw">let</span> <span class="ident">sin_addr</span> <span class="op">=</span> <a class="ident" href="../../../../libc/unix/linux_like/struct.in_addr.html">libc::in_addr</a> {
-                <span class="ident">s_addr</span>: <span class="ident">u32::from_ne_bytes</span>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#81">addr</a>.<span class="ident">ip</span>().<span class="ident">octets</span>()),
+<span class="doccomment">/// Converts a Rust `SocketAddr` into the system representation.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socket_addr(addr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; (<a href="../../../../src/mio/sys/unix/net.rs.html#67">SocketAddrCRepr</a>, <a href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>) {
+    <span class="kw">match </span><a href="../../../../src/mio/sys/unix/net.rs.html#79">addr</a> {
+        SocketAddr::V4(<span class="kw-2">ref </span>addr) =&gt; {
+            <span class="comment">// `s_addr` is stored as BE on all machine and the array is in BE order.
+            // So the native endian conversion method is used so that it&#39;s never swapped.
+            </span><span class="kw">let </span>sin_addr = <a href="../../../../libc/unix/linux_like/struct.in_addr.html">libc::in_addr</a> {
+                s_addr: u32::from_ne_bytes(<a href="../../../../src/mio/sys/unix/net.rs.html#81">addr</a>.ip().octets()),
             };
 
-            <span class="kw">let</span> <span class="ident">sockaddr_in</span> <span class="op">=</span> <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a> {
-                <span class="ident">sin_family</span>: <span class="ident">libc::AF_INET</span> <span class="kw">as</span> <span class="ident">libc::sa_family_t</span>,
-                <span class="ident">sin_port</span>: <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#81">addr</a>.<span class="ident">port</span>().<span class="ident">to_be</span>(),
-                <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#84">sin_addr</a>,
-                <span class="ident">sin_zero</span>: [<span class="number">0</span>; <span class="number">8</span>],
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>
-                ))]</span>
-                <span class="ident">sin_len</span>: <span class="number">0</span>,
+            <span class="kw">let </span>sockaddr_in = <a href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a> {
+                sin_family: libc::AF_INET <span class="kw">as </span>libc::sa_family_t,
+                sin_port: <a href="../../../../src/mio/sys/unix/net.rs.html#81">addr</a>.port().to_be(),
+                <a href="../../../../src/mio/sys/unix/net.rs.html#84">sin_addr</a>,
+                sin_zero: [<span class="number">0</span>; <span class="number">8</span>],
+                <span class="attribute">#[cfg(any(
+                    target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                    target_os = <span class="string">&quot;freebsd&quot;</span>,
+                    target_os = <span class="string">&quot;ios&quot;</span>,
+                    target_os = <span class="string">&quot;macos&quot;</span>,
+                    target_os = <span class="string">&quot;netbsd&quot;</span>,
+                    target_os = <span class="string">&quot;openbsd&quot;
+                </span>))]
+                </span>sin_len: <span class="number">0</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">sockaddr</span> <span class="op">=</span> <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#67">SocketAddrCRepr</a> { <span class="ident">v4</span>: <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#88">sockaddr_in</a> };
-            <span class="kw">let</span> <span class="ident">socklen</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a><span class="op">&gt;</span>() <span class="kw">as</span> <a class="ident" href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
-            (<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#104">sockaddr</a>, <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#105">socklen</a>)
+            <span class="kw">let </span>sockaddr = <a href="../../../../src/mio/sys/unix/net.rs.html#67">SocketAddrCRepr</a> { v4: <a href="../../../../src/mio/sys/unix/net.rs.html#88">sockaddr_in</a> };
+            <span class="kw">let </span>socklen = size_of::&lt;<a href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a>&gt;() <span class="kw">as </span><a href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
+            (<a href="../../../../src/mio/sys/unix/net.rs.html#104">sockaddr</a>, <a href="../../../../src/mio/sys/unix/net.rs.html#105">socklen</a>)
         }
-        <span class="ident">SocketAddr::V6</span>(<span class="kw-2">ref</span> <span class="ident">addr</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">sockaddr_in6</span> <span class="op">=</span> <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a> {
-                <span class="ident">sin6_family</span>: <span class="ident">libc::AF_INET6</span> <span class="kw">as</span> <span class="ident">libc::sa_family_t</span>,
-                <span class="ident">sin6_port</span>: <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#108">addr</a>.<span class="ident">port</span>().<span class="ident">to_be</span>(),
-                <span class="ident">sin6_addr</span>: <a class="ident" href="../../../../libc/unix/align/struct.in6_addr.html">libc::in6_addr</a> {
-                    <span class="ident">s6_addr</span>: <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#108">addr</a>.<span class="ident">ip</span>().<span class="ident">octets</span>(),
+        SocketAddr::V6(<span class="kw-2">ref </span>addr) =&gt; {
+            <span class="kw">let </span>sockaddr_in6 = <a href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a> {
+                sin6_family: libc::AF_INET6 <span class="kw">as </span>libc::sa_family_t,
+                sin6_port: <a href="../../../../src/mio/sys/unix/net.rs.html#108">addr</a>.port().to_be(),
+                sin6_addr: <a href="../../../../libc/unix/align/struct.in6_addr.html">libc::in6_addr</a> {
+                    s6_addr: <a href="../../../../src/mio/sys/unix/net.rs.html#108">addr</a>.ip().octets(),
                 },
-                <span class="ident">sin6_flowinfo</span>: <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#108">addr</a>.<span class="ident">flowinfo</span>(),
-                <span class="ident">sin6_scope_id</span>: <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#108">addr</a>.<span class="ident">scope_id</span>(),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>
-                ))]</span>
-                <span class="ident">sin6_len</span>: <span class="number">0</span>,
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>)]</span>
-                <span class="ident">__sin6_src_id</span>: <span class="number">0</span>,
+                sin6_flowinfo: <a href="../../../../src/mio/sys/unix/net.rs.html#108">addr</a>.flowinfo(),
+                sin6_scope_id: <a href="../../../../src/mio/sys/unix/net.rs.html#108">addr</a>.scope_id(),
+                <span class="attribute">#[cfg(any(
+                    target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                    target_os = <span class="string">&quot;freebsd&quot;</span>,
+                    target_os = <span class="string">&quot;ios&quot;</span>,
+                    target_os = <span class="string">&quot;macos&quot;</span>,
+                    target_os = <span class="string">&quot;netbsd&quot;</span>,
+                    target_os = <span class="string">&quot;openbsd&quot;
+                </span>))]
+                </span>sin6_len: <span class="number">0</span>,
+                <span class="attribute">#[cfg(target_os = <span class="string">&quot;illumos&quot;</span>)]
+                </span>__sin6_src_id: <span class="number">0</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">sockaddr</span> <span class="op">=</span> <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#67">SocketAddrCRepr</a> { <span class="ident">v6</span>: <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#109">sockaddr_in6</a> };
-            <span class="kw">let</span> <span class="ident">socklen</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a><span class="op">&gt;</span>() <span class="kw">as</span> <a class="ident" href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
-            (<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#130">sockaddr</a>, <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#131">socklen</a>)
+            <span class="kw">let </span>sockaddr = <a href="../../../../src/mio/sys/unix/net.rs.html#67">SocketAddrCRepr</a> { v6: <a href="../../../../src/mio/sys/unix/net.rs.html#109">sockaddr_in6</a> };
+            <span class="kw">let </span>socklen = size_of::&lt;<a href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a>&gt;() <span class="kw">as </span><a href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>;
+            (<a href="../../../../src/mio/sys/unix/net.rs.html#130">sockaddr</a>, <a href="../../../../src/mio/sys/unix/net.rs.html#131">socklen</a>)
         }
     }
 }
 
-<span class="doccomment">/// Converts a `libc::sockaddr` compatible struct into a native Rust `SocketAddr`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `storage` must have the `ss_family` field correctly initialized.</span>
-<span class="doccomment">/// `storage` must be initialised to a `sockaddr_in` or `sockaddr_in6`.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">to_socket_addr</span>(
-    <span class="ident">storage</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_storage.html">libc::sockaddr_storage</a>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#144">storage</a>).<span class="ident">ss_family</span> <span class="kw">as</span> <a class="ident" href="../../../../libc/unix/type.c_int.html">libc::c_int</a> {
-        <span class="ident">libc::AF_INET</span> =&gt; {
-            <span class="comment">// Safety: if the ss_family field is AF_INET then storage must be a sockaddr_in.</span>
-            <span class="kw">let</span> <span class="ident">addr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#144">storage</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a>);
-            <span class="kw">let</span> <span class="ident">ip</span> <span class="op">=</span> <span class="ident">Ipv4Addr::from</span>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#149">addr</a>.<span class="ident">sin_addr</span>.<span class="ident">s_addr</span>.<span class="ident">to_ne_bytes</span>());
-            <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="ident">u16::from_be</span>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#149">addr</a>.<span class="ident">sin_port</span>);
-            <span class="prelude-val">Ok</span>(<span class="ident">SocketAddr::V4</span>(<span class="ident">SocketAddrV4::new</span>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#150">ip</a>, <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#151">port</a>)))
+<span class="doccomment">/// Converts a `libc::sockaddr` compatible struct into a native Rust `SocketAddr`.
+///
+/// # Safety
+///
+/// `storage` must have the `ss_family` field correctly initialized.
+/// `storage` must be initialised to a `sockaddr_in` or `sockaddr_in6`.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>to_socket_addr(
+    storage: <span class="kw-2">*const </span><a href="../../../../libc/unix/linux_like/struct.sockaddr_storage.html">libc::sockaddr_storage</a>,
+) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+    <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../../src/mio/sys/unix/net.rs.html#144">storage</a>).ss_family <span class="kw">as </span><a href="../../../../libc/unix/type.c_int.html">libc::c_int</a> {
+        libc::AF_INET =&gt; {
+            <span class="comment">// Safety: if the ss_family field is AF_INET then storage must be a sockaddr_in.
+            </span><span class="kw">let </span>addr: <span class="kw-2">&amp;</span><a href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a> = <span class="kw-2">&amp;*</span>(<a href="../../../../src/mio/sys/unix/net.rs.html#144">storage</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../libc/unix/linux_like/struct.sockaddr_in.html">libc::sockaddr_in</a>);
+            <span class="kw">let </span>ip = Ipv4Addr::from(<a href="../../../../src/mio/sys/unix/net.rs.html#149">addr</a>.sin_addr.s_addr.to_ne_bytes());
+            <span class="kw">let </span>port = u16::from_be(<a href="../../../../src/mio/sys/unix/net.rs.html#149">addr</a>.sin_port);
+            <span class="prelude-val">Ok</span>(SocketAddr::V4(SocketAddrV4::new(<a href="../../../../src/mio/sys/unix/net.rs.html#150">ip</a>, <a href="../../../../src/mio/sys/unix/net.rs.html#151">port</a>)))
         }
-        <span class="ident">libc::AF_INET6</span> =&gt; {
-            <span class="comment">// Safety: if the ss_family field is AF_INET6 then storage must be a sockaddr_in6.</span>
-            <span class="kw">let</span> <span class="ident">addr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#144">storage</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a>);
-            <span class="kw">let</span> <span class="ident">ip</span> <span class="op">=</span> <span class="ident">Ipv6Addr::from</span>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#156">addr</a>.<span class="ident">sin6_addr</span>.<span class="ident">s6_addr</span>);
-            <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="ident">u16::from_be</span>(<a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#156">addr</a>.<span class="ident">sin6_port</span>);
-            <span class="prelude-val">Ok</span>(<span class="ident">SocketAddr::V6</span>(<span class="ident">SocketAddrV6::new</span>(
-                <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#157">ip</a>,
-                <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#158">port</a>,
-                <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#156">addr</a>.<span class="ident">sin6_flowinfo</span>,
-                <a class="ident" href="../../../../src/mio/sys/unix/net.rs.html#156">addr</a>.<span class="ident">sin6_scope_id</span>,
+        libc::AF_INET6 =&gt; {
+            <span class="comment">// Safety: if the ss_family field is AF_INET6 then storage must be a sockaddr_in6.
+            </span><span class="kw">let </span>addr: <span class="kw-2">&amp;</span><a href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a> = <span class="kw-2">&amp;*</span>(<a href="../../../../src/mio/sys/unix/net.rs.html#144">storage</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../../libc/unix/linux_like/struct.sockaddr_in6.html">libc::sockaddr_in6</a>);
+            <span class="kw">let </span>ip = Ipv6Addr::from(<a href="../../../../src/mio/sys/unix/net.rs.html#156">addr</a>.sin6_addr.s6_addr);
+            <span class="kw">let </span>port = u16::from_be(<a href="../../../../src/mio/sys/unix/net.rs.html#156">addr</a>.sin6_port);
+            <span class="prelude-val">Ok</span>(SocketAddr::V6(SocketAddrV6::new(
+                <a href="../../../../src/mio/sys/unix/net.rs.html#157">ip</a>,
+                <a href="../../../../src/mio/sys/unix/net.rs.html#158">port</a>,
+                <a href="../../../../src/mio/sys/unix/net.rs.html#156">addr</a>.sin6_flowinfo,
+                <a href="../../../../src/mio/sys/unix/net.rs.html#156">addr</a>.sin6_scope_id,
             )))
         }
-        <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::InvalidInput</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(io::ErrorKind::InvalidInput.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

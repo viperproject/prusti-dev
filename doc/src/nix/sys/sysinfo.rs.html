@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.2/src/sys/sysinfo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sysinfo.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/sysinfo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sysinfo.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -77,84 +77,84 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc</span>::{<a class="self" href="../../../libc/index.html">self</a>, <a class="ident" href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a class="self" href="../../../libc/index.html">self</a>, <a href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#169"><span class="kw">crate</span>::Result</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#776"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use </span><a href="../../../src/nix/errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use </span><a href="../../../src/nix/lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
 
-<span class="doccomment">/// System info structure returned by `sysinfo`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SysInfo</span>(<a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/struct.sysinfo.html">libc::sysinfo</a>);
+<span class="doccomment">/// System info structure returned by `sysinfo`.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>SysInfo(<a href="../../../libc/unix/linux_like/linux/gnu/b64/struct.sysinfo.html">libc::sysinfo</a>);
 
-<span class="comment">// The fields are c_ulong on 32-bit linux, u64 on 64-bit linux; x32&#39;s ulong is u32</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>))]</span>
-<span class="kw">type</span> <span class="ident">mem_blocks_t</span> <span class="op">=</span> <span class="ident">u64</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)))]</span>
-<span class="kw">type</span> <span class="ident">mem_blocks_t</span> <span class="op">=</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">libc::c_ulong</a>;
+<span class="comment">// The fields are c_ulong on 32-bit linux, u64 on 64-bit linux; x32&#39;s ulong is u32
+</span><span class="attribute">#[cfg(all(target_arch = <span class="string">&quot;x86_64&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>))]
+</span><span class="kw">type </span>mem_blocks_t = u64;
+<span class="attribute">#[cfg(not(all(target_arch = <span class="string">&quot;x86_64&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
+</span><span class="kw">type </span>mem_blocks_t = <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">libc::c_ulong</a>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#11">SysInfo</a> {
-    <span class="doccomment">/// Returns the load average tuple.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned values represent the load average over time intervals of</span>
-    <span class="doccomment">/// 1, 5, and 15 minutes, respectively.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_average</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
+<span class="kw">impl </span><a href="../../../src/nix/sys/sysinfo.rs.html#11">SysInfo</a> {
+    <span class="doccomment">/// Returns the load average tuple.
+    ///
+    /// The returned values represent the load average over time intervals of
+    /// 1, 5, and 15 minutes, respectively.
+    </span><span class="kw">pub fn </span>load_average(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) {
         (
-            <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#24">self</a>.<span class="number">0</span>.<span class="ident">loads</span>[<span class="number">0</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> <span class="op">/</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
-            <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#24">self</a>.<span class="number">0</span>.<span class="ident">loads</span>[<span class="number">1</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> <span class="op">/</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
-            <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#24">self</a>.<span class="number">0</span>.<span class="ident">loads</span>[<span class="number">2</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> <span class="op">/</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
+            <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#24">self</a>.<span class="number">0</span>.loads[<span class="number">0</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> / (<span class="number">1 </span>&lt;&lt; <a href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
+            <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#24">self</a>.<span class="number">0</span>.loads[<span class="number">1</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> / (<span class="number">1 </span>&lt;&lt; <a href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
+            <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#24">self</a>.<span class="number">0</span>.loads[<span class="number">2</span>] <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> / (<span class="number">1 </span>&lt;&lt; <a href="../../../libc/unix/linux_like/constant.SI_LOAD_SHIFT.html">SI_LOAD_SHIFT</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>,
         )
     }
 
-    <span class="doccomment">/// Returns the time since system boot.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uptime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
-        <span class="comment">// Truncate negative values to 0</span>
-        <span class="ident">Duration::from_secs</span>(<span class="ident">cmp::max</span>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#33">self</a>.<span class="number">0</span>.<span class="ident">uptime</span>, <span class="number">0</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+    <span class="doccomment">/// Returns the time since system boot.
+    </span><span class="kw">pub fn </span>uptime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a> {
+        <span class="comment">// Truncate negative values to 0
+        </span>Duration::from_secs(cmp::max(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#33">self</a>.<span class="number">0</span>.uptime, <span class="number">0</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
     }
 
-    <span class="doccomment">/// Current number of processes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#39">self</a>.<span class="number">0</span>.<span class="ident">procs</span>
+    <span class="doccomment">/// Current number of processes.
+    </span><span class="kw">pub fn </span>process_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#39">self</a>.<span class="number">0</span>.procs
     }
 
-    <span class="doccomment">/// Returns the amount of swap memory in Bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_total</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#44">self</a>.<a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#67">scale_mem</a>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#44">self</a>.<span class="number">0</span>.<span class="ident">totalswap</span>)
+    <span class="doccomment">/// Returns the amount of swap memory in Bytes.
+    </span><span class="kw">pub fn </span>swap_total(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#44">self</a>.<a href="../../../src/nix/sys/sysinfo.rs.html#67">scale_mem</a>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#44">self</a>.<span class="number">0</span>.totalswap)
     }
 
-    <span class="doccomment">/// Returns the amount of unused swap memory in Bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_free</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#49">self</a>.<a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#67">scale_mem</a>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#49">self</a>.<span class="number">0</span>.<span class="ident">freeswap</span>)
+    <span class="doccomment">/// Returns the amount of unused swap memory in Bytes.
+    </span><span class="kw">pub fn </span>swap_free(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#49">self</a>.<a href="../../../src/nix/sys/sysinfo.rs.html#67">scale_mem</a>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#49">self</a>.<span class="number">0</span>.freeswap)
     }
 
-    <span class="doccomment">/// Returns the total amount of installed RAM in Bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ram_total</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#54">self</a>.<a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#67">scale_mem</a>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#54">self</a>.<span class="number">0</span>.<span class="ident">totalram</span>)
+    <span class="doccomment">/// Returns the total amount of installed RAM in Bytes.
+    </span><span class="kw">pub fn </span>ram_total(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#54">self</a>.<a href="../../../src/nix/sys/sysinfo.rs.html#67">scale_mem</a>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#54">self</a>.<span class="number">0</span>.totalram)
     }
 
-    <span class="doccomment">/// Returns the amount of completely unused RAM in Bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &quot;Unused&quot; in this context means that the RAM in neither actively used by</span>
-    <span class="doccomment">/// programs, nor by the operating system as disk cache or buffer. It is</span>
-    <span class="doccomment">/// &quot;wasted&quot; RAM since it currently serves no purpose.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ram_unused</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#63">self</a>.<a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#67">scale_mem</a>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#63">self</a>.<span class="number">0</span>.<span class="ident">freeram</span>)
+    <span class="doccomment">/// Returns the amount of completely unused RAM in Bytes.
+    ///
+    /// &quot;Unused&quot; in this context means that the RAM in neither actively used by
+    /// programs, nor by the operating system as disk cache or buffer. It is
+    /// &quot;wasted&quot; RAM since it currently serves no purpose.
+    </span><span class="kw">pub fn </span>ram_unused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#63">self</a>.<a href="../../../src/nix/sys/sysinfo.rs.html#67">scale_mem</a>(<a class="self" href="../../../src/nix/sys/sysinfo.rs.html#63">self</a>.<span class="number">0</span>.freeram)
     }
 
-    <span class="kw">fn</span> <span class="ident">scale_mem</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">units</span>: <a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#17">mem_blocks_t</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#67">units</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">*</span> <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#67">self</a>.<span class="number">0</span>.<span class="ident">mem_unit</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
+    <span class="kw">fn </span>scale_mem(<span class="kw-2">&amp;</span><span class="self">self</span>, units: <a href="../../../src/nix/sys/sysinfo.rs.html#17">mem_blocks_t</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a href="../../../src/nix/sys/sysinfo.rs.html#67">units</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a class="self" href="../../../src/nix/sys/sysinfo.rs.html#67">self</a>.<span class="number">0</span>.mem_unit <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>
     }
 }
 
-<span class="doccomment">/// Returns system information.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [See `sysinfo(2)`](https://man7.org/linux/man-pages/man2/sysinfo.2.html).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sysinfo</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#11">SysInfo</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::sysinfo</span>(<a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#76">info</a>.<span class="ident">as_mut_ptr</span>()) };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#77">res</a>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="kw">unsafe</span>{ <a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#11">SysInfo</a>(<a class="ident" href="../../../src/nix/sys/sysinfo.rs.html#76">info</a>.<span class="ident">assume_init</span>()) })
+<span class="doccomment">/// Returns system information.
+///
+/// [See `sysinfo(2)`](https://man7.org/linux/man-pages/man2/sysinfo.2.html).
+</span><span class="kw">pub fn </span>sysinfo() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/sysinfo.rs.html#11">SysInfo</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>info = mem::MaybeUninit::uninit();
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::sysinfo(<a href="../../../src/nix/sys/sysinfo.rs.html#76">info</a>.as_mut_ptr()) };
+    Errno::result(<a href="../../../src/nix/sys/sysinfo.rs.html#77">res</a>).map(|<span class="kw">_</span>| <span class="kw">unsafe </span>{ <a href="../../../src/nix/sys/sysinfo.rs.html#11">SysInfo</a>(<a href="../../../src/nix/sys/sysinfo.rs.html#76">info</a>.assume_init()) })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

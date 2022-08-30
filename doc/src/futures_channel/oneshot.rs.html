@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-channel-0.3.21/src/oneshot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oneshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_channel/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_channel/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_channel/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-channel-0.3.24/src/oneshot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oneshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_channel/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_channel/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_channel/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -486,493 +486,493 @@
 <span id="486">486</span>
 <span id="487">487</span>
 <span id="488">488</span>
-</pre><pre class="rust"><code><span class="doccomment">//! A channel for sending a single message between asynchronous tasks.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This is a single-producer, single-consumer channel.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! A channel for sending a single message between asynchronous tasks.
+//!
+//! This is a single-producer, single-consumer channel.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">core::sync::atomic::AtomicBool</a>;
-<span class="kw">use</span> <span class="ident">core::sync::atomic::Ordering::SeqCst</span>;
-<span class="kw">use</span> <span class="ident">futures_core::future</span>::{<a class="ident" href="../../futures_core/future/trait.FusedFuture.html">FusedFuture</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">core::sync::atomic::AtomicBool</a>;
+<span class="kw">use </span>core::sync::atomic::Ordering::SeqCst;
+<span class="kw">use </span>futures_core::future::{<a href="../../futures_core/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../src/futures_channel/lock.rs.html#17"><span class="kw">crate</span>::lock::Lock</a>;
+<span class="kw">use </span><a href="../../src/futures_channel/lock.rs.html#17"><span class="kw">crate</span>::lock::Lock</a>;
 
-<span class="doccomment">/// A future for a value that will be provided by another asynchronous task.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is created by the [`channel`](channel) function.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A future for a value that will be provided by another asynchronous task.
+///
+/// This is created by the [`channel`](channel) function.
+</span><span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+</span><span class="kw">pub struct </span>Receiver&lt;T&gt; {
+    inner: Arc&lt;Inner&lt;T&gt;&gt;,
 }
 
-<span class="doccomment">/// A means of transmitting a single value to another task.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is created by the [`channel`](channel) function.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A means of transmitting a single value to another task.
+///
+/// This is created by the [`channel`](channel) function.
+</span><span class="kw">pub struct </span>Sender&lt;T&gt; {
+    inner: Arc&lt;Inner&lt;T&gt;&gt;,
 }
 
-<span class="comment">// The channels do not ever project Pin to the inner T</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="comment">// The channels do not ever project Pin to the inner T
+</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>Receiver&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>Sender&lt;T&gt; {}
 
-<span class="doccomment">/// Internal state of the `Receiver`/`Sender` pair above. This is all used as</span>
-<span class="doccomment">/// the internal synchronization between the two for send/recv operations.</span>
-<span class="kw">struct</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Indicates whether this oneshot is complete yet. This is filled in both</span>
-    <span class="doccomment">/// by `Sender::drop` and by `Receiver::drop`, and both sides interpret it</span>
-    <span class="doccomment">/// appropriately.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For `Receiver`, if this is `true`, then it&#39;s guaranteed that `data` is</span>
-    <span class="doccomment">/// unlocked and ready to be inspected.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For `Sender` if this is `true` then the oneshot has gone away and it</span>
-    <span class="doccomment">/// can return ready from `poll_canceled`.</span>
-    <span class="ident">complete</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+<span class="doccomment">/// Internal state of the `Receiver`/`Sender` pair above. This is all used as
+/// the internal synchronization between the two for send/recv operations.
+</span><span class="kw">struct </span>Inner&lt;T&gt; {
+    <span class="doccomment">/// Indicates whether this oneshot is complete yet. This is filled in both
+    /// by `Sender::drop` and by `Receiver::drop`, and both sides interpret it
+    /// appropriately.
+    ///
+    /// For `Receiver`, if this is `true`, then it&#39;s guaranteed that `data` is
+    /// unlocked and ready to be inspected.
+    ///
+    /// For `Sender` if this is `true` then the oneshot has gone away and it
+    /// can return ready from `poll_canceled`.
+    </span>complete: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
 
-    <span class="doccomment">/// The actual data being transferred as part of this `Receiver`. This is</span>
-    <span class="doccomment">/// filled in by `Sender::complete` and read by `Receiver::poll`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this is protected by `Lock`, but it is in theory safe to</span>
-    <span class="doccomment">/// replace with an `UnsafeCell` as it&#39;s actually protected by `complete`</span>
-    <span class="doccomment">/// above. I wouldn&#39;t recommend doing this, however, unless someone is</span>
-    <span class="doccomment">/// supremely confident in the various atomic orderings here and there.</span>
-    <span class="ident">data</span>: <span class="ident">Lock</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The actual data being transferred as part of this `Receiver`. This is
+    /// filled in by `Sender::complete` and read by `Receiver::poll`.
+    ///
+    /// Note that this is protected by `Lock`, but it is in theory safe to
+    /// replace with an `UnsafeCell` as it&#39;s actually protected by `complete`
+    /// above. I wouldn&#39;t recommend doing this, however, unless someone is
+    /// supremely confident in the various atomic orderings here and there.
+    </span>data: Lock&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;,
 
-    <span class="doccomment">/// Field to store the task which is blocked in `Receiver::poll`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is filled in when a oneshot is polled but not ready yet. Note that</span>
-    <span class="doccomment">/// the `Lock` here, unlike in `data` above, is important to resolve races.</span>
-    <span class="doccomment">/// Both the `Receiver` and the `Sender` halves understand that if they</span>
-    <span class="doccomment">/// can&#39;t acquire the lock then some important interference is happening.</span>
-    <span class="ident">rx_task</span>: <span class="ident">Lock</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Field to store the task which is blocked in `Receiver::poll`.
+    ///
+    /// This is filled in when a oneshot is polled but not ready yet. Note that
+    /// the `Lock` here, unlike in `data` above, is important to resolve races.
+    /// Both the `Receiver` and the `Sender` halves understand that if they
+    /// can&#39;t acquire the lock then some important interference is happening.
+    </span>rx_task: Lock&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
 
-    <span class="doccomment">/// Like `rx_task` above, except for the task blocked in</span>
-    <span class="doccomment">/// `Sender::poll_canceled`. Additionally, `Lock` cannot be `UnsafeCell`.</span>
-    <span class="ident">tx_task</span>: <span class="ident">Lock</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Like `rx_task` above, except for the task blocked in
+    /// `Sender::poll_canceled`. Additionally, `Lock` cannot be `UnsafeCell`.
+    </span>tx_task: Lock&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
 }
 
-<span class="doccomment">/// Creates a new one-shot channel for sending a single value across asynchronous tasks.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The channel works for a spsc (single-producer, single-consumer) scheme.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is similar to Rust&#39;s channel constructor found in the standard</span>
-<span class="doccomment">/// library. Two halves are returned, the first of which is a `Sender` handle,</span>
-<span class="doccomment">/// used to signal the end of a computation and provide its value. The second</span>
-<span class="doccomment">/// half is a `Receiver` which implements the `Future` trait, resolving to the</span>
-<span class="doccomment">/// value that was given to the `Sender` handle.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Each half can be separately owned and sent across tasks.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use futures::channel::oneshot;</span>
-<span class="doccomment">/// use std::{thread, time::Duration};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let (sender, receiver) = oneshot::channel::&lt;i32&gt;();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// thread::spawn(|| {</span>
-<span class="doccomment">///     println!(&quot;THREAD: sleeping zzz...&quot;);</span>
-<span class="doccomment">///     thread::sleep(Duration::from_millis(1000));</span>
-<span class="doccomment">///     println!(&quot;THREAD: i&#39;m awake! sending.&quot;);</span>
-<span class="doccomment">///     sender.send(3).unwrap();</span>
-<span class="doccomment">/// });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// println!(&quot;MAIN: doing some useful stuff&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// futures::executor::block_on(async {</span>
-<span class="doccomment">///     println!(&quot;MAIN: waiting for msg...&quot;);</span>
-<span class="doccomment">///     println!(&quot;MAIN: got: {:?}&quot;, receiver.await)</span>
-<span class="doccomment">/// });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Inner::new</span>());
-    <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#19">Receiver</a> { <span class="ident">inner</span>: <a class="ident" href="../../src/futures_channel/oneshot.rs.html#105">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
-    <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#26">Sender</a> { <a class="ident" href="../../src/futures_channel/oneshot.rs.html#105">inner</a> };
-    (<a class="ident" href="../../src/futures_channel/oneshot.rs.html#107">sender</a>, <a class="ident" href="../../src/futures_channel/oneshot.rs.html#106">receiver</a>)
+<span class="doccomment">/// Creates a new one-shot channel for sending a single value across asynchronous tasks.
+///
+/// The channel works for a spsc (single-producer, single-consumer) scheme.
+///
+/// This function is similar to Rust&#39;s channel constructor found in the standard
+/// library. Two halves are returned, the first of which is a `Sender` handle,
+/// used to signal the end of a computation and provide its value. The second
+/// half is a `Receiver` which implements the `Future` trait, resolving to the
+/// value that was given to the `Sender` handle.
+///
+/// Each half can be separately owned and sent across tasks.
+///
+/// # Examples
+///
+/// ```
+/// use futures::channel::oneshot;
+/// use std::{thread, time::Duration};
+///
+/// let (sender, receiver) = oneshot::channel::&lt;i32&gt;();
+///
+/// thread::spawn(|| {
+///     println!(&quot;THREAD: sleeping zzz...&quot;);
+///     thread::sleep(Duration::from_millis(1000));
+///     println!(&quot;THREAD: i&#39;m awake! sending.&quot;);
+///     sender.send(3).unwrap();
+/// });
+///
+/// println!(&quot;MAIN: doing some useful stuff&quot;);
+///
+/// futures::executor::block_on(async {
+///     println!(&quot;MAIN: waiting for msg...&quot;);
+///     println!(&quot;MAIN: got: {:?}&quot;, receiver.await)
+/// });
+/// ```
+</span><span class="kw">pub fn </span>channel&lt;T&gt;() -&gt; (Sender&lt;T&gt;, Receiver&lt;T&gt;) {
+    <span class="kw">let </span>inner = Arc::new(Inner::new());
+    <span class="kw">let </span>receiver = <a href="../../src/futures_channel/oneshot.rs.html#19">Receiver</a> { inner: <a href="../../src/futures_channel/oneshot.rs.html#105">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
+    <span class="kw">let </span>sender = <a href="../../src/futures_channel/oneshot.rs.html#26">Sender</a> { <a href="../../src/futures_channel/oneshot.rs.html#105">inner</a> };
+    (<a href="../../src/futures_channel/oneshot.rs.html#107">sender</a>, <a href="../../src/futures_channel/oneshot.rs.html#106">receiver</a>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">complete</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
-            <span class="ident">data</span>: <span class="ident">Lock::new</span>(<span class="prelude-val">None</span>),
-            <span class="ident">rx_task</span>: <span class="ident">Lock::new</span>(<span class="prelude-val">None</span>),
-            <span class="ident">tx_task</span>: <span class="ident">Lock::new</span>(<span class="prelude-val">None</span>),
+<span class="kw">impl</span>&lt;T&gt; Inner&lt;T&gt; {
+    <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            complete: AtomicBool::new(<span class="bool-val">false</span>),
+            data: Lock::new(<span class="prelude-val">None</span>),
+            rx_task: Lock::new(<span class="prelude-val">None</span>),
+            tx_task: Lock::new(<span class="prelude-val">None</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#121">t</a>);
+    <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, t: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), T&gt; {
+        <span class="kw">if </span><span class="self">self</span>.complete.load(SeqCst) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/futures_channel/oneshot.rs.html#121">t</a>);
         }
 
-        <span class="comment">// Note that this lock acquisition may fail if the receiver</span>
-        <span class="comment">// is closed and sets the `complete` flag to `true`, whereupon</span>
-        <span class="comment">// the receiver may call `poll()`.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#121">self</a>.<span class="ident">data</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">slot</span>.<span class="ident">is_none</span>());
-            <span class="kw-2">*</span><a class="ident" href="../../src/futures_channel/oneshot.rs.html#129">slot</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#121">t</a>);
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#129">slot</a>);
+        <span class="comment">// Note that this lock acquisition may fail if the receiver
+        // is closed and sets the `complete` flag to `true`, whereupon
+        // the receiver may call `poll()`.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>slot) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#121">self</a>.data.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(slot.is_none());
+            <span class="kw-2">*</span><a href="../../src/futures_channel/oneshot.rs.html#129">slot</a> = <span class="prelude-val">Some</span>(<a href="../../src/futures_channel/oneshot.rs.html#121">t</a>);
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/futures_channel/oneshot.rs.html#129">slot</a>);
 
-            <span class="comment">// If the receiver called `close()` between the check at the</span>
-            <span class="comment">// start of the function, and the lock being released, then</span>
-            <span class="comment">// the receiver may not be around to receive it, so try to</span>
-            <span class="comment">// pull it back out.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-                <span class="comment">// If lock acquisition fails, then receiver is actually</span>
-                <span class="comment">// receiving it, so we&#39;re good.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#121">self</a>.<span class="ident">data</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#141">slot</a>.<span class="ident">take</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#142">t</a>);
+            <span class="comment">// If the receiver called `close()` between the check at the
+            // start of the function, and the lock being released, then
+            // the receiver may not be around to receive it, so try to
+            // pull it back out.
+            </span><span class="kw">if </span><span class="self">self</span>.complete.load(SeqCst) {
+                <span class="comment">// If lock acquisition fails, then receiver is actually
+                // receiving it, so we&#39;re good.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>slot) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#121">self</a>.data.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = <a href="../../src/futures_channel/oneshot.rs.html#141">slot</a>.take() {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/futures_channel/oneshot.rs.html#142">t</a>);
                     }
                 }
             }
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="comment">// Must have been closed</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#121">t</a>)
+        } <span class="kw">else </span>{
+            <span class="comment">// Must have been closed
+            </span><span class="prelude-val">Err</span>(<a href="../../src/futures_channel/oneshot.rs.html#121">t</a>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_canceled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// Fast path up first, just read the flag and see if our other half is</span>
-        <span class="comment">// gone. This flag is set both in our destructor and the oneshot</span>
-        <span class="comment">// destructor, but our destructor hasn&#39;t run yet so if it&#39;s set then the</span>
-        <span class="comment">// oneshot is gone.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(());
+    <span class="kw">fn </span>poll_canceled(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
+        <span class="comment">// Fast path up first, just read the flag and see if our other half is
+        // gone. This flag is set both in our destructor and the oneshot
+        // destructor, but our destructor hasn&#39;t run yet so if it&#39;s set then the
+        // oneshot is gone.
+        </span><span class="kw">if </span><span class="self">self</span>.complete.load(SeqCst) {
+            <span class="kw">return </span>Poll::Ready(());
         }
 
-        <span class="comment">// If our other half is not gone then we need to park our current task</span>
-        <span class="comment">// and move it into the `tx_task` slot to get notified when it&#39;s</span>
-        <span class="comment">// actually gone.</span>
-        <span class="comment">//</span>
-        <span class="comment">// If `try_lock` fails, then the `Receiver` is in the process of using</span>
-        <span class="comment">// it, so we can deduce that it&#39;s now in the process of going away and</span>
-        <span class="comment">// hence we&#39;re canceled. If it succeeds then we just store our handle.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Crucially we then check `complete` *again* before we return.</span>
-        <span class="comment">// While we were storing our handle inside `tx_task` the</span>
-        <span class="comment">// `Receiver` may have been dropped. The first thing it does is set the</span>
-        <span class="comment">// flag, and if it fails to acquire the lock it assumes that we&#39;ll see</span>
-        <span class="comment">// the flag later on. So... we then try to see the flag later on!</span>
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#154">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">match</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#154">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-            <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">p</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/futures_channel/oneshot.rs.html#178">p</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#176">handle</a>),
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(()),
+        <span class="comment">// If our other half is not gone then we need to park our current task
+        // and move it into the `tx_task` slot to get notified when it&#39;s
+        // actually gone.
+        //
+        // If `try_lock` fails, then the `Receiver` is in the process of using
+        // it, so we can deduce that it&#39;s now in the process of going away and
+        // hence we&#39;re canceled. If it succeeds then we just store our handle.
+        //
+        // Crucially we then check `complete` *again* before we return.
+        // While we were storing our handle inside `tx_task` the
+        // `Receiver` may have been dropped. The first thing it does is set the
+        // flag, and if it fails to acquire the lock it assumes that we&#39;ll see
+        // the flag later on. So... we then try to see the flag later on!
+        </span><span class="kw">let </span>handle = <a href="../../src/futures_channel/oneshot.rs.html#154">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">match </span><a class="self" href="../../src/futures_channel/oneshot.rs.html#154">self</a>.tx_task.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+            <span class="prelude-val">Some</span>(<span class="kw-2">mut </span>p) =&gt; <span class="kw-2">*</span><a href="../../src/futures_channel/oneshot.rs.html#178">p</a> = <span class="prelude-val">Some</span>(<a href="../../src/futures_channel/oneshot.rs.html#176">handle</a>),
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(()),
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-            <span class="ident">Poll::Ready</span>(())
-        } <span class="kw">else</span> {
-            <span class="ident">Poll::Pending</span>
+        <span class="kw">if </span><span class="self">self</span>.complete.load(SeqCst) {
+            Poll::Ready(())
+        } <span class="kw">else </span>{
+            Poll::Pending
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_canceled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#188">self</a>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>)
+    <span class="kw">fn </span>is_canceled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#188">self</a>.complete.load(SeqCst)
     }
 
-    <span class="kw">fn</span> <span class="ident">drop_tx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Flag that we&#39;re a completed `Sender` and try to wake up a receiver.</span>
-        <span class="comment">// Whether or not we actually stored any data will get picked up and</span>
-        <span class="comment">// translated to either an item or cancellation.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Note that if we fail to acquire the `rx_task` lock then that means</span>
-        <span class="comment">// we&#39;re in one of two situations:</span>
-        <span class="comment">//</span>
-        <span class="comment">// 1. The receiver is trying to block in `poll`</span>
-        <span class="comment">// 2. The receiver is being dropped</span>
-        <span class="comment">//</span>
-        <span class="comment">// In the first case it&#39;ll check the `complete` flag after it&#39;s done</span>
-        <span class="comment">// blocking to see if it succeeded. In the latter case we don&#39;t need to</span>
-        <span class="comment">// wake up anyone anyway. So in both cases it&#39;s ok to ignore the `None`</span>
-        <span class="comment">// case of `try_lock` and bail out.</span>
-        <span class="comment">//</span>
-        <span class="comment">// The first case crucially depends on `Lock` using `SeqCst` ordering</span>
-        <span class="comment">// under the hood. If it instead used `Release` / `Acquire` ordering,</span>
-        <span class="comment">// then it would not necessarily synchronize with `inner.complete`</span>
-        <span class="comment">// and deadlock might be possible, as was observed in</span>
-        <span class="comment">// https://github.com/rust-lang/futures-rs/pull/219.</span>
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#192">self</a>.<span class="ident">complete</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">SeqCst</span>);
+    <span class="kw">fn </span>drop_tx(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Flag that we&#39;re a completed `Sender` and try to wake up a receiver.
+        // Whether or not we actually stored any data will get picked up and
+        // translated to either an item or cancellation.
+        //
+        // Note that if we fail to acquire the `rx_task` lock then that means
+        // we&#39;re in one of two situations:
+        //
+        // 1. The receiver is trying to block in `poll`
+        // 2. The receiver is being dropped
+        //
+        // In the first case it&#39;ll check the `complete` flag after it&#39;s done
+        // blocking to see if it succeeded. In the latter case we don&#39;t need to
+        // wake up anyone anyway. So in both cases it&#39;s ok to ignore the `None`
+        // case of `try_lock` and bail out.
+        //
+        // The first case crucially depends on `Lock` using `SeqCst` ordering
+        // under the hood. If it instead used `Release` / `Acquire` ordering,
+        // then it would not necessarily synchronize with `inner.complete`
+        // and deadlock might be possible, as was observed in
+        // https://github.com/rust-lang/futures-rs/pull/219.
+        </span><a class="self" href="../../src/futures_channel/oneshot.rs.html#192">self</a>.complete.store(<span class="bool-val">true</span>, SeqCst);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#192">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#215">slot</a>.<span class="ident">take</span>() {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#215">slot</a>);
-                <a class="ident" href="../../src/futures_channel/oneshot.rs.html#216">task</a>.<span class="ident">wake</span>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>slot) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#192">self</a>.rx_task.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a href="../../src/futures_channel/oneshot.rs.html#215">slot</a>.take() {
+                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/futures_channel/oneshot.rs.html#215">slot</a>);
+                <a href="../../src/futures_channel/oneshot.rs.html#216">task</a>.wake();
             }
         }
 
-        <span class="comment">// If we registered a task for cancel notification drop it to reduce</span>
-        <span class="comment">// spurious wakeups</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#192">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#224">slot</a>.<span class="ident">take</span>());
+        <span class="comment">// If we registered a task for cancel notification drop it to reduce
+        // spurious wakeups
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>slot) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#192">self</a>.tx_task.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/futures_channel/oneshot.rs.html#224">slot</a>.take());
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">close_rx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Flag our completion and then attempt to wake up the sender if it&#39;s</span>
-        <span class="comment">// blocked. See comments in `drop` below for more info</span>
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#229">self</a>.<span class="ident">complete</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">SeqCst</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">handle</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#229">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#233">handle</a>.<span class="ident">take</span>() {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#233">handle</a>);
-                <a class="ident" href="../../src/futures_channel/oneshot.rs.html#234">task</a>.<span class="ident">wake</span>()
+    <span class="kw">fn </span>close_rx(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Flag our completion and then attempt to wake up the sender if it&#39;s
+        // blocked. See comments in `drop` below for more info
+        </span><a class="self" href="../../src/futures_channel/oneshot.rs.html#229">self</a>.complete.store(<span class="bool-val">true</span>, SeqCst);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>handle) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#229">self</a>.tx_task.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a href="../../src/futures_channel/oneshot.rs.html#233">handle</a>.take() {
+                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/futures_channel/oneshot.rs.html#233">handle</a>);
+                <a href="../../src/futures_channel/oneshot.rs.html#234">task</a>.wake()
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a><span class="op">&gt;</span> {
-        <span class="comment">// If we&#39;re complete, either `::close_rx` or `::drop_tx` was called.</span>
-        <span class="comment">// We can assume a successful send if data is present.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#241">self</a>.<span class="ident">data</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#245">slot</a>.<span class="ident">take</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#246">data</a>));
+    <span class="kw">fn </span>try_recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>&gt; {
+        <span class="comment">// If we&#39;re complete, either `::close_rx` or `::drop_tx` was called.
+        // We can assume a successful send if data is present.
+        </span><span class="kw">if </span><span class="self">self</span>.complete.load(SeqCst) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>slot) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#241">self</a>.data.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(data) = <a href="../../src/futures_channel/oneshot.rs.html#245">slot</a>.take() {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../src/futures_channel/oneshot.rs.html#246">data</a>));
                 }
             }
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>)
-        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>)
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Check to see if some data has arrived. If it hasn&#39;t then we need to</span>
-        <span class="comment">// block our task.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Note that the acquisition of the `rx_task` lock might fail below, but</span>
-        <span class="comment">// the only situation where this can happen is during `Sender::drop`</span>
-        <span class="comment">// when we are indeed completed already. If that&#39;s happening then we</span>
-        <span class="comment">// know we&#39;re completed so keep going.</span>
-        <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-            <span class="bool-val">true</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#256">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">match</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#256">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-                <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) =&gt; {
-                    <span class="kw-2">*</span><a class="ident" href="../../src/futures_channel/oneshot.rs.html#269">slot</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#267">task</a>);
-                    <span class="bool-val">false</span>
-                }
-                <span class="prelude-val">None</span> =&gt; <span class="bool-val">true</span>,
+    <span class="kw">fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>&gt;&gt; {
+        <span class="comment">// Check to see if some data has arrived. If it hasn&#39;t then we need to
+        // block our task.
+        //
+        // Note that the acquisition of the `rx_task` lock might fail below, but
+        // the only situation where this can happen is during `Sender::drop`
+        // when we are indeed completed already. If that&#39;s happening then we
+        // know we&#39;re completed so keep going.
+        </span><span class="kw">let </span>done = <span class="kw">if </span><span class="self">self</span>.complete.load(SeqCst) {
+            <span class="bool-val">true
+        </span>} <span class="kw">else </span>{
+            <span class="kw">let </span>task = <a href="../../src/futures_channel/oneshot.rs.html#256">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">match </span><a class="self" href="../../src/futures_channel/oneshot.rs.html#256">self</a>.rx_task.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+                <span class="prelude-val">Some</span>(<span class="kw-2">mut </span>slot) =&gt; {
+                    <span class="kw-2">*</span><a href="../../src/futures_channel/oneshot.rs.html#269">slot</a> = <span class="prelude-val">Some</span>(<a href="../../src/futures_channel/oneshot.rs.html#267">task</a>);
+                    <span class="bool-val">false
+                </span>}
+                <span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
             }
         };
 
-        <span class="comment">// If we&#39;re `done` via one of the paths above, then look at the data and</span>
-        <span class="comment">// figure out what the answer is. If, however, we stored `rx_task`</span>
-        <span class="comment">// successfully above we need to check again if we&#39;re completed in case</span>
-        <span class="comment">// a message was sent while `rx_task` was locked and couldn&#39;t notify us</span>
-        <span class="comment">// otherwise.</span>
-        <span class="comment">//</span>
-        <span class="comment">// If we&#39;re not done, and we&#39;re not complete, though, then we&#39;ve</span>
-        <span class="comment">// successfully blocked our task and we return `Pending`.</span>
-        <span class="kw">if</span> <span class="ident">done</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-            <span class="comment">// If taking the lock fails, the sender will realise that the we&#39;re</span>
-            <span class="comment">// `done` when it checks the `complete` flag on the way out, and</span>
-            <span class="comment">// will treat the send as a failure.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#256">self</a>.<span class="ident">data</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#289">slot</a>.<span class="ident">take</span>() {
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#290">data</a>));
+        <span class="comment">// If we&#39;re `done` via one of the paths above, then look at the data and
+        // figure out what the answer is. If, however, we stored `rx_task`
+        // successfully above we need to check again if we&#39;re completed in case
+        // a message was sent while `rx_task` was locked and couldn&#39;t notify us
+        // otherwise.
+        //
+        // If we&#39;re not done, and we&#39;re not complete, though, then we&#39;ve
+        // successfully blocked our task and we return `Pending`.
+        </span><span class="kw">if </span>done || <span class="self">self</span>.complete.load(SeqCst) {
+            <span class="comment">// If taking the lock fails, the sender will realise that the we&#39;re
+            // `done` when it checks the `complete` flag on the way out, and
+            // will treat the send as a failure.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>slot) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#256">self</a>.data.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(data) = <a href="../../src/futures_channel/oneshot.rs.html#289">slot</a>.take() {
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/futures_channel/oneshot.rs.html#290">data</a>));
                 }
             }
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>))
-        } <span class="kw">else</span> {
-            <span class="ident">Poll::Pending</span>
+            Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>))
+        } <span class="kw">else </span>{
+            Poll::Pending
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">drop_rx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Indicate to the `Sender` that we&#39;re done, so any future calls to</span>
-        <span class="comment">// `poll_canceled` are weeded out.</span>
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#300">self</a>.<span class="ident">complete</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">SeqCst</span>);
+    <span class="kw">fn </span>drop_rx(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Indicate to the `Sender` that we&#39;re done, so any future calls to
+        // `poll_canceled` are weeded out.
+        </span><a class="self" href="../../src/futures_channel/oneshot.rs.html#300">self</a>.complete.store(<span class="bool-val">true</span>, SeqCst);
 
-        <span class="comment">// If we&#39;ve blocked a task then there&#39;s no need for it to stick around,</span>
-        <span class="comment">// so we need to drop it. If this lock acquisition fails, though, then</span>
-        <span class="comment">// it&#39;s just because our `Sender` is trying to take the task, so we</span>
-        <span class="comment">// let them take care of that.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">slot</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#300">self</a>.<span class="ident">rx_task</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#309">slot</a>.<span class="ident">take</span>();
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#309">slot</a>);
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#310">task</a>);
+        <span class="comment">// If we&#39;ve blocked a task then there&#39;s no need for it to stick around,
+        // so we need to drop it. If this lock acquisition fails, though, then
+        // it&#39;s just because our `Sender` is trying to take the task, so we
+        // let them take care of that.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>slot) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#300">self</a>.rx_task.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+            <span class="kw">let </span>task = <a href="../../src/futures_channel/oneshot.rs.html#309">slot</a>.take();
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/futures_channel/oneshot.rs.html#309">slot</a>);
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/futures_channel/oneshot.rs.html#310">task</a>);
         }
 
-        <span class="comment">// Finally, if our `Sender` wants to get notified of us going away, it</span>
-        <span class="comment">// would have stored something in `tx_task`. Here we try to peel that</span>
-        <span class="comment">// out and unpark it.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Note that the `try_lock` here may fail, but only if the `Sender` is</span>
-        <span class="comment">// in the process of filling in the task. If that happens then we</span>
-        <span class="comment">// already flagged `complete` and they&#39;ll pick that up above.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">handle</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#300">self</a>.<span class="ident">tx_task</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#322">handle</a>.<span class="ident">take</span>() {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#322">handle</a>);
-                <a class="ident" href="../../src/futures_channel/oneshot.rs.html#323">task</a>.<span class="ident">wake</span>()
+        <span class="comment">// Finally, if our `Sender` wants to get notified of us going away, it
+        // would have stored something in `tx_task`. Here we try to peel that
+        // out and unpark it.
+        //
+        // Note that the `try_lock` here may fail, but only if the `Sender` is
+        // in the process of filling in the task. If that happens then we
+        // already flagged `complete` and they&#39;ll pick that up above.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>handle) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#300">self</a>.tx_task.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a href="../../src/futures_channel/oneshot.rs.html#322">handle</a>.take() {
+                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/futures_channel/oneshot.rs.html#322">handle</a>);
+                <a href="../../src/futures_channel/oneshot.rs.html#323">task</a>.wake()
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Completes this oneshot with a successful result.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will consume `self` and indicate to the other end, the</span>
-    <span class="doccomment">/// [`Receiver`](Receiver), that the value provided is the result of the</span>
-    <span class="doccomment">/// computation this represents.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the value is successfully enqueued for the remote end to receive,</span>
-    <span class="doccomment">/// then `Ok(())` is returned. If the receiving end was dropped before</span>
-    <span class="doccomment">/// this function was called, however, then `Err(t)` is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#341">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#121">send</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#341">t</a>)
+<span class="kw">impl</span>&lt;T&gt; Sender&lt;T&gt; {
+    <span class="doccomment">/// Completes this oneshot with a successful result.
+    ///
+    /// This function will consume `self` and indicate to the other end, the
+    /// [`Receiver`](Receiver), that the value provided is the result of the
+    /// computation this represents.
+    ///
+    /// If the value is successfully enqueued for the remote end to receive,
+    /// then `Ok(())` is returned. If the receiving end was dropped before
+    /// this function was called, however, then `Err(t)` is returned.
+    </span><span class="kw">pub fn </span>send(<span class="self">self</span>, t: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), T&gt; {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#341">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#121">send</a>(<a href="../../src/futures_channel/oneshot.rs.html#341">t</a>)
     }
 
-    <span class="doccomment">/// Polls this `Sender` half to detect whether its associated</span>
-    <span class="doccomment">/// [`Receiver`](Receiver) has been dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Return values</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `Ready(())` is returned then the associated `Receiver` has been</span>
-    <span class="doccomment">/// dropped, which means any work required for sending should be canceled.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `Pending` is returned then the associated `Receiver` is still</span>
-    <span class="doccomment">/// alive and may be able to receive a message if sent. The current task,</span>
-    <span class="doccomment">/// however, is scheduled to receive a notification if the corresponding</span>
-    <span class="doccomment">/// `Receiver` goes away.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_canceled</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#357">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#154">poll_canceled</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#357">cx</a>)
+    <span class="doccomment">/// Polls this `Sender` half to detect whether its associated
+    /// [`Receiver`](Receiver) has been dropped.
+    ///
+    /// # Return values
+    ///
+    /// If `Ready(())` is returned then the associated `Receiver` has been
+    /// dropped, which means any work required for sending should be canceled.
+    ///
+    /// If `Pending` is returned then the associated `Receiver` is still
+    /// alive and may be able to receive a message if sent. The current task,
+    /// however, is scheduled to receive a notification if the corresponding
+    /// `Receiver` goes away.
+    </span><span class="kw">pub fn </span>poll_canceled(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#357">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#154">poll_canceled</a>(<a href="../../src/futures_channel/oneshot.rs.html#357">cx</a>)
     }
 
-    <span class="doccomment">/// Creates a future that resolves when this `Sender`&#39;s corresponding</span>
-    <span class="doccomment">/// [`Receiver`](Receiver) half has hung up.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a utility wrapping [`poll_canceled`](Sender::poll_canceled)</span>
-    <span class="doccomment">/// to expose a [`Future`](core::future::Future).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancellation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Cancellation</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/futures_channel/oneshot.rs.html#404">Cancellation</a> { <span class="ident">inner</span>: <a class="self" href="../../src/futures_channel/oneshot.rs.html#366">self</a> }
+    <span class="doccomment">/// Creates a future that resolves when this `Sender`&#39;s corresponding
+    /// [`Receiver`](Receiver) half has hung up.
+    ///
+    /// This is a utility wrapping [`poll_canceled`](Sender::poll_canceled)
+    /// to expose a [`Future`](core::future::Future).
+    </span><span class="kw">pub fn </span>cancellation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Cancellation&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <a href="../../src/futures_channel/oneshot.rs.html#404">Cancellation</a> { inner: <span class="self"><a href="../../src/futures_channel/oneshot.rs.html#366">self</a> </span>}
     }
 
-    <span class="doccomment">/// Tests to see whether this `Sender`&#39;s corresponding `Receiver`</span>
-    <span class="doccomment">/// has been dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Unlike [`poll_canceled`](Sender::poll_canceled), this function does not</span>
-    <span class="doccomment">/// enqueue a task for wakeup upon cancellation, but merely reports the</span>
-    <span class="doccomment">/// current state, which may be subject to concurrent modification.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_canceled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#376">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#188">is_canceled</a>()
+    <span class="doccomment">/// Tests to see whether this `Sender`&#39;s corresponding `Receiver`
+    /// has been dropped.
+    ///
+    /// Unlike [`poll_canceled`](Sender::poll_canceled), this function does not
+    /// enqueue a task for wakeup upon cancellation, but merely reports the
+    /// current state, which may be subject to concurrent modification.
+    </span><span class="kw">pub fn </span>is_canceled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#376">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#188">is_canceled</a>()
     }
 
-    <span class="doccomment">/// Tests to see whether this `Sender` is connected to the given `Receiver`. That is, whether</span>
-    <span class="doccomment">/// they were created by the same call to `channel`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_connected_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">receiver</span>: <span class="kw-2">&amp;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="ident">Arc::ptr_eq</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/futures_channel/oneshot.rs.html#382">self</a>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_channel/oneshot.rs.html#382">receiver</a>.<span class="ident">inner</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#388">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#192">drop_tx</a>()
+    <span class="doccomment">/// Tests to see whether this `Sender` is connected to the given `Receiver`. That is, whether
+    /// they were created by the same call to `channel`.
+    </span><span class="kw">pub fn </span>is_connected_to(<span class="kw-2">&amp;</span><span class="self">self</span>, receiver: <span class="kw-2">&amp;</span>Receiver&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="../../src/futures_channel/oneshot.rs.html#382">self</a>.inner, <span class="kw-2">&amp;</span><a href="../../src/futures_channel/oneshot.rs.html#382">receiver</a>.inner)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/futures_channel/oneshot.rs.html#394">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Sender&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;complete&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/futures_channel/oneshot.rs.html#394">self</a>.<span class="ident">inner</span>.<span class="ident">complete</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Sender&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#388">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#192">drop_tx</a>()
     }
 }
 
-<span class="doccomment">/// A future that resolves when the receiving end of a channel has hung up.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is an `.await`-friendly interface around [`poll_canceled`](Sender::poll_canceled).</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cancellation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Cancellation</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
-
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#411">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#357">poll_canceled</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#411">cx</a>)
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Sender&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/futures_channel/oneshot.rs.html#394">f</a>.debug_struct(<span class="string">&quot;Sender&quot;</span>).field(<span class="string">&quot;complete&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/futures_channel/oneshot.rs.html#394">self</a>.inner.complete).finish()
     }
 }
 
-<span class="doccomment">/// Error returned from a [`Receiver`](Receiver) when the corresponding</span>
-<span class="doccomment">/// [`Sender`](Sender) is dropped.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Canceled</span>;
+<span class="doccomment">/// A future that resolves when the receiving end of a channel has hung up.
+///
+/// This is an `.await`-friendly interface around [`poll_canceled`](Sender::poll_canceled).
+</span><span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+#[derive(Debug)]
+</span><span class="kw">pub struct </span>Cancellation&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Sender&lt;T&gt;,
+}
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#422">f</a>, <span class="string">&quot;oneshot canceled&quot;</span>)
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Cancellation&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">type </span>Output = ();
+
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#411">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#357">poll_canceled</a>(<a href="../../src/futures_channel/oneshot.rs.html#411">cx</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a> {}
+<span class="doccomment">/// Error returned from a [`Receiver`](Receiver) when the corresponding
+/// [`Sender`](Sender) is dropped.
+</span><span class="attribute">#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+</span><span class="kw">pub struct </span>Canceled;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Gracefully close this receiver, preventing any subsequent attempts to</span>
-    <span class="doccomment">/// send to it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Any `send` operation which happens after this method returns is</span>
-    <span class="doccomment">/// guaranteed to fail. After calling this method, you can use</span>
-    <span class="doccomment">/// [`Receiver::poll`](core::future::Future::poll) to determine whether a</span>
-    <span class="doccomment">/// message had previously been sent.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#438">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#229">close_rx</a>()
-    }
-
-    <span class="doccomment">/// Attempts to receive a message outside of the context of a task.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Does not schedule a task wakeup or have any other side effects.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A return value of `None` must be considered immediately stale (out of</span>
-    <span class="doccomment">/// date) unless [`close`](Receiver::close) has been called first.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an error if the sender was dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#450">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#241">try_recv</a>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/futures_channel/oneshot.rs.html#422">f</a>, <span class="string">&quot;oneshot canceled&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a><span class="op">&gt;</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a> {}
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#458">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#256">recv</a>(<a class="ident" href="../../src/futures_channel/oneshot.rs.html#458">cx</a>)
+<span class="kw">impl</span>&lt;T&gt; Receiver&lt;T&gt; {
+    <span class="doccomment">/// Gracefully close this receiver, preventing any subsequent attempts to
+    /// send to it.
+    ///
+    /// Any `send` operation which happens after this method returns is
+    /// guaranteed to fail. After calling this method, you can use
+    /// [`Receiver::poll`](core::future::Future::poll) to determine whether a
+    /// message had previously been sent.
+    </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#438">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#229">close_rx</a>()
+    }
+
+    <span class="doccomment">/// Attempts to receive a message outside of the context of a task.
+    ///
+    /// Does not schedule a task wakeup or have any other side effects.
+    ///
+    /// A return value of `None` must be considered immediately stale (out of
+    /// date) unless [`close`](Receiver::close) has been called first.
+    ///
+    /// Returns an error if the sender was dropped.
+    </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>&gt; {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#450">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#241">try_recv</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../futures_core/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">complete</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">slot</span>) <span class="op">=</span> <a class="self" href="../../src/futures_channel/oneshot.rs.html#464">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
-                <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">is_some</span>() {
-                    <span class="kw">return</span> <span class="bool-val">false</span>;
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Receiver&lt;T&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, <a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>&gt;;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, <a href="../../src/futures_channel/oneshot.rs.html#419">Canceled</a>&gt;&gt; {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#458">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#256">recv</a>(<a href="../../src/futures_channel/oneshot.rs.html#458">cx</a>)
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="../../futures_core/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>Receiver&lt;T&gt; {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if </span><span class="self">self</span>.inner.complete.load(SeqCst) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(slot) = <a class="self" href="../../src/futures_channel/oneshot.rs.html#464">self</a>.inner.data.<a href="../../src/futures_channel/lock.rs.html#52">try_lock</a>() {
+                <span class="kw">if </span>slot.is_some() {
+                    <span class="kw">return </span><span class="bool-val">false</span>;
                 }
             }
-            <span class="bool-val">true</span>
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+            <span class="bool-val">true
+        </span>} <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/futures_channel/oneshot.rs.html#479">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../src/futures_channel/oneshot.rs.html#300">drop_rx</a>()
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Receiver&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/futures_channel/oneshot.rs.html#479">self</a>.inner.<a href="../../src/futures_channel/oneshot.rs.html#300">drop_rx</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/futures_channel/oneshot.rs.html#485">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Receiver&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;complete&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/futures_channel/oneshot.rs.html#485">self</a>.<span class="ident">inner</span>.<span class="ident">complete</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Receiver&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/futures_channel/oneshot.rs.html#485">f</a>.debug_struct(<span class="string">&quot;Receiver&quot;</span>).field(<span class="string">&quot;complete&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/futures_channel/oneshot.rs.html#485">self</a>.inner.complete).finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_channel" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_channel" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

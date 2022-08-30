@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.4/src/unbounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unbounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.4/src/unbounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unbounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -406,413 +406,413 @@
 <span id="406">406</span>
 <span id="407">407</span>
 <span id="408">408</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicPtr.html">AtomicPtr</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../cache_padded/struct.CachePadded.html">cache_padded::CachePadded</a>;
+<span class="kw">use </span><a href="../../cache_padded/struct.CachePadded.html">cache_padded::CachePadded</a>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/concurrent_queue/lib.rs.html#344">PopError</a>, <a class="ident" href="../../src/concurrent_queue/lib.rs.html#392">PushError</a>};
+<span class="kw">use crate</span>::{<a href="../../src/concurrent_queue/lib.rs.html#344">PopError</a>, <a href="../../src/concurrent_queue/lib.rs.html#392">PushError</a>};
 
-<span class="comment">// Bits indicating the state of a slot:</span>
-<span class="comment">// * If a value has been written into the slot, `WRITE` is set.</span>
-<span class="comment">// * If a value has been read from the slot, `READ` is set.</span>
-<span class="comment">// * If the block is being destroyed, `DESTROY` is set.</span>
-<span class="kw">const</span> <span class="ident">WRITE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">READ</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">2</span>;
-<span class="kw">const</span> <span class="ident">DESTROY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">4</span>;
+<span class="comment">// Bits indicating the state of a slot:
+// * If a value has been written into the slot, `WRITE` is set.
+// * If a value has been read from the slot, `READ` is set.
+// * If the block is being destroyed, `DESTROY` is set.
+</span><span class="kw">const </span>WRITE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+<span class="kw">const </span>READ: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
+<span class="kw">const </span>DESTROY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4</span>;
 
-<span class="comment">// Each block covers one &quot;lap&quot; of indices.</span>
-<span class="kw">const</span> <span class="ident">LAP</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">32</span>;
-<span class="comment">// The maximum number of items a block can hold.</span>
-<span class="kw">const</span> <span class="ident">BLOCK_CAP</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a> <span class="op">-</span> <span class="number">1</span>;
-<span class="comment">// How many lower bits are reserved for metadata.</span>
-<span class="kw">const</span> <span class="ident">SHIFT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
-<span class="comment">// Has two different purposes:</span>
-<span class="comment">// * If set in head, indicates that the block is not the last one.</span>
-<span class="comment">// * If set in tail, indicates that the queue is closed.</span>
-<span class="kw">const</span> <span class="ident">MARK_BIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
+<span class="comment">// Each block covers one &quot;lap&quot; of indices.
+</span><span class="kw">const </span>LAP: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">32</span>;
+<span class="comment">// The maximum number of items a block can hold.
+</span><span class="kw">const </span>BLOCK_CAP: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a> - <span class="number">1</span>;
+<span class="comment">// How many lower bits are reserved for metadata.
+</span><span class="kw">const </span>SHIFT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+<span class="comment">// Has two different purposes:
+// * If set in head, indicates that the block is not the last one.
+// * If set in tail, indicates that the queue is closed.
+</span><span class="kw">const </span>MARK_BIT: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
 
-<span class="doccomment">/// A slot in a block.</span>
-<span class="kw">struct</span> <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The value.</span>
-    <span class="ident">value</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A slot in a block.
+</span><span class="kw">struct </span>Slot&lt;T&gt; {
+    <span class="doccomment">/// The value.
+    </span>value: UnsafeCell&lt;MaybeUninit&lt;T&gt;&gt;,
 
-    <span class="doccomment">/// The state of the slot.</span>
-    <span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+    <span class="doccomment">/// The state of the slot.
+    </span>state: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">const</span> <span class="ident">UNINIT</span>: <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#31">Slot</a> {
-        <span class="ident">value</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>()),
-        <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
+<span class="kw">impl</span>&lt;T&gt; Slot&lt;T&gt; {
+    <span class="kw">const </span>UNINIT: Slot&lt;T&gt; = <a href="../../src/concurrent_queue/unbounded.rs.html#31">Slot</a> {
+        value: UnsafeCell::new(MaybeUninit::uninit()),
+        state: AtomicUsize::new(<span class="number">0</span>),
     };
 
-    <span class="doccomment">/// Waits until a value is written into the slot.</span>
-    <span class="kw">fn</span> <span class="ident">wait_write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <span class="ident">WRITE</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="ident">thread::yield_now</span>();
+    <span class="doccomment">/// Waits until a value is written into the slot.
+    </span><span class="kw">fn </span>wait_write(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">while </span><span class="self">self</span>.state.load(Ordering::Acquire) &amp; WRITE == <span class="number">0 </span>{
+            thread::yield_now();
         }
     }
 }
 
-<span class="doccomment">/// A block in a linked list.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Each block in the list can hold up to `BLOCK_CAP` values.</span>
-<span class="kw">struct</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The next block in the linked list.</span>
-    <span class="ident">next</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A block in a linked list.
+///
+/// Each block in the list can hold up to `BLOCK_CAP` values.
+</span><span class="kw">struct </span>Block&lt;T&gt; {
+    <span class="doccomment">/// The next block in the linked list.
+    </span>next: AtomicPtr&lt;Block&lt;T&gt;&gt;,
 
-    <span class="doccomment">/// Slots for values.</span>
-    <span class="ident">slots</span>: [<span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>; <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#22">BLOCK_CAP</a>],
+    <span class="doccomment">/// Slots for values.
+    </span>slots: [Slot&lt;T&gt;; <a href="../../src/concurrent_queue/unbounded.rs.html#22">BLOCK_CAP</a>],
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates an empty block.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#56">Block</a> {
-            <span class="ident">next</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
-            <span class="ident">slots</span>: [<span class="ident">Slot::UNINIT</span>; <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#22">BLOCK_CAP</a>],
+<span class="kw">impl</span>&lt;T&gt; Block&lt;T&gt; {
+    <span class="doccomment">/// Creates an empty block.
+    </span><span class="kw">fn </span>new() -&gt; Block&lt;T&gt; {
+        <a href="../../src/concurrent_queue/unbounded.rs.html#56">Block</a> {
+            next: AtomicPtr::new(ptr::null_mut()),
+            slots: [Slot::UNINIT; <a href="../../src/concurrent_queue/unbounded.rs.html#22">BLOCK_CAP</a>],
         }
     }
 
-    <span class="doccomment">/// Waits until the next pointer is set.</span>
-    <span class="kw">fn</span> <span class="ident">wait_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#74">self</a>.<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">next</span>.<span class="ident">is_null</span>() {
-                <span class="kw">return</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#76">next</a>;
+    <span class="doccomment">/// Waits until the next pointer is set.
+    </span><span class="kw">fn </span>wait_next(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>Block&lt;T&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>next = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#74">self</a>.next.load(Ordering::Acquire);
+            <span class="kw">if </span>!next.is_null() {
+                <span class="kw">return </span><a href="../../src/concurrent_queue/unbounded.rs.html#76">next</a>;
             }
-            <span class="ident">thread::yield_now</span>();
+            thread::yield_now();
         }
     }
 
-    <span class="doccomment">/// Sets the `DESTROY` bit in slots starting from `start` and destroys the block.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">destroy</span>(<span class="ident">this</span>: <span class="kw-2">*mut</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="comment">// It is not necessary to set the `DESTROY` bit in the last slot because that slot has</span>
-        <span class="comment">// begun destruction of the block.</span>
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">start</span>..<span class="ident">BLOCK_CAP</span> <span class="op">-</span> <span class="number">1</span> {
-            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">this</span>).<span class="ident">slots</span>.<span class="ident">get_unchecked</span>(<span class="ident">i</span>);
+    <span class="doccomment">/// Sets the `DESTROY` bit in slots starting from `start` and destroys the block.
+    </span><span class="kw">unsafe fn </span>destroy(this: <span class="kw-2">*mut </span>Block&lt;T&gt;, start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="comment">// It is not necessary to set the `DESTROY` bit in the last slot because that slot has
+        // begun destruction of the block.
+        </span><span class="kw">for </span>i <span class="kw">in </span>start..BLOCK_CAP - <span class="number">1 </span>{
+            <span class="kw">let </span>slot = (<span class="kw-2">*</span>this).slots.get_unchecked(i);
 
-            <span class="comment">// Mark the `DESTROY` bit if a thread is still using the slot.</span>
-            <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <span class="ident">READ</span> <span class="op">==</span> <span class="number">0</span>
-                <span class="op">&amp;&amp;</span> <span class="ident">slot</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="ident">DESTROY</span>, <span class="ident">Ordering::AcqRel</span>) <span class="op">&amp;</span> <span class="ident">READ</span> <span class="op">==</span> <span class="number">0</span>
-            {
-                <span class="comment">// If a thread is still using the slot, it will continue destruction of the block.</span>
-                <span class="kw">return</span>;
+            <span class="comment">// Mark the `DESTROY` bit if a thread is still using the slot.
+            </span><span class="kw">if </span>slot.state.load(Ordering::Acquire) &amp; READ == <span class="number">0
+                </span>&amp;&amp; slot.state.fetch_or(DESTROY, Ordering::AcqRel) &amp; READ == <span class="number">0
+            </span>{
+                <span class="comment">// If a thread is still using the slot, it will continue destruction of the block.
+                </span><span class="kw">return</span>;
             }
         }
 
-        <span class="comment">// No thread is using the block, now it is safe to destroy it.</span>
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="ident">Box::from_raw</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#85">this</a>));
+        <span class="comment">// No thread is using the block, now it is safe to destroy it.
+        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Box::from_raw(<a href="../../src/concurrent_queue/unbounded.rs.html#85">this</a>));
     }
 }
 
-<span class="doccomment">/// A position in a queue.</span>
-<span class="kw">struct</span> <span class="ident">Position</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The index in the queue.</span>
-    <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+<span class="doccomment">/// A position in a queue.
+</span><span class="kw">struct </span>Position&lt;T&gt; {
+    <span class="doccomment">/// The index in the queue.
+    </span>index: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
 
-    <span class="doccomment">/// The block in the linked list.</span>
-    <span class="ident">block</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The block in the linked list.
+    </span>block: AtomicPtr&lt;Block&lt;T&gt;&gt;,
 }
 
-<span class="doccomment">/// An unbounded queue.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Unbounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The head of the queue.</span>
-    <span class="ident">head</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An unbounded queue.
+</span><span class="kw">pub struct </span>Unbounded&lt;T&gt; {
+    <span class="doccomment">/// The head of the queue.
+    </span>head: CachePadded&lt;Position&lt;T&gt;&gt;,
 
-    <span class="doccomment">/// The tail of the queue.</span>
-    <span class="ident">tail</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The tail of the queue.
+    </span>tail: CachePadded&lt;Position&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Unbounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new unbounded queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Unbounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#115">Unbounded</a> {
-            <span class="ident">head</span>: <span class="ident">CachePadded::new</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#106">Position</a> {
-                <span class="ident">block</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
-                <span class="ident">index</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
+<span class="kw">impl</span>&lt;T&gt; Unbounded&lt;T&gt; {
+    <span class="doccomment">/// Creates a new unbounded queue.
+    </span><span class="kw">pub fn </span>new() -&gt; Unbounded&lt;T&gt; {
+        <a href="../../src/concurrent_queue/unbounded.rs.html#115">Unbounded</a> {
+            head: CachePadded::new(<a href="../../src/concurrent_queue/unbounded.rs.html#106">Position</a> {
+                block: AtomicPtr::new(ptr::null_mut()),
+                index: AtomicUsize::new(<span class="number">0</span>),
             }),
-            <span class="ident">tail</span>: <span class="ident">CachePadded::new</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#106">Position</a> {
-                <span class="ident">block</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr::null_mut</span>()),
-                <span class="ident">index</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
+            tail: CachePadded::new(<a href="../../src/concurrent_queue/unbounded.rs.html#106">Position</a> {
+                block: AtomicPtr::new(ptr::null_mut()),
+                index: AtomicUsize::new(<span class="number">0</span>),
             }),
         }
     }
 
-    <span class="doccomment">/// Pushes an item into the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_block</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="doccomment">/// Pushes an item into the queue.
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), PushError&lt;T&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>tail = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.index.load(Ordering::Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>block = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.block.load(Ordering::Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>next_block = <span class="prelude-val">None</span>;
 
-        <span class="kw">loop</span> {
-            <span class="comment">// Check if the queue is closed.</span>
-            <span class="kw">if</span> <span class="ident">tail</span> <span class="op">&amp;</span> <span class="ident">MARK_BIT</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#397">PushError::Closed</a>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#139">value</a>));
+        <span class="kw">loop </span>{
+            <span class="comment">// Check if the queue is closed.
+            </span><span class="kw">if </span>tail &amp; MARK_BIT != <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/concurrent_queue/lib.rs.html#397">PushError::Closed</a>(<a href="../../src/concurrent_queue/unbounded.rs.html#139">value</a>));
             }
 
-            <span class="comment">// Calculate the offset of the index into the block.</span>
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) <span class="op">%</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>;
+            <span class="comment">// Calculate the offset of the index into the block.
+            </span><span class="kw">let </span>offset = (<a href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> &gt;&gt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) % <a href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>;
 
-            <span class="comment">// If we reached the end of the block, wait until the next one is installed.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
-                <span class="ident">thread::yield_now</span>();
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#141">block</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+            <span class="comment">// If we reached the end of the block, wait until the next one is installed.
+            </span><span class="kw">if </span>offset == BLOCK_CAP {
+                thread::yield_now();
+                <a href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.index.load(Ordering::Acquire);
+                <a href="../../src/concurrent_queue/unbounded.rs.html#141">block</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.block.load(Ordering::Acquire);
                 <span class="kw">continue</span>;
             }
 
-            <span class="comment">// If we&#39;re going to have to install the next block, allocate it in advance in order to</span>
-            <span class="comment">// make the wait for other threads as short as possible.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> <span class="op">&amp;&amp;</span> <span class="ident">next_block</span>.<span class="ident">is_none</span>() {
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#142">next_block</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">Block</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::new</span>()));
+            <span class="comment">// If we&#39;re going to have to install the next block, allocate it in advance in order to
+            // make the wait for other threads as short as possible.
+            </span><span class="kw">if </span>offset + <span class="number">1 </span>== BLOCK_CAP &amp;&amp; next_block.is_none() {
+                <a href="../../src/concurrent_queue/unbounded.rs.html#142">next_block</a> = <span class="prelude-val">Some</span>(Box::new(Block::&lt;T&gt;::new()));
             }
 
-            <span class="comment">// If this is the first value to be pushed into the queue, we need to allocate the</span>
-            <span class="comment">// first block and install it.</span>
-            <span class="kw">if</span> <span class="ident">block</span>.<span class="ident">is_null</span>() {
-                <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">Block</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::new</span>()));
+            <span class="comment">// If this is the first value to be pushed into the queue, we need to allocate the
+            // first block and install it.
+            </span><span class="kw">if </span>block.is_null() {
+                <span class="kw">let </span>new = Box::into_raw(Box::new(Block::&lt;T&gt;::new()));
 
-                <span class="kw">if</span> <span class="self">self</span>
-                    .<span class="ident">tail</span>
-                    .<span class="ident">block</span>
-                    .<span class="ident">compare_exchange</span>(<span class="ident">block</span>, <span class="ident">new</span>, <span class="ident">Ordering::Release</span>, <span class="ident">Ordering::Relaxed</span>)
-                    .<span class="ident">is_ok</span>()
+                <span class="kw">if </span><span class="self">self
+                    </span>.tail
+                    .block
+                    .compare_exchange(block, new, Ordering::Release, Ordering::Relaxed)
+                    .is_ok()
                 {
-                    <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">store</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#170">new</a>, <span class="ident">Ordering::Release</span>);
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#141">block</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#170">new</a>;
-                } <span class="kw">else</span> {
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#142">next_block</a> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">Box::from_raw</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#170">new</a>)) };
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#141">block</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+                    <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.head.block.store(<a href="../../src/concurrent_queue/unbounded.rs.html#170">new</a>, Ordering::Release);
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#141">block</a> = <a href="../../src/concurrent_queue/unbounded.rs.html#170">new</a>;
+                } <span class="kw">else </span>{
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#142">next_block</a> = <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(Box::from_raw(<a href="../../src/concurrent_queue/unbounded.rs.html#170">new</a>)) };
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.index.load(Ordering::Acquire);
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#141">block</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.block.load(Ordering::Acquire);
                     <span class="kw">continue</span>;
                 }
             }
 
-            <span class="kw">let</span> <span class="ident">new_tail</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
+            <span class="kw">let </span>new_tail = <a href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> + (<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
 
-            <span class="comment">// Try advancing the tail forward.</span>
-            <span class="kw">match</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">compare_exchange_weak</span>(
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a>,
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#188">new_tail</a>,
-                <span class="ident">Ordering::SeqCst</span>,
-                <span class="ident">Ordering::Acquire</span>,
+            <span class="comment">// Try advancing the tail forward.
+            </span><span class="kw">match </span><a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.index.compare_exchange_weak(
+                <a href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a>,
+                <a href="../../src/concurrent_queue/unbounded.rs.html#188">new_tail</a>,
+                Ordering::SeqCst,
+                Ordering::Acquire,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe</span> {
-                    <span class="comment">// If we&#39;ve reached the end of the block, install the next one.</span>
-                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
-                        <span class="kw">let</span> <span class="ident">next_block</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#142">next_block</a>.<span class="ident">unwrap</span>());
-                        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">store</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#200">next_block</a>, <span class="ident">Ordering::Release</span>);
-                        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">fetch_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>, <span class="ident">Ordering::Release</span>);
-                        (<span class="kw-2">*</span><a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#141">block</a>).<span class="ident">next</span>.<span class="ident">store</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#200">next_block</a>, <span class="ident">Ordering::Release</span>);
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe </span>{
+                    <span class="comment">// If we&#39;ve reached the end of the block, install the next one.
+                    </span><span class="kw">if </span>offset + <span class="number">1 </span>== BLOCK_CAP {
+                        <span class="kw">let </span>next_block = Box::into_raw(<a href="../../src/concurrent_queue/unbounded.rs.html#142">next_block</a>.unwrap());
+                        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.block.store(<a href="../../src/concurrent_queue/unbounded.rs.html#200">next_block</a>, Ordering::Release);
+                        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.index.fetch_add(<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>, Ordering::Release);
+                        (<span class="kw-2">*</span><a href="../../src/concurrent_queue/unbounded.rs.html#141">block</a>).next.store(<a href="../../src/concurrent_queue/unbounded.rs.html#200">next_block</a>, Ordering::Release);
                     }
 
-                    <span class="comment">// Write the value into the slot.</span>
-                    <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#141">block</a>).<span class="ident">slots</span>.<span class="ident">get_unchecked</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#151">offset</a>);
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#207">slot</a>.<span class="ident">value</span>.<span class="ident">get</span>().<span class="ident">write</span>(<span class="ident">MaybeUninit::new</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#139">value</a>));
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#207">slot</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#15">WRITE</a>, <span class="ident">Ordering::Release</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+                    <span class="comment">// Write the value into the slot.
+                    </span><span class="kw">let </span>slot = (<span class="kw-2">*</span><a href="../../src/concurrent_queue/unbounded.rs.html#141">block</a>).slots.get_unchecked(<a href="../../src/concurrent_queue/unbounded.rs.html#151">offset</a>);
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#207">slot</a>.value.get().write(MaybeUninit::new(<a href="../../src/concurrent_queue/unbounded.rs.html#139">value</a>));
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#207">slot</a>.state.fetch_or(<a href="../../src/concurrent_queue/unbounded.rs.html#15">WRITE</a>, Ordering::Release);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">t</span>) =&gt; {
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#212">t</a>;
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#141">block</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+                <span class="prelude-val">Err</span>(t) =&gt; {
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#140">tail</a> = <a href="../../src/concurrent_queue/unbounded.rs.html#212">t</a>;
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#141">block</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#139">self</a>.tail.block.load(Ordering::Acquire);
                 }
             }
         }
     }
 
-    <span class="doccomment">/// Pops an item from the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/concurrent_queue/lib.rs.html#344">PopError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+    <span class="doccomment">/// Pops an item from the queue.
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../src/concurrent_queue/lib.rs.html#344">PopError</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>head = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.index.load(Ordering::Acquire);
+        <span class="kw">let </span><span class="kw-2">mut </span>block = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.block.load(Ordering::Acquire);
 
-        <span class="kw">loop</span> {
-            <span class="comment">// Calculate the offset of the index into the block.</span>
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) <span class="op">%</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>;
+        <span class="kw">loop </span>{
+            <span class="comment">// Calculate the offset of the index into the block.
+            </span><span class="kw">let </span>offset = (<a href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> &gt;&gt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) % <a href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>;
 
-            <span class="comment">// If we reached the end of the block, wait until the next one is installed.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
-                <span class="ident">thread::yield_now</span>();
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#223">block</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+            <span class="comment">// If we reached the end of the block, wait until the next one is installed.
+            </span><span class="kw">if </span>offset == BLOCK_CAP {
+                thread::yield_now();
+                <a href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.index.load(Ordering::Acquire);
+                <a href="../../src/concurrent_queue/unbounded.rs.html#223">block</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.block.load(Ordering::Acquire);
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_head</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>new_head = <a href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> + (<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
 
-            <span class="kw">if</span> <span class="ident">new_head</span> <span class="op">&amp;</span> <span class="ident">MARK_BIT</span> <span class="op">==</span> <span class="number">0</span> {
-                <a class="ident" href="../../src/concurrent_queue/lib.rs.html#448"><span class="kw">crate</span>::full_fence</a>();
-                <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+            <span class="kw">if </span>new_head &amp; MARK_BIT == <span class="number">0 </span>{
+                <a href="../../src/concurrent_queue/lib.rs.html#448"><span class="kw">crate</span>::full_fence</a>();
+                <span class="kw">let </span>tail = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.tail.index.load(Ordering::Relaxed);
 
-                <span class="comment">// If the tail equals the head, that means the queue is empty.</span>
-                <span class="kw">if</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">==</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> {
-                    <span class="comment">// Check if the queue is closed.</span>
-                    <span class="kw">if</span> <span class="ident">tail</span> <span class="op">&amp;</span> <span class="ident">MARK_BIT</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#349">PopError::Closed</a>);
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#346">PopError::Empty</a>);
+                <span class="comment">// If the tail equals the head, that means the queue is empty.
+                </span><span class="kw">if </span>head &gt;&gt; SHIFT == tail &gt;&gt; SHIFT {
+                    <span class="comment">// Check if the queue is closed.
+                    </span><span class="kw">if </span>tail &amp; MARK_BIT != <span class="number">0 </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/concurrent_queue/lib.rs.html#349">PopError::Closed</a>);
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/concurrent_queue/lib.rs.html#346">PopError::Empty</a>);
                     }
                 }
 
-                <span class="comment">// If head and tail are not in the same block, set `MARK_BIT` in head.</span>
-                <span class="kw">if</span> (<span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">/</span> <span class="ident">LAP</span> <span class="op">!</span><span class="op">=</span> (<span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">/</span> <span class="ident">LAP</span> {
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#237">new_head</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a>;
+                <span class="comment">// If head and tail are not in the same block, set `MARK_BIT` in head.
+                </span><span class="kw">if </span>(head &gt;&gt; SHIFT) / LAP != (tail &gt;&gt; SHIFT) / LAP {
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#237">new_head</a> |= <a href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a>;
                 }
             }
 
-            <span class="comment">// The block can be null here only if the first push operation is in progress.</span>
-            <span class="kw">if</span> <span class="ident">block</span>.<span class="ident">is_null</span>() {
-                <span class="ident">thread::yield_now</span>();
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#223">block</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+            <span class="comment">// The block can be null here only if the first push operation is in progress.
+            </span><span class="kw">if </span>block.is_null() {
+                thread::yield_now();
+                <a href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.index.load(Ordering::Acquire);
+                <a href="../../src/concurrent_queue/unbounded.rs.html#223">block</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.block.load(Ordering::Acquire);
                 <span class="kw">continue</span>;
             }
 
-            <span class="comment">// Try moving the head index forward.</span>
-            <span class="kw">match</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">compare_exchange_weak</span>(
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#222">head</a>,
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#237">new_head</a>,
-                <span class="ident">Ordering::SeqCst</span>,
-                <span class="ident">Ordering::Acquire</span>,
+            <span class="comment">// Try moving the head index forward.
+            </span><span class="kw">match </span><a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.index.compare_exchange_weak(
+                <a href="../../src/concurrent_queue/unbounded.rs.html#222">head</a>,
+                <a href="../../src/concurrent_queue/unbounded.rs.html#237">new_head</a>,
+                Ordering::SeqCst,
+                Ordering::Acquire,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe</span> {
-                    <span class="comment">// If we&#39;ve reached the end of the block, move to the next one.</span>
-                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
-                        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#223">block</a>).<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#74">wait_next</a>();
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_index</span> <span class="op">=</span> (<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#237">new_head</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a>).<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
-                        <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">next</span>).<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>).<span class="ident">is_null</span>() {
-                            <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#278">next_index</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a>;
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe </span>{
+                    <span class="comment">// If we&#39;ve reached the end of the block, move to the next one.
+                    </span><span class="kw">if </span>offset + <span class="number">1 </span>== BLOCK_CAP {
+                        <span class="kw">let </span>next = (<span class="kw-2">*</span><a href="../../src/concurrent_queue/unbounded.rs.html#223">block</a>).<a href="../../src/concurrent_queue/unbounded.rs.html#74">wait_next</a>();
+                        <span class="kw">let </span><span class="kw-2">mut </span>next_index = (<a href="../../src/concurrent_queue/unbounded.rs.html#237">new_head</a> &amp; !<a href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a>).wrapping_add(<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
+                        <span class="kw">if </span>!(<span class="kw-2">*</span>next).next.load(Ordering::Relaxed).is_null() {
+                            <a href="../../src/concurrent_queue/unbounded.rs.html#278">next_index</a> |= <a href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a>;
                         }
 
-                        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">store</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#277">next</a>, <span class="ident">Ordering::Release</span>);
-                        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">store</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#278">next_index</a>, <span class="ident">Ordering::Release</span>);
+                        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.block.store(<a href="../../src/concurrent_queue/unbounded.rs.html#277">next</a>, Ordering::Release);
+                        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.index.store(<a href="../../src/concurrent_queue/unbounded.rs.html#278">next_index</a>, Ordering::Release);
                     }
 
-                    <span class="comment">// Read the value.</span>
-                    <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#223">block</a>).<span class="ident">slots</span>.<span class="ident">get_unchecked</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#227">offset</a>);
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#288">slot</a>.<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#46">wait_write</a>();
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#288">slot</a>.<span class="ident">value</span>.<span class="ident">get</span>().<span class="ident">read</span>().<span class="ident">assume_init</span>();
+                    <span class="comment">// Read the value.
+                    </span><span class="kw">let </span>slot = (<span class="kw-2">*</span><a href="../../src/concurrent_queue/unbounded.rs.html#223">block</a>).slots.get_unchecked(<a href="../../src/concurrent_queue/unbounded.rs.html#227">offset</a>);
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#288">slot</a>.<a href="../../src/concurrent_queue/unbounded.rs.html#46">wait_write</a>();
+                    <span class="kw">let </span>value = <a href="../../src/concurrent_queue/unbounded.rs.html#288">slot</a>.value.get().read().assume_init();
 
-                    <span class="comment">// Destroy the block if we&#39;ve reached the end, or if another thread wanted to</span>
-                    <span class="comment">// destroy but couldn&#39;t because we were busy reading from the slot.</span>
-                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
-                        <span class="ident">Block::destroy</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#223">block</a>, <span class="number">0</span>);
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="ident">READ</span>, <span class="ident">Ordering::AcqRel</span>) <span class="op">&amp;</span> <span class="ident">DESTROY</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="ident">Block::destroy</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#223">block</a>, <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#227">offset</a> <span class="op">+</span> <span class="number">1</span>);
+                    <span class="comment">// Destroy the block if we&#39;ve reached the end, or if another thread wanted to
+                    // destroy but couldn&#39;t because we were busy reading from the slot.
+                    </span><span class="kw">if </span>offset + <span class="number">1 </span>== BLOCK_CAP {
+                        Block::destroy(<a href="../../src/concurrent_queue/unbounded.rs.html#223">block</a>, <span class="number">0</span>);
+                    } <span class="kw">else if </span>slot.state.fetch_or(READ, Ordering::AcqRel) &amp; DESTROY != <span class="number">0 </span>{
+                        Block::destroy(<a href="../../src/concurrent_queue/unbounded.rs.html#223">block</a>, <a href="../../src/concurrent_queue/unbounded.rs.html#227">offset</a> + <span class="number">1</span>);
                     }
 
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#290">value</a>);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/concurrent_queue/unbounded.rs.html#290">value</a>);
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">h</span>) =&gt; {
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#302">h</a>;
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#223">block</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+                <span class="prelude-val">Err</span>(h) =&gt; {
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#222">head</a> = <a href="../../src/concurrent_queue/unbounded.rs.html#302">h</a>;
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#223">block</a> = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#221">self</a>.head.block.load(Ordering::Acquire);
                 }
             }
         }
     }
 
-    <span class="doccomment">/// Returns the number of items in the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">loop</span> {
-            <span class="comment">// Load the tail index, then load the head index.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#311">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#311">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
+    <span class="doccomment">/// Returns the number of items in the queue.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">loop </span>{
+            <span class="comment">// Load the tail index, then load the head index.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>tail = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#311">self</a>.tail.index.load(Ordering::SeqCst);
+            <span class="kw">let </span><span class="kw-2">mut </span>head = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#311">self</a>.head.index.load(Ordering::SeqCst);
 
-            <span class="comment">// If the tail index didn&#39;t change, we&#39;ve got consistent indices to work with.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">==</span> <span class="ident">tail</span> {
-                <span class="comment">// Erase the lower bits.</span>
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) <span class="op">-</span> <span class="number">1</span>);
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) <span class="op">-</span> <span class="number">1</span>);
+            <span class="comment">// If the tail index didn&#39;t change, we&#39;ve got consistent indices to work with.
+            </span><span class="kw">if </span><span class="self">self</span>.tail.index.load(Ordering::SeqCst) == tail {
+                <span class="comment">// Erase the lower bits.
+                </span><a href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> &amp;= !((<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) - <span class="number">1</span>);
+                <a href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> &amp;= !((<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) - <span class="number">1</span>);
 
-                <span class="comment">// Fix up indices if they fall onto block ends.</span>
-                <span class="kw">if</span> (<span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">&amp;</span> (<span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">==</span> <span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span> {
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a>.<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
+                <span class="comment">// Fix up indices if they fall onto block ends.
+                </span><span class="kw">if </span>(tail &gt;&gt; SHIFT) &amp; (LAP - <span class="number">1</span>) == LAP - <span class="number">1 </span>{
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> = <a href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a>.wrapping_add(<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
                 }
-                <span class="kw">if</span> (<span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">&amp;</span> (<span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">==</span> <span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span> {
-                    <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#315">head</a>.<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
+                <span class="kw">if </span>(head &gt;&gt; SHIFT) &amp; (LAP - <span class="number">1</span>) == LAP - <span class="number">1 </span>{
+                    <a href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> = <a href="../../src/concurrent_queue/unbounded.rs.html#315">head</a>.wrapping_add(<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
                 }
 
-                <span class="comment">// Rotate indices so that head falls into the first block.</span>
-                <span class="kw">let</span> <span class="ident">lap</span> <span class="op">=</span> (<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) <span class="op">/</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>;
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a>.<span class="ident">wrapping_sub</span>((<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#332">lap</a> <span class="op">*</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#315">head</a>.<span class="ident">wrapping_sub</span>((<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#332">lap</a> <span class="op">*</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
+                <span class="comment">// Rotate indices so that head falls into the first block.
+                </span><span class="kw">let </span>lap = (<a href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> &gt;&gt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) / <a href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>;
+                <a href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> = <a href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a>.wrapping_sub((<a href="../../src/concurrent_queue/unbounded.rs.html#332">lap</a> * <a href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>) &lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
+                <a href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> = <a href="../../src/concurrent_queue/unbounded.rs.html#315">head</a>.wrapping_sub((<a href="../../src/concurrent_queue/unbounded.rs.html#332">lap</a> * <a href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>) &lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>);
 
-                <span class="comment">// Remove the lower bits.</span>
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>;
-                <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>;
+                <span class="comment">// Remove the lower bits.
+                </span><a href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> &gt;&gt;= <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>;
+                <a href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> &gt;&gt;= <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>;
 
-                <span class="comment">// Return the difference minus the number of blocks between tail and head.</span>
-                <span class="kw">return</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> <span class="op">-</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> <span class="op">-</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> <span class="op">/</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>;
+                <span class="comment">// Return the difference minus the number of blocks between tail and head.
+                </span><span class="kw">return </span><a href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> - <a href="../../src/concurrent_queue/unbounded.rs.html#315">head</a> - <a href="../../src/concurrent_queue/unbounded.rs.html#314">tail</a> / <a href="../../src/concurrent_queue/unbounded.rs.html#20">LAP</a>;
             }
         }
     }
 
-    <span class="doccomment">/// Returns `true` if the queue is empty.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#347">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
-        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#347">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
-        <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#348">head</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a> <span class="op">==</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#349">tail</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>
+    <span class="doccomment">/// Returns `true` if the queue is empty.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>head = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#347">self</a>.head.index.load(Ordering::SeqCst);
+        <span class="kw">let </span>tail = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#347">self</a>.tail.index.load(Ordering::SeqCst);
+        <a href="../../src/concurrent_queue/unbounded.rs.html#348">head</a> &gt;&gt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a> == <a href="../../src/concurrent_queue/unbounded.rs.html#349">tail</a> &gt;&gt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>
     }
 
-    <span class="doccomment">/// Returns `true` if the queue is full.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="bool-val">false</span>
-    }
+    <span class="doccomment">/// Returns `true` if the queue is full.
+    </span><span class="kw">pub fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="bool-val">false
+    </span>}
 
-    <span class="doccomment">/// Closes the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if this call closed the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#361">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a>, <span class="ident">Ordering::SeqCst</span>);
-        <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#362">tail</a> <span class="op">&amp;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a> <span class="op">==</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Closes the queue.
+    ///
+    /// Returns `true` if this call closed the queue.
+    </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>tail = <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#361">self</a>.tail.index.fetch_or(<a href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a>, Ordering::SeqCst);
+        <a href="../../src/concurrent_queue/unbounded.rs.html#362">tail</a> &amp; <a href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a> == <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns `true` if the queue is closed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#367">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">&amp;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns `true` if the queue is closed.
+    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/concurrent_queue/unbounded.rs.html#367">self</a>.tail.index.load(Ordering::SeqCst) &amp; <a href="../../src/concurrent_queue/unbounded.rs.html#28">MARK_BIT</a> != <span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Unbounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/unbounded.rs.html#373">self</a>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">get_mut</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/unbounded.rs.html#373">self</a>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">get_mut</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/unbounded.rs.html#373">self</a>.<span class="ident">head</span>.<span class="ident">block</span>.<span class="ident">get_mut</span>();
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Unbounded&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>head = <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/unbounded.rs.html#373">self</a>.head.index.get_mut();
+        <span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/unbounded.rs.html#373">self</a>.tail.index.get_mut();
+        <span class="kw">let </span><span class="kw-2">mut </span>block = <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/unbounded.rs.html#373">self</a>.head.block.get_mut();
 
-        <span class="comment">// Erase the lower bits.</span>
-        <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#374">head</a> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) <span class="op">-</span> <span class="number">1</span>);
-        <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#375">tail</a> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) <span class="op">-</span> <span class="number">1</span>);
+        <span class="comment">// Erase the lower bits.
+        </span><a href="../../src/concurrent_queue/unbounded.rs.html#374">head</a> &amp;= !((<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) - <span class="number">1</span>);
+        <a href="../../src/concurrent_queue/unbounded.rs.html#375">tail</a> &amp;= !((<span class="number">1 </span>&lt;&lt; <a href="../../src/concurrent_queue/unbounded.rs.html#24">SHIFT</a>) - <span class="number">1</span>);
 
-        <span class="kw">unsafe</span> {
-            <span class="comment">// Drop all values between `head` and `tail` and deallocate the heap-allocated blocks.</span>
-            <span class="kw">while</span> <span class="ident">head</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tail</span> {
-                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">%</span> <span class="ident">LAP</span>;
+        <span class="kw">unsafe </span>{
+            <span class="comment">// Drop all values between `head` and `tail` and deallocate the heap-allocated blocks.
+            </span><span class="kw">while </span>head != tail {
+                <span class="kw">let </span>offset = (head &gt;&gt; SHIFT) % LAP;
 
-                <span class="kw">if</span> <span class="ident">offset</span> <span class="op">&lt;</span> <span class="ident">BLOCK_CAP</span> {
-                    <span class="comment">// Drop the value in the slot.</span>
-                    <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">block</span>).<span class="ident">slots</span>.<span class="ident">get_unchecked</span>(<span class="ident">offset</span>);
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">slot</span>.<span class="ident">value</span>.<span class="ident">get</span>();
-                    <span class="ident">value</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">drop_in_place</span>();
-                } <span class="kw">else</span> {
-                    <span class="comment">// Deallocate the block and move to the next one.</span>
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">block</span>).<span class="ident">next</span>.<span class="ident">get_mut</span>();
-                    <span class="ident">drop</span>(<span class="ident">Box::from_raw</span>(<span class="ident">block</span>));
-                    <span class="ident">block</span> <span class="op">=</span> <span class="ident">next</span>;
+                <span class="kw">if </span>offset &lt; BLOCK_CAP {
+                    <span class="comment">// Drop the value in the slot.
+                    </span><span class="kw">let </span>slot = (<span class="kw-2">*</span>block).slots.get_unchecked(offset);
+                    <span class="kw">let </span>value = <span class="kw-2">&amp;mut *</span>slot.value.get();
+                    value.as_mut_ptr().drop_in_place();
+                } <span class="kw">else </span>{
+                    <span class="comment">// Deallocate the block and move to the next one.
+                    </span><span class="kw">let </span>next = <span class="kw-2">*</span>(<span class="kw-2">*</span>block).next.get_mut();
+                    drop(Box::from_raw(block));
+                    block = next;
                 }
 
-                <span class="ident">head</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>);
+                head = head.wrapping_add(<span class="number">1 </span>&lt;&lt; SHIFT);
             }
 
-            <span class="comment">// Deallocate the last remaining block.</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">block</span>.<span class="ident">is_null</span>() {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="ident">Box::from_raw</span>(<a class="ident" href="../../src/concurrent_queue/unbounded.rs.html#376">block</a>));
+            <span class="comment">// Deallocate the last remaining block.
+            </span><span class="kw">if </span>!block.is_null() {
+                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Box::from_raw(<a href="../../src/concurrent_queue/unbounded.rs.html#376">block</a>));
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="concurrent_queue" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="concurrent_queue" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/failure-0.1.8/src/sync_failure.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sync_failure.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../failure/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../failure/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../failure/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/failure-0.1.8/src/sync_failure.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sync_failure.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../failure/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../failure/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../failure/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -95,102 +95,102 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../failure_derive/derive.Fail.html">Fail</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">std::sync::Mutex</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../failure_derive/derive.Fail.html">Fail</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
+<span class="kw">use </span>std::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">std::sync::Mutex</a>;
 
-<span class="doccomment">/// Wrapper for `std` errors to make them `Sync`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This exists to coerce existing types that are only `Error + Send +</span>
-<span class="doccomment">/// &#39;static` into a `Fail`-compatible representation, most notably for</span>
-<span class="doccomment">/// types generated by `error-chain`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Unfortunately, this requires wrapping the error in a `Mutex`, which must</span>
-<span class="doccomment">/// be locked for every `Debug`/`Display`. Therefore, this should be</span>
-<span class="doccomment">/// something of a last resort in making the error work with `failure`.</span>
-<span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SyncFailure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Wrapper for `std` errors to make them `Sync`.
+///
+/// This exists to coerce existing types that are only `Error + Send +
+/// &#39;static` into a `Fail`-compatible representation, most notably for
+/// types generated by `error-chain`.
+///
+/// Unfortunately, this requires wrapping the error in a `Mutex`, which must
+/// be locked for every `Debug`/`Display`. Therefore, this should be
+/// something of a last resort in making the error work with `failure`.
+///
+</span><span class="kw">pub struct </span>SyncFailure&lt;T&gt; {
+    inner: Mutex&lt;T&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">SyncFailure</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Wraps a non-`Sync` `Error` in order to make it implement `Fail`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// extern crate failure;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # use std::error::Error as StdError;</span>
-    <span class="doccomment">/// # use std::fmt::{self, Display};</span>
-    <span class="doccomment">/// use failure::{Error, SyncFailure};</span>
-    <span class="doccomment">/// use std::cell::RefCell;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[derive(Debug)]</span>
-    <span class="doccomment">/// struct NonSyncError {</span>
-    <span class="doccomment">///     // RefCells are non-Sync, so structs containing them will be</span>
-    <span class="doccomment">///     // non-Sync as well.</span>
-    <span class="doccomment">///     count: RefCell&lt;usize&gt;,</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // implement Display/Error for NonSyncError...</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # impl StdError for NonSyncError {</span>
-    <span class="doccomment">/// #     fn description(&amp;self) -&gt; &amp;str {</span>
-    <span class="doccomment">/// #         &quot;oops!&quot;</span>
-    <span class="doccomment">/// #     }</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # impl Display for NonSyncError {</span>
-    <span class="doccomment">/// #     fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {</span>
-    <span class="doccomment">/// #         write!(f, &quot;oops!&quot;)</span>
-    <span class="doccomment">/// #     }</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn returns_error() -&gt; Result&lt;(), NonSyncError&gt; {</span>
-    <span class="doccomment">///     // Do stuff</span>
-    <span class="doccomment">///     # Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn my_function() -&gt; Result&lt;(), Error&gt; {</span>
-    <span class="doccomment">///     // without the map_err here, we end up with a compile error</span>
-    <span class="doccomment">///     // complaining that NonSyncError doesn&#39;t implement Sync.</span>
-    <span class="doccomment">///     returns_error().map_err(SyncFailure::new)?;</span>
-    <span class="doccomment">///     // Do more stuff</span>
-    <span class="doccomment">///     # Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() {</span>
-    <span class="doccomment">/// #    my_function().unwrap();</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">err</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/failure/sync_failure.rs.html#16">SyncFailure</a> {
-            <span class="ident">inner</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/failure/sync_failure.rs.html#72">err</a>),
+<span class="kw">impl</span>&lt;E: <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; SyncFailure&lt;E&gt; {
+    <span class="doccomment">/// Wraps a non-`Sync` `Error` in order to make it implement `Fail`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// extern crate failure;
+    ///
+    /// # use std::error::Error as StdError;
+    /// # use std::fmt::{self, Display};
+    /// use failure::{Error, SyncFailure};
+    /// use std::cell::RefCell;
+    ///
+    /// #[derive(Debug)]
+    /// struct NonSyncError {
+    ///     // RefCells are non-Sync, so structs containing them will be
+    ///     // non-Sync as well.
+    ///     count: RefCell&lt;usize&gt;,
+    /// }
+    ///
+    /// // implement Display/Error for NonSyncError...
+    /// #
+    /// # impl StdError for NonSyncError {
+    /// #     fn description(&amp;self) -&gt; &amp;str {
+    /// #         &quot;oops!&quot;
+    /// #     }
+    /// # }
+    /// #
+    /// # impl Display for NonSyncError {
+    /// #     fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
+    /// #         write!(f, &quot;oops!&quot;)
+    /// #     }
+    /// # }
+    ///
+    /// fn returns_error() -&gt; Result&lt;(), NonSyncError&gt; {
+    ///     // Do stuff
+    ///     # Ok(())
+    /// }
+    ///
+    /// fn my_function() -&gt; Result&lt;(), Error&gt; {
+    ///     // without the map_err here, we end up with a compile error
+    ///     // complaining that NonSyncError doesn&#39;t implement Sync.
+    ///     returns_error().map_err(SyncFailure::new)?;
+    ///     // Do more stuff
+    ///     # Ok(())
+    /// }
+    /// #
+    /// # fn main() {
+    /// #    my_function().unwrap();
+    /// # }
+    /// ```
+    ///
+    </span><span class="kw">pub fn </span>new(err: E) -&gt; <span class="self">Self </span>{
+        <a href="../../src/failure/sync_failure.rs.html#16">SyncFailure</a> {
+            inner: Mutex::new(<a href="../../src/failure/sync_failure.rs.html#72">err</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <span class="ident">SyncFailure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span>SyncFailure&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/failure/sync_failure.rs.html#83">self</a>.<span class="ident">inner</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a class="ident" href="../../src/failure/sync_failure.rs.html#83">f</a>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../src/failure/sync_failure.rs.html#83">self</a>.inner.lock().unwrap().<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../src/failure/sync_failure.rs.html#83">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <span class="ident">SyncFailure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>SyncFailure&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">*</span><a class="self" href="../../src/failure/sync_failure.rs.html#92">self</a>.<span class="ident">inner</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../src/failure/sync_failure.rs.html#92">f</a>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        (<span class="kw-2">*</span><a class="self" href="../../src/failure/sync_failure.rs.html#92">self</a>.inner.lock().unwrap()).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../src/failure/sync_failure.rs.html#92">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <a class="ident" href="../../src/failure/lib.rs.html#108">Fail</a> <span class="kw">for</span> <span class="ident">SyncFailure</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;E: <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; <a href="../../src/failure/lib.rs.html#108">Fail</a> <span class="kw">for </span>SyncFailure&lt;E&gt; {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="failure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="failure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

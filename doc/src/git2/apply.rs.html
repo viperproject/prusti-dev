@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/apply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>apply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/apply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>apply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -206,213 +206,213 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
-</pre><pre class="rust"><code><span class="doccomment">//! git_apply support</span>
-<span class="doccomment">//! see original: &lt;https://github.com/libgit2/libgit2/blob/master/include/git2/apply.h&gt;</span>
+</pre><pre class="rust"><code><span class="doccomment">//! git_apply support
+//! see original: &lt;https://github.com/libgit2/libgit2/blob/master/include/git2/apply.h&gt;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/git2/lib.rs.html#655">panic</a>, <a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/util.rs.html#25">util::Binding</a>, <a class="ident" href="../../src/git2/diff.rs.html#27">DiffDelta</a>, <a class="ident" href="../../src/git2/diff.rs.html#79">DiffHunk</a>};
-<span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">ffi::c_void</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+</span><span class="kw">use crate</span>::{<a href="../../src/git2/lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/util.rs.html#25">util::Binding</a>, <a href="../../src/git2/diff.rs.html#27">DiffDelta</a>, <a href="../../src/git2/diff.rs.html#79">DiffHunk</a>};
+<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">ffi::c_void</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-<span class="doccomment">/// Possible application locations for git_apply</span>
-<span class="doccomment">/// see &lt;https://libgit2.org/libgit2/#HEAD/type/git_apply_options&gt;</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ApplyLocation</span> {
-    <span class="doccomment">/// Apply the patch to the workdir</span>
-    <span class="ident">WorkDir</span>,
-    <span class="doccomment">/// Apply the patch to the index</span>
-    <span class="ident">Index</span>,
-    <span class="doccomment">/// Apply the patch to both the working directory and the index</span>
-    <span class="ident">Both</span>,
+<span class="doccomment">/// Possible application locations for git_apply
+/// see &lt;https://libgit2.org/libgit2/#HEAD/type/git_apply_options&gt;
+</span><span class="attribute">#[derive(Copy, Clone, Debug)]
+</span><span class="kw">pub enum </span>ApplyLocation {
+    <span class="doccomment">/// Apply the patch to the workdir
+    </span>WorkDir,
+    <span class="doccomment">/// Apply the patch to the index
+    </span>Index,
+    <span class="doccomment">/// Apply the patch to both the working directory and the index
+    </span>Both,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <a class="ident" href="../../src/git2/apply.rs.html#11">ApplyLocation</a> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <a class="ident" href="../../libgit2_sys/type.git_apply_location_t.html">raw::git_apply_location_t</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/type.git_apply_location_t.html">raw::git_apply_location_t</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/git2/apply.rs.html#22">raw</a> {
-            <span class="ident">raw::GIT_APPLY_LOCATION_WORKDIR</span> =&gt; <span class="ident"><span class="self">Self</span>::WorkDir</span>,
-            <span class="ident">raw::GIT_APPLY_LOCATION_INDEX</span> =&gt; <span class="ident"><span class="self">Self</span>::Index</span>,
-            <span class="ident">raw::GIT_APPLY_LOCATION_BOTH</span> =&gt; <span class="ident"><span class="self">Self</span>::Both</span>,
-            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unknown git diff binary kind&quot;</span>),
+<span class="kw">impl </span><a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span><a href="../../src/git2/apply.rs.html#11">ApplyLocation</a> {
+    <span class="kw">type </span>Raw = <a href="../../libgit2_sys/type.git_apply_location_t.html">raw::git_apply_location_t</a>;
+    <span class="kw">unsafe fn </span>from_raw(raw: <a href="../../libgit2_sys/type.git_apply_location_t.html">raw::git_apply_location_t</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><a href="../../src/git2/apply.rs.html#22">raw</a> {
+            raw::GIT_APPLY_LOCATION_WORKDIR =&gt; <span class="self">Self</span>::WorkDir,
+            raw::GIT_APPLY_LOCATION_INDEX =&gt; <span class="self">Self</span>::Index,
+            raw::GIT_APPLY_LOCATION_BOTH =&gt; <span class="self">Self</span>::Both,
+            <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unknown git diff binary kind&quot;</span>),
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libgit2_sys/type.git_apply_location_t.html">raw::git_apply_location_t</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/git2/apply.rs.html#30">self</a> {
-            <span class="ident"><span class="self">Self</span>::WorkDir</span> =&gt; <span class="ident">raw::GIT_APPLY_LOCATION_WORKDIR</span>,
-            <span class="ident"><span class="self">Self</span>::Index</span> =&gt; <span class="ident">raw::GIT_APPLY_LOCATION_INDEX</span>,
-            <span class="ident"><span class="self">Self</span>::Both</span> =&gt; <span class="ident">raw::GIT_APPLY_LOCATION_BOTH</span>,
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/type.git_apply_location_t.html">raw::git_apply_location_t</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/git2/apply.rs.html#30">self</a> </span>{
+            <span class="self">Self</span>::WorkDir =&gt; raw::GIT_APPLY_LOCATION_WORKDIR,
+            <span class="self">Self</span>::Index =&gt; raw::GIT_APPLY_LOCATION_INDEX,
+            <span class="self">Self</span>::Both =&gt; raw::GIT_APPLY_LOCATION_BOTH,
         }
     }
 }
 
-<span class="doccomment">/// Options to specify when applying a diff</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_apply_options.html">raw::git_apply_options</a>,
-    <span class="ident">hunk_cb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HunkCB</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">delta_cb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">DeltaCB</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Options to specify when applying a diff
+</span><span class="kw">pub struct </span>ApplyOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+    raw: <a href="../../libgit2_sys/struct.git_apply_options.html">raw::git_apply_options</a>,
+    hunk_cb: <span class="prelude-ty">Option</span>&lt;Box&lt;HunkCB&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;&gt;,
+    delta_cb: <span class="prelude-ty">Option</span>&lt;Box&lt;DeltaCB&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;&gt;,
 }
 
-<span class="kw">type</span> <span class="ident">HunkCB</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DiffHunk</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
-<span class="kw">type</span> <span class="ident">DeltaCB</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DiffDelta</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="kw">type </span>HunkCB&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="prelude-ty">Option</span>&lt;DiffHunk&lt;<span class="lifetime">&#39;_</span>&gt;&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
+<span class="kw">type </span>DeltaCB&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="prelude-ty">Option</span>&lt;DiffDelta&lt;<span class="lifetime">&#39;_</span>&gt;&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">delta_cb_c</span>(<span class="ident">delta</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_diff_delta.html">raw::git_diff_delta</a>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a class="ident" href="../../src/git2/apply.rs.html#49">delta</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>delta_cb_c(delta: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_diff_delta.html">raw::git_diff_delta</a>, data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>delta = <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="../../src/git2/apply.rs.html#49">delta</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
 
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/apply.rs.html#49">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">ApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/apply.rs.html#53">payload</a>.<span class="ident">delta_cb</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/apply.rs.html#55">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>,
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/apply.rs.html#49">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>ApplyOptions&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/apply.rs.html#53">payload</a>.delta_cb {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/apply.rs.html#55">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>-<span class="number">1</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">apply</span> <span class="op">=</span> <a class="ident" href="../../src/git2/apply.rs.html#54">callback</a>(<a class="ident" href="../../src/git2/apply.rs.html#51">delta</a>);
-        <span class="kw">if</span> <span class="ident">apply</span> {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <span class="number">1</span>
-        }
+        <span class="kw">let </span>apply = <a href="../../src/git2/apply.rs.html#54">callback</a>(<a href="../../src/git2/apply.rs.html#51">delta</a>);
+        <span class="kw">if </span>apply {
+            <span class="number">0
+        </span>} <span class="kw">else </span>{
+            <span class="number">1
+        </span>}
     })
-    .<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>)
+    .unwrap_or(-<span class="number">1</span>)
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hunk_cb_c</span>(<span class="ident">hunk</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_diff_hunk.html">raw::git_diff_hunk</a>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">hunk</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a class="ident" href="../../src/git2/apply.rs.html#69">hunk</a>);
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>hunk_cb_c(hunk: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_diff_hunk.html">raw::git_diff_hunk</a>, data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>hunk = <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="../../src/git2/apply.rs.html#69">hunk</a>);
 
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/apply.rs.html#69">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">ApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/apply.rs.html#73">payload</a>.<span class="ident">hunk_cb</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/apply.rs.html#75">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>,
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/apply.rs.html#69">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>ApplyOptions&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/apply.rs.html#73">payload</a>.hunk_cb {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/apply.rs.html#75">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>-<span class="number">1</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">apply</span> <span class="op">=</span> <a class="ident" href="../../src/git2/apply.rs.html#74">callback</a>(<a class="ident" href="../../src/git2/apply.rs.html#71">hunk</a>);
-        <span class="kw">if</span> <span class="ident">apply</span> {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <span class="number">1</span>
-        }
+        <span class="kw">let </span>apply = <a href="../../src/git2/apply.rs.html#74">callback</a>(<a href="../../src/git2/apply.rs.html#71">hunk</a>);
+        <span class="kw">if </span>apply {
+            <span class="number">0
+        </span>} <span class="kw">else </span>{
+            <span class="number">1
+        </span>}
     })
-    .<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>)
+    .unwrap_or(-<span class="number">1</span>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> <span class="ident">ApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new set of empty options (zeroed).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="self">Self</span> {
-            <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
-            <span class="ident">hunk_cb</span>: <span class="prelude-val">None</span>,
-            <span class="ident">delta_cb</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cb</span>&gt; ApplyOptions&lt;<span class="lifetime">&#39;cb</span>&gt; {
+    <span class="doccomment">/// Creates a new set of empty options (zeroed).
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>opts = <span class="self">Self </span>{
+            raw: <span class="kw">unsafe </span>{ mem::zeroed() },
+            hunk_cb: <span class="prelude-val">None</span>,
+            delta_cb: <span class="prelude-val">None</span>,
         };
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
-            <span class="kw">unsafe</span> { <span class="ident">raw::git_apply_options_init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">raw</span>, <span class="ident">raw::GIT_APPLY_OPTIONS_VERSION</span>) },
-            <span class="number">0</span>
-        );
-        <a class="ident" href="../../src/git2/apply.rs.html#92">opts</a>
+            <span class="kw">unsafe </span>{ raw::git_apply_options_init(<span class="kw-2">&amp;mut </span>opts.raw, raw::GIT_APPLY_OPTIONS_VERSION) },
+            <span class="number">0
+        </span>);
+        <a href="../../src/git2/apply.rs.html#92">opts</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <a class="ident" href="../../libgit2_sys/type.git_apply_flags_t.html">raw::git_apply_flags_t</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">opt</span> <span class="op">=</span> <a class="ident" href="../../src/git2/apply.rs.html#104">opt</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-        <span class="kw">if</span> <span class="ident">val</span> {
-            <a class="self" href="../../src/git2/apply.rs.html#104">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/git2/apply.rs.html#105">opt</a>;
-        } <span class="kw">else</span> {
-            <a class="self" href="../../src/git2/apply.rs.html#104">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../src/git2/apply.rs.html#105">opt</a>;
+    <span class="kw">fn </span>flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opt: <a href="../../libgit2_sys/type.git_apply_flags_t.html">raw::git_apply_flags_t</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="kw">let </span>opt = <a href="../../src/git2/apply.rs.html#104">opt</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+        <span class="kw">if </span>val {
+            <a class="self" href="../../src/git2/apply.rs.html#104">self</a>.raw.flags |= <a href="../../src/git2/apply.rs.html#105">opt</a>;
+        } <span class="kw">else </span>{
+            <a class="self" href="../../src/git2/apply.rs.html#104">self</a>.raw.flags &amp;= !<a href="../../src/git2/apply.rs.html#105">opt</a>;
         }
-        <a class="self" href="../../src/git2/apply.rs.html#104">self</a>
+        <span class="self"><a href="../../src/git2/apply.rs.html#104">self</a>
+    </span>}
+
+    <span class="doccomment">/// Don&#39;t actually make changes, just test that the patch applies.
+    </span><span class="kw">pub fn </span>check(<span class="kw-2">&amp;mut </span><span class="self">self</span>, check: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/apply.rs.html#115">self</a>.<a href="../../src/git2/apply.rs.html#104">flag</a>(raw::GIT_APPLY_CHECK, <a href="../../src/git2/apply.rs.html#115">check</a>)
     }
 
-    <span class="doccomment">/// Don&#39;t actually make changes, just test that the patch applies.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">check</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/apply.rs.html#115">self</a>.<a class="ident" href="../../src/git2/apply.rs.html#104">flag</a>(<span class="ident">raw::GIT_APPLY_CHECK</span>, <a class="ident" href="../../src/git2/apply.rs.html#115">check</a>)
-    }
-
-    <span class="doccomment">/// When applying a patch, callback that will be made per hunk.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hunk_callback</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DiffHunk</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;cb</span>,
+    <span class="doccomment">/// When applying a patch, callback that will be made per hunk.
+    </span><span class="kw">pub fn </span>hunk_callback&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnMut(<span class="prelude-ty">Option</span>&lt;DiffHunk&lt;<span class="lifetime">&#39;_</span>&gt;&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;cb</span>,
     {
-        <a class="self" href="../../src/git2/apply.rs.html#120">self</a>.<span class="ident">hunk_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/apply.rs.html#120">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HunkCB</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+        <a class="self" href="../../src/git2/apply.rs.html#120">self</a>.hunk_cb = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/apply.rs.html#120">cb</a>) <span class="kw">as </span>Box&lt;HunkCB&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;);
 
-        <a class="self" href="../../src/git2/apply.rs.html#120">self</a>.<span class="ident">raw</span>.<span class="ident">hunk_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/apply.rs.html#69">hunk_cb_c</a>);
-        <a class="self" href="../../src/git2/apply.rs.html#120">self</a>.<span class="ident">raw</span>.<span class="ident">payload</span> <span class="op">=</span> <a class="self" href="../../src/git2/apply.rs.html#120">self</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
+        <a class="self" href="../../src/git2/apply.rs.html#120">self</a>.raw.hunk_cb = <span class="prelude-val">Some</span>(<a href="../../src/git2/apply.rs.html#69">hunk_cb_c</a>);
+        <a class="self" href="../../src/git2/apply.rs.html#120">self</a>.raw.payload = <span class="self"><a href="../../src/git2/apply.rs.html#120">self</a> </span><span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
 
-        <a class="self" href="../../src/git2/apply.rs.html#120">self</a>
-    }
+        <span class="self"><a href="../../src/git2/apply.rs.html#120">self</a>
+    </span>}
 
-    <span class="doccomment">/// When applying a patch, callback that will be made per delta (file).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delta_callback</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DiffDelta</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;cb</span>,
+    <span class="doccomment">/// When applying a patch, callback that will be made per delta (file).
+    </span><span class="kw">pub fn </span>delta_callback&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnMut(<span class="prelude-ty">Option</span>&lt;DiffDelta&lt;<span class="lifetime">&#39;_</span>&gt;&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;cb</span>,
     {
-        <a class="self" href="../../src/git2/apply.rs.html#133">self</a>.<span class="ident">delta_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/apply.rs.html#133">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">DeltaCB</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+        <a class="self" href="../../src/git2/apply.rs.html#133">self</a>.delta_cb = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/apply.rs.html#133">cb</a>) <span class="kw">as </span>Box&lt;DeltaCB&lt;<span class="lifetime">&#39;cb</span>&gt;&gt;);
 
-        <a class="self" href="../../src/git2/apply.rs.html#133">self</a>.<span class="ident">raw</span>.<span class="ident">delta_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/apply.rs.html#49">delta_cb_c</a>);
-        <a class="self" href="../../src/git2/apply.rs.html#133">self</a>.<span class="ident">raw</span>.<span class="ident">payload</span> <span class="op">=</span> <a class="self" href="../../src/git2/apply.rs.html#133">self</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
+        <a class="self" href="../../src/git2/apply.rs.html#133">self</a>.raw.delta_cb = <span class="prelude-val">Some</span>(<a href="../../src/git2/apply.rs.html#49">delta_cb_c</a>);
+        <a class="self" href="../../src/git2/apply.rs.html#133">self</a>.raw.payload = <span class="self"><a href="../../src/git2/apply.rs.html#133">self</a> </span><span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
 
-        <a class="self" href="../../src/git2/apply.rs.html#133">self</a>
-    }
+        <span class="self"><a href="../../src/git2/apply.rs.html#133">self</a>
+    </span>}
 
-    <span class="doccomment">/// Pointer to a raw git_stash_apply_options</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_apply_options.html">raw::git_apply_options</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/apply.rs.html#146">self</a>.<span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>
-    }
+    <span class="doccomment">/// Pointer to a raw git_stash_apply_options
+    </span><span class="kw">pub unsafe fn </span>raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_apply_options.html">raw::git_apply_options</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/apply.rs.html#146">self</a>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs::File</span>, <span class="ident">io::Write</span>, <span class="ident">path::Path</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::{fs::File, io::Write, path::Path};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke_test</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">diff_tree_to_workdir</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>));
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count_hunks</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count_delta</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke_test() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span>diff = <span class="macro">t!</span>(repo.diff_tree_to_workdir(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>));
+        <span class="kw">let </span><span class="kw-2">mut </span>count_hunks = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>count_delta = <span class="number">0</span>;
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">ApplyOptions::new</span>();
-            <span class="ident">opts</span>.<span class="ident">hunk_callback</span>(<span class="op">|</span><span class="ident">_hunk</span><span class="op">|</span> {
-                <span class="ident">count_hunks</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="bool-val">true</span>
-            });
-            <span class="ident">opts</span>.<span class="ident">delta_callback</span>(<span class="op">|</span><span class="ident">_delta</span><span class="op">|</span> {
-                <span class="ident">count_delta</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="bool-val">true</span>
-            });
-            <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">diff</span>, <span class="ident">ApplyLocation::Both</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>)));
+            <span class="kw">let </span><span class="kw-2">mut </span>opts = ApplyOptions::new();
+            opts.hunk_callback(|_hunk| {
+                count_hunks += <span class="number">1</span>;
+                <span class="bool-val">true
+            </span>});
+            opts.delta_callback(|_delta| {
+                count_delta += <span class="number">1</span>;
+                <span class="bool-val">true
+            </span>});
+            <span class="macro">t!</span>(repo.apply(<span class="kw-2">&amp;</span>diff, ApplyLocation::Both, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>opts)));
         }
-        <span class="macro">assert_eq!</span>(<span class="ident">count_hunks</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">count_delta</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(count_hunks, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(count_delta, <span class="number">0</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">apply_hunks_and_delta</span>() {
-        <span class="kw">let</span> <span class="ident">file_path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;foo.txt&quot;</span>);
-        <span class="kw">let</span> (<span class="ident">td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="comment">// create new file</span>
-        <span class="macro">t!</span>(<span class="macro">t!</span>(<span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="ident">file_path</span>))).<span class="ident">write_all</span>(<span class="string">b&quot;bar&quot;</span>));
-        <span class="comment">// stage the new file</span>
-        <span class="macro">t!</span>(<span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">index</span>()).<span class="ident">add_path</span>(<span class="ident">file_path</span>));
-        <span class="comment">// now change workdir version</span>
-        <span class="macro">t!</span>(<span class="macro">t!</span>(<span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="ident">file_path</span>))).<span class="ident">write_all</span>(<span class="string">b&quot;foo\nbar&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>apply_hunks_and_delta() {
+        <span class="kw">let </span>file_path = Path::new(<span class="string">&quot;foo.txt&quot;</span>);
+        <span class="kw">let </span>(td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="comment">// create new file
+        </span><span class="macro">t!</span>(<span class="macro">t!</span>(File::create(<span class="kw-2">&amp;</span>td.path().join(file_path))).write_all(<span class="string">b&quot;bar&quot;</span>));
+        <span class="comment">// stage the new file
+        </span><span class="macro">t!</span>(<span class="macro">t!</span>(repo.index()).add_path(file_path));
+        <span class="comment">// now change workdir version
+        </span><span class="macro">t!</span>(<span class="macro">t!</span>(File::create(<span class="kw-2">&amp;</span>td.path().join(file_path))).write_all(<span class="string">b&quot;foo\nbar&quot;</span>));
 
-        <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">diff_index_to_workdir</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diff</span>.<span class="ident">deltas</span>().<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count_hunks</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count_delta</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let </span>diff = <span class="macro">t!</span>(repo.diff_index_to_workdir(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>));
+        <span class="macro">assert_eq!</span>(diff.deltas().len(), <span class="number">1</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>count_hunks = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>count_delta = <span class="number">0</span>;
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">ApplyOptions::new</span>();
-            <span class="ident">opts</span>.<span class="ident">hunk_callback</span>(<span class="op">|</span><span class="ident">_hunk</span><span class="op">|</span> {
-                <span class="ident">count_hunks</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="bool-val">true</span>
-            });
-            <span class="ident">opts</span>.<span class="ident">delta_callback</span>(<span class="op">|</span><span class="ident">_delta</span><span class="op">|</span> {
-                <span class="ident">count_delta</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="bool-val">true</span>
-            });
-            <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">diff</span>, <span class="ident">ApplyLocation::Index</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>)));
+            <span class="kw">let </span><span class="kw-2">mut </span>opts = ApplyOptions::new();
+            opts.hunk_callback(|_hunk| {
+                count_hunks += <span class="number">1</span>;
+                <span class="bool-val">true
+            </span>});
+            opts.delta_callback(|_delta| {
+                count_delta += <span class="number">1</span>;
+                <span class="bool-val">true
+            </span>});
+            <span class="macro">t!</span>(repo.apply(<span class="kw-2">&amp;</span>diff, ApplyLocation::Index, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>opts)));
         }
-        <span class="macro">assert_eq!</span>(<span class="ident">count_delta</span>, <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">count_hunks</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(count_delta, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(count_hunks, <span class="number">1</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

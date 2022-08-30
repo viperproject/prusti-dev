@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/park/thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/park/thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -344,351 +344,351 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;full&quot;</span>), allow(dead_code))]
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>, <a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#6">Mutex</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::park</span>::{<a class="ident" href="../../../src/tokio/park/mod.rs.html#49">Park</a>, <a class="ident" href="../../../src/tokio/park/mod.rs.html#93">Unpark</a>};
+</span><span class="kw">use </span><a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use </span><span class="kw">crate</span>::loom::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>, <a href="../../../src/tokio/loom/std/mutex.rs.html#6">Mutex</a>};
+<span class="kw">use </span><span class="kw">crate</span>::park::{<a href="../../../src/tokio/park/mod.rs.html#49">Park</a>, <a href="../../../src/tokio/park/mod.rs.html#93">Unpark</a>};
 
-<span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering::SeqCst</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span>std::sync::atomic::Ordering::SeqCst;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">ParkThread</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParkThread {
+    inner: Arc&lt;<a href="../../../src/tokio/park/thread.rs.html#24">Inner</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ParkError</span> <span class="op">=</span> ();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ParkError = ();
 
-<span class="doccomment">/// Unblocks a thread that was blocked by `ParkThread`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">UnparkThread</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Unblocks a thread that was blocked by `ParkThread`.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>UnparkThread {
+    inner: Arc&lt;<a href="../../../src/tokio/park/thread.rs.html#24">Inner</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Inner</span> {
-    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
-    <span class="ident">mutex</span>: <span class="ident">Mutex</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
-    <span class="ident">condvar</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Inner {
+    state: <a href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    mutex: Mutex&lt;()&gt;,
+    condvar: <a href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
 }
 
-<span class="kw">const</span> <span class="ident">EMPTY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
-<span class="kw">const</span> <span class="ident">PARKED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">NOTIFIED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">const </span>EMPTY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+<span class="kw">const </span>PARKED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+<span class="kw">const </span>NOTIFIED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
 
-<a class="macro" href="../../../src/tokio/macros/thread_local.rs.html#15-17">thread_local!</a> {
-    <span class="kw">static</span> <span class="ident">CURRENT_PARKER</span>: <span class="ident">ParkThread</span> <span class="op">=</span> <span class="ident">ParkThread::new</span>();
+<a class="macro" href="../../../src/tokio/macros/thread_local.rs.html#15-17">thread_local! </a>{
+    <span class="kw">static </span>CURRENT_PARKER: ParkThread = ParkThread::new();
 }
 
-<span class="comment">// ==== impl ParkThread ====</span>
+<span class="comment">// ==== impl ParkThread ====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a> {
-                <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>),
-                <span class="ident">mutex</span>: <span class="ident">Mutex::new</span>(()),
-                <span class="ident">condvar</span>: <span class="ident">Condvar::new</span>(),
+</span><span class="kw">impl </span><a href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Arc::new(<a href="../../../src/tokio/park/thread.rs.html#24">Inner</a> {
+                state: AtomicUsize::new(<a href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>),
+                mutex: Mutex::new(()),
+                condvar: Condvar::new(),
             }),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a> {
-    <span class="kw">type</span> <span class="ident">Unpark</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>;
+<span class="kw">impl </span><a href="../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for </span><a href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a> {
+    <span class="kw">type </span>Unpark = <a href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a>;
+    <span class="kw">type </span>Error = <a href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>;
 
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Unpark</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#56">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a> { <a class="ident" href="../../../src/tokio/park/thread.rs.html#57">inner</a> }
+    <span class="kw">fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Unpark {
+        <span class="kw">let </span>inner = <a class="self" href="../../../src/tokio/park/thread.rs.html#56">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a> { <a href="../../../src/tokio/park/thread.rs.html#57">inner</a> }
     }
 
-    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#61">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#80">park</a>();
+    <span class="kw">fn </span>park(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="self" href="../../../src/tokio/park/thread.rs.html#61">self</a>.inner.<a href="../../../src/tokio/park/thread.rs.html#80">park</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#66">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#127">park_timeout</a>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#66">duration</a>);
+    <span class="kw">fn </span>park_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="self" href="../../../src/tokio/park/thread.rs.html#66">self</a>.inner.<a href="../../../src/tokio/park/thread.rs.html#127">park_timeout</a>(<a href="../../../src/tokio/park/thread.rs.html#66">duration</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#71">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#198">shutdown</a>();
+    <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/tokio/park/thread.rs.html#71">self</a>.inner.<a href="../../../src/tokio/park/thread.rs.html#198">shutdown</a>();
     }
 }
 
-<span class="comment">// ==== impl Inner ====</span>
+<span class="comment">// ==== impl Inner ====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a> {
-    <span class="doccomment">/// Parks the current thread for at most `dur`.</span>
-    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// If we were previously notified then we consume this notification and</span>
-        <span class="comment">// return quickly.</span>
-        <span class="kw">if</span> <span class="self">self</span>
-            .<span class="ident">state</span>
-            .<span class="ident">compare_exchange</span>(<span class="ident">NOTIFIED</span>, <span class="ident">EMPTY</span>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
-            .<span class="ident">is_ok</span>()
+</span><span class="kw">impl </span><a href="../../../src/tokio/park/thread.rs.html#24">Inner</a> {
+    <span class="doccomment">/// Parks the current thread for at most `dur`.
+    </span><span class="kw">fn </span>park(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// If we were previously notified then we consume this notification and
+        // return quickly.
+        </span><span class="kw">if </span><span class="self">self
+            </span>.state
+            .compare_exchange(NOTIFIED, EMPTY, SeqCst, SeqCst)
+            .is_ok()
         {
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// Otherwise we need to coordinate going to sleep</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.<span class="ident">mutex</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="comment">// Otherwise we need to coordinate going to sleep
+        </span><span class="kw">let </span><span class="kw-2">mut </span>m = <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.mutex.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#31">PARKED</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.state.compare_exchange(<a href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <a href="../../../src/tokio/park/thread.rs.html#31">PARKED</a>, SeqCst, SeqCst) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>) =&gt; {
-                <span class="comment">// We must read here, even though we know it will be `NOTIFIED`.</span>
-                <span class="comment">// This is because `unpark` may have been called again since we read</span>
-                <span class="comment">// `NOTIFIED` in the `compare_exchange` above. We must perform an</span>
-                <span class="comment">// acquire operation that synchronizes with that `unpark` to observe</span>
-                <span class="comment">// any writes it made before the call to unpark. To do that we must</span>
-                <span class="comment">// read from the write it made to `state`.</span>
-                <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>);
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">old</span>, <span class="ident">NOTIFIED</span>, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>) =&gt; {
+                <span class="comment">// We must read here, even though we know it will be `NOTIFIED`.
+                // This is because `unpark` may have been called again since we read
+                // `NOTIFIED` in the `compare_exchange` above. We must perform an
+                // acquire operation that synchronizes with that `unpark` to observe
+                // any writes it made before the call to unpark. To do that we must
+                // read from the write it made to `state`.
+                </span><span class="kw">let </span>old = <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.state.swap(<a href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, SeqCst);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(old, NOTIFIED, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
 
                 <span class="kw">return</span>;
             }
-            <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park state; actual = {}&quot;</span>, <span class="ident">actual</span>),
+            <span class="prelude-val">Err</span>(actual) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park state; actual = {}&quot;</span>, actual),
         }
 
-        <span class="kw">loop</span> {
-            <a class="ident" href="../../../src/tokio/park/thread.rs.html#92">m</a> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.<span class="ident">condvar</span>.<span class="ident">wait</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#92">m</a>).<span class="ident">unwrap</span>();
+        <span class="kw">loop </span>{
+            <a href="../../../src/tokio/park/thread.rs.html#92">m</a> = <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.condvar.wait(<a href="../../../src/tokio/park/thread.rs.html#92">m</a>).unwrap();
 
-            <span class="kw">if</span> <span class="self">self</span>
-                .<span class="ident">state</span>
-                .<span class="ident">compare_exchange</span>(<span class="ident">NOTIFIED</span>, <span class="ident">EMPTY</span>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
-                .<span class="ident">is_ok</span>()
+            <span class="kw">if </span><span class="self">self
+                </span>.state
+                .compare_exchange(NOTIFIED, EMPTY, SeqCst, SeqCst)
+                .is_ok()
             {
-                <span class="comment">// got a notification</span>
-                <span class="kw">return</span>;
+                <span class="comment">// got a notification
+                </span><span class="kw">return</span>;
             }
 
-            <span class="comment">// spurious wakeup, go back to sleep</span>
-        }
+            <span class="comment">// spurious wakeup, go back to sleep
+        </span>}
     }
 
-    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dur</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
-        <span class="comment">// Like `park` above we have a fast path for an already-notified thread,</span>
-        <span class="comment">// and afterwards we start coordinating for a sleep. Return quickly.</span>
-        <span class="kw">if</span> <span class="self">self</span>
-            .<span class="ident">state</span>
-            .<span class="ident">compare_exchange</span>(<span class="ident">NOTIFIED</span>, <span class="ident">EMPTY</span>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
-            .<span class="ident">is_ok</span>()
+    <span class="kw">fn </span>park_timeout(<span class="kw-2">&amp;</span><span class="self">self</span>, dur: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
+        <span class="comment">// Like `park` above we have a fast path for an already-notified thread,
+        // and afterwards we start coordinating for a sleep. Return quickly.
+        </span><span class="kw">if </span><span class="self">self
+            </span>.state
+            .compare_exchange(NOTIFIED, EMPTY, SeqCst, SeqCst)
+            .is_ok()
         {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">if</span> <span class="ident">dur</span> <span class="op">==</span> <span class="ident">Duration::from_millis</span>(<span class="number">0</span>) {
+        <span class="kw">if </span>dur == Duration::from_millis(<span class="number">0</span>) {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.<span class="ident">mutex</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let </span>m = <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.mutex.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#31">PARKED</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.state.compare_exchange(<a href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <a href="../../../src/tokio/park/thread.rs.html#31">PARKED</a>, SeqCst, SeqCst) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>) =&gt; {
-                <span class="comment">// We must read again here, see `park`.</span>
-                <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>);
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">old</span>, <span class="ident">NOTIFIED</span>, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>) =&gt; {
+                <span class="comment">// We must read again here, see `park`.
+                </span><span class="kw">let </span>old = <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.state.swap(<a href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, SeqCst);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(old, NOTIFIED, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
 
                 <span class="kw">return</span>;
             }
-            <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state; actual = {}&quot;</span>, <span class="ident">actual</span>),
+            <span class="prelude-val">Err</span>(actual) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state; actual = {}&quot;</span>, actual),
         }
 
-        <span class="comment">// Wait with a timeout, and if we spuriously wake up or otherwise wake up</span>
-        <span class="comment">// from a notification, we just want to unconditionally set the state back to</span>
-        <span class="comment">// empty, either consuming a notification or un-flagging ourselves as</span>
-        <span class="comment">// parked.</span>
-        <span class="kw">let</span> (<span class="ident">_m</span>, <span class="ident">_result</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.<span class="ident">condvar</span>.<span class="ident">wait_timeout</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#142">m</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#127">dur</a>).<span class="ident">unwrap</span>();
+        <span class="comment">// Wait with a timeout, and if we spuriously wake up or otherwise wake up
+        // from a notification, we just want to unconditionally set the state back to
+        // empty, either consuming a notification or un-flagging ourselves as
+        // parked.
+        </span><span class="kw">let </span>(_m, _result) = <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.condvar.wait_timeout(<a href="../../../src/tokio/park/thread.rs.html#142">m</a>, <a href="../../../src/tokio/park/thread.rs.html#127">dur</a>).unwrap();
 
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>) {
-            <a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a> =&gt; {} <span class="comment">// got a notification, hurray!</span>
-            <a class="ident" href="../../../src/tokio/park/thread.rs.html#31">PARKED</a> =&gt; {}   <span class="comment">// no notification, alas</span>
-            <span class="ident">n</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, <span class="ident">n</span>),
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// To ensure the unparked thread will observe any writes we made before</span>
-        <span class="comment">// this call, we must perform a release operation that `park` can</span>
-        <span class="comment">// synchronize with. To do that we must write `NOTIFIED` even if `state`</span>
-        <span class="comment">// is already `NOTIFIED`. That is why this must be a swap rather than a</span>
-        <span class="comment">// compare-and-swap that returns if it reads `NOTIFIED` on failure.</span>
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#169">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>, <span class="ident">SeqCst</span>) {
-            <a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a> =&gt; <span class="kw">return</span>,    <span class="comment">// no one was waiting</span>
-            <a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a> =&gt; <span class="kw">return</span>, <span class="comment">// already unparked</span>
-            <a class="ident" href="../../../src/tokio/park/thread.rs.html#31">PARKED</a> =&gt; {}        <span class="comment">// gotta go wake someone up</span>
-            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
-        }
-
-        <span class="comment">// There is a period between when the parked thread sets `state` to</span>
-        <span class="comment">// `PARKED` (or last checked `state` in the case of a spurious wake</span>
-        <span class="comment">// up) and when it actually waits on `cvar`. If we were to notify</span>
-        <span class="comment">// during this period it would be ignored and then when the parked</span>
-        <span class="comment">// thread went to sleep it would never wake up. Fortunately, it has</span>
-        <span class="comment">// `lock` locked at this stage so we can acquire `lock` to wait until</span>
-        <span class="comment">// it is ready to receive the notification.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Releasing `lock` before the call to `notify_one` means that when the</span>
-        <span class="comment">// parked thread wakes it doesn&#39;t get woken only to have to wait for us</span>
-        <span class="comment">// to release `lock`.</span>
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/tokio/park/thread.rs.html#169">self</a>.<span class="ident">mutex</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>());
-
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#169">self</a>.<span class="ident">condvar</span>.<span class="ident">notify_one</span>()
-    }
-
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#198">self</a>.<span class="ident">condvar</span>.<span class="ident">notify_all</span>();
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
-    }
-}
-
-<span class="comment">// ===== impl UnparkThread =====</span>
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#93">Unpark</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a> {
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#212">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#169">unpark</a>();
-    }
-}
-
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
-
-<span class="doccomment">/// Blocks the current thread using a condition variable.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">CachedParkThread</span> {
-    <span class="ident">_anchor</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#225">CachedParkThread</a> {
-    <span class="doccomment">/// Creates a new `ParkThread` handle for the current thread.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This type cannot be moved to other threads, so it should be created on</span>
-    <span class="doccomment">/// the thread that the caller intends to park.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio/park/thread.rs.html#225">CachedParkThread</a> {
-        <a class="ident" href="../../../src/tokio/park/thread.rs.html#225">CachedParkThread</a> {
-            <span class="ident">_anchor</span>: <span class="ident">PhantomData</span>,
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.state.swap(<a href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, SeqCst) {
+            <a href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a> =&gt; {} <span class="comment">// got a notification, hurray!
+            </span><a href="../../../src/tokio/park/thread.rs.html#31">PARKED</a> =&gt; {}   <span class="comment">// no notification, alas
+            </span>n =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, n),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#15">ParkError</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#240">self</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#245-247">with_current</a>(<span class="op">|</span><span class="ident">park_thread</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#241">park_thread</a>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#57">unpark</a>())
+    <span class="kw">fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// To ensure the unparked thread will observe any writes we made before
+        // this call, we must perform a release operation that `park` can
+        // synchronize with. To do that we must write `NOTIFIED` even if `state`
+        // is already `NOTIFIED`. That is why this must be a swap rather than a
+        // compare-and-swap that returns if it reads `NOTIFIED` on failure.
+        </span><span class="kw">match </span><a class="self" href="../../../src/tokio/park/thread.rs.html#169">self</a>.state.swap(<a href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>, SeqCst) {
+            <a href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a> =&gt; <span class="kw">return</span>,    <span class="comment">// no one was waiting
+            </span><a href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a> =&gt; <span class="kw">return</span>, <span class="comment">// already unparked
+            </span><a href="../../../src/tokio/park/thread.rs.html#31">PARKED</a> =&gt; {}        <span class="comment">// gotta go wake someone up
+            </span><span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
+        }
+
+        <span class="comment">// There is a period between when the parked thread sets `state` to
+        // `PARKED` (or last checked `state` in the case of a spurious wake
+        // up) and when it actually waits on `cvar`. If we were to notify
+        // during this period it would be ignored and then when the parked
+        // thread went to sleep it would never wake up. Fortunately, it has
+        // `lock` locked at this stage so we can acquire `lock` to wait until
+        // it is ready to receive the notification.
+        //
+        // Releasing `lock` before the call to `notify_one` means that when the
+        // parked thread wakes it doesn&#39;t get woken only to have to wait for us
+        // to release `lock`.
+        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/tokio/park/thread.rs.html#169">self</a>.mutex.<a href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>());
+
+        <a class="self" href="../../../src/tokio/park/thread.rs.html#169">self</a>.condvar.notify_one()
     }
 
-    <span class="doccomment">/// Gets a reference to the `ParkThread` handle for this thread.</span>
-    <span class="kw">fn</span> <span class="ident">with_current</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#15">ParkError</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a>) -&gt; <span class="ident">R</span>,
+    <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../src/tokio/park/thread.rs.html#198">self</a>.condvar.notify_all();
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
+}
+
+<span class="comment">// ===== impl UnparkThread =====
+
+</span><span class="kw">impl </span><a href="../../../src/tokio/park/mod.rs.html#93">Unpark</a> <span class="kw">for </span><a href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a> {
+    <span class="kw">fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../../src/tokio/park/thread.rs.html#212">self</a>.inner.<a href="../../../src/tokio/park/thread.rs.html#169">unpark</a>();
+    }
+}
+
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">std::rc::Rc</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+
+<span class="doccomment">/// Blocks the current thread using a condition variable.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CachedParkThread {
+    _anchor: PhantomData&lt;Rc&lt;()&gt;&gt;,
+}
+
+<span class="kw">impl </span><a href="../../../src/tokio/park/thread.rs.html#225">CachedParkThread</a> {
+    <span class="doccomment">/// Creates a new `ParkThread` handle for the current thread.
+    ///
+    /// This type cannot be moved to other threads, so it should be created on
+    /// the thread that the caller intends to park.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <a href="../../../src/tokio/park/thread.rs.html#225">CachedParkThread</a> {
+        <a href="../../../src/tokio/park/thread.rs.html#225">CachedParkThread</a> {
+            _anchor: PhantomData,
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a>, <a href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>&gt; {
+        <a class="self" href="../../../src/tokio/park/thread.rs.html#240">self</a>.<a href="../../../src/tokio/park/thread.rs.html#245-247">with_current</a>(|park_thread| <a href="../../../src/tokio/park/thread.rs.html#241">park_thread</a>.<a href="../../../src/tokio/park/mod.rs.html#57">unpark</a>())
+    }
+
+    <span class="doccomment">/// Gets a reference to the `ParkThread` handle for this thread.
+    </span><span class="kw">fn </span>with_current&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;R, <a href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;</span><a href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a>) -&gt; R,
     {
-        <a class="ident" href="../../../src/tokio/park/thread.rs.html#34-36">CURRENT_PARKER</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#245">f</a>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#249">inner</a>)).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+        <a href="../../../src/tokio/park/thread.rs.html#34-36">CURRENT_PARKER</a>.try_with(|inner| <a href="../../../src/tokio/park/thread.rs.html#245">f</a>(<a href="../../../src/tokio/park/thread.rs.html#249">inner</a>)).map_err(|<span class="kw">_</span>| ())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">block_on</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F::Output</span>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#15">ParkError</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
-        <span class="kw">use</span> <span class="ident">std::task::Poll::Ready</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>block_on&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output, <a href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>&gt; {
+        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
+        <span class="kw">use </span>std::task::Poll::Ready;
 
-        <span class="comment">// `get_unpark()` should not return a Result</span>
-        <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_unpark</span>()<span class="question-mark">?</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#257">waker</a>);
+        <span class="comment">// `get_unpark()` should not return a Result
+        </span><span class="kw">let </span>waker = <span class="self">self</span>.get_unpark()<span class="question-mark">?</span>.<a href="../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span><a href="../../../src/tokio/park/thread.rs.html#257">waker</a>);
 
-        <a class="macro" href="../../../src/tokio/macros/pin.rs.html#125-144">pin!</a>(<span class="ident">f</span>);
+        <a class="macro" href="../../../src/tokio/macros/pin.rs.html#125-144">pin!</a>(f);
 
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Ready</span>(<span class="ident">v</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#260">f</a>.<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#258">cx</a>)) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#263">v</a>);
+        <span class="kw">loop </span>{
+            <span class="kw">if let </span>Ready(v) = <a href="../../../src/tokio/coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(|| <a href="../../../src/tokio/park/thread.rs.html#260">f</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/tokio/park/thread.rs.html#258">cx</a>)) {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/tokio/park/thread.rs.html#263">v</a>);
             }
 
-            <span class="self">self</span>.<span class="ident">park</span>()<span class="question-mark">?</span>;
+            <span class="self">self</span>.park()<span class="question-mark">?</span>;
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#225">CachedParkThread</a> {
-    <span class="kw">type</span> <span class="ident">Unpark</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>;
+<span class="kw">impl </span><a href="../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for </span><a href="../../../src/tokio/park/thread.rs.html#225">CachedParkThread</a> {
+    <span class="kw">type </span>Unpark = <a href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a>;
+    <span class="kw">type </span>Error = <a href="../../../src/tokio/park/thread.rs.html#15">ParkError</a>;
 
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Unpark</span> {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#276">self</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#240">get_unpark</a>().<span class="ident">unwrap</span>()
+    <span class="kw">fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Unpark {
+        <a class="self" href="../../../src/tokio/park/thread.rs.html#276">self</a>.<a href="../../../src/tokio/park/thread.rs.html#240">get_unpark</a>().unwrap()
     }
 
-    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">with_current</span>(<span class="op">|</span><span class="ident">park_thread</span><span class="op">|</span> <span class="ident">park_thread</span>.<span class="ident">inner</span>.<span class="ident">park</span>())<span class="question-mark">?</span>;
+    <span class="kw">fn </span>park(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.with_current(|park_thread| park_thread.inner.park())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">with_current</span>(<span class="op">|</span><span class="ident">park_thread</span><span class="op">|</span> <span class="ident">park_thread</span>.<span class="ident">inner</span>.<span class="ident">park_timeout</span>(<span class="ident">duration</span>))<span class="question-mark">?</span>;
+    <span class="kw">fn </span>park_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.with_current(|park_thread| park_thread.inner.park_timeout(duration))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#290">self</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#245-247">with_current</a>(<span class="op">|</span><span class="ident">park_thread</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#291">park_thread</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#198">shutdown</a>());
+    <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let _ </span>= <a class="self" href="../../../src/tokio/park/thread.rs.html#290">self</a>.<a href="../../../src/tokio/park/thread.rs.html#245-247">with_current</a>(|park_thread| <a href="../../../src/tokio/park/thread.rs.html#291">park_thread</a>.inner.<a href="../../../src/tokio/park/thread.rs.html#198">shutdown</a>());
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#315">unparker_to_raw_waker</a>(<a class="self" href="../../../src/tokio/park/thread.rs.html#296">self</a>.<span class="ident">inner</span>);
-            <span class="ident">Waker::from_raw</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#298">raw</a>)
+<span class="kw">impl </span><a href="../../../src/tokio/park/thread.rs.html#19">UnparkThread</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_waker(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw = <a href="../../../src/tokio/park/thread.rs.html#315">unparker_to_raw_waker</a>(<a class="self" href="../../../src/tokio/park/thread.rs.html#296">self</a>.inner);
+            Waker::from_raw(<a href="../../../src/tokio/park/thread.rs.html#298">raw</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">*const</span> () {
-        <span class="ident">Arc::into_raw</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#306">this</a>) <span class="kw">as</span> <span class="kw-2">*const</span> ()
+<span class="kw">impl </span><a href="../../../src/tokio/park/thread.rs.html#24">Inner</a> {
+    <span class="attribute">#[allow(clippy::wrong_self_convention)]
+    </span><span class="kw">fn </span>into_raw(this: Arc&lt;<a href="../../../src/tokio/park/thread.rs.html#24">Inner</a>&gt;) -&gt; <span class="kw-2">*const </span>() {
+        Arc::into_raw(<a href="../../../src/tokio/park/thread.rs.html#306">this</a>) <span class="kw">as </span><span class="kw-2">*const </span>()
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> ()) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a><span class="op">&gt;</span> {
-        <span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#310">ptr</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a>)
+    <span class="kw">unsafe fn </span>from_raw(ptr: <span class="kw-2">*const </span>()) -&gt; Arc&lt;<a href="../../../src/tokio/park/thread.rs.html#24">Inner</a>&gt; {
+        Arc::from_raw(<a href="../../../src/tokio/park/thread.rs.html#310">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../src/tokio/park/thread.rs.html#24">Inner</a>)
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unparker_to_raw_waker</span>(<span class="ident">unparker</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#24">Inner</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
-    <span class="ident">RawWaker::new</span>(
-        <span class="ident">Inner::into_raw</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#315">unparker</a>),
-        <span class="kw-2">&amp;</span><span class="ident">RawWakerVTable::new</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#322">clone</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#335">wake</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#340">wake_by_ref</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#331">drop_waker</a>),
+<span class="kw">unsafe fn </span>unparker_to_raw_waker(unparker: Arc&lt;<a href="../../../src/tokio/park/thread.rs.html#24">Inner</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
+    RawWaker::new(
+        Inner::into_raw(<a href="../../../src/tokio/park/thread.rs.html#315">unparker</a>),
+        <span class="kw-2">&amp;</span>RawWakerVTable::new(<a href="../../../src/tokio/park/thread.rs.html#322">clone</a>, <a href="../../../src/tokio/park/thread.rs.html#335">wake</a>, <a href="../../../src/tokio/park/thread.rs.html#340">wake_by_ref</a>, <a href="../../../src/tokio/park/thread.rs.html#331">drop_waker</a>),
     )
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">clone</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> ()) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
-    <span class="kw">let</span> <span class="ident">unparker</span> <span class="op">=</span> <span class="ident">Inner::from_raw</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#322">raw</a>);
+<span class="kw">unsafe fn </span>clone(raw: <span class="kw-2">*const </span>()) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
+    <span class="kw">let </span>unparker = Inner::from_raw(<a href="../../../src/tokio/park/thread.rs.html#322">raw</a>);
 
-    <span class="comment">// Increment the ref count</span>
-    <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#323">unparker</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <span class="comment">// Increment the ref count
+    </span>mem::forget(<a href="../../../src/tokio/park/thread.rs.html#323">unparker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-    <a class="ident" href="../../../src/tokio/park/thread.rs.html#315">unparker_to_raw_waker</a>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#323">unparker</a>)
+    <a href="../../../src/tokio/park/thread.rs.html#315">unparker_to_raw_waker</a>(<a href="../../../src/tokio/park/thread.rs.html#323">unparker</a>)
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">drop_waker</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> ()) {
-    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Inner::from_raw</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#331">raw</a>);
+<span class="kw">unsafe fn </span>drop_waker(raw: <span class="kw-2">*const </span>()) {
+    <span class="kw">let _ </span>= Inner::from_raw(<a href="../../../src/tokio/park/thread.rs.html#331">raw</a>);
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">wake</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> ()) {
-    <span class="kw">let</span> <span class="ident">unparker</span> <span class="op">=</span> <span class="ident">Inner::from_raw</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#335">raw</a>);
-    <a class="ident" href="../../../src/tokio/park/thread.rs.html#336">unparker</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#169">unpark</a>();
+<span class="kw">unsafe fn </span>wake(raw: <span class="kw-2">*const </span>()) {
+    <span class="kw">let </span>unparker = Inner::from_raw(<a href="../../../src/tokio/park/thread.rs.html#335">raw</a>);
+    <a href="../../../src/tokio/park/thread.rs.html#336">unparker</a>.<a href="../../../src/tokio/park/thread.rs.html#169">unpark</a>();
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">wake_by_ref</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> ()) {
-    <span class="kw">let</span> <span class="ident">unparker</span> <span class="op">=</span> <span class="ident">Inner::from_raw</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#340">raw</a>);
-    <a class="ident" href="../../../src/tokio/park/thread.rs.html#341">unparker</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#169">unpark</a>();
+<span class="kw">unsafe fn </span>wake_by_ref(raw: <span class="kw-2">*const </span>()) {
+    <span class="kw">let </span>unparker = Inner::from_raw(<a href="../../../src/tokio/park/thread.rs.html#340">raw</a>);
+    <a href="../../../src/tokio/park/thread.rs.html#341">unparker</a>.<a href="../../../src/tokio/park/thread.rs.html#169">unpark</a>();
 
-    <span class="comment">// We don&#39;t actually own a reference to the unparker</span>
-    <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#341">unparker</a>);
+    <span class="comment">// We don&#39;t actually own a reference to the unparker
+    </span>mem::forget(<a href="../../../src/tokio/park/thread.rs.html#341">unparker</a>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

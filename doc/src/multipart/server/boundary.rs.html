@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/multipart-0.18.0/src/server/boundary.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>boundary.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../multipart/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../multipart/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../multipart/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/multipart-0.18.0/src/server/boundary.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>boundary.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../multipart/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../multipart/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../multipart/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -596,603 +596,603 @@
 <span id="596">596</span>
 <span id="597">597</span>
 <span id="598">598</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2016 `multipart` Crate Developers</span>
-<span class="comment">//</span>
-<span class="comment">// Licensed under the Apache License, Version 2.0, &lt;LICENSE-APACHE or</span>
-<span class="comment">// http://apache.org/licenses/LICENSE-2.0&gt; or the MIT license &lt;LICENSE-MIT or</span>
-<span class="comment">// http://opensource.org/licenses/MIT&gt;, at your option. This file may not be</span>
-<span class="comment">// copied, modified, or distributed except according to those terms.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2016 `multipart` Crate Developers
+//
+// Licensed under the Apache License, Version 2.0, &lt;LICENSE-APACHE or
+// http://apache.org/licenses/LICENSE-2.0&gt; or the MIT license &lt;LICENSE-MIT or
+// http://opensource.org/licenses/MIT&gt;, at your option. This file may not be
+// copied, modified, or distributed except according to those terms.
 
-<span class="doccomment">//! Boundary parsing for `multipart` requests.</span>
+</span><span class="doccomment">//! Boundary parsing for `multipart` requests.
 
-<span class="kw">use</span> <a class="ident" href="../../../safemem/index.html">::safemem</a>;
+</span><span class="kw">use </span><a href="../../../safemem/index.html">::safemem</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../multipart/server/save/struct.BufReader.html"><span class="kw">super</span>::buf_redux::BufReader</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::buf_redux::policy::MinBuffered</span>;
-<span class="kw">use</span> <a class="ident" href="../../../twoway/index.html"><span class="kw">super</span>::twoway</a>;
+<span class="kw">use </span><a href="../../../multipart/server/save/struct.BufReader.html"><span class="kw">super</span>::buf_redux::BufReader</a>;
+<span class="kw">use </span><span class="kw">super</span>::buf_redux::policy::MinBuffered;
+<span class="kw">use </span><a href="../../../twoway/index.html"><span class="kw">super</span>::twoway</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#27"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="../../../src/multipart/server/boundary.rs.html#27"><span class="self">self</span>::State</a>::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIN_BUF_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1024</span>;
+<span class="kw">pub const </span>MIN_BUF_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1024</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="ident">Searching</span>,
-    <span class="ident">BoundaryRead</span>,
-    <span class="ident">AtEnd</span>
+<span class="attribute">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>State {
+    Searching,
+    BoundaryRead,
+    AtEnd
 }
 
-<span class="doccomment">/// A struct implementing `Read` and `BufRead` that will yield bytes until it sees a given sequence.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">source</span>: <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span>, <a class="ident" href="../../../buf_redux/policy/struct.MinBuffered.html">MinBuffered</a><span class="op">&gt;</span>,
-    <span class="ident">boundary</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-    <span class="ident">search_idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">state</span>: <a class="ident" href="../../../src/multipart/server/boundary.rs.html#27">State</a>,
+<span class="doccomment">/// A struct implementing `Read` and `BufRead` that will yield bytes until it sees a given sequence.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>BoundaryReader&lt;R&gt; {
+    source: BufReader&lt;R, <a href="../../../buf_redux/policy/struct.MinBuffered.html">MinBuffered</a>&gt;,
+    boundary: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+    search_idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    state: <a href="../../../src/multipart/server/boundary.rs.html#27">State</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
-    <span class="doccomment">/// Internal API</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_reader</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">boundary</span>: <span class="ident">B</span>) -&gt; <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">boundary</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#44">boundary</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="ident">safemem::prepend</span>(<span class="string">b&quot;--&quot;</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#45">boundary</a>);
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#44">reader</a>).<span class="ident">set_policy</span>(<span class="ident">MinBuffered</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#24">MIN_BUF_SIZE</a>));
+<span class="kw">impl</span>&lt;R&gt; BoundaryReader&lt;R&gt; <span class="kw">where </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
+    <span class="doccomment">/// Internal API
+    </span><span class="kw">pub fn </span>from_reader&lt;B: Into&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt;(reader: R, boundary: B) -&gt; BoundaryReader&lt;R&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>boundary = <a href="../../../src/multipart/server/boundary.rs.html#44">boundary</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        safemem::prepend(<span class="string">b&quot;--&quot;</span>, <span class="kw-2">&amp;mut </span><a href="../../../src/multipart/server/boundary.rs.html#45">boundary</a>);
+        <span class="kw">let </span>source = BufReader::new(<a href="../../../src/multipart/server/boundary.rs.html#44">reader</a>).set_policy(MinBuffered(<a href="../../../src/multipart/server/boundary.rs.html#24">MIN_BUF_SIZE</a>));
 
-        <a class="ident" href="../../../src/multipart/server/boundary.rs.html#35">BoundaryReader</a> {
-            <a class="ident" href="../../../src/multipart/server/boundary.rs.html#47">source</a>,
-            <a class="ident" href="../../../src/multipart/server/boundary.rs.html#45">boundary</a>,
-            <span class="ident">search_idx</span>: <span class="number">0</span>,
-            <span class="ident">state</span>: <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>,
+        <a href="../../../src/multipart/server/boundary.rs.html#35">BoundaryReader</a> {
+            <a href="../../../src/multipart/server/boundary.rs.html#47">source</a>,
+            <a href="../../../src/multipart/server/boundary.rs.html#45">boundary</a>,
+            search_idx: <span class="number">0</span>,
+            state: <a href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">read_to_boundary</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">fill_buf</span>()<span class="question-mark">?</span>;
+    <span class="kw">fn </span>read_to_boundary(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">let </span>buf = <span class="self">self</span>.source.fill_buf()<span class="question-mark">?</span>;
 
-        <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Buf: {:?}&quot;</span>, <span class="ident">String::from_utf8_lossy</span>(<span class="ident">buf</span>));
+        <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Buf: {:?}&quot;</span>, String::from_utf8_lossy(buf));
 
         <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Before search Buf len: {} Search idx: {} State: {:?}&quot;</span>,
-               <span class="ident">buf</span>.<span class="ident">len</span>(), <span class="self">self</span>.<span class="ident">search_idx</span>, <span class="self">self</span>.<span class="ident">state</span>);
+               buf.len(), <span class="self">self</span>.search_idx, <span class="self">self</span>.state);
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">BoundaryRead</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">AtEnd</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[..<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span>])
+        <span class="kw">if </span><span class="self">self</span>.state == BoundaryRead || <span class="self">self</span>.state == AtEnd {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[..<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx])
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">Searching</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">search_idx</span> <span class="op">&lt;</span> <span class="ident">buf</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span>..];
+        <span class="kw">if </span><span class="self">self</span>.state == Searching &amp;&amp; <span class="self">self</span>.search_idx &lt; buf.len() {
+            <span class="kw">let </span>lookahead = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx..];
 
-            <span class="comment">// Look for the boundary, or if it isn&#39;t found, stop near the end.</span>
-            <span class="kw">match</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">find_boundary</a>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#70">lookahead</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">boundary</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">found_idx</span>) =&gt; {
-                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#74">found_idx</a>;
-                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#29">BoundaryRead</a>;
+            <span class="comment">// Look for the boundary, or if it isn&#39;t found, stop near the end.
+            </span><span class="kw">match </span><a href="../../../src/multipart/server/boundary.rs.html#200">find_boundary</a>(<a href="../../../src/multipart/server/boundary.rs.html#70">lookahead</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.boundary) {
+                <span class="prelude-val">Ok</span>(found_idx) =&gt; {
+                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx += <a href="../../../src/multipart/server/boundary.rs.html#74">found_idx</a>;
+                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.state = <a href="../../../src/multipart/server/boundary.rs.html#29">BoundaryRead</a>;
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">yield_len</span>) =&gt; {
-                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#78">yield_len</a>;
+                <span class="prelude-val">Err</span>(yield_len) =&gt; {
+                    <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx += <a href="../../../src/multipart/server/boundary.rs.html#78">yield_len</a>;
                 }
             }
         }        
         
         <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;After search Buf len: {} Search idx: {} State: {:?}&quot;</span>,
-               <span class="ident">buf</span>.<span class="ident">len</span>(), <span class="self">self</span>.<span class="ident">search_idx</span>, <span class="self">self</span>.<span class="ident">state</span>);
+               buf.len(), <span class="self">self</span>.search_idx, <span class="self">self</span>.state);
 
-        <span class="comment">// back up the cursor to before the boundary&#39;s preceding CRLF if we haven&#39;t already</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">search_idx</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">buf</span>[<span class="self">self</span>.<span class="ident">search_idx</span>..].<span class="ident">starts_with</span>(<span class="string">b&quot;\r\n&quot;</span>) {
-            <span class="kw">let</span> <span class="ident">two_bytes_before</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">-</span> <span class="number">2</span> .. <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span>];
+        <span class="comment">// back up the cursor to before the boundary&#39;s preceding CRLF if we haven&#39;t already
+        </span><span class="kw">if </span><span class="self">self</span>.search_idx &gt;= <span class="number">2 </span>&amp;&amp; !buf[<span class="self">self</span>.search_idx..].starts_with(<span class="string">b&quot;\r\n&quot;</span>) {
+            <span class="kw">let </span>two_bytes_before = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx - <span class="number">2 </span>.. <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx];
 
             <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Two bytes before: {:?} ({:?}) (\&quot;\\r\\n\&quot;: {:?})&quot;</span>,
-                   <span class="ident">String::from_utf8_lossy</span>(<span class="ident">two_bytes_before</span>), <span class="ident">two_bytes_before</span>, <span class="string">b&quot;\r\n&quot;</span>);
+                   String::from_utf8_lossy(two_bytes_before), two_bytes_before, <span class="string">b&quot;\r\n&quot;</span>);
 
-            <span class="kw">if</span> <span class="ident">two_bytes_before</span> <span class="op">==</span> <span class="kw-2">*</span><span class="string">b&quot;\r\n&quot;</span> {
+            <span class="kw">if </span>two_bytes_before == <span class="kw-2">*</span><span class="string">b&quot;\r\n&quot; </span>{
                 <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Subtract two!&quot;</span>);
-                <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">2</span>;
+                <a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx -= <span class="number">2</span>;
             }
         }
 
-        <span class="kw">let</span> <span class="ident">ret_buf</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[..<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.<span class="ident">search_idx</span>];
+        <span class="kw">let </span>ret_buf = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#58">buf</a>[..<a class="self" href="../../../src/multipart/server/boundary.rs.html#57">self</a>.search_idx];
 
-        <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Returning buf: {:?}&quot;</span>, <span class="ident">String::from_utf8_lossy</span>(<span class="ident">ret_buf</span>));
+        <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Returning buf: {:?}&quot;</span>, String::from_utf8_lossy(ret_buf));
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#100">ret_buf</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/multipart/server/boundary.rs.html#100">ret_buf</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_min_buf_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">min_buf_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="comment">// ensure the minimum buf size is at least enough to find a boundary with some extra</span>
-        <span class="kw">let</span> <span class="ident">min_buf_size</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<a class="self" href="../../../src/multipart/server/boundary.rs.html#107">self</a>.<span class="ident">boundary</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span>, <a class="ident" href="../../../src/multipart/server/boundary.rs.html#107">min_buf_size</a>);
+    <span class="kw">pub fn </span>set_min_buf_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, min_buf_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="comment">// ensure the minimum buf size is at least enough to find a boundary with some extra
+        </span><span class="kw">let </span>min_buf_size = cmp::max(<a class="self" href="../../../src/multipart/server/boundary.rs.html#107">self</a>.boundary.len() * <span class="number">2</span>, <a href="../../../src/multipart/server/boundary.rs.html#107">min_buf_size</a>);
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#107">self</a>.<span class="ident">source</span>.<span class="ident">policy_mut</span>().<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#109">min_buf_size</a>;
+        <a class="self" href="../../../src/multipart/server/boundary.rs.html#107">self</a>.source.policy_mut().<span class="number">0 </span>= <a href="../../../src/multipart/server/boundary.rs.html#109">min_buf_size</a>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_boundary</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">AtEnd</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+    <span class="kw">pub fn </span>consume_boundary(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.state == AtEnd {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
 
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">Searching</span> {
+        <span class="kw">while </span><span class="self">self</span>.state == Searching {
             <span class="macro">debug!</span>(<span class="string">&quot;Boundary not found yet&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">buf_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_to_boundary</span>()<span class="question-mark">?</span>.<span class="ident">len</span>();
+            <span class="kw">let </span>buf_len = <span class="self">self</span>.read_to_boundary()<span class="question-mark">?</span>.len();
 
-            <span class="kw">if</span> <span class="ident">buf_len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">Searching</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>,
+            <span class="kw">if </span>buf_len == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.state == Searching {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::UnexpectedEof,
                                           <span class="string">&quot;unexpected end of request body&quot;</span>));
             }
 
-            <span class="macro">debug!</span>(<span class="string">&quot;Discarding {} bytes&quot;</span>, <span class="ident">buf_len</span>);
+            <span class="macro">debug!</span>(<span class="string">&quot;Discarding {} bytes&quot;</span>, buf_len);
 
-            <span class="self">self</span>.<span class="ident">consume</span>(<span class="ident">buf_len</span>);
+            <span class="self">self</span>.consume(buf_len);
         }
 
-        <span class="kw">let</span> <span class="ident">consume_amt</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">fill_buf</span>()<span class="question-mark">?</span>;
+        <span class="kw">let </span>consume_amt = {
+            <span class="kw">let </span>buf = <span class="self">self</span>.source.fill_buf()<span class="question-mark">?</span>;
 
-            <span class="comment">// if the boundary is found we should have at least this much in-buffer</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">consume_amt</span> <span class="op">=</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">search_idx</span> <span class="op">+</span> <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">boundary</span>.<span class="ident">len</span>();
+            <span class="comment">// if the boundary is found we should have at least this much in-buffer
+            </span><span class="kw">let </span><span class="kw-2">mut </span>consume_amt = <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.search_idx + <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.boundary.len();
 
-            <span class="comment">// we don&#39;t care about data before the cursor</span>
-            <span class="kw">let</span> <span class="ident">bnd_segment</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#135">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">search_idx</span>..];
+            <span class="comment">// we don&#39;t care about data before the cursor
+            </span><span class="kw">let </span>bnd_segment = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#135">buf</a>[<a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.search_idx..];
 
-            <span class="kw">if</span> <span class="ident">bnd_segment</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;\r\n&quot;</span>) {
-                <span class="comment">// preceding CRLF needs to be consumed as well</span>
-                <a class="ident" href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
+            <span class="kw">if </span>bnd_segment.starts_with(<span class="string">b&quot;\r\n&quot;</span>) {
+                <span class="comment">// preceding CRLF needs to be consumed as well
+                </span><a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> += <span class="number">2</span>;
 
-                <span class="comment">// assert that we&#39;ve found the boundary after the CRLF</span>
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">boundary</span>, <span class="ident">bnd_segment</span>[<span class="number">2</span> .. <span class="self">self</span>.<span class="ident">boundary</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">2</span>]);
-            } <span class="kw">else</span> {
-                <span class="comment">// assert that we&#39;ve found the boundary</span>
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">boundary</span>, <span class="ident">bnd_segment</span>[..<span class="self">self</span>.<span class="ident">boundary</span>.<span class="ident">len</span>()]);
+                <span class="comment">// assert that we&#39;ve found the boundary after the CRLF
+                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="kw-2">*</span><span class="self">self</span>.boundary, bnd_segment[<span class="number">2 </span>.. <span class="self">self</span>.boundary.len() + <span class="number">2</span>]);
+            } <span class="kw">else </span>{
+                <span class="comment">// assert that we&#39;ve found the boundary
+                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="kw-2">*</span><span class="self">self</span>.boundary, bnd_segment[..<span class="self">self</span>.boundary.len()]);
             }
 
-            <span class="comment">// include the trailing CRLF or --</span>
-            <a class="ident" href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
+            <span class="comment">// include the trailing CRLF or --
+            </span><a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> += <span class="number">2</span>;
 
-            <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">consume_amt</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>,
+            <span class="kw">if </span>buf.len() &lt; consume_amt {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::UnexpectedEof,
                                           <span class="string">&quot;not enough bytes to verify boundary&quot;</span>));
             }
 
-            <span class="comment">// we have enough bytes to verify</span>
-            <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>;
+            <span class="comment">// we have enough bytes to verify
+            </span><a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.state = <a href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>;
 
-            <span class="kw">let</span> <span class="ident">last_two</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/multipart/server/boundary.rs.html#135">buf</a>[<a class="ident" href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> <span class="op">-</span> <span class="number">2</span> .. <a class="ident" href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a>];
+            <span class="kw">let </span>last_two = <span class="kw-2">&amp;</span><a href="../../../src/multipart/server/boundary.rs.html#135">buf</a>[<a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a> - <span class="number">2 </span>.. <a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a>];
 
-            <span class="kw">match</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#165">last_two</a> {
-                <span class="string">b&quot;\r\n&quot;</span> =&gt; <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>,
-                <span class="string">b&quot;--&quot;</span> =&gt; <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a>,
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
-                    <span class="ident">io::ErrorKind::InvalidData</span>,
+            <span class="kw">match </span><a href="../../../src/multipart/server/boundary.rs.html#165">last_two</a> {
+                <span class="string">b&quot;\r\n&quot; </span>=&gt; <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.state = <a href="../../../src/multipart/server/boundary.rs.html#28">Searching</a>,
+                <span class="string">b&quot;--&quot; </span>=&gt; <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.state = <a href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a>,
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                    io::ErrorKind::InvalidData,
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unexpected bytes following multipart boundary: {:X} {:X}&quot;</span>,
-                            <span class="ident">last_two</span>[<span class="number">0</span>], <span class="ident">last_two</span>[<span class="number">1</span>])
+                            last_two[<span class="number">0</span>], last_two[<span class="number">1</span>])
                 )),
             }
 
-            <a class="ident" href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a>
+            <a href="../../../src/multipart/server/boundary.rs.html#138">consume_amt</a>
         };
 
         <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Consuming {} bytes, remaining buf: {:?}&quot;</span>,
-               <span class="ident">consume_amt</span>,
-               <span class="ident">String::from_utf8_lossy</span>(<span class="self">self</span>.<span class="ident">source</span>.<span class="ident">buffer</span>()));
+               consume_amt,
+               String::from_utf8_lossy(<span class="self">self</span>.source.buffer()));
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">source</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#134">consume_amt</a>);
+        <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.source.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/multipart/server/boundary.rs.html#134">consume_amt</a>);
 
-        <span class="kw">if</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(<span class="ident">debug_assertions</span>) {
+        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
 
         }
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">search_idx</span> <span class="op">=</span> <span class="number">0</span>;
+        <a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.search_idx = <span class="number">0</span>;
 
-        <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Consumed boundary (state: {:?}), remaining buf: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">state</span>,
-               <span class="ident">String::from_utf8_lossy</span>(<span class="self">self</span>.<span class="ident">source</span>.<span class="ident">buffer</span>()));
+        <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Consumed boundary (state: {:?}), remaining buf: {:?}&quot;</span>, <span class="self">self</span>.state,
+               String::from_utf8_lossy(<span class="self">self</span>.source.buffer()));
 
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.<span class="ident">state</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/multipart/server/boundary.rs.html#114">self</a>.state != <a href="../../../src/multipart/server/boundary.rs.html#30">AtEnd</a>)
     }
 }
 
-<span class="doccomment">/// Find the boundary occurrence or the highest length to safely yield</span>
-<span class="kw">fn</span> <span class="ident">find_boundary</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">boundary</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span> <span class="ident">twoway::find_bytes</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">buf</a>, <a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">boundary</a>) {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#201">idx</a>);
+<span class="doccomment">/// Find the boundary occurrence or the highest length to safely yield
+</span><span class="kw">fn </span>find_boundary(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], boundary: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = twoway::find_bytes(<a href="../../../src/multipart/server/boundary.rs.html#200">buf</a>, <a href="../../../src/multipart/server/boundary.rs.html#200">boundary</a>) {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/multipart/server/boundary.rs.html#201">idx</a>);
     }
 
-    <span class="kw">let</span> <span class="ident">search_start</span> <span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">buf</a>.<span class="ident">len</span>().<span class="ident">saturating_sub</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">boundary</a>.<span class="ident">len</span>());
+    <span class="kw">let </span>search_start = <a href="../../../src/multipart/server/boundary.rs.html#200">buf</a>.len().saturating_sub(<a href="../../../src/multipart/server/boundary.rs.html#200">boundary</a>.len());
 
-    <span class="comment">// search for just the boundary fragment</span>
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">search_start</span> .. <span class="ident">buf</span>.<span class="ident">len</span>() {
-        <span class="kw">if</span> <span class="ident">boundary</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="ident">i</span>..]) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">i</span>);
+    <span class="comment">// search for just the boundary fragment
+    </span><span class="kw">for </span>i <span class="kw">in </span>search_start .. buf.len() {
+        <span class="kw">if </span>boundary.starts_with(<span class="kw-2">&amp;</span>buf[i..]) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(i);
         }
     }
 
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#200">buf</a>.<span class="ident">len</span>())
+    <span class="prelude-val">Err</span>(<a href="../../../src/multipart/server/boundary.rs.html#200">buf</a>.len())
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bench&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">io::Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new_with_bytes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from_reader</span>(<span class="ident">io::Cursor::new</span>(<span class="ident">bytes</span>), <span class="ident">boundary</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;bench&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; BoundaryReader&lt;io::Cursor&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt; {
+    <span class="kw">fn </span>new_with_bytes(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], boundary: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_reader(io::Cursor::new(bytes), boundary)
     }
 
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// Dump buffer and reset cursor</span>
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">seek</span>(<span class="ident">io::SeekFrom::Start</span>(<span class="number">0</span>));
-        <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Searching</span>;
-        <span class="self">self</span>.<span class="ident">search_idx</span> <span class="op">=</span> <span class="number">0</span>;
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#232">self</a>.<span class="ident">source</span>.<span class="ident">get_ref</span>()
+    <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// Dump buffer and reset cursor
+        </span><span class="self">self</span>.source.seek(io::SeekFrom::Start(<span class="number">0</span>));
+        <span class="self">self</span>.state = Searching;
+        <span class="self">self</span>.search_idx = <span class="number">0</span>;
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_to_boundary</span>()<span class="question-mark">?</span>;
-            <span class="comment">// This shouldn&#39;t ever be an error so unwrapping is fine.</span>
-            <a class="ident" href="../../../src/multipart/server/boundary.rs.html#240">buf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#238">out</a>).<span class="ident">unwrap</span>()
+<span class="kw">impl</span>&lt;R&gt; Borrow&lt;R&gt; <span class="kw">for </span>BoundaryReader&lt;R&gt; {
+    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <a class="self" href="../../../src/multipart/server/boundary.rs.html#232">self</a>.source.get_ref()
+    }
+}
+
+<span class="kw">impl</span>&lt;R&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>BoundaryReader&lt;R&gt; <span class="kw">where </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">let </span>read = {
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="self">self</span>.read_to_boundary()<span class="question-mark">?</span>;
+            <span class="comment">// This shouldn&#39;t ever be an error so unwrapping is fine.
+            </span><a href="../../../src/multipart/server/boundary.rs.html#240">buf</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/multipart/server/boundary.rs.html#238">out</a>).unwrap()
         };
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#238">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#239">read</a>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#239">read</a>)
+        <a class="self" href="../../../src/multipart/server/boundary.rs.html#238">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/multipart/server/boundary.rs.html#239">read</a>);
+        <span class="prelude-val">Ok</span>(<a href="../../../src/multipart/server/boundary.rs.html#239">read</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
-    <span class="kw">fn</span> <span class="ident">fill_buf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#251">self</a>.<a class="ident" href="../../../src/multipart/server/boundary.rs.html#57">read_to_boundary</a>()
+<span class="kw">impl</span>&lt;R&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for </span>BoundaryReader&lt;R&gt; <span class="kw">where </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> {
+    <span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../src/multipart/server/boundary.rs.html#251">self</a>.<a href="../../../src/multipart/server/boundary.rs.html#57">read_to_boundary</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">true_amt</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#255">amt</a>, <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.<span class="ident">search_idx</span>);
+    <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>true_amt = cmp::min(<a href="../../../src/multipart/server/boundary.rs.html#255">amt</a>, <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.search_idx);
 
-        <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Consume! amt: {} true amt: {}&quot;</span>, <span class="ident">amt</span>, <span class="ident">true_amt</span>);
+        <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Consume! amt: {} true amt: {}&quot;</span>, amt, true_amt);
 
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.<span class="ident">source</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="ident" href="../../../src/multipart/server/boundary.rs.html#256">true_amt</a>);
-        <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.<span class="ident">search_idx</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/multipart/server/boundary.rs.html#256">true_amt</a>;
+        <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.source.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/multipart/server/boundary.rs.html#256">true_amt</a>);
+        <a class="self" href="../../../src/multipart/server/boundary.rs.html#255">self</a>.search_idx -= <a href="../../../src/multipart/server/boundary.rs.html#256">true_amt</a>;
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::BoundaryReader</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use </span><span class="kw">super</span>::BoundaryReader;
 
-    <span class="kw">use</span> <span class="ident">std::io</span>;
-    <span class="kw">use</span> <span class="ident">std::io::prelude</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::io;
+    <span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
 
-    <span class="kw">const</span> <span class="ident">BOUNDARY</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;boundary&quot;</span>;
-    <span class="kw">const</span> <span class="ident">TEST_VAL</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;--boundary\r\n\
+    <span class="kw">const </span>BOUNDARY: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;boundary&quot;</span>;
+    <span class="kw">const </span>TEST_VAL: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;--boundary\r\n\
                                     dashed-value-1\r\n\
                                     --boundary\r\n\
                                     dashed-value-2\r\n\
                                     --boundary--&quot;</span>;
         
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_boundary</span>() {
-        <span class="ident">::init_log</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_boundary() {
+        ::init_log();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Testing boundary (no split)&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">TEST_VAL</span>.<span class="ident">as_bytes</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="ident">src</span>, <span class="ident">BOUNDARY</span>);
+        <span class="kw">let </span>src = <span class="kw-2">&amp;mut </span>TEST_VAL.as_bytes();
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(src, BOUNDARY);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
         
-        <span class="ident">test_boundary_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>);
+        test_boundary_reader(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>buf);
     }
 
-    <span class="kw">struct</span> <span class="ident">SplitReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
-        <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
+    <span class="kw">struct </span>SplitReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+        left: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        right: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">SplitReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">split</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">SplitReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> (<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">split_at</span>(<span class="ident">at</span>);
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; SplitReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">fn </span>split(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], at: usize) -&gt; SplitReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+            <span class="kw">let </span>(left, right) = data.split_at(at);
 
-            <span class="ident">SplitReader</span> { 
-                <span class="ident">left</span>: <span class="ident">left</span>,
-                <span class="ident">right</span>: <span class="ident">right</span>,
+            SplitReader { 
+                left: left,
+                right: right,
             }
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">SplitReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">copy_bytes_partial</span>(<span class="ident">src</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
-                <span class="ident">src</span>.<span class="ident">read</span>(<span class="ident">dst</span>).<span class="ident">unwrap</span>()
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read <span class="kw">for </span>SplitReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+            <span class="kw">fn </span>copy_bytes_partial(src: <span class="kw-2">&amp;mut &amp;</span>[u8], dst: <span class="kw-2">&amp;mut </span>[u8]) -&gt; usize {
+                src.read(dst).unwrap()
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">copy_amt</span> <span class="op">=</span> <span class="ident">copy_bytes_partial</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">left</span>, <span class="ident">dst</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>copy_amt = copy_bytes_partial(<span class="kw-2">&amp;mut </span><span class="self">self</span>.left, dst);
 
-            <span class="kw">if</span> <span class="ident">copy_amt</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="ident">copy_amt</span> <span class="op">=</span> <span class="ident">copy_bytes_partial</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">right</span>, <span class="ident">dst</span>)
+            <span class="kw">if </span>copy_amt == <span class="number">0 </span>{
+                copy_amt = copy_bytes_partial(<span class="kw-2">&amp;mut </span><span class="self">self</span>.right, dst)
             };
 
-            <span class="prelude-val">Ok</span>(<span class="ident">copy_amt</span>)
+            <span class="prelude-val">Ok</span>(copy_amt)
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_split_boundary</span>() {
-        <span class="ident">::init_log</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_split_boundary() {
+        ::init_log();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Testing boundary (split)&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
         
-        <span class="comment">// Substitute for `.step_by()` being unstable.</span>
-        <span class="kw">for</span> <span class="ident">split_at</span> <span class="kw">in</span> <span class="number">0</span> .. <span class="ident">TEST_VAL</span>.<span class="ident">len</span>(){
-            <span class="macro">debug!</span>(<span class="string">&quot;Testing split at: {}&quot;</span>, <span class="ident">split_at</span>);
+        <span class="comment">// Substitute for `.step_by()` being unstable.
+        </span><span class="kw">for </span>split_at <span class="kw">in </span><span class="number">0 </span>.. TEST_VAL.len(){
+            <span class="macro">debug!</span>(<span class="string">&quot;Testing split at: {}&quot;</span>, split_at);
 
-            <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">SplitReader::split</span>(<span class="ident">TEST_VAL</span>.<span class="ident">as_bytes</span>(), <span class="ident">split_at</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="ident">src</span>, <span class="ident">BOUNDARY</span>);
-            <span class="ident">test_boundary_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>);
+            <span class="kw">let </span>src = SplitReader::split(TEST_VAL.as_bytes(), split_at);
+            <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(src, BOUNDARY);
+            test_boundary_reader(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>buf);
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">test_boundary_reader</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BoundaryReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">String</span>) {
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+    <span class="kw">fn </span>test_boundary_reader&lt;R: Read&gt;(reader: <span class="kw-2">&amp;mut </span>BoundaryReader&lt;R&gt;, buf: <span class="kw-2">&amp;mut </span>String) {
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 1&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">buf</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;Buffer not empty: {:?}&quot;</span>, <span class="ident">buf</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert!</span>(buf.is_empty(), <span class="string">&quot;Buffer not empty: {:?}&quot;</span>, buf);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 1&quot;</span>);
-        <span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>();
+        reader.consume_boundary().unwrap();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 2&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;dashed-value-1&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;dashed-value-1&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 2&quot;</span>);
-        <span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>();
+        reader.consume_boundary().unwrap();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 3&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;dashed-value-2&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;dashed-value-2&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 3&quot;</span>);
-        <span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>();
+        reader.consume_boundary().unwrap();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 4&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_empty_body</span>() {
-        <span class="ident">::init_log</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_empty_body() {
+        ::init_log();
 
-        <span class="comment">// empty body contains closing boundary only</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;--boundary--&quot;</span>;
+        <span class="comment">// empty body contains closing boundary only
+        </span><span class="kw">let </span><span class="kw-2">mut </span>body: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;--boundary--&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">body</span>, <span class="ident">BOUNDARY</span>);
+        <span class="kw">let </span><span class="kw-2">ref mut </span>buf = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(<span class="kw-2">&amp;mut </span>body, BOUNDARY);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 1&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">false</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 1&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 2&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">false</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_leading_crlf</span>() {
-        <span class="ident">::init_log</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_leading_crlf() {
+        ::init_log();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;\r\n\r\n--boundary\r\n\
+        <span class="kw">let </span><span class="kw-2">mut </span>body: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;\r\n\r\n--boundary\r\n\
                          asdf1234\
                          \r\n\r\n--boundary--&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">body</span>, <span class="ident">BOUNDARY</span>);
+        <span class="kw">let </span><span class="kw-2">ref mut </span>buf = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(<span class="kw-2">&amp;mut </span>body, BOUNDARY);
 
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 1&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 1&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;asdf1234\r\n&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;asdf1234\r\n&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 2&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">false</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 2 (empty)&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_trailing_crlf</span>() {
-        <span class="ident">::init_log</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_trailing_crlf() {
+        ::init_log();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;--boundary\r\n\
+        <span class="kw">let </span><span class="kw-2">mut </span>body: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;--boundary\r\n\
                          asdf1234\
                          \r\n\r\n--boundary\r\n\
                          hjkl5678\r\n--boundary--&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">body</span>, <span class="ident">BOUNDARY</span>);
+        <span class="kw">let </span><span class="kw-2">ref mut </span>buf = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(<span class="kw-2">&amp;mut </span>body, BOUNDARY);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 1&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 1&quot;</span>);
 
-        <span class="comment">// Repro for https://github.com/abonander/multipart/issues/93</span>
-        <span class="comment">// These two reads should produce the same buffer</span>
-        <span class="kw">let</span> <span class="ident">buf1</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_boundary</span>().<span class="ident">unwrap</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">buf2</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_boundary</span>().<span class="ident">unwrap</span>().<span class="ident">to_owned</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf1</span>, <span class="ident">buf2</span>);
+        <span class="comment">// Repro for https://github.com/abonander/multipart/issues/93
+        // These two reads should produce the same buffer
+        </span><span class="kw">let </span>buf1 = reader.read_to_boundary().unwrap().to_owned();
+        <span class="kw">let </span>buf2 = reader.read_to_boundary().unwrap().to_owned();
+        <span class="macro">assert_eq!</span>(buf1, buf2);
 
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;asdf1234\r\n&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;asdf1234\r\n&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 2&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 2&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;hjkl5678&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;hjkl5678&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 3&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">false</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 3 (empty)&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;&quot;</span>);
     }
 
-    <span class="comment">// https://github.com/abonander/multipart/issues/93#issuecomment-343610587</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_trailing_lflf</span>() {
-        <span class="ident">::init_log</span>();
+    <span class="comment">// https://github.com/abonander/multipart/issues/93#issuecomment-343610587
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_trailing_lflf() {
+        ::init_log();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;--boundary\r\n\
+        <span class="kw">let </span><span class="kw-2">mut </span>body: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;--boundary\r\n\
                          asdf1234\
                          \n\n\r\n--boundary\r\n\
                          hjkl5678\r\n--boundary--&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">body</span>, <span class="ident">BOUNDARY</span>);
+        <span class="kw">let </span><span class="kw-2">ref mut </span>buf = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(<span class="kw-2">&amp;mut </span>body, BOUNDARY);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 1&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 1&quot;</span>);
 
-        <span class="comment">// same as above</span>
-        <span class="kw">let</span> <span class="ident">buf1</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_boundary</span>().<span class="ident">unwrap</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">buf2</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_boundary</span>().<span class="ident">unwrap</span>().<span class="ident">to_owned</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf1</span>, <span class="ident">buf2</span>);
+        <span class="comment">// same as above
+        </span><span class="kw">let </span>buf1 = reader.read_to_boundary().unwrap().to_owned();
+        <span class="kw">let </span>buf2 = reader.read_to_boundary().unwrap().to_owned();
+        <span class="macro">assert_eq!</span>(buf1, buf2);
 
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;asdf1234\n\n&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;asdf1234\n\n&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 2&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 2&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;hjkl5678&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;hjkl5678&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 3&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">false</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 3 (empty)&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;&quot;</span>);
     }
 
-    <span class="comment">// https://github.com/abonander/multipart/issues/104</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_unterminated_body</span>() {
-        <span class="ident">::init_log</span>();
+    <span class="comment">// https://github.com/abonander/multipart/issues/104
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_unterminated_body() {
+        ::init_log();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;--boundary\r\n\
+        <span class="kw">let </span><span class="kw-2">mut </span>body: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;--boundary\r\n\
                          asdf1234\
                          \n\n\r\n--boundary\r\n\
                          hjkl5678  &quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">body</span>, <span class="ident">BOUNDARY</span>);
+        <span class="kw">let </span><span class="kw-2">ref mut </span>buf = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(<span class="kw-2">&amp;mut </span>body, BOUNDARY);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 1&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 1&quot;</span>);
 
-        <span class="comment">// same as above</span>
-        <span class="kw">let</span> <span class="ident">buf1</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_boundary</span>().<span class="ident">unwrap</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">buf2</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_boundary</span>().<span class="ident">unwrap</span>().<span class="ident">to_owned</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf1</span>, <span class="ident">buf2</span>);
+        <span class="comment">// same as above
+        </span><span class="kw">let </span>buf1 = reader.read_to_boundary().unwrap().to_owned();
+        <span class="kw">let </span>buf2 = reader.read_to_boundary().unwrap().to_owned();
+        <span class="macro">assert_eq!</span>(buf1, buf2);
 
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;asdf1234\n\n&quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;asdf1234\n\n&quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 2&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
 
         <span class="macro">debug!</span>(<span class="string">&quot;Read 2&quot;</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;hjkl5678  &quot;</span>);
-        <span class="ident">buf</span>.<span class="ident">clear</span>();
+        <span class="kw">let _ </span>= reader.read_to_string(buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;hjkl5678  &quot;</span>);
+        buf.clear();
 
         <span class="macro">debug!</span>(<span class="string">&quot;Consume 3 - expecting error&quot;</span>);
-        <span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap_err</span>();
+        reader.consume_boundary().unwrap_err();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_lone_boundary</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;--boundary&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">body</span>, <span class="string">&quot;boundary&quot;</span>);
-        <span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap_err</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_lone_boundary() {
+        <span class="kw">let </span><span class="kw-2">mut </span>body: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;--boundary&quot;</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(<span class="kw-2">&amp;mut </span>body, <span class="string">&quot;boundary&quot;</span>);
+        reader.consume_boundary().unwrap_err();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_invalid_boundary</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;--boundary\x00\x00&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">body</span>, <span class="string">&quot;boundary&quot;</span>);
-        <span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap_err</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_invalid_boundary() {
+        <span class="kw">let </span><span class="kw-2">mut </span>body: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;--boundary\x00\x00&quot;</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(<span class="kw-2">&amp;mut </span>body, <span class="string">&quot;boundary&quot;</span>);
+        reader.consume_boundary().unwrap_err();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_skip_field</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;--boundary\r\nfield1\r\n--boundary\r\nfield2\r\n--boundary--&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::from_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">body</span>, <span class="string">&quot;boundary&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_skip_field() {
+        <span class="kw">let </span><span class="kw-2">mut </span>body: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;--boundary\r\nfield1\r\n--boundary\r\nfield2\r\n--boundary--&quot;</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::from_reader(<span class="kw-2">&amp;mut </span>body, <span class="string">&quot;boundary&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
-        <span class="comment">// skip `field1`</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
+        <span class="comment">// skip `field1`
+        </span><span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">true</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="ident">reader</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="string">&quot;field2&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+        reader.read_to_string(<span class="kw-2">&amp;mut </span>buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="string">&quot;field2&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">reader</span>.<span class="ident">consume_boundary</span>().<span class="ident">unwrap</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(reader.consume_boundary().unwrap(), <span class="bool-val">false</span>);
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bench&quot;</span>)]</span>
-    <span class="kw">mod</span> <span class="ident">bench</span> {
-        <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">test</span>;
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::test::Bencher</span>;
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;bench&quot;</span>)]
+    </span><span class="kw">mod </span>bench {
+        <span class="kw">extern crate </span>test;
+        <span class="kw">use </span><span class="self">self</span>::test::Bencher;
 
-        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-        <span class="attribute">#[<span class="ident">bench</span>]</span>
-        <span class="kw">fn</span> <span class="ident">bench_boundary_reader</span>(<span class="ident">b</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Bencher</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BoundaryReader::new_with_bytes</span>(<span class="ident">TEST_VAL</span>.<span class="ident">as_bytes</span>(), <span class="ident">BOUNDARY</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="number">256</span>);
+        <span class="attribute">#[bench]
+        </span><span class="kw">fn </span>bench_boundary_reader(b: <span class="kw-2">&amp;mut </span>Bencher) {
+            <span class="kw">let </span><span class="kw-2">mut </span>reader = BoundaryReader::new_with_bytes(TEST_VAL.as_bytes(), BOUNDARY);
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = String::with_capacity(<span class="number">256</span>);
 
-            <span class="ident">b</span>.<span class="ident">iter</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">reader</span>.<span class="ident">reset</span>();
-                <span class="ident">test_boundary_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>);
+            b.iter(|| {
+                reader.reset();
+                test_boundary_reader(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>buf);
             });
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="multipart" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="multipart" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

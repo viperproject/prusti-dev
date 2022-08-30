@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.2/src/sys/wait.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wait.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/wait.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wait.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -379,386 +379,386 @@
 <span id="379">379</span>
 <span id="380">380</span>
 <span id="381">381</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Wait for a process to change status</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#776"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/sys/signal.rs.html#21-114"><span class="kw">crate</span>::sys::signal::Signal</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/unistd.rs.html#148"><span class="kw">crate</span>::unistd::Pid</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#169"><span class="kw">crate</span>::Result</a>;
-<span class="kw">use</span> <a class="ident" href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="self" href="../../../libc/index.html">self</a>, <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-    <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)),
-))]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! Wait for a process to change status
+</span><span class="kw">use </span><a href="../../../src/nix/errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use </span><a href="../../../src/nix/sys/signal.rs.html#21-116"><span class="kw">crate</span>::sys::signal::Signal</a>;
+<span class="kw">use </span><a href="../../../src/nix/unistd.rs.html#182"><span class="kw">crate</span>::unistd::Pid</a>;
+<span class="kw">use </span><a href="../../../src/nix/lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use </span><a href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span>libc::{<a class="self" href="../../../libc/index.html">self</a>, <a href="../../../libc/unix/type.c_int.html">c_int</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+<span class="attribute">#[cfg(any(
+    target_os = <span class="string">&quot;android&quot;</span>,
+    all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_env = <span class="string">&quot;uclibc&quot;</span>)),
+))]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
 
 <a class="macro" href="../../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
-    <span class="doccomment">/// Controls the behavior of [`waitpid`].</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WaitPidFlag</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a> {
-        <span class="doccomment">/// Do not block when there are no processes wishing to report status.</span>
-        <span class="ident">WNOHANG</span>;
-        <span class="doccomment">/// Report the status of selected processes which are stopped due to a</span>
-        <span class="doccomment">/// [`SIGTTIN`](crate::sys::signal::Signal::SIGTTIN),</span>
-        <span class="doccomment">/// [`SIGTTOU`](crate::sys::signal::Signal::SIGTTOU),</span>
-        <span class="doccomment">/// [`SIGTSTP`](crate::sys::signal::Signal::SIGTSTP), or</span>
-        <span class="doccomment">/// [`SIGSTOP`](crate::sys::signal::Signal::SIGSTOP) signal.</span>
-        <span class="ident">WUNTRACED</span>;
-        <span class="doccomment">/// Report the status of selected processes which have terminated.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">WEXITED</span>;
-        <span class="doccomment">/// Report the status of selected processes that have continued from a</span>
-        <span class="doccomment">/// job control stop by receiving a</span>
-        <span class="doccomment">/// [`SIGCONT`](crate::sys::signal::Signal::SIGCONT) signal.</span>
-        <span class="ident">WCONTINUED</span>;
-        <span class="doccomment">/// An alias for WUNTRACED.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">WSTOPPED</span>;
-        <span class="doccomment">/// Don&#39;t reap, just poll status.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">WNOWAIT</span>;
-        <span class="doccomment">/// Don&#39;t wait on children of other threads in this group</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">__WNOTHREAD</span>;
-        <span class="doccomment">/// Wait on all children, regardless of type</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">__WALL</span>;
-        <span class="doccomment">/// Wait for &quot;clone&quot; children only.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">__WCLONE</span>;
+    <span class="doccomment">/// Controls the behavior of [`waitpid`].
+    </span><span class="kw">pub struct </span>WaitPidFlag: <a href="../../../libc/unix/type.c_int.html">c_int</a> {
+        <span class="doccomment">/// Do not block when there are no processes wishing to report status.
+        </span>WNOHANG;
+        <span class="doccomment">/// Report the status of selected processes which are stopped due to a
+        /// [`SIGTTIN`](crate::sys::signal::Signal::SIGTTIN),
+        /// [`SIGTTOU`](crate::sys::signal::Signal::SIGTTOU),
+        /// [`SIGTSTP`](crate::sys::signal::Signal::SIGTSTP), or
+        /// [`SIGSTOP`](crate::sys::signal::Signal::SIGSTOP) signal.
+        </span>WUNTRACED;
+        <span class="doccomment">/// Report the status of selected processes which have terminated.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;haiku&quot;</span>,
+                  target_os = <span class="string">&quot;ios&quot;</span>,
+                  target_os = <span class="string">&quot;linux&quot;</span>,
+                  target_os = <span class="string">&quot;redox&quot;</span>,
+                  target_os = <span class="string">&quot;macos&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>WEXITED;
+        <span class="doccomment">/// Report the status of selected processes that have continued from a
+        /// job control stop by receiving a
+        /// [`SIGCONT`](crate::sys::signal::Signal::SIGCONT) signal.
+        </span>WCONTINUED;
+        <span class="doccomment">/// An alias for WUNTRACED.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;haiku&quot;</span>,
+                  target_os = <span class="string">&quot;ios&quot;</span>,
+                  target_os = <span class="string">&quot;linux&quot;</span>,
+                  target_os = <span class="string">&quot;redox&quot;</span>,
+                  target_os = <span class="string">&quot;macos&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>WSTOPPED;
+        <span class="doccomment">/// Don&#39;t reap, just poll status.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;haiku&quot;</span>,
+                  target_os = <span class="string">&quot;ios&quot;</span>,
+                  target_os = <span class="string">&quot;linux&quot;</span>,
+                  target_os = <span class="string">&quot;redox&quot;</span>,
+                  target_os = <span class="string">&quot;macos&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>WNOWAIT;
+        <span class="doccomment">/// Don&#39;t wait on children of other threads in this group
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>__WNOTHREAD;
+        <span class="doccomment">/// Wait on all children, regardless of type
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>__WALL;
+        <span class="doccomment">/// Wait for &quot;clone&quot; children only.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>__WCLONE;
     }
 );
 
-<span class="doccomment">/// Possible return values from `wait()` or `waitpid()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Each status (other than `StillAlive`) describes a state transition</span>
-<span class="doccomment">/// in a child process `Pid`, such as the process exiting or stopping,</span>
-<span class="doccomment">/// plus additional data about the transition if any.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that there are two Linux-specific enum variants, `PtraceEvent`</span>
-<span class="doccomment">/// and `PtraceSyscall`. Portable code should avoid exhaustively</span>
-<span class="doccomment">/// matching on `WaitStatus`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">WaitStatus</span> {
-    <span class="doccomment">/// The process exited normally (as with `exit()` or returning from</span>
-    <span class="doccomment">/// `main`) with the given exit code. This case matches the C macro</span>
-    <span class="doccomment">/// `WIFEXITED(status)`; the second field is `WEXITSTATUS(status)`.</span>
-    <span class="ident">Exited</span>(<a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>),
-    <span class="doccomment">/// The process was killed by the given signal. The third field</span>
-    <span class="doccomment">/// indicates whether the signal generated a core dump. This case</span>
-    <span class="doccomment">/// matches the C macro `WIFSIGNALED(status)`; the last two fields</span>
-    <span class="doccomment">/// correspond to `WTERMSIG(status)` and `WCOREDUMP(status)`.</span>
-    <span class="ident">Signaled</span>(<a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>, <a class="ident" href="../../../src/nix/sys/signal.rs.html#21-114">Signal</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
-    <span class="doccomment">/// The process is alive, but was stopped by the given signal. This</span>
-    <span class="doccomment">/// is only reported if `WaitPidFlag::WUNTRACED` was passed. This</span>
-    <span class="doccomment">/// case matches the C macro `WIFSTOPPED(status)`; the second field</span>
-    <span class="doccomment">/// is `WSTOPSIG(status)`.</span>
-    <span class="ident">Stopped</span>(<a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>, <a class="ident" href="../../../src/nix/sys/signal.rs.html#21-114">Signal</a>),
-    <span class="doccomment">/// The traced process was stopped by a `PTRACE_EVENT_*` event. See</span>
-    <span class="doccomment">/// [`nix::sys::ptrace`] and [`ptrace`(2)] for more information. All</span>
-    <span class="doccomment">/// currently-defined events use `SIGTRAP` as the signal; the third</span>
-    <span class="doccomment">/// field is the `PTRACE_EVENT_*` value of the event.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`nix::sys::ptrace`]: ../ptrace/index.html</span>
-    <span class="doccomment">/// [`ptrace`(2)]: https://man7.org/linux/man-pages/man2/ptrace.2.html</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-    <span class="ident">PtraceEvent</span>(<a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>, <a class="ident" href="../../../src/nix/sys/signal.rs.html#21-114">Signal</a>, <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>),
-    <span class="doccomment">/// The traced process was stopped by execution of a system call,</span>
-    <span class="doccomment">/// and `PTRACE_O_TRACESYSGOOD` is in effect. See [`ptrace`(2)] for</span>
-    <span class="doccomment">/// more information.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`ptrace`(2)]: https://man7.org/linux/man-pages/man2/ptrace.2.html</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-    <span class="ident">PtraceSyscall</span>(<a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>),
-    <span class="doccomment">/// The process was previously stopped but has resumed execution</span>
-    <span class="doccomment">/// after receiving a `SIGCONT` signal. This is only reported if</span>
-    <span class="doccomment">/// `WaitPidFlag::WCONTINUED` was passed. This case matches the C</span>
-    <span class="doccomment">/// macro `WIFCONTINUED(status)`.</span>
-    <span class="ident">Continued</span>(<a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>),
-    <span class="doccomment">/// There are currently no state changes to report in any awaited</span>
-    <span class="doccomment">/// child process. This is only returned if `WaitPidFlag::WNOHANG`</span>
-    <span class="doccomment">/// was used (otherwise `wait()` or `waitpid()` would block until</span>
-    <span class="doccomment">/// there was something to report).</span>
-    <span class="ident">StillAlive</span>,
+<span class="doccomment">/// Possible return values from `wait()` or `waitpid()`.
+///
+/// Each status (other than `StillAlive`) describes a state transition
+/// in a child process `Pid`, such as the process exiting or stopping,
+/// plus additional data about the transition if any.
+///
+/// Note that there are two Linux-specific enum variants, `PtraceEvent`
+/// and `PtraceSyscall`. Portable code should avoid exhaustively
+/// matching on `WaitStatus`.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+</span><span class="kw">pub enum </span>WaitStatus {
+    <span class="doccomment">/// The process exited normally (as with `exit()` or returning from
+    /// `main`) with the given exit code. This case matches the C macro
+    /// `WIFEXITED(status)`; the second field is `WEXITSTATUS(status)`.
+    </span>Exited(<a href="../../../src/nix/unistd.rs.html#182">Pid</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>),
+    <span class="doccomment">/// The process was killed by the given signal. The third field
+    /// indicates whether the signal generated a core dump. This case
+    /// matches the C macro `WIFSIGNALED(status)`; the last two fields
+    /// correspond to `WTERMSIG(status)` and `WCOREDUMP(status)`.
+    </span>Signaled(<a href="../../../src/nix/unistd.rs.html#182">Pid</a>, <a href="../../../src/nix/sys/signal.rs.html#21-116">Signal</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
+    <span class="doccomment">/// The process is alive, but was stopped by the given signal. This
+    /// is only reported if `WaitPidFlag::WUNTRACED` was passed. This
+    /// case matches the C macro `WIFSTOPPED(status)`; the second field
+    /// is `WSTOPSIG(status)`.
+    </span>Stopped(<a href="../../../src/nix/unistd.rs.html#182">Pid</a>, <a href="../../../src/nix/sys/signal.rs.html#21-116">Signal</a>),
+    <span class="doccomment">/// The traced process was stopped by a `PTRACE_EVENT_*` event. See
+    /// [`nix::sys::ptrace`] and [`ptrace`(2)] for more information. All
+    /// currently-defined events use `SIGTRAP` as the signal; the third
+    /// field is the `PTRACE_EVENT_*` value of the event.
+    ///
+    /// [`nix::sys::ptrace`]: ../ptrace/index.html
+    /// [`ptrace`(2)]: https://man7.org/linux/man-pages/man2/ptrace.2.html
+    </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    #[cfg_attr(docsrs, doc(cfg(all())))]
+    </span>PtraceEvent(<a href="../../../src/nix/unistd.rs.html#182">Pid</a>, <a href="../../../src/nix/sys/signal.rs.html#21-116">Signal</a>, <a href="../../../libc/unix/type.c_int.html">c_int</a>),
+    <span class="doccomment">/// The traced process was stopped by execution of a system call,
+    /// and `PTRACE_O_TRACESYSGOOD` is in effect. See [`ptrace`(2)] for
+    /// more information.
+    ///
+    /// [`ptrace`(2)]: https://man7.org/linux/man-pages/man2/ptrace.2.html
+    </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    #[cfg_attr(docsrs, doc(cfg(all())))]
+    </span>PtraceSyscall(<a href="../../../src/nix/unistd.rs.html#182">Pid</a>),
+    <span class="doccomment">/// The process was previously stopped but has resumed execution
+    /// after receiving a `SIGCONT` signal. This is only reported if
+    /// `WaitPidFlag::WCONTINUED` was passed. This case matches the C
+    /// macro `WIFCONTINUED(status)`.
+    </span>Continued(<a href="../../../src/nix/unistd.rs.html#182">Pid</a>),
+    <span class="doccomment">/// There are currently no state changes to report in any awaited
+    /// child process. This is only returned if `WaitPidFlag::WNOHANG`
+    /// was used (otherwise `wait()` or `waitpid()` would block until
+    /// there was something to report).
+    </span>StillAlive,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a> {
-    <span class="doccomment">/// Extracts the PID from the WaitStatus unless it equals StillAlive.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#88"><span class="self">self</span>::WaitStatus</a>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/nix/sys/wait.rs.html#135">self</a> {
-            <a class="ident" href="../../../src/nix/sys/wait.rs.html#92">Exited</a>(<span class="ident">p</span>, <span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#97">Signaled</a>(<span class="ident">p</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#102">Stopped</a>(<span class="ident">p</span>, <span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#125">Continued</a>(<span class="ident">p</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#138">p</a>),
-            <a class="ident" href="../../../src/nix/sys/wait.rs.html#130">StillAlive</a> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-            <a class="ident" href="../../../src/nix/sys/wait.rs.html#112">PtraceEvent</a>(<span class="ident">p</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#120">PtraceSyscall</a>(<span class="ident">p</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#141">p</a>),
+<span class="kw">impl </span><a href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a> {
+    <span class="doccomment">/// Extracts the PID from the WaitStatus unless it equals StillAlive.
+    </span><span class="kw">pub fn </span>pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/nix/unistd.rs.html#182">Pid</a>&gt; {
+        <span class="kw">use </span><a href="../../../src/nix/sys/wait.rs.html#88"><span class="self">self</span>::WaitStatus</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/nix/sys/wait.rs.html#135">self</a> </span>{
+            <a href="../../../src/nix/sys/wait.rs.html#92">Exited</a>(p, <span class="kw">_</span>) | <a href="../../../src/nix/sys/wait.rs.html#97">Signaled</a>(p, <span class="kw">_</span>, <span class="kw">_</span>) | <a href="../../../src/nix/sys/wait.rs.html#102">Stopped</a>(p, <span class="kw">_</span>) | <a href="../../../src/nix/sys/wait.rs.html#125">Continued</a>(p) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/nix/sys/wait.rs.html#138">p</a>),
+            <a href="../../../src/nix/sys/wait.rs.html#130">StillAlive</a> =&gt; <span class="prelude-val">None</span>,
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span><a href="../../../src/nix/sys/wait.rs.html#112">PtraceEvent</a>(p, <span class="kw">_</span>, <span class="kw">_</span>) | <a href="../../../src/nix/sys/wait.rs.html#120">PtraceSyscall</a>(p) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/nix/sys/wait.rs.html#141">p</a>),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">exited</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="ident">libc::WIFEXITED</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#146">status</a>)
+<span class="kw">fn </span>exited(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    libc::WIFEXITED(<a href="../../../src/nix/sys/wait.rs.html#146">status</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">exit_status</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-    <span class="ident">libc::WEXITSTATUS</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#150">status</a>)
+<span class="kw">fn </span>exit_status(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
+    libc::WEXITSTATUS(<a href="../../../src/nix/sys/wait.rs.html#150">status</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">signaled</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="ident">libc::WIFSIGNALED</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#154">status</a>)
+<span class="kw">fn </span>signaled(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    libc::WIFSIGNALED(<a href="../../../src/nix/sys/wait.rs.html#154">status</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">term_signal</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/signal.rs.html#21-114">Signal</a><span class="op">&gt;</span> {
-    <span class="ident">Signal::try_from</span>(<span class="ident">libc::WTERMSIG</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#158">status</a>))
+<span class="kw">fn </span>term_signal(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/signal.rs.html#21-116">Signal</a>&gt; {
+    Signal::try_from(libc::WTERMSIG(<a href="../../../src/nix/sys/wait.rs.html#158">status</a>))
 }
 
-<span class="kw">fn</span> <span class="ident">dumped_core</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="ident">libc::WCOREDUMP</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#162">status</a>)
+<span class="kw">fn </span>dumped_core(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    libc::WCOREDUMP(<a href="../../../src/nix/sys/wait.rs.html#162">status</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">stopped</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="ident">libc::WIFSTOPPED</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#166">status</a>)
+<span class="kw">fn </span>stopped(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    libc::WIFSTOPPED(<a href="../../../src/nix/sys/wait.rs.html#166">status</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">stop_signal</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/signal.rs.html#21-114">Signal</a><span class="op">&gt;</span> {
-    <span class="ident">Signal::try_from</span>(<span class="ident">libc::WSTOPSIG</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#170">status</a>))
+<span class="kw">fn </span>stop_signal(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/signal.rs.html#21-116">Signal</a>&gt; {
+    Signal::try_from(libc::WSTOPSIG(<a href="../../../src/nix/sys/wait.rs.html#170">status</a>))
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="kw">fn</span> <span class="ident">syscall_stop</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="comment">// From ptrace(2), setting PTRACE_O_TRACESYSGOOD has the effect</span>
-    <span class="comment">// of delivering SIGTRAP | 0x80 as the signal number for syscall</span>
-    <span class="comment">// stops. This allows easily distinguishing syscall stops from</span>
-    <span class="comment">// genuine SIGTRAP signals.</span>
-    <span class="ident">libc::WSTOPSIG</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#175">status</a>) <span class="op">==</span> <span class="ident">libc::SIGTRAP</span> <span class="op">|</span> <span class="number">0x80</span>
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+</span><span class="kw">fn </span>syscall_stop(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="comment">// From ptrace(2), setting PTRACE_O_TRACESYSGOOD has the effect
+    // of delivering SIGTRAP | 0x80 as the signal number for syscall
+    // stops. This allows easily distinguishing syscall stops from
+    // genuine SIGTRAP signals.
+    </span>libc::WSTOPSIG(<a href="../../../src/nix/sys/wait.rs.html#175">status</a>) == libc::SIGTRAP | <span class="number">0x80
+</span>}
+
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+</span><span class="kw">fn </span>stop_additional(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a> {
+    (<a href="../../../src/nix/sys/wait.rs.html#184">status</a> &gt;&gt; <span class="number">16</span>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="kw">fn</span> <span class="ident">stop_additional</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a> {
-    (<a class="ident" href="../../../src/nix/sys/wait.rs.html#184">status</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">fn </span>continued(status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    libc::WIFCONTINUED(<a href="../../../src/nix/sys/wait.rs.html#188">status</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">continued</span>(<span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="ident">libc::WIFCONTINUED</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#188">status</a>)
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a> {
-    <span class="doccomment">/// Convert a raw `wstatus` as returned by `waitpid`/`wait` into a `WaitStatus`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an `Error` corresponding to `EINVAL` for invalid status values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Convert a `wstatus` obtained from `libc::waitpid` into a `WaitStatus`:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use nix::sys::wait::WaitStatus;</span>
-    <span class="doccomment">/// use nix::sys::signal::Signal;</span>
-    <span class="doccomment">/// let pid = nix::unistd::Pid::from_raw(1);</span>
-    <span class="doccomment">/// let status = WaitStatus::from_raw(pid, 0x0002);</span>
-    <span class="doccomment">/// assert_eq!(status, Ok(WaitStatus::Signaled(pid, Signal::SIGINT, false)));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">pid</span>: <a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>, <span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">exited</span>(<span class="ident">status</span>) {
-            <a class="ident" href="../../../src/nix/sys/wait.rs.html#92">WaitStatus::Exited</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#210">pid</a>, <a class="ident" href="../../../src/nix/sys/wait.rs.html#150">exit_status</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#210">status</a>))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">signaled</span>(<span class="ident">status</span>) {
-            <a class="ident" href="../../../src/nix/sys/wait.rs.html#97">WaitStatus::Signaled</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#210">pid</a>, <span class="ident">term_signal</span>(<span class="ident">status</span>)<span class="question-mark">?</span>, <a class="ident" href="../../../src/nix/sys/wait.rs.html#162">dumped_core</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#210">status</a>))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">stopped</span>(<span class="ident">status</span>) {
-            <span class="macro">cfg_if!</span> {
-                <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span> {
-                    <span class="kw">fn</span> <span class="ident">decode_stopped</span>(<span class="ident">pid</span>: <a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>, <span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">status_additional</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#184">stop_additional</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#218">status</a>);
-                        <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">syscall_stop</span>(<span class="ident">status</span>) {
-                            <a class="ident" href="../../../src/nix/sys/wait.rs.html#120">WaitStatus::PtraceSyscall</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#218">pid</a>)
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">status_additional</span> <span class="op">==</span> <span class="number">0</span> {
-                            <a class="ident" href="../../../src/nix/sys/wait.rs.html#102">WaitStatus::Stopped</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#218">pid</a>, <span class="ident">stop_signal</span>(<span class="ident">status</span>)<span class="question-mark">?</span>)
-                        } <span class="kw">else</span> {
-                            <a class="ident" href="../../../src/nix/sys/wait.rs.html#112">WaitStatus::PtraceEvent</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#218">pid</a>, <span class="ident">stop_signal</span>(<span class="ident">status</span>)<span class="question-mark">?</span>,
-                                                    <a class="ident" href="../../../src/nix/sys/wait.rs.html#184">stop_additional</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#218">status</a>))
+<span class="kw">impl </span><a href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a> {
+    <span class="doccomment">/// Convert a raw `wstatus` as returned by `waitpid`/`wait` into a `WaitStatus`
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Error` corresponding to `EINVAL` for invalid status values.
+    ///
+    /// # Examples
+    ///
+    /// Convert a `wstatus` obtained from `libc::waitpid` into a `WaitStatus`:
+    ///
+    /// ```
+    /// use nix::sys::wait::WaitStatus;
+    /// use nix::sys::signal::Signal;
+    /// let pid = nix::unistd::Pid::from_raw(1);
+    /// let status = WaitStatus::from_raw(pid, 0x0002);
+    /// assert_eq!(status, Ok(WaitStatus::Signaled(pid, Signal::SIGINT, false)));
+    /// ```
+    </span><span class="kw">pub fn </span>from_raw(pid: <a href="../../../src/nix/unistd.rs.html#182">Pid</a>, status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">if </span>exited(status) {
+            <a href="../../../src/nix/sys/wait.rs.html#92">WaitStatus::Exited</a>(<a href="../../../src/nix/sys/wait.rs.html#210">pid</a>, <a href="../../../src/nix/sys/wait.rs.html#150">exit_status</a>(<a href="../../../src/nix/sys/wait.rs.html#210">status</a>))
+        } <span class="kw">else if </span>signaled(status) {
+            <a href="../../../src/nix/sys/wait.rs.html#97">WaitStatus::Signaled</a>(<a href="../../../src/nix/sys/wait.rs.html#210">pid</a>, term_signal(status)<span class="question-mark">?</span>, <a href="../../../src/nix/sys/wait.rs.html#162">dumped_core</a>(<a href="../../../src/nix/sys/wait.rs.html#210">status</a>))
+        } <span class="kw">else if </span>stopped(status) {
+            <span class="macro">cfg_if! </span>{
+                <span class="kw">if </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))] </span>{
+                    <span class="kw">fn </span>decode_stopped(pid: <a href="../../../src/nix/unistd.rs.html#182">Pid</a>, status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a>&gt; {
+                        <span class="kw">let </span>status_additional = <a href="../../../src/nix/sys/wait.rs.html#184">stop_additional</a>(<a href="../../../src/nix/sys/wait.rs.html#218">status</a>);
+                        <span class="prelude-val">Ok</span>(<span class="kw">if </span>syscall_stop(status) {
+                            <a href="../../../src/nix/sys/wait.rs.html#120">WaitStatus::PtraceSyscall</a>(<a href="../../../src/nix/sys/wait.rs.html#218">pid</a>)
+                        } <span class="kw">else if </span>status_additional == <span class="number">0 </span>{
+                            <a href="../../../src/nix/sys/wait.rs.html#102">WaitStatus::Stopped</a>(<a href="../../../src/nix/sys/wait.rs.html#218">pid</a>, stop_signal(status)<span class="question-mark">?</span>)
+                        } <span class="kw">else </span>{
+                            <a href="../../../src/nix/sys/wait.rs.html#112">WaitStatus::PtraceEvent</a>(<a href="../../../src/nix/sys/wait.rs.html#218">pid</a>, stop_signal(status)<span class="question-mark">?</span>,
+                                                    <a href="../../../src/nix/sys/wait.rs.html#184">stop_additional</a>(<a href="../../../src/nix/sys/wait.rs.html#218">status</a>))
                         })
                     }
-                } <span class="kw">else</span> {
-                    <span class="kw">fn</span> <span class="ident">decode_stopped</span>(<span class="ident">pid</span>: <span class="ident">Pid</span>, <span class="ident">status</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WaitStatus</span><span class="op">&gt;</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">WaitStatus::Stopped</span>(<span class="ident">pid</span>, <span class="ident">stop_signal</span>(<span class="ident">status</span>)<span class="question-mark">?</span>))
+                } <span class="kw">else </span>{
+                    <span class="kw">fn </span>decode_stopped(pid: Pid, status: i32) -&gt; <span class="prelude-ty">Result</span>&lt;WaitStatus&gt; {
+                        <span class="prelude-val">Ok</span>(WaitStatus::Stopped(pid, stop_signal(status)<span class="question-mark">?</span>))
                     }
                 }
             }
-            <span class="kw">return</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#218">decode_stopped</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#210">pid</a>, <a class="ident" href="../../../src/nix/sys/wait.rs.html#210">status</a>);
-        } <span class="kw">else</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">continued</span>(<span class="ident">status</span>));
-            <a class="ident" href="../../../src/nix/sys/wait.rs.html#125">WaitStatus::Continued</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#210">pid</a>)
+            <span class="kw">return </span><a href="../../../src/nix/sys/wait.rs.html#218">decode_stopped</a>(<a href="../../../src/nix/sys/wait.rs.html#210">pid</a>, <a href="../../../src/nix/sys/wait.rs.html#210">status</a>);
+        } <span class="kw">else </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(continued(status));
+            <a href="../../../src/nix/sys/wait.rs.html#125">WaitStatus::Continued</a>(<a href="../../../src/nix/sys/wait.rs.html#210">pid</a>)
         })
     }
 
-    <span class="doccomment">/// Convert a `siginfo_t` as returned by `waitid` to a `WaitStatus`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an `Error` corresponding to `EINVAL` for invalid values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// siginfo_t is actually a union, not all fields may be initialized.</span>
-    <span class="doccomment">/// The functions si_pid() and si_status() must be valid to call on</span>
-    <span class="doccomment">/// the passed siginfo_t.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)),
-    ))]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_siginfo</span>(<span class="ident">siginfo</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">libc::siginfo_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">si_pid</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#259">siginfo</a>.<span class="ident">si_pid</span>();
-        <span class="kw">if</span> <span class="ident">si_pid</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#130">WaitStatus::StillAlive</a>);
+    <span class="doccomment">/// Convert a `siginfo_t` as returned by `waitid` to a `WaitStatus`
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Error` corresponding to `EINVAL` for invalid values.
+    ///
+    /// # Safety
+    ///
+    /// siginfo_t is actually a union, not all fields may be initialized.
+    /// The functions si_pid() and si_status() must be valid to call on
+    /// the passed siginfo_t.
+    </span><span class="attribute">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;haiku&quot;</span>,
+        all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_env = <span class="string">&quot;uclibc&quot;</span>)),
+    ))]
+    </span><span class="kw">unsafe fn </span>from_siginfo(siginfo: <span class="kw-2">&amp;</span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">libc::siginfo_t</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a>&gt; {
+        <span class="kw">let </span>si_pid = <a href="../../../src/nix/sys/wait.rs.html#259">siginfo</a>.si_pid();
+        <span class="kw">if </span>si_pid == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/nix/sys/wait.rs.html#130">WaitStatus::StillAlive</a>);
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">siginfo</span>.<span class="ident">si_signo</span>, <span class="ident">libc::SIGCHLD</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(siginfo.si_signo, libc::SIGCHLD);
 
-        <span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="ident">Pid::from_raw</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#260">si_pid</a>);
-        <span class="kw">let</span> <span class="ident">si_status</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#259">siginfo</a>.<span class="ident">si_status</span>();
+        <span class="kw">let </span>pid = Pid::from_raw(<a href="../../../src/nix/sys/wait.rs.html#260">si_pid</a>);
+        <span class="kw">let </span>si_status = <a href="../../../src/nix/sys/wait.rs.html#259">siginfo</a>.si_status();
 
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#259">siginfo</a>.<span class="ident">si_code</span> {
-            <span class="ident">libc::CLD_EXITED</span> =&gt; <a class="ident" href="../../../src/nix/sys/wait.rs.html#92">WaitStatus::Exited</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#267">pid</a>, <a class="ident" href="../../../src/nix/sys/wait.rs.html#268">si_status</a>),
-            <span class="ident">libc::CLD_KILLED</span> <span class="op">|</span> <span class="ident">libc::CLD_DUMPED</span> =&gt; <a class="ident" href="../../../src/nix/sys/wait.rs.html#97">WaitStatus::Signaled</a>(
-                <a class="ident" href="../../../src/nix/sys/wait.rs.html#267">pid</a>,
-                <span class="ident">Signal::try_from</span>(<span class="ident">si_status</span>)<span class="question-mark">?</span>,
-                <a class="ident" href="../../../src/nix/sys/wait.rs.html#259">siginfo</a>.<span class="ident">si_code</span> <span class="op">==</span> <span class="ident">libc::CLD_DUMPED</span>,
+        <span class="kw">let </span>status = <span class="kw">match </span><a href="../../../src/nix/sys/wait.rs.html#259">siginfo</a>.si_code {
+            libc::CLD_EXITED =&gt; <a href="../../../src/nix/sys/wait.rs.html#92">WaitStatus::Exited</a>(<a href="../../../src/nix/sys/wait.rs.html#267">pid</a>, <a href="../../../src/nix/sys/wait.rs.html#268">si_status</a>),
+            libc::CLD_KILLED | libc::CLD_DUMPED =&gt; <a href="../../../src/nix/sys/wait.rs.html#97">WaitStatus::Signaled</a>(
+                <a href="../../../src/nix/sys/wait.rs.html#267">pid</a>,
+                Signal::try_from(si_status)<span class="question-mark">?</span>,
+                <a href="../../../src/nix/sys/wait.rs.html#259">siginfo</a>.si_code == libc::CLD_DUMPED,
             ),
-            <span class="ident">libc::CLD_STOPPED</span> =&gt; <a class="ident" href="../../../src/nix/sys/wait.rs.html#102">WaitStatus::Stopped</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#267">pid</a>, <span class="ident">Signal::try_from</span>(<span class="ident">si_status</span>)<span class="question-mark">?</span>),
-            <span class="ident">libc::CLD_CONTINUED</span> =&gt; <a class="ident" href="../../../src/nix/sys/wait.rs.html#125">WaitStatus::Continued</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#267">pid</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-            <span class="ident">libc::CLD_TRAPPED</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">si_status</span> <span class="op">==</span> <span class="ident">libc::SIGTRAP</span> <span class="op">|</span> <span class="number">0x80</span> {
-                    <a class="ident" href="../../../src/nix/sys/wait.rs.html#120">WaitStatus::PtraceSyscall</a>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#267">pid</a>)
-                } <span class="kw">else</span> {
-                    <a class="ident" href="../../../src/nix/sys/wait.rs.html#112">WaitStatus::PtraceEvent</a>(
-                        <a class="ident" href="../../../src/nix/sys/wait.rs.html#267">pid</a>,
-                        <span class="ident">Signal::try_from</span>(<span class="ident">si_status</span> <span class="op">&amp;</span> <span class="number">0xff</span>)<span class="question-mark">?</span>,
-                        (<a class="ident" href="../../../src/nix/sys/wait.rs.html#268">si_status</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
+            libc::CLD_STOPPED =&gt; <a href="../../../src/nix/sys/wait.rs.html#102">WaitStatus::Stopped</a>(<a href="../../../src/nix/sys/wait.rs.html#267">pid</a>, Signal::try_from(si_status)<span class="question-mark">?</span>),
+            libc::CLD_CONTINUED =&gt; <a href="../../../src/nix/sys/wait.rs.html#125">WaitStatus::Continued</a>(<a href="../../../src/nix/sys/wait.rs.html#267">pid</a>),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span>libc::CLD_TRAPPED =&gt; {
+                <span class="kw">if </span>si_status == libc::SIGTRAP | <span class="number">0x80 </span>{
+                    <a href="../../../src/nix/sys/wait.rs.html#120">WaitStatus::PtraceSyscall</a>(<a href="../../../src/nix/sys/wait.rs.html#267">pid</a>)
+                } <span class="kw">else </span>{
+                    <a href="../../../src/nix/sys/wait.rs.html#112">WaitStatus::PtraceEvent</a>(
+                        <a href="../../../src/nix/sys/wait.rs.html#267">pid</a>,
+                        Signal::try_from(si_status &amp; <span class="number">0xff</span>)<span class="question-mark">?</span>,
+                        (<a href="../../../src/nix/sys/wait.rs.html#268">si_status</a> &gt;&gt; <span class="number">8</span>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
                     )
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/errno.rs.html#799">Errno::EINVAL</a>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/nix/errno.rs.html#1186">Errno::EINVAL</a>),
         };
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#270">status</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/nix/sys/wait.rs.html#270">status</a>)
     }
 }
 
-<span class="doccomment">/// Wait for a process to change status</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See also [waitpid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/waitpid.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">waitpid</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">pid</span>: <span class="ident">P</span>, <span class="ident">options</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/wait.rs.html#15-76">WaitPidFlag</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a><span class="op">&gt;</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#88"><span class="self">self</span>::WaitStatus</a>::<span class="kw-2">*</span>;
+<span class="doccomment">/// Wait for a process to change status
+///
+/// See also [waitpid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/waitpid.html)
+</span><span class="kw">pub fn </span>waitpid&lt;P: Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/nix/unistd.rs.html#182">Pid</a>&gt;&gt;&gt;(pid: P, options: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/nix/sys/wait.rs.html#15-76">WaitPidFlag</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a>&gt; {
+    <span class="kw">use </span><a href="../../../src/nix/sys/wait.rs.html#88"><span class="self">self</span>::WaitStatus</a>::<span class="kw-2">*</span>;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">status</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> <span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>status: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> = <span class="number">0</span>;
 
-    <span class="kw">let</span> <span class="ident">option_bits</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#301">options</a> {
-        <span class="prelude-val">Some</span>(<span class="ident">bits</span>) =&gt; <a class="ident" href="../../../src/nix/sys/wait.rs.html#307">bits</a>.<a class="ident" href="../../../src/nix/sys/wait.rs.html#15-76">bits</a>(),
-        <span class="prelude-val">None</span> =&gt; <span class="number">0</span>,
+    <span class="kw">let </span>option_bits = <span class="kw">match </span><a href="../../../src/nix/sys/wait.rs.html#301">options</a> {
+        <span class="prelude-val">Some</span>(bits) =&gt; <a href="../../../src/nix/sys/wait.rs.html#307">bits</a>.<a href="../../../src/nix/sys/wait.rs.html#15-76">bits</a>(),
+        <span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
     };
 
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="ident">libc::waitpid</span>(
-            <a class="ident" href="../../../src/nix/sys/wait.rs.html#301">pid</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Pid::from_raw</span>(<span class="op">-</span><span class="number">1</span>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#304">status</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <a class="ident" href="../../../src/nix/sys/wait.rs.html#306">option_bits</a>,
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
+        libc::waitpid(
+            <a href="../../../src/nix/sys/wait.rs.html#301">pid</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>().unwrap_or_else(|| Pid::from_raw(-<span class="number">1</span>)).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <span class="kw-2">&amp;mut </span><a href="../../../src/nix/sys/wait.rs.html#304">status</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="../../../src/nix/sys/wait.rs.html#306">option_bits</a>,
         )
     };
 
-    <span class="kw">match</span> <span class="ident">Errno::result</span>(<span class="ident">res</span>)<span class="question-mark">?</span> {
-        <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#130">StillAlive</a>),
-        <span class="ident">res</span> =&gt; <span class="ident">WaitStatus::from_raw</span>(<span class="ident">Pid::from_raw</span>(<a class="ident" href="../../../src/nix/sys/wait.rs.html#321">res</a>), <a class="ident" href="../../../src/nix/sys/wait.rs.html#304">status</a>),
+    <span class="kw">match </span>Errno::result(res)<span class="question-mark">? </span>{
+        <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nix/sys/wait.rs.html#130">StillAlive</a>),
+        res =&gt; WaitStatus::from_raw(Pid::from_raw(<a href="../../../src/nix/sys/wait.rs.html#321">res</a>), <a href="../../../src/nix/sys/wait.rs.html#304">status</a>),
     }
 }
 
-<span class="doccomment">/// Wait for any child process to change status or a signal is received.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See also [wait(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/wait.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/nix/sys/wait.rs.html#301">waitpid</a>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+<span class="doccomment">/// Wait for any child process to change status or a signal is received.
+///
+/// See also [wait(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/wait.html)
+</span><span class="kw">pub fn </span>wait() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a>&gt; {
+    <a href="../../../src/nix/sys/wait.rs.html#301">waitpid</a>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
 }
 
-<span class="doccomment">/// The ID argument for `waitid`</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,
-    <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)),
-))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Id</span> {
-    <span class="doccomment">/// Wait for any child</span>
-    <span class="ident">All</span>,
-    <span class="doccomment">/// Wait for the child whose process ID matches the given PID</span>
-    <span class="ident">Pid</span>(<a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>),
-    <span class="doccomment">/// Wait for the child whose process group ID matches the given PID</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the PID is zero, the caller&#39;s process group is used since Linux 5.4.</span>
-    <span class="ident">PGid</span>(<a class="ident" href="../../../src/nix/unistd.rs.html#148">Pid</a>),
-    <span class="doccomment">/// Wait for the child referred to by the given PID file descriptor</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-    <span class="ident">PIDFd</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>),
+<span class="doccomment">/// The ID argument for `waitid`
+</span><span class="attribute">#[cfg(any(
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;</span>,
+    target_os = <span class="string">&quot;haiku&quot;</span>,
+    all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_env = <span class="string">&quot;uclibc&quot;</span>)),
+))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub enum </span>Id {
+    <span class="doccomment">/// Wait for any child
+    </span>All,
+    <span class="doccomment">/// Wait for the child whose process ID matches the given PID
+    </span>Pid(<a href="../../../src/nix/unistd.rs.html#182">Pid</a>),
+    <span class="doccomment">/// Wait for the child whose process group ID matches the given PID
+    ///
+    /// If the PID is zero, the caller&#39;s process group is used since Linux 5.4.
+    </span>PGid(<a href="../../../src/nix/unistd.rs.html#182">Pid</a>),
+    <span class="doccomment">/// Wait for the child referred to by the given PID file descriptor
+    </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+    </span>PIDFd(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>),
 }
 
-<span class="doccomment">/// Wait for a process to change status</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See also [waitid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/waitid.html)</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,
-    <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)),
-))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">waitid</span>(<span class="ident">id</span>: <a class="ident" href="../../../src/nix/sys/wait.rs.html#340">Id</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/wait.rs.html#15-76">WaitPidFlag</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">idtype</span>, <span class="ident">idval</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/wait.rs.html#363">id</a> {
-        <a class="ident" href="../../../src/nix/sys/wait.rs.html#342">Id::All</a> =&gt; (<span class="ident">libc::P_ALL</span>, <span class="number">0</span>),
-        <a class="ident" href="../../../src/nix/sys/wait.rs.html#344">Id::Pid</a>(<span class="ident">pid</span>) =&gt; (<span class="ident">libc::P_PID</span>, <a class="ident" href="../../../src/nix/sys/wait.rs.html#366">pid</a>.<a class="ident" href="../../../src/nix/unistd.rs.html#167">as_raw</a>() <span class="kw">as</span> <span class="ident">libc::id_t</span>),
-        <a class="ident" href="../../../src/nix/sys/wait.rs.html#348">Id::PGid</a>(<span class="ident">pid</span>) =&gt; (<span class="ident">libc::P_PGID</span>, <a class="ident" href="../../../src/nix/sys/wait.rs.html#367">pid</a>.<a class="ident" href="../../../src/nix/unistd.rs.html#167">as_raw</a>() <span class="kw">as</span> <span class="ident">libc::id_t</span>),
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-        <a class="ident" href="../../../src/nix/sys/wait.rs.html#351">Id::PIDFd</a>(<span class="ident">fd</span>) =&gt; (<span class="ident">libc::P_PIDFD</span>, <a class="ident" href="../../../src/nix/sys/wait.rs.html#369">fd</a> <span class="kw">as</span> <span class="ident">libc::id_t</span>),
+<span class="doccomment">/// Wait for a process to change status
+///
+/// See also [waitid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/waitid.html)
+</span><span class="attribute">#[cfg(any(
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;</span>,
+    target_os = <span class="string">&quot;haiku&quot;</span>,
+    all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_env = <span class="string">&quot;uclibc&quot;</span>)),
+))]
+</span><span class="kw">pub fn </span>waitid(id: <a href="../../../src/nix/sys/wait.rs.html#340">Id</a>, flags: <a href="../../../src/nix/sys/wait.rs.html#15-76">WaitPidFlag</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/wait.rs.html#88">WaitStatus</a>&gt; {
+    <span class="kw">let </span>(idtype, idval) = <span class="kw">match </span><a href="../../../src/nix/sys/wait.rs.html#363">id</a> {
+        <a href="../../../src/nix/sys/wait.rs.html#342">Id::All</a> =&gt; (libc::P_ALL, <span class="number">0</span>),
+        <a href="../../../src/nix/sys/wait.rs.html#344">Id::Pid</a>(pid) =&gt; (libc::P_PID, <a href="../../../src/nix/sys/wait.rs.html#366">pid</a>.<a href="../../../src/nix/unistd.rs.html#203">as_raw</a>() <span class="kw">as </span>libc::id_t),
+        <a href="../../../src/nix/sys/wait.rs.html#348">Id::PGid</a>(pid) =&gt; (libc::P_PGID, <a href="../../../src/nix/sys/wait.rs.html#367">pid</a>.<a href="../../../src/nix/unistd.rs.html#203">as_raw</a>() <span class="kw">as </span>libc::id_t),
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        </span><a href="../../../src/nix/sys/wait.rs.html#351">Id::PIDFd</a>(fd) =&gt; (libc::P_PIDFD, <a href="../../../src/nix/sys/wait.rs.html#369">fd</a> <span class="kw">as </span>libc::id_t),
     };
 
-    <span class="kw">let</span> <span class="ident">siginfo</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="comment">// Memory is zeroed rather than uninitialized, as not all platforms</span>
-        <span class="comment">// initialize the memory in the StillAlive case</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">siginfo</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">libc::siginfo_t</a> <span class="op">=</span> <span class="ident">std::mem::zeroed</span>();
-        <span class="ident">Errno::result</span>(<span class="ident">libc::waitid</span>(<span class="ident">idtype</span>, <span class="ident">idval</span>, <span class="kw-2">&amp;mut</span> <span class="ident">siginfo</span>, <span class="ident">flags</span>.<span class="ident">bits</span>()))<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/nix/sys/wait.rs.html#375">siginfo</a>
+    <span class="kw">let </span>siginfo = <span class="kw">unsafe </span>{
+        <span class="comment">// Memory is zeroed rather than uninitialized, as not all platforms
+        // initialize the memory in the StillAlive case
+        </span><span class="kw">let </span><span class="kw-2">mut </span>siginfo: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">libc::siginfo_t</a> = std::mem::zeroed();
+        Errno::result(libc::waitid(idtype, idval, <span class="kw-2">&amp;mut </span>siginfo, flags.bits()))<span class="question-mark">?</span>;
+        <a href="../../../src/nix/sys/wait.rs.html#375">siginfo</a>
     };
 
-    <span class="kw">unsafe</span> { <span class="ident">WaitStatus::from_siginfo</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/wait.rs.html#372">siginfo</a>) }
+    <span class="kw">unsafe </span>{ WaitStatus::from_siginfo(<span class="kw-2">&amp;</span><a href="../../../src/nix/sys/wait.rs.html#372">siginfo</a>) }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

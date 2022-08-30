@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/pe/resource.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resource.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/pe/resource.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resource.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -193,200 +193,200 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/object/lib.rs.html#112">pe</a>, <a class="ident" href="../../../../src/object/endian.rs.html#317">LittleEndian</a> <span class="kw">as</span> <span class="ident">LE</span>, <a class="ident" href="../../../../src/object/endian.rs.html#565">U16</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{<a href="../../../../src/object/lib.rs.html#112">pe</a>, <a href="../../../../src/object/endian.rs.html#317">LittleEndian</a> <span class="kw">as </span>LE, <a href="../../../../src/object/endian.rs.html#565">U16</a>};
 
-<span class="doccomment">/// The `.rsrc` section of a PE file.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourceDirectory</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-    <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+<span class="doccomment">/// The `.rsrc` section of a PE file.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>ResourceDirectory&lt;<span class="lifetime">&#39;data</span>&gt; {
+    data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">ResourceDirectory</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct from the data of the `.rsrc` section.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#8">ResourceDirectory</a> { <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#14">data</a> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; ResourceDirectory&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="doccomment">/// Construct from the data of the `.rsrc` section.
+    </span><span class="kw">pub fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/object/read/pe/resource.rs.html#8">ResourceDirectory</a> { <a href="../../../../src/object/read/pe/resource.rs.html#14">data</a> }
     }
 
-    <span class="doccomment">/// Parses the root resource directory.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ResourceDirectoryTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">ResourceDirectoryTable::parse</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/pe/resource.rs.html#19">self</a>.<span class="ident">data</span>, <span class="number">0</span>)
-    }
-}
-
-<span class="doccomment">/// A table of resource entries.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourceDirectoryTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The table header.</span>
-    <span class="kw">pub</span> <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#2003">pe::ImageResourceDirectory</a>,
-    <span class="doccomment">/// The table entries.</span>
-    <span class="kw">pub</span> <span class="ident">entries</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="../../../../src/object/pe.rs.html#2031">pe::ImageResourceDirectoryEntry</a>],
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">ResourceDirectoryTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#34">offset</a>);
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">pe::ImageResourceDirectory</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">offset</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid resource table header&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">entries_count</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#36">header</a>.<span class="ident">number_of_id_entries</span>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
-            <span class="op">+</span> <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#36">header</a>.<span class="ident">number_of_named_entries</span>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let</span> <span class="ident">entries</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">read_slice</span>::<span class="op">&lt;</span><span class="ident">pe::ImageResourceDirectoryEntry</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">offset</span>, <span class="ident">entries_count</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid resource table entries&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#36">header</a>, <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#41">entries</a> })
+    <span class="doccomment">/// Parses the root resource directory.
+    </span><span class="kw">pub fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ResourceDirectoryTable&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+        ResourceDirectoryTable::parse(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/pe/resource.rs.html#19">self</a>.data, <span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/object/pe.rs.html#2031">pe::ImageResourceDirectoryEntry</a> {
-    <span class="doccomment">/// Returns true if the entry has a name, rather than an ID.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/pe/resource.rs.html#50">self</a>.<span class="ident">name_or_id</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="op">&amp;</span> <a class="ident" href="../../../../src/object/pe.rs.html#2012">pe::IMAGE_RESOURCE_NAME_IS_STRING</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+<span class="doccomment">/// A table of resource entries.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>ResourceDirectoryTable&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="doccomment">/// The table header.
+    </span><span class="kw">pub </span>header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#2003">pe::ImageResourceDirectory</a>,
+    <span class="doccomment">/// The table entries.
+    </span><span class="kw">pub </span>entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="../../../../src/object/pe.rs.html#2031">pe::ImageResourceDirectoryEntry</a>],
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; ResourceDirectoryTable&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="kw">fn </span>parse(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>offset = u64::from(<a href="../../../../src/object/read/pe/resource.rs.html#34">offset</a>);
+        <span class="kw">let </span>header = data
+            .read::&lt;pe::ImageResourceDirectory&gt;(<span class="kw-2">&amp;mut </span>offset)
+            .read_error(<span class="string">&quot;Invalid resource table header&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>entries_count = <a href="../../../../src/object/read/pe/resource.rs.html#36">header</a>.number_of_id_entries.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+            + <a href="../../../../src/object/read/pe/resource.rs.html#36">header</a>.number_of_named_entries.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>entries = data
+            .read_slice::&lt;pe::ImageResourceDirectoryEntry&gt;(<span class="kw-2">&amp;mut </span>offset, entries_count)
+            .read_error(<span class="string">&quot;Invalid resource table entries&quot;</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ <a href="../../../../src/object/read/pe/resource.rs.html#36">header</a>, <a href="../../../../src/object/read/pe/resource.rs.html#41">entries</a> })
+    }
+}
+
+<span class="kw">impl </span><a href="../../../../src/object/pe.rs.html#2031">pe::ImageResourceDirectoryEntry</a> {
+    <span class="doccomment">/// Returns true if the entry has a name, rather than an ID.
+    </span><span class="kw">pub fn </span>has_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/pe/resource.rs.html#50">self</a>.name_or_id.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) &amp; <a href="../../../../src/object/pe.rs.html#2012">pe::IMAGE_RESOURCE_NAME_IS_STRING</a> != <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Returns the section offset of the name.
+    ///
+    /// Valid if `has_name()` returns true.
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a> {
+        <span class="kw">let </span>offset = <a class="self" href="../../../../src/object/read/pe/resource.rs.html#57">self</a>.name_or_id.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) &amp; !<a href="../../../../src/object/pe.rs.html#2012">pe::IMAGE_RESOURCE_NAME_IS_STRING</a>;
+        <a href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a> { <a href="../../../../src/object/read/pe/resource.rs.html#58">offset</a> }
     }
 
-    <span class="doccomment">/// Returns the section offset of the name.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Valid if `has_name()` returns true.</span>
-    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a> {
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/resource.rs.html#57">self</a>.<span class="ident">name_or_id</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/object/pe.rs.html#2012">pe::IMAGE_RESOURCE_NAME_IS_STRING</a>;
-        <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a> { <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#58">offset</a> }
+    <span class="doccomment">/// Returns the ID.
+    ///
+    /// Valid if `has_string_name()` returns false.
+    </span><span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+        (<a class="self" href="../../../../src/object/read/pe/resource.rs.html#65">self</a>.name_or_id.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) &amp; <span class="number">0x0000_FFFF</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>
     }
 
-    <span class="doccomment">/// Returns the ID.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Valid if `has_string_name()` returns false.</span>
-    <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        (<a class="self" href="../../../../src/object/read/pe/resource.rs.html#65">self</a>.<span class="ident">name_or_id</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="op">&amp;</span> <span class="number">0x0000_FFFF</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>
-    }
-
-    <span class="doccomment">/// Returns the entry name</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name_or_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#168">ResourceNameOrId</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_name</span>() {
-            <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#170">ResourceNameOrId::Name</a>(<a class="self" href="../../../../src/object/read/pe/resource.rs.html#70">self</a>.<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#57">name</a>())
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#172">ResourceNameOrId::Id</a>(<a class="self" href="../../../../src/object/read/pe/resource.rs.html#70">self</a>.<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#65">id</a>())
+    <span class="doccomment">/// Returns the entry name
+    </span><span class="kw">pub fn </span>name_or_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/read/pe/resource.rs.html#168">ResourceNameOrId</a> {
+        <span class="kw">if </span><span class="self">self</span>.has_name() {
+            <a href="../../../../src/object/read/pe/resource.rs.html#170">ResourceNameOrId::Name</a>(<a class="self" href="../../../../src/object/read/pe/resource.rs.html#70">self</a>.<a href="../../../../src/object/read/pe/resource.rs.html#57">name</a>())
+        } <span class="kw">else </span>{
+            <a href="../../../../src/object/read/pe/resource.rs.html#172">ResourceNameOrId::Id</a>(<a class="self" href="../../../../src/object/read/pe/resource.rs.html#70">self</a>.<a href="../../../../src/object/read/pe/resource.rs.html#65">id</a>())
         }
     }
 
-    <span class="doccomment">/// Returns true if the entry is a subtable.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_table</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/pe/resource.rs.html#79">self</a>.<span class="ident">offset_to_data_or_directory</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="op">&amp;</span> <a class="ident" href="../../../../src/object/pe.rs.html#2013">pe::IMAGE_RESOURCE_DATA_IS_DIRECTORY</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    <span class="doccomment">/// Returns true if the entry is a subtable.
+    </span><span class="kw">pub fn </span>is_table(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/pe/resource.rs.html#79">self</a>.offset_to_data_or_directory.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) &amp; <a href="../../../../src/object/pe.rs.html#2013">pe::IMAGE_RESOURCE_DATA_IS_DIRECTORY</a> != <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Returns the section offset of the associated table or data.
+    </span><span class="kw">pub fn </span>data_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/pe/resource.rs.html#84">self</a>.offset_to_data_or_directory.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>) &amp; !<a href="../../../../src/object/pe.rs.html#2013">pe::IMAGE_RESOURCE_DATA_IS_DIRECTORY</a>
     }
 
-    <span class="doccomment">/// Returns the section offset of the associated table or data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/pe/resource.rs.html#84">self</a>.<span class="ident">offset_to_data_or_directory</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>) <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/object/pe.rs.html#2013">pe::IMAGE_RESOURCE_DATA_IS_DIRECTORY</a>
-    }
-
-    <span class="doccomment">/// Returns the data associated to this directory entry.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Returns the data associated to this directory entry.
+    </span><span class="kw">pub fn </span>data&lt;<span class="lifetime">&#39;data</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">section</span>: <span class="ident">ResourceDirectory</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ResourceDirectoryEntryData</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_table</span>() {
-            <span class="ident">ResourceDirectoryTable::parse</span>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#91">section</a>.<span class="ident">data</span>, <a class="self" href="../../../../src/object/read/pe/resource.rs.html#90">self</a>.<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#84">data_offset</a>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#110">ResourceDirectoryEntryData::Table</a>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#95">t</a>))
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#91">section</a>
-                .<span class="ident">data</span>
-                .<a class="ident" href="../../../../src/object/read/read_ref.rs.html#84">read_at</a>::<span class="op">&lt;</span><a class="ident" href="../../../../src/object/pe.rs.html#2070">pe::ImageResourceDataEntry</a><span class="op">&gt;</span>(<a class="self" href="../../../../src/object/read/pe/resource.rs.html#90">self</a>.<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#84">data_offset</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-                .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid resource entry&quot;</span>)
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#112">ResourceDirectoryEntryData::Data</a>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#101">d</a>))
+        section: ResourceDirectory&lt;<span class="lifetime">&#39;data</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ResourceDirectoryEntryData&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_table() {
+            ResourceDirectoryTable::parse(<a href="../../../../src/object/read/pe/resource.rs.html#91">section</a>.data, <a class="self" href="../../../../src/object/read/pe/resource.rs.html#90">self</a>.<a href="../../../../src/object/read/pe/resource.rs.html#84">data_offset</a>())
+                .map(|t| <a href="../../../../src/object/read/pe/resource.rs.html#110">ResourceDirectoryEntryData::Table</a>(<a href="../../../../src/object/read/pe/resource.rs.html#95">t</a>))
+        } <span class="kw">else </span>{
+            <a href="../../../../src/object/read/pe/resource.rs.html#91">section</a>
+                .data
+                .<a href="../../../../src/object/read/read_ref.rs.html#84">read_at</a>::&lt;<a href="../../../../src/object/pe.rs.html#2070">pe::ImageResourceDataEntry</a>&gt;(<a class="self" href="../../../../src/object/read/pe/resource.rs.html#90">self</a>.<a href="../../../../src/object/read/pe/resource.rs.html#84">data_offset</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid resource entry&quot;</span>)
+                .map(|d| <a href="../../../../src/object/read/pe/resource.rs.html#112">ResourceDirectoryEntryData::Data</a>(<a href="../../../../src/object/read/pe/resource.rs.html#101">d</a>))
         }
     }
 }
 
-<span class="doccomment">/// Data associated with a resource directory entry.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ResourceDirectoryEntryData</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// A subtable entry.</span>
-    <span class="ident">Table</span>(<span class="ident">ResourceDirectoryTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// A resource data entry.</span>
-    <span class="ident">Data</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#2070">pe::ImageResourceDataEntry</a>),
+<span class="doccomment">/// Data associated with a resource directory entry.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub enum </span>ResourceDirectoryEntryData&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="doccomment">/// A subtable entry.
+    </span>Table(ResourceDirectoryTable&lt;<span class="lifetime">&#39;data</span>&gt;),
+    <span class="doccomment">/// A resource data entry.
+    </span>Data(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#2070">pe::ImageResourceDataEntry</a>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">ResourceDirectoryEntryData</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Converts to an option of table.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Helper for iterator filtering.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">table</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ResourceDirectoryTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/pe/resource.rs.html#119">self</a> {
-            <span class="ident"><span class="self">Self</span>::Table</span>(<span class="ident">dir</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#121">dir</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>&gt; ResourceDirectoryEntryData&lt;<span class="lifetime">&#39;data</span>&gt; {
+    <span class="doccomment">/// Converts to an option of table.
+    ///
+    /// Helper for iterator filtering.
+    </span><span class="kw">pub fn </span>table(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ResourceDirectoryTable&lt;<span class="lifetime">&#39;data</span>&gt;&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/object/read/pe/resource.rs.html#119">self</a> </span>{
+            <span class="self">Self</span>::Table(dir) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/resource.rs.html#121">dir</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Converts to an option of data entry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Helper for iterator filtering.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#2070">pe::ImageResourceDataEntry</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/pe/resource.rs.html#129">self</a> {
-            <span class="ident"><span class="self">Self</span>::Data</span>(<span class="ident">rsc</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#131">rsc</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Converts to an option of data entry.
+    ///
+    /// Helper for iterator filtering.
+    </span><span class="kw">pub fn </span>data(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="../../../../src/object/pe.rs.html#2070">pe::ImageResourceDataEntry</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/object/read/pe/resource.rs.html#129">self</a> </span>{
+            <span class="self">Self</span>::Data(rsc) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/resource.rs.html#131">rsc</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="doccomment">/// A resource name.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourceName</span> {
-    <span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+<span class="doccomment">/// A resource name.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>ResourceName {
+    offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a> {
-    <span class="doccomment">/// Converts to a `String`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">directory</span>: <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#8">ResourceDirectory</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>(<span class="ident">directory</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">String::from_utf16_lossy</span>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#146">d</a>))
+<span class="kw">impl </span><a href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a> {
+    <span class="doccomment">/// Converts to a `String`.
+    </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>, directory: <a href="../../../../src/object/read/pe/resource.rs.html#8">ResourceDirectory</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+        <span class="kw">let </span>d = <span class="self">self</span>.data(directory)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(String::from_utf16_lossy(<a href="../../../../src/object/read/pe/resource.rs.html#146">d</a>))
     }
 
-    <span class="doccomment">/// Returns the string unicode buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">directory</span>: <span class="ident">ResourceDirectory</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="self" href="../../../../src/object/read/pe/resource.rs.html#151">self</a>.<span class="ident">offset</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">directory</span>
-            .<span class="ident">data</span>
-            .<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U16</span><span class="op">&lt;</span><span class="ident">LE</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">offset</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid resource name offset&quot;</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#151">directory</a>
-            .<span class="ident">data</span>
-            .<a class="ident" href="../../../../src/object/read/read_ref.rs.html#93">read_slice</a>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#152">offset</a>, <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#153">len</a>.<a class="ident" href="../../../../src/object/endian.rs.html#599">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid resource name length&quot;</span>)
+    <span class="doccomment">/// Returns the string unicode buffer.
+    </span><span class="kw">pub fn </span>data&lt;<span class="lifetime">&#39;data</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, directory: ResourceDirectory&lt;<span class="lifetime">&#39;data</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>]&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>offset = u64::from(<a class="self" href="../../../../src/object/read/pe/resource.rs.html#151">self</a>.offset);
+        <span class="kw">let </span>len = directory
+            .data
+            .read::&lt;U16&lt;LE&gt;&gt;(<span class="kw-2">&amp;mut </span>offset)
+            .read_error(<span class="string">&quot;Invalid resource name offset&quot;</span>)<span class="question-mark">?</span>;
+        <a href="../../../../src/object/read/pe/resource.rs.html#151">directory</a>
+            .data
+            .<a href="../../../../src/object/read/read_ref.rs.html#93">read_slice</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt;(<span class="kw-2">&amp;mut </span><a href="../../../../src/object/read/pe/resource.rs.html#152">offset</a>, <a href="../../../../src/object/read/pe/resource.rs.html#153">len</a>.<a href="../../../../src/object/endian.rs.html#599">get</a>(<a href="../../../../src/object/endian.rs.html#317">LE</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid resource name length&quot;</span>)
     }
 }
 
-<span class="doccomment">/// A resource name or ID.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Can be either a string or a numeric ID.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ResourceNameOrId</span> {
-    <span class="doccomment">/// A resource name.</span>
-    <span class="ident">Name</span>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a>),
-    <span class="doccomment">/// A resource ID.</span>
-    <span class="ident">Id</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>),
+<span class="doccomment">/// A resource name or ID.
+///
+/// Can be either a string or a numeric ID.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ResourceNameOrId {
+    <span class="doccomment">/// A resource name.
+    </span>Name(<a href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a>),
+    <span class="doccomment">/// A resource ID.
+    </span>Id(<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/object/read/pe/resource.rs.html#168">ResourceNameOrId</a> {
-    <span class="doccomment">/// Converts to an option of name.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Helper for iterator filtering.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/pe/resource.rs.html#179">self</a> {
-            <span class="ident"><span class="self">Self</span>::Name</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#181">name</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span><a href="../../../../src/object/read/pe/resource.rs.html#168">ResourceNameOrId</a> {
+    <span class="doccomment">/// Converts to an option of name.
+    ///
+    /// Helper for iterator filtering.
+    </span><span class="kw">pub fn </span>name(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/object/read/pe/resource.rs.html#139">ResourceName</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/object/read/pe/resource.rs.html#179">self</a> </span>{
+            <span class="self">Self</span>::Name(name) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/resource.rs.html#181">name</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Converts to an option of ID.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Helper for iterator filtering.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/pe/resource.rs.html#189">self</a> {
-            <span class="ident"><span class="self">Self</span>::Id</span>(<span class="ident">id</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/pe/resource.rs.html#191">id</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Converts to an option of ID.
+    ///
+    /// Helper for iterator filtering.
+    </span><span class="kw">pub fn </span>id(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/object/read/pe/resource.rs.html#189">self</a> </span>{
+            <span class="self">Self</span>::Id(id) =&gt; <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/pe/resource.rs.html#191">id</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

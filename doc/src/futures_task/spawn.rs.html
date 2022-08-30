@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-task-0.3.21/src/spawn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_task/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_task/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_task/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-task-0.3.24/src/spawn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_task/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_task/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_task/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -190,197 +190,197 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/futures_task/future_obj.rs.html#103">FutureObj</a>, <a class="ident" href="../../src/futures_task/future_obj.rs.html#16">LocalFutureObj</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../src/futures_task/future_obj.rs.html#103">FutureObj</a>, <a href="../../src/futures_task/future_obj.rs.html#16">LocalFutureObj</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
 
-<span class="doccomment">/// The `Spawn` trait allows for pushing futures onto an executor that will</span>
-<span class="doccomment">/// run them to completion.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Spawn</span> {
-    <span class="doccomment">/// Spawns a future that will be run to completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The executor may be unable to spawn tasks. Spawn errors should</span>
-    <span class="doccomment">/// represent relatively rare scenarios, such as the executor</span>
-    <span class="doccomment">/// having been shut down so that it is no longer able to accept</span>
-    <span class="doccomment">/// tasks.</span>
-    <span class="kw">fn</span> <span class="ident">spawn_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">FutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span>;
+<span class="doccomment">/// The `Spawn` trait allows for pushing futures onto an executor that will
+/// run them to completion.
+</span><span class="kw">pub trait </span>Spawn {
+    <span class="doccomment">/// Spawns a future that will be run to completion.
+    ///
+    /// # Errors
+    ///
+    /// The executor may be unable to spawn tasks. Spawn errors should
+    /// represent relatively rare scenarios, such as the executor
+    /// having been shut down so that it is no longer able to accept
+    /// tasks.
+    </span><span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt;;
 
-    <span class="doccomment">/// Determines whether the executor is able to spawn new tasks.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will return `Ok` when the executor is *likely*</span>
-    <span class="doccomment">/// (but not guaranteed) to accept a subsequent spawn attempt.</span>
-    <span class="doccomment">/// Likewise, an `Err` return means that `spawn` is likely, but</span>
-    <span class="doccomment">/// not guaranteed, to yield an error.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
+    <span class="doccomment">/// Determines whether the executor is able to spawn new tasks.
+    ///
+    /// This method will return `Ok` when the executor is *likely*
+    /// (but not guaranteed) to accept a subsequent spawn attempt.
+    /// Likewise, an `Err` return means that `spawn` is likely, but
+    /// not guaranteed, to yield an error.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="doccomment">/// The `LocalSpawn` is similar to [`Spawn`], but allows spawning futures</span>
-<span class="doccomment">/// that don&#39;t implement `Send`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LocalSpawn</span> {
-    <span class="doccomment">/// Spawns a future that will be run to completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The executor may be unable to spawn tasks. Spawn errors should</span>
-    <span class="doccomment">/// represent relatively rare scenarios, such as the executor</span>
-    <span class="doccomment">/// having been shut down so that it is no longer able to accept</span>
-    <span class="doccomment">/// tasks.</span>
-    <span class="kw">fn</span> <span class="ident">spawn_local_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">LocalFutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span>;
+<span class="doccomment">/// The `LocalSpawn` is similar to [`Spawn`], but allows spawning futures
+/// that don&#39;t implement `Send`.
+</span><span class="kw">pub trait </span>LocalSpawn {
+    <span class="doccomment">/// Spawns a future that will be run to completion.
+    ///
+    /// # Errors
+    ///
+    /// The executor may be unable to spawn tasks. Spawn errors should
+    /// represent relatively rare scenarios, such as the executor
+    /// having been shut down so that it is no longer able to accept
+    /// tasks.
+    </span><span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt;;
 
-    <span class="doccomment">/// Determines whether the executor is able to spawn new tasks.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will return `Ok` when the executor is *likely*</span>
-    <span class="doccomment">/// (but not guaranteed) to accept a subsequent spawn attempt.</span>
-    <span class="doccomment">/// Likewise, an `Err` return means that `spawn` is likely, but</span>
-    <span class="doccomment">/// not guaranteed, to yield an error.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">status_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
+    <span class="doccomment">/// Determines whether the executor is able to spawn new tasks.
+    ///
+    /// This method will return `Ok` when the executor is *likely*
+    /// (but not guaranteed) to accept a subsequent spawn attempt.
+    /// Likewise, an `Err` return means that `spawn` is likely, but
+    /// not guaranteed, to yield an error.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>status_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="doccomment">/// An error that occurred during spawning.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SpawnError</span> {
-    <span class="ident">_priv</span>: (),
+<span class="doccomment">/// An error that occurred during spawning.
+</span><span class="kw">pub struct </span>SpawnError {
+    _priv: (),
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/futures_task/spawn.rs.html#60">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;SpawnError&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="string">&quot;shutdown&quot;</span>).<span class="ident">finish</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/futures_task/spawn.rs.html#66">f</a>, <span class="string">&quot;Executor is shutdown&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/futures_task/spawn.rs.html#60">f</a>.debug_tuple(<span class="string">&quot;SpawnError&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;shutdown&quot;</span>).finish()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a> {}
-
-<span class="kw">impl</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a> {
-    <span class="doccomment">/// Spawning failed because the executor has been shut down.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">_priv</span>: () }
-    }
-
-    <span class="doccomment">/// Check whether spawning failed to the executor being shut down.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_shutdown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="bool-val">true</span>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/futures_task/spawn.rs.html#66">f</a>, <span class="string">&quot;Executor is shutdown&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">Sp</span> {
-    <span class="kw">fn</span> <span class="ident">spawn_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">FutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-        <span class="ident">Sp::spawn_obj</span>(<a class="self" href="../../src/futures_task/spawn.rs.html#87">self</a>, <a class="ident" href="../../src/futures_task/spawn.rs.html#87">future</a>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a> {}
+
+<span class="kw">impl </span><a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a> {
+    <span class="doccomment">/// Spawning failed because the executor has been shut down.
+    </span><span class="kw">pub fn </span>shutdown() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ _priv: () }
     }
 
-    <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-        <span class="ident">Sp::status</span>(<a class="self" href="../../src/futures_task/spawn.rs.html#91">self</a>)
+    <span class="doccomment">/// Check whether spawning failed to the executor being shut down.
+    </span><span class="kw">pub fn </span>is_shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="bool-val">true
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for </span><span class="kw-2">&amp;</span>Sp {
+    <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+        Sp::spawn_obj(<a class="self" href="../../src/futures_task/spawn.rs.html#87">self</a>, <a href="../../src/futures_task/spawn.rs.html#87">future</a>)
+    }
+
+    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+        Sp::status(<a class="self" href="../../src/futures_task/spawn.rs.html#91">self</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <span class="ident">Sp</span> {
-    <span class="kw">fn</span> <span class="ident">spawn_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">FutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-        <span class="ident">Sp::spawn_obj</span>(<a class="self" href="../../src/futures_task/spawn.rs.html#97">self</a>, <a class="ident" href="../../src/futures_task/spawn.rs.html#97">future</a>)
+<span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>Sp {
+    <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+        Sp::spawn_obj(<a class="self" href="../../src/futures_task/spawn.rs.html#97">self</a>, <a href="../../src/futures_task/spawn.rs.html#97">future</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-        <span class="ident">Sp::status</span>(<a class="self" href="../../src/futures_task/spawn.rs.html#101">self</a>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">Sp</span> {
-    <span class="kw">fn</span> <span class="ident">spawn_local_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">LocalFutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-        <span class="ident">Sp::spawn_local_obj</span>(<a class="self" href="../../src/futures_task/spawn.rs.html#107">self</a>, <a class="ident" href="../../src/futures_task/spawn.rs.html#107">future</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">status_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-        <span class="ident">Sp::status_local</span>(<a class="self" href="../../src/futures_task/spawn.rs.html#111">self</a>)
+    <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+        Sp::status(<a class="self" href="../../src/futures_task/spawn.rs.html#101">self</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <span class="ident">Sp</span> {
-    <span class="kw">fn</span> <span class="ident">spawn_local_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">LocalFutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-        <span class="ident">Sp::spawn_local_obj</span>(<a class="self" href="../../src/futures_task/spawn.rs.html#117">self</a>, <a class="ident" href="../../src/futures_task/spawn.rs.html#117">future</a>)
+<span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for </span><span class="kw-2">&amp;</span>Sp {
+    <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+        Sp::spawn_local_obj(<a class="self" href="../../src/futures_task/spawn.rs.html#107">self</a>, <a href="../../src/futures_task/spawn.rs.html#107">future</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">status_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-        <span class="ident">Sp::status_local</span>(<a class="self" href="../../src/futures_task/spawn.rs.html#121">self</a>)
+    <span class="kw">fn </span>status_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+        Sp::status_local(<a class="self" href="../../src/futures_task/spawn.rs.html#111">self</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">if_alloc</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">alloc</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">boxed::Box</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">rc::Rc</a>};
+<span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>Sp {
+    <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+        Sp::spawn_local_obj(<a class="self" href="../../src/futures_task/spawn.rs.html#117">self</a>, <a href="../../src/futures_task/spawn.rs.html#117">future</a>)
+    }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Sp</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">spawn_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">FutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#132">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#15">spawn_obj</a>(<a class="ident" href="../../src/futures_task/spawn.rs.html#132">future</a>)
+    <span class="kw">fn </span>status_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+        Sp::status_local(<a class="self" href="../../src/futures_task/spawn.rs.html#121">self</a>)
+    }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">mod </span>if_alloc {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>alloc::{<a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">boxed::Box</a>, <a href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">rc::Rc</a>};
+
+    <span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for </span>Box&lt;Sp&gt; {
+        <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#132">self</a>).<a href="../../src/futures_task/spawn.rs.html#15">spawn_obj</a>(<a href="../../src/futures_task/spawn.rs.html#132">future</a>)
         }
 
-        <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#136">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#24">status</a>()
+        <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#136">self</a>).<a href="../../src/futures_task/spawn.rs.html#24">status</a>()
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Sp</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">spawn_local_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">LocalFutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#142">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#40">spawn_local_obj</a>(<a class="ident" href="../../src/futures_task/spawn.rs.html#142">future</a>)
+    <span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for </span>Box&lt;Sp&gt; {
+        <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#142">self</a>).<a href="../../src/futures_task/spawn.rs.html#40">spawn_local_obj</a>(<a href="../../src/futures_task/spawn.rs.html#142">future</a>)
         }
 
-        <span class="kw">fn</span> <span class="ident">status_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#146">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#49">status_local</a>()
-        }
-    }
-
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Sp</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">spawn_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">FutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#152">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#15">spawn_obj</a>(<a class="ident" href="../../src/futures_task/spawn.rs.html#152">future</a>)
-        }
-
-        <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#156">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#24">status</a>()
+        <span class="kw">fn </span>status_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#146">self</a>).<a href="../../src/futures_task/spawn.rs.html#49">status_local</a>()
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Sp</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">spawn_local_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">LocalFutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#162">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#40">spawn_local_obj</a>(<a class="ident" href="../../src/futures_task/spawn.rs.html#162">future</a>)
+    <span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for </span>Rc&lt;Sp&gt; {
+        <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#152">self</a>).<a href="../../src/futures_task/spawn.rs.html#15">spawn_obj</a>(<a href="../../src/futures_task/spawn.rs.html#152">future</a>)
         }
 
-        <span class="kw">fn</span> <span class="ident">status_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#166">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#49">status_local</a>()
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for</span> <span class="ident">alloc::sync::Arc</span><span class="op">&lt;</span><span class="ident">Sp</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">spawn_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">FutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#173">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#15">spawn_obj</a>(<a class="ident" href="../../src/futures_task/spawn.rs.html#173">future</a>)
-        }
-
-        <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#177">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#24">status</a>()
+        <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#156">self</a>).<a href="../../src/futures_task/spawn.rs.html#24">status</a>()
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for</span> <span class="ident">alloc::sync::Arc</span><span class="op">&lt;</span><span class="ident">Sp</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">spawn_local_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">LocalFutureObj</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#184">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#40">spawn_local_obj</a>(<a class="ident" href="../../src/futures_task/spawn.rs.html#184">future</a>)
+    <span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for </span>Rc&lt;Sp&gt; {
+        <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#162">self</a>).<a href="../../src/futures_task/spawn.rs.html#40">spawn_local_obj</a>(<a href="../../src/futures_task/spawn.rs.html#162">future</a>)
         }
 
-        <span class="kw">fn</span> <span class="ident">status_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/futures_task/spawn.rs.html#55">SpawnError</a><span class="op">&gt;</span> {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_task/spawn.rs.html#188">self</a>).<a class="ident" href="../../src/futures_task/spawn.rs.html#49">status_local</a>()
+        <span class="kw">fn </span>status_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#166">self</a>).<a href="../../src/futures_task/spawn.rs.html#49">status_local</a>()
+        }
+    }
+
+    <span class="attribute">#[cfg(not(futures_no_atomic_cas))]
+    </span><span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#6">Spawn</a> <span class="kw">for </span>alloc::sync::Arc&lt;Sp&gt; {
+        <span class="kw">fn </span>spawn_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#173">self</a>).<a href="../../src/futures_task/spawn.rs.html#15">spawn_obj</a>(<a href="../../src/futures_task/spawn.rs.html#173">future</a>)
+        }
+
+        <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#177">self</a>).<a href="../../src/futures_task/spawn.rs.html#24">status</a>()
+        }
+    }
+
+    <span class="attribute">#[cfg(not(futures_no_atomic_cas))]
+    </span><span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a>&gt; <a href="../../src/futures_task/spawn.rs.html#31">LocalSpawn</a> <span class="kw">for </span>alloc::sync::Arc&lt;Sp&gt; {
+        <span class="kw">fn </span>spawn_local_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, future: LocalFutureObj&lt;<span class="lifetime">&#39;static</span>, ()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#184">self</a>).<a href="../../src/futures_task/spawn.rs.html#40">spawn_local_obj</a>(<a href="../../src/futures_task/spawn.rs.html#184">future</a>)
+        }
+
+        <span class="kw">fn </span>status_local(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/futures_task/spawn.rs.html#55">SpawnError</a>&gt; {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_task/spawn.rs.html#188">self</a>).<a href="../../src/futures_task/spawn.rs.html#49">status_local</a>()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

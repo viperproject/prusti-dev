@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.2/src/sys/signalfd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signalfd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/signalfd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signalfd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -167,174 +167,178 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Interface for the `signalfd` syscall.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Signal discarding</span>
-<span class="doccomment">//! When a signal can&#39;t be delivered to a process (or thread), it will become a pending signal.</span>
-<span class="doccomment">//! Failure to deliver could happen if the signal is blocked by every thread in the process or if</span>
-<span class="doccomment">//! the signal handler is still handling a previous signal.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! If a signal is sent to a process (or thread) that already has a pending signal of the same</span>
-<span class="doccomment">//! type, it will be discarded. This means that if signals of the same type are received faster than</span>
-<span class="doccomment">//! they are processed, some of those signals will be dropped. Because of this limitation,</span>
-<span class="doccomment">//! `signalfd` in itself cannot be used for reliable communication between processes or threads.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Once the signal is unblocked, or the signal handler is finished, and a signal is still pending</span>
-<span class="doccomment">//! (ie. not consumed from a signalfd) it will be delivered to the signal handler.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Please note that signal discarding is not specific to `signalfd`, but also happens with regular</span>
-<span class="doccomment">//! signal handlers.</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#158"><span class="kw">crate</span>::unistd</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#169"><span class="kw">crate</span>::Result</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#776"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sys::signal</span>::{<a class="self" href="../../../src/nix/sys/mod.rs.html#120">self</a>, <a class="ident" href="../../../src/nix/sys/signal.rs.html#491">SigSet</a>};
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../nix/sys/signalfd/struct.siginfo.html">libc::signalfd_siginfo</a> <span class="kw">as</span> <span class="ident">siginfo</span>;
+<span id="170">170</span>
+<span id="171">171</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Interface for the `signalfd` syscall.
+//!
+//! # Signal discarding
+//! When a signal can&#39;t be delivered to a process (or thread), it will become a pending signal.
+//! Failure to deliver could happen if the signal is blocked by every thread in the process or if
+//! the signal handler is still handling a previous signal.
+//!
+//! If a signal is sent to a process (or thread) that already has a pending signal of the same
+//! type, it will be discarded. This means that if signals of the same type are received faster than
+//! they are processed, some of those signals will be dropped. Because of this limitation,
+//! `signalfd` in itself cannot be used for reliable communication between processes or threads.
+//!
+//! Once the signal is unblocked, or the signal handler is finished, and a signal is still pending
+//! (ie. not consumed from a signalfd) it will be delivered to the signal handler.
+//!
+//! Please note that signal discarding is not specific to `signalfd`, but also happens with regular
+//! signal handlers.
+</span><span class="kw">use </span><a href="../../../src/nix/lib.rs.html#156"><span class="kw">crate</span>::unistd</a>;
+<span class="kw">use </span><a href="../../../src/nix/lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use </span><a href="../../../src/nix/errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">pub use </span><span class="kw">crate</span>::sys::signal::{<a class="self" href="../../../src/nix/sys/mod.rs.html#133">self</a>, <a href="../../../src/nix/sys/signal.rs.html#472">SigSet</a>};
+<span class="kw">pub use </span><a href="../../../nix/sys/signalfd/struct.siginfo.html">libc::signalfd_siginfo</a> <span class="kw">as </span>siginfo;
 
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
 
 <a class="macro" href="../../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>{
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SfdFlags</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a> {
-        <span class="ident">SFD_NONBLOCK</span>;
-        <span class="ident">SFD_CLOEXEC</span>;
+    <span class="kw">pub struct </span>SfdFlags: <a href="../../../libc/unix/type.c_int.html">libc::c_int</a> {
+        SFD_NONBLOCK;
+        SFD_CLOEXEC;
     }
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGNALFD_NEW</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
-<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.23.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use mem::size_of::&lt;siginfo&gt;() instead&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGNALFD_SIGINFO_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a><span class="op">&gt;</span>();
+<span class="kw">pub const </span>SIGNALFD_NEW: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> = -<span class="number">1</span>;
+<span class="attribute">#[deprecated(since = <span class="string">&quot;0.23.0&quot;</span>, note = <span class="string">&quot;use mem::size_of::&lt;siginfo&gt;() instead&quot;</span>)]
+</span><span class="kw">pub const </span>SIGNALFD_SIGINFO_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = mem::size_of::&lt;<a href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a>&gt;();
 
-<span class="doccomment">/// Creates a new file descriptor for reading signals.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// **Important:** please read the module level documentation about signal discarding before using</span>
-<span class="doccomment">/// this function!</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `mask` parameter specifies the set of signals that can be accepted via this file descriptor.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A signal must be blocked on every thread in a process, otherwise it won&#39;t be visible from</span>
-<span class="doccomment">/// signalfd (the default handler will be invoked instead).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [the signalfd man page for more information](https://man7.org/linux/man-pages/man2/signalfd.2.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signalfd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">mask</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/signal.rs.html#491">SigSet</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#28-33">SfdFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> {
-        <span class="ident">Errno::result</span>(<span class="ident">libc::signalfd</span>(<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#50">fd</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#50">mask</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#50">flags</a>.<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#28-33">bits</a>()))
+<span class="doccomment">/// Creates a new file descriptor for reading signals.
+///
+/// **Important:** please read the module level documentation about signal discarding before using
+/// this function!
+///
+/// The `mask` parameter specifies the set of signals that can be accepted via this file descriptor.
+///
+/// A signal must be blocked on every thread in a process, otherwise it won&#39;t be visible from
+/// signalfd (the default handler will be invoked instead).
+///
+/// See [the signalfd man page for more information](https://man7.org/linux/man-pages/man2/signalfd.2.html)
+</span><span class="kw">pub fn </span>signalfd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, mask: <span class="kw-2">&amp;</span><a href="../../../src/nix/sys/signal.rs.html#472">SigSet</a>, flags: <a href="../../../src/nix/sys/signalfd.rs.html#28-33">SfdFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
+    <span class="kw">unsafe </span>{
+        Errno::result(libc::signalfd(<a href="../../../src/nix/sys/signalfd.rs.html#50">fd</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">libc::c_int</a>, <a href="../../../src/nix/sys/signalfd.rs.html#50">mask</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="../../../src/nix/sys/signalfd.rs.html#50">flags</a>.<a href="../../../src/nix/sys/signalfd.rs.html#28-33">bits</a>()))
     }
 }
 
-<span class="doccomment">/// A helper struct for creating, reading and closing a `signalfd` instance.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// **Important:** please read the module level documentation about signal discarding before using</span>
-<span class="doccomment">/// this struct!</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use nix::sys::signalfd::*;</span>
-<span class="doccomment">/// // Set the thread to block the SIGUSR1 signal, otherwise the default handler will be used</span>
-<span class="doccomment">/// let mut mask = SigSet::empty();</span>
-<span class="doccomment">/// mask.add(signal::SIGUSR1);</span>
-<span class="doccomment">/// mask.thread_block().unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Signals are queued up on the file descriptor</span>
-<span class="doccomment">/// let mut sfd = SignalFd::with_flags(&amp;mask, SfdFlags::SFD_NONBLOCK).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// match sfd.read_signal() {</span>
-<span class="doccomment">///     // we caught a signal</span>
-<span class="doccomment">///     Ok(Some(sig)) =&gt; (),</span>
-<span class="doccomment">///     // there were no signals waiting (only happens when the SFD_NONBLOCK flag is set,</span>
-<span class="doccomment">///     // otherwise the read_signal call blocks)</span>
-<span class="doccomment">///     Ok(None) =&gt; (),</span>
-<span class="doccomment">///     Err(err) =&gt; (), // some error happend</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SignalFd</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>);
+<span class="doccomment">/// A helper struct for creating, reading and closing a `signalfd` instance.
+///
+/// **Important:** please read the module level documentation about signal discarding before using
+/// this struct!
+///
+/// # Examples
+///
+/// ```
+/// # use nix::sys::signalfd::*;
+/// // Set the thread to block the SIGUSR1 signal, otherwise the default handler will be used
+/// let mut mask = SigSet::empty();
+/// mask.add(signal::SIGUSR1);
+/// mask.thread_block().unwrap();
+///
+/// // Signals are queued up on the file descriptor
+/// let mut sfd = SignalFd::with_flags(&amp;mask, SfdFlags::SFD_NONBLOCK).unwrap();
+///
+/// match sfd.read_signal() {
+///     // we caught a signal
+///     Ok(Some(sig)) =&gt; (),
+///     // there were no signals waiting (only happens when the SFD_NONBLOCK flag is set,
+///     // otherwise the read_signal call blocks)
+///     Ok(None) =&gt; (),
+///     Err(err) =&gt; (), // some error happend
+/// }
+/// ```
+</span><span class="attribute">#[derive(Debug, Eq, Hash, PartialEq)]
+</span><span class="kw">pub struct </span>SignalFd(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mask</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/signal.rs.html#491">SigSet</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::with_flags</span>(<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#86">mask</a>, <span class="ident">SfdFlags::empty</span>())
+<span class="kw">impl </span><a href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a> {
+    <span class="kw">pub fn </span>new(mask: <span class="kw-2">&amp;</span><a href="../../../src/nix/sys/signal.rs.html#472">SigSet</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a>&gt; {
+        <span class="self">Self</span>::with_flags(<a href="../../../src/nix/sys/signalfd.rs.html#86">mask</a>, SfdFlags::empty())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_flags</span>(<span class="ident">mask</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/signal.rs.html#491">SigSet</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#28-33">SfdFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">signalfd</span>(<span class="ident">SIGNALFD_NEW</span>, <span class="ident">mask</span>, <span class="ident">flags</span>)<span class="question-mark">?</span>;
+    <span class="kw">pub fn </span>with_flags(mask: <span class="kw-2">&amp;</span><a href="../../../src/nix/sys/signal.rs.html#472">SigSet</a>, flags: <a href="../../../src/nix/sys/signalfd.rs.html#28-33">SfdFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a>&gt; {
+        <span class="kw">let </span>fd = signalfd(SIGNALFD_NEW, mask, flags)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a>(<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#91">fd</a>))
+        <span class="prelude-val">Ok</span>(<a href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a>(<a href="../../../src/nix/sys/signalfd.rs.html#91">fd</a>))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_mask</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">mask</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/signal.rs.html#491">SigSet</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#50">signalfd</a>(<a class="self" href="../../../src/nix/sys/signalfd.rs.html#96">self</a>.<span class="number">0</span>, <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#96">mask</a>, <span class="ident">SfdFlags::empty</span>()).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="kw">pub fn </span>set_mask(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mask: <span class="kw-2">&amp;</span><a href="../../../src/nix/sys/signal.rs.html#472">SigSet</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <a href="../../../src/nix/sys/signalfd.rs.html#50">signalfd</a>(<a class="self" href="../../../src/nix/sys/signalfd.rs.html#96">self</a>.<span class="number">0</span>, <a href="../../../src/nix/sys/signalfd.rs.html#96">mask</a>, SfdFlags::empty()).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_signal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span><a class="ident" href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a><span class="op">&gt;</span><span class="ident">::uninit</span>();
+    <span class="kw">pub fn </span>read_signal(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = mem::MaybeUninit::&lt;<a href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a>&gt;::uninit();
 
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">mem::size_of_val</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/signalfd.rs.html#101">buffer</a>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<span class="kw">unsafe</span> {
-            <span class="ident">libc::read</span>(<a class="self" href="../../../src/nix/sys/signalfd.rs.html#100">self</a>.<span class="number">0</span>, <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#101">buffer</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>, <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#103">size</a>)
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#106">r</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#104">res</a> {
-            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#108">x</a> <span class="op">==</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#103">size</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#101">buffer</a>.<span class="ident">assume_init</span>() })),
+        <span class="kw">let </span>size = mem::size_of_val(<span class="kw-2">&amp;</span><a href="../../../src/nix/sys/signalfd.rs.html#101">buffer</a>);
+        <span class="kw">let </span>res = Errno::result(<span class="kw">unsafe </span>{
+            libc::read(<a class="self" href="../../../src/nix/sys/signalfd.rs.html#100">self</a>.<span class="number">0</span>, <a href="../../../src/nix/sys/signalfd.rs.html#101">buffer</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>, <a href="../../../src/nix/sys/signalfd.rs.html#103">size</a>)
+        }).map(|r| <a href="../../../src/nix/sys/signalfd.rs.html#106">r</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">match </span><a href="../../../src/nix/sys/signalfd.rs.html#104">res</a> {
+            <span class="prelude-val">Ok</span>(x) <span class="kw">if </span><a href="../../../src/nix/sys/signalfd.rs.html#108">x</a> == <a href="../../../src/nix/sys/signalfd.rs.html#103">size</a> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <a href="../../../src/nix/sys/signalfd.rs.html#101">buffer</a>.assume_init() })),
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;partial read on signalfd&quot;</span>),
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/errno.rs.html#788">Errno::EAGAIN</a>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#111">error</a>)
+            <span class="prelude-val">Err</span>(<a href="../../../src/nix/errno.rs.html#1175">Errno::EAGAIN</a>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <span class="prelude-val">Err</span>(error) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nix/sys/signalfd.rs.html#111">error</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/unistd.rs.html#1027">unistd::close</a>(<a class="self" href="../../../src/nix/sys/signalfd.rs.html#117">self</a>.<span class="number">0</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">std::thread::panicking</span>() <span class="op">&amp;&amp;</span> <span class="ident">e</span> <span class="op">==</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EBADF</span>) {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>e = <a href="../../../src/nix/unistd.rs.html#1063">unistd::close</a>(<a class="self" href="../../../src/nix/sys/signalfd.rs.html#117">self</a>.<span class="number">0</span>);
+        <span class="kw">if </span>!std::thread::panicking() &amp;&amp; e == <span class="prelude-val">Err</span>(Errno::EBADF) {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Closing an invalid file descriptor!&quot;</span>);
         };
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/nix/sys/signalfd.rs.html#126">self</a>.<span class="number">0</span>
-    }
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../src/nix/sys/signalfd.rs.html#126">self</a>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span><a href="../../../src/nix/sys/signalfd.rs.html#83">SignalFd</a> {
+    <span class="kw">type </span>Item = <a href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/nix/sys/signalfd.rs.html#134">self</a>.<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#100">read_signal</a>() {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">sig</span>)) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#136">sig</a>),
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/nix/sys/signalfd.rs.html#134">self</a>.<a href="../../../src/nix/sys/signalfd.rs.html#100">read_signal</a>() {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(sig)) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/nix/sys/signalfd.rs.html#136">sig</a>),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">create_signalfd</span>() {
-        <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="ident">SigSet::empty</span>();
-        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">SignalFd::new</span>(<span class="kw-2">&amp;</span><span class="ident">mask</span>);
-        <span class="macro">assert!</span>(<span class="ident">fd</span>.<span class="ident">is_ok</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>create_signalfd() {
+        <span class="kw">let </span>mask = SigSet::empty();
+        SignalFd::new(<span class="kw-2">&amp;</span>mask).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">create_signalfd_with_opts</span>() {
-        <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="ident">SigSet::empty</span>();
-        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">SignalFd::with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">mask</span>, <span class="ident">SfdFlags::SFD_CLOEXEC</span> <span class="op">|</span> <span class="ident">SfdFlags::SFD_NONBLOCK</span>);
-        <span class="macro">assert!</span>(<span class="ident">fd</span>.<span class="ident">is_ok</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>create_signalfd_with_opts() {
+        <span class="kw">let </span>mask = SigSet::empty();
+        SignalFd::with_flags(
+            <span class="kw-2">&amp;</span>mask,
+            SfdFlags::SFD_CLOEXEC | SfdFlags::SFD_NONBLOCK,
+        )
+        .unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_empty_signalfd</span>() {
-        <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="ident">SigSet::empty</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">SignalFd::with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">mask</span>, <span class="ident">SfdFlags::SFD_NONBLOCK</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>read_empty_signalfd() {
+        <span class="kw">let </span>mask = SigSet::empty();
+        <span class="kw">let </span><span class="kw-2">mut </span>fd = SignalFd::with_flags(<span class="kw-2">&amp;</span>mask, SfdFlags::SFD_NONBLOCK).unwrap();
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">fd</span>.<span class="ident">read_signal</span>();
-        <span class="macro">assert!</span>(<span class="ident">res</span>.<span class="ident">unwrap</span>().<span class="ident">is_none</span>());
+        <span class="kw">let </span>res = fd.read_signal();
+        <span class="macro">assert!</span>(res.unwrap().is_none());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

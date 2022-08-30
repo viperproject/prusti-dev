@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/streams.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streams.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../attohttpc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/streams.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streams.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../attohttpc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -216,223 +216,223 @@
 <span id="216">216</span>
 <span id="217">217</span>
 <span id="218">218</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::io::Cursor</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
-<span class="kw">use</span> <span class="ident">std::net</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mpsc/index.html">std::sync::mpsc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>;
+</pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
+</span><span class="kw">use </span>std::io::Cursor;
+<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>, <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/mpsc/index.html">std::sync::mpsc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">std::time::Instant</a>;
 
-<span class="kw">use</span> <span class="ident">url</span>::{<a class="ident" href="../../url/host/enum.Host.html">Host</a>, <a class="ident" href="../../url/struct.Url.html">Url</a>};
+<span class="kw">use </span>url::{<a href="../../url/host/enum.Host.html">Host</a>, <a href="../../url/struct.Url.html">Url</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../src/attohttpc/lib.rs.html#67"><span class="kw">crate</span>::happy</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/attohttpc/parsing/buffers.rs.html#79"><span class="kw">crate</span>::parsing::buffers::BufReaderWrite</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/attohttpc/parsing/response.rs.html#21-23"><span class="kw">crate</span>::parsing::response::parse_response_head</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/attohttpc/request/settings.rs.html#12"><span class="kw">crate</span>::request::BaseSettings</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tls</span>::{<a class="ident" href="../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a>, <a class="ident" href="../../src/attohttpc/tls/native_tls_impl.rs.html#55">TlsStream</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/attohttpc/error.rs.html#47">ErrorKind</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><a href="../../src/attohttpc/lib.rs.html#67"><span class="kw">crate</span>::happy</a>;
+<span class="kw">use </span><a href="../../src/attohttpc/parsing/buffers.rs.html#79"><span class="kw">crate</span>::parsing::buffers::BufReaderWrite</a>;
+<span class="kw">use </span><a href="../../src/attohttpc/parsing/response.rs.html#21-23"><span class="kw">crate</span>::parsing::response::parse_response_head</a>;
+<span class="kw">use </span><a href="../../src/attohttpc/request/settings.rs.html#12"><span class="kw">crate</span>::request::BaseSettings</a>;
+<span class="kw">use </span><span class="kw">crate</span>::tls::{<a href="../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a>, <a href="../../src/attohttpc/tls/native_tls_impl.rs.html#55">TlsStream</a>};
+<span class="kw">use crate</span>::{<a href="../../src/attohttpc/error.rs.html#47">ErrorKind</a>, <span class="prelude-ty">Result</span>};
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConnectInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../url/struct.Url.html">Url</a>,
-    <span class="kw">pub</span> <span class="ident">proxy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../url/struct.Url.html">Url</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">base_settings</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>,
-    <span class="kw">pub</span> <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>ConnectInfo&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub </span>url: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../url/struct.Url.html">Url</a>,
+    <span class="kw">pub </span>proxy: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../url/struct.Url.html">Url</a>&gt;,
+    <span class="kw">pub </span>base_settings: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>,
+    <span class="kw">pub </span>deadline: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BaseStream</span> {
-    <span class="ident">Plain</span> {
-        <span class="ident">stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>,
-        <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>BaseStream {
+    Plain {
+        stream: <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>,
+        timeout: <span class="prelude-ty">Option</span>&lt;mpsc::Sender&lt;()&gt;&gt;,
     },
-    <span class="ident">Tls</span> {
-        <span class="ident">stream</span>: <span class="ident">TlsStream</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a><span class="op">&gt;</span>,
-        <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
+    Tls {
+        stream: TlsStream&lt;<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>&gt;,
+        timeout: <span class="prelude-ty">Option</span>&lt;mpsc::Sender&lt;()&gt;&gt;,
     },
-    <span class="ident">Tunnel</span> {
-        <span class="ident">stream</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">BufReaderWrite</span><span class="op">&lt;</span><a class="ident" href="../../src/attohttpc/streams.rs.html#26">BaseStream</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    Tunnel {
+        stream: Box&lt;TlsStream&lt;BufReaderWrite&lt;<a href="../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;&gt;&gt;,
     },
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="ident">Mock</span>(<span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="attribute">#[cfg(test)]
+    </span>Mock(Cursor&lt;Vec&lt;u8&gt;&gt;),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/attohttpc/streams.rs.html#26">BaseStream</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="ident">info</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/attohttpc/streams.rs.html#18">ConnectInfo</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/attohttpc/streams.rs.html#26">BaseStream</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">connect_url</span> <span class="op">=</span> <a class="ident" href="../../src/attohttpc/streams.rs.html#43">info</a>.<span class="ident">proxy</span>.<span class="ident">unwrap_or</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#43">info</a>.<span class="ident">url</span>);
+<span class="kw">impl </span><a href="../../src/attohttpc/streams.rs.html#26">BaseStream</a> {
+    <span class="kw">pub fn </span>connect(info: <span class="kw-2">&amp;</span><a href="../../src/attohttpc/streams.rs.html#18">ConnectInfo</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt; {
+        <span class="kw">let </span>connect_url = <a href="../../src/attohttpc/streams.rs.html#43">info</a>.proxy.unwrap_or(<a href="../../src/attohttpc/streams.rs.html#43">info</a>.url);
 
-        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">connect_url</span>.<span class="ident">host</span>().<span class="ident">ok_or</span>(<span class="ident">ErrorKind::InvalidUrlHost</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="ident">connect_url</span>.<span class="ident">port_or_known_default</span>().<span class="ident">ok_or</span>(<span class="ident">ErrorKind::InvalidUrlPort</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>host = connect_url.host().ok_or(ErrorKind::InvalidUrlHost)<span class="question-mark">?</span>;
+        <span class="kw">let </span>port = connect_url.port_or_known_default().ok_or(ErrorKind::InvalidUrlPort)<span class="question-mark">?</span>;
 
-        <a class="macro" href="../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;trying to connect to {}:{}&quot;</span>, <span class="ident">host</span>, <span class="ident">port</span>);
+        <a class="macro" href="../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;trying to connect to {}:{}&quot;</span>, host, port);
 
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">connect_url</span>.<span class="ident">scheme</span>() {
-            <span class="string">&quot;http&quot;</span> =&gt; <span class="ident">BaseStream::connect_tcp</span>(<span class="kw-2">&amp;</span><span class="ident">host</span>, <span class="ident">port</span>, <span class="ident">info</span>)
-                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">stream</span>, <span class="ident">timeout</span>)<span class="op">|</span> <span class="ident">BaseStream::Plain</span> { <span class="ident">stream</span>, <span class="ident">timeout</span> }),
-            <span class="string">&quot;https&quot;</span> =&gt; <span class="ident">BaseStream::connect_tls</span>(<span class="kw-2">&amp;</span><span class="ident">host</span>, <span class="ident">port</span>, <span class="ident">info</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ErrorKind::InvalidBaseUrl</span>.<span class="ident">into</span>()),
+        <span class="kw">let </span>stream = <span class="kw">match </span>connect_url.scheme() {
+            <span class="string">&quot;http&quot; </span>=&gt; BaseStream::connect_tcp(<span class="kw-2">&amp;</span>host, port, info)
+                .map(|(stream, timeout)| BaseStream::Plain { stream, timeout }),
+            <span class="string">&quot;https&quot; </span>=&gt; BaseStream::connect_tls(<span class="kw-2">&amp;</span>host, port, info),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ErrorKind::InvalidBaseUrl.into()),
         }<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proxy_url</span>) <span class="op">=</span> <a class="ident" href="../../src/attohttpc/streams.rs.html#43">info</a>.<span class="ident">proxy</span> {
-            <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">url</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;https&quot;</span> {
-                <span class="kw">return</span> <span class="ident">BaseStream::initiate_tunnel</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#51">stream</a>, <a class="ident" href="../../src/attohttpc/streams.rs.html#58">proxy_url</a>, <a class="ident" href="../../src/attohttpc/streams.rs.html#43">info</a>.<span class="ident">url</span>, <a class="ident" href="../../src/attohttpc/streams.rs.html#43">info</a>.<span class="ident">base_settings</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(proxy_url) = <a href="../../src/attohttpc/streams.rs.html#43">info</a>.proxy {
+            <span class="kw">if </span>info.url.scheme() == <span class="string">&quot;https&quot; </span>{
+                <span class="kw">return </span>BaseStream::initiate_tunnel(<a href="../../src/attohttpc/streams.rs.html#51">stream</a>, <a href="../../src/attohttpc/streams.rs.html#58">proxy_url</a>, <a href="../../src/attohttpc/streams.rs.html#43">info</a>.url, <a href="../../src/attohttpc/streams.rs.html#43">info</a>.base_settings);
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#51">stream</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../src/attohttpc/streams.rs.html#51">stream</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">initiate_tunnel</span>(
-        <span class="kw-2">mut</span> <span class="ident">stream</span>: <a class="ident" href="../../src/attohttpc/streams.rs.html#26">BaseStream</a>,
-        <span class="ident">proxy_url</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../url/struct.Url.html">Url</a>,
-        <span class="ident">remote_url</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../url/struct.Url.html">Url</a>,
-        <span class="ident">base_settings</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/attohttpc/streams.rs.html#26">BaseStream</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">remote_host</span> <span class="op">=</span> <span class="ident">remote_url</span>.<span class="ident">host_str</span>().<span class="ident">ok_or</span>(<span class="ident">ErrorKind::InvalidUrlHost</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">remote_port</span> <span class="op">=</span> <span class="ident">remote_url</span>.<span class="ident">port_or_known_default</span>().<span class="ident">ok_or</span>(<span class="ident">ErrorKind::InvalidUrlPort</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">proxy_host</span> <span class="op">=</span> <span class="ident">proxy_url</span>.<span class="ident">host_str</span>().<span class="ident">ok_or</span>(<span class="ident">ErrorKind::InvalidUrlHost</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">proxy_port</span> <span class="op">=</span> <span class="ident">proxy_url</span>.<span class="ident">port_or_known_default</span>().<span class="ident">ok_or</span>(<span class="ident">ErrorKind::InvalidUrlPort</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>initiate_tunnel(
+        <span class="kw-2">mut </span>stream: <a href="../../src/attohttpc/streams.rs.html#26">BaseStream</a>,
+        proxy_url: <span class="kw-2">&amp;</span><a href="../../url/struct.Url.html">Url</a>,
+        remote_url: <span class="kw-2">&amp;</span><a href="../../url/struct.Url.html">Url</a>,
+        base_settings: <span class="kw-2">&amp;</span><a href="../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt; {
+        <span class="kw">let </span>remote_host = remote_url.host_str().ok_or(ErrorKind::InvalidUrlHost)<span class="question-mark">?</span>;
+        <span class="kw">let </span>remote_port = remote_url.port_or_known_default().ok_or(ErrorKind::InvalidUrlPort)<span class="question-mark">?</span>;
+        <span class="kw">let </span>proxy_host = proxy_url.host_str().ok_or(ErrorKind::InvalidUrlHost)<span class="question-mark">?</span>;
+        <span class="kw">let </span>proxy_port = proxy_url.port_or_known_default().ok_or(ErrorKind::InvalidUrlPort)<span class="question-mark">?</span>;
 
         <a class="macro" href="../../src/attohttpc/lib.rs.html#56-58">debug!</a>(
             <span class="string">&quot;tunnelling to {}:{} via {}:{}&quot;</span>,
-            <span class="ident">remote_host</span>, <span class="ident">remote_port</span>, <span class="ident">proxy_host</span>, <span class="ident">proxy_port</span>,
+            remote_host, remote_port, proxy_host, proxy_port,
         );
 
-        <span class="macro">write!</span>(<span class="ident">stream</span>, <span class="string">&quot;CONNECT {}:{} HTTP/1.1\r\n&quot;</span>, <span class="ident">remote_host</span>, <span class="ident">remote_port</span>)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="ident">stream</span>, <span class="string">&quot;Host: {}:{}\r\n&quot;</span>, <span class="ident">proxy_host</span>, <span class="ident">proxy_port</span>)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="ident">stream</span>, <span class="string">&quot;Connection: close\r\n&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="ident">stream</span>, <span class="string">&quot;\r\n&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(stream, <span class="string">&quot;CONNECT {}:{} HTTP/1.1\r\n&quot;</span>, remote_host, remote_port)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(stream, <span class="string">&quot;Host: {}:{}\r\n&quot;</span>, proxy_host, proxy_port)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(stream, <span class="string">&quot;Connection: close\r\n&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(stream, <span class="string">&quot;\r\n&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">BufReaderWrite::new</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#68">stream</a>);
-        <span class="kw">let</span> (<span class="ident">status</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">parse_response_head</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stream</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>stream = BufReaderWrite::new(<a href="../../src/attohttpc/streams.rs.html#68">stream</a>);
+        <span class="kw">let </span>(status, <span class="kw">_</span>) = parse_response_head(<span class="kw-2">&amp;mut </span>stream)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">status</span>.<span class="ident">is_success</span>() {
-            <span class="comment">// Error initializaing tunnel, get status code and up to 10 KiB of data from the body.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="number">2048</span>);
-            <span class="ident">stream</span>.<span class="ident">take</span>(<span class="number">10</span> <span class="op">*</span> <span class="number">1024</span>).<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <a class="ident" href="../../src/attohttpc/error.rs.html#51">ErrorKind::ConnectError</a> {
-                <span class="ident">status_code</span>: <a class="ident" href="../../src/attohttpc/streams.rs.html#89">status</a>,
-                <span class="ident">body</span>: <a class="ident" href="../../src/attohttpc/streams.rs.html#93">buf</a>,
+        <span class="kw">if </span>!status.is_success() {
+            <span class="comment">// Error initializaing tunnel, get status code and up to 10 KiB of data from the body.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::with_capacity(<span class="number">2048</span>);
+            stream.take(<span class="number">10 </span>* <span class="number">1024</span>).read_to_end(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
+            <span class="kw">let </span>err = <a href="../../src/attohttpc/error.rs.html#51">ErrorKind::ConnectError</a> {
+                status_code: <a href="../../src/attohttpc/streams.rs.html#89">status</a>,
+                body: <a href="../../src/attohttpc/streams.rs.html#93">buf</a>,
             };
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#95">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/attohttpc/streams.rs.html#95">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handshaker</span> <span class="op">=</span> <span class="ident">TlsHandshaker::new</span>();
-        <span class="ident">apply_base_settings</span>(<span class="kw-2">&amp;mut</span> <span class="ident">handshaker</span>, <span class="ident">base_settings</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">handshaker</span>.<span class="ident">handshake</span>(<span class="ident">remote_host</span>, <span class="ident">stream</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>handshaker = TlsHandshaker::new();
+        apply_base_settings(<span class="kw-2">&amp;mut </span>handshaker, base_settings)<span class="question-mark">?</span>;
+        <span class="kw">let </span>stream = handshaker.handshake(remote_host, stream)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#35">BaseStream::Tunnel</a> {
-            <span class="ident">stream</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#104">stream</a>),
+        <span class="prelude-val">Ok</span>(<a href="../../src/attohttpc/streams.rs.html#35">BaseStream::Tunnel</a> {
+            stream: Box::new(<a href="../../src/attohttpc/streams.rs.html#104">stream</a>),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">connect_tcp</span>(<span class="ident">host</span>: <span class="kw-2">&amp;</span><span class="ident">Host</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>, <span class="ident">port</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/attohttpc/streams.rs.html#18">ConnectInfo</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">happy::connect</span>(<span class="ident">host</span>, <span class="ident">port</span>, <span class="ident">info</span>.<span class="ident">base_settings</span>.<span class="ident">connect_timeout</span>, <span class="ident">info</span>.<span class="ident">deadline</span>)<span class="question-mark">?</span>;
-        <span class="ident">stream</span>.<span class="ident">set_read_timeout</span>(<span class="prelude-val">Some</span>(<span class="ident">info</span>.<span class="ident">base_settings</span>.<span class="ident">read_timeout</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="ident">info</span>
-            .<span class="ident">deadline</span>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">deadline</span><span class="op">|</span> -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">try_clone</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>();
-                <span class="ident">thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">shutdown</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">deadline</span>.<span class="ident">checked_duration_since</span>(<span class="ident">Instant::now</span>()) {
-                        <span class="prelude-val">Some</span>(<span class="ident">timeout</span>) =&gt; <span class="ident">rx</span>.<span class="ident">recv_timeout</span>(<span class="ident">timeout</span>) <span class="op">==</span> <span class="prelude-val">Err</span>(<span class="ident">mpsc::RecvTimeoutError::Timeout</span>),
-                        <span class="prelude-val">None</span> =&gt; <span class="ident">rx</span>.<span class="ident">try_recv</span>() <span class="op">==</span> <span class="prelude-val">Err</span>(<span class="ident">mpsc::TryRecvError::Empty</span>),
+    <span class="kw">fn </span>connect_tcp(host: <span class="kw-2">&amp;</span>Host&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, info: <span class="kw-2">&amp;</span><a href="../../src/attohttpc/streams.rs.html#18">ConnectInfo</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a>, <span class="prelude-ty">Option</span>&lt;mpsc::Sender&lt;()&gt;&gt;)&gt; {
+        <span class="kw">let </span>stream = happy::connect(host, port, info.base_settings.connect_timeout, info.deadline)<span class="question-mark">?</span>;
+        stream.set_read_timeout(<span class="prelude-val">Some</span>(info.base_settings.read_timeout))<span class="question-mark">?</span>;
+        <span class="kw">let </span>timeout = info
+            .deadline
+            .map(|deadline| -&gt; <span class="prelude-ty">Result</span>&lt;mpsc::Sender&lt;()&gt;&gt; {
+                <span class="kw">let </span>stream = stream.try_clone()<span class="question-mark">?</span>;
+                <span class="kw">let </span>(tx, rx) = mpsc::channel();
+                thread::spawn(<span class="kw">move </span>|| {
+                    <span class="kw">let </span>shutdown = <span class="kw">match </span>deadline.checked_duration_since(Instant::now()) {
+                        <span class="prelude-val">Some</span>(timeout) =&gt; rx.recv_timeout(timeout) == <span class="prelude-val">Err</span>(mpsc::RecvTimeoutError::Timeout),
+                        <span class="prelude-val">None </span>=&gt; rx.try_recv() == <span class="prelude-val">Err</span>(mpsc::TryRecvError::Empty),
                     };
 
-                    <span class="kw">if</span> <span class="ident">shutdown</span> {
-                        <span class="ident">drop</span>(<span class="ident">rx</span>);
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">shutdown</span>(<span class="ident">Shutdown::Both</span>);
+                    <span class="kw">if </span>shutdown {
+                        drop(rx);
+                        <span class="kw">let _ </span>= stream.shutdown(Shutdown::Both);
                     }
                 });
-                <span class="prelude-val">Ok</span>(<span class="ident">tx</span>)
+                <span class="prelude-val">Ok</span>(tx)
             })
-            .<span class="ident">transpose</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/attohttpc/streams.rs.html#112">stream</a>, <a class="ident" href="../../src/attohttpc/streams.rs.html#114">timeout</a>))
+            .transpose()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((<a href="../../src/attohttpc/streams.rs.html#112">stream</a>, <a href="../../src/attohttpc/streams.rs.html#114">timeout</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">connect_tls</span>(<span class="ident">host</span>: <span class="kw-2">&amp;</span><span class="ident">Host</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>, <span class="ident">port</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/attohttpc/streams.rs.html#18">ConnectInfo</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/attohttpc/streams.rs.html#26">BaseStream</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">timeout</span>) <span class="op">=</span> <span class="ident">BaseStream::connect_tcp</span>(<span class="ident">host</span>, <span class="ident">port</span>, <span class="ident">info</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handshaker</span> <span class="op">=</span> <span class="ident">TlsHandshaker::new</span>();
-        <span class="ident">apply_base_settings</span>(<span class="kw-2">&amp;mut</span> <span class="ident">handshaker</span>, <span class="ident">info</span>.<span class="ident">base_settings</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">handshaker</span>.<span class="ident">handshake</span>(<span class="kw-2">&amp;</span><span class="ident">host</span>.<span class="ident">to_string</span>(), <span class="ident">stream</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#31">BaseStream::Tls</a> { <a class="ident" href="../../src/attohttpc/streams.rs.html#140">stream</a>, <a class="ident" href="../../src/attohttpc/streams.rs.html#137">timeout</a> })
+    <span class="kw">fn </span>connect_tls(host: <span class="kw-2">&amp;</span>Host&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, info: <span class="kw-2">&amp;</span><a href="../../src/attohttpc/streams.rs.html#18">ConnectInfo</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt; {
+        <span class="kw">let </span>(stream, timeout) = BaseStream::connect_tcp(host, port, info)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>handshaker = TlsHandshaker::new();
+        apply_base_settings(<span class="kw-2">&amp;mut </span>handshaker, info.base_settings)<span class="question-mark">?</span>;
+        <span class="kw">let </span>stream = handshaker.handshake(<span class="kw-2">&amp;</span>host.to_string(), stream)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../src/attohttpc/streams.rs.html#31">BaseStream::Tls</a> { <a href="../../src/attohttpc/streams.rs.html#140">stream</a>, <a href="../../src/attohttpc/streams.rs.html#137">timeout</a> })
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mock</span>(<span class="ident">bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">BaseStream</span> {
-        <span class="ident">BaseStream::Mock</span>(<span class="ident">Cursor::new</span>(<span class="ident">bytes</span>))
+    <span class="attribute">#[cfg(test)]
+    </span><span class="kw">pub fn </span>mock(bytes: Vec&lt;u8&gt;) -&gt; BaseStream {
+        BaseStream::Mock(Cursor::new(bytes))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <a class="ident" href="../../src/attohttpc/streams.rs.html#26">BaseStream</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/attohttpc/streams.rs.html#152">self</a> {
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#27">BaseStream::Plain</a> { <span class="ident">stream</span>, <span class="ident">timeout</span> } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#187">read_timeout</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#154">stream</a>, <a class="ident" href="../../src/attohttpc/streams.rs.html#152">buf</a>, <a class="ident" href="../../src/attohttpc/streams.rs.html#154">timeout</a>),
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#31">BaseStream::Tls</a> { <span class="ident">stream</span>, <span class="ident">timeout</span> } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#187">read_timeout</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#155">stream</a>, <a class="ident" href="../../src/attohttpc/streams.rs.html#152">buf</a>, <a class="ident" href="../../src/attohttpc/streams.rs.html#155">timeout</a>),
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#35">BaseStream::Tunnel</a> { <span class="ident">stream</span> } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#156">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#152">buf</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-            <span class="ident">BaseStream::Mock</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">read</span>(<span class="ident">buf</span>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../src/attohttpc/streams.rs.html#26">BaseStream</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../src/attohttpc/streams.rs.html#152">self</a> </span>{
+            <a href="../../src/attohttpc/streams.rs.html#27">BaseStream::Plain</a> { stream, timeout } =&gt; <a href="../../src/attohttpc/streams.rs.html#187">read_timeout</a>(<a href="../../src/attohttpc/streams.rs.html#154">stream</a>, <a href="../../src/attohttpc/streams.rs.html#152">buf</a>, <a href="../../src/attohttpc/streams.rs.html#154">timeout</a>),
+            <a href="../../src/attohttpc/streams.rs.html#31">BaseStream::Tls</a> { stream, timeout } =&gt; <a href="../../src/attohttpc/streams.rs.html#187">read_timeout</a>(<a href="../../src/attohttpc/streams.rs.html#155">stream</a>, <a href="../../src/attohttpc/streams.rs.html#152">buf</a>, <a href="../../src/attohttpc/streams.rs.html#155">timeout</a>),
+            <a href="../../src/attohttpc/streams.rs.html#35">BaseStream::Tunnel</a> { stream } =&gt; <a href="../../src/attohttpc/streams.rs.html#156">stream</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../src/attohttpc/streams.rs.html#152">buf</a>),
+            <span class="attribute">#[cfg(test)]
+            </span>BaseStream::Mock(s) =&gt; s.read(buf),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <a class="ident" href="../../src/attohttpc/streams.rs.html#26">BaseStream</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/attohttpc/streams.rs.html#165">self</a> {
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#27">BaseStream::Plain</a> { <span class="ident">stream</span>, .. } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#167">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#165">buf</a>),
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#31">BaseStream::Tls</a> { <span class="ident">stream</span>, .. } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#168">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#165">buf</a>),
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#35">BaseStream::Tunnel</a> { <span class="ident">stream</span> } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#169">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#165">buf</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span><a href="../../src/attohttpc/streams.rs.html#26">BaseStream</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../src/attohttpc/streams.rs.html#165">self</a> </span>{
+            <a href="../../src/attohttpc/streams.rs.html#27">BaseStream::Plain</a> { stream, .. } =&gt; <a href="../../src/attohttpc/streams.rs.html#167">stream</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../src/attohttpc/streams.rs.html#165">buf</a>),
+            <a href="../../src/attohttpc/streams.rs.html#31">BaseStream::Tls</a> { stream, .. } =&gt; <a href="../../src/attohttpc/streams.rs.html#168">stream</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../src/attohttpc/streams.rs.html#165">buf</a>),
+            <a href="../../src/attohttpc/streams.rs.html#35">BaseStream::Tunnel</a> { stream } =&gt; <a href="../../src/attohttpc/streams.rs.html#169">stream</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../src/attohttpc/streams.rs.html#165">buf</a>),
+            <span class="attribute">#[cfg(test)]
+            </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/attohttpc/streams.rs.html#176">self</a> {
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#27">BaseStream::Plain</a> { <span class="ident">stream</span>, .. } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#178">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#31">BaseStream::Tls</a> { <span class="ident">stream</span>, .. } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#179">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
-            <a class="ident" href="../../src/attohttpc/streams.rs.html#35">BaseStream::Tunnel</a> { <span class="ident">stream</span> } =&gt; <a class="ident" href="../../src/attohttpc/streams.rs.html#180">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(()),
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../src/attohttpc/streams.rs.html#176">self</a> </span>{
+            <a href="../../src/attohttpc/streams.rs.html#27">BaseStream::Plain</a> { stream, .. } =&gt; <a href="../../src/attohttpc/streams.rs.html#178">stream</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+            <a href="../../src/attohttpc/streams.rs.html#31">BaseStream::Tls</a> { stream, .. } =&gt; <a href="../../src/attohttpc/streams.rs.html#179">stream</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+            <a href="../../src/attohttpc/streams.rs.html#35">BaseStream::Tunnel</a> { stream } =&gt; <a href="../../src/attohttpc/streams.rs.html#180">stream</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+            <span class="attribute">#[cfg(test)]
+            </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">read_timeout</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">timeout</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../src/attohttpc/streams.rs.html#187">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#187">buf</a>) {
+<span class="kw">fn </span>read_timeout(stream: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], timeout: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;mpsc::Sender&lt;()&gt;&gt;) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+    <span class="kw">match </span><a href="../../src/attohttpc/streams.rs.html#187">stream</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../src/attohttpc/streams.rs.html#187">buf</a>) {
         <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">timeout</span>) <span class="op">=</span> <a class="ident" href="../../src/attohttpc/streams.rs.html#187">timeout</a> {
-                <span class="comment">// On Unix we get a 0 read when the connection is shutdown by the timeout thread.</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">timeout</span>.<span class="ident">send</span>(()).<span class="ident">is_err</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::TimedOut</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = <a href="../../src/attohttpc/streams.rs.html#187">timeout</a> {
+                <span class="comment">// On Unix we get a 0 read when the connection is shutdown by the timeout thread.
+                </span><span class="kw">if </span>!buf.is_empty() &amp;&amp; timeout.send(()).is_err() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(io::ErrorKind::TimedOut.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 }
             }
             <span class="prelude-val">Ok</span>(<span class="number">0</span>)
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">read</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#198">read</a>),
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">timeout</span>) <span class="op">=</span> <a class="ident" href="../../src/attohttpc/streams.rs.html#187">timeout</a> {
-                <span class="comment">// On Windows we get a ConnectionReset when the connection is shutdown by the timeout thread.</span>
-                <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::ConnectionReset</span> <span class="op">&amp;&amp;</span> <span class="ident">timeout</span>.<span class="ident">send</span>(()).<span class="ident">is_err</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::TimedOut</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="prelude-val">Ok</span>(read) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/attohttpc/streams.rs.html#198">read</a>),
+        <span class="prelude-val">Err</span>(err) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = <a href="../../src/attohttpc/streams.rs.html#187">timeout</a> {
+                <span class="comment">// On Windows we get a ConnectionReset when the connection is shutdown by the timeout thread.
+                </span><span class="kw">if </span>err.kind() == io::ErrorKind::ConnectionReset &amp;&amp; timeout.send(()).is_err() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(io::ErrorKind::TimedOut.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 }
             }
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/attohttpc/streams.rs.html#199">err</a>)
+            <span class="prelude-val">Err</span>(<a href="../../src/attohttpc/streams.rs.html#199">err</a>)
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">apply_base_settings</span>(<span class="ident">handshaker</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a>, <span class="ident">base_settings</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../src/attohttpc/streams.rs.html#211">handshaker</a>.<a class="ident" href="../../src/attohttpc/tls/native_tls_impl.rs.html#22">danger_accept_invalid_certs</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#211">base_settings</a>.<span class="ident">accept_invalid_certs</span>);
-    <a class="ident" href="../../src/attohttpc/streams.rs.html#211">handshaker</a>.<a class="ident" href="../../src/attohttpc/tls/native_tls_impl.rs.html#26">danger_accept_invalid_hostnames</a>(<a class="ident" href="../../src/attohttpc/streams.rs.html#211">base_settings</a>.<span class="ident">accept_invalid_hostnames</span>);
-    <span class="kw">for</span> <span class="ident">cert</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">base_settings</span>.<span class="ident">root_certificates</span>.<span class="number">0</span> {
-        <span class="ident">handshaker</span>.<span class="ident">add_root_certificate</span>(<span class="ident">cert</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+<span class="kw">fn </span>apply_base_settings(handshaker: <span class="kw-2">&amp;mut </span><a href="../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a>, base_settings: <span class="kw-2">&amp;</span><a href="../../src/attohttpc/request/settings.rs.html#12">BaseSettings</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <a href="../../src/attohttpc/streams.rs.html#211">handshaker</a>.<a href="../../src/attohttpc/tls/native_tls_impl.rs.html#22">danger_accept_invalid_certs</a>(<a href="../../src/attohttpc/streams.rs.html#211">base_settings</a>.accept_invalid_certs);
+    <a href="../../src/attohttpc/streams.rs.html#211">handshaker</a>.<a href="../../src/attohttpc/tls/native_tls_impl.rs.html#26">danger_accept_invalid_hostnames</a>(<a href="../../src/attohttpc/streams.rs.html#211">base_settings</a>.accept_invalid_hostnames);
+    <span class="kw">for </span>cert <span class="kw">in </span><span class="kw-2">&amp;</span>base_settings.root_certificates.<span class="number">0 </span>{
+        handshaker.add_root_certificate(cert.clone())<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

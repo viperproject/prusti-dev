@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/abbrev.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>abbrev.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/abbrev.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>abbrev.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -994,1001 +994,1001 @@
 <span id="994">994</span>
 <span id="995">995</span>
 <span id="996">996</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Functions for parsing DWARF debugging abbreviations.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Functions for parsing DWARF debugging abbreviations.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree_map/index.html">alloc::collections::btree_map</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">core::convert::TryFrom</a>;
-<span class="kw">use</span> <span class="ident">core::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">core::ops::Deref</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree_map/index.html">alloc::collections::btree_map</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">core::convert::TryFrom</a>;
+<span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">core::ops::Deref</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/gimli/common.rs.html#92">DebugAbbrevOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612">Section</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#314">UnitHeader</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/gimli/common.rs.html#92">DebugAbbrevOffset</a>, <a href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a href="../../../src/gimli/common.rs.html#245">SectionId</a>};
+<span class="kw">use </span><a href="../../../src/gimli/lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
+<span class="kw">use </span><a href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>, <a href="../../../src/gimli/read/mod.rs.html#612">Section</a>, <a href="../../../src/gimli/read/unit.rs.html#314">UnitHeader</a>};
 
-<span class="doccomment">/// The `DebugAbbrev` struct represents the abbreviations describing</span>
-<span class="doccomment">/// `DebuggingInformationEntry`s&#39; attribute names and forms found in the</span>
-<span class="doccomment">/// `.debug_abbrev` section.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugAbbrev</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">debug_abbrev_section</span>: <span class="ident">R</span>,
+<span class="doccomment">/// The `DebugAbbrev` struct represents the abbreviations describing
+/// `DebuggingInformationEntry`s&#39; attribute names and forms found in the
+/// `.debug_abbrev` section.
+</span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
+</span><span class="kw">pub struct </span>DebugAbbrev&lt;R&gt; {
+    debug_abbrev_section: R,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">DebugAbbrev</span><span class="op">&lt;</span><span class="ident">EndianSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>, Endian&gt; DebugAbbrev&lt;EndianSlice&lt;<span class="lifetime">&#39;input</span>, Endian&gt;&gt;
+<span class="kw">where
+    </span>Endian: <a href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
 {
-    <span class="doccomment">/// Construct a new `DebugAbbrev` instance from the data in the `.debug_abbrev`</span>
-    <span class="doccomment">/// section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is the caller&#39;s responsibility to read the `.debug_abbrev` section and</span>
-    <span class="doccomment">/// present it as a `&amp;[u8]` slice. That means using some ELF loader on</span>
-    <span class="doccomment">/// Linux, a Mach-O loader on macOS, etc.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use gimli::{DebugAbbrev, LittleEndian};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # let buf = [0x00, 0x01, 0x02, 0x03];</span>
-    <span class="doccomment">/// # let read_debug_abbrev_section_somehow = || &amp;buf;</span>
-    <span class="doccomment">/// let debug_abbrev = DebugAbbrev::new(read_debug_abbrev_section_somehow(), LittleEndian);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">debug_abbrev_section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">endian</span>: <span class="ident">Endian</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">EndianSlice::new</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#41">debug_abbrev_section</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#41">endian</a>))
+    <span class="doccomment">/// Construct a new `DebugAbbrev` instance from the data in the `.debug_abbrev`
+    /// section.
+    ///
+    /// It is the caller&#39;s responsibility to read the `.debug_abbrev` section and
+    /// present it as a `&amp;[u8]` slice. That means using some ELF loader on
+    /// Linux, a Mach-O loader on macOS, etc.
+    ///
+    /// ```
+    /// use gimli::{DebugAbbrev, LittleEndian};
+    ///
+    /// # let buf = [0x00, 0x01, 0x02, 0x03];
+    /// # let read_debug_abbrev_section_somehow = || &amp;buf;
+    /// let debug_abbrev = DebugAbbrev::new(read_debug_abbrev_section_somehow(), LittleEndian);
+    /// ```
+    </span><span class="kw">pub fn </span>new(debug_abbrev_section: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], endian: Endian) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(EndianSlice::new(<a href="../../../src/gimli/read/abbrev.rs.html#41">debug_abbrev_section</a>, <a href="../../../src/gimli/read/abbrev.rs.html#41">endian</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugAbbrev</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Parse the abbreviations at the given `offset` within this</span>
-    <span class="doccomment">/// `.debug_abbrev` section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `offset` should generally be retrieved from a unit header.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abbreviations</span>(
+<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; DebugAbbrev&lt;R&gt; {
+    <span class="doccomment">/// Parse the abbreviations at the given `offset` within this
+    /// `.debug_abbrev` section.
+    ///
+    /// The `offset` should generally be retrieved from a unit header.
+    </span><span class="kw">pub fn </span>abbreviations(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">debug_abbrev_offset</span>: <span class="ident">DebugAbbrevOffset</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/gimli/read/abbrev.rs.html#52">self</a>.<span class="ident">debug_abbrev_section</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="ident">input</span>.<span class="ident">skip</span>(<span class="ident">debug_abbrev_offset</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="ident">Abbreviations::parse</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#55">input</a>)
+        debug_abbrev_offset: DebugAbbrevOffset&lt;R::Offset&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a>&gt; {
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#52">self</a>.debug_abbrev_section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        input.skip(debug_abbrev_offset.<span class="number">0</span>)<span class="question-mark">?</span>;
+        Abbreviations::parse(<a href="../../../src/gimli/read/abbrev.rs.html#55">input</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DebugAbbrev</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a `DebugAbbrev` section that references the data in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful when `R` implements `Reader` but `T` does not.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Example Usage</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// # let load_section = || unimplemented!();</span>
-    <span class="doccomment">/// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.</span>
-    <span class="doccomment">/// let owned_section: gimli::DebugAbbrev&lt;Vec&lt;u8&gt;&gt; = load_section();</span>
-    <span class="doccomment">/// // Create a reference to the DWARF section.</span>
-    <span class="doccomment">/// let section = owned_section.borrow(|section| {</span>
-    <span class="doccomment">///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">borrow</span>: <span class="ident">F</span>) -&gt; <span class="ident">DebugAbbrev</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) -&gt; <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;T&gt; DebugAbbrev&lt;T&gt; {
+    <span class="doccomment">/// Create a `DebugAbbrev` section that references the data in `self`.
+    ///
+    /// This is useful when `R` implements `Reader` but `T` does not.
+    ///
+    /// ## Example Usage
+    ///
+    /// ```rust,no_run
+    /// # let load_section = || unimplemented!();
+    /// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.
+    /// let owned_section: gimli::DebugAbbrev&lt;Vec&lt;u8&gt;&gt; = load_section();
+    /// // Create a reference to the DWARF section.
+    /// let section = owned_section.borrow(|section| {
+    ///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)
+    /// });
+    /// ```
+    </span><span class="kw">pub fn </span>borrow&lt;<span class="lifetime">&#39;a</span>, F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, <span class="kw-2">mut </span>borrow: F) -&gt; DebugAbbrev&lt;R&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#77">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#77">self</a>.<span class="ident">debug_abbrev_section</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="../../../src/gimli/read/abbrev.rs.html#77">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#77">self</a>.debug_abbrev_section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAbbrev</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
-        <a class="ident" href="../../../src/gimli/common.rs.html#247">SectionId::DebugAbbrev</a>
+<span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugAbbrev&lt;R&gt; {
+    <span class="kw">fn </span>id() -&gt; <a href="../../../src/gimli/common.rs.html#245">SectionId</a> {
+        <a href="../../../src/gimli/common.rs.html#247">SectionId::DebugAbbrev</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">reader</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#90">self</a>.<span class="ident">debug_abbrev_section</span>
+    <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#90">self</a>.debug_abbrev_section
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAbbrev</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">debug_abbrev_section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#19">DebugAbbrev</a> {
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#96">debug_abbrev_section</a>,
+<span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugAbbrev&lt;R&gt; {
+    <span class="kw">fn </span>from(debug_abbrev_section: R) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/gimli/read/abbrev.rs.html#19">DebugAbbrev</a> {
+            <a href="../../../src/gimli/read/abbrev.rs.html#96">debug_abbrev_section</a>,
         }
     }
 }
 
-<span class="doccomment">/// A set of type abbreviations.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Construct an `Abbreviations` instance with the</span>
-<span class="doccomment">/// [`abbreviations()`](struct.UnitHeader.html#method.abbreviations)</span>
-<span class="doccomment">/// method.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Abbreviations</span> {
-    <span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a><span class="op">&gt;</span>,
-    <span class="ident">map</span>: <span class="ident">btree_map::BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A set of type abbreviations.
+///
+/// Construct an `Abbreviations` instance with the
+/// [`abbreviations()`](struct.UnitHeader.html#method.abbreviations)
+/// method.
+</span><span class="attribute">#[derive(Debug, Default, Clone)]
+</span><span class="kw">pub struct </span>Abbreviations {
+    vec: Vec&lt;<a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>&gt;,
+    map: btree_map::BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>, <a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
-    <span class="doccomment">/// Construct a new, empty set of abbreviations.</span>
-    <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
-        <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
-            <span class="ident">vec</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">map</span>: <span class="ident">btree_map::BTreeMap::new</span>(),
+<span class="kw">impl </span><a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
+    <span class="doccomment">/// Construct a new, empty set of abbreviations.
+    </span><span class="kw">fn </span>empty() -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
+        <a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a> {
+            vec: Vec::new(),
+            map: btree_map::BTreeMap::new(),
         }
     }
 
-    <span class="doccomment">/// Insert an abbreviation into the set.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Ok` if it is the first abbreviation in the set with its code,</span>
-    <span class="doccomment">/// `Err` if the code is a duplicate and there already exists an</span>
-    <span class="doccomment">/// abbreviation in the set with the given abbreviation&#39;s code.</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">abbrev</span>: <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>) -&gt; <span class="ident">::core::result::Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">code_usize</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>.<span class="ident">code</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
-        <span class="kw">if</span> <span class="ident">code_usize</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">==</span> <span class="ident">abbrev</span>.<span class="ident">code</span> {
-            <span class="comment">// Optimize for sequential abbreviation codes by storing them</span>
-            <span class="comment">// in a Vec, as long as the map doesn&#39;t already contain them.</span>
-            <span class="comment">// A potential further optimization would be to allow some</span>
-            <span class="comment">// holes in the Vec, but there&#39;s no need for that yet.</span>
-            <span class="kw">if</span> <span class="ident">code_usize</span> <span class="op">-</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">vec</span>.<span class="ident">len</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(());
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">code_usize</span> <span class="op">-</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">vec</span>.<span class="ident">len</span>() {
-                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">map</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">abbrev</span>.<span class="ident">code</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(());
-                } <span class="kw">else</span> {
-                    <a class="self" href="../../../src/gimli/read/abbrev.rs.html#128">self</a>.<span class="ident">vec</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>);
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="doccomment">/// Insert an abbreviation into the set.
+    ///
+    /// Returns `Ok` if it is the first abbreviation in the set with its code,
+    /// `Err` if the code is a duplicate and there already exists an
+    /// abbreviation in the set with the given abbreviation&#39;s code.
+    </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, abbrev: <a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>) -&gt; ::core::result::Result&lt;(), ()&gt; {
+        <span class="kw">let </span>code_usize = <a href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>.code <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+        <span class="kw">if </span>code_usize <span class="kw">as </span>u64 == abbrev.code {
+            <span class="comment">// Optimize for sequential abbreviation codes by storing them
+            // in a Vec, as long as the map doesn&#39;t already contain them.
+            // A potential further optimization would be to allow some
+            // holes in the Vec, but there&#39;s no need for that yet.
+            </span><span class="kw">if </span>code_usize - <span class="number">1 </span>&lt; <span class="self">self</span>.vec.len() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(());
+            } <span class="kw">else if </span>code_usize - <span class="number">1 </span>== <span class="self">self</span>.vec.len() {
+                <span class="kw">if </span>!<span class="self">self</span>.map.is_empty() &amp;&amp; <span class="self">self</span>.map.contains_key(<span class="kw-2">&amp;</span>abbrev.code) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(());
+                } <span class="kw">else </span>{
+                    <a class="self" href="../../../src/gimli/read/abbrev.rs.html#128">self</a>.vec.push(<a href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
             }
         }
-        <span class="kw">match</span> <a class="self" href="../../../src/gimli/read/abbrev.rs.html#128">self</a>.<span class="ident">map</span>.<span class="ident">entry</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>.<span class="ident">code</span>) {
-            <span class="ident">btree_map::Entry::Occupied</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(()),
-            <span class="ident">btree_map::Entry::Vacant</span>(<span class="ident">entry</span>) =&gt; {
-                <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#148">entry</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>);
+        <span class="kw">match </span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#128">self</a>.map.entry(<a href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>.code) {
+            btree_map::Entry::Occupied(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(()),
+            btree_map::Entry::Vacant(entry) =&gt; {
+                <a href="../../../src/gimli/read/abbrev.rs.html#148">entry</a>.insert(<a href="../../../src/gimli/read/abbrev.rs.html#128">abbrev</a>);
                 <span class="prelude-val">Ok</span>(())
             }
         }
     }
 
-    <span class="doccomment">/// Get the abbreviation associated with the given code.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">code</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">code</span>) <span class="op">=</span> <span class="ident">usize::try_from</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#157">code</a>) {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">vec</span>.<span class="ident">len</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#157">self</a>.<span class="ident">vec</span>[<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#159">index</a>]);
+    <span class="doccomment">/// Get the abbreviation associated with the given code.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, code: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(code) = usize::try_from(<a href="../../../src/gimli/read/abbrev.rs.html#157">code</a>) {
+            <span class="kw">let </span>index = code.checked_sub(<span class="number">1</span>)<span class="question-mark">?</span>;
+            <span class="kw">if </span>index &lt; <span class="self">self</span>.vec.len() {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#157">self</a>.vec[<a href="../../../src/gimli/read/abbrev.rs.html#159">index</a>]);
             }
         }
 
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#157">self</a>.<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#157">code</a>)
+        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#157">self</a>.map.get(<span class="kw-2">&amp;</span><a href="../../../src/gimli/read/abbrev.rs.html#157">code</a>)
     }
 
-    <span class="doccomment">/// Parse a series of abbreviations, terminated by a null abbreviation.</span>
-    <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
+    <span class="doccomment">/// Parse a series of abbreviations, terminated by a null abbreviation.
+    </span><span class="kw">fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">abbrev</span>) <span class="op">=</span> <span class="ident">Abbreviation::parse</span>(<span class="ident">input</span>)<span class="question-mark">?</span> {
-            <span class="kw">if</span> <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>).<span class="ident">is_err</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::DuplicateAbbreviationCode</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(abbrev) = Abbreviation::parse(input)<span class="question-mark">? </span>{
+            <span class="kw">if </span>abbrevs.insert(abbrev).is_err() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::DuplicateAbbreviationCode);
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#170">abbrevs</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/abbrev.rs.html#170">abbrevs</a>)
     }
 }
 
-<span class="doccomment">/// An abbreviation describes the shape of a `DebuggingInformationEntry`&#39;s type:</span>
-<span class="doccomment">/// its code, tag type, whether it has children, and its set of attributes.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Abbreviation</span> {
-    <span class="ident">code</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-    <span class="ident">tag</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>,
-    <span class="ident">has_children</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>,
-    <span class="ident">attributes</span>: <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>,
+<span class="doccomment">/// An abbreviation describes the shape of a `DebuggingInformationEntry`&#39;s type:
+/// its code, tag type, whether it has children, and its set of attributes.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Abbreviation {
+    code: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    tag: <a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>,
+    has_children: <a href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>,
+    attributes: <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
-    <span class="doccomment">/// Construct a new `Abbreviation`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ### Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `code` is `0`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">code</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
-        <span class="ident">tag</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>,
-        <span class="ident">has_children</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>,
-        <span class="ident">attributes</span>: <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>,
-    ) -&gt; <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(<span class="ident">code</span>, <span class="number">0</span>);
-        <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#199">code</a>,
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#200">tag</a>,
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#201">has_children</a>,
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#202">attributes</a>,
+<span class="kw">impl </span><a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
+    <span class="doccomment">/// Construct a new `Abbreviation`.
+    ///
+    /// ### Panics
+    ///
+    /// Panics if `code` is `0`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        code: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+        tag: <a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>,
+        has_children: <a href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>,
+        attributes: <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>,
+    ) -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(code, <span class="number">0</span>);
+        <a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a> {
+            <a href="../../../src/gimli/read/abbrev.rs.html#199">code</a>,
+            <a href="../../../src/gimli/read/abbrev.rs.html#200">tag</a>,
+            <a href="../../../src/gimli/read/abbrev.rs.html#201">has_children</a>,
+            <a href="../../../src/gimli/read/abbrev.rs.html#202">attributes</a>,
         }
     }
 
-    <span class="doccomment">/// Get this abbreviation&#39;s code.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#215">self</a>.<span class="ident">code</span>
+    <span class="doccomment">/// Get this abbreviation&#39;s code.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>code(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#215">self</a>.code
     }
 
-    <span class="doccomment">/// Get this abbreviation&#39;s tag.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#221">self</a>.<span class="ident">tag</span>
+    <span class="doccomment">/// Get this abbreviation&#39;s tag.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a> {
+        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#221">self</a>.tag
     }
 
-    <span class="doccomment">/// Return true if this abbreviation&#39;s type has children, false otherwise.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#227">self</a>.<span class="ident">has_children</span> <span class="op">==</span> <a class="ident" href="../../../src/gimli/constants.rs.html#187-194">constants::DW_CHILDREN_yes</a>
+    <span class="doccomment">/// Return true if this abbreviation&#39;s type has children, false otherwise.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>has_children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#227">self</a>.has_children == <a href="../../../src/gimli/constants.rs.html#187-194">constants::DW_CHILDREN_yes</a>
     }
 
-    <span class="doccomment">/// Get this abbreviation&#39;s attributes.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#233">self</a>.<span class="ident">attributes</span>[..]
+    <span class="doccomment">/// Get this abbreviation&#39;s attributes.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>attributes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#233">self</a>.attributes[..]
     }
 
-    <span class="doccomment">/// Parse an abbreviation&#39;s tag.</span>
-    <span class="kw">fn</span> <span class="ident">parse_tag</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_uleb128_u16</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#291">Error::AbbreviationTagZero</a>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#239">val</a>))
+    <span class="doccomment">/// Parse an abbreviation&#39;s tag.
+    </span><span class="kw">fn </span>parse_tag&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>&gt; {
+        <span class="kw">let </span>val = input.read_uleb128_u16()<span class="question-mark">?</span>;
+        <span class="kw">if </span>val == <span class="number">0 </span>{
+            <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#291">Error::AbbreviationTagZero</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/constants.rs.html#196-339">constants::DwTag</a>(<a href="../../../src/gimli/read/abbrev.rs.html#239">val</a>))
         }
     }
 
-    <span class="doccomment">/// Parse an abbreviation&#39;s &quot;does the type have children?&quot; byte.</span>
-    <span class="kw">fn</span> <span class="ident">parse_has_children</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#249">val</a>);
-        <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="ident">constants::DW_CHILDREN_no</span> <span class="op">|</span><span class="op">|</span> <span class="ident">val</span> <span class="op">==</span> <span class="ident">constants::DW_CHILDREN_yes</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#250">val</a>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#297">Error::BadHasChildren</a>)
+    <span class="doccomment">/// Parse an abbreviation&#39;s &quot;does the type have children?&quot; byte.
+    </span><span class="kw">fn </span>parse_has_children&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>&gt; {
+        <span class="kw">let </span>val = input.read_u8()<span class="question-mark">?</span>;
+        <span class="kw">let </span>val = <a href="../../../src/gimli/constants.rs.html#187-194">constants::DwChildren</a>(<a href="../../../src/gimli/read/abbrev.rs.html#249">val</a>);
+        <span class="kw">if </span>val == constants::DW_CHILDREN_no || val == constants::DW_CHILDREN_yes {
+            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/abbrev.rs.html#250">val</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#297">Error::BadHasChildren</a>)
         }
     }
 
-    <span class="doccomment">/// Parse a series of attribute specifications, terminated by a null attribute</span>
-    <span class="doccomment">/// specification.</span>
-    <span class="kw">fn</span> <span class="ident">parse_attributes</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">Attributes::new</span>();
+    <span class="doccomment">/// Parse a series of attribute specifications, terminated by a null attribute
+    /// specification.
+    </span><span class="kw">fn </span>parse_attributes&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>attrs = Attributes::new();
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">attr</span>) <span class="op">=</span> <span class="ident">AttributeSpecification::parse</span>(<span class="ident">input</span>)<span class="question-mark">?</span> {
-            <span class="ident">attrs</span>.<span class="ident">push</span>(<span class="ident">attr</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(attr) = AttributeSpecification::parse(input)<span class="question-mark">? </span>{
+            attrs.push(attr);
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#261">attrs</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/read/abbrev.rs.html#261">attrs</a>)
     }
 
-    <span class="doccomment">/// Parse an abbreviation. Return `None` for the null abbreviation, `Some`</span>
-    <span class="doccomment">/// for an actual abbreviation.</span>
-    <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_uleb128</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+    <span class="doccomment">/// Parse an abbreviation. Return `None` for the null abbreviation, `Some`
+    /// for an actual abbreviation.
+    </span><span class="kw">fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#185">Abbreviation</a>&gt;&gt; {
+        <span class="kw">let </span>code = input.read_uleb128()<span class="question-mark">?</span>;
+        <span class="kw">if </span>code == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::parse_tag</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">has_children</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::parse_has_children</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::parse_attributes</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">abbrev</span> <span class="op">=</span> <span class="ident">Abbreviation::new</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#273">code</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#278">tag</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#279">has_children</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#280">attributes</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#281">abbrev</a>))
+        <span class="kw">let </span>tag = <span class="self">Self</span>::parse_tag(input)<span class="question-mark">?</span>;
+        <span class="kw">let </span>has_children = <span class="self">Self</span>::parse_has_children(input)<span class="question-mark">?</span>;
+        <span class="kw">let </span>attributes = <span class="self">Self</span>::parse_attributes(input)<span class="question-mark">?</span>;
+        <span class="kw">let </span>abbrev = Abbreviation::new(<a href="../../../src/gimli/read/abbrev.rs.html#273">code</a>, <a href="../../../src/gimli/read/abbrev.rs.html#278">tag</a>, <a href="../../../src/gimli/read/abbrev.rs.html#279">has_children</a>, <a href="../../../src/gimli/read/abbrev.rs.html#280">attributes</a>);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/abbrev.rs.html#281">abbrev</a>))
     }
 }
 
-<span class="doccomment">/// A list of attributes found in an `Abbreviation`</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Attributes</span> {
-    <span class="ident">Inline</span> {
-        <span class="ident">buf</span>: [<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>; <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#297">MAX_ATTRIBUTES_INLINE</a>],
-        <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+<span class="doccomment">/// A list of attributes found in an `Abbreviation`
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Attributes {
+    Inline {
+        buf: [<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>; <a href="../../../src/gimli/read/abbrev.rs.html#297">MAX_ATTRIBUTES_INLINE</a>],
+        len: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
     },
-    <span class="ident">Heap</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a><span class="op">&gt;</span>),
+    Heap(Vec&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;),
 }
 
-<span class="comment">// Length of 5 based on benchmark results for both x86-64 and i686.</span>
-<span class="kw">const</span> <span class="ident">MAX_ATTRIBUTES_INLINE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">5</span>;
+<span class="comment">// Length of 5 based on benchmark results for both x86-64 and i686.
+</span><span class="kw">const </span>MAX_ATTRIBUTES_INLINE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">5</span>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="doccomment">/// Returns a new empty list of attributes</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-        <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span>
-            <span class="ident">AttributeSpecification::new</span>(<a class="ident" href="../../../src/gimli/constants.rs.html#341-648">constants::DW_AT_null</a>, <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_null</a>, <span class="prelude-val">None</span>);
-        <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> {
-            <span class="ident">buf</span>: [<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#302">default</a>; <span class="number">5</span>],
-            <span class="ident">len</span>: <span class="number">0</span>,
+<span class="kw">impl </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+    <span class="doccomment">/// Returns a new empty list of attributes
+    </span><span class="kw">fn </span>new() -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+        <span class="kw">let </span>default =
+            AttributeSpecification::new(<a href="../../../src/gimli/constants.rs.html#341-648">constants::DW_AT_null</a>, <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_null</a>, <span class="prelude-val">None</span>);
+        <a href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> {
+            buf: [<a href="../../../src/gimli/read/abbrev.rs.html#302">default</a>; <span class="number">5</span>],
+            len: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Pushes a new value onto this list of attributes.</span>
-    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">attr</span>: <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>) {
-        <span class="kw">match</span> <a class="self" href="../../../src/gimli/read/abbrev.rs.html#311">self</a> {
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(<span class="ident">list</span>) =&gt; <span class="kw">return</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#313">list</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>),
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> {
-                <span class="ident">buf</span>,
-                <span class="ident">len</span>: <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#297">MAX_ATTRIBUTES_INLINE</a>,
+    <span class="doccomment">/// Pushes a new value onto this list of attributes.
+    </span><span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, attr: <a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>) {
+        <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/abbrev.rs.html#311">self</a> </span>{
+            <a href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(list) =&gt; <span class="kw">return </span><a href="../../../src/gimli/read/abbrev.rs.html#313">list</a>.push(<a href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>),
+            <a href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> {
+                buf,
+                len: <a href="../../../src/gimli/read/abbrev.rs.html#297">MAX_ATTRIBUTES_INLINE</a>,
             } =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">list</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#315">buf</a>.<span class="ident">to_vec</span>();
-                <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#318">list</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>);
-                <span class="kw-2">*</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#311">self</a> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#318">list</a>);
+                <span class="kw">let </span><span class="kw-2">mut </span>list = <a href="../../../src/gimli/read/abbrev.rs.html#315">buf</a>.to_vec();
+                <a href="../../../src/gimli/read/abbrev.rs.html#318">list</a>.push(<a href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>);
+                <span class="kw-2">*</span><span class="self"><a href="../../../src/gimli/read/abbrev.rs.html#311">self</a> </span>= <a href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(<a href="../../../src/gimli/read/abbrev.rs.html#318">list</a>);
             }
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> { <span class="ident">buf</span>, <span class="ident">len</span> } =&gt; {
-                <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#322">buf</a>[<span class="kw-2">*</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#322">len</a>] <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>;
-                <span class="kw-2">*</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#322">len</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> { buf, len } =&gt; {
+                <a href="../../../src/gimli/read/abbrev.rs.html#322">buf</a>[<span class="kw-2">*</span><a href="../../../src/gimli/read/abbrev.rs.html#322">len</a>] = <a href="../../../src/gimli/read/abbrev.rs.html#311">attr</a>;
+                <span class="kw-2">*</span><a href="../../../src/gimli/read/abbrev.rs.html#322">len</a> += <span class="number">1</span>;
             }
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#331">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#331">f</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        (<span class="kw-2">&amp;**</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#331">self</a>).<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../src/gimli/read/abbrev.rs.html#331">f</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/gimli/read/abbrev.rs.html#337">self</a> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#337">other</a>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        <span class="kw-2">&amp;**</span><span class="self"><a href="../../../src/gimli/read/abbrev.rs.html#337">self</a> </span>== <span class="kw-2">&amp;**</span><a href="../../../src/gimli/read/abbrev.rs.html#337">other</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> [<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>];
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>] {
-        <span class="kw">match</span> <a class="self" href="../../../src/gimli/read/abbrev.rs.html#346">self</a> {
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> { <span class="ident">buf</span>, <span class="ident">len</span> } =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#348">buf</a>[..<span class="kw-2">*</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#348">len</a>],
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(<span class="ident">list</span>) =&gt; <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#349">list</a>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+    <span class="kw">type </span>Target = [<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>];
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>] {
+        <span class="kw">match </span><span class="self"><a href="../../../src/gimli/read/abbrev.rs.html#346">self</a> </span>{
+            <a href="../../../src/gimli/read/abbrev.rs.html#289">Attributes::Inline</a> { buf, len } =&gt; <span class="kw-2">&amp;</span><a href="../../../src/gimli/read/abbrev.rs.html#348">buf</a>[..<span class="kw-2">*</span><a href="../../../src/gimli/read/abbrev.rs.html#348">len</a>],
+            <a href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(list) =&gt; <a href="../../../src/gimli/read/abbrev.rs.html#349">list</a>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a><span class="op">&gt;</span>,
+<span class="kw">impl </span>FromIterator&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt; <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+    <span class="kw">fn </span>from_iter&lt;I&gt;(iter: I) -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a>
+    <span class="kw">where
+        </span>I: IntoIterator&lt;Item = <a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">list</span> <span class="op">=</span> <span class="ident">Attributes::new</span>();
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">iter</span> {
-            <span class="ident">list</span>.<span class="ident">push</span>(<span class="ident">item</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>list = Attributes::new();
+        <span class="kw">for </span>item <span class="kw">in </span>iter {
+            list.push(item);
         }
-        <span class="kw">return</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#359">list</a>;
+        <span class="kw">return </span><a href="../../../src/gimli/read/abbrev.rs.html#359">list</a>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">list</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
-        <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#368">list</a>)
+<span class="kw">impl </span>From&lt;Vec&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+    <span class="kw">fn </span>from(list: Vec&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;) -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#288">Attributes</a> {
+        <a href="../../../src/gimli/read/abbrev.rs.html#293">Attributes::Heap</a>(<a href="../../../src/gimli/read/abbrev.rs.html#368">list</a>)
     }
 }
 
-<span class="doccomment">/// The description of an attribute in an abbreviated type. It is a pair of name</span>
-<span class="doccomment">/// and form.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AttributeSpecification</span> {
-    <span class="ident">name</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>,
-    <span class="ident">form</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>,
-    <span class="ident">implicit_const_value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>,
+<span class="doccomment">/// The description of an attribute in an abbreviated type. It is a pair of name
+/// and form.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>AttributeSpecification {
+    name: <a href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>,
+    form: <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>,
+    implicit_const_value: <a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
-    <span class="doccomment">/// Construct a new `AttributeSpecification` from the given name and form</span>
-    <span class="doccomment">/// and implicit const value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">name</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>,
-        <span class="ident">form</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>,
-        <span class="ident">implicit_const_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span>,
-    ) -&gt; <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
+<span class="kw">impl </span><a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
+    <span class="doccomment">/// Construct a new `AttributeSpecification` from the given name and form
+    /// and implicit const value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(
+        name: <a href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>,
+        form: <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>,
+        implicit_const_value: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>&gt;,
+    ) -&gt; <a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
-            (<span class="ident">form</span> <span class="op">==</span> <span class="ident">constants::DW_FORM_implicit_const</span> <span class="op">&amp;&amp;</span> <span class="ident">implicit_const_value</span>.<span class="ident">is_some</span>())
-                <span class="op">|</span><span class="op">|</span> (<span class="ident">form</span> <span class="op">!</span><span class="op">=</span> <span class="ident">constants::DW_FORM_implicit_const</span> <span class="op">&amp;&amp;</span> <span class="ident">implicit_const_value</span>.<span class="ident">is_none</span>())
+            (form == constants::DW_FORM_implicit_const &amp;&amp; implicit_const_value.is_some())
+                || (form != constants::DW_FORM_implicit_const &amp;&amp; implicit_const_value.is_none())
         );
-        <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#387">name</a>,
-            <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#388">form</a>,
-            <span class="ident">implicit_const_value</span>: <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#389">implicit_const_value</a>.<span class="ident">unwrap_or</span>(<span class="number">0</span>),
+        <a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a> {
+            <a href="../../../src/gimli/read/abbrev.rs.html#387">name</a>,
+            <a href="../../../src/gimli/read/abbrev.rs.html#388">form</a>,
+            implicit_const_value: <a href="../../../src/gimli/read/abbrev.rs.html#389">implicit_const_value</a>.unwrap_or(<span class="number">0</span>),
         }
     }
 
-    <span class="doccomment">/// Get the attribute&#39;s name.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#404">self</a>.<span class="ident">name</span>
+    <span class="doccomment">/// Get the attribute&#39;s name.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a> {
+        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#404">self</a>.name
     }
 
-    <span class="doccomment">/// Get the attribute&#39;s form.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">form</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a> {
-        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#410">self</a>.<span class="ident">form</span>
+    <span class="doccomment">/// Get the attribute&#39;s form.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>form(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a> {
+        <a class="self" href="../../../src/gimli/read/abbrev.rs.html#410">self</a>.form
     }
 
-    <span class="doccomment">/// Get the attribute&#39;s implicit const value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">implicit_const_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">form</span> <span class="op">==</span> <span class="ident">constants::DW_FORM_implicit_const</span> {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../src/gimli/read/abbrev.rs.html#416">self</a>.<span class="ident">implicit_const_value</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
+    <span class="doccomment">/// Get the attribute&#39;s implicit const value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>implicit_const_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.form == constants::DW_FORM_implicit_const {
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../src/gimli/read/abbrev.rs.html#416">self</a>.implicit_const_value)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Return the size of the attribute, in bytes.
+    ///
+    /// Note that because some attributes are variably sized, the size cannot
+    /// always be known without parsing, in which case we return `None`.
+    </span><span class="kw">pub fn </span>size&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>UnitHeader&lt;R&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+        <a href="../../../src/gimli/read/abbrev.rs.html#469">get_attribute_size</a>(<a class="self" href="../../../src/gimli/read/abbrev.rs.html#428">self</a>.form, <a href="../../../src/gimli/read/abbrev.rs.html#428">header</a>.<a href="../../../src/gimli/read/unit.rs.html#403">encoding</a>()).map(usize::from)
+    }
+
+    <span class="doccomment">/// Parse an attribute&#39;s form.
+    </span><span class="kw">fn </span>parse_form&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>&gt; {
+        <span class="kw">let </span>val = input.read_uleb128_u16()<span class="question-mark">?</span>;
+        <span class="kw">if </span>val == <span class="number">0 </span>{
+            <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#294">Error::AttributeFormZero</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>(<a href="../../../src/gimli/read/abbrev.rs.html#434">val</a>))
         }
     }
 
-    <span class="doccomment">/// Return the size of the attribute, in bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that because some attributes are variably sized, the size cannot</span>
-    <span class="doccomment">/// always be known without parsing, in which case we return `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="ident">UnitHeader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#469">get_attribute_size</a>(<a class="self" href="../../../src/gimli/read/abbrev.rs.html#428">self</a>.<span class="ident">form</span>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#428">header</a>.<a class="ident" href="../../../src/gimli/read/unit.rs.html#403">encoding</a>()).<span class="ident">map</span>(<span class="ident">usize::from</span>)
-    }
-
-    <span class="doccomment">/// Parse an attribute&#39;s form.</span>
-    <span class="kw">fn</span> <span class="ident">parse_form</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_uleb128_u16</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#294">Error::AttributeFormZero</a>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#434">val</a>))
-        }
-    }
-
-    <span class="doccomment">/// Parse an attribute specification. Returns `None` for the null attribute</span>
-    <span class="doccomment">/// specification, `Some` for an actual attribute specification.</span>
-    <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_uleb128_u16</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="comment">// Parse the null attribute specification.</span>
-            <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_uleb128_u16</span>()<span class="question-mark">?</span>;
-            <span class="kw">return</span> <span class="kw">if</span> <span class="ident">form</span> <span class="op">==</span> <span class="number">0</span> {
+    <span class="doccomment">/// Parse an attribute specification. Returns `None` for the null attribute
+    /// specification, `Some` for an actual attribute specification.
+    </span><span class="kw">fn </span>parse&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(input: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/gimli/read/abbrev.rs.html#376">AttributeSpecification</a>&gt;&gt; {
+        <span class="kw">let </span>name = input.read_uleb128_u16()<span class="question-mark">?</span>;
+        <span class="kw">if </span>name == <span class="number">0 </span>{
+            <span class="comment">// Parse the null attribute specification.
+            </span><span class="kw">let </span>form = input.read_uleb128_u16()<span class="question-mark">?</span>;
+            <span class="kw">return if </span>form == <span class="number">0 </span>{
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/gimli/read/mod.rs.html#303">Error::ExpectedZero</a>)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(<a href="../../../src/gimli/read/mod.rs.html#303">Error::ExpectedZero</a>)
             };
         }
 
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#445">name</a>);
-        <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::parse_form</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">implicit_const_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">form</span> <span class="op">==</span> <span class="ident">constants::DW_FORM_implicit_const</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">input</span>.<span class="ident">read_sleb128</span>()<span class="question-mark">?</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
-        <span class="kw">let</span> <span class="ident">spec</span> <span class="op">=</span> <span class="ident">AttributeSpecification::new</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#456">name</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#457">form</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#458">implicit_const_value</a>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#463">spec</a>))
+        <span class="kw">let </span>name = <a href="../../../src/gimli/constants.rs.html#341-648">constants::DwAt</a>(<a href="../../../src/gimli/read/abbrev.rs.html#445">name</a>);
+        <span class="kw">let </span>form = <span class="self">Self</span>::parse_form(input)<span class="question-mark">?</span>;
+        <span class="kw">let </span>implicit_const_value = <span class="kw">if </span>form == constants::DW_FORM_implicit_const {
+            <span class="prelude-val">Some</span>(input.read_sleb128()<span class="question-mark">?</span>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="kw">let </span>spec = AttributeSpecification::new(<a href="../../../src/gimli/read/abbrev.rs.html#456">name</a>, <a href="../../../src/gimli/read/abbrev.rs.html#457">form</a>, <a href="../../../src/gimli/read/abbrev.rs.html#458">implicit_const_value</a>);
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/abbrev.rs.html#463">spec</a>))
     }
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_attribute_size</span>(<span class="ident">form</span>: <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>, <span class="ident">encoding</span>: <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#469">form</a> {
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addr</a> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.<span class="ident">address_size</span>),
+<span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_attribute_size(form: <a href="../../../src/gimli/constants.rs.html#650-712">constants::DwForm</a>, encoding: <a href="../../../src/gimli/common.rs.html#37">Encoding</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>&gt; {
+    <span class="kw">match </span><a href="../../../src/gimli/read/abbrev.rs.html#469">form</a> {
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addr</a> =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.address_size),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_implicit_const</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_flag_present</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_implicit_const</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_flag_present</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data1</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_flag</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx1</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref1</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx1</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data1</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_flag</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx1</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref1</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx1</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data2</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref2</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx2</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx2</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data2</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref2</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx2</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx2</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx3</a> <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx3</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">3</span>),
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx3</a> | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx3</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">3</span>),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data4</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sup4</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref4</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx4</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx4</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">4</span>),
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data4</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sup4</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref4</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strx4</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_addrx4</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">4</span>),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data8</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref8</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sig8</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sup8</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data8</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref8</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sig8</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_sup8</a> =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data16</a>  =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_data16</a>  =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_sec_offset</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_GNU_ref_alt</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strp</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strp_sup</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_GNU_strp_alt</a>
-        <span class="op">|</span> <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_line_strp</a> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.<span class="ident">format</span>.<a class="ident" href="../../../src/gimli/common.rs.html#22">word_size</a>()),
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_sec_offset</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_GNU_ref_alt</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strp</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_strp_sup</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_GNU_strp_alt</a>
+        | <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_line_strp</a> =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.format.<a href="../../../src/gimli/common.rs.html#22">word_size</a>()),
 
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_addr</a> =&gt; {
-            <span class="comment">// This is an offset, but DWARF version 2 specifies that DW_FORM_ref_addr</span>
-            <span class="comment">// has the same size as an address on the target system.  This was changed</span>
-            <span class="comment">// in DWARF version 3.</span>
-            <span class="prelude-val">Some</span>(<span class="kw">if</span> <span class="ident">encoding</span>.<span class="ident">version</span> <span class="op">==</span> <span class="number">2</span> {
-                <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.<span class="ident">address_size</span>
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.<span class="ident">format</span>.<a class="ident" href="../../../src/gimli/common.rs.html#22">word_size</a>()
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_addr</a> =&gt; {
+            <span class="comment">// This is an offset, but DWARF version 2 specifies that DW_FORM_ref_addr
+            // has the same size as an address on the target system.  This was changed
+            // in DWARF version 3.
+            </span><span class="prelude-val">Some</span>(<span class="kw">if </span>encoding.version == <span class="number">2 </span>{
+                <a href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.address_size
+            } <span class="kw">else </span>{
+                <a href="../../../src/gimli/read/abbrev.rs.html#469">encoding</a>.format.<a href="../../../src/gimli/common.rs.html#22">word_size</a>()
             })
         }
 
-        <span class="comment">// Variably sized forms.</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block1</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block2</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block4</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_exprloc</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_udata</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_string</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_sdata</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_udata</a> <span class="op">|</span>
-        <a class="ident" href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_indirect</a> <span class="op">|</span>
+        <span class="comment">// Variably sized forms.
+        </span><a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block1</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block2</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_block4</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_exprloc</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_ref_udata</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_string</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_sdata</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_udata</a> |
+        <a href="../../../src/gimli/constants.rs.html#650-712">constants::DW_FORM_indirect</a> |
 
-        <span class="comment">// We don&#39;t know the size of unknown forms.</span>
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="comment">// We don&#39;t know the size of unknown forms.
+        </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endianity::LittleEndian</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<span class="ident">EndianSlice</span>, <span class="ident">Error</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test_util::GimliSectionMethods</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="ident">core::u32</span>;
-    <span class="kw">use</span> <span class="ident">test_assembler::Section</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">pub mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::constants;
+    <span class="kw">use </span><span class="kw">crate</span>::endianity::LittleEndian;
+    <span class="kw">use </span><span class="kw">crate</span>::read::{EndianSlice, Error};
+    <span class="kw">use </span><span class="kw">crate</span>::test_util::GimliSectionMethods;
+    <span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+    </span><span class="kw">use </span>core::u32;
+    <span class="kw">use </span>test_assembler::Section;
 
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AbbrevSectionMethods</span> {
-        <span class="kw">fn</span> <span class="ident">abbrev</span>(<span class="self">self</span>, <span class="ident">code</span>: <span class="ident">u64</span>, <span class="ident">tag</span>: <span class="ident">constants::DwTag</span>, <span class="ident">children</span>: <span class="ident">constants::DwChildren</span>) -&gt; <span class="self">Self</span>;
-        <span class="kw">fn</span> <span class="ident">abbrev_null</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
-        <span class="kw">fn</span> <span class="ident">abbrev_attr</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">constants::DwAt</span>, <span class="ident">form</span>: <span class="ident">constants::DwForm</span>) -&gt; <span class="self">Self</span>;
-        <span class="kw">fn</span> <span class="ident">abbrev_attr_implicit_const</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">constants::DwAt</span>, <span class="ident">value</span>: <span class="ident">i64</span>) -&gt; <span class="self">Self</span>;
-        <span class="kw">fn</span> <span class="ident">abbrev_attr_null</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">pub trait </span>AbbrevSectionMethods {
+        <span class="kw">fn </span>abbrev(<span class="self">self</span>, code: u64, tag: constants::DwTag, children: constants::DwChildren) -&gt; <span class="self">Self</span>;
+        <span class="kw">fn </span>abbrev_null(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="kw">fn </span>abbrev_attr(<span class="self">self</span>, name: constants::DwAt, form: constants::DwForm) -&gt; <span class="self">Self</span>;
+        <span class="kw">fn </span>abbrev_attr_implicit_const(<span class="self">self</span>, name: constants::DwAt, value: i64) -&gt; <span class="self">Self</span>;
+        <span class="kw">fn </span>abbrev_attr_null(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
     }
 
-    <span class="kw">impl</span> <span class="ident">AbbrevSectionMethods</span> <span class="kw">for</span> <span class="ident">Section</span> {
-        <span class="kw">fn</span> <span class="ident">abbrev</span>(<span class="self">self</span>, <span class="ident">code</span>: <span class="ident">u64</span>, <span class="ident">tag</span>: <span class="ident">constants::DwTag</span>, <span class="ident">children</span>: <span class="ident">constants::DwChildren</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">self</span>.<span class="ident">uleb</span>(<span class="ident">code</span>).<span class="ident">uleb</span>(<span class="ident">tag</span>.<span class="number">0</span>.<span class="ident">into</span>()).<span class="ident">D8</span>(<span class="ident">children</span>.<span class="number">0</span>)
+    <span class="kw">impl </span>AbbrevSectionMethods <span class="kw">for </span>Section {
+        <span class="kw">fn </span>abbrev(<span class="self">self</span>, code: u64, tag: constants::DwTag, children: constants::DwChildren) -&gt; <span class="self">Self </span>{
+            <span class="self">self</span>.uleb(code).uleb(tag.<span class="number">0</span>.into()).D8(children.<span class="number">0</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">abbrev_null</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">self</span>.<span class="ident">D8</span>(<span class="number">0</span>)
+        <span class="kw">fn </span>abbrev_null(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+            <span class="self">self</span>.D8(<span class="number">0</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">abbrev_attr</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">constants::DwAt</span>, <span class="ident">form</span>: <span class="ident">constants::DwForm</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">self</span>.<span class="ident">uleb</span>(<span class="ident">name</span>.<span class="number">0</span>.<span class="ident">into</span>()).<span class="ident">uleb</span>(<span class="ident">form</span>.<span class="number">0</span>.<span class="ident">into</span>())
+        <span class="kw">fn </span>abbrev_attr(<span class="self">self</span>, name: constants::DwAt, form: constants::DwForm) -&gt; <span class="self">Self </span>{
+            <span class="self">self</span>.uleb(name.<span class="number">0</span>.into()).uleb(form.<span class="number">0</span>.into())
         }
 
-        <span class="kw">fn</span> <span class="ident">abbrev_attr_implicit_const</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">constants::DwAt</span>, <span class="ident">value</span>: <span class="ident">i64</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">self</span>.<span class="ident">uleb</span>(<span class="ident">name</span>.<span class="number">0</span>.<span class="ident">into</span>())
-                .<span class="ident">uleb</span>(<span class="ident">constants::DW_FORM_implicit_const</span>.<span class="number">0</span>.<span class="ident">into</span>())
-                .<span class="ident">sleb</span>(<span class="ident">value</span>)
+        <span class="kw">fn </span>abbrev_attr_implicit_const(<span class="self">self</span>, name: constants::DwAt, value: i64) -&gt; <span class="self">Self </span>{
+            <span class="self">self</span>.uleb(name.<span class="number">0</span>.into())
+                .uleb(constants::DW_FORM_implicit_const.<span class="number">0</span>.into())
+                .sleb(value)
         }
 
-        <span class="kw">fn</span> <span class="ident">abbrev_attr_null</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">self</span>.<span class="ident">D8</span>(<span class="number">0</span>).<span class="ident">D8</span>(<span class="number">0</span>)
+        <span class="kw">fn </span>abbrev_attr_null(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+            <span class="self">self</span>.D8(<span class="number">0</span>).D8(<span class="number">0</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_debug_abbrev_ok</span>() {
-        <span class="kw">let</span> <span class="ident">extra_start</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
-        <span class="kw">let</span> <span class="ident">expected_rest</span> <span class="op">=</span> [<span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Section::new</span>()
-            .<span class="ident">append_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">extra_start</span>)
-            .<span class="ident">abbrev</span>(<span class="number">2</span>, <span class="ident">constants::DW_TAG_subprogram</span>, <span class="ident">constants::DW_CHILDREN_no</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_name</span>, <span class="ident">constants::DW_FORM_string</span>)
-                .<span class="ident">abbrev_attr_null</span>()
-            .<span class="ident">abbrev</span>(<span class="number">1</span>, <span class="ident">constants::DW_TAG_compile_unit</span>, <span class="ident">constants::DW_CHILDREN_yes</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_producer</span>, <span class="ident">constants::DW_FORM_strp</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_language</span>, <span class="ident">constants::DW_FORM_data2</span>)
-                .<span class="ident">abbrev_attr_null</span>()
-            .<span class="ident">abbrev_null</span>()
-            .<span class="ident">append_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>)
-            .<span class="ident">get_contents</span>()
-            .<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_debug_abbrev_ok() {
+        <span class="kw">let </span>extra_start = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
+        <span class="kw">let </span>expected_rest = [<span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = Section::new()
+            .append_bytes(<span class="kw-2">&amp;</span>extra_start)
+            .abbrev(<span class="number">2</span>, constants::DW_TAG_subprogram, constants::DW_CHILDREN_no)
+                .abbrev_attr(constants::DW_AT_name, constants::DW_FORM_string)
+                .abbrev_attr_null()
+            .abbrev(<span class="number">1</span>, constants::DW_TAG_compile_unit, constants::DW_CHILDREN_yes)
+                .abbrev_attr(constants::DW_AT_producer, constants::DW_FORM_strp)
+                .abbrev_attr(constants::DW_AT_language, constants::DW_FORM_data2)
+                .abbrev_attr_null()
+            .abbrev_null()
+            .append_bytes(<span class="kw-2">&amp;</span>expected_rest)
+            .get_contents()
+            .unwrap();
 
-        <span class="kw">let</span> <span class="ident">abbrev1</span> <span class="op">=</span> <span class="ident">Abbreviation::new</span>(
+        <span class="kw">let </span>abbrev1 = Abbreviation::new(
             <span class="number">1</span>,
-            <span class="ident">constants::DW_TAG_compile_unit</span>,
-            <span class="ident">constants::DW_CHILDREN_yes</span>,
+            constants::DW_TAG_compile_unit,
+            constants::DW_CHILDREN_yes,
             <span class="macro">vec!</span>[
-                <span class="ident">AttributeSpecification::new</span>(
-                    <span class="ident">constants::DW_AT_producer</span>,
-                    <span class="ident">constants::DW_FORM_strp</span>,
+                AttributeSpecification::new(
+                    constants::DW_AT_producer,
+                    constants::DW_FORM_strp,
                     <span class="prelude-val">None</span>,
                 ),
-                <span class="ident">AttributeSpecification::new</span>(
-                    <span class="ident">constants::DW_AT_language</span>,
-                    <span class="ident">constants::DW_FORM_data2</span>,
+                AttributeSpecification::new(
+                    constants::DW_AT_language,
+                    constants::DW_FORM_data2,
                     <span class="prelude-val">None</span>,
                 ),
             ]
-            .<span class="ident">into</span>(),
+            .into(),
         );
 
-        <span class="kw">let</span> <span class="ident">abbrev2</span> <span class="op">=</span> <span class="ident">Abbreviation::new</span>(
+        <span class="kw">let </span>abbrev2 = Abbreviation::new(
             <span class="number">2</span>,
-            <span class="ident">constants::DW_TAG_subprogram</span>,
-            <span class="ident">constants::DW_CHILDREN_no</span>,
-            <span class="macro">vec!</span>[<span class="ident">AttributeSpecification::new</span>(
-                <span class="ident">constants::DW_AT_name</span>,
-                <span class="ident">constants::DW_FORM_string</span>,
+            constants::DW_TAG_subprogram,
+            constants::DW_CHILDREN_no,
+            <span class="macro">vec!</span>[AttributeSpecification::new(
+                constants::DW_AT_name,
+                constants::DW_FORM_string,
                 <span class="prelude-val">None</span>,
             )]
-            .<span class="ident">into</span>(),
+            .into(),
         );
 
-        <span class="kw">let</span> <span class="ident">debug_abbrev</span> <span class="op">=</span> <span class="ident">DebugAbbrev::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="ident">debug_abbrev_offset</span> <span class="op">=</span> <span class="ident">DebugAbbrevOffset</span>(<span class="ident">extra_start</span>.<span class="ident">len</span>());
-        <span class="kw">let</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">debug_abbrev</span>
-            .<span class="ident">abbreviations</span>(<span class="ident">debug_abbrev_offset</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Should parse abbreviations&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">get</span>(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">abbrev1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">get</span>(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">abbrev2</span>));
+        <span class="kw">let </span>debug_abbrev = DebugAbbrev::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span>debug_abbrev_offset = DebugAbbrevOffset(extra_start.len());
+        <span class="kw">let </span>abbrevs = debug_abbrev
+            .abbreviations(debug_abbrev_offset)
+            .expect(<span class="string">&quot;Should parse abbreviations&quot;</span>);
+        <span class="macro">assert_eq!</span>(abbrevs.get(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>abbrev1));
+        <span class="macro">assert_eq!</span>(abbrevs.get(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>abbrev2));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_abbreviations_insert</span>() {
-        <span class="kw">fn</span> <span class="ident">abbrev</span>(<span class="ident">code</span>: <span class="ident">u16</span>) -&gt; <span class="ident">Abbreviation</span> {
-            <span class="ident">Abbreviation::new</span>(
-                <span class="ident">code</span>.<span class="ident">into</span>(),
-                <span class="ident">constants::DwTag</span>(<span class="ident">code</span>),
-                <span class="ident">constants::DW_CHILDREN_no</span>,
-                <span class="macro">vec!</span>[].<span class="ident">into</span>(),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_abbreviations_insert() {
+        <span class="kw">fn </span>abbrev(code: u16) -&gt; Abbreviation {
+            Abbreviation::new(
+                code.into(),
+                constants::DwTag(code),
+                constants::DW_CHILDREN_no,
+                <span class="macro">vec!</span>[].into(),
             )
         }
 
-        <span class="kw">fn</span> <span class="ident">assert_abbrev</span>(<span class="ident">abbrevs</span>: <span class="kw-2">&amp;</span><span class="ident">Abbreviations</span>, <span class="ident">code</span>: <span class="ident">u16</span>) {
-            <span class="kw">let</span> <span class="ident">abbrev</span> <span class="op">=</span> <span class="ident">abbrevs</span>.<span class="ident">get</span>(<span class="ident">code</span>.<span class="ident">into</span>()).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">abbrev</span>.<span class="ident">tag</span>(), <span class="ident">constants::DwTag</span>(<span class="ident">code</span>));
+        <span class="kw">fn </span>assert_abbrev(abbrevs: <span class="kw-2">&amp;</span>Abbreviations, code: u16) {
+            <span class="kw">let </span>abbrev = abbrevs.get(code.into()).unwrap();
+            <span class="macro">assert_eq!</span>(abbrev.tag(), constants::DwTag(code));
         }
 
-        <span class="comment">// Sequential insert.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">1</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">vec</span>.<span class="ident">len</span>(), <span class="number">2</span>);
-        <span class="macro">assert!</span>(<span class="ident">abbrevs</span>.<span class="ident">map</span>.<span class="ident">is_empty</span>());
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="number">1</span>);
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="number">2</span>);
+        <span class="comment">// Sequential insert.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs.insert(abbrev(<span class="number">1</span>)).unwrap();
+        abbrevs.insert(abbrev(<span class="number">2</span>)).unwrap();
+        <span class="macro">assert_eq!</span>(abbrevs.vec.len(), <span class="number">2</span>);
+        <span class="macro">assert!</span>(abbrevs.map.is_empty());
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, <span class="number">1</span>);
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, <span class="number">2</span>);
 
-        <span class="comment">// Out of order insert.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">3</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">abbrevs</span>.<span class="ident">vec</span>.<span class="ident">is_empty</span>());
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="number">2</span>);
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="number">3</span>);
+        <span class="comment">// Out of order insert.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs.insert(abbrev(<span class="number">2</span>)).unwrap();
+        abbrevs.insert(abbrev(<span class="number">3</span>)).unwrap();
+        <span class="macro">assert!</span>(abbrevs.vec.is_empty());
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, <span class="number">2</span>);
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, <span class="number">3</span>);
 
-        <span class="comment">// Mixed order insert.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">1</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">3</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">vec</span>.<span class="ident">len</span>(), <span class="number">2</span>);
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="number">1</span>);
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="number">2</span>);
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="number">3</span>);
+        <span class="comment">// Mixed order insert.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs.insert(abbrev(<span class="number">1</span>)).unwrap();
+        abbrevs.insert(abbrev(<span class="number">3</span>)).unwrap();
+        abbrevs.insert(abbrev(<span class="number">2</span>)).unwrap();
+        <span class="macro">assert_eq!</span>(abbrevs.vec.len(), <span class="number">2</span>);
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, <span class="number">1</span>);
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, <span class="number">2</span>);
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, <span class="number">3</span>);
 
-        <span class="comment">// Duplicate code in vec.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">1</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">1</span>)), <span class="prelude-val">Err</span>(()));
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)), <span class="prelude-val">Err</span>(()));
+        <span class="comment">// Duplicate code in vec.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs.insert(abbrev(<span class="number">1</span>)).unwrap();
+        abbrevs.insert(abbrev(<span class="number">2</span>)).unwrap();
+        <span class="macro">assert_eq!</span>(abbrevs.insert(abbrev(<span class="number">1</span>)), <span class="prelude-val">Err</span>(()));
+        <span class="macro">assert_eq!</span>(abbrevs.insert(abbrev(<span class="number">2</span>)), <span class="prelude-val">Err</span>(()));
 
-        <span class="comment">// Duplicate code in map when adding to map.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)), <span class="prelude-val">Err</span>(()));
+        <span class="comment">// Duplicate code in map when adding to map.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs.insert(abbrev(<span class="number">2</span>)).unwrap();
+        <span class="macro">assert_eq!</span>(abbrevs.insert(abbrev(<span class="number">2</span>)), <span class="prelude-val">Err</span>(()));
 
-        <span class="comment">// Duplicate code in map when adding to vec.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">1</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)), <span class="prelude-val">Err</span>(()));
+        <span class="comment">// Duplicate code in map when adding to vec.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs.insert(abbrev(<span class="number">2</span>)).unwrap();
+        abbrevs.insert(abbrev(<span class="number">1</span>)).unwrap();
+        <span class="macro">assert_eq!</span>(abbrevs.insert(abbrev(<span class="number">2</span>)), <span class="prelude-val">Err</span>(()));
 
-        <span class="comment">// 32-bit usize conversions.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">2</span>)).<span class="ident">unwrap</span>();
+        <span class="comment">// 32-bit usize conversions.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs.insert(abbrev(<span class="number">2</span>)).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">test_abbreviations_insert_32</span>() {
-        <span class="kw">fn</span> <span class="ident">abbrev</span>(<span class="ident">code</span>: <span class="ident">u64</span>) -&gt; <span class="ident">Abbreviation</span> {
-            <span class="ident">Abbreviation::new</span>(
-                <span class="ident">code</span>,
-                <span class="ident">constants::DwTag</span>(<span class="ident">code</span> <span class="kw">as</span> <span class="ident">u16</span>),
-                <span class="ident">constants::DW_CHILDREN_no</span>,
-                <span class="macro">vec!</span>[].<span class="ident">into</span>(),
+    <span class="attribute">#[test]
+    #[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+    </span><span class="kw">fn </span>test_abbreviations_insert_32() {
+        <span class="kw">fn </span>abbrev(code: u64) -&gt; Abbreviation {
+            Abbreviation::new(
+                code,
+                constants::DwTag(code <span class="kw">as </span>u16),
+                constants::DW_CHILDREN_no,
+                <span class="macro">vec!</span>[].into(),
             )
         }
 
-        <span class="kw">fn</span> <span class="ident">assert_abbrev</span>(<span class="ident">abbrevs</span>: <span class="kw-2">&amp;</span><span class="ident">Abbreviations</span>, <span class="ident">code</span>: <span class="ident">u64</span>) {
-            <span class="kw">let</span> <span class="ident">abbrev</span> <span class="op">=</span> <span class="ident">abbrevs</span>.<span class="ident">get</span>(<span class="ident">code</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">abbrev</span>.<span class="ident">tag</span>(), <span class="ident">constants::DwTag</span>(<span class="ident">code</span> <span class="kw">as</span> <span class="ident">u16</span>));
+        <span class="kw">fn </span>assert_abbrev(abbrevs: <span class="kw-2">&amp;</span>Abbreviations, code: u64) {
+            <span class="kw">let </span>abbrev = abbrevs.get(code).unwrap();
+            <span class="macro">assert_eq!</span>(abbrev.tag(), constants::DwTag(code <span class="kw">as </span>u16));
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="number">1</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs.insert(abbrev(<span class="number">1</span>)).unwrap();
 
-        <span class="kw">let</span> <span class="ident">wrap_code</span> <span class="op">=</span> (<span class="ident">u32::MAX</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <span class="number">1</span>;
-        <span class="comment">// `get` should not treat the wrapped code as `1`.</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">get</span>(<span class="ident">wrap_code</span>), <span class="prelude-val">None</span>);
-        <span class="comment">// `insert` should not treat the wrapped code as `1`.</span>
-        <span class="ident">abbrevs</span>.<span class="ident">insert</span>(<span class="ident">abbrev</span>(<span class="ident">wrap_code</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="number">1</span>);
-        <span class="ident">assert_abbrev</span>(<span class="kw-2">&amp;</span><span class="ident">abbrevs</span>, <span class="ident">wrap_code</span>);
+        <span class="kw">let </span>wrap_code = (u32::MAX <span class="kw">as </span>u64 + <span class="number">1</span>) + <span class="number">1</span>;
+        <span class="comment">// `get` should not treat the wrapped code as `1`.
+        </span><span class="macro">assert_eq!</span>(abbrevs.get(wrap_code), <span class="prelude-val">None</span>);
+        <span class="comment">// `insert` should not treat the wrapped code as `1`.
+        </span>abbrevs.insert(abbrev(wrap_code)).unwrap();
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, <span class="number">1</span>);
+        assert_abbrev(<span class="kw-2">&amp;</span>abbrevs, wrap_code);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_abbreviations_ok</span>() {
-        <span class="kw">let</span> <span class="ident">expected_rest</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Section::new</span>()
-            .<span class="ident">abbrev</span>(<span class="number">2</span>, <span class="ident">constants::DW_TAG_subprogram</span>, <span class="ident">constants::DW_CHILDREN_no</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_name</span>, <span class="ident">constants::DW_FORM_string</span>)
-                .<span class="ident">abbrev_attr_null</span>()
-            .<span class="ident">abbrev</span>(<span class="number">1</span>, <span class="ident">constants::DW_TAG_compile_unit</span>, <span class="ident">constants::DW_CHILDREN_yes</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_producer</span>, <span class="ident">constants::DW_FORM_strp</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_language</span>, <span class="ident">constants::DW_FORM_data2</span>)
-                .<span class="ident">abbrev_attr_null</span>()
-            .<span class="ident">abbrev_null</span>()
-            .<span class="ident">append_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>)
-            .<span class="ident">get_contents</span>()
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_abbreviations_ok() {
+        <span class="kw">let </span>expected_rest = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = Section::new()
+            .abbrev(<span class="number">2</span>, constants::DW_TAG_subprogram, constants::DW_CHILDREN_no)
+                .abbrev_attr(constants::DW_AT_name, constants::DW_FORM_string)
+                .abbrev_attr_null()
+            .abbrev(<span class="number">1</span>, constants::DW_TAG_compile_unit, constants::DW_CHILDREN_yes)
+                .abbrev_attr(constants::DW_AT_producer, constants::DW_FORM_strp)
+                .abbrev_attr(constants::DW_AT_language, constants::DW_FORM_data2)
+                .abbrev_attr_null()
+            .abbrev_null()
+            .append_bytes(<span class="kw-2">&amp;</span>expected_rest)
+            .get_contents()
+            .unwrap();
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;*</span>buf, LittleEndian);
 
-        <span class="kw">let</span> <span class="ident">abbrev1</span> <span class="op">=</span> <span class="ident">Abbreviation::new</span>(
+        <span class="kw">let </span>abbrev1 = Abbreviation::new(
             <span class="number">1</span>,
-            <span class="ident">constants::DW_TAG_compile_unit</span>,
-            <span class="ident">constants::DW_CHILDREN_yes</span>,
+            constants::DW_TAG_compile_unit,
+            constants::DW_CHILDREN_yes,
             <span class="macro">vec!</span>[
-                <span class="ident">AttributeSpecification::new</span>(
-                    <span class="ident">constants::DW_AT_producer</span>,
-                    <span class="ident">constants::DW_FORM_strp</span>,
+                AttributeSpecification::new(
+                    constants::DW_AT_producer,
+                    constants::DW_FORM_strp,
                     <span class="prelude-val">None</span>,
                 ),
-                <span class="ident">AttributeSpecification::new</span>(
-                    <span class="ident">constants::DW_AT_language</span>,
-                    <span class="ident">constants::DW_FORM_data2</span>,
+                AttributeSpecification::new(
+                    constants::DW_AT_language,
+                    constants::DW_FORM_data2,
                     <span class="prelude-val">None</span>,
                 ),
             ]
-            .<span class="ident">into</span>(),
+            .into(),
         );
 
-        <span class="kw">let</span> <span class="ident">abbrev2</span> <span class="op">=</span> <span class="ident">Abbreviation::new</span>(
+        <span class="kw">let </span>abbrev2 = Abbreviation::new(
             <span class="number">2</span>,
-            <span class="ident">constants::DW_TAG_subprogram</span>,
-            <span class="ident">constants::DW_CHILDREN_no</span>,
-            <span class="macro">vec!</span>[<span class="ident">AttributeSpecification::new</span>(
-                <span class="ident">constants::DW_AT_name</span>,
-                <span class="ident">constants::DW_FORM_string</span>,
+            constants::DW_TAG_subprogram,
+            constants::DW_CHILDREN_no,
+            <span class="macro">vec!</span>[AttributeSpecification::new(
+                constants::DW_AT_name,
+                constants::DW_FORM_string,
                 <span class="prelude-val">None</span>,
             )]
-            .<span class="ident">into</span>(),
+            .into(),
         );
 
-        <span class="kw">let</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::parse</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse abbreviations&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">get</span>(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">abbrev1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrevs</span>.<span class="ident">get</span>(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">abbrev2</span>));
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>, <span class="ident">LittleEndian</span>));
+        <span class="kw">let </span>abbrevs = Abbreviations::parse(rest).expect(<span class="string">&quot;Should parse abbreviations&quot;</span>);
+        <span class="macro">assert_eq!</span>(abbrevs.get(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>abbrev1));
+        <span class="macro">assert_eq!</span>(abbrevs.get(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>abbrev2));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>expected_rest, LittleEndian));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_abbreviations_duplicate</span>() {
-        <span class="kw">let</span> <span class="ident">expected_rest</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
-        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Section::new</span>()
-            .<span class="ident">abbrev</span>(<span class="number">1</span>, <span class="ident">constants::DW_TAG_subprogram</span>, <span class="ident">constants::DW_CHILDREN_no</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_name</span>, <span class="ident">constants::DW_FORM_string</span>)
-                .<span class="ident">abbrev_attr_null</span>()
-            .<span class="ident">abbrev</span>(<span class="number">1</span>, <span class="ident">constants::DW_TAG_compile_unit</span>, <span class="ident">constants::DW_CHILDREN_yes</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_producer</span>, <span class="ident">constants::DW_FORM_strp</span>)
-                .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_language</span>, <span class="ident">constants::DW_FORM_data2</span>)
-                .<span class="ident">abbrev_attr_null</span>()
-            .<span class="ident">abbrev_null</span>()
-            .<span class="ident">append_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>)
-            .<span class="ident">get_contents</span>()
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_abbreviations_duplicate() {
+        <span class="kw">let </span>expected_rest = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
+        <span class="attribute">#[rustfmt::skip]
+        </span><span class="kw">let </span>buf = Section::new()
+            .abbrev(<span class="number">1</span>, constants::DW_TAG_subprogram, constants::DW_CHILDREN_no)
+                .abbrev_attr(constants::DW_AT_name, constants::DW_FORM_string)
+                .abbrev_attr_null()
+            .abbrev(<span class="number">1</span>, constants::DW_TAG_compile_unit, constants::DW_CHILDREN_yes)
+                .abbrev_attr(constants::DW_AT_producer, constants::DW_FORM_strp)
+                .abbrev_attr(constants::DW_AT_language, constants::DW_FORM_data2)
+                .abbrev_attr_null()
+            .abbrev_null()
+            .append_bytes(<span class="kw-2">&amp;</span>expected_rest)
+            .get_contents()
+            .unwrap();
+        <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;*</span>buf, LittleEndian);
 
-        <span class="kw">match</span> <span class="ident">Abbreviations::parse</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::DuplicateAbbreviationCode</span>) =&gt; {}
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+        <span class="kw">match </span>Abbreviations::parse(buf) {
+            <span class="prelude-val">Err</span>(Error::DuplicateAbbreviationCode) =&gt; {}
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, otherwise),
         };
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_abbreviation_tag_ok</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x02</span>];
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">Abbreviation::parse_tag</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse tag&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">tag</span>, <span class="ident">constants::DW_TAG_array_type</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">1</span>..], <span class="ident">LittleEndian</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_abbreviation_tag_ok() {
+        <span class="kw">let </span>buf = [<span class="number">0x01</span>, <span class="number">0x02</span>];
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span>tag = Abbreviation::parse_tag(rest).expect(<span class="string">&quot;Should parse tag&quot;</span>);
+        <span class="macro">assert_eq!</span>(tag, constants::DW_TAG_array_type);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>buf[<span class="number">1</span>..], LittleEndian));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_abbreviation_tag_zero</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x00</span>];
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">match</span> <span class="ident">Abbreviation::parse_tag</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::AbbreviationTagZero</span>) =&gt; {}
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_abbreviation_tag_zero() {
+        <span class="kw">let </span>buf = [<span class="number">0x00</span>];
+        <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">match </span>Abbreviation::parse_tag(buf) {
+            <span class="prelude-val">Err</span>(Error::AbbreviationTagZero) =&gt; {}
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, otherwise),
         };
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_abbreviation_has_children</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x00</span>, <span class="number">0x01</span>, <span class="number">0x02</span>];
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Abbreviation::parse_has_children</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse children&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">val</span>, <span class="ident">constants::DW_CHILDREN_no</span>);
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Abbreviation::parse_has_children</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse children&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">val</span>, <span class="ident">constants::DW_CHILDREN_yes</span>);
-        <span class="kw">match</span> <span class="ident">Abbreviation::parse_has_children</span>(<span class="ident">rest</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::BadHasChildren</span>) =&gt; {}
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_abbreviation_has_children() {
+        <span class="kw">let </span>buf = [<span class="number">0x00</span>, <span class="number">0x01</span>, <span class="number">0x02</span>];
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span>val = Abbreviation::parse_has_children(rest).expect(<span class="string">&quot;Should parse children&quot;</span>);
+        <span class="macro">assert_eq!</span>(val, constants::DW_CHILDREN_no);
+        <span class="kw">let </span>val = Abbreviation::parse_has_children(rest).expect(<span class="string">&quot;Should parse children&quot;</span>);
+        <span class="macro">assert_eq!</span>(val, constants::DW_CHILDREN_yes);
+        <span class="kw">match </span>Abbreviation::parse_has_children(rest) {
+            <span class="prelude-val">Err</span>(Error::BadHasChildren) =&gt; {}
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, otherwise),
         };
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_abbreviation_ok</span>() {
-        <span class="kw">let</span> <span class="ident">expected_rest</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>];
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Section::new</span>()
-            .<span class="ident">abbrev</span>(<span class="number">1</span>, <span class="ident">constants::DW_TAG_subprogram</span>, <span class="ident">constants::DW_CHILDREN_no</span>)
-            .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_name</span>, <span class="ident">constants::DW_FORM_string</span>)
-            .<span class="ident">abbrev_attr_null</span>()
-            .<span class="ident">append_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>)
-            .<span class="ident">get_contents</span>()
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_abbreviation_ok() {
+        <span class="kw">let </span>expected_rest = [<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>];
+        <span class="kw">let </span>buf = Section::new()
+            .abbrev(<span class="number">1</span>, constants::DW_TAG_subprogram, constants::DW_CHILDREN_no)
+            .abbrev_attr(constants::DW_AT_name, constants::DW_FORM_string)
+            .abbrev_attr_null()
+            .append_bytes(<span class="kw-2">&amp;</span>expected_rest)
+            .get_contents()
+            .unwrap();
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;*</span>buf, LittleEndian);
 
-        <span class="kw">let</span> <span class="ident">expect</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Abbreviation::new</span>(
+        <span class="kw">let </span>expect = <span class="prelude-val">Some</span>(Abbreviation::new(
             <span class="number">1</span>,
-            <span class="ident">constants::DW_TAG_subprogram</span>,
-            <span class="ident">constants::DW_CHILDREN_no</span>,
-            <span class="macro">vec!</span>[<span class="ident">AttributeSpecification::new</span>(
-                <span class="ident">constants::DW_AT_name</span>,
-                <span class="ident">constants::DW_FORM_string</span>,
+            constants::DW_TAG_subprogram,
+            constants::DW_CHILDREN_no,
+            <span class="macro">vec!</span>[AttributeSpecification::new(
+                constants::DW_AT_name,
+                constants::DW_FORM_string,
                 <span class="prelude-val">None</span>,
             )]
-            .<span class="ident">into</span>(),
+            .into(),
         ));
 
-        <span class="kw">let</span> <span class="ident">abbrev</span> <span class="op">=</span> <span class="ident">Abbreviation::parse</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse abbreviation&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrev</span>, <span class="ident">expect</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>, <span class="ident">LittleEndian</span>));
+        <span class="kw">let </span>abbrev = Abbreviation::parse(rest).expect(<span class="string">&quot;Should parse abbreviation&quot;</span>);
+        <span class="macro">assert_eq!</span>(abbrev, expect);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>expected_rest, LittleEndian));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_abbreviation_implicit_const_ok</span>() {
-        <span class="kw">let</span> <span class="ident">expected_rest</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>];
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Section::new</span>()
-            .<span class="ident">abbrev</span>(<span class="number">1</span>, <span class="ident">constants::DW_TAG_subprogram</span>, <span class="ident">constants::DW_CHILDREN_no</span>)
-            .<span class="ident">abbrev_attr_implicit_const</span>(<span class="ident">constants::DW_AT_name</span>, <span class="op">-</span><span class="number">42</span>)
-            .<span class="ident">abbrev_attr_null</span>()
-            .<span class="ident">append_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>)
-            .<span class="ident">get_contents</span>()
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_abbreviation_implicit_const_ok() {
+        <span class="kw">let </span>expected_rest = [<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>];
+        <span class="kw">let </span>buf = Section::new()
+            .abbrev(<span class="number">1</span>, constants::DW_TAG_subprogram, constants::DW_CHILDREN_no)
+            .abbrev_attr_implicit_const(constants::DW_AT_name, -<span class="number">42</span>)
+            .abbrev_attr_null()
+            .append_bytes(<span class="kw-2">&amp;</span>expected_rest)
+            .get_contents()
+            .unwrap();
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;*</span>buf, LittleEndian);
 
-        <span class="kw">let</span> <span class="ident">expect</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Abbreviation::new</span>(
+        <span class="kw">let </span>expect = <span class="prelude-val">Some</span>(Abbreviation::new(
             <span class="number">1</span>,
-            <span class="ident">constants::DW_TAG_subprogram</span>,
-            <span class="ident">constants::DW_CHILDREN_no</span>,
-            <span class="macro">vec!</span>[<span class="ident">AttributeSpecification::new</span>(
-                <span class="ident">constants::DW_AT_name</span>,
-                <span class="ident">constants::DW_FORM_implicit_const</span>,
-                <span class="prelude-val">Some</span>(<span class="op">-</span><span class="number">42</span>),
+            constants::DW_TAG_subprogram,
+            constants::DW_CHILDREN_no,
+            <span class="macro">vec!</span>[AttributeSpecification::new(
+                constants::DW_AT_name,
+                constants::DW_FORM_implicit_const,
+                <span class="prelude-val">Some</span>(-<span class="number">42</span>),
             )]
-            .<span class="ident">into</span>(),
+            .into(),
         ));
 
-        <span class="kw">let</span> <span class="ident">abbrev</span> <span class="op">=</span> <span class="ident">Abbreviation::parse</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse abbreviation&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">abbrev</span>, <span class="ident">expect</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>, <span class="ident">LittleEndian</span>));
+        <span class="kw">let </span>abbrev = Abbreviation::parse(rest).expect(<span class="string">&quot;Should parse abbreviation&quot;</span>);
+        <span class="macro">assert_eq!</span>(abbrev, expect);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>expected_rest, LittleEndian));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_abbreviation_implicit_const_no_const</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Section::new</span>()
-            .<span class="ident">abbrev</span>(<span class="number">1</span>, <span class="ident">constants::DW_TAG_subprogram</span>, <span class="ident">constants::DW_CHILDREN_no</span>)
-            .<span class="ident">abbrev_attr</span>(<span class="ident">constants::DW_AT_name</span>, <span class="ident">constants::DW_FORM_implicit_const</span>)
-            .<span class="ident">get_contents</span>()
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_abbreviation_implicit_const_no_const() {
+        <span class="kw">let </span>buf = Section::new()
+            .abbrev(<span class="number">1</span>, constants::DW_TAG_subprogram, constants::DW_CHILDREN_no)
+            .abbrev_attr(constants::DW_AT_name, constants::DW_FORM_implicit_const)
+            .get_contents()
+            .unwrap();
+        <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;*</span>buf, LittleEndian);
 
-        <span class="kw">match</span> <span class="ident">Abbreviation::parse</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedEof</span>(<span class="kw">_</span>)) =&gt; {}
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+        <span class="kw">match </span>Abbreviation::parse(buf) {
+            <span class="prelude-val">Err</span>(Error::UnexpectedEof(<span class="kw">_</span>)) =&gt; {}
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, otherwise),
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_null_abbreviation_ok</span>() {
-        <span class="kw">let</span> <span class="ident">expected_rest</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>];
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Section::new</span>()
-            .<span class="ident">abbrev_null</span>()
-            .<span class="ident">append_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>)
-            .<span class="ident">get_contents</span>()
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_null_abbreviation_ok() {
+        <span class="kw">let </span>expected_rest = [<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>];
+        <span class="kw">let </span>buf = Section::new()
+            .abbrev_null()
+            .append_bytes(<span class="kw-2">&amp;</span>expected_rest)
+            .get_contents()
+            .unwrap();
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;*</span>buf, LittleEndian);
 
-        <span class="kw">let</span> <span class="ident">abbrev</span> <span class="op">=</span> <span class="ident">Abbreviation::parse</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse null abbreviation&quot;</span>);
-        <span class="macro">assert!</span>(<span class="ident">abbrev</span>.<span class="ident">is_none</span>());
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">expected_rest</span>, <span class="ident">LittleEndian</span>));
+        <span class="kw">let </span>abbrev = Abbreviation::parse(rest).expect(<span class="string">&quot;Should parse null abbreviation&quot;</span>);
+        <span class="macro">assert!</span>(abbrev.is_none());
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>expected_rest, LittleEndian));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_attribute_form_ok</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x02</span>];
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">AttributeSpecification::parse_form</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse form&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">tag</span>, <span class="ident">constants::DW_FORM_addr</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">1</span>..], <span class="ident">LittleEndian</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_attribute_form_ok() {
+        <span class="kw">let </span>buf = [<span class="number">0x01</span>, <span class="number">0x02</span>];
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span>tag = AttributeSpecification::parse_form(rest).expect(<span class="string">&quot;Should parse form&quot;</span>);
+        <span class="macro">assert_eq!</span>(tag, constants::DW_FORM_addr);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>buf[<span class="number">1</span>..], LittleEndian));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_attribute_form_zero</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x00</span>];
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">match</span> <span class="ident">AttributeSpecification::parse_form</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::AttributeFormZero</span>) =&gt; {}
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_attribute_form_zero() {
+        <span class="kw">let </span>buf = [<span class="number">0x00</span>];
+        <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">match </span>AttributeSpecification::parse_form(buf) {
+            <span class="prelude-val">Err</span>(Error::AttributeFormZero) =&gt; {}
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, otherwise),
         };
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_null_attribute_specification_ok</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x01</span>];
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">let</span> <span class="ident">attr</span> <span class="op">=</span>
-            <span class="ident">AttributeSpecification::parse</span>(<span class="ident">rest</span>).<span class="ident">expect</span>(<span class="string">&quot;Should parse null attribute specification&quot;</span>);
-        <span class="macro">assert!</span>(<span class="ident">attr</span>.<span class="ident">is_none</span>());
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">rest</span>, <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">2</span>..], <span class="ident">LittleEndian</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_null_attribute_specification_ok() {
+        <span class="kw">let </span>buf = [<span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x01</span>];
+        <span class="kw">let </span>rest = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">let </span>attr =
+            AttributeSpecification::parse(rest).expect(<span class="string">&quot;Should parse null attribute specification&quot;</span>);
+        <span class="macro">assert!</span>(attr.is_none());
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>rest, EndianSlice::new(<span class="kw-2">&amp;</span>buf[<span class="number">2</span>..], LittleEndian));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_attribute_specifications_name_zero</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x00</span>, <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x00</span>];
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">match</span> <span class="ident">AttributeSpecification::parse</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::ExpectedZero</span>) =&gt; {}
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_attribute_specifications_name_zero() {
+        <span class="kw">let </span>buf = [<span class="number">0x00</span>, <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x00</span>];
+        <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">match </span>AttributeSpecification::parse(buf) {
+            <span class="prelude-val">Err</span>(Error::ExpectedZero) =&gt; {}
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, otherwise),
         };
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_parse_attribute_specifications_form_zero</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>];
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">LittleEndian</span>);
-        <span class="kw">match</span> <span class="ident">AttributeSpecification::parse</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::AttributeFormZero</span>) =&gt; {}
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_parse_attribute_specifications_form_zero() {
+        <span class="kw">let </span>buf = [<span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>];
+        <span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span>EndianSlice::new(<span class="kw-2">&amp;</span>buf, LittleEndian);
+        <span class="kw">match </span>AttributeSpecification::parse(buf) {
+            <span class="prelude-val">Err</span>(Error::AttributeFormZero) =&gt; {}
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, otherwise),
         };
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_get_abbrev_zero</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">abbrevs</span> <span class="op">=</span> <span class="ident">Abbreviations::empty</span>();
-        <span class="ident">abbrevs</span>
-            .<span class="ident">insert</span>(<span class="ident">Abbreviation::new</span>(
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_get_abbrev_zero() {
+        <span class="kw">let </span><span class="kw-2">mut </span>abbrevs = Abbreviations::empty();
+        abbrevs
+            .insert(Abbreviation::new(
                 <span class="number">1</span>,
-                <span class="ident">constants::DwTag</span>(<span class="number">1</span>),
-                <span class="ident">constants::DW_CHILDREN_no</span>,
-                <span class="macro">vec!</span>[].<span class="ident">into</span>(),
+                constants::DwTag(<span class="number">1</span>),
+                constants::DW_CHILDREN_no,
+                <span class="macro">vec!</span>[].into(),
             ))
-            .<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">abbrevs</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">is_none</span>());
+            .unwrap();
+        <span class="macro">assert!</span>(abbrevs.get(<span class="number">0</span>).is_none());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

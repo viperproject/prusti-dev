@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/async_read_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_read_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/async_read_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_read_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1292,1299 +1292,1299 @@
 <span id="1292">1292</span>
 <span id="1293">1293</span>
 <span id="1294">1294</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::chain</span>::{<a class="ident" href="../../../../src/tokio/io/util/chain.rs.html#22-25">chain</a>, <a class="ident" href="../../../../src/tokio/io/util/chain.rs.html#9-20">Chain</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read</span>::{<a class="ident" href="../../../../src/tokio/io/util/read.rs.html#16-18">read</a>, <a class="ident" href="../../../../src/tokio/io/util/read.rs.html#27-41">Read</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_buf</span>::{<a class="ident" href="../../../../src/tokio/io/util/read_buf.rs.html#11-14">read_buf</a>, <a class="ident" href="../../../../src/tokio/io/util/read_buf.rs.html#23-33">ReadBuf</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_exact</span>::{<a class="ident" href="../../../../src/tokio/io/util/read_exact.rs.html#16-18">read_exact</a>, <a class="ident" href="../../../../src/tokio/io/util/read_exact.rs.html#27-41">ReadExact</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_int</span>::{<a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#145">ReadF32</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#158">ReadF32Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#146">ReadF64</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#159">ReadF64Le</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_int</span>::{
-    <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#143">ReadI128</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#156">ReadI128Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#140">ReadI16</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#153">ReadI16Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#141">ReadI32</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#154">ReadI32Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#142">ReadI64</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#155">ReadI64Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#133">ReadI8</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::util::chain::{<a href="../../../../src/tokio/io/util/chain.rs.html#22-25">chain</a>, <a href="../../../../src/tokio/io/util/chain.rs.html#9-20">Chain</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read::{<a href="../../../../src/tokio/io/util/read.rs.html#16-18">read</a>, <a href="../../../../src/tokio/io/util/read.rs.html#27-41">Read</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_buf::{<a href="../../../../src/tokio/io/util/read_buf.rs.html#11-14">read_buf</a>, <a href="../../../../src/tokio/io/util/read_buf.rs.html#23-33">ReadBuf</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_exact::{<a href="../../../../src/tokio/io/util/read_exact.rs.html#16-18">read_exact</a>, <a href="../../../../src/tokio/io/util/read_exact.rs.html#27-41">ReadExact</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_int::{<a href="../../../../src/tokio/io/util/read_int.rs.html#145">ReadF32</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#158">ReadF32Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#146">ReadF64</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#159">ReadF64Le</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_int::{
+    <a href="../../../../src/tokio/io/util/read_int.rs.html#143">ReadI128</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#156">ReadI128Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#140">ReadI16</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#153">ReadI16Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#141">ReadI32</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#154">ReadI32Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#142">ReadI64</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#155">ReadI64Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#133">ReadI8</a>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_int</span>::{
-    <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#138">ReadU128</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#151">ReadU128Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#135">ReadU16</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#148">ReadU16Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#136">ReadU32</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#149">ReadU32Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#137">ReadU64</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#150">ReadU64Le</a>, <a class="ident" href="../../../../src/tokio/io/util/read_int.rs.html#132">ReadU8</a>,
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_int::{
+    <a href="../../../../src/tokio/io/util/read_int.rs.html#138">ReadU128</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#151">ReadU128Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#135">ReadU16</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#148">ReadU16Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#136">ReadU32</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#149">ReadU32Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#137">ReadU64</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#150">ReadU64Le</a>, <a href="../../../../src/tokio/io/util/read_int.rs.html#132">ReadU8</a>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_to_end</span>::{<a class="ident" href="../../../../src/tokio/io/util/read_to_end.rs.html#27-29">read_to_end</a>, <a class="ident" href="../../../../src/tokio/io/util/read_to_end.rs.html#12-25">ReadToEnd</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::read_to_string</span>::{<a class="ident" href="../../../../src/tokio/io/util/read_to_string.rs.html#33-38">read_to_string</a>, <a class="ident" href="../../../../src/tokio/io/util/read_to_string.rs.html#13-31">ReadToString</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::take</span>::{<a class="ident" href="../../../../src/tokio/io/util/take.rs.html#21">take</a>, <a class="ident" href="../../../../src/tokio/io/util/take.rs.html#8-19">Take</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43"><span class="kw">crate</span>::io::AsyncRead</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_to_end::{<a href="../../../../src/tokio/io/util/read_to_end.rs.html#27-29">read_to_end</a>, <a href="../../../../src/tokio/io/util/read_to_end.rs.html#12-25">ReadToEnd</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::read_to_string::{<a href="../../../../src/tokio/io/util/read_to_string.rs.html#33-38">read_to_string</a>, <a href="../../../../src/tokio/io/util/read_to_string.rs.html#13-31">ReadToString</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::take::{<a href="../../../../src/tokio/io/util/take.rs.html#21">take</a>, <a href="../../../../src/tokio/io/util/take.rs.html#8-19">Take</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/io/async_read.rs.html#43"><span class="kw">crate</span>::io::AsyncRead</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">bytes::BufMut</a>;
+<span class="kw">use </span><a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">bytes::BufMut</a>;
 
-<span class="macro">cfg_io_util!</span> {
-    <span class="doccomment">/// Defines numeric reader</span>
-    <span class="macro">macro_rules!</span> <span class="ident">read_impl</span> {
+<span class="macro">cfg_io_util! </span>{
+    <span class="doccomment">/// Defines numeric reader
+    </span><span class="macro">macro_rules! </span>read_impl {
         (
             $(
-                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
-                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>;
-            )<span class="op">*</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$outer</span>:meta]</span>)*
+                <span class="kw">fn </span><span class="macro-nonterminal">$name</span>:ident(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; $(<span class="macro-nonterminal">$fut</span>:ident)<span class="kw-2">*</span>;
+            )*
         ) =&gt; {
             $(
-                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>]</span>)<span class="op">*</span>
-                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>)<span class="kw-2">*</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Unpin</span> {
-                    $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>)<span class="kw-2">*</span><span class="ident">::new</span>(<span class="self">self</span>)
+                $(<span class="attribute">#[<span class="macro-nonterminal">$outer</span>]</span>)*
+                <span class="kw">fn </span><span class="macro-nonterminal">$name</span>&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; $(<span class="macro-nonterminal">$fut</span>)<span class="kw-2">*</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self</span>&gt; <span class="kw">where </span><span class="self">Self</span>: Unpin {
+                    $(<span class="macro-nonterminal">$fut</span>)<span class="kw-2">*</span>::new(<span class="self">self</span>)
                 }
-            )<span class="op">*</span>
+            )*
         }
     }
 
-    <span class="doccomment">/// Reads bytes from a source.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Implemented as an extension trait, adding utility methods to all</span>
-    <span class="doccomment">/// [`AsyncRead`] types. Callers will tend to import this trait instead of</span>
-    <span class="doccomment">/// [`AsyncRead`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let mut f = File::open(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">///     let mut buffer = [0; 10];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // The `read` method is defined by this trait.</span>
-    <span class="doccomment">///     let n = f.read(&amp;mut buffer[..]).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [module][crate::io] documentation for more details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`AsyncRead`]: AsyncRead</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsyncReadExt</span>: <a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> {
-        <span class="doccomment">/// Creates a new `AsyncRead` instance that chains this stream with</span>
-        <span class="doccomment">/// `next`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The returned `AsyncRead` instance will first read all bytes from this object</span>
-        <span class="doccomment">/// until EOF is encountered. Afterwards the output is equivalent to the</span>
-        <span class="doccomment">/// output of `next`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`][crate::fs::File]s implement `AsyncRead`:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let f1 = File::open(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let f2 = File::open(&quot;bar.txt&quot;).await?;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     let mut handle = f1.chain(f2);</span>
-        <span class="doccomment">///     let mut buffer = String::new();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // read the value into a String. We could use any AsyncRead</span>
-        <span class="doccomment">///     // method here, this is just one example.</span>
-        <span class="doccomment">///     handle.read_to_string(&amp;mut buffer).await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">chain</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">next</span>: <span class="ident">R</span>) -&gt; <span class="ident">Chain</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">R</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
-            <span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>,
+    <span class="doccomment">/// Reads bytes from a source.
+    ///
+    /// Implemented as an extension trait, adding utility methods to all
+    /// [`AsyncRead`] types. Callers will tend to import this trait instead of
+    /// [`AsyncRead`].
+    ///
+    /// ```no_run
+    /// use tokio::fs::File;
+    /// use tokio::io::{self, AsyncReadExt};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let mut f = File::open(&quot;foo.txt&quot;).await?;
+    ///     let mut buffer = [0; 10];
+    ///
+    ///     // The `read` method is defined by this trait.
+    ///     let n = f.read(&amp;mut buffer[..]).await?;
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// See [module][crate::io] documentation for more details.
+    ///
+    /// [`AsyncRead`]: AsyncRead
+    </span><span class="kw">pub trait </span>AsyncReadExt: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> {
+        <span class="doccomment">/// Creates a new `AsyncRead` instance that chains this stream with
+        /// `next`.
+        ///
+        /// The returned `AsyncRead` instance will first read all bytes from this object
+        /// until EOF is encountered. Afterwards the output is equivalent to the
+        /// output of `next`.
+        ///
+        /// # Examples
+        ///
+        /// [`File`][crate::fs::File]s implement `AsyncRead`:
+        ///
+        /// ```no_run
+        /// use tokio::fs::File;
+        /// use tokio::io::{self, AsyncReadExt};
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let f1 = File::open(&quot;foo.txt&quot;).await?;
+        ///     let f2 = File::open(&quot;bar.txt&quot;).await?;
+        ///
+        ///     let mut handle = f1.chain(f2);
+        ///     let mut buffer = String::new();
+        ///
+        ///     // read the value into a String. We could use any AsyncRead
+        ///     // method here, this is just one example.
+        ///     handle.read_to_string(&amp;mut buffer).await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>chain&lt;R&gt;(<span class="self">self</span>, next: R) -&gt; Chain&lt;<span class="self">Self</span>, R&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+            R: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/chain.rs.html#22-25">chain</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#92">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_read_ext.rs.html#92">next</a>)
+            <a href="../../../../src/tokio/io/util/chain.rs.html#22-25">chain</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#92">self</a>, <a href="../../../../src/tokio/io/util/async_read_ext.rs.html#92">next</a>)
         }
 
-        <span class="doccomment">/// Pulls some bytes from this source into the specified buffer,</span>
-        <span class="doccomment">/// returning how many bytes were read.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn read(&amp;mut self, buf: &amp;mut [u8]) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method does not provide any guarantees about whether it</span>
-        <span class="doccomment">/// completes immediately or asynchronously.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Return</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the return value of this method is `Ok(n)`, then it must be</span>
-        <span class="doccomment">/// guaranteed that `0 &lt;= n &lt;= buf.len()`. A nonzero `n` value indicates</span>
-        <span class="doccomment">/// that the buffer `buf` has been filled in with `n` bytes of data from</span>
-        <span class="doccomment">/// this source. If `n` is `0`, then it can indicate one of two</span>
-        <span class="doccomment">/// scenarios:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// 1. This reader has reached its &quot;end of file&quot; and will likely no longer</span>
-        <span class="doccomment">///    be able to produce bytes. Note that this does not mean that the</span>
-        <span class="doccomment">///    reader will *always* no longer be able to produce bytes.</span>
-        <span class="doccomment">/// 2. The buffer specified was 0 bytes in length.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// No guarantees are provided about the contents of `buf` when this</span>
-        <span class="doccomment">/// function is called, implementations cannot rely on any property of the</span>
-        <span class="doccomment">/// contents of `buf` being `true`. It is recommended that *implementations*</span>
-        <span class="doccomment">/// only write data to `buf` instead of reading its contents.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Correspondingly, however, *callers* of this method may not assume</span>
-        <span class="doccomment">/// any guarantees about how the implementation uses `buf`. It is</span>
-        <span class="doccomment">/// possible that the code that&#39;s supposed to write to the buffer might</span>
-        <span class="doccomment">/// also read from it. It is your responsibility to make sure that `buf`</span>
-        <span class="doccomment">/// is initialized before calling `read`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If this function encounters any form of I/O or other error, an error</span>
-        <span class="doccomment">/// variant will be returned. If an error is returned then it must be</span>
-        <span class="doccomment">/// guaranteed that no bytes were read.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is cancel safe. If you use it as the event in a</span>
-        <span class="doccomment">/// [`tokio::select!`](crate::select) statement and some other branch</span>
-        <span class="doccomment">/// completes first, then it is guaranteed that no data was read.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`][crate::fs::File]s implement `Read`:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut f = File::open(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = [0; 10];</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // read up to 10 bytes</span>
-        <span class="doccomment">///     let n = f.read(&amp;mut buffer[..]).await?;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     println!(&quot;The bytes: {:?}&quot;, &amp;buffer[..n]);</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">Read</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Pulls some bytes from this source into the specified buffer,
+        /// returning how many bytes were read.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn read(&amp;mut self, buf: &amp;mut [u8]) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// This method does not provide any guarantees about whether it
+        /// completes immediately or asynchronously.
+        ///
+        /// # Return
+        ///
+        /// If the return value of this method is `Ok(n)`, then it must be
+        /// guaranteed that `0 &lt;= n &lt;= buf.len()`. A nonzero `n` value indicates
+        /// that the buffer `buf` has been filled in with `n` bytes of data from
+        /// this source. If `n` is `0`, then it can indicate one of two
+        /// scenarios:
+        ///
+        /// 1. This reader has reached its &quot;end of file&quot; and will likely no longer
+        ///    be able to produce bytes. Note that this does not mean that the
+        ///    reader will *always* no longer be able to produce bytes.
+        /// 2. The buffer specified was 0 bytes in length.
+        ///
+        /// No guarantees are provided about the contents of `buf` when this
+        /// function is called, implementations cannot rely on any property of the
+        /// contents of `buf` being `true`. It is recommended that *implementations*
+        /// only write data to `buf` instead of reading its contents.
+        ///
+        /// Correspondingly, however, *callers* of this method may not assume
+        /// any guarantees about how the implementation uses `buf`. It is
+        /// possible that the code that&#39;s supposed to write to the buffer might
+        /// also read from it. It is your responsibility to make sure that `buf`
+        /// is initialized before calling `read`.
+        ///
+        /// # Errors
+        ///
+        /// If this function encounters any form of I/O or other error, an error
+        /// variant will be returned. If an error is returned then it must be
+        /// guaranteed that no bytes were read.
+        ///
+        /// # Cancel safety
+        ///
+        /// This method is cancel safe. If you use it as the event in a
+        /// [`tokio::select!`](crate::select) statement and some other branch
+        /// completes first, then it is guaranteed that no data was read.
+        ///
+        /// # Examples
+        ///
+        /// [`File`][crate::fs::File]s implement `Read`:
+        ///
+        /// ```no_run
+        /// use tokio::fs::File;
+        /// use tokio::io::{self, AsyncReadExt};
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut f = File::open(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = [0; 10];
+        ///
+        ///     // read up to 10 bytes
+        ///     let n = f.read(&amp;mut buffer[..]).await?;
+        ///
+        ///     println!(&quot;The bytes: {:?}&quot;, &amp;buffer[..n]);
+        ///     Ok(())
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>read&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Read&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/read.rs.html#16-18">read</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#168">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_read_ext.rs.html#168">buf</a>)
+            <a href="../../../../src/tokio/io/util/read.rs.html#16-18">read</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#168">self</a>, <a href="../../../../src/tokio/io/util/async_read_ext.rs.html#168">buf</a>)
         }
 
-        <span class="doccomment">/// Pulls some bytes from this source into the specified buffer,</span>
-        <span class="doccomment">/// advancing the buffer&#39;s internal cursor.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn read_buf&lt;B: BufMut&gt;(&amp;mut self, buf: &amp;mut B) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Usually, only a single `read` syscall is issued, even if there is</span>
-        <span class="doccomment">/// more space in the supplied buffer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method does not provide any guarantees about whether it</span>
-        <span class="doccomment">/// completes immediately or asynchronously.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Return</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// A nonzero `n` value indicates that the buffer `buf` has been filled</span>
-        <span class="doccomment">/// in with `n` bytes of data from this source. If `n` is `0`, then it</span>
-        <span class="doccomment">/// can indicate one of two scenarios:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// 1. This reader has reached its &quot;end of file&quot; and will likely no longer</span>
-        <span class="doccomment">///    be able to produce bytes. Note that this does not mean that the</span>
-        <span class="doccomment">///    reader will *always* no longer be able to produce bytes.</span>
-        <span class="doccomment">/// 2. The buffer specified had a remaining capacity of zero.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If this function encounters any form of I/O or other error, an error</span>
-        <span class="doccomment">/// variant will be returned. If an error is returned then it must be</span>
-        <span class="doccomment">/// guaranteed that no bytes were read.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is cancel safe. If you use it as the event in a</span>
-        <span class="doccomment">/// [`tokio::select!`](crate::select) statement and some other branch</span>
-        <span class="doccomment">/// completes first, then it is guaranteed that no data was read.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`] implements `Read` and [`BytesMut`] implements [`BufMut`]:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`]: crate::fs::File</span>
-        <span class="doccomment">/// [`BytesMut`]: bytes::BytesMut</span>
-        <span class="doccomment">/// [`BufMut`]: bytes::BufMut</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// use bytes::BytesMut;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut f = File::open(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = BytesMut::with_capacity(10);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     assert!(buffer.is_empty());</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // read up to 10 bytes, note that the return value is not needed</span>
-        <span class="doccomment">///     // to access the data that was read as `buffer`&#39;s internal</span>
-        <span class="doccomment">///     // cursor is updated.</span>
-        <span class="doccomment">///     f.read_buf(&amp;mut buffer).await?;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     println!(&quot;The bytes: {:?}&quot;, &amp;buffer[..]);</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">read_buf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">B</span>) -&gt; <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span>, <span class="ident">B</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-            <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>,
+        <span class="doccomment">/// Pulls some bytes from this source into the specified buffer,
+        /// advancing the buffer&#39;s internal cursor.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn read_buf&lt;B: BufMut&gt;(&amp;mut self, buf: &amp;mut B) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// Usually, only a single `read` syscall is issued, even if there is
+        /// more space in the supplied buffer.
+        ///
+        /// This method does not provide any guarantees about whether it
+        /// completes immediately or asynchronously.
+        ///
+        /// # Return
+        ///
+        /// A nonzero `n` value indicates that the buffer `buf` has been filled
+        /// in with `n` bytes of data from this source. If `n` is `0`, then it
+        /// can indicate one of two scenarios:
+        ///
+        /// 1. This reader has reached its &quot;end of file&quot; and will likely no longer
+        ///    be able to produce bytes. Note that this does not mean that the
+        ///    reader will *always* no longer be able to produce bytes.
+        /// 2. The buffer specified had a remaining capacity of zero.
+        ///
+        /// # Errors
+        ///
+        /// If this function encounters any form of I/O or other error, an error
+        /// variant will be returned. If an error is returned then it must be
+        /// guaranteed that no bytes were read.
+        ///
+        /// # Cancel safety
+        ///
+        /// This method is cancel safe. If you use it as the event in a
+        /// [`tokio::select!`](crate::select) statement and some other branch
+        /// completes first, then it is guaranteed that no data was read.
+        ///
+        /// # Examples
+        ///
+        /// [`File`] implements `Read` and [`BytesMut`] implements [`BufMut`]:
+        ///
+        /// [`File`]: crate::fs::File
+        /// [`BytesMut`]: bytes::BytesMut
+        /// [`BufMut`]: bytes::BufMut
+        ///
+        /// ```no_run
+        /// use tokio::fs::File;
+        /// use tokio::io::{self, AsyncReadExt};
+        ///
+        /// use bytes::BytesMut;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut f = File::open(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = BytesMut::with_capacity(10);
+        ///
+        ///     assert!(buffer.is_empty());
+        ///
+        ///     // read up to 10 bytes, note that the return value is not needed
+        ///     // to access the data that was read as `buffer`&#39;s internal
+        ///     // cursor is updated.
+        ///     f.read_buf(&amp;mut buffer).await?;
+        ///
+        ///     println!(&quot;The bytes: {:?}&quot;, &amp;buffer[..]);
+        ///     Ok(())
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>read_buf&lt;<span class="lifetime">&#39;a</span>, B&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>B) -&gt; ReadBuf&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>, B&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            B: <a href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/read_buf.rs.html#11-14">read_buf</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#243">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_read_ext.rs.html#243">buf</a>)
+            <a href="../../../../src/tokio/io/util/read_buf.rs.html#11-14">read_buf</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#243">self</a>, <a href="../../../../src/tokio/io/util/async_read_ext.rs.html#243">buf</a>)
         }
 
-        <span class="doccomment">/// Reads the exact number of bytes required to fill `buf`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn read_exact(&amp;mut self, buf: &amp;mut [u8]) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function reads as many bytes as necessary to completely fill</span>
-        <span class="doccomment">/// the specified buffer `buf`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the operation encounters an &quot;end of file&quot; before completely</span>
-        <span class="doccomment">/// filling the buffer, it returns an error of the kind</span>
-        <span class="doccomment">/// [`ErrorKind::UnexpectedEof`]. The contents of `buf` are unspecified</span>
-        <span class="doccomment">/// in this case.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If any other read error is encountered then the operation</span>
-        <span class="doccomment">/// immediately returns. The contents of `buf` are unspecified in this</span>
-        <span class="doccomment">/// case.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If this operation returns an error, it is unspecified how many bytes</span>
-        <span class="doccomment">/// it has read, but it will never read more than would be necessary to</span>
-        <span class="doccomment">/// completely fill the buffer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is not cancellation safe. If the method is used as the</span>
-        <span class="doccomment">/// event in a [`tokio::select!`](crate::select) statement and some</span>
-        <span class="doccomment">/// other branch completes first, then some data may already have been</span>
-        <span class="doccomment">/// read into `buf`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`][crate::fs::File]s implement `Read`:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut f = File::open(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = [0; 10];</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // read exactly 10 bytes</span>
-        <span class="doccomment">///     f.read_exact(&amp;mut buffer).await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`ErrorKind::UnexpectedEof`]: std::io::ErrorKind::UnexpectedEof</span>
-        <span class="kw">fn</span> <span class="ident">read_exact</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">ReadExact</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Reads the exact number of bytes required to fill `buf`.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn read_exact(&amp;mut self, buf: &amp;mut [u8]) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// This function reads as many bytes as necessary to completely fill
+        /// the specified buffer `buf`.
+        ///
+        /// # Errors
+        ///
+        /// If the operation encounters an &quot;end of file&quot; before completely
+        /// filling the buffer, it returns an error of the kind
+        /// [`ErrorKind::UnexpectedEof`]. The contents of `buf` are unspecified
+        /// in this case.
+        ///
+        /// If any other read error is encountered then the operation
+        /// immediately returns. The contents of `buf` are unspecified in this
+        /// case.
+        ///
+        /// If this operation returns an error, it is unspecified how many bytes
+        /// it has read, but it will never read more than would be necessary to
+        /// completely fill the buffer.
+        ///
+        /// # Cancel safety
+        ///
+        /// This method is not cancellation safe. If the method is used as the
+        /// event in a [`tokio::select!`](crate::select) statement and some
+        /// other branch completes first, then some data may already have been
+        /// read into `buf`.
+        ///
+        /// # Examples
+        ///
+        /// [`File`][crate::fs::File]s implement `Read`:
+        ///
+        /// ```no_run
+        /// use tokio::fs::File;
+        /// use tokio::io::{self, AsyncReadExt};
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut f = File::open(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = [0; 10];
+        ///
+        ///     // read exactly 10 bytes
+        ///     f.read_exact(&amp;mut buffer).await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        ///
+        /// [`ErrorKind::UnexpectedEof`]: std::io::ErrorKind::UnexpectedEof
+        </span><span class="kw">fn </span>read_exact&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; ReadExact&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/read_exact.rs.html#16-18">read_exact</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#304">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_read_ext.rs.html#304">buf</a>)
+            <a href="../../../../src/tokio/io/util/read_exact.rs.html#16-18">read_exact</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#304">self</a>, <a href="../../../../src/tokio/io/util/async_read_ext.rs.html#304">buf</a>)
         }
 
-        <a class="macro" href="../../../../src/tokio/io/util/async_read_ext.rs.html#21-35">read_impl!</a> {
-            <span class="doccomment">/// Reads an unsigned 8 bit integer from the underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u8(&amp;mut self) -&gt; io::Result&lt;u8&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 8 bit integers from an `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![2, 5]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(2, reader.read_u8().await?);</span>
-            <span class="doccomment">///     assert_eq!(5, reader.read_u8().await?);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU8</span>;
+        <a class="macro" href="../../../../src/tokio/io/util/async_read_ext.rs.html#21-35">read_impl! </a>{
+            <span class="doccomment">/// Reads an unsigned 8 bit integer from the underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u8(&amp;mut self) -&gt; io::Result&lt;u8&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 8 bit integers from an `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![2, 5]);
+            ///
+            ///     assert_eq!(2, reader.read_u8().await?);
+            ///     assert_eq!(5, reader.read_u8().await?);
+            ///
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU8;
 
-            <span class="doccomment">/// Reads a signed 8 bit integer from the underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i8(&amp;mut self) -&gt; io::Result&lt;i8&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 8 bit integers from an `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0x02, 0xfb]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(2, reader.read_i8().await?);</span>
-            <span class="doccomment">///     assert_eq!(-5, reader.read_i8().await?);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI8</span>;
+            <span class="doccomment">/// Reads a signed 8 bit integer from the underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i8(&amp;mut self) -&gt; io::Result&lt;i8&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 8 bit integers from an `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0x02, 0xfb]);
+            ///
+            ///     assert_eq!(2, reader.read_i8().await?);
+            ///     assert_eq!(-5, reader.read_i8().await?);
+            ///
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI8;
 
-            <span class="doccomment">/// Reads an unsigned 16-bit integer in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u16(&amp;mut self) -&gt; io::Result&lt;u16&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 16 bit big-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![2, 5, 3, 0]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(517, reader.read_u16().await?);</span>
-            <span class="doccomment">///     assert_eq!(768, reader.read_u16().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU16</span>;
+            <span class="doccomment">/// Reads an unsigned 16-bit integer in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u16(&amp;mut self) -&gt; io::Result&lt;u16&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 16 bit big-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![2, 5, 3, 0]);
+            ///
+            ///     assert_eq!(517, reader.read_u16().await?);
+            ///     assert_eq!(768, reader.read_u16().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU16;
 
-            <span class="doccomment">/// Reads a signed 16-bit integer in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i16(&amp;mut self) -&gt; io::Result&lt;i16&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read signed 16 bit big-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0x00, 0xc1, 0xff, 0x7c]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(193, reader.read_i16().await?);</span>
-            <span class="doccomment">///     assert_eq!(-132, reader.read_i16().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI16</span>;
+            <span class="doccomment">/// Reads a signed 16-bit integer in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i16(&amp;mut self) -&gt; io::Result&lt;i16&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read signed 16 bit big-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0x00, 0xc1, 0xff, 0x7c]);
+            ///
+            ///     assert_eq!(193, reader.read_i16().await?);
+            ///     assert_eq!(-132, reader.read_i16().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI16;
 
-            <span class="doccomment">/// Reads an unsigned 32-bit integer in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u32(&amp;mut self) -&gt; io::Result&lt;u32&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 32-bit big-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0x00, 0x00, 0x01, 0x0b]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(267, reader.read_u32().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU32</span>;
+            <span class="doccomment">/// Reads an unsigned 32-bit integer in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u32(&amp;mut self) -&gt; io::Result&lt;u32&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 32-bit big-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0x00, 0x00, 0x01, 0x0b]);
+            ///
+            ///     assert_eq!(267, reader.read_u32().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU32;
 
-            <span class="doccomment">/// Reads a signed 32-bit integer in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i32(&amp;mut self) -&gt; io::Result&lt;i32&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read signed 32-bit big-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0xff, 0xff, 0x7a, 0x33]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(-34253, reader.read_i32().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI32</span>;
+            <span class="doccomment">/// Reads a signed 32-bit integer in big-endian order from the
+            /// underlying reader.
+            ///
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i32(&amp;mut self) -&gt; io::Result&lt;i32&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read signed 32-bit big-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0xff, 0xff, 0x7a, 0x33]);
+            ///
+            ///     assert_eq!(-34253, reader.read_i32().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI32;
 
-            <span class="doccomment">/// Reads an unsigned 64-bit integer in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u64(&amp;mut self) -&gt; io::Result&lt;u64&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 64-bit big-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![</span>
-            <span class="doccomment">///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(918733457491587, reader.read_u64().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU64</span>;
+            <span class="doccomment">/// Reads an unsigned 64-bit integer in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u64(&amp;mut self) -&gt; io::Result&lt;u64&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 64-bit big-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![
+            ///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83
+            ///     ]);
+            ///
+            ///     assert_eq!(918733457491587, reader.read_u64().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU64;
 
-            <span class="doccomment">/// Reads an signed 64-bit integer in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i64(&amp;mut self) -&gt; io::Result&lt;i64&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read signed 64-bit big-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0x80, 0, 0, 0, 0, 0, 0, 0]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(i64::MIN, reader.read_i64().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI64</span>;
+            <span class="doccomment">/// Reads an signed 64-bit integer in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i64(&amp;mut self) -&gt; io::Result&lt;i64&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read signed 64-bit big-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0x80, 0, 0, 0, 0, 0, 0, 0]);
+            ///
+            ///     assert_eq!(i64::MIN, reader.read_i64().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI64;
 
-            <span class="doccomment">/// Reads an unsigned 128-bit integer in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u128(&amp;mut self) -&gt; io::Result&lt;u128&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 128-bit big-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![</span>
-            <span class="doccomment">///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83,</span>
-            <span class="doccomment">///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(16947640962301618749969007319746179, reader.read_u128().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU128</span>;
+            <span class="doccomment">/// Reads an unsigned 128-bit integer in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u128(&amp;mut self) -&gt; io::Result&lt;u128&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 128-bit big-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![
+            ///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83,
+            ///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83
+            ///     ]);
+            ///
+            ///     assert_eq!(16947640962301618749969007319746179, reader.read_u128().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU128;
 
-            <span class="doccomment">/// Reads an signed 128-bit integer in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i128(&amp;mut self) -&gt; io::Result&lt;i128&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read signed 128-bit big-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![</span>
-            <span class="doccomment">///         0x80, 0, 0, 0, 0, 0, 0, 0,</span>
-            <span class="doccomment">///         0, 0, 0, 0, 0, 0, 0, 0</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(i128::MIN, reader.read_i128().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI128</span>;
+            <span class="doccomment">/// Reads an signed 128-bit integer in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i128(&amp;mut self) -&gt; io::Result&lt;i128&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read signed 128-bit big-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![
+            ///         0x80, 0, 0, 0, 0, 0, 0, 0,
+            ///         0, 0, 0, 0, 0, 0, 0, 0
+            ///     ]);
+            ///
+            ///     assert_eq!(i128::MIN, reader.read_i128().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI128;
 
-            <span class="doccomment">/// Reads an 32-bit floating point type in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_f32(&amp;mut self) -&gt; io::Result&lt;f32&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read 32-bit floating point type from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0xff, 0x7f, 0xff, 0xff]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(f32::MIN, reader.read_f32().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_f32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadF32</span>;
+            <span class="doccomment">/// Reads an 32-bit floating point type in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_f32(&amp;mut self) -&gt; io::Result&lt;f32&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read 32-bit floating point type from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0xff, 0x7f, 0xff, 0xff]);
+            ///
+            ///     assert_eq!(f32::MIN, reader.read_f32().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadF32;
 
-            <span class="doccomment">/// Reads an 64-bit floating point type in big-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_f64(&amp;mut self) -&gt; io::Result&lt;f64&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read 64-bit floating point type from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![</span>
-            <span class="doccomment">///         0xff, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(f64::MIN, reader.read_f64().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_f64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadF64</span>;
+            <span class="doccomment">/// Reads an 64-bit floating point type in big-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_f64(&amp;mut self) -&gt; io::Result&lt;f64&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read 64-bit floating point type from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![
+            ///         0xff, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+            ///     ]);
+            ///
+            ///     assert_eq!(f64::MIN, reader.read_f64().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadF64;
 
-            <span class="doccomment">/// Reads an unsigned 16-bit integer in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u16_le(&amp;mut self) -&gt; io::Result&lt;u16&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 16 bit little-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![2, 5, 3, 0]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(1282, reader.read_u16_le().await?);</span>
-            <span class="doccomment">///     assert_eq!(3, reader.read_u16_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU16Le</span>;
+            <span class="doccomment">/// Reads an unsigned 16-bit integer in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u16_le(&amp;mut self) -&gt; io::Result&lt;u16&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 16 bit little-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![2, 5, 3, 0]);
+            ///
+            ///     assert_eq!(1282, reader.read_u16_le().await?);
+            ///     assert_eq!(3, reader.read_u16_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU16Le;
 
-            <span class="doccomment">/// Reads a signed 16-bit integer in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i16_le(&amp;mut self) -&gt; io::Result&lt;i16&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read signed 16 bit little-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0x00, 0xc1, 0xff, 0x7c]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(-16128, reader.read_i16_le().await?);</span>
-            <span class="doccomment">///     assert_eq!(31999, reader.read_i16_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI16Le</span>;
+            <span class="doccomment">/// Reads a signed 16-bit integer in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i16_le(&amp;mut self) -&gt; io::Result&lt;i16&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read signed 16 bit little-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0x00, 0xc1, 0xff, 0x7c]);
+            ///
+            ///     assert_eq!(-16128, reader.read_i16_le().await?);
+            ///     assert_eq!(31999, reader.read_i16_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI16Le;
 
-            <span class="doccomment">/// Reads an unsigned 32-bit integer in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u32_le(&amp;mut self) -&gt; io::Result&lt;u32&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 32-bit little-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0x00, 0x00, 0x01, 0x0b]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(184614912, reader.read_u32_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU32Le</span>;
+            <span class="doccomment">/// Reads an unsigned 32-bit integer in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u32_le(&amp;mut self) -&gt; io::Result&lt;u32&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 32-bit little-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0x00, 0x00, 0x01, 0x0b]);
+            ///
+            ///     assert_eq!(184614912, reader.read_u32_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU32Le;
 
-            <span class="doccomment">/// Reads a signed 32-bit integer in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i32_le(&amp;mut self) -&gt; io::Result&lt;i32&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read signed 32-bit little-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0xff, 0xff, 0x7a, 0x33]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(863698943, reader.read_i32_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI32Le</span>;
+            <span class="doccomment">/// Reads a signed 32-bit integer in little-endian order from the
+            /// underlying reader.
+            ///
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i32_le(&amp;mut self) -&gt; io::Result&lt;i32&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read signed 32-bit little-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0xff, 0xff, 0x7a, 0x33]);
+            ///
+            ///     assert_eq!(863698943, reader.read_i32_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI32Le;
 
-            <span class="doccomment">/// Reads an unsigned 64-bit integer in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u64_le(&amp;mut self) -&gt; io::Result&lt;u64&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 64-bit little-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![</span>
-            <span class="doccomment">///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(9477368352180732672, reader.read_u64_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU64Le</span>;
+            <span class="doccomment">/// Reads an unsigned 64-bit integer in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u64_le(&amp;mut self) -&gt; io::Result&lt;u64&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 64-bit little-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![
+            ///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83
+            ///     ]);
+            ///
+            ///     assert_eq!(9477368352180732672, reader.read_u64_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU64Le;
 
-            <span class="doccomment">/// Reads an signed 64-bit integer in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i64_le(&amp;mut self) -&gt; io::Result&lt;i64&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read signed 64-bit little-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0x80, 0, 0, 0, 0, 0, 0, 0]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(128, reader.read_i64_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI64Le</span>;
+            <span class="doccomment">/// Reads an signed 64-bit integer in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i64_le(&amp;mut self) -&gt; io::Result&lt;i64&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read signed 64-bit little-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0x80, 0, 0, 0, 0, 0, 0, 0]);
+            ///
+            ///     assert_eq!(128, reader.read_i64_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI64Le;
 
-            <span class="doccomment">/// Reads an unsigned 128-bit integer in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_u128_le(&amp;mut self) -&gt; io::Result&lt;u128&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read unsigned 128-bit little-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![</span>
-            <span class="doccomment">///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83,</span>
-            <span class="doccomment">///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(174826588484952389081207917399662330624, reader.read_u128_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_u128_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadU128Le</span>;
+            <span class="doccomment">/// Reads an unsigned 128-bit integer in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_u128_le(&amp;mut self) -&gt; io::Result&lt;u128&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read unsigned 128-bit little-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![
+            ///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83,
+            ///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83
+            ///     ]);
+            ///
+            ///     assert_eq!(174826588484952389081207917399662330624, reader.read_u128_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadU128Le;
 
-            <span class="doccomment">/// Reads an signed 128-bit integer in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_i128_le(&amp;mut self) -&gt; io::Result&lt;i128&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read signed 128-bit little-endian integers from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![</span>
-            <span class="doccomment">///         0x80, 0, 0, 0, 0, 0, 0, 0,</span>
-            <span class="doccomment">///         0, 0, 0, 0, 0, 0, 0, 0</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(128, reader.read_i128_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_i128_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadI128Le</span>;
+            <span class="doccomment">/// Reads an signed 128-bit integer in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_i128_le(&amp;mut self) -&gt; io::Result&lt;i128&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read signed 128-bit little-endian integers from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![
+            ///         0x80, 0, 0, 0, 0, 0, 0, 0,
+            ///         0, 0, 0, 0, 0, 0, 0, 0
+            ///     ]);
+            ///
+            ///     assert_eq!(128, reader.read_i128_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadI128Le;
 
-            <span class="doccomment">/// Reads an 32-bit floating point type in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_f32_le(&amp;mut self) -&gt; io::Result&lt;f32&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read 32-bit floating point type from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![0xff, 0xff, 0x7f, 0xff]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(f32::MIN, reader.read_f32_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_f32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadF32Le</span>;
+            <span class="doccomment">/// Reads an 32-bit floating point type in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_f32_le(&amp;mut self) -&gt; io::Result&lt;f32&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read 32-bit floating point type from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![0xff, 0xff, 0x7f, 0xff]);
+            ///
+            ///     assert_eq!(f32::MIN, reader.read_f32_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadF32Le;
 
-            <span class="doccomment">/// Reads an 64-bit floating point type in little-endian order from the</span>
-            <span class="doccomment">/// underlying reader.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn read_f64_le(&amp;mut self) -&gt; io::Result&lt;f64&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered reader to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncReadExt::read_exact`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Read 64-bit floating point type from a `AsyncRead`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// use std::io::Cursor;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut reader = Cursor::new(vec![</span>
-            <span class="doccomment">///         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xef, 0xff</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(f64::MIN, reader.read_f64_le().await?);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">read_f64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ReadF64Le</span>;
+            <span class="doccomment">/// Reads an 64-bit floating point type in little-endian order from the
+            /// underlying reader.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn read_f64_le(&amp;mut self) -&gt; io::Result&lt;f64&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered reader to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncReadExt::read_exact`].
+            ///
+            /// [`AsyncReadExt::read_exact`]: AsyncReadExt::read_exact
+            ///
+            /// # Examples
+            ///
+            /// Read 64-bit floating point type from a `AsyncRead`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncReadExt};
+            ///
+            /// use std::io::Cursor;
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut reader = Cursor::new(vec![
+            ///         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xef, 0xff
+            ///     ]);
+            ///
+            ///     assert_eq!(f64::MIN, reader.read_f64_le().await?);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>read_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ReadF64Le;
         }
 
-        <span class="doccomment">/// Reads all bytes until EOF in this source, placing them into `buf`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn read_to_end(&amp;mut self, buf: &amp;mut Vec&lt;u8&gt;) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// All bytes read from this source will be appended to the specified</span>
-        <span class="doccomment">/// buffer `buf`. This function will continuously call [`read()`] to</span>
-        <span class="doccomment">/// append more data to `buf` until [`read()`] returns `Ok(0)`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If successful, the total number of bytes read is returned.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`read()`]: AsyncReadExt::read</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If a read error is encountered then the `read_to_end` operation</span>
-        <span class="doccomment">/// immediately completes. Any bytes which have already been read will</span>
-        <span class="doccomment">/// be appended to `buf`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`][crate::fs::File]s implement `Read`:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut f = File::open(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = Vec::new();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // read the whole file</span>
-        <span class="doccomment">///     f.read_to_end(&amp;mut buffer).await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// (See also the [`tokio::fs::read`] convenience function for reading from a</span>
-        <span class="doccomment">/// file.)</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`tokio::fs::read`]: fn@crate::fs::read</span>
-        <span class="kw">fn</span> <span class="ident">read_to_end</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <span class="ident">ReadToEnd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Reads all bytes until EOF in this source, placing them into `buf`.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn read_to_end(&amp;mut self, buf: &amp;mut Vec&lt;u8&gt;) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// All bytes read from this source will be appended to the specified
+        /// buffer `buf`. This function will continuously call [`read()`] to
+        /// append more data to `buf` until [`read()`] returns `Ok(0)`.
+        ///
+        /// If successful, the total number of bytes read is returned.
+        ///
+        /// [`read()`]: AsyncReadExt::read
+        ///
+        /// # Errors
+        ///
+        /// If a read error is encountered then the `read_to_end` operation
+        /// immediately completes. Any bytes which have already been read will
+        /// be appended to `buf`.
+        ///
+        /// # Examples
+        ///
+        /// [`File`][crate::fs::File]s implement `Read`:
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, AsyncReadExt};
+        /// use tokio::fs::File;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut f = File::open(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = Vec::new();
+        ///
+        ///     // read the whole file
+        ///     f.read_to_end(&amp;mut buffer).await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        ///
+        /// (See also the [`tokio::fs::read`] convenience function for reading from a
+        /// file.)
+        ///
+        /// [`tokio::fs::read`]: fn@crate::fs::read
+        </span><span class="kw">fn </span>read_to_end&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; ReadToEnd&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/read_to_end.rs.html#27-29">read_to_end</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1200">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1200">buf</a>)
+            <a href="../../../../src/tokio/io/util/read_to_end.rs.html#27-29">read_to_end</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1200">self</a>, <a href="../../../../src/tokio/io/util/async_read_ext.rs.html#1200">buf</a>)
         }
 
-        <span class="doccomment">/// Reads all bytes until EOF in this source, appending them to `buf`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn read_to_string(&amp;mut self, buf: &amp;mut String) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If successful, the number of bytes which were read and appended to</span>
-        <span class="doccomment">/// `buf` is returned.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the data in this stream is *not* valid UTF-8 then an error is</span>
-        <span class="doccomment">/// returned and `buf` is unchanged.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// See [`read_to_end`][AsyncReadExt::read_to_end] for other error semantics.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`][crate::fs::File]s implement `Read`:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut f = File::open(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = String::new();</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     f.read_to_string(&amp;mut buffer).await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// (See also the [`crate::fs::read_to_string`] convenience function for</span>
-        <span class="doccomment">/// reading from a file.)</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`crate::fs::read_to_string`]: fn@crate::fs::read_to_string</span>
-        <span class="kw">fn</span> <span class="ident">read_to_string</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="ident">ReadToString</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Reads all bytes until EOF in this source, appending them to `buf`.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn read_to_string(&amp;mut self, buf: &amp;mut String) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// If successful, the number of bytes which were read and appended to
+        /// `buf` is returned.
+        ///
+        /// # Errors
+        ///
+        /// If the data in this stream is *not* valid UTF-8 then an error is
+        /// returned and `buf` is unchanged.
+        ///
+        /// See [`read_to_end`][AsyncReadExt::read_to_end] for other error semantics.
+        ///
+        /// # Examples
+        ///
+        /// [`File`][crate::fs::File]s implement `Read`:
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, AsyncReadExt};
+        /// use tokio::fs::File;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut f = File::open(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = String::new();
+        ///
+        ///     f.read_to_string(&amp;mut buffer).await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        ///
+        /// (See also the [`crate::fs::read_to_string`] convenience function for
+        /// reading from a file.)
+        ///
+        /// [`crate::fs::read_to_string`]: fn@crate::fs::read_to_string
+        </span><span class="kw">fn </span>read_to_string&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; ReadToString&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/read_to_string.rs.html#33-38">read_to_string</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1247">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1247">dst</a>)
+            <a href="../../../../src/tokio/io/util/read_to_string.rs.html#33-38">read_to_string</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1247">self</a>, <a href="../../../../src/tokio/io/util/async_read_ext.rs.html#1247">dst</a>)
         }
 
-        <span class="doccomment">/// Creates an adaptor which reads at most `limit` bytes from it.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function returns a new instance of `AsyncRead` which will read</span>
-        <span class="doccomment">/// at most `limit` bytes, after which it will always return EOF</span>
-        <span class="doccomment">/// (`Ok(0)`). Any read errors will not count towards the number of</span>
-        <span class="doccomment">/// bytes read and future calls to [`read()`] may succeed.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`read()`]: fn@crate::io::AsyncReadExt::read</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [read]: AsyncReadExt::read</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`][crate::fs::File]s implement `Read`:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncReadExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let f = File::open(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = [0; 5];</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // read at most five bytes</span>
-        <span class="doccomment">///     let mut handle = f.take(5);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     handle.read(&amp;mut buffer).await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">take</span>(<span class="self">self</span>, <span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">Take</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+        <span class="doccomment">/// Creates an adaptor which reads at most `limit` bytes from it.
+        ///
+        /// This function returns a new instance of `AsyncRead` which will read
+        /// at most `limit` bytes, after which it will always return EOF
+        /// (`Ok(0)`). Any read errors will not count towards the number of
+        /// bytes read and future calls to [`read()`] may succeed.
+        ///
+        /// [`read()`]: fn@crate::io::AsyncReadExt::read
+        ///
+        /// [read]: AsyncReadExt::read
+        ///
+        /// # Examples
+        ///
+        /// [`File`][crate::fs::File]s implement `Read`:
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, AsyncReadExt};
+        /// use tokio::fs::File;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let f = File::open(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = [0; 5];
+        ///
+        ///     // read at most five bytes
+        ///     let mut handle = f.take(5);
+        ///
+        ///     handle.read(&amp;mut buffer).await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>take(<span class="self">self</span>, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; Take&lt;<span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/take.rs.html#21">take</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1285">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1285">limit</a>)
+            <a href="../../../../src/tokio/io/util/take.rs.html#21">take</a>(<a class="self" href="../../../../src/tokio/io/util/async_read_ext.rs.html#1285">self</a>, <a href="../../../../src/tokio/io/util/async_read_ext.rs.html#1285">limit</a>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/io/util/async_read_ext.rs.html#62">AsyncReadExt</a> <span class="kw">for</span> <span class="ident">R</span> {}
+<span class="kw">impl</span>&lt;R: <a href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../../src/tokio/io/util/async_read_ext.rs.html#62">AsyncReadExt</a> <span class="kw">for </span>R {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/md.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>md.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/md.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>md.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -228,235 +228,235 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cvt_p</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::ErrorStack</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::lib_ctx::LibCtxRef</span>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <span class="ident">foreign_types</span>::{<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>, <a class="ident" href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>};
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::ffi::CString</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::ptr</span>;
+</pre><pre class="rust"><code><span class="attribute">#[cfg(ossl300)]
+</span><span class="kw">use </span><span class="kw">crate</span>::cvt_p;
+<span class="attribute">#[cfg(ossl300)]
+</span><span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+<span class="attribute">#[cfg(ossl300)]
+</span><span class="kw">use </span><span class="kw">crate</span>::lib_ctx::LibCtxRef;
+<span class="kw">use </span><a href="../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
+<span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>, <a href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>};
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="attribute">#[cfg(ossl300)]
+</span><span class="kw">use </span>std::ffi::CString;
+<span class="attribute">#[cfg(ossl300)]
+</span><span class="kw">use </span>std::ptr;
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
-        <span class="kw">use</span> <span class="ident">foreign_types::ForeignType</span>;
-        <span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(ossl300)] </span>{
+        <span class="kw">use </span>foreign_types::ForeignType;
+        <span class="kw">use </span>std::ops::{Deref, DerefMut};
 
-        <span class="kw">type</span> <span class="ident">Inner</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">ffi::EVP_MD</span>;
+        <span class="kw">type </span>Inner = <span class="kw-2">*mut </span>ffi::EVP_MD;
 
-        <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Md</span> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">ffi::EVP_MD_free</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>());
+        <span class="kw">impl </span>Drop <span class="kw">for </span>Md {
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+                <span class="kw">unsafe </span>{
+                    ffi::EVP_MD_free(<span class="self">self</span>.as_ptr());
                 }
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ForeignType</span> <span class="kw">for</span> <span class="ident">Md</span> {
-            <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <span class="ident">ffi::EVP_MD</span>;
-            <span class="kw">type</span> <span class="ident">Ref</span> <span class="op">=</span> <span class="ident">MdRef</span>;
+        <span class="kw">impl </span>ForeignType <span class="kw">for </span>Md {
+            <span class="kw">type </span>CType = ffi::EVP_MD;
+            <span class="kw">type </span>Ref = MdRef;
 
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_ptr</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident"><span class="self">Self</span>::CType</span>) -&gt; <span class="self">Self</span> {
-                <span class="ident">Md</span>(<span class="ident">ptr</span>)
+            <span class="attribute">#[inline]
+            </span><span class="kw">unsafe fn </span>from_ptr(ptr: <span class="kw-2">*mut </span><span class="self">Self</span>::CType) -&gt; <span class="self">Self </span>{
+                Md(ptr)
             }
 
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident"><span class="self">Self</span>::CType</span> {
-                <span class="self">self</span>.<span class="number">0</span>
-            }
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><span class="self">Self</span>::CType {
+                <span class="self">self</span>.<span class="number">0
+            </span>}
         }
 
-        <span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Md</span> {
-            <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">MdRef</span>;
+        <span class="kw">impl </span>Deref <span class="kw">for </span>Md {
+            <span class="kw">type </span>Target = MdRef;
 
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">MdRef::from_ptr</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>())
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+                <span class="kw">unsafe </span>{
+                    MdRef::from_ptr(<span class="self">self</span>.as_ptr())
                 }
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">Md</span> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Target</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">MdRef::from_ptr_mut</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>())
+        <span class="kw">impl </span>DerefMut <span class="kw">for </span>Md {
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
+                <span class="kw">unsafe </span>{
+                    MdRef::from_ptr_mut(<span class="self">self</span>.as_ptr())
                 }
             }
         }
-    } <span class="kw">else</span> {
-        <span class="kw">enum</span> <span class="ident">Inner</span> {}
+    } <span class="kw">else </span>{
+        <span class="kw">enum </span>Inner {}
     }
 }
 
-<span class="doccomment">/// A message digest algorithm.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Md</span>(<a class="ident" href="../../src/openssl/md.rs.html#67">Inner</a>);
+<span class="doccomment">/// A message digest algorithm.
+</span><span class="kw">pub struct </span>Md(<a href="../../src/openssl/md.rs.html#67">Inner</a>);
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/md.rs.html#72">Md</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/md.rs.html#72">Md</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../src/openssl/md.rs.html#72">Md</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/openssl/md.rs.html#72">Md</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/md.rs.html#72">Md</a> {
-    <span class="doccomment">/// Returns the `Md` corresponding to an [`Nid`].</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_get_digestbynid</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_nid</span>(<span class="ident">type_</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EVP_get_digestbynid</span>(<a class="ident" href="../../src/openssl/md.rs.html#80">type_</a>.<a class="ident" href="../../src/openssl/nid.rs.html#60">as_raw</a>());
-            <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">MdRef::from_ptr</span>(<a class="ident" href="../../src/openssl/md.rs.html#82">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
+<span class="kw">impl </span><a href="../../src/openssl/md.rs.html#72">Md</a> {
+    <span class="doccomment">/// Returns the `Md` corresponding to an [`Nid`].
+    </span><span class="attribute">#[corresponds(EVP_get_digestbynid)]
+    </span><span class="kw">pub fn </span>from_nid(type_: <a href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>ptr = ffi::EVP_get_digestbynid(<a href="../../src/openssl/md.rs.html#80">type_</a>.<a href="../../src/openssl/nid.rs.html#60">as_raw</a>());
+            <span class="kw">if </span>ptr.is_null() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(MdRef::from_ptr(<a href="../../src/openssl/md.rs.html#82">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>))
             }
         }
     }
 
-    <span class="doccomment">/// Fetches an `Md` object corresponding to the specified algorithm name and properties.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires OpenSSL 3.0.0 or newer.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_MD_fetch</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch</span>(
-        <span class="ident">ctx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">LibCtxRef</span><span class="op">&gt;</span>,
-        <span class="ident">algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">properties</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">algorithm</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">algorithm</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">properties</span> <span class="op">=</span> <span class="ident">properties</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">CString::new</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>());
+    <span class="doccomment">/// Fetches an `Md` object corresponding to the specified algorithm name and properties.
+    ///
+    /// Requires OpenSSL 3.0.0 or newer.
+    </span><span class="attribute">#[corresponds(EVP_MD_fetch)]
+    #[cfg(ossl300)]
+    </span><span class="kw">pub fn </span>fetch(
+        ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>LibCtxRef&gt;,
+        algorithm: <span class="kw-2">&amp;</span>str,
+        properties: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ErrorStack&gt; {
+        <span class="kw">let </span>algorithm = CString::new(algorithm).unwrap();
+        <span class="kw">let </span>properties = properties.map(|s| CString::new(s).unwrap());
 
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_MD_fetch</span>(
-                <span class="ident">ctx</span>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="ident">ForeignTypeRef::as_ptr</span>),
-                <span class="ident">algorithm</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">properties</span>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_ptr</span>()),
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>ptr = cvt_p(ffi::EVP_MD_fetch(
+                ctx.map_or(ptr::null_mut(), ForeignTypeRef::as_ptr),
+                algorithm.as_ptr(),
+                properties.map_or(ptr::null_mut(), |s| s.as_ptr()),
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<span class="ident">Md::from_ptr</span>(<span class="ident">ptr</span>))
+            <span class="prelude-val">Ok</span>(Md::from_ptr(ptr))
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_md_null</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>null() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_md_null() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">md5</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_md5</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>md5() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_md5() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha1</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha1</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sha1() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha1() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha224</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha224</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sha224() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha224() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha256</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha256</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sha256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha256() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha384</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha384</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sha384() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha384() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha512</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha512</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sha512() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha512() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha3_224</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha3_224</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[cfg(ossl111)]
+    #[inline]
+    </span><span class="kw">pub fn </span>sha3_224() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha3_224() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha3_256</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha3_256</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[cfg(ossl111)]
+    #[inline]
+    </span><span class="kw">pub fn </span>sha3_256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha3_256() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha3_384</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha3_384</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[cfg(ossl111)]
+    #[inline]
+    </span><span class="kw">pub fn </span>sha3_384() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha3_384() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha3_512</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sha3_512</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[cfg(ossl111)]
+    #[inline]
+    </span><span class="kw">pub fn </span>sha3_512() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sha3_512() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shake128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_shake128</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[cfg(ossl111)]
+    #[inline]
+    </span><span class="kw">pub fn </span>shake128() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_shake128() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shake256</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_shake256</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[cfg(ossl111)]
+    #[inline]
+    </span><span class="kw">pub fn </span>shake256() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_shake256() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_RMD160&quot;</span>))]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ripemd160</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_ripemd160</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_RMD160&quot;</span>))]
+    #[inline]
+    </span><span class="kw">pub fn </span>ripemd160() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_ripemd160() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl291</span>), <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SM3&quot;</span>)))]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sm3</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-        <span class="kw">unsafe</span> { <span class="ident">MdRef::from_ptr</span>(<span class="ident">ffi::EVP_sm3</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    <span class="attribute">#[cfg(all(any(ossl111, libressl291), not(osslconf = <span class="string">&quot;OPENSSL_NO_SM3&quot;</span>)))]
+    #[inline]
+    </span><span class="kw">pub fn </span>sm3() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+        <span class="kw">unsafe </span>{ MdRef::from_ptr(ffi::EVP_sm3() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 }
 
-<span class="doccomment">/// A reference to an [`Md`].</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MdRef</span>(<a class="ident" href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>);
+<span class="doccomment">/// A reference to an [`Md`].
+</span><span class="kw">pub struct </span>MdRef(<a href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>;
+<span class="kw">impl </span><a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a> <span class="kw">for </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>;
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/md.rs.html#200">MdRef</a> {
-    <span class="doccomment">/// Returns the block size of the digest in bytes.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_MD_block_size</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::EVP_MD_block_size</span>(<a class="self" href="../../src/openssl/md.rs.html#213">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+<span class="kw">impl </span><a href="../../src/openssl/md.rs.html#200">MdRef</a> {
+    <span class="doccomment">/// Returns the block size of the digest in bytes.
+    </span><span class="attribute">#[corresponds(EVP_MD_block_size)]
+    #[inline]
+    </span><span class="kw">pub fn </span>block_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">unsafe </span>{ ffi::EVP_MD_block_size(<a class="self" href="../../src/openssl/md.rs.html#213">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
-    <span class="doccomment">/// Returns the size of the digest in bytes.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_MD_size</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::EVP_MD_size</span>(<a class="self" href="../../src/openssl/md.rs.html#220">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    <span class="doccomment">/// Returns the size of the digest in bytes.
+    </span><span class="attribute">#[corresponds(EVP_MD_size)]
+    #[inline]
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">unsafe </span>{ ffi::EVP_MD_size(<a class="self" href="../../src/openssl/md.rs.html#220">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
-    <span class="doccomment">/// Returns the [`Nid`] of the digest.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_MD_type</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a> {
-        <span class="kw">unsafe</span> { <span class="ident">Nid::from_raw</span>(<span class="ident">ffi::EVP_MD_type</span>(<a class="self" href="../../src/openssl/md.rs.html#227">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
+    <span class="doccomment">/// Returns the [`Nid`] of the digest.
+    </span><span class="attribute">#[corresponds(EVP_MD_type)]
+    #[inline]
+    </span><span class="kw">pub fn </span>type_(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/openssl/nid.rs.html#49">Nid</a> {
+        <span class="kw">unsafe </span>{ Nid::from_raw(ffi::EVP_MD_type(<a class="self" href="../../src/openssl/md.rs.html#227">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

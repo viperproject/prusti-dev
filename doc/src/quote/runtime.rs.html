@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/quote-1.0.21/src/runtime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../quote/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../quote/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../quote/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/quote-1.0.21/src/runtime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../quote/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../quote/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../quote/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -436,443 +436,443 @@
 <span id="436">436</span>
 <span id="437">437</span>
 <span id="438">438</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a>, <a class="ident" href="../../src/quote/to_tokens.rs.html#10">ToTokens</a>, <a class="ident" href="../../src/quote/ext.rs.html#8">TokenStreamExt</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/index.html">core::iter</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">core::ops::BitOr</a>;
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a>, <a href="../../src/quote/to_tokens.rs.html#10">ToTokens</a>, <a href="../../src/quote/ext.rs.html#8">TokenStreamExt</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/index.html">core::iter</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">core::ops::BitOr</a>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html">core::option::Option</a>;
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../proc_macro2/index.html">proc_macro2</a>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">std::format</a>;
+<span class="kw">pub use </span><a href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html">core::option::Option</a>;
+<span class="kw">pub use </span><a href="../../proc_macro2/index.html">proc_macro2</a>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><a href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">std::format</a>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HasIterator</span>; <span class="comment">// True</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ThereIsNoIteratorInRepetition</span>; <span class="comment">// False</span>
+<span class="kw">pub struct </span>HasIterator; <span class="comment">// True
+</span><span class="kw">pub struct </span>ThereIsNoIteratorInRepetition; <span class="comment">// False
 
-<span class="kw">impl</span> <span class="ident">BitOr</span><span class="op">&lt;</span><a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>;
-    <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">_rhs</span>: <a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>) -&gt; <a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a> {
-        <a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>
+</span><span class="kw">impl </span>BitOr&lt;<a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>&gt; <span class="kw">for </span><a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a> {
+    <span class="kw">type </span>Output = <a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>;
+    <span class="kw">fn </span>bitor(<span class="self">self</span>, _rhs: <a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>) -&gt; <a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a> {
+        <a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">BitOr</span><span class="op">&lt;</span><a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a>;
-    <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">_rhs</span>: <a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>) -&gt; <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
-        <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a>
+<span class="kw">impl </span>BitOr&lt;<a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>&gt; <span class="kw">for </span><a href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
+    <span class="kw">type </span>Output = <a href="../../src/quote/runtime.rs.html#10">HasIterator</a>;
+    <span class="kw">fn </span>bitor(<span class="self">self</span>, _rhs: <a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a>) -&gt; <a href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
+        <a href="../../src/quote/runtime.rs.html#10">HasIterator</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">BitOr</span><span class="op">&lt;</span><a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a>;
-    <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">_rhs</span>: <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a>) -&gt; <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
-        <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a>
+<span class="kw">impl </span>BitOr&lt;<a href="../../src/quote/runtime.rs.html#10">HasIterator</a>&gt; <span class="kw">for </span><a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a> {
+    <span class="kw">type </span>Output = <a href="../../src/quote/runtime.rs.html#10">HasIterator</a>;
+    <span class="kw">fn </span>bitor(<span class="self">self</span>, _rhs: <a href="../../src/quote/runtime.rs.html#10">HasIterator</a>) -&gt; <a href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
+        <a href="../../src/quote/runtime.rs.html#10">HasIterator</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">BitOr</span><span class="op">&lt;</span><a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a>;
-    <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">_rhs</span>: <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a>) -&gt; <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
-        <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a>
+<span class="kw">impl </span>BitOr&lt;<a href="../../src/quote/runtime.rs.html#10">HasIterator</a>&gt; <span class="kw">for </span><a href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
+    <span class="kw">type </span>Output = <a href="../../src/quote/runtime.rs.html#10">HasIterator</a>;
+    <span class="kw">fn </span>bitor(<span class="self">self</span>, _rhs: <a href="../../src/quote/runtime.rs.html#10">HasIterator</a>) -&gt; <a href="../../src/quote/runtime.rs.html#10">HasIterator</a> {
+        <a href="../../src/quote/runtime.rs.html#10">HasIterator</a>
     }
 }
 
-<span class="doccomment">/// Extension traits used by the implementation of `quote!`. These are defined</span>
-<span class="doccomment">/// in separate traits, rather than as a single trait due to ambiguity issues.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// These traits expose a `quote_into_iter` method which should allow calling</span>
-<span class="doccomment">/// whichever impl happens to be applicable. Calling that method repeatedly on</span>
-<span class="doccomment">/// the returned value should be idempotent.</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ext</span> {
-    <span class="kw">use</span> <a class="ident" href="../../src/quote/runtime.rs.html#141"><span class="kw">super</span>::RepInterp</a>;
-    <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../src/quote/runtime.rs.html#10">HasIterator</a> <span class="kw">as</span> <span class="ident">HasIter</span>, <a class="ident" href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a> <span class="kw">as</span> <span class="ident">DoesNotHaveIter</span>};
-    <span class="kw">use</span> <a class="ident" href="../../src/quote/to_tokens.rs.html#10"><span class="kw">crate</span>::ToTokens</a>;
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
-    <span class="kw">use</span> <span class="ident">std::collections::btree_set</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/collections/btree_set/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
+<span class="doccomment">/// Extension traits used by the implementation of `quote!`. These are defined
+/// in separate traits, rather than as a single trait due to ambiguity issues.
+///
+/// These traits expose a `quote_into_iter` method which should allow calling
+/// whichever impl happens to be applicable. Calling that method repeatedly on
+/// the returned value should be idempotent.
+</span><span class="kw">pub mod </span>ext {
+    <span class="kw">use </span><a href="../../src/quote/runtime.rs.html#141"><span class="kw">super</span>::RepInterp</a>;
+    <span class="kw">use super</span>::{<a href="../../src/quote/runtime.rs.html#10">HasIterator</a> <span class="kw">as </span>HasIter, <a href="../../src/quote/runtime.rs.html#11">ThereIsNoIteratorInRepetition</a> <span class="kw">as </span>DoesNotHaveIter};
+    <span class="kw">use </span><a href="../../src/quote/to_tokens.rs.html#10"><span class="kw">crate</span>::ToTokens</a>;
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
+    <span class="kw">use </span>std::collections::btree_set::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/collections/btree_set/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
 
-    <span class="doccomment">/// Extension trait providing the `quote_into_iter` method on iterators.</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">RepIteratorExt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
-            (<a class="self" href="../../src/quote/runtime.rs.html#56">self</a>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>)
+    <span class="doccomment">/// Extension trait providing the `quote_into_iter` method on iterators.
+    </span><span class="kw">pub trait </span>RepIteratorExt: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+        <span class="kw">fn </span>quote_into_iter(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
+            (<a class="self" href="../../src/quote/runtime.rs.html#56">self</a>, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a><span class="op">&gt;</span> <a class="ident" href="../../src/quote/runtime.rs.html#55">RepIteratorExt</a> <span class="kw">for</span> <span class="ident">T</span> {}
+    <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>&gt; <a href="../../src/quote/runtime.rs.html#55">RepIteratorExt</a> <span class="kw">for </span>T {}
 
-    <span class="doccomment">/// Extension trait providing the `quote_into_iter` method for</span>
-    <span class="doccomment">/// non-iterable types. These types interpolate the same value in each</span>
-    <span class="doccomment">/// iteration of the repetition.</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">RepToTokensExt</span> {
-        <span class="doccomment">/// Pretend to be an iterator for the purposes of `quote_into_iter`.</span>
-        <span class="doccomment">/// This allows repeated calls to `quote_into_iter` to continue</span>
-        <span class="doccomment">/// correctly returning DoesNotHaveIter.</span>
-        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Extension trait providing the `quote_into_iter` method for
+    /// non-iterable types. These types interpolate the same value in each
+    /// iteration of the repetition.
+    </span><span class="kw">pub trait </span>RepToTokensExt {
+        <span class="doccomment">/// Pretend to be an iterator for the purposes of `quote_into_iter`.
+        /// This allows repeated calls to `quote_into_iter` to continue
+        /// correctly returning DoesNotHaveIter.
+        </span><span class="kw">fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
             <span class="prelude-val">Some</span>(<a class="self" href="../../src/quote/runtime.rs.html#70">self</a>)
         }
 
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="self">Self</span>, <a class="ident" href="../../src/quote/runtime.rs.html#11">DoesNotHaveIter</a>) {
-            (<a class="self" href="../../src/quote/runtime.rs.html#74">self</a>, <a class="ident" href="../../src/quote/runtime.rs.html#11">DoesNotHaveIter</a>)
+        <span class="kw">fn </span>quote_into_iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="self">Self</span>, <a href="../../src/quote/runtime.rs.html#11">DoesNotHaveIter</a>) {
+            (<a class="self" href="../../src/quote/runtime.rs.html#74">self</a>, <a href="../../src/quote/runtime.rs.html#11">DoesNotHaveIter</a>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/to_tokens.rs.html#10">ToTokens</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/quote/runtime.rs.html#66">RepToTokensExt</a> <span class="kw">for</span> <span class="ident">T</span> {}
+    <span class="kw">impl</span>&lt;T: <a href="../../src/quote/to_tokens.rs.html#10">ToTokens</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../src/quote/runtime.rs.html#66">RepToTokensExt</a> <span class="kw">for </span>T {}
 
-    <span class="doccomment">/// Extension trait providing the `quote_into_iter` method for types that</span>
-    <span class="doccomment">/// can be referenced as an iterator.</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Iter</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>;
+    <span class="doccomment">/// Extension trait providing the `quote_into_iter` method for types that
+    /// can be referenced as an iterator.
+    </span><span class="kw">pub trait </span>RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; {
+        <span class="kw">type </span>Iter: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>;
 
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q</span> <span class="self">self</span>) -&gt; (<span class="ident"><span class="self">Self</span>::Iter</span>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>);
+        <span class="kw">fn </span>quote_into_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::Iter, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>);
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
-        <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="ident">T::Iter</span>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;q</span>, <span class="lifetime">&#39;a</span>, T: RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T {
+        <span class="kw">type </span>Iter = T::Iter;
 
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q</span> <span class="self">self</span>) -&gt; (<span class="ident"><span class="self">Self</span>::Iter</span>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
-            <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">RepAsIteratorExt</span><span class="op">&gt;</span><span class="ident">::quote_into_iter</span>(<span class="kw-2">*</span><a class="self" href="../../src/quote/runtime.rs.html#92">self</a>)
+        <span class="kw">fn </span>quote_into_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::Iter, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
+            &lt;T <span class="kw">as </span>RepAsIteratorExt&gt;::quote_into_iter(<span class="kw-2">*</span><a class="self" href="../../src/quote/runtime.rs.html#92">self</a>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span> {
-        <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="ident">T::Iter</span>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;q</span>, <span class="lifetime">&#39;a</span>, T: RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T {
+        <span class="kw">type </span>Iter = T::Iter;
 
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q</span> <span class="self">self</span>) -&gt; (<span class="ident"><span class="self">Self</span>::Iter</span>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
-            <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">RepAsIteratorExt</span><span class="op">&gt;</span><span class="ident">::quote_into_iter</span>(<span class="kw-2">*</span><a class="self" href="../../src/quote/runtime.rs.html#100">self</a>)
+        <span class="kw">fn </span>quote_into_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::Iter, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
+            &lt;T <span class="kw">as </span>RepAsIteratorExt&gt;::quote_into_iter(<span class="kw-2">*</span><a class="self" href="../../src/quote/runtime.rs.html#100">self</a>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="ident">T</span>: <span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="kw">for</span> [<span class="ident">T</span>] {
-        <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;q</span>, T: <span class="lifetime">&#39;q</span>&gt; RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; <span class="kw">for </span>[T] {
+        <span class="kw">type </span>Iter = slice::Iter&lt;<span class="lifetime">&#39;q</span>, T&gt;;
 
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q</span> <span class="self">self</span>) -&gt; (<span class="ident"><span class="self">Self</span>::Iter</span>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
-            (<a class="self" href="../../src/quote/runtime.rs.html#108">self</a>.<span class="ident">iter</span>(), <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>)
+        <span class="kw">fn </span>quote_into_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::Iter, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
+            (<a class="self" href="../../src/quote/runtime.rs.html#108">self</a>.iter(), <a href="../../src/quote/runtime.rs.html#10">HasIter</a>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="ident">T</span>: <span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;q</span>, T: <span class="lifetime">&#39;q</span>&gt; RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; <span class="kw">for </span>Vec&lt;T&gt; {
+        <span class="kw">type </span>Iter = slice::Iter&lt;<span class="lifetime">&#39;q</span>, T&gt;;
 
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q</span> <span class="self">self</span>) -&gt; (<span class="ident"><span class="self">Self</span>::Iter</span>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
-            (<a class="self" href="../../src/quote/runtime.rs.html#116">self</a>.<span class="ident">iter</span>(), <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>)
+        <span class="kw">fn </span>quote_into_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::Iter, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
+            (<a class="self" href="../../src/quote/runtime.rs.html#116">self</a>.iter(), <a href="../../src/quote/runtime.rs.html#10">HasIter</a>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="ident">T</span>: <span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BTreeSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="ident">btree_set::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;q</span>, T: <span class="lifetime">&#39;q</span>&gt; RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; <span class="kw">for </span>BTreeSet&lt;T&gt; {
+        <span class="kw">type </span>Iter = btree_set::Iter&lt;<span class="lifetime">&#39;q</span>, T&gt;;
 
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q</span> <span class="self">self</span>) -&gt; (<span class="ident"><span class="self">Self</span>::Iter</span>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
-            (<a class="self" href="../../src/quote/runtime.rs.html#124">self</a>.<span class="ident">iter</span>(), <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>)
+        <span class="kw">fn </span>quote_into_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::Iter, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
+            (<a class="self" href="../../src/quote/runtime.rs.html#124">self</a>.iter(), <a href="../../src/quote/runtime.rs.html#10">HasIter</a>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span>, <span class="ident">T</span>: <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">RepAsIteratorExt</span><span class="op">&lt;</span><span class="lifetime">&#39;q</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RepInterp</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="ident">T::Iter</span>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;q</span>, T: RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt;&gt; RepAsIteratorExt&lt;<span class="lifetime">&#39;q</span>&gt; <span class="kw">for </span>RepInterp&lt;T&gt; {
+        <span class="kw">type </span>Iter = T::Iter;
 
-        <span class="kw">fn</span> <span class="ident">quote_into_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q</span> <span class="self">self</span>) -&gt; (<span class="ident"><span class="self">Self</span>::Iter</span>, <a class="ident" href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
-            <a class="self" href="../../src/quote/runtime.rs.html#132">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/quote/runtime.rs.html#86">quote_into_iter</a>()
+        <span class="kw">fn </span>quote_into_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;q </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::Iter, <a href="../../src/quote/runtime.rs.html#10">HasIter</a>) {
+            <a class="self" href="../../src/quote/runtime.rs.html#132">self</a>.<span class="number">0</span>.<a href="../../src/quote/runtime.rs.html#86">quote_into_iter</a>()
         }
     }
 }
 
-<span class="comment">// Helper type used within interpolations to allow for repeated binding names.</span>
-<span class="comment">// Implements the relevant traits, and exports a dummy `next()` method.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RepInterp</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">T</span>);
+<span class="comment">// Helper type used within interpolations to allow for repeated binding names.
+// Implements the relevant traits, and exports a dummy `next()` method.
+</span><span class="attribute">#[derive(Copy, Clone)]
+</span><span class="kw">pub struct </span>RepInterp&lt;T&gt;(<span class="kw">pub </span>T);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">RepInterp</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="comment">// This method is intended to look like `Iterator::next`, and is called when</span>
-    <span class="comment">// a name is bound multiple times, as the previous binding will shadow the</span>
-    <span class="comment">// original `Iterator` object. This allows us to avoid advancing the</span>
-    <span class="comment">// iterator multiple times per iteration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span>&lt;T&gt; RepInterp&lt;T&gt; {
+    <span class="comment">// This method is intended to look like `Iterator::next`, and is called when
+    // a name is bound multiple times, as the previous binding will shadow the
+    // original `Iterator` object. This allows us to avoid advancing the
+    // iterator multiple times per iteration.
+    </span><span class="kw">pub fn </span>next(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="prelude-val">Some</span>(<a class="self" href="../../src/quote/runtime.rs.html#148">self</a>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">RepInterp</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T::Item</span>;
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>RepInterp&lt;T&gt; {
+    <span class="kw">type </span>Item = T::Item;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/quote/runtime.rs.html#156">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <a class="self" href="../../src/quote/runtime.rs.html#156">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/to_tokens.rs.html#10">ToTokens</a><span class="op">&gt;</span> <a class="ident" href="../../src/quote/to_tokens.rs.html#10">ToTokens</a> <span class="kw">for</span> <span class="ident">RepInterp</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <a class="self" href="../../src/quote/runtime.rs.html#162">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/quote/to_tokens.rs.html#53">to_tokens</a>(<a class="ident" href="../../src/quote/runtime.rs.html#162">tokens</a>);
+<span class="kw">impl</span>&lt;T: <a href="../../src/quote/to_tokens.rs.html#10">ToTokens</a>&gt; <a href="../../src/quote/to_tokens.rs.html#10">ToTokens</a> <span class="kw">for </span>RepInterp&lt;T&gt; {
+    <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+        <a class="self" href="../../src/quote/runtime.rs.html#162">self</a>.<span class="number">0</span>.<a href="../../src/quote/to_tokens.rs.html#53">to_tokens</a>(<a href="../../src/quote/runtime.rs.html#162">tokens</a>);
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_group</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">delimiter</span>: <a class="ident" href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>, <span class="ident">inner</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-    <a class="ident" href="../../src/quote/runtime.rs.html#167">tokens</a>.<a class="ident" href="../../src/quote/ext.rs.html#12-14">append</a>(<span class="ident">Group::new</span>(<a class="ident" href="../../src/quote/runtime.rs.html#167">delimiter</a>, <a class="ident" href="../../src/quote/runtime.rs.html#167">inner</a>));
+<span class="kw">pub fn </span>push_group(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, delimiter: <a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>, inner: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+    <a href="../../src/quote/runtime.rs.html#167">tokens</a>.<a href="../../src/quote/ext.rs.html#12-14">append</a>(Group::new(<a href="../../src/quote/runtime.rs.html#167">delimiter</a>, <a href="../../src/quote/runtime.rs.html#167">inner</a>));
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_group_spanned</span>(
-    <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>,
-    <span class="ident">delimiter</span>: <a class="ident" href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>,
-    <span class="ident">inner</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+<span class="kw">pub fn </span>push_group_spanned(
+    tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    span: <a href="../../proc_macro2/struct.Span.html">Span</a>,
+    delimiter: <a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>,
+    inner: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
 ) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">Group::new</span>(<a class="ident" href="../../src/quote/runtime.rs.html#174">delimiter</a>, <a class="ident" href="../../src/quote/runtime.rs.html#175">inner</a>);
-    <a class="ident" href="../../src/quote/runtime.rs.html#177">g</a>.<span class="ident">set_span</span>(<a class="ident" href="../../src/quote/runtime.rs.html#173">span</a>);
-    <a class="ident" href="../../src/quote/runtime.rs.html#172">tokens</a>.<a class="ident" href="../../src/quote/ext.rs.html#12-14">append</a>(<a class="ident" href="../../src/quote/runtime.rs.html#177">g</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>g = Group::new(<a href="../../src/quote/runtime.rs.html#174">delimiter</a>, <a href="../../src/quote/runtime.rs.html#175">inner</a>);
+    <a href="../../src/quote/runtime.rs.html#177">g</a>.set_span(<a href="../../src/quote/runtime.rs.html#173">span</a>);
+    <a href="../../src/quote/runtime.rs.html#172">tokens</a>.<a href="../../src/quote/ext.rs.html#12-14">append</a>(<a href="../../src/quote/runtime.rs.html#177">g</a>);
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-    <span class="kw">let</span> <span class="ident">s</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> <span class="op">=</span> <a class="ident" href="../../src/quote/runtime.rs.html#182">s</a>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;invalid token stream&quot;</span>);
-    <a class="ident" href="../../src/quote/runtime.rs.html#182">tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/sources/once/fn.once.html">iter::once</a>(<a class="ident" href="../../src/quote/runtime.rs.html#183">s</a>));
+<span class="kw">pub fn </span>parse(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">let </span>s: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> = <a href="../../src/quote/runtime.rs.html#182">s</a>.parse().expect(<span class="string">&quot;invalid token stream&quot;</span>);
+    <a href="../../src/quote/runtime.rs.html#182">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="https://doc.rust-lang.org/nightly/core/iter/sources/once/fn.once.html">iter::once</a>(<a href="../../src/quote/runtime.rs.html#183">s</a>));
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_spanned</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-    <span class="kw">let</span> <span class="ident">s</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> <span class="op">=</span> <a class="ident" href="../../src/quote/runtime.rs.html#187">s</a>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;invalid token stream&quot;</span>);
-    <a class="ident" href="../../src/quote/runtime.rs.html#187">tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/quote/runtime.rs.html#188">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <a class="ident" href="../../src/quote/runtime.rs.html#193">respan_token_tree</a>(<a class="ident" href="../../src/quote/runtime.rs.html#189">t</a>, <a class="ident" href="../../src/quote/runtime.rs.html#187">span</a>)));
+<span class="kw">pub fn </span>parse_spanned(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">let </span>s: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> = <a href="../../src/quote/runtime.rs.html#187">s</a>.parse().expect(<span class="string">&quot;invalid token stream&quot;</span>);
+    <a href="../../src/quote/runtime.rs.html#187">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/quote/runtime.rs.html#188">s</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|t| <a href="../../src/quote/runtime.rs.html#193">respan_token_tree</a>(<a href="../../src/quote/runtime.rs.html#189">t</a>, <a href="../../src/quote/runtime.rs.html#187">span</a>)));
 }
 
-<span class="comment">// Token tree with every span replaced by the given one.</span>
-<span class="kw">fn</span> <span class="ident">respan_token_tree</span>(<span class="kw-2">mut</span> <span class="ident">token</span>: <a class="ident" href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <a class="ident" href="../../proc_macro2/enum.TokenTree.html">TokenTree</a> {
-    <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/quote/runtime.rs.html#193">token</a> {
-        <span class="ident">TokenTree::Group</span>(<span class="ident">g</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <a class="ident" href="../../src/quote/runtime.rs.html#195">g</a>
-                .<span class="ident">stream</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <a class="ident" href="../../src/quote/runtime.rs.html#193">respan_token_tree</a>(<a class="ident" href="../../src/quote/runtime.rs.html#199">token</a>, <a class="ident" href="../../src/quote/runtime.rs.html#193">span</a>))
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <span class="kw-2">*</span><a class="ident" href="../../src/quote/runtime.rs.html#195">g</a> <span class="op">=</span> <span class="ident">Group::new</span>(<a class="ident" href="../../src/quote/runtime.rs.html#195">g</a>.<span class="ident">delimiter</span>(), <a class="ident" href="../../src/quote/runtime.rs.html#196">stream</a>);
-            <a class="ident" href="../../src/quote/runtime.rs.html#195">g</a>.<span class="ident">set_span</span>(<a class="ident" href="../../src/quote/runtime.rs.html#193">span</a>);
+<span class="comment">// Token tree with every span replaced by the given one.
+</span><span class="kw">fn </span>respan_token_tree(<span class="kw-2">mut </span>token: <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a> {
+    <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="../../src/quote/runtime.rs.html#193">token</a> {
+        TokenTree::Group(g) =&gt; {
+            <span class="kw">let </span>stream = <a href="../../src/quote/runtime.rs.html#195">g</a>
+                .stream()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|token| <a href="../../src/quote/runtime.rs.html#193">respan_token_tree</a>(<a href="../../src/quote/runtime.rs.html#199">token</a>, <a href="../../src/quote/runtime.rs.html#193">span</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <span class="kw-2">*</span><a href="../../src/quote/runtime.rs.html#195">g</a> = Group::new(<a href="../../src/quote/runtime.rs.html#195">g</a>.delimiter(), <a href="../../src/quote/runtime.rs.html#196">stream</a>);
+            <a href="../../src/quote/runtime.rs.html#195">g</a>.set_span(<a href="../../src/quote/runtime.rs.html#193">span</a>);
         }
-        <span class="ident">other</span> =&gt; <a class="ident" href="../../src/quote/runtime.rs.html#204">other</a>.<span class="ident">set_span</span>(<a class="ident" href="../../src/quote/runtime.rs.html#193">span</a>),
+        other =&gt; <a href="../../src/quote/runtime.rs.html#204">other</a>.set_span(<a href="../../src/quote/runtime.rs.html#193">span</a>),
     }
-    <a class="ident" href="../../src/quote/runtime.rs.html#193">token</a>
+    <a href="../../src/quote/runtime.rs.html#193">token</a>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_ident</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::call_site</span>();
-    <a class="ident" href="../../src/quote/runtime.rs.html#214">push_ident_spanned</a>(<a class="ident" href="../../src/quote/runtime.rs.html#209">tokens</a>, <a class="ident" href="../../src/quote/runtime.rs.html#210">span</a>, <a class="ident" href="../../src/quote/runtime.rs.html#209">s</a>);
+<span class="kw">pub fn </span>push_ident(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">let </span>span = Span::call_site();
+    <a href="../../src/quote/runtime.rs.html#214">push_ident_spanned</a>(<a href="../../src/quote/runtime.rs.html#209">tokens</a>, <a href="../../src/quote/runtime.rs.html#210">span</a>, <a href="../../src/quote/runtime.rs.html#209">s</a>);
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_ident_spanned</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-    <a class="ident" href="../../src/quote/runtime.rs.html#214">tokens</a>.<a class="ident" href="../../src/quote/ext.rs.html#12-14">append</a>(<a class="ident" href="../../src/quote/runtime.rs.html#387">ident_maybe_raw</a>(<a class="ident" href="../../src/quote/runtime.rs.html#214">s</a>, <a class="ident" href="../../src/quote/runtime.rs.html#214">span</a>));
+<span class="kw">pub fn </span>push_ident_spanned(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <a href="../../src/quote/runtime.rs.html#214">tokens</a>.<a href="../../src/quote/ext.rs.html#12-14">append</a>(<a href="../../src/quote/runtime.rs.html#387">ident_maybe_raw</a>(<a href="../../src/quote/runtime.rs.html#214">s</a>, <a href="../../src/quote/runtime.rs.html#214">span</a>));
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_lifetime</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">lifetime</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-    <span class="kw">struct</span> <span class="ident">Lifetime</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+<span class="kw">pub fn </span>push_lifetime(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, lifetime: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">struct </span>Lifetime&lt;<span class="lifetime">&#39;a</span>&gt; {
+        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        state: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">Lifetime</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Lifetime&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">type </span>Item = <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>;
 
-        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../src/quote/runtime.rs.html#227">self</a>.<span class="ident">state</span> {
-                <span class="number">0</span> =&gt; {
-                    <a class="self" href="../../src/quote/runtime.rs.html#227">self</a>.<span class="ident">state</span> <span class="op">=</span> <span class="number">1</span>;
-                    <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;\&#39;&#39;</span>, <span class="ident">Spacing::Joint</span>)))
+        <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+            <span class="kw">match </span><a class="self" href="../../src/quote/runtime.rs.html#227">self</a>.state {
+                <span class="number">0 </span>=&gt; {
+                    <a class="self" href="../../src/quote/runtime.rs.html#227">self</a>.state = <span class="number">1</span>;
+                    <span class="prelude-val">Some</span>(TokenTree::Punct(Punct::new(<span class="string">&#39;\&#39;&#39;</span>, Spacing::Joint)))
                 }
-                <span class="number">1</span> =&gt; {
-                    <a class="self" href="../../src/quote/runtime.rs.html#227">self</a>.<span class="ident">state</span> <span class="op">=</span> <span class="number">2</span>;
-                    <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Ident</span>(<span class="ident">Ident::new</span>(<a class="self" href="../../src/quote/runtime.rs.html#227">self</a>.<span class="ident">name</span>, <span class="ident">Span::call_site</span>())))
+                <span class="number">1 </span>=&gt; {
+                    <a class="self" href="../../src/quote/runtime.rs.html#227">self</a>.state = <span class="number">2</span>;
+                    <span class="prelude-val">Some</span>(TokenTree::Ident(Ident::new(<a class="self" href="../../src/quote/runtime.rs.html#227">self</a>.name, Span::call_site())))
                 }
-                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         }
     }
 
-    <a class="ident" href="../../src/quote/runtime.rs.html#218">tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/quote/runtime.rs.html#219">Lifetime</a> {
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/quote/runtime.rs.html#218">lifetime</a>[<span class="number">1</span>..],
-        <span class="ident">state</span>: <span class="number">0</span>,
+    <a href="../../src/quote/runtime.rs.html#218">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/quote/runtime.rs.html#219">Lifetime</a> {
+        name: <span class="kw-2">&amp;</span><a href="../../src/quote/runtime.rs.html#218">lifetime</a>[<span class="number">1</span>..],
+        state: <span class="number">0</span>,
     });
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_lifetime_spanned</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">lifetime</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-    <span class="kw">struct</span> <span class="ident">Lifetime</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>,
-        <span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+<span class="kw">pub fn </span>push_lifetime_spanned(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>, lifetime: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">struct </span>Lifetime&lt;<span class="lifetime">&#39;a</span>&gt; {
+        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        span: <a href="../../proc_macro2/struct.Span.html">Span</a>,
+        state: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">Lifetime</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Lifetime&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">type </span>Item = <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>;
 
-        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.<span class="ident">state</span> {
-                <span class="number">0</span> =&gt; {
-                    <a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.<span class="ident">state</span> <span class="op">=</span> <span class="number">1</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">apostrophe</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="string">&#39;\&#39;&#39;</span>, <span class="ident">Spacing::Joint</span>);
-                    <a class="ident" href="../../src/quote/runtime.rs.html#262">apostrophe</a>.<span class="ident">set_span</span>(<a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.<span class="ident">span</span>);
-                    <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Punct</span>(<a class="ident" href="../../src/quote/runtime.rs.html#262">apostrophe</a>))
+        <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+            <span class="kw">match </span><a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.state {
+                <span class="number">0 </span>=&gt; {
+                    <a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.state = <span class="number">1</span>;
+                    <span class="kw">let </span><span class="kw-2">mut </span>apostrophe = Punct::new(<span class="string">&#39;\&#39;&#39;</span>, Spacing::Joint);
+                    <a href="../../src/quote/runtime.rs.html#262">apostrophe</a>.set_span(<a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.span);
+                    <span class="prelude-val">Some</span>(TokenTree::Punct(<a href="../../src/quote/runtime.rs.html#262">apostrophe</a>))
                 }
-                <span class="number">1</span> =&gt; {
-                    <a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.<span class="ident">state</span> <span class="op">=</span> <span class="number">2</span>;
-                    <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Ident</span>(<span class="ident">Ident::new</span>(<a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.<span class="ident">name</span>, <a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.<span class="ident">span</span>)))
+                <span class="number">1 </span>=&gt; {
+                    <a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.state = <span class="number">2</span>;
+                    <span class="prelude-val">Some</span>(TokenTree::Ident(Ident::new(<a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.name, <a class="self" href="../../src/quote/runtime.rs.html#258">self</a>.span)))
                 }
-                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             }
         }
     }
 
-    <a class="ident" href="../../src/quote/runtime.rs.html#248">tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/quote/runtime.rs.html#249">Lifetime</a> {
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/quote/runtime.rs.html#248">lifetime</a>[<span class="number">1</span>..],
-        <a class="ident" href="../../src/quote/runtime.rs.html#248">span</a>,
-        <span class="ident">state</span>: <span class="number">0</span>,
+    <a href="../../src/quote/runtime.rs.html#248">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/quote/runtime.rs.html#249">Lifetime</a> {
+        name: <span class="kw-2">&amp;</span><a href="../../src/quote/runtime.rs.html#248">lifetime</a>[<span class="number">1</span>..],
+        <a href="../../src/quote/runtime.rs.html#248">span</a>,
+        state: <span class="number">0</span>,
     });
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">push_punct</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">spanned</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>:<span class="ident">tt</span>) =&gt; {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>, <span class="ident">Spacing::Alone</span>));
+<span class="macro">macro_rules! </span>push_punct {
+    (<span class="macro-nonterminal">$name</span>:ident <span class="macro-nonterminal">$spanned</span>:ident <span class="macro-nonterminal">$char1</span>:tt) =&gt; {
+        <span class="kw">pub fn </span><span class="macro-nonterminal">$name</span>(tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            tokens.append(Punct::new(<span class="macro-nonterminal">$char1</span>, Spacing::Alone));
         }
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">spanned</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>, <span class="ident">Spacing::Alone</span>);
-            <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">punct</span>);
-        }
-    };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">spanned</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">char2</span>:<span class="ident">tt</span>) =&gt; {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>, <span class="ident">Spacing::Joint</span>));
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char2</span>, <span class="ident">Spacing::Alone</span>));
-        }
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">spanned</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>, <span class="ident">Spacing::Joint</span>);
-            <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">punct</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char2</span>, <span class="ident">Spacing::Alone</span>);
-            <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">punct</span>);
+        <span class="kw">pub fn </span><span class="macro-nonterminal">$spanned</span>(tokens: <span class="kw-2">&amp;mut </span>TokenStream, span: Span) {
+            <span class="kw">let </span><span class="kw-2">mut </span>punct = Punct::new(<span class="macro-nonterminal">$char1</span>, Spacing::Alone);
+            punct.set_span(span);
+            tokens.append(punct);
         }
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">spanned</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">char2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">char3</span>:<span class="ident">tt</span>) =&gt; {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>, <span class="ident">Spacing::Joint</span>));
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char2</span>, <span class="ident">Spacing::Joint</span>));
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char3</span>, <span class="ident">Spacing::Alone</span>));
+    (<span class="macro-nonterminal">$name</span>:ident <span class="macro-nonterminal">$spanned</span>:ident <span class="macro-nonterminal">$char1</span>:tt <span class="macro-nonterminal">$char2</span>:tt) =&gt; {
+        <span class="kw">pub fn </span><span class="macro-nonterminal">$name</span>(tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            tokens.append(Punct::new(<span class="macro-nonterminal">$char1</span>, Spacing::Joint));
+            tokens.append(Punct::new(<span class="macro-nonterminal">$char2</span>, Spacing::Alone));
         }
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">spanned</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char1</span>, <span class="ident">Spacing::Joint</span>);
-            <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">punct</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char2</span>, <span class="ident">Spacing::Joint</span>);
-            <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">punct</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">char3</span>, <span class="ident">Spacing::Alone</span>);
-            <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-            <span class="ident">tokens</span>.<span class="ident">append</span>(<span class="ident">punct</span>);
+        <span class="kw">pub fn </span><span class="macro-nonterminal">$spanned</span>(tokens: <span class="kw-2">&amp;mut </span>TokenStream, span: Span) {
+            <span class="kw">let </span><span class="kw-2">mut </span>punct = Punct::new(<span class="macro-nonterminal">$char1</span>, Spacing::Joint);
+            punct.set_span(span);
+            tokens.append(punct);
+            <span class="kw">let </span><span class="kw-2">mut </span>punct = Punct::new(<span class="macro-nonterminal">$char2</span>, Spacing::Alone);
+            punct.set_span(span);
+            tokens.append(punct);
+        }
+    };
+    (<span class="macro-nonterminal">$name</span>:ident <span class="macro-nonterminal">$spanned</span>:ident <span class="macro-nonterminal">$char1</span>:tt <span class="macro-nonterminal">$char2</span>:tt <span class="macro-nonterminal">$char3</span>:tt) =&gt; {
+        <span class="kw">pub fn </span><span class="macro-nonterminal">$name</span>(tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            tokens.append(Punct::new(<span class="macro-nonterminal">$char1</span>, Spacing::Joint));
+            tokens.append(Punct::new(<span class="macro-nonterminal">$char2</span>, Spacing::Joint));
+            tokens.append(Punct::new(<span class="macro-nonterminal">$char3</span>, Spacing::Alone));
+        }
+        <span class="kw">pub fn </span><span class="macro-nonterminal">$spanned</span>(tokens: <span class="kw-2">&amp;mut </span>TokenStream, span: Span) {
+            <span class="kw">let </span><span class="kw-2">mut </span>punct = Punct::new(<span class="macro-nonterminal">$char1</span>, Spacing::Joint);
+            punct.set_span(span);
+            tokens.append(punct);
+            <span class="kw">let </span><span class="kw-2">mut </span>punct = Punct::new(<span class="macro-nonterminal">$char2</span>, Spacing::Joint);
+            punct.set_span(span);
+            tokens.append(punct);
+            <span class="kw">let </span><span class="kw-2">mut </span>punct = Punct::new(<span class="macro-nonterminal">$char3</span>, Spacing::Alone);
+            punct.set_span(span);
+            tokens.append(punct);
         }
     };
 }
 
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_add</span> <span class="ident">push_add_spanned</span> <span class="string">&#39;+&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_add_eq</span> <span class="ident">push_add_eq_spanned</span> <span class="string">&#39;+&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_and</span> <span class="ident">push_and_spanned</span> <span class="string">&#39;&amp;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_and_and</span> <span class="ident">push_and_and_spanned</span> <span class="string">&#39;&amp;&#39;</span> <span class="string">&#39;&amp;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_and_eq</span> <span class="ident">push_and_eq_spanned</span> <span class="string">&#39;&amp;&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_at</span> <span class="ident">push_at_spanned</span> <span class="string">&#39;@&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_bang</span> <span class="ident">push_bang_spanned</span> <span class="string">&#39;!&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_caret</span> <span class="ident">push_caret_spanned</span> <span class="string">&#39;^&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_caret_eq</span> <span class="ident">push_caret_eq_spanned</span> <span class="string">&#39;^&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_colon</span> <span class="ident">push_colon_spanned</span> <span class="string">&#39;:&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_colon2</span> <span class="ident">push_colon2_spanned</span> <span class="string">&#39;:&#39;</span> <span class="string">&#39;:&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_comma</span> <span class="ident">push_comma_spanned</span> <span class="string">&#39;,&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_div</span> <span class="ident">push_div_spanned</span> <span class="string">&#39;/&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_div_eq</span> <span class="ident">push_div_eq_spanned</span> <span class="string">&#39;/&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_dot</span> <span class="ident">push_dot_spanned</span> <span class="string">&#39;.&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_dot2</span> <span class="ident">push_dot2_spanned</span> <span class="string">&#39;.&#39;</span> <span class="string">&#39;.&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_dot3</span> <span class="ident">push_dot3_spanned</span> <span class="string">&#39;.&#39;</span> <span class="string">&#39;.&#39;</span> <span class="string">&#39;.&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_dot_dot_eq</span> <span class="ident">push_dot_dot_eq_spanned</span> <span class="string">&#39;.&#39;</span> <span class="string">&#39;.&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_eq</span> <span class="ident">push_eq_spanned</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_eq_eq</span> <span class="ident">push_eq_eq_spanned</span> <span class="string">&#39;=&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_ge</span> <span class="ident">push_ge_spanned</span> <span class="string">&#39;&gt;&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_gt</span> <span class="ident">push_gt_spanned</span> <span class="string">&#39;&gt;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_le</span> <span class="ident">push_le_spanned</span> <span class="string">&#39;&lt;&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_lt</span> <span class="ident">push_lt_spanned</span> <span class="string">&#39;&lt;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_mul_eq</span> <span class="ident">push_mul_eq_spanned</span> <span class="string">&#39;*&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_ne</span> <span class="ident">push_ne_spanned</span> <span class="string">&#39;!&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_or</span> <span class="ident">push_or_spanned</span> <span class="string">&#39;|&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_or_eq</span> <span class="ident">push_or_eq_spanned</span> <span class="string">&#39;|&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_or_or</span> <span class="ident">push_or_or_spanned</span> <span class="string">&#39;|&#39;</span> <span class="string">&#39;|&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_pound</span> <span class="ident">push_pound_spanned</span> <span class="string">&#39;#&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_question</span> <span class="ident">push_question_spanned</span> <span class="string">&#39;?&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_rarrow</span> <span class="ident">push_rarrow_spanned</span> <span class="string">&#39;-&#39;</span> <span class="string">&#39;&gt;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_larrow</span> <span class="ident">push_larrow_spanned</span> <span class="string">&#39;&lt;&#39;</span> <span class="string">&#39;-&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_rem</span> <span class="ident">push_rem_spanned</span> <span class="string">&#39;%&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_rem_eq</span> <span class="ident">push_rem_eq_spanned</span> <span class="string">&#39;%&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_fat_arrow</span> <span class="ident">push_fat_arrow_spanned</span> <span class="string">&#39;=&#39;</span> <span class="string">&#39;&gt;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_semi</span> <span class="ident">push_semi_spanned</span> <span class="string">&#39;;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_shl</span> <span class="ident">push_shl_spanned</span> <span class="string">&#39;&lt;&#39;</span> <span class="string">&#39;&lt;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_shl_eq</span> <span class="ident">push_shl_eq_spanned</span> <span class="string">&#39;&lt;&#39;</span> <span class="string">&#39;&lt;&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_shr</span> <span class="ident">push_shr_spanned</span> <span class="string">&#39;&gt;&#39;</span> <span class="string">&#39;&gt;&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_shr_eq</span> <span class="ident">push_shr_eq_spanned</span> <span class="string">&#39;&gt;&#39;</span> <span class="string">&#39;&gt;&#39;</span> <span class="string">&#39;=&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_star</span> <span class="ident">push_star_spanned</span> <span class="string">&#39;*&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_sub</span> <span class="ident">push_sub_spanned</span> <span class="string">&#39;-&#39;</span>);
-<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(<span class="ident">push_sub_eq</span> <span class="ident">push_sub_eq_spanned</span> <span class="string">&#39;-&#39;</span> <span class="string">&#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_add push_add_spanned <span class="string">&#39;+&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_add_eq push_add_eq_spanned <span class="string">&#39;+&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_and push_and_spanned <span class="string">&#39;&amp;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_and_and push_and_and_spanned <span class="string">&#39;&amp;&#39; &#39;&amp;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_and_eq push_and_eq_spanned <span class="string">&#39;&amp;&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_at push_at_spanned <span class="string">&#39;@&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_bang push_bang_spanned <span class="string">&#39;!&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_caret push_caret_spanned <span class="string">&#39;^&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_caret_eq push_caret_eq_spanned <span class="string">&#39;^&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_colon push_colon_spanned <span class="string">&#39;:&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_colon2 push_colon2_spanned <span class="string">&#39;:&#39; &#39;:&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_comma push_comma_spanned <span class="string">&#39;,&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_div push_div_spanned <span class="string">&#39;/&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_div_eq push_div_eq_spanned <span class="string">&#39;/&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_dot push_dot_spanned <span class="string">&#39;.&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_dot2 push_dot2_spanned <span class="string">&#39;.&#39; &#39;.&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_dot3 push_dot3_spanned <span class="string">&#39;.&#39; &#39;.&#39; &#39;.&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_dot_dot_eq push_dot_dot_eq_spanned <span class="string">&#39;.&#39; &#39;.&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_eq push_eq_spanned <span class="string">&#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_eq_eq push_eq_eq_spanned <span class="string">&#39;=&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_ge push_ge_spanned <span class="string">&#39;&gt;&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_gt push_gt_spanned <span class="string">&#39;&gt;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_le push_le_spanned <span class="string">&#39;&lt;&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_lt push_lt_spanned <span class="string">&#39;&lt;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_mul_eq push_mul_eq_spanned <span class="string">&#39;*&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_ne push_ne_spanned <span class="string">&#39;!&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_or push_or_spanned <span class="string">&#39;|&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_or_eq push_or_eq_spanned <span class="string">&#39;|&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_or_or push_or_or_spanned <span class="string">&#39;|&#39; &#39;|&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_pound push_pound_spanned <span class="string">&#39;#&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_question push_question_spanned <span class="string">&#39;?&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_rarrow push_rarrow_spanned <span class="string">&#39;-&#39; &#39;&gt;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_larrow push_larrow_spanned <span class="string">&#39;&lt;&#39; &#39;-&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_rem push_rem_spanned <span class="string">&#39;%&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_rem_eq push_rem_eq_spanned <span class="string">&#39;%&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_fat_arrow push_fat_arrow_spanned <span class="string">&#39;=&#39; &#39;&gt;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_semi push_semi_spanned <span class="string">&#39;;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_shl push_shl_spanned <span class="string">&#39;&lt;&#39; &#39;&lt;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_shl_eq push_shl_eq_spanned <span class="string">&#39;&lt;&#39; &#39;&lt;&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_shr push_shr_spanned <span class="string">&#39;&gt;&#39; &#39;&gt;&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_shr_eq push_shr_eq_spanned <span class="string">&#39;&gt;&#39; &#39;&gt;&#39; &#39;=&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_star push_star_spanned <span class="string">&#39;*&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_sub push_sub_spanned <span class="string">&#39;-&#39;</span>);
+<a class="macro" href="../../src/quote/runtime.rs.html#282-325">push_punct!</a>(push_sub_eq push_sub_eq_spanned <span class="string">&#39;-&#39; &#39;=&#39;</span>);
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_underscore</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-    <a class="ident" href="../../src/quote/runtime.rs.html#376">push_underscore_spanned</a>(<a class="ident" href="../../src/quote/runtime.rs.html#372">tokens</a>, <span class="ident">Span::call_site</span>());
+<span class="kw">pub fn </span>push_underscore(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+    <a href="../../src/quote/runtime.rs.html#376">push_underscore_spanned</a>(<a href="../../src/quote/runtime.rs.html#372">tokens</a>, Span::call_site());
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_underscore_spanned</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>) {
-    <a class="ident" href="../../src/quote/runtime.rs.html#376">tokens</a>.<a class="ident" href="../../src/quote/ext.rs.html#12-14">append</a>(<span class="ident">Ident::new</span>(<span class="string">&quot;_&quot;</span>, <a class="ident" href="../../src/quote/runtime.rs.html#376">span</a>));
+<span class="kw">pub fn </span>push_underscore_spanned(tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) {
+    <a href="../../src/quote/runtime.rs.html#376">tokens</a>.<a href="../../src/quote/ext.rs.html#12-14">append</a>(Ident::new(<span class="string">&quot;_&quot;</span>, <a href="../../src/quote/runtime.rs.html#376">span</a>));
 }
 
-<span class="comment">// Helper method for constructing identifiers from the `format_ident!` macro,</span>
-<span class="comment">// handling `r#` prefixes.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mk_ident</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">span</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.Span.html">Span</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a> {
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/quote/runtime.rs.html#382">span</a>.<span class="ident">unwrap_or_else</span>(<span class="ident">Span::call_site</span>);
-    <a class="ident" href="../../src/quote/runtime.rs.html#387">ident_maybe_raw</a>(<a class="ident" href="../../src/quote/runtime.rs.html#382">id</a>, <a class="ident" href="../../src/quote/runtime.rs.html#383">span</a>)
+<span class="comment">// Helper method for constructing identifiers from the `format_ident!` macro,
+// handling `r#` prefixes.
+</span><span class="kw">pub fn </span>mk_ident(id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, span: <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Span.html">Span</a>&gt;) -&gt; <a href="../../proc_macro2/struct.Ident.html">Ident</a> {
+    <span class="kw">let </span>span = <a href="../../src/quote/runtime.rs.html#382">span</a>.unwrap_or_else(Span::call_site);
+    <a href="../../src/quote/runtime.rs.html#387">ident_maybe_raw</a>(<a href="../../src/quote/runtime.rs.html#382">id</a>, <a href="../../src/quote/runtime.rs.html#383">span</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">ident_maybe_raw</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a> {
-    <span class="kw">if</span> <span class="ident">id</span>.<span class="ident">starts_with</span>(<span class="string">&quot;r#&quot;</span>) {
-        <span class="ident">Ident::new_raw</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/quote/runtime.rs.html#387">id</a>[<span class="number">2</span>..], <a class="ident" href="../../src/quote/runtime.rs.html#387">span</a>)
-    } <span class="kw">else</span> {
-        <span class="ident">Ident::new</span>(<a class="ident" href="../../src/quote/runtime.rs.html#387">id</a>, <a class="ident" href="../../src/quote/runtime.rs.html#387">span</a>)
+<span class="kw">fn </span>ident_maybe_raw(id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="../../proc_macro2/struct.Ident.html">Ident</a> {
+    <span class="kw">if </span>id.starts_with(<span class="string">&quot;r#&quot;</span>) {
+        Ident::new_raw(<span class="kw-2">&amp;</span><a href="../../src/quote/runtime.rs.html#387">id</a>[<span class="number">2</span>..], <a href="../../src/quote/runtime.rs.html#387">span</a>)
+    } <span class="kw">else </span>{
+        Ident::new(<a href="../../src/quote/runtime.rs.html#387">id</a>, <a href="../../src/quote/runtime.rs.html#387">span</a>)
     }
 }
 
-<span class="comment">// Adapts from `IdentFragment` to `fmt::Display` for use by the `format_ident!`</span>
-<span class="comment">// macro, and exposes span information from these fragments.</span>
-<span class="comment">//</span>
-<span class="comment">// This struct also has forwarding implementations of the formatting traits</span>
-<span class="comment">// `Octal`, `LowerHex`, `UpperHex`, and `Binary` to allow for their use within</span>
-<span class="comment">// `format_ident!`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IdentFragmentAdapter</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">T</span>);
+<span class="comment">// Adapts from `IdentFragment` to `fmt::Display` for use by the `format_ident!`
+// macro, and exposes span information from these fragments.
+//
+// This struct also has forwarding implementations of the formatting traits
+// `Octal`, `LowerHex`, `UpperHex`, and `Binary` to allow for their use within
+// `format_ident!`.
+</span><span class="attribute">#[derive(Copy, Clone)]
+</span><span class="kw">pub struct </span>IdentFragmentAdapter&lt;T: <a href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a>&gt;(<span class="kw">pub </span>T);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a><span class="op">&gt;</span> <span class="ident">IdentFragmentAdapter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.Span.html">Span</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/quote/runtime.rs.html#405">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/quote/ident_fragment.rs.html#18">span</a>()
+<span class="kw">impl</span>&lt;T: <a href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a>&gt; IdentFragmentAdapter&lt;T&gt; {
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.Span.html">Span</a>&gt; {
+        <a class="self" href="../../src/quote/runtime.rs.html#405">self</a>.<span class="number">0</span>.<a href="../../src/quote/ident_fragment.rs.html#18">span</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">IdentFragmentAdapter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/quote/ident_fragment.rs.html#13">IdentFragment::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#411">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/quote/runtime.rs.html#411">f</a>)
+<span class="kw">impl</span>&lt;T: <a href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>IdentFragmentAdapter&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/quote/ident_fragment.rs.html#13">IdentFragment::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#411">self</a>.<span class="number">0</span>, <a href="../../src/quote/runtime.rs.html#411">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal</a> <span class="kw">for</span> <span class="ident">IdentFragmentAdapter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#417">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/quote/runtime.rs.html#417">f</a>)
+<span class="kw">impl</span>&lt;T: <a href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal</a> <span class="kw">for </span>IdentFragmentAdapter&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html">fmt::Octal::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#417">self</a>.<span class="number">0</span>, <a href="../../src/quote/runtime.rs.html#417">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex</a> <span class="kw">for</span> <span class="ident">IdentFragmentAdapter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#423">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/quote/runtime.rs.html#423">f</a>)
+<span class="kw">impl</span>&lt;T: <a href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex</a> <span class="kw">for </span>IdentFragmentAdapter&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html">fmt::LowerHex::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#423">self</a>.<span class="number">0</span>, <a href="../../src/quote/runtime.rs.html#423">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex</a> <span class="kw">for</span> <span class="ident">IdentFragmentAdapter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#429">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/quote/runtime.rs.html#429">f</a>)
+<span class="kw">impl</span>&lt;T: <a href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex</a> <span class="kw">for </span>IdentFragmentAdapter&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html">fmt::UpperHex::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#429">self</a>.<span class="number">0</span>, <a href="../../src/quote/runtime.rs.html#429">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">fmt::Binary</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">fmt::Binary</a> <span class="kw">for</span> <span class="ident">IdentFragmentAdapter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">fmt::Binary::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#435">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/quote/runtime.rs.html#435">f</a>)
+<span class="kw">impl</span>&lt;T: <a href="../../src/quote/ident_fragment.rs.html#11">IdentFragment</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">fmt::Binary</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">fmt::Binary</a> <span class="kw">for </span>IdentFragmentAdapter&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html">fmt::Binary::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/quote/runtime.rs.html#435">self</a>.<span class="number">0</span>, <a href="../../src/quote/runtime.rs.html#435">f</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="quote" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="quote" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

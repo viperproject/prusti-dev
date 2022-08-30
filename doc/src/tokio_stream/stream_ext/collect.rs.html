@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.9/src/stream_ext/collect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>collect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.9/src/stream_ext/collect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>collect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -231,238 +231,238 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html"><span class="kw">crate</span>::Stream</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html"><span class="kw">crate</span>::Stream</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
-<span class="kw">use</span> <span class="ident">core::marker::PhantomPinned</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
+<span class="kw">use </span>core::marker::PhantomPinned;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="comment">// Do not export this struct until `FromStream` can be unsealed.</span>
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Future returned by the [`collect`](super::StreamExt::collect) method.</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Collect</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
-        <span class="ident">U</span>: <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T::Item</span><span class="op">&gt;</span>,
+<span class="comment">// Do not export this struct until `FromStream` can be unsealed.
+</span><a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Future returned by the [`collect`](super::StreamExt::collect) method.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[derive(Debug)]
+    </span><span class="kw">pub struct </span>Collect&lt;T, U&gt;
+    <span class="kw">where
+        </span>T: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
+        U: FromStream&lt;T::Item&gt;,
     {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">stream</span>: <span class="ident">T</span>,
-        <span class="ident">collection</span>: <span class="ident">U::InternalCollection</span>,
-        <span class="comment">// Make this future `!Unpin` for compatibility with async trait methods.</span>
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">_pin</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
+        <span class="attribute">#[pin]
+        </span>stream: T,
+        collection: U::InternalCollection,
+        <span class="comment">// Make this future `!Unpin` for compatibility with async trait methods.
+        </span><span class="attribute">#[pin]
+        </span>_pin: <a href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
     }
 }
 
-<span class="doccomment">/// Convert from a [`Stream`](crate::Stream).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This trait is not intended to be used directly. Instead, call</span>
-<span class="doccomment">/// [`StreamExt::collect()`](super::StreamExt::collect).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Implementing</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Currently, this trait may not be implemented by third parties. The trait is</span>
-<span class="doccomment">/// sealed in order to make changes in the future. Stabilization is pending</span>
-<span class="doccomment">/// enhancements to the Rust language.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="doccomment">/// Convert from a [`Stream`](crate::Stream).
+///
+/// This trait is not intended to be used directly. Instead, call
+/// [`StreamExt::collect()`](super::StreamExt::collect).
+///
+/// # Implementing
+///
+/// Currently, this trait may not be implemented by third parties. The trait is
+/// sealed in order to make changes in the future. Stabilization is pending
+/// enhancements to the Rust language.
+</span><span class="kw">pub trait </span>FromStream&lt;T&gt;: sealed::FromStreamPriv&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <span class="ident">Collect</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">U</span>: <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T::Item</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T, U&gt; Collect&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
+    U: FromStream&lt;T::Item&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">T</span>) -&gt; <span class="ident">Collect</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">lower</span>, <span class="ident">upper</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#46">stream</a>.<a class="ident" href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
-        <span class="kw">let</span> <span class="ident">collection</span> <span class="op">=</span> <span class="ident">U::initialize</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#47">lower</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#47">upper</a>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: T) -&gt; Collect&lt;T, U&gt; {
+        <span class="kw">let </span>(lower, upper) = <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#46">stream</a>.<a href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>collection = U::initialize(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#47">lower</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#47">upper</a>);
 
-        <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#11-27">Collect</a> {
-            <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#46">stream</a>,
-            <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#48">collection</a>,
-            <span class="ident">_pin</span>: <span class="ident">PhantomPinned</span>,
+        <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#11-27">Collect</a> {
+            <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#46">stream</a>,
+            <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#48">collection</a>,
+            _pin: PhantomPinned,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Collect</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">U</span>: <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T::Item</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Collect&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
+    U: FromStream&lt;T::Item&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">U</span>;
+    <span class="kw">type </span>Output = U;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">Poll::Ready</span>;
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;U&gt; {
+        <span class="kw">use </span>Poll::Ready;
 
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_stream/stream_ext/collect.rs.html#65">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#11-27">project</a>();
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>me = <a class="self" href="../../../src/tokio_stream/stream_ext/collect.rs.html#65">self</a>.as_mut().<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#11-27">project</a>();
 
-            <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">match</span> <a class="macro" href="../../../src/tokio_stream/macros.rs.html#61-68">ready!</a>(<span class="ident">me</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#72">item</a>,
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">Ready</span>(<span class="ident">U::finalize</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#69">me</a>.<span class="ident">collection</span>));
+            <span class="kw">let </span>item = <span class="kw">match </span><a class="macro" href="../../../src/tokio_stream/macros.rs.html#61-68">ready!</a>(me.stream.poll_next(cx)) {
+                <span class="prelude-val">Some</span>(item) =&gt; <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#72">item</a>,
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="kw">return </span>Ready(U::finalize(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#69">me</a>.collection));
                 }
             };
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">U::extend</span>(<span class="ident">sealed::Internal</span>, <span class="ident">me</span>.<span class="ident">collection</span>, <span class="ident">item</span>) {
-                <span class="kw">return</span> <span class="ident">Ready</span>(<span class="ident">U::finalize</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#69">me</a>.<span class="ident">collection</span>));
+            <span class="kw">if </span>!U::extend(sealed::Internal, me.collection, item) {
+                <span class="kw">return </span>Ready(U::finalize(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#69">me</a>.collection));
             }
         }
     }
 }
 
-<span class="comment">// ===== FromStream implementations</span>
+<span class="comment">// ===== FromStream implementations
 
-<span class="kw">impl</span> <span class="ident">FromStream</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="kw">for</span> () {}
+</span><span class="kw">impl </span>FromStream&lt;()&gt; <span class="kw">for </span>() {}
 
-<span class="kw">impl</span> <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="kw">for</span> () {
-    <span class="kw">type</span> <span class="ident">InternalCollection</span> <span class="op">=</span> ();
+<span class="kw">impl </span>sealed::FromStreamPriv&lt;()&gt; <span class="kw">for </span>() {
+    <span class="kw">type </span>InternalCollection = ();
 
-    <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">_lower</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">_upper</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {}
+    <span class="kw">fn </span>initialize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, _lower: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, _upper: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {}
 
-    <span class="kw">fn</span> <span class="ident">extend</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">_collection</span>: <span class="kw-2">&amp;mut</span> (), <span class="ident">_item</span>: ()) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="bool-val">true</span>
-    }
+    <span class="kw">fn </span>extend(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, _collection: <span class="kw-2">&amp;mut </span>(), _item: ()) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="bool-val">true
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">_collection</span>: <span class="kw-2">&amp;mut</span> ()) {}
+    <span class="kw">fn </span>finalize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, _collection: <span class="kw-2">&amp;mut </span>()) {}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {}
+<span class="kw">impl</span>&lt;T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; FromStream&lt;T&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">type</span> <span class="ident">InternalCollection</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>;
+<span class="kw">impl</span>&lt;T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; sealed::FromStreamPriv&lt;T&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">type </span>InternalCollection = <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>;
 
-    <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">_lower</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">_upper</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="ident">String::new</span>()
+    <span class="kw">fn </span>initialize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, _lower: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, _upper: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        String::new()
     }
 
-    <span class="kw">fn</span> <span class="ident">extend</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#110">collection</a>.<span class="ident">push_str</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#110">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
-        <span class="bool-val">true</span>
-    }
+    <span class="kw">fn </span>extend(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, collection: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, item: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#110">collection</a>.push_str(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#110">item</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+        <span class="bool-val">true
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="ident">mem::take</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#115">collection</a>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">InternalCollection</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">lower</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">_upper</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#125">lower</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">extend</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#129">collection</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#129">item</a>);
-        <span class="bool-val">true</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">mem::take</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#134">collection</a>)
+    <span class="kw">fn </span>finalize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, collection: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        mem::take(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#115">collection</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">T</span>]<span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T&gt; FromStream&lt;T&gt; <span class="kw">for </span>Vec&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">T</span>]<span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">InternalCollection</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;T&gt; sealed::FromStreamPriv&lt;T&gt; <span class="kw">for </span>Vec&lt;T&gt; {
+    <span class="kw">type </span>InternalCollection = Vec&lt;T&gt;;
 
-    <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">lower</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">upper</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::initialize</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#144">lower</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#144">upper</a>)
+    <span class="kw">fn </span>initialize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, lower: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, _upper: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; Vec&lt;T&gt; {
+        Vec::with_capacity(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#125">lower</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">extend</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::extend</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#148">collection</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#148">item</a>)
-    }
+    <span class="kw">fn </span>extend(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, collection: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;, item: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#129">collection</a>.push(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#129">item</a>);
+        <span class="bool-val">true
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">T</span>]<span class="op">&gt;</span> {
-        <span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::finalize</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#152">collection</a>)
-            .<span class="ident">into_boxed_slice</span>()
+    <span class="kw">fn </span>finalize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, collection: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;) -&gt; Vec&lt;T&gt; {
+        mem::take(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#134">collection</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">FromStream</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">U</span>: <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T&gt; FromStream&lt;T&gt; <span class="kw">for </span>Box&lt;[T]&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">sealed::FromStreamPriv</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">U</span>: <span class="ident">FromStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T&gt; sealed::FromStreamPriv&lt;T&gt; <span class="kw">for </span>Box&lt;[T]&gt; {
+    <span class="kw">type </span>InternalCollection = Vec&lt;T&gt;;
+
+    <span class="kw">fn </span>initialize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, lower: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, upper: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; Vec&lt;T&gt; {
+        &lt;Vec&lt;T&gt; <span class="kw">as </span>sealed::FromStreamPriv&lt;T&gt;&gt;::initialize(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#144">lower</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#144">upper</a>)
+    }
+
+    <span class="kw">fn </span>extend(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, collection: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;, item: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        &lt;Vec&lt;T&gt; <span class="kw">as </span>sealed::FromStreamPriv&lt;T&gt;&gt;::extend(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#148">collection</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#148">item</a>)
+    }
+
+    <span class="kw">fn </span>finalize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, collection: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;) -&gt; Box&lt;[T]&gt; {
+        &lt;Vec&lt;T&gt; <span class="kw">as </span>sealed::FromStreamPriv&lt;T&gt;&gt;::finalize(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#152">collection</a>)
+            .into_boxed_slice()
+    }
+}
+
+<span class="kw">impl</span>&lt;T, U, E&gt; FromStream&lt;<span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;U, E&gt; <span class="kw">where </span>U: FromStream&lt;T&gt; {}
+
+<span class="kw">impl</span>&lt;T, U, E&gt; sealed::FromStreamPriv&lt;<span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;U, E&gt;
+<span class="kw">where
+    </span>U: FromStream&lt;T&gt;,
 {
-    <span class="kw">type</span> <span class="ident">InternalCollection</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U::InternalCollection</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>InternalCollection = <span class="prelude-ty">Result</span>&lt;U::InternalCollection, E&gt;;
 
-    <span class="kw">fn</span> <span class="ident">initialize</span>(
-        <span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>,
-        <span class="ident">lower</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">upper</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U::InternalCollection</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">U::initialize</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#168">lower</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#169">upper</a>))
+    <span class="kw">fn </span>initialize(
+        <span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>,
+        lower: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        upper: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;U::InternalCollection, E&gt; {
+        <span class="prelude-val">Ok</span>(U::initialize(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#168">lower</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#169">upper</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">extend</span>(
-        <span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>,
-        <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::InternalCollection</span>,
-        <span class="ident">item</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">collection</span>.<span class="ident">is_ok</span>());
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#177">item</a> {
-            <span class="prelude-val">Ok</span>(<span class="ident">item</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">collection</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#176">collection</a>.<span class="ident">as_mut</span>().<span class="ident">ok</span>().<span class="ident">expect</span>(<span class="string">&quot;invalid state&quot;</span>);
-                <span class="ident">U::extend</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#182">collection</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#181">item</a>)
+    <span class="kw">fn </span>extend(
+        <span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>,
+        collection: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::InternalCollection,
+        item: <span class="prelude-ty">Result</span>&lt;T, E&gt;,
+    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(collection.is_ok());
+        <span class="kw">match </span><a href="../../../src/tokio_stream/stream_ext/collect.rs.html#177">item</a> {
+            <span class="prelude-val">Ok</span>(item) =&gt; {
+                <span class="kw">let </span>collection = <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#176">collection</a>.as_mut().ok().expect(<span class="string">&quot;invalid state&quot;</span>);
+                U::extend(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#182">collection</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#181">item</a>)
             }
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#176">collection</a> <span class="op">=</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#185">err</a>);
-                <span class="bool-val">false</span>
-            }
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="kw-2">*</span><a href="../../../src/tokio_stream/stream_ext/collect.rs.html#176">collection</a> = <span class="prelude-val">Err</span>(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#185">err</a>);
+                <span class="bool-val">false
+            </span>}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw">_</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::InternalCollection</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">collection</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#192">collection</a>.<span class="ident">as_mut</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">U::finalize</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#193">collection</a>))
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#192">collection</a>, <span class="prelude-val">Ok</span>(<span class="ident">U::initialize</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>))));
+    <span class="kw">fn </span>finalize(<span class="kw">_</span>: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, collection: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::InternalCollection) -&gt; <span class="prelude-ty">Result</span>&lt;U, E&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(collection) = <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#192">collection</a>.as_mut() {
+            <span class="prelude-val">Ok</span>(U::finalize(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#193">collection</a>))
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>res = mem::replace(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#192">collection</a>, <span class="prelude-val">Ok</span>(U::initialize(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">sealed::Internal</a>, <span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>))));
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#196">res</a> {
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#198">err</a>)
-            } <span class="kw">else</span> {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#196">res</a> {
+                <span class="prelude-val">Err</span>(<a href="../../../src/tokio_stream/stream_ext/collect.rs.html#198">err</a>)
+            } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
             }
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">sealed</span> {
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FromStreamPriv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Intermediate type used during collection process</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The name of this type is internal and cannot be relied upon.</span>
-        <span class="kw">type</span> <span class="ident">InternalCollection</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>sealed {
+    <span class="attribute">#[doc(hidden)]
+    </span><span class="kw">pub trait </span>FromStreamPriv&lt;T&gt; {
+        <span class="doccomment">/// Intermediate type used during collection process
+        ///
+        /// The name of this type is internal and cannot be relied upon.
+        </span><span class="kw">type </span>InternalCollection;
 
-        <span class="doccomment">/// Initialize the collection</span>
-        <span class="kw">fn</span> <span class="ident">initialize</span>(
-            <span class="ident">internal</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">Internal</a>,
-            <span class="ident">lower</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-            <span class="ident">upper</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident"><span class="self">Self</span>::InternalCollection</span>;
+        <span class="doccomment">/// Initialize the collection
+        </span><span class="kw">fn </span>initialize(
+            internal: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">Internal</a>,
+            lower: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+            upper: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+        ) -&gt; <span class="self">Self</span>::InternalCollection;
 
-        <span class="doccomment">/// Extend the collection with the received item</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Return `true` to continue streaming, `false` complete collection.</span>
-        <span class="kw">fn</span> <span class="ident">extend</span>(<span class="ident">internal</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::InternalCollection</span>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+        <span class="doccomment">/// Extend the collection with the received item
+        ///
+        /// Return `true` to continue streaming, `false` complete collection.
+        </span><span class="kw">fn </span>extend(internal: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">Internal</a>, collection: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::InternalCollection, item: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
-        <span class="doccomment">/// Finalize collection into target type.</span>
-        <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="ident">internal</span>: <a class="ident" href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">Internal</a>, <span class="ident">collection</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::InternalCollection</span>) -&gt; <span class="self">Self</span>;
+        <span class="doccomment">/// Finalize collection into target type.
+        </span><span class="kw">fn </span>finalize(internal: <a href="../../../src/tokio_stream/stream_ext/collect.rs.html#232">Internal</a>, collection: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::InternalCollection) -&gt; <span class="self">Self</span>;
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Internal</span>;
+    <span class="attribute">#[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>Internal;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

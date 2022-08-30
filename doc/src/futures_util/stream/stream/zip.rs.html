@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/stream/zip.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>zip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/stream/zip.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>zip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -126,133 +126,133 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stream</span>::{<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#9-18">Fuse</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#9-18">Fuse</a>, <a href="../../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>futures_core::stream::{<a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Stream for the [`zip`](super::StreamExt::zip) method.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Zip</span><span class="op">&lt;</span><span class="ident">St1</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, <span class="ident">St2</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">stream1</span>: <span class="ident">Fuse</span><span class="op">&lt;</span><span class="ident">St1</span><span class="op">&gt;</span>,
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">stream2</span>: <span class="ident">Fuse</span><span class="op">&lt;</span><span class="ident">St2</span><span class="op">&gt;</span>,
-        <span class="ident">queued1</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">St1::Item</span><span class="op">&gt;</span>,
-        <span class="ident">queued2</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">St2::Item</span><span class="op">&gt;</span>,
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Stream for the [`zip`](super::StreamExt::zip) method.
+    </span><span class="attribute">#[derive(Debug)]
+    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>Zip&lt;St1: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, St2: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; {
+        <span class="attribute">#[pin]
+        </span>stream1: Fuse&lt;St1&gt;,
+        <span class="attribute">#[pin]
+        </span>stream2: Fuse&lt;St2&gt;,
+        queued1: <span class="prelude-ty">Option</span>&lt;St1::Item&gt;,
+        queued2: <span class="prelude-ty">Option</span>&lt;St2::Item&gt;,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St1</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, <span class="ident">St2</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a><span class="op">&gt;</span> <span class="ident">Zip</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream1</span>: <span class="ident">St1</span>, <span class="ident">stream2</span>: <span class="ident">St2</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">stream1</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#23">stream1</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/mod.rs.html#1232-1234">fuse</a>(), <span class="ident">stream2</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#23">stream2</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/mod.rs.html#1232-1234">fuse</a>(), <span class="ident">queued1</span>: <span class="prelude-val">None</span>, <span class="ident">queued2</span>: <span class="prelude-val">None</span> }
+<span class="kw">impl</span>&lt;St1: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, St2: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; Zip&lt;St1, St2&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream1: St1, stream2: St2) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ stream1: <a href="../../../../src/futures_util/stream/stream/zip.rs.html#23">stream1</a>.<a href="../../../../src/futures_util/stream/stream/mod.rs.html#1232-1234">fuse</a>(), stream2: <a href="../../../../src/futures_util/stream/stream/zip.rs.html#23">stream2</a>.<a href="../../../../src/futures_util/stream/stream/mod.rs.html#1232-1234">fuse</a>(), queued1: <span class="prelude-val">None</span>, queued2: <span class="prelude-val">None </span>}
     }
 
-    <span class="doccomment">/// Acquires a reference to the underlying streams that this combinator is</span>
-    <span class="doccomment">/// pulling from.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="ident">St1</span>, <span class="kw-2">&amp;</span><span class="ident">St2</span>) {
-        (<a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#29">self</a>.<span class="ident">stream1</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_ref</a>(), <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#29">self</a>.<span class="ident">stream2</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_ref</a>())
+    <span class="doccomment">/// Acquires a reference to the underlying streams that this combinator is
+    /// pulling from.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span>St1, <span class="kw-2">&amp;</span>St2) {
+        (<a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#29">self</a>.stream1.<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_ref</a>(), <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#29">self</a>.stream2.<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_ref</a>())
     }
 
-    <span class="doccomment">/// Acquires a mutable reference to the underlying streams that this</span>
-    <span class="doccomment">/// combinator is pulling from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care must be taken to avoid tampering with the state of the</span>
-    <span class="doccomment">/// stream which may otherwise confuse this combinator.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; (<span class="kw-2">&amp;mut</span> <span class="ident">St1</span>, <span class="kw-2">&amp;mut</span> <span class="ident">St2</span>) {
-        (<a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#38">self</a>.<span class="ident">stream1</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_mut</a>(), <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#38">self</a>.<span class="ident">stream2</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_mut</a>())
+    <span class="doccomment">/// Acquires a mutable reference to the underlying streams that this
+    /// combinator is pulling from.
+    ///
+    /// Note that care must be taken to avoid tampering with the state of the
+    /// stream which may otherwise confuse this combinator.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;mut </span>St1, <span class="kw-2">&amp;mut </span>St2) {
+        (<a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#38">self</a>.stream1.<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_mut</a>(), <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#38">self</a>.stream2.<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_mut</a>())
     }
 
-    <span class="doccomment">/// Acquires a pinned mutable reference to the underlying streams that this</span>
-    <span class="doccomment">/// combinator is pulling from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care must be taken to avoid tampering with the state of the</span>
-    <span class="doccomment">/// stream which may otherwise confuse this combinator.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pin_mut</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">St1</span><span class="op">&gt;</span>, <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">St2</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#47">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#8-20">project</a>();
-        (<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#48">this</a>.<span class="ident">stream1</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_pin_mut</a>(), <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#48">this</a>.<span class="ident">stream2</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_pin_mut</a>())
+    <span class="doccomment">/// Acquires a pinned mutable reference to the underlying streams that this
+    /// combinator is pulling from.
+    ///
+    /// Note that care must be taken to avoid tampering with the state of the
+    /// stream which may otherwise confuse this combinator.
+    </span><span class="kw">pub fn </span>get_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (Pin&lt;<span class="kw-2">&amp;mut </span>St1&gt;, Pin&lt;<span class="kw-2">&amp;mut </span>St2&gt;) {
+        <span class="kw">let </span>this = <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#47">self</a>.<a href="../../../../src/futures_util/stream/stream/zip.rs.html#8-20">project</a>();
+        (<a href="../../../../src/futures_util/stream/stream/zip.rs.html#48">this</a>.stream1.<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_pin_mut</a>(), <a href="../../../../src/futures_util/stream/stream/zip.rs.html#48">this</a>.stream2.<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">get_pin_mut</a>())
     }
 
-    <span class="doccomment">/// Consumes this combinator, returning the underlying streams.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this may discard intermediate state of this combinator, so</span>
-    <span class="doccomment">/// care should be taken to avoid losing resources when this is called.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; (<span class="ident">St1</span>, <span class="ident">St2</span>) {
-        (<a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#56">self</a>.<span class="ident">stream1</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">into_inner</a>(), <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#56">self</a>.<span class="ident">stream2</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">into_inner</a>())
+    <span class="doccomment">/// Consumes this combinator, returning the underlying streams.
+    ///
+    /// Note that this may discard intermediate state of this combinator, so
+    /// care should be taken to avoid losing resources when this is called.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; (St1, St2) {
+        (<a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#56">self</a>.stream1.<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">into_inner</a>(), <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#56">self</a>.stream2.<a href="../../../../src/futures_util/stream/stream/fuse.rs.html#34">into_inner</a>())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">Zip</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St1</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">St2</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+<span class="kw">impl</span>&lt;St1, St2&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>Zip&lt;St1, St2&gt;
+<span class="kw">where
+    </span>St1: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    St2: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
 {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#66">self</a>.<span class="ident">stream1</span>.<a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#66">self</a>.<span class="ident">stream2</span>.<a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#66">self</a>.stream1.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#66">self</a>.stream2.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">Zip</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St1</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">St2</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+<span class="kw">impl</span>&lt;St1, St2&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Zip&lt;St1, St2&gt;
+<span class="kw">where
+    </span>St1: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    St2: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">St1::Item</span>, <span class="ident">St2::Item</span>);
+    <span class="kw">type </span>Item = (St1::Item, St2::Item);
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#78">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#8-20">project</a>();
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#78">self</a>.<a href="../../../../src/futures_util/stream/stream/zip.rs.html#8-20">project</a>();
 
-        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">queued1</span>.<span class="ident">is_none</span>() {
-            <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.<span class="ident">stream1</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#78">cx</a>) {
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">item1</span>)) =&gt; <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.<span class="ident">queued1</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#83">item1</a>),
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) <span class="op">|</span> <span class="ident">Poll::Pending</span> =&gt; {}
+        <span class="kw">if </span>this.queued1.is_none() {
+            <span class="kw">match </span><a href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.stream1.as_mut().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#78">cx</a>) {
+                Poll::Ready(<span class="prelude-val">Some</span>(item1)) =&gt; <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.queued1 = <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#83">item1</a>),
+                Poll::Ready(<span class="prelude-val">None</span>) | Poll::Pending =&gt; {}
             }
         }
-        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">queued2</span>.<span class="ident">is_none</span>() {
-            <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.<span class="ident">stream2</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#78">cx</a>) {
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">item2</span>)) =&gt; <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.<span class="ident">queued2</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#89">item2</a>),
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) <span class="op">|</span> <span class="ident">Poll::Pending</span> =&gt; {}
+        <span class="kw">if </span>this.queued2.is_none() {
+            <span class="kw">match </span><a href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.stream2.as_mut().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#78">cx</a>) {
+                Poll::Ready(<span class="prelude-val">Some</span>(item2)) =&gt; <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.queued2 = <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#89">item2</a>),
+                Poll::Ready(<span class="prelude-val">None</span>) | Poll::Pending =&gt; {}
             }
         }
 
-        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">queued1</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">queued2</span>.<span class="ident">is_some</span>() {
-            <span class="kw">let</span> <span class="ident">pair</span> <span class="op">=</span> (<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.<span class="ident">queued1</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>(), <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.<span class="ident">queued2</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>());
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#95">pair</a>))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">stream1</span>.<span class="ident">is_done</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">this</span>.<span class="ident">stream2</span>.<span class="ident">is_done</span>() {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">Poll::Pending</span>
+        <span class="kw">if </span>this.queued1.is_some() &amp;&amp; this.queued2.is_some() {
+            <span class="kw">let </span>pair = (<a href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.queued1.take().unwrap(), <a href="../../../../src/futures_util/stream/stream/zip.rs.html#79">this</a>.queued2.take().unwrap());
+            Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#95">pair</a>))
+        } <span class="kw">else if </span>this.stream1.is_done() || this.stream2.is_done() {
+            Poll::Ready(<span class="prelude-val">None</span>)
+        } <span class="kw">else </span>{
+            Poll::Pending
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">queued1_len</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">queued1</span>.<span class="ident">is_some</span>() { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
-        <span class="kw">let</span> <span class="ident">queued2_len</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">queued2</span>.<span class="ident">is_some</span>() { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
-        <span class="kw">let</span> (<span class="ident">stream1_lower</span>, <span class="ident">stream1_upper</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#104">self</a>.<span class="ident">stream1</span>.<a class="ident" href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
-        <span class="kw">let</span> (<span class="ident">stream2_lower</span>, <span class="ident">stream2_upper</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#104">self</a>.<span class="ident">stream2</span>.<a class="ident" href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <span class="kw">let </span>queued1_len = <span class="kw">if </span><span class="self">self</span>.queued1.is_some() { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
+        <span class="kw">let </span>queued2_len = <span class="kw">if </span><span class="self">self</span>.queued2.is_some() { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
+        <span class="kw">let </span>(stream1_lower, stream1_upper) = <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#104">self</a>.stream1.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>(stream2_lower, stream2_upper) = <a class="self" href="../../../../src/futures_util/stream/stream/zip.rs.html#104">self</a>.stream2.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
 
-        <span class="kw">let</span> <span class="ident">stream1_lower</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#107">stream1_lower</a>.<span class="ident">saturating_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#105">queued1_len</a>);
-        <span class="kw">let</span> <span class="ident">stream2_lower</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#108">stream2_lower</a>.<span class="ident">saturating_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#106">queued2_len</a>);
+        <span class="kw">let </span>stream1_lower = <a href="../../../../src/futures_util/stream/stream/zip.rs.html#107">stream1_lower</a>.saturating_add(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#105">queued1_len</a>);
+        <span class="kw">let </span>stream2_lower = <a href="../../../../src/futures_util/stream/stream/zip.rs.html#108">stream2_lower</a>.saturating_add(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#106">queued2_len</a>);
 
-        <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#110">stream1_lower</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#111">stream2_lower</a>);
+        <span class="kw">let </span>lower = cmp::min(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#110">stream1_lower</a>, <a href="../../../../src/futures_util/stream/stream/zip.rs.html#111">stream2_lower</a>);
 
-        <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#107">stream1_upper</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#108">stream2_upper</a>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#116">x</a>.<span class="ident">saturating_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#105">queued1_len</a>);
-                <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#116">y</a>.<span class="ident">saturating_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#106">queued2_len</a>);
-                <span class="prelude-val">Some</span>(<span class="ident">cmp::min</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#117">x</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#118">y</a>))
+        <span class="kw">let </span>upper = <span class="kw">match </span>(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#107">stream1_upper</a>, <a href="../../../../src/futures_util/stream/stream/zip.rs.html#108">stream2_upper</a>) {
+            (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; {
+                <span class="kw">let </span>x = <a href="../../../../src/futures_util/stream/stream/zip.rs.html#116">x</a>.saturating_add(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#105">queued1_len</a>);
+                <span class="kw">let </span>y = <a href="../../../../src/futures_util/stream/stream/zip.rs.html#116">y</a>.saturating_add(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#106">queued2_len</a>);
+                <span class="prelude-val">Some</span>(cmp::min(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#117">x</a>, <a href="../../../../src/futures_util/stream/stream/zip.rs.html#118">y</a>))
             }
-            (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">None</span>) =&gt; <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#121">x</a>.<span class="ident">checked_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#105">queued1_len</a>),
-            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#122">y</a>.<span class="ident">checked_add</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#106">queued2_len</a>),
+            (<span class="prelude-val">Some</span>(x), <span class="prelude-val">None</span>) =&gt; <a href="../../../../src/futures_util/stream/stream/zip.rs.html#121">x</a>.checked_add(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#105">queued1_len</a>),
+            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(y)) =&gt; <a href="../../../../src/futures_util/stream/stream/zip.rs.html#122">y</a>.checked_add(<a href="../../../../src/futures_util/stream/stream/zip.rs.html#106">queued2_len</a>),
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
         };
 
-        (<a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#113">lower</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/zip.rs.html#115">upper</a>)
+        (<a href="../../../../src/futures_util/stream/stream/zip.rs.html#113">lower</a>, <a href="../../../../src/futures_util/stream/stream/zip.rs.html#115">upper</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

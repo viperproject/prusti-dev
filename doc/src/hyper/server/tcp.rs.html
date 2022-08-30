@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/server/tcp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tcp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/server/tcp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tcp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -316,155 +316,155 @@
 <span id="316">316</span>
 <span id="317">317</span>
 <span id="318">318</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <span class="ident">std::net</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">TcpListener</a> <span class="kw">as</span> <span class="ident">StdTcpListener</span>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">TcpListener</a> <span class="kw">as </span>StdTcpListener};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../tokio/net/tcp/listener/struct.TcpListener.html">tokio::net::TcpListener</a>;
-<span class="kw">use</span> <a class="ident" href="../../../tokio/time/driver/sleep/struct.Sleep.html">tokio::time::Sleep</a>;
-<span class="kw">use</span> <span class="ident">tracing</span>::{<a class="ident" href="../../../tracing/macro.debug.html">debug</a>, <a class="ident" href="../../../tracing/macro.error.html">error</a>, <a class="ident" href="../../../tracing/macro.trace.html">trace</a>};
+<span class="kw">use </span><a href="../../../tokio/net/tcp/listener/struct.TcpListener.html">tokio::net::TcpListener</a>;
+<span class="kw">use </span><a href="../../../tokio/time/driver/sleep/struct.Sleep.html">tokio::time::Sleep</a>;
+<span class="kw">use </span>tracing::{<a href="../../../tracing/macro.debug.html">debug</a>, <a href="../../../tracing/macro.error.html">error</a>, <a href="../../../tracing/macro.trace.html">trace</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_pub</span>)]</span> <span class="comment">// https://github.com/rust-lang/rust/issues/57411</span>
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216"><span class="self">self</span>::addr_stream::AddrStream</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/hyper/server/accept.rs.html#20"><span class="kw">super</span>::accept::Accept</a>;
+<span class="attribute">#[allow(unreachable_pub)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/57411
+</span><span class="kw">pub use </span><a href="../../../src/hyper/server/tcp.rs.html#207-216"><span class="self">self</span>::addr_stream::AddrStream</a>;
+<span class="kw">use </span><a href="../../../src/hyper/server/accept.rs.html#20"><span class="kw">super</span>::accept::Accept</a>;
 
-<span class="doccomment">/// A stream of connections from binding to an address.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AddrIncoming</span> {
-    <span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
-    <span class="ident">listener</span>: <a class="ident" href="../../../tokio/net/tcp/listener/struct.TcpListener.html">TcpListener</a>,
-    <span class="ident">sleep_on_errors</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">tcp_keepalive_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
-    <span class="ident">tcp_nodelay</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A stream of connections from binding to an address.
+</span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+</span><span class="kw">pub struct </span>AddrIncoming {
+    addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
+    listener: <a href="../../../tokio/net/tcp/listener/struct.TcpListener.html">TcpListener</a>,
+    sleep_on_errors: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    tcp_keepalive_timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
+    tcp_nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    timeout: <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;<a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#18">AddrIncoming</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">addr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">std_listener</span> <span class="op">=</span> <span class="ident">StdTcpListener::bind</span>(<span class="ident">addr</span>).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_listen</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../src/hyper/server/tcp.rs.html#18">AddrIncoming</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(addr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>std_listener = StdTcpListener::bind(addr).map_err(<span class="kw">crate</span>::Error::new_listen)<span class="question-mark">?</span>;
 
-        <span class="ident">AddrIncoming::from_std</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#29">std_listener</a>)
+        AddrIncoming::from_std(<a href="../../../src/hyper/server/tcp.rs.html#29">std_listener</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">std_listener</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">StdTcpListener</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="comment">// TcpListener::from_std doesn&#39;t set O_NONBLOCK</span>
-        <span class="ident">std_listener</span>
-            .<span class="ident">set_nonblocking</span>(<span class="bool-val">true</span>)
-            .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_listen</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">TcpListener::from_std</span>(<span class="ident">std_listener</span>).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_listen</span>)<span class="question-mark">?</span>;
-        <span class="ident">AddrIncoming::from_listener</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#39">listener</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>from_std(std_listener: <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">StdTcpListener</a>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// TcpListener::from_std doesn&#39;t set O_NONBLOCK
+        </span>std_listener
+            .set_nonblocking(<span class="bool-val">true</span>)
+            .map_err(<span class="kw">crate</span>::Error::new_listen)<span class="question-mark">?</span>;
+        <span class="kw">let </span>listener = TcpListener::from_std(std_listener).map_err(<span class="kw">crate</span>::Error::new_listen)<span class="question-mark">?</span>;
+        AddrIncoming::from_listener(<a href="../../../src/hyper/server/tcp.rs.html#39">listener</a>)
     }
 
-    <span class="doccomment">/// Creates a new `AddrIncoming` binding to provided socket address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">addr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">AddrIncoming::new</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#44">addr</a>)
+    <span class="doccomment">/// Creates a new `AddrIncoming` binding to provided socket address.
+    </span><span class="kw">pub fn </span>bind(addr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
+        AddrIncoming::new(<a href="../../../src/hyper/server/tcp.rs.html#44">addr</a>)
     }
 
-    <span class="doccomment">/// Creates a new `AddrIncoming` from an existing `tokio::net::TcpListener`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_listener</span>(<span class="ident">listener</span>: <a class="ident" href="../../../tokio/net/tcp/listener/struct.TcpListener.html">TcpListener</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">listener</span>.<span class="ident">local_addr</span>().<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_listen</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#18">AddrIncoming</a> {
-            <a class="ident" href="../../../src/hyper/server/tcp.rs.html#49">listener</a>,
-            <a class="ident" href="../../../src/hyper/server/tcp.rs.html#50">addr</a>,
-            <span class="ident">sleep_on_errors</span>: <span class="bool-val">true</span>,
-            <span class="ident">tcp_keepalive_timeout</span>: <span class="prelude-val">None</span>,
-            <span class="ident">tcp_nodelay</span>: <span class="bool-val">false</span>,
-            <span class="ident">timeout</span>: <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Creates a new `AddrIncoming` from an existing `tokio::net::TcpListener`.
+    </span><span class="kw">pub fn </span>from_listener(listener: <a href="../../../tokio/net/tcp/listener/struct.TcpListener.html">TcpListener</a>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>addr = listener.local_addr().map_err(<span class="kw">crate</span>::Error::new_listen)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/hyper/server/tcp.rs.html#18">AddrIncoming</a> {
+            <a href="../../../src/hyper/server/tcp.rs.html#49">listener</a>,
+            <a href="../../../src/hyper/server/tcp.rs.html#50">addr</a>,
+            sleep_on_errors: <span class="bool-val">true</span>,
+            tcp_keepalive_timeout: <span class="prelude-val">None</span>,
+            tcp_nodelay: <span class="bool-val">false</span>,
+            timeout: <span class="prelude-val">None</span>,
         })
     }
 
-    <span class="doccomment">/// Get the local address bound to this listener.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
-        <a class="self" href="../../../src/hyper/server/tcp.rs.html#62">self</a>.<span class="ident">addr</span>
+    <span class="doccomment">/// Get the local address bound to this listener.
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
+        <a class="self" href="../../../src/hyper/server/tcp.rs.html#62">self</a>.addr
     }
 
-    <span class="doccomment">/// Set whether TCP keepalive messages are enabled on accepted connections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `None` is specified, keepalive is disabled, otherwise the duration</span>
-    <span class="doccomment">/// specified will be the time to remain idle before sending TCP keepalive</span>
-    <span class="doccomment">/// probes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_keepalive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">keepalive</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/hyper/server/tcp.rs.html#71">self</a>.<span class="ident">tcp_keepalive_timeout</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#71">keepalive</a>;
-        <a class="self" href="../../../src/hyper/server/tcp.rs.html#71">self</a>
+    <span class="doccomment">/// Set whether TCP keepalive messages are enabled on accepted connections.
+    ///
+    /// If `None` is specified, keepalive is disabled, otherwise the duration
+    /// specified will be the time to remain idle before sending TCP keepalive
+    /// probes.
+    </span><span class="kw">pub fn </span>set_keepalive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, keepalive: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/hyper/server/tcp.rs.html#71">self</a>.tcp_keepalive_timeout = <a href="../../../src/hyper/server/tcp.rs.html#71">keepalive</a>;
+        <span class="self"><a href="../../../src/hyper/server/tcp.rs.html#71">self</a>
+    </span>}
+
+    <span class="doccomment">/// Set the value of `TCP_NODELAY` option for accepted connections.
+    </span><span class="kw">pub fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/hyper/server/tcp.rs.html#77">self</a>.tcp_nodelay = <a href="../../../src/hyper/server/tcp.rs.html#77">enabled</a>;
+        <span class="self"><a href="../../../src/hyper/server/tcp.rs.html#77">self</a>
+    </span>}
+
+    <span class="doccomment">/// Set whether to sleep on accept errors.
+    ///
+    /// A possible scenario is that the process has hit the max open files
+    /// allowed, and so trying to accept a new connection will fail with
+    /// `EMFILE`. In some cases, it&#39;s preferable to just wait for some time, if
+    /// the application will likely close some files (or connections), and try
+    /// to accept the connection again. If this option is `true`, the error
+    /// will be logged at the `error` level, since it is still a big deal,
+    /// and then the listener will sleep for 1 second.
+    ///
+    /// In other cases, hitting the max open files should be treat similarly
+    /// to being out-of-memory, and simply error (and shutdown). Setting
+    /// this option to `false` will allow that.
+    ///
+    /// Default is `true`.
+    </span><span class="kw">pub fn </span>set_sleep_on_errors(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/hyper/server/tcp.rs.html#97">self</a>.sleep_on_errors = <a href="../../../src/hyper/server/tcp.rs.html#97">val</a>;
     }
 
-    <span class="doccomment">/// Set the value of `TCP_NODELAY` option for accepted connections.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/hyper/server/tcp.rs.html#77">self</a>.<span class="ident">tcp_nodelay</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#77">enabled</a>;
-        <a class="self" href="../../../src/hyper/server/tcp.rs.html#77">self</a>
-    }
-
-    <span class="doccomment">/// Set whether to sleep on accept errors.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A possible scenario is that the process has hit the max open files</span>
-    <span class="doccomment">/// allowed, and so trying to accept a new connection will fail with</span>
-    <span class="doccomment">/// `EMFILE`. In some cases, it&#39;s preferable to just wait for some time, if</span>
-    <span class="doccomment">/// the application will likely close some files (or connections), and try</span>
-    <span class="doccomment">/// to accept the connection again. If this option is `true`, the error</span>
-    <span class="doccomment">/// will be logged at the `error` level, since it is still a big deal,</span>
-    <span class="doccomment">/// and then the listener will sleep for 1 second.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In other cases, hitting the max open files should be treat similarly</span>
-    <span class="doccomment">/// to being out-of-memory, and simply error (and shutdown). Setting</span>
-    <span class="doccomment">/// this option to `false` will allow that.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Default is `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_sleep_on_errors</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/hyper/server/tcp.rs.html#97">self</a>.<span class="ident">sleep_on_errors</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#97">val</a>;
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_next_</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Check if a previous timeout is active that was set by IO errors.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">to</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.<span class="ident">timeout</span> {
-            <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">Pin::new</span>(<span class="ident">to</span>).<span class="ident">poll</span>(<span class="ident">cx</span>));
+    <span class="kw">fn </span>poll_next_(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<a href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a>&gt;&gt; {
+        <span class="comment">// Check if a previous timeout is active that was set by IO errors.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>to) = <a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.timeout {
+            <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(Pin::new(to).poll(cx));
         }
-        <a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.<span class="ident">timeout</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.timeout = <span class="prelude-val">None</span>;
 
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">listener</span>.<span class="ident">poll_accept</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Ok</span>((<span class="ident">socket</span>, <span class="ident">remote_addr</span>)) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dur</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.<span class="ident">tcp_keepalive_timeout</span> {
-                        <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">socket2::SockRef::from</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/server/tcp.rs.html#110">socket</a>);
-                        <span class="kw">let</span> <span class="ident">conf</span> <span class="op">=</span> <span class="ident">socket2::TcpKeepalive::new</span>().<span class="ident">with_time</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#111">dur</a>);
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#112">socket</a>.<span class="ident">set_tcp_keepalive</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/server/tcp.rs.html#113">conf</a>) {
-                            <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;error trying to set TCP keepalive: {}&quot;</span>, <span class="ident">e</span>);
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.listener.poll_accept(cx)) {
+                <span class="prelude-val">Ok</span>((socket, remote_addr)) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(dur) = <a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.tcp_keepalive_timeout {
+                        <span class="kw">let </span>socket = socket2::SockRef::from(<span class="kw-2">&amp;</span><a href="../../../src/hyper/server/tcp.rs.html#110">socket</a>);
+                        <span class="kw">let </span>conf = socket2::TcpKeepalive::new().with_time(<a href="../../../src/hyper/server/tcp.rs.html#111">dur</a>);
+                        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../../src/hyper/server/tcp.rs.html#112">socket</a>.set_tcp_keepalive(<span class="kw-2">&amp;</span><a href="../../../src/hyper/server/tcp.rs.html#113">conf</a>) {
+                            <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;error trying to set TCP keepalive: {}&quot;</span>, e);
                         }
                     }
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#110">socket</a>.<span class="ident">set_nodelay</span>(<a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.<span class="ident">tcp_nodelay</span>) {
-                        <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;error trying to set TCP nodelay: {}&quot;</span>, <span class="ident">e</span>);
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../../src/hyper/server/tcp.rs.html#110">socket</a>.set_nodelay(<a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.tcp_nodelay) {
+                        <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;error trying to set TCP nodelay: {}&quot;</span>, e);
                     }
-                    <span class="kw">let</span> <span class="ident">local_addr</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">local_addr</span>()<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">AddrStream::new</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#110">socket</a>, <a class="ident" href="../../../src/hyper/server/tcp.rs.html#110">remote_addr</a>, <a class="ident" href="../../../src/hyper/server/tcp.rs.html#121">local_addr</a>)));
+                    <span class="kw">let </span>local_addr = socket.local_addr()<span class="question-mark">?</span>;
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(AddrStream::new(<a href="../../../src/hyper/server/tcp.rs.html#110">socket</a>, <a href="../../../src/hyper/server/tcp.rs.html#110">remote_addr</a>, <a href="../../../src/hyper/server/tcp.rs.html#121">local_addr</a>)));
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="comment">// Connection errors can be ignored directly, continue by</span>
-                    <span class="comment">// accepting the next request.</span>
-                    <span class="kw">if</span> <span class="ident">is_connection_error</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>) {
-                        <a class="macro" href="../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;accepted connection already errored: {}&quot;</span>, <span class="ident">e</span>);
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="comment">// Connection errors can be ignored directly, continue by
+                    // accepting the next request.
+                    </span><span class="kw">if </span>is_connection_error(<span class="kw-2">&amp;</span>e) {
+                        <a class="macro" href="../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;accepted connection already errored: {}&quot;</span>, e);
                         <span class="kw">continue</span>;
                     }
 
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sleep_on_errors</span> {
-                        <a class="macro" href="../../../tracing/macro.error.html">error!</a>(<span class="string">&quot;accept error: {}&quot;</span>, <span class="ident">e</span>);
+                    <span class="kw">if </span><span class="self">self</span>.sleep_on_errors {
+                        <a class="macro" href="../../../tracing/macro.error.html">error!</a>(<span class="string">&quot;accept error: {}&quot;</span>, e);
 
-                        <span class="comment">// Sleep 1s.</span>
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="ident">Box::pin</span>(<span class="ident">tokio::time::sleep</span>(<span class="ident">Duration::from_secs</span>(<span class="number">1</span>)));
+                        <span class="comment">// Sleep 1s.
+                        </span><span class="kw">let </span><span class="kw-2">mut </span>timeout = Box::pin(tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)));
 
-                        <span class="kw">match</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#136">timeout</a>.<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#101">cx</a>) {
-                            <span class="ident">Poll::Ready</span>(()) =&gt; {
-                                <span class="comment">// Wow, it&#39;s been a second already? Ok then...</span>
-                                <span class="kw">continue</span>;
+                        <span class="kw">match </span><a href="../../../src/hyper/server/tcp.rs.html#136">timeout</a>.as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/server/tcp.rs.html#101">cx</a>) {
+                            Poll::Ready(()) =&gt; {
+                                <span class="comment">// Wow, it&#39;s been a second already? Ok then...
+                                </span><span class="kw">continue</span>;
                             }
-                            <span class="ident">Poll::Pending</span> =&gt; {
-                                <a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.<span class="ident">timeout</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#136">timeout</a>);
-                                <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+                            Poll::Pending =&gt; {
+                                <a class="self" href="../../../src/hyper/server/tcp.rs.html#101">self</a>.timeout = <span class="prelude-val">Some</span>(<a href="../../../src/hyper/server/tcp.rs.html#136">timeout</a>);
+                                <span class="kw">return </span>Poll::Pending;
                             }
                         }
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#124">e</a>));
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/hyper/server/tcp.rs.html#124">e</a>));
                     }
                 }
             }
@@ -472,167 +472,167 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/server/accept.rs.html#20">Accept</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#18">AddrIncoming</a> {
-    <span class="kw">type</span> <span class="ident">Conn</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span><a href="../../../src/hyper/server/accept.rs.html#20">Accept</a> <span class="kw">for </span><a href="../../../src/hyper/server/tcp.rs.html#18">AddrIncoming</a> {
+    <span class="kw">type </span>Conn = <a href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a>;
+    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll_accept</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Conn</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">poll_next_</span>(<span class="ident">cx</span>));
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#165">result</a>))
+    <span class="kw">fn </span>poll_accept(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Conn, <span class="self">Self</span>::Error&gt;&gt;&gt; {
+        <span class="kw">let </span>result = <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.poll_next_(cx));
+        Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/hyper/server/tcp.rs.html#165">result</a>))
     }
 }
 
-<span class="doccomment">/// This function defines errors that are per-connection. Which basically</span>
-<span class="doccomment">/// means that if we get this error from `accept()` system call it means</span>
-<span class="doccomment">/// next connection might be ready to be accepted.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// All other errors will incur a timeout before next `accept()` is performed.</span>
-<span class="doccomment">/// The timeout is useful to handle resource exhaustion errors like ENFILE</span>
-<span class="doccomment">/// and EMFILE. Otherwise, could enter into tight loop.</span>
-<span class="kw">fn</span> <span class="ident">is_connection_error</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="doccomment">/// This function defines errors that are per-connection. Which basically
+/// means that if we get this error from `accept()` system call it means
+/// next connection might be ready to be accepted.
+///
+/// All other errors will incur a timeout before next `accept()` is performed.
+/// The timeout is useful to handle resource exhaustion errors like ENFILE
+/// and EMFILE. Otherwise, could enter into tight loop.
+</span><span class="kw">fn </span>is_connection_error(e: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
-        <span class="ident">e</span>.<span class="ident">kind</span>(),
-        <span class="ident">io::ErrorKind::ConnectionRefused</span>
-            <span class="op">|</span> <span class="ident">io::ErrorKind::ConnectionAborted</span>
-            <span class="op">|</span> <span class="ident">io::ErrorKind::ConnectionReset</span>
+        e.kind(),
+        io::ErrorKind::ConnectionRefused
+            | io::ErrorKind::ConnectionAborted
+            | io::ErrorKind::ConnectionReset
     )
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#18">AddrIncoming</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/hyper/server/tcp.rs.html#187">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;AddrIncoming&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;addr&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/server/tcp.rs.html#187">self</a>.<span class="ident">addr</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;sleep_on_errors&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/server/tcp.rs.html#187">self</a>.<span class="ident">sleep_on_errors</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;tcp_keepalive_timeout&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/server/tcp.rs.html#187">self</a>.<span class="ident">tcp_keepalive_timeout</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;tcp_nodelay&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/server/tcp.rs.html#187">self</a>.<span class="ident">tcp_nodelay</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/hyper/server/tcp.rs.html#18">AddrIncoming</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/hyper/server/tcp.rs.html#187">f</a>.debug_struct(<span class="string">&quot;AddrIncoming&quot;</span>)
+            .field(<span class="string">&quot;addr&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/server/tcp.rs.html#187">self</a>.addr)
+            .field(<span class="string">&quot;sleep_on_errors&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/server/tcp.rs.html#187">self</a>.sleep_on_errors)
+            .field(<span class="string">&quot;tcp_keepalive_timeout&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/server/tcp.rs.html#187">self</a>.tcp_keepalive_timeout)
+            .field(<span class="string">&quot;tcp_nodelay&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/server/tcp.rs.html#187">self</a>.tcp_nodelay)
+            .finish()
     }
 }
 
-<span class="kw">mod</span> <span class="ident">addr_stream</span> {
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-    <span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-    <span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a class="ident" href="../../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
-    <span class="kw">use</span> <a class="ident" href="../../../tokio/net/tcp/stream/struct.TcpStream.html">tokio::net::TcpStream</a>;
+<span class="kw">mod </span>addr_stream {
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">std::net::SocketAddr</a>;
+    <span class="attribute">#[cfg(unix)]
+    </span><span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+    <span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
+    <span class="kw">use </span><a href="../../../tokio/net/tcp/stream/struct.TcpStream.html">tokio::net::TcpStream</a>;
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-    <a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project!</a> {
-        <span class="doccomment">/// A transport returned yieled by `AddrIncoming`.</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AddrStream</span> {
-            <span class="attribute">#[<span class="ident">pin</span>]</span>
-            <span class="ident">inner</span>: <a class="ident" href="../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>,
-            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">remote_addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
-            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">local_addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>
+    <a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project! </a>{
+        <span class="doccomment">/// A transport returned yieled by `AddrIncoming`.
+        </span><span class="attribute">#[derive(Debug)]
+        </span><span class="kw">pub struct </span>AddrStream {
+            <span class="attribute">#[pin]
+            </span>inner: <a href="../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>,
+            <span class="kw">pub</span>(<span class="kw">super</span>) remote_addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
+            <span class="kw">pub</span>(<span class="kw">super</span>) local_addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(
-            <span class="ident">tcp</span>: <a class="ident" href="../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>,
-            <span class="ident">remote_addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
-            <span class="ident">local_addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
-        ) -&gt; <a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
-            <a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
-                <span class="ident">inner</span>: <a class="ident" href="../../../src/hyper/server/tcp.rs.html#220">tcp</a>,
-                <a class="ident" href="../../../src/hyper/server/tcp.rs.html#221">remote_addr</a>,
-                <a class="ident" href="../../../src/hyper/server/tcp.rs.html#222">local_addr</a>,
+    <span class="kw">impl </span><a href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
+            tcp: <a href="../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>,
+            remote_addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
+            local_addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>,
+        ) -&gt; <a href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
+            <a href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
+                inner: <a href="../../../src/hyper/server/tcp.rs.html#220">tcp</a>,
+                <a href="../../../src/hyper/server/tcp.rs.html#221">remote_addr</a>,
+                <a href="../../../src/hyper/server/tcp.rs.html#222">local_addr</a>,
             }
         }
 
-        <span class="doccomment">/// Returns the remote (peer) address of this connection.</span>
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remote_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#233">self</a>.<span class="ident">remote_addr</span>
+        <span class="doccomment">/// Returns the remote (peer) address of this connection.
+        </span><span class="attribute">#[inline]
+        </span><span class="kw">pub fn </span>remote_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#233">self</a>.remote_addr
         }
 
-        <span class="doccomment">/// Returns the local address of this connection.</span>
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#239">self</a>.<span class="ident">local_addr</span>
+        <span class="doccomment">/// Returns the local address of this connection.
+        </span><span class="attribute">#[inline]
+        </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#239">self</a>.local_addr
         }
 
-        <span class="doccomment">/// Consumes the AddrStream and returns the underlying IO object</span>
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#245">self</a>.<span class="ident">inner</span>
+        <span class="doccomment">/// Consumes the AddrStream and returns the underlying IO object
+        </span><span class="attribute">#[inline]
+        </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; <a href="../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a> {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#245">self</a>.inner
         }
 
-        <span class="doccomment">/// Attempt to receive data on the socket, without removing that data</span>
-        <span class="doccomment">/// from the queue, registering the current task for wakeup if data is</span>
-        <span class="doccomment">/// not yet available.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_peek</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">tokio::io::ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#253">self</a>.<span class="ident">inner</span>.<span class="ident">poll_peek</span>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#254">cx</a>, <a class="ident" href="../../../src/hyper/server/tcp.rs.html#255">buf</a>)
-        }
-    }
-
-    <span class="kw">impl</span> <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">poll_read</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#264">self</a>.<a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#265">cx</a>, <a class="ident" href="../../../src/hyper/server/tcp.rs.html#266">buf</a>)
+        <span class="doccomment">/// Attempt to receive data on the socket, without removing that data
+        /// from the queue, registering the current task for wakeup if data is
+        /// not yet available.
+        </span><span class="kw">pub fn </span>poll_peek(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;mut </span>tokio::io::ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+        ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#253">self</a>.inner.poll_peek(<a href="../../../src/hyper/server/tcp.rs.html#254">cx</a>, <a href="../../../src/hyper/server/tcp.rs.html#255">buf</a>)
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">poll_write</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#275">self</a>.<a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#276">cx</a>, <a class="ident" href="../../../src/hyper/server/tcp.rs.html#277">buf</a>)
-        }
-
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">io::IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#284">self</a>.<a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#285">cx</a>, <a class="ident" href="../../../src/hyper/server/tcp.rs.html#286">bufs</a>)
-        }
-
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="comment">// TCP flush is a noop</span>
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
-        }
-
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#298">self</a>.<a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a class="ident" href="../../../src/hyper/server/tcp.rs.html#298">cx</a>)
-        }
-
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">is_write_vectored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="comment">// Note that since `self.inner` is a `TcpStream`, this could</span>
-            <span class="comment">// *probably* be hard-coded to return `true`...but it seems more</span>
-            <span class="comment">// correct to ask it anyway (maybe we&#39;re on some platform without</span>
-            <span class="comment">// scatter-gather IO?)</span>
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#303">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>()
+    <span class="kw">impl </span><a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span><a href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>poll_read(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+        ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#264">self</a>.<a href="../../../src/hyper/server/tcp.rs.html#207-216">project</a>().inner.<a href="../../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a href="../../../src/hyper/server/tcp.rs.html#265">cx</a>, <a href="../../../src/hyper/server/tcp.rs.html#266">buf</a>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
-        <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-            <a class="self" href="../../../src/hyper/server/tcp.rs.html#314">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="kw">impl </span><a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span><a href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>poll_write(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#275">self</a>.<a href="../../../src/hyper/server/tcp.rs.html#207-216">project</a>().inner.<a href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a href="../../../src/hyper/server/tcp.rs.html#276">cx</a>, <a href="../../../src/hyper/server/tcp.rs.html#277">buf</a>)
+        }
+
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>poll_write_vectored(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+        ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#284">self</a>.<a href="../../../src/hyper/server/tcp.rs.html#207-216">project</a>().inner.<a href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="../../../src/hyper/server/tcp.rs.html#285">cx</a>, <a href="../../../src/hyper/server/tcp.rs.html#286">bufs</a>)
+        }
+
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+            <span class="comment">// TCP flush is a noop
+            </span>Poll::Ready(<span class="prelude-val">Ok</span>(()))
+        }
+
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#298">self</a>.<a href="../../../src/hyper/server/tcp.rs.html#207-216">project</a>().inner.<a href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a href="../../../src/hyper/server/tcp.rs.html#298">cx</a>)
+        }
+
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+            <span class="comment">// Note that since `self.inner` is a `TcpStream`, this could
+            // *probably* be hard-coded to return `true`...but it seems more
+            // correct to ask it anyway (maybe we&#39;re on some platform without
+            // scatter-gather IO?)
+            </span><a class="self" href="../../../src/hyper/server/tcp.rs.html#303">self</a>.inner.<a href="../../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>()
+        }
+    }
+
+    <span class="attribute">#[cfg(unix)]
+    </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/hyper/server/tcp.rs.html#207-216">AddrStream</a> {
+        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+            <a class="self" href="../../../src/hyper/server/tcp.rs.html#314">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

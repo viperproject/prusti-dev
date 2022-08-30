@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/minimal-lexical-0.2.1/src/stackvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stackvec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../minimal_lexical/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../minimal_lexical/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../minimal_lexical/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/minimal-lexical-0.2.1/src/stackvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stackvec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../minimal_lexical/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../minimal_lexical/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../minimal_lexical/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -306,313 +306,313 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Simple stack-allocated vector.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Simple stack-allocated vector.
 
-<span class="attribute">#![<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+</span><span class="attribute">#![cfg(not(feature = <span class="string">&quot;alloc&quot;</span>))]
+#![doc(hidden)]
 
-<span class="kw">use</span> <a class="ident" href="../../src/minimal_lexical/lib.rs.html#47"><span class="kw">crate</span>::bigint</a>;
-<span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>};
+</span><span class="kw">use </span><a href="../../src/minimal_lexical/lib.rs.html#47"><span class="kw">crate</span>::bigint</a>;
+<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>};
 
-<span class="doccomment">/// Simple stack vector implementation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StackVec</span> {
-    <span class="doccomment">/// The raw buffer for the elements.</span>
-    <span class="ident">data</span>: [<span class="ident">mem::MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a><span class="op">&gt;</span>; <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#24">bigint::BIGINT_LIMBS</a>],
-    <span class="doccomment">/// The number of elements in the array (we never need more than u16::MAX).</span>
-    <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
+<span class="doccomment">/// Simple stack vector implementation.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>StackVec {
+    <span class="doccomment">/// The raw buffer for the elements.
+    </span>data: [mem::MaybeUninit&lt;<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>&gt;; <a href="../../src/minimal_lexical/bigint.rs.html#24">bigint::BIGINT_LIMBS</a>],
+    <span class="doccomment">/// The number of elements in the array (we never need more than u16::MAX).
+    </span>length: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::new_without_default</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
-    <span class="doccomment">/// Construct an empty vector.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">length</span>: <span class="number">0</span>,
-            <span class="ident">data</span>: [<span class="ident">mem::MaybeUninit::uninit</span>(); <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#24">bigint::BIGINT_LIMBS</a>],
+<span class="attribute">#[allow(clippy::new_without_default)]
+</span><span class="kw">impl </span><a href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
+    <span class="doccomment">/// Construct an empty vector.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            length: <span class="number">0</span>,
+            data: [mem::MaybeUninit::uninit(); <a href="../../src/minimal_lexical/bigint.rs.html#24">bigint::BIGINT_LIMBS</a>],
         }
     }
 
-    <span class="doccomment">/// Construct a vector from an existing slice.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>();
-        <span class="ident">vec</span>.<span class="ident">try_extend</span>(<span class="ident">x</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#32">vec</a>)
+    <span class="doccomment">/// Construct a vector from an existing slice.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_from(x: <span class="kw-2">&amp;</span>[<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>vec = <span class="self">Self</span>::new();
+        vec.try_extend(x)<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<a href="../../src/minimal_lexical/stackvec.rs.html#32">vec</a>)
     }
 
-    <span class="doccomment">/// Sets the length of a vector.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will explicitly set the size of the vector, without actually</span>
-    <span class="doccomment">/// modifying its buffers, so it is up to the caller to ensure that the</span>
-    <span class="doccomment">/// vector is actually the specified size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Safe as long as `len` is less than `BIGINT_LIMBS`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_len</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="comment">// Constant is `u16::MAX` for older Rustc versions.</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0xffff</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">bigint::BIGINT_LIMBS</span>);
-        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#47">self</a>.<span class="ident">length</span> <span class="op">=</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#47">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+    <span class="doccomment">/// Sets the length of a vector.
+    ///
+    /// This will explicitly set the size of the vector, without actually
+    /// modifying its buffers, so it is up to the caller to ensure that the
+    /// vector is actually the specified size.
+    ///
+    /// # Safety
+    ///
+    /// Safe as long as `len` is less than `BIGINT_LIMBS`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>set_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="comment">// Constant is `u16::MAX` for older Rustc versions.
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(len &lt;= <span class="number">0xffff</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(len &lt;= bigint::BIGINT_LIMBS);
+        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#47">self</a>.length = <a href="../../src/minimal_lexical/stackvec.rs.html#47">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
     }
 
-    <span class="doccomment">/// The number of elements stored in the vector.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#56">self</a>.<span class="ident">length</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    <span class="doccomment">/// The number of elements stored in the vector.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#56">self</a>.length <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
-    <span class="doccomment">/// If the vector is empty.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#62">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>() <span class="op">==</span> <span class="number">0</span>
+    <span class="doccomment">/// If the vector is empty.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#62">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>() == <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// The number of items the vector can hold.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a href="../../src/minimal_lexical/bigint.rs.html#24">bigint::BIGINT_LIMBS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
-    <span class="doccomment">/// The number of items the vector can hold.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#24">bigint::BIGINT_LIMBS</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
-    }
-
-    <span class="doccomment">/// Append an item to the vector, without bounds checking.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Safe if `self.len() &lt; self.capacity()`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">push_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">capacity</span>());
-        <span class="comment">// SAFETY: safe, capacity is less than the current size.</span>
-        <span class="kw">unsafe</span> {
-            <span class="ident">ptr::write</span>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#78">self</a>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#78">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>()), <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#78">value</a>);
-            <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#78">self</a>.<span class="ident">length</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="doccomment">/// Append an item to the vector, without bounds checking.
+    ///
+    /// # Safety
+    ///
+    /// Safe if `self.len() &lt; self.capacity()`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>push_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.len() &lt; <span class="self">self</span>.capacity());
+        <span class="comment">// SAFETY: safe, capacity is less than the current size.
+        </span><span class="kw">unsafe </span>{
+            ptr::write(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#78">self</a>.as_mut_ptr().add(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#78">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>()), <a href="../../src/minimal_lexical/stackvec.rs.html#78">value</a>);
+            <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#78">self</a>.length += <span class="number">1</span>;
         }
     }
 
-    <span class="doccomment">/// Append an item to the vector.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">capacity</span>() {
-            <span class="comment">// SAFETY: safe, capacity is less than the current size.</span>
-            <span class="kw">unsafe</span> { <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#89">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#78">push_unchecked</a>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#89">value</a>) };
+    <span class="doccomment">/// Append an item to the vector.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+        <span class="kw">if </span><span class="self">self</span>.len() &lt; <span class="self">self</span>.capacity() {
+            <span class="comment">// SAFETY: safe, capacity is less than the current size.
+            </span><span class="kw">unsafe </span>{ <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#89">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#78">push_unchecked</a>(<a href="../../src/minimal_lexical/stackvec.rs.html#89">value</a>) };
             <span class="prelude-val">Some</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Remove an item from the end of a vector, without bounds checking.
+    ///
+    /// # Safety
+    ///
+    /// Safe if `self.len() &gt; 0`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>pop_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="self">self</span>.is_empty());
+        <span class="comment">// SAFETY: safe if `self.length &gt; 0`.
+        // We have a trivial drop and copy, so this is safe.
+        </span><a class="self" href="../../src/minimal_lexical/stackvec.rs.html#105">self</a>.length -= <span class="number">1</span>;
+        <span class="kw">unsafe </span>{ ptr::read(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#105">self</a>.as_mut_ptr().add(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#105">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>())) }
+    }
+
+    <span class="doccomment">/// Remove an item from the end of the vector and return it, or None if empty.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_empty() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// SAFETY: safe, since `self.len() &gt; 0`.
+            </span><span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#115">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#105">pop_unchecked</a>()) }
         }
     }
 
-    <span class="doccomment">/// Remove an item from the end of a vector, without bounds checking.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Safe if `self.len() &gt; 0`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pop_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>());
-        <span class="comment">// SAFETY: safe if `self.length &gt; 0`.</span>
-        <span class="comment">// We have a trivial drop and copy, so this is safe.</span>
-        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#105">self</a>.<span class="ident">length</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">unsafe</span> { <span class="ident">ptr::read</span>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#105">self</a>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#105">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>())) }
-    }
-
-    <span class="doccomment">/// Remove an item from the end of the vector and return it, or None if empty.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_empty</span>() {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// SAFETY: safe, since `self.len() &gt; 0`.</span>
-            <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#115">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#105">pop_unchecked</a>()) }
+    <span class="doccomment">/// Add items from a slice to the vector, without bounds checking.
+    ///
+    /// # Safety
+    ///
+    /// Safe if `self.len() + slc.len() &lt;= self.capacity()`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>extend_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, slc: <span class="kw-2">&amp;</span>[<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]) {
+        <span class="kw">let </span>index = <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#130">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>();
+        <span class="kw">let </span>new_len = <a href="../../src/minimal_lexical/stackvec.rs.html#131">index</a> + <a href="../../src/minimal_lexical/stackvec.rs.html#130">slc</a>.len();
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.len() + slc.len() &lt;= <span class="self">self</span>.capacity());
+        <span class="kw">let </span>src = <a href="../../src/minimal_lexical/stackvec.rs.html#130">slc</a>.as_ptr();
+        <span class="comment">// SAFETY: safe if `self.len() + slc.len() &lt;= self.capacity()`.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span>dst = <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#130">self</a>.as_mut_ptr().add(<a href="../../src/minimal_lexical/stackvec.rs.html#131">index</a>);
+            ptr::copy_nonoverlapping(<a href="../../src/minimal_lexical/stackvec.rs.html#134">src</a>, <a href="../../src/minimal_lexical/stackvec.rs.html#137">dst</a>, <a href="../../src/minimal_lexical/stackvec.rs.html#130">slc</a>.len());
+            <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#130">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#47">set_len</a>(<a href="../../src/minimal_lexical/stackvec.rs.html#132">new_len</a>);
         }
     }
 
-    <span class="doccomment">/// Add items from a slice to the vector, without bounds checking.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Safe if `self.len() + slc.len() &lt;= self.capacity()`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">extend_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">slc</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]) {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#130">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>();
-        <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#131">index</a> <span class="op">+</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#130">slc</a>.<span class="ident">len</span>();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">slc</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">capacity</span>());
-        <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#130">slc</a>.<span class="ident">as_ptr</span>();
-        <span class="comment">// SAFETY: safe if `self.len() + slc.len() &lt;= self.capacity()`.</span>
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#130">self</a>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#131">index</a>);
-            <span class="ident">ptr::copy_nonoverlapping</span>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#134">src</a>, <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#137">dst</a>, <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#130">slc</a>.<span class="ident">len</span>());
-            <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#130">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#47">set_len</a>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#132">new_len</a>);
-        }
-    }
-
-    <span class="doccomment">/// Copy elements from a slice and append them to the vector.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_extend</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">slc</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">slc</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">capacity</span>() {
-            <span class="comment">// SAFETY: safe, since `self.len() + slc.len() &lt;= self.capacity()`.</span>
-            <span class="kw">unsafe</span> { <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#145">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#130">extend_unchecked</a>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#145">slc</a>) };
+    <span class="doccomment">/// Copy elements from a slice and append them to the vector.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_extend(<span class="kw-2">&amp;mut </span><span class="self">self</span>, slc: <span class="kw-2">&amp;</span>[<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+        <span class="kw">if </span><span class="self">self</span>.len() + slc.len() &lt;= <span class="self">self</span>.capacity() {
+            <span class="comment">// SAFETY: safe, since `self.len() + slc.len() &lt;= self.capacity()`.
+            </span><span class="kw">unsafe </span>{ <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#145">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#130">extend_unchecked</a>(<a href="../../src/minimal_lexical/stackvec.rs.html#145">slc</a>) };
             <span class="prelude-val">Some</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Truncate vector to new length, dropping any items after `len`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Safe as long as `len &lt;= self.capacity()`.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">truncate_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">capacity</span>());
-        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#160">self</a>.<span class="ident">length</span> <span class="op">=</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#160">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+    <span class="doccomment">/// Truncate vector to new length, dropping any items after `len`.
+    ///
+    /// # Safety
+    ///
+    /// Safe as long as `len &lt;= self.capacity()`.
+    </span><span class="kw">unsafe fn </span>truncate_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(len &lt;= <span class="self">self</span>.capacity());
+        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#160">self</a>.length = <a href="../../src/minimal_lexical/stackvec.rs.html#160">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
     }
 
-    <span class="doccomment">/// Resize the buffer, without bounds checking.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Safe as long as `len &lt;= self.capacity()`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">resize_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">value</span>: <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">capacity</span>());
-        <span class="kw">let</span> <span class="ident">old_len</span> <span class="op">=</span> <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#171">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>();
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="ident">old_len</span> {
-            <span class="comment">// We have a trivial drop, so there&#39;s no worry here.</span>
-            <span class="comment">// Just, don&#39;t set the length until all values have been written,</span>
-            <span class="comment">// so we don&#39;t accidentally read uninitialized memory.</span>
+    <span class="doccomment">/// Resize the buffer, without bounds checking.
+    ///
+    /// # Safety
+    ///
+    /// Safe as long as `len &lt;= self.capacity()`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>resize_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, value: <a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(len &lt;= <span class="self">self</span>.capacity());
+        <span class="kw">let </span>old_len = <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#171">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>();
+        <span class="kw">if </span>len &gt; old_len {
+            <span class="comment">// We have a trivial drop, so there&#39;s no worry here.
+            // Just, don&#39;t set the length until all values have been written,
+            // so we don&#39;t accidentally read uninitialized memory.
 
-            <span class="comment">// SAFETY: safe if `len &lt; self.capacity()`.</span>
-            <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#171">len</a> <span class="op">-</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#173">old_len</a>;
-            <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">count</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<span class="ident">old_len</span> <span class="op">+</span> <span class="ident">index</span>);
-                    <span class="ident">ptr::write</span>(<span class="ident">dst</span>, <span class="ident">value</span>);
+            // SAFETY: safe if `len &lt; self.capacity()`.
+            </span><span class="kw">let </span>count = <a href="../../src/minimal_lexical/stackvec.rs.html#171">len</a> - <a href="../../src/minimal_lexical/stackvec.rs.html#173">old_len</a>;
+            <span class="kw">for </span>index <span class="kw">in </span><span class="number">0</span>..count {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span>dst = <span class="self">self</span>.as_mut_ptr().add(old_len + index);
+                    ptr::write(dst, value);
                 }
             }
-            <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#171">self</a>.<span class="ident">length</span> <span class="op">=</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#171">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
-        } <span class="kw">else</span> {
-            <span class="comment">// SAFETY: safe since `len &lt; self.len()`.</span>
-            <span class="kw">unsafe</span> { <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#171">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#160">truncate_unchecked</a>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#171">len</a>) };
+            <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#171">self</a>.length = <a href="../../src/minimal_lexical/stackvec.rs.html#171">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+        } <span class="kw">else </span>{
+            <span class="comment">// SAFETY: safe since `len &lt; self.len()`.
+            </span><span class="kw">unsafe </span>{ <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#171">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#160">truncate_unchecked</a>(<a href="../../src/minimal_lexical/stackvec.rs.html#171">len</a>) };
         }
     }
 
-    <span class="doccomment">/// Try to resize the buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the new length is smaller than the current length, truncate</span>
-    <span class="doccomment">/// the input. If it&#39;s larger, then append elements to the buffer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_resize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">value</span>: <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">capacity</span>() {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// SAFETY: safe, since `len &lt;= self.capacity()`.</span>
-            <span class="kw">unsafe</span> { <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#199">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#171">resize_unchecked</a>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#199">len</a>, <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#199">value</a>) };
+    <span class="doccomment">/// Try to resize the buffer.
+    ///
+    /// If the new length is smaller than the current length, truncate
+    /// the input. If it&#39;s larger, then append elements to the buffer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, value: <a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+        <span class="kw">if </span>len &gt; <span class="self">self</span>.capacity() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// SAFETY: safe, since `len &lt;= self.capacity()`.
+            </span><span class="kw">unsafe </span>{ <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#199">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#171">resize_unchecked</a>(<a href="../../src/minimal_lexical/stackvec.rs.html#199">len</a>, <a href="../../src/minimal_lexical/stackvec.rs.html#199">value</a>) };
             <span class="prelude-val">Some</span>(())
         }
     }
 
-    <span class="comment">// HI</span>
+    <span class="comment">// HI
 
-    <span class="doccomment">/// Get the high 64 bits from the vector.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hi64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#310">bigint::hi64</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#213">self</a>)
+    </span><span class="doccomment">/// Get the high 64 bits from the vector.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">pub fn </span>hi64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a href="../../src/minimal_lexical/bigint.rs.html#310">bigint::hi64</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#213">self</a>)
     }
 
-    <span class="comment">// FROM</span>
+    <span class="comment">// FROM
 
-    <span class="doccomment">/// Create StackVec from u64 value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">x</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#188">bigint::from_u64</a>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#221">x</a>)
+    </span><span class="doccomment">/// Create StackVec from u64 value.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">pub fn </span>from_u64(x: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/minimal_lexical/bigint.rs.html#188">bigint::from_u64</a>(<a href="../../src/minimal_lexical/stackvec.rs.html#221">x</a>)
     }
 
-    <span class="comment">// MATH</span>
+    <span class="comment">// MATH
 
-    <span class="doccomment">/// Normalize the integer, so any leading zero values are removed.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#160">bigint::normalize</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#229">self</a>)
+    </span><span class="doccomment">/// Normalize the integer, so any leading zero values are removed.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>normalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a href="../../src/minimal_lexical/bigint.rs.html#160">bigint::normalize</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#229">self</a>)
     }
 
-    <span class="doccomment">/// Get if the big integer is normalized.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_normalized</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#174">bigint::is_normalized</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#235">self</a>)
+    <span class="doccomment">/// Get if the big integer is normalized.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_normalized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../src/minimal_lexical/bigint.rs.html#174">bigint::is_normalized</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#235">self</a>)
     }
 
-    <span class="doccomment">/// AddAssign small integer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_small</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">y</span>: <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#448">bigint::small_add</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#241">self</a>, <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#241">y</a>)
+    <span class="doccomment">/// AddAssign small integer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>add_small(<span class="kw-2">&amp;mut </span><span class="self">self</span>, y: <a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+        <a href="../../src/minimal_lexical/bigint.rs.html#448">bigint::small_add</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#241">self</a>, <a href="../../src/minimal_lexical/stackvec.rs.html#241">y</a>)
     }
 
-    <span class="doccomment">/// MulAssign small integer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul_small</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">y</span>: <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#454">bigint::small_mul</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#247">self</a>, <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#247">y</a>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::op_ref</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">core::ops::Deref</a>;
-        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#255">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>() <span class="op">==</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#255">other</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#255">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>() <span class="op">==</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#255">other</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
+    <span class="doccomment">/// MulAssign small integer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>mul_small(<span class="kw-2">&amp;mut </span><span class="self">self</span>, y: <a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+        <a href="../../src/minimal_lexical/bigint.rs.html#454">bigint::small_mul</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#247">self</a>, <a href="../../src/minimal_lexical/stackvec.rs.html#247">y</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">cmp::PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#138">bigint::compare</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#266">self</a>, <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#266">other</a>))
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
+    <span class="attribute">#[inline]
+    #[allow(clippy::op_ref)]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">core::ops::Deref</a>;
+        <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#255">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>() == <a href="../../src/minimal_lexical/stackvec.rs.html#255">other</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>() &amp;&amp; <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#255">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>() == <a href="../../src/minimal_lexical/stackvec.rs.html#255">other</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp::Ord</a> <span class="kw">for</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a> {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#138">bigint::compare</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#273">self</a>, <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#273">other</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">cmp::PartialOrd</a> <span class="kw">for </span><a href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a>&gt; {
+        <span class="prelude-val">Some</span>(<a href="../../src/minimal_lexical/bigint.rs.html#138">bigint::compare</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#266">self</a>, <a href="../../src/minimal_lexical/stackvec.rs.html#266">other</a>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> [<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>];
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>] {
-        <span class="comment">// SAFETY: safe since `self.data[..self.len()]` must be initialized</span>
-        <span class="comment">// and `self.len() &lt;= self.capacity()`.</span>
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#281">self</a>.<span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>;
-            <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#285">ptr</a>, <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#281">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp::Ord</a> <span class="kw">for </span><a href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">cmp::Ordering</a> {
+        <a href="../../src/minimal_lexical/bigint.rs.html#138">bigint::compare</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#273">self</a>, <a href="../../src/minimal_lexical/stackvec.rs.html#273">other</a>)
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span><a href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
+    <span class="kw">type </span>Target = [<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>];
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>] {
+        <span class="comment">// SAFETY: safe since `self.data[..self.len()]` must be initialized
+        // and `self.len() &lt;= self.capacity()`.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span>ptr = <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#281">self</a>.data.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>;
+            slice::from_raw_parts(<a href="../../src/minimal_lexical/stackvec.rs.html#285">ptr</a>, <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#281">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>())
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">ops::DerefMut</a> <span class="kw">for</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>] {
-        <span class="comment">// SAFETY: safe since `self.data[..self.len()]` must be initialized</span>
-        <span class="comment">// and `self.len() &lt;= self.capacity()`.</span>
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#293">self</a>.<span class="ident">data</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>;
-            <span class="ident">slice::from_raw_parts_mut</span>(<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#297">ptr</a>, <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#293">self</a>.<a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">ops::DerefMut</a> <span class="kw">for </span><a href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>] {
+        <span class="comment">// SAFETY: safe since `self.data[..self.len()]` must be initialized
+        // and `self.len() &lt;= self.capacity()`.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span>ptr = <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#293">self</a>.data.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>;
+            slice::from_raw_parts_mut(<a href="../../src/minimal_lexical/stackvec.rs.html#297">ptr</a>, <a class="self" href="../../src/minimal_lexical/stackvec.rs.html#293">self</a>.<a href="../../src/minimal_lexical/stackvec.rs.html#56">len</a>())
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ops::MulAssign</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mul_assign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]) {
-        <a class="ident" href="../../src/minimal_lexical/bigint.rs.html#602">bigint::large_mul</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#305">self</a>, <a class="ident" href="../../src/minimal_lexical/stackvec.rs.html#305">rhs</a>).<span class="ident">unwrap</span>();
+<span class="kw">impl </span>ops::MulAssign&lt;<span class="kw-2">&amp;</span>[<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]&gt; <span class="kw">for </span><a href="../../src/minimal_lexical/stackvec.rs.html#11">StackVec</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>mul_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span>[<a href="../../src/minimal_lexical/bigint.rs.html#777">bigint::Limb</a>]) {
+        <a href="../../src/minimal_lexical/bigint.rs.html#602">bigint::large_mul</a>(<a class="self" href="../../src/minimal_lexical/stackvec.rs.html#305">self</a>, <a href="../../src/minimal_lexical/stackvec.rs.html#305">rhs</a>).unwrap();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimal_lexical" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

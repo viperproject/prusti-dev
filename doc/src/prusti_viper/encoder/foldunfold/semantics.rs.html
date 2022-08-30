@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/semantics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>semantics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/semantics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>semantics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -517,421 +517,421 @@
 <span id="517">517</span>
 <span id="518">518</span>
 <span id="519">519</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40"><span class="kw">super</span>::Predicates</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::foldunfold</span>::{
-    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#30">footprint</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#810">path_ctxt::find_unfolded_variant</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#33">perm</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#38">state</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>,
+</span><span class="kw">use </span><a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40"><span class="kw">super</span>::Predicates</a>;
+<span class="kw">use </span><span class="kw">crate</span>::encoder::foldunfold::{
+    <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#30">footprint</a>::<span class="kw-2">*</span>, <a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#810">path_ctxt::find_unfolded_variant</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#33">perm</a>::<span class="kw-2">*</span>, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#38">state</a>::<span class="kw-2">*</span>, <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use </span><a href="../../../../log/macro.trace.html">log::trace</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as</span> <span class="ident">vir</span>;
+<span class="kw">use </span><a href="../../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as </span>vir;
 
-<span class="kw">fn</span> <span class="ident">inhale_expr</span>(
-    <span class="ident">expr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-    <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#18">State</a>,
-    <span class="ident">predicates</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#17">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#428-430">insert_all_perms</a>(
-        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#16">expr</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#18">predicates</a>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#23">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#40">is_local</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#23">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#28">is_acc</a>())),
+<span class="kw">fn </span>inhale_expr(
+    expr: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+    state: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#18">State</a>,
+    predicates: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+    <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#17">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#428-430">insert_all_perms</a>(
+        <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#16">expr</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#18">predicates</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|p| !(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#23">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#40">is_local</a>() &amp;&amp; <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#23">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#28">is_acc</a>())),
     )
 }
 
-<span class="kw">fn</span> <span class="ident">exhale_expr</span>(
-    <span class="ident">expr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-    <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#18">State</a>,
-    <span class="ident">predicates</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#29">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#498-501">remove_all_perms</a>(
-        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#28">expr</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#30">predicates</a>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#35">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#36">is_curr</a>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#35">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#32">is_pred</a>())
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#36">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#40">is_local</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#36">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#28">is_acc</a>()))
-            <span class="comment">// Hack for final exhale of method: do not remove &quot;old[pre](..)&quot; permissions from state</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#38">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#48">get_label</a>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">&quot;pre&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())),
+<span class="kw">fn </span>exhale_expr(
+    expr: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+    state: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#18">State</a>,
+    predicates: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
+    <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#29">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#498-501">remove_all_perms</a>(
+        <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#28">expr</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#30">predicates</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#35">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#36">is_curr</a>() || <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#35">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#32">is_pred</a>())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|p| !(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#36">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#40">is_local</a>() &amp;&amp; <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#36">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#28">is_acc</a>()))
+            <span class="comment">// Hack for final exhale of method: do not remove &quot;old[pre](..)&quot; permissions from state
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#38">p</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#48">get_label</a>() != <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">&quot;pre&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())),
     )
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ApplyOnState</span> {
-    <span class="kw">fn</span> <span class="ident">apply_on_state</span>(
+<span class="kw">pub trait </span>ApplyOnState {
+    <span class="kw">fn </span>apply_on_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#18">State</a>,
-        <span class="ident">predicates</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span>;
+        state: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#18">State</a>,
+        predicates: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt;;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#42">ApplyOnState</a> <span class="kw">for</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a> {
-    <span class="kw">fn</span> <span class="ident">apply_on_state</span>(
+<span class="kw">impl </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#42">ApplyOnState</a> <span class="kw">for </span><a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a> {
+    <span class="kw">fn </span>apply_on_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#18">State</a>,
-        <span class="ident">predicates</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a><span class="op">&gt;</span> {
+        state: <span class="kw-2">&amp;mut </span><a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#18">State</a>,
+        predicates: <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43">FoldUnfoldError</a>&gt; {
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;apply_on_state &#39;{}&#39;&quot;</span>, <span class="self">self</span>);
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;State acc before {{\n{}\n}}&quot;</span>, <span class="ident">state</span>.<span class="ident">display_acc</span>());
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;State pred before {{\n{}\n}}&quot;</span>, <span class="ident">state</span>.<span class="ident">display_pred</span>());
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;State moved before {{\n{}\n}}&quot;</span>, <span class="ident">state</span>.<span class="ident">display_moved</span>());
-        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#52">self</a> {
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Comment</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Label</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Assert</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Obtain</span>(<span class="kw">_</span>) =&gt; {}
+        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;State acc before {{\n{}\n}}&quot;</span>, state.display_acc());
+        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;State pred before {{\n{}\n}}&quot;</span>, state.display_pred());
+        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;State moved before {{\n{}\n}}&quot;</span>, state.display_moved());
+        <span class="kw">match </span><span class="self"><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#52">self</a> </span>{
+            <span class="kw-2">&amp;</span>vir::Stmt::Comment(<span class="kw">_</span>)
+            | <span class="kw-2">&amp;</span>vir::Stmt::Label(<span class="kw">_</span>)
+            | <span class="kw-2">&amp;</span>vir::Stmt::Assert(<span class="kw">_</span>)
+            | <span class="kw-2">&amp;</span>vir::Stmt::Obtain(<span class="kw">_</span>) =&gt; {}
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Inhale</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Inhale.html">vir::Inhale</a> { <span class="kw-2">ref</span> <span class="ident">expr</span> }) =&gt; {
-                <span class="ident">inhale_expr</span>(<span class="ident">expr</span>, <span class="ident">state</span>, <span class="ident">predicates</span>)<span class="question-mark">?</span>;
+            <span class="kw-2">&amp;</span>vir::Stmt::Inhale(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Inhale.html">vir::Inhale</a> { <span class="kw-2">ref </span>expr }) =&gt; {
+                inhale_expr(expr, state, predicates)<span class="question-mark">?</span>;
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Exhale</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Exhale.html">vir::Exhale</a> { <span class="kw-2">ref</span> <span class="ident">expr</span>, .. }) =&gt; {
-                <span class="ident">exhale_expr</span>(<span class="ident">expr</span>, <span class="ident">state</span>, <span class="ident">predicates</span>)<span class="question-mark">?</span>;
+            <span class="kw-2">&amp;</span>vir::Stmt::Exhale(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Exhale.html">vir::Exhale</a> { <span class="kw-2">ref </span>expr, .. }) =&gt; {
+                exhale_expr(expr, state, predicates)<span class="question-mark">?</span>;
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::MethodCall</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.MethodCall.html">vir::MethodCall</a> { <span class="kw-2">ref</span> <span class="ident">targets</span>, .. }) =&gt; {
-                <span class="comment">// We know that in Prusti method&#39;s preconditions and postconditions are empty</span>
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#313-315">remove_moved_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#74">targets</a>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#76">p</a>.<span class="ident">get_base</span>()));
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#77">p</a>.<span class="ident">is_curr</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#74">targets</a>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#77">p</a>.<span class="ident">get_base</span>()));
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#78">p</a>.<span class="ident">is_curr</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#78">p</a>.<span class="ident">is_local</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#74">targets</a>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#78">p</a>.<span class="ident">get_base</span>())
+            <span class="kw-2">&amp;</span>vir::Stmt::MethodCall(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.MethodCall.html">vir::MethodCall</a> { <span class="kw-2">ref </span>targets, .. }) =&gt; {
+                <span class="comment">// We know that in Prusti method&#39;s preconditions and postconditions are empty
+                </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#313-315">remove_moved_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#74">targets</a>.contains(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#76">p</a>.get_base()));
+                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#77">p</a>.is_curr() &amp;&amp; <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#74">targets</a>.contains(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#77">p</a>.get_base()));
+                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(|p| {
+                    <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#78">p</a>.is_curr() &amp;&amp; !<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#78">p</a>.is_local() &amp;&amp; <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#74">targets</a>.contains(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#78">p</a>.get_base())
                 });
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Assign</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a> {
-                <span class="kw-2">ref</span> <span class="ident">target</span>,
-                <span class="kw-2">ref</span> <span class="ident">source</span>,
-                <span class="ident">kind</span>,
-            }) <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#86">kind</a> <span class="op">!</span><span class="op">=</span> <span class="ident">vir::AssignKind::Ghost</span> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">target</span>.<span class="ident">is_place</span>());
-                <span class="kw">let</span> <span class="ident">original_state</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw-2">&amp;</span>vir::Stmt::Assign(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a> {
+                <span class="kw-2">ref </span>target,
+                <span class="kw-2">ref </span>source,
+                kind,
+            }) <span class="kw">if </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#86">kind</a> != vir::AssignKind::Ghost =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(target.is_place());
+                <span class="kw">let </span>original_state = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-                <span class="comment">// Check the state of rhs.</span>
-                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="ident">vir::AssignKind::Copy</span> {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">source</span>.<span class="ident">is_place</span>());
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">source</span>.<span class="ident">get_type</span>().<span class="ident">is_typed_ref_or_type_var</span>());
+                <span class="comment">// Check the state of rhs.
+                </span><span class="kw">if </span>kind != vir::AssignKind::Copy {
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(source.is_place());
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(source.get_type().is_typed_ref_or_type_var());
 
-                    <span class="comment">// Check that the rhs contains no moved paths</span>
-                    <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_prefix_of_some_moved</span>(<span class="ident">source</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#68">FoldUnfoldError::Unsupported</a>(
-                            <span class="string">&quot;two-phase borrows are not supported&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <span class="comment">// Check that the rhs contains no moved paths
+                    </span><span class="kw">if </span>state.is_prefix_of_some_moved(source) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#68">FoldUnfoldError::Unsupported</a>(
+                            <span class="string">&quot;two-phase borrows are not supported&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                         ));
                     }
-                    <span class="kw">for</span> <span class="ident">prefix</span> <span class="kw">in</span> <span class="ident">source</span>.<span class="ident">all_proper_prefixes</span>() {
-                        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">contains_pred</span>(<span class="kw-2">&amp;</span><span class="ident">prefix</span>));
+                    <span class="kw">for </span>prefix <span class="kw">in </span>source.all_proper_prefixes() {
+                        <span class="macro">assert!</span>(!state.contains_pred(<span class="kw-2">&amp;</span>prefix));
                     }
                 }
 
-                <span class="comment">// Remove places that will not have a name</span>
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#313-315">remove_moved_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#108">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#109">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#110">p</a>.<span class="ident">has_proper_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
+                <span class="comment">// Remove places that will not have a name
+                </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#313-315">remove_moved_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#108">p</a>.has_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
+                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#109">p</a>.has_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
+                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#110">p</a>.has_proper_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
 
-                <span class="comment">// In case of move or borrowing, move permissions from the `rhs` to the `lhs`</span>
-                <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">is_place</span>() <span class="op">&amp;&amp;</span> <span class="ident">source</span>.<span class="ident">get_type</span>().<span class="ident">is_typed_ref_or_type_var</span>() {
-                    <span class="comment">// This is a move assignemnt or the creation of a borrow</span>
-                    <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#86">kind</a> {
-                        <span class="ident">vir::AssignKind::Move</span> <span class="op">|</span> <span class="ident">vir::AssignKind::MutableBorrow</span>(<span class="kw">_</span>) =&gt; {
-                            <span class="comment">// In Prusti, we lose permission on the rhs</span>
-                            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#118">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>));
-                            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#119">p</a>.<span class="ident">has_proper_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#119">p</a>.<span class="ident">is_local</span>()
+                <span class="comment">// In case of move or borrowing, move permissions from the `rhs` to the `lhs`
+                </span><span class="kw">if </span>source.is_place() &amp;&amp; source.get_type().is_typed_ref_or_type_var() {
+                    <span class="comment">// This is a move assignemnt or the creation of a borrow
+                    </span><span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#86">kind</a> {
+                        vir::AssignKind::Move | vir::AssignKind::MutableBorrow(<span class="kw">_</span>) =&gt; {
+                            <span class="comment">// In Prusti, we lose permission on the rhs
+                            </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#118">p</a>.has_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>));
+                            <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(|p| {
+                                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#119">p</a>.has_proper_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>) &amp;&amp; !<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#119">p</a>.is_local()
                             });
 
-                            <span class="comment">// We also lose permission on the lhs</span>
-                            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#124">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
-                            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#125">p</a>.<span class="ident">has_proper_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#125">p</a>.<span class="ident">is_local</span>()
+                            <span class="comment">// We also lose permission on the lhs
+                            </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#124">p</a>.has_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
+                            <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(|p| {
+                                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#125">p</a>.has_proper_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>) &amp;&amp; !<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#125">p</a>.is_local()
                             });
 
-                            <span class="comment">// And we create permissions for the lhs</span>
-                            <span class="kw">let</span> <span class="ident">new_acc_places</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#89">original_state</a>
-                                .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#193">acc</a>()
-                                .<span class="ident">iter</span>()
-                                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#133">p</a>.<span class="ident">has_proper_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>))
-                                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="ident">perm_amount</span>)<span class="op">|</span> {
-                                    (<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#134">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">replace_place</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>), <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#134">perm_amount</a>)
+                            <span class="comment">// And we create permissions for the lhs
+                            </span><span class="kw">let </span>new_acc_places = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#89">original_state</a>
+                                .<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#193">acc</a>()
+                                .iter()
+                                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(p, <span class="kw">_</span>)| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#133">p</a>.has_proper_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>))
+                                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, perm_amount)| {
+                                    (<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#134">p</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().replace_place(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>), <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#134">perm_amount</a>)
                                 })
-                                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#137">p</a>.<span class="ident">is_local</span>());
-                            <span class="ident">state</span>.<span class="ident">insert_all_acc</span>(<span class="ident">new_acc_places</span>)<span class="question-mark">?</span>;
+                                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(p, <span class="kw">_</span>)| !<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#137">p</a>.is_local());
+                            state.insert_all_acc(new_acc_places)<span class="question-mark">?</span>;
 
-                            <span class="kw">let</span> <span class="ident">new_pred_places</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#89">original_state</a>
-                                .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#211">pred</a>()
-                                .<span class="ident">iter</span>()
-                                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#143">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>))
-                                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="ident">perm_amount</span>)<span class="op">|</span> {
-                                    (<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#144">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">replace_place</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>), <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#144">perm_amount</a>)
+                            <span class="kw">let </span>new_pred_places = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#89">original_state</a>
+                                .<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#211">pred</a>()
+                                .iter()
+                                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(p, <span class="kw">_</span>)| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#143">p</a>.has_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>))
+                                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, perm_amount)| {
+                                    (<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#144">p</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().replace_place(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>), <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#144">perm_amount</a>)
                                 });
-                            <span class="ident">state</span>.<span class="ident">insert_all_pred</span>(<span class="ident">new_pred_places</span>)<span class="question-mark">?</span>;
+                            state.insert_all_pred(new_pred_places)<span class="question-mark">?</span>;
 
-                            <span class="comment">// Finally, mark the rhs as moved</span>
-                            <span class="kw">if</span> <span class="op">!</span><span class="ident">source</span>.<span class="ident">has_prefix</span>(<span class="ident">target</span>) {
-                                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#412">insert_moved</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                            <span class="comment">// Finally, mark the rhs as moved
+                            </span><span class="kw">if </span>!source.has_prefix(target) {
+                                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#412">insert_moved</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#85">source</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                             }
                         }
-                        <span class="ident">vir::AssignKind::SharedBorrow</span>(<span class="kw">_</span>) =&gt; {
-                            <span class="comment">// We lose permission on the lhs</span>
-                            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#156">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
-                            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#157">p</a>.<span class="ident">has_proper_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#157">p</a>.<span class="ident">is_local</span>()
+                        vir::AssignKind::SharedBorrow(<span class="kw">_</span>) =&gt; {
+                            <span class="comment">// We lose permission on the lhs
+                            </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#156">p</a>.has_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>));
+                            <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(|p| {
+                                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#157">p</a>.has_proper_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#84">target</a>) &amp;&amp; !<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#157">p</a>.is_local()
                             });
                         }
-                        <span class="ident">vir::AssignKind::Ghost</span> <span class="op">|</span> <span class="ident">vir::AssignKind::Copy</span> =&gt; {
+                        vir::AssignKind::Ghost | vir::AssignKind::Copy =&gt; {
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
                         }
                     }
-                } <span class="kw">else</span> {
-                    <span class="comment">// This is not move assignemnt or the creation of a borrow</span>
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-                        <span class="macro">matches!</span>(<span class="ident">kind</span>, <span class="ident">vir::AssignKind::Copy</span>),
+                } <span class="kw">else </span>{
+                    <span class="comment">// This is not move assignemnt or the creation of a borrow
+                    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+                        <span class="macro">matches!</span>(kind, vir::AssignKind::Copy),
                         <span class="string">&quot;Unexpected assignment kind: {:?}&quot;</span>,
-                        <span class="ident">kind</span>
+                        kind
                     );
                 }
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Assign</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a> {
-                <span class="ident">kind</span>: <span class="ident">vir::AssignKind::Ghost</span>,
+            <span class="kw-2">&amp;</span>vir::Stmt::Assign(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Assign.html">vir::Assign</a> {
+                kind: vir::AssignKind::Ghost,
                 ..
             }) =&gt; {
-                <span class="comment">// Do nothing.</span>
+                <span class="comment">// Do nothing.
+            </span>}
+
+            <span class="kw-2">&amp;</span>vir::Stmt::Fold(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a> {
+                <span class="kw-2">ref </span>arguments,
+                permission,
+                <span class="kw-2">ref </span>enum_variant,
+                ..
+            }) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(arguments.len(), <span class="number">1</span>);
+                <span class="kw">let </span>place = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#183">arguments</a>[<span class="number">0</span>];
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(place.is_place());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!state.contains_pred(place));
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!state.is_prefix_of_some_moved(place));
+
+                <span class="comment">// We want to fold place
+                </span><span class="kw">let </span>predicate_type = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#189">place</a>.get_type();
+                <span class="kw">let </span>predicate = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#54">predicates</a>.get(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#195">predicate_type</a>).unwrap();
+
+                <span class="kw">let </span>pred_self_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#196">predicate</a>.self_place();
+                <span class="kw">let </span>places_in_pred: Vec&lt;<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#196">predicate</a>
+                    .<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#191">get_body_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#185">enum_variant</a>)
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|perm| {
+                        <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#202">perm</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#65-67">map_place</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#203">p</a>.replace_place(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#198">pred_self_place</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#189">place</a>))
+                            .<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#79">init_perm_amount</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#184">permission</a>)
+                    })
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+
+                <span class="comment">// Commented due to the presence of implications in the body of predicates
+                //for contained_place in &amp;places_in_pred {
+                //    assert!(state.contains(contained_place));
+                //}
+
+                // Simulate folding of `place`
+                </span>state.remove_all_perms(places_in_pred.iter())<span class="question-mark">?</span>;
+                state.insert_pred(place.clone(), permission)<span class="question-mark">?</span>;
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Fold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a> {
-                <span class="kw-2">ref</span> <span class="ident">arguments</span>,
-                <span class="ident">permission</span>,
-                <span class="kw-2">ref</span> <span class="ident">enum_variant</span>,
+            <span class="kw-2">&amp;</span>vir::Stmt::Unfold(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a> {
+                <span class="kw-2">ref </span>arguments,
+                permission,
+                <span class="kw-2">ref </span>enum_variant,
                 ..
             }) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">arguments</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-                <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#183">arguments</a>[<span class="number">0</span>];
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">contains_pred</span>(<span class="ident">place</span>));
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">is_prefix_of_some_moved</span>(<span class="ident">place</span>));
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(arguments.len(), <span class="number">1</span>);
+                <span class="kw">let </span>self_place = <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#219">arguments</a>[<span class="number">0</span>];
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(self_place.is_place());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(state.contains_pred(self_place));
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!state.is_prefix_of_some_moved(self_place));
 
-                <span class="comment">// We want to fold place</span>
-                <span class="kw">let</span> <span class="ident">predicate_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#189">place</a>.<span class="ident">get_type</span>();
-                <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#54">predicates</a>.<span class="ident">get</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#195">predicate_type</a>).<span class="ident">unwrap</span>();
+                <span class="comment">// We want to unfold place
+                </span><span class="kw">let </span>predicate_type = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#225">self_place</a>.get_type();
+                <span class="kw">let </span>predicate = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#54">predicates</a>.get(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#231">predicate_type</a>).unwrap();
 
-                <span class="kw">let</span> <span class="ident">pred_self_place</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#196">predicate</a>.<span class="ident">self_place</span>();
-                <span class="kw">let</span> <span class="ident">places_in_pred</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#196">predicate</a>
-                    .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#191">get_body_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#185">enum_variant</a>)
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">perm</span><span class="op">|</span> {
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#202">perm</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#65-67">map_place</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#203">p</a>.<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#198">pred_self_place</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#189">place</a>))
-                            .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#79">init_perm_amount</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#184">permission</a>)
+                <span class="kw">let </span>pred_self_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#232">predicate</a>.self_place();
+                <span class="kw">let </span>places_in_pred: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#232">predicate</a>
+                    .<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#191">get_body_footprint</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#221">enum_variant</a>)
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|perm| {
+                        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(perm.get_perm_amount(), vir::PermAmount::Write);
+                        <span class="comment">// Scale permission
+                        </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#238">perm</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#65-67">map_place</a>(|place| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#241">place</a>.replace_place(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#234">pred_self_place</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#225">self_place</a>))
+                            .<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#92">update_perm_amount</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#220">permission</a>)
                     })
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-                <span class="comment">// Commented due to the presence of implications in the body of predicates</span>
-                <span class="comment">//for contained_place in &amp;places_in_pred {</span>
-                <span class="comment">//    assert!(state.contains(contained_place));</span>
-                <span class="comment">//}</span>
-
-                <span class="comment">// Simulate folding of `place`</span>
-                <span class="ident">state</span>.<span class="ident">remove_all_perms</span>(<span class="ident">places_in_pred</span>.<span class="ident">iter</span>())<span class="question-mark">?</span>;
-                <span class="ident">state</span>.<span class="ident">insert_pred</span>(<span class="ident">place</span>.<span class="ident">clone</span>(), <span class="ident">permission</span>)<span class="question-mark">?</span>;
-            }
-
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Unfold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a> {
-                <span class="kw-2">ref</span> <span class="ident">arguments</span>,
-                <span class="ident">permission</span>,
-                <span class="kw-2">ref</span> <span class="ident">enum_variant</span>,
-                ..
-            }) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">arguments</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-                <span class="kw">let</span> <span class="ident">self_place</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#219">arguments</a>[<span class="number">0</span>];
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">self_place</span>.<span class="ident">is_place</span>());
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">state</span>.<span class="ident">contains_pred</span>(<span class="ident">self_place</span>));
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">is_prefix_of_some_moved</span>(<span class="ident">self_place</span>));
-
-                <span class="comment">// We want to unfold place</span>
-                <span class="kw">let</span> <span class="ident">predicate_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#225">self_place</a>.<span class="ident">get_type</span>();
-                <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#54">predicates</a>.<span class="ident">get</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#231">predicate_type</a>).<span class="ident">unwrap</span>();
-
-                <span class="kw">let</span> <span class="ident">pred_self_place</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#232">predicate</a>.<span class="ident">self_place</span>();
-                <span class="kw">let</span> <span class="ident">places_in_pred</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#232">predicate</a>
-                    .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#191">get_body_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#221">enum_variant</a>)
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">perm</span><span class="op">|</span> {
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">perm</span>.<span class="ident">get_perm_amount</span>(), <span class="ident">vir::PermAmount::Write</span>);
-                        <span class="comment">// Scale permission</span>
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#238">perm</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#65-67">map_place</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#241">place</a>.<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#234">pred_self_place</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#225">self_place</a>))
-                            .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#92">update_perm_amount</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#220">permission</a>)
-                    })
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-
-                <span class="kw">for</span> <span class="ident">contained_place</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">places_in_pred</span> {
-                    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">contains_perm</span>(<span class="ident">contained_place</span>));
+                <span class="kw">for </span>contained_place <span class="kw">in </span><span class="kw-2">&amp;</span>places_in_pred {
+                    <span class="macro">assert!</span>(!state.contains_perm(contained_place));
                 }
 
-                <span class="comment">// Simulate unfolding of `place`</span>
-                <span class="ident">state</span>.<span class="ident">remove_pred</span>(<span class="ident">self_place</span>, <span class="ident">permission</span>)<span class="question-mark">?</span>;
-                <span class="ident">state</span>.<span class="ident">insert_all_perms</span>(<span class="ident">places_in_pred</span>.<span class="ident">into_iter</span>())<span class="question-mark">?</span>;
+                <span class="comment">// Simulate unfolding of `place`
+                </span>state.remove_pred(self_place, permission)<span class="question-mark">?</span>;
+                state.insert_all_perms(places_in_pred.into_iter())<span class="question-mark">?</span>;
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::BeginFrame</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#633">begin_frame</a>(),
+            <span class="kw-2">&amp;</span>vir::Stmt::BeginFrame(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#633">begin_frame</a>(),
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::EndFrame</span>(<span class="kw">_</span>) =&gt; <span class="ident">state</span>.<span class="ident">end_frame</span>()<span class="question-mark">?</span>,
+            <span class="kw-2">&amp;</span>vir::Stmt::EndFrame(<span class="kw">_</span>) =&gt; state.end_frame()<span class="question-mark">?</span>,
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::TransferPerm</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.TransferPerm.html">vir::TransferPerm</a> {
-                <span class="kw-2">ref</span> <span class="ident">left</span>,
-                <span class="kw-2">ref</span> <span class="ident">right</span>,
-                <span class="ident">unchecked</span>,
+            <span class="kw-2">&amp;</span>vir::Stmt::TransferPerm(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.TransferPerm.html">vir::TransferPerm</a> {
+                <span class="kw-2">ref </span>left,
+                <span class="kw-2">ref </span>right,
+                unchecked,
             }) =&gt; {
-                <span class="kw">let</span> <span class="ident">original_state</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                <span class="kw">let </span>original_state = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">unchecked</span> {
+                <span class="kw">if </span>!unchecked {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
-                        <span class="op">!</span><span class="ident">left</span>.<span class="ident">is_simple_place</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">state</span>.<span class="ident">is_prefix_of_some_acc</span>(<span class="ident">left</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">state</span>.<span class="ident">is_prefix_of_some_pred</span>(<span class="ident">left</span>),
+                        !left.is_simple_place() || state.is_prefix_of_some_acc(left) || state.is_prefix_of_some_pred(left),
                         <span class="string">&quot;The fold/unfold state does not contain the permission for an expiring borrow: {}&quot;</span>,
-                        <span class="ident">left</span>
+                        left
                     );
                 }
                 <span class="comment">/*assert!(
                     state.is_prefix_of_some_pred(lhs_place),
                     &quot;The fold/unfold state does not contain the permission for an expiring borrow: {}&quot;,
                     lhs_place
-                );*/</span>
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">left</span>.<span class="ident">get_type</span>().<span class="ident">is_typed_ref_or_type_var</span>());
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">right</span>.<span class="ident">get_type</span>().<span class="ident">is_typed_ref_or_type_var</span>());
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">left</span>.<span class="ident">get_type</span>(), <span class="ident">right</span>.<span class="ident">get_type</span>());
-                <span class="comment">//debug_assert!(!state.is_proper_prefix_of_some_acc(rhs_place));</span>
-                <span class="comment">//debug_assert!(!state.is_prefix_of_some_pred(rhs_place));</span>
-                <span class="comment">//debug_assert!(!lhs_place.is_curr() || !state.is_prefix_of_some_moved(lhs_place));</span>
+                );*/
+                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(left.get_type().is_typed_ref_or_type_var());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(right.get_type().is_typed_ref_or_type_var());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(left.get_type(), right.get_type());
+                <span class="comment">//debug_assert!(!state.is_proper_prefix_of_some_acc(rhs_place));
+                //debug_assert!(!state.is_prefix_of_some_pred(rhs_place));
+                //debug_assert!(!lhs_place.is_curr() || !state.is_prefix_of_some_moved(lhs_place));
 
-                <span class="comment">// Restore permissions from the `lhs` to the `rhs`</span>
+                // Restore permissions from the `lhs` to the `rhs`
 
-                <span class="comment">// Like `has_prefix`, but ignoring the labels if they are equal.</span>
-                <span class="kw">fn</span> <span class="ident">old_has_prefix</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-                    <span class="kw">if</span> <span class="kw">let</span> (
-                        <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
-                            <span class="ident">label</span>: <span class="ident">this_label</span>,
-                            <span class="ident">base</span>: <span class="ident">this_base</span>,
+                // Like `has_prefix`, but ignoring the labels if they are equal.
+                </span><span class="kw">fn </span>old_has_prefix(this: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, other: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+                    <span class="kw">if let </span>(
+                        vir::Expr::LabelledOld(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
+                            label: this_label,
+                            base: this_base,
                             ..
                         }),
-                        <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
-                            <span class="ident">label</span>: <span class="ident">other_label</span>,
-                            <span class="ident">base</span>: <span class="ident">other_base</span>,
+                        vir::Expr::LabelledOld(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
+                            label: other_label,
+                            base: other_base,
                             ..
                         }),
-                    ) <span class="op">=</span> (<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">this</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">other</a>)
+                    ) = (<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">this</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">other</a>)
                     {
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#291">this_label</a> <span class="op">==</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#296">other_label</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#292">this_base</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#297">other_base</a>)
-                    } <span class="kw">else</span> {
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">this</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">other</a>)
+                        <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#291">this_label</a> == <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#296">other_label</a> &amp;&amp; <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#292">this_base</a>.has_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#297">other_base</a>)
+                    } <span class="kw">else </span>{
+                        <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">this</a>.has_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">other</a>)
                     }
                 }
 
-                <span class="comment">// Like `has_proper_prefix`, but ignoring the labels if they are equal.</span>
-                <span class="kw">fn</span> <span class="ident">old_has_proper_prefix</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-                    <span class="kw">if</span> <span class="kw">let</span> (
-                        <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
-                            <span class="ident">label</span>: <span class="ident">this_label</span>,
-                            <span class="ident">base</span>: <span class="ident">this_base</span>,
+                <span class="comment">// Like `has_proper_prefix`, but ignoring the labels if they are equal.
+                </span><span class="kw">fn </span>old_has_proper_prefix(this: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, other: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+                    <span class="kw">if let </span>(
+                        vir::Expr::LabelledOld(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
+                            label: this_label,
+                            base: this_base,
                             ..
                         }),
-                        <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
-                            <span class="ident">label</span>: <span class="ident">other_label</span>,
-                            <span class="ident">base</span>: <span class="ident">other_base</span>,
+                        vir::Expr::LabelledOld(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
+                            label: other_label,
+                            base: other_base,
                             ..
                         }),
-                    ) <span class="op">=</span> (<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">this</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">other</a>)
+                    ) = (<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">this</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">other</a>)
                     {
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#312">this_label</a> <span class="op">==</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#317">other_label</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#313">this_base</a>.<span class="ident">has_proper_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#318">other_base</a>)
-                    } <span class="kw">else</span> {
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">this</a>.<span class="ident">has_proper_prefix</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">other</a>)
+                        <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#312">this_label</a> == <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#317">other_label</a> &amp;&amp; <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#313">this_base</a>.has_proper_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#318">other_base</a>)
+                    } <span class="kw">else </span>{
+                        <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">this</a>.has_proper_prefix(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">other</a>)
                     }
                 }
 
-                <span class="comment">// Like `replace_place`, but ignoring the labels if they are equal.</span>
-                <span class="kw">fn</span> <span class="ident">old_replace_place</span>(
-                    <span class="ident">this</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-                    <span class="ident">target</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-                    <span class="ident">replacement</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-                ) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-                    <span class="kw">if</span> <span class="kw">let</span> (
-                        <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
-                            <span class="ident">label</span>: <span class="ident">this_label</span>,
-                            <span class="ident">base</span>: <span class="ident">this_base</span>,
+                <span class="comment">// Like `replace_place`, but ignoring the labels if they are equal.
+                </span><span class="kw">fn </span>old_replace_place(
+                    this: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+                    target: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+                    replacement: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+                ) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+                    <span class="kw">if let </span>(
+                        vir::Expr::LabelledOld(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
+                            label: this_label,
+                            base: this_base,
                             ..
                         }),
-                        <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
-                            <span class="ident">label</span>: <span class="ident">target_label</span>,
-                            <span class="ident">base</span>: <span class="ident">target_base</span>,
+                        vir::Expr::LabelledOld(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
+                            label: target_label,
+                            base: target_base,
                             ..
                         }),
-                    ) <span class="op">=</span> (<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#331">this</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#332">target</a>)
+                    ) = (<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#331">this</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#332">target</a>)
                     {
-                        <span class="kw">if</span> <span class="ident">this_label</span> <span class="op">==</span> <span class="ident">target_label</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir::Expr::LabelledOld</span>(<span class="ident">repl_labelled</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#333">replacement</a> {
-                                <span class="kw">return</span> <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
-                                    <span class="ident">base</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#338">this_base</a>
-                                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                                        .<span class="ident">replace_place</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#343">target_base</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#349">repl_labelled</a>.<span class="ident">base</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()),
-                                    <span class="ident">label</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#349">repl_labelled</a>.<span class="ident">label</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                                    <span class="ident">position</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#349">repl_labelled</a>.<span class="ident">position</span>,
+                        <span class="kw">if </span>this_label == target_label {
+                            <span class="kw">if let </span>vir::Expr::LabelledOld(repl_labelled) = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#333">replacement</a> {
+                                <span class="kw">return </span>vir::Expr::LabelledOld(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.LabelledOld.html">vir::LabelledOld</a> {
+                                    base: <span class="kw">box </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#338">this_base</a>
+                                        .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                                        .replace_place(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#343">target_base</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#349">repl_labelled</a>.base.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()),
+                                    label: <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#349">repl_labelled</a>.label.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                    position: <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#349">repl_labelled</a>.position,
                                 });
-                            } <span class="kw">else</span> {
-                                <span class="kw">return</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#338">this_base</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">replace_place</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#343">target_base</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#333">replacement</a>);
+                            } <span class="kw">else </span>{
+                                <span class="kw">return </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#338">this_base</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().replace_place(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#343">target_base</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#333">replacement</a>);
                             }
                         }
                     }
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#331">this</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">replace_place</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#332">target</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#333">replacement</a>)
+                    <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#331">this</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().replace_place(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#332">target</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#333">replacement</a>)
                 }
 
-                <span class="comment">// In Prusti, lose permission from the lhs and rhs</span>
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">old_has_prefix</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#366">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>));
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">old_has_proper_prefix</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#367">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#367">p</a>.<span class="ident">is_local</span>());
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">old_has_prefix</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#368">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>));
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">old_has_proper_prefix</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#369">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#369">p</a>.<span class="ident">is_local</span>());
+                <span class="comment">// In Prusti, lose permission from the lhs and rhs
+                </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">old_has_prefix</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#366">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>));
+                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">old_has_proper_prefix</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#367">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>) &amp;&amp; !<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#367">p</a>.is_local());
+                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#306-308">remove_pred_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">old_has_prefix</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#368">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>));
+                <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#299-301">remove_acc_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">old_has_proper_prefix</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#369">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>) &amp;&amp; !<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#369">p</a>.is_local());
 
-                <span class="comment">// The rhs is no longer moved</span>
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#313-315">remove_moved_matching</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">old_has_prefix</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#372">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>));
+                <span class="comment">// The rhs is no longer moved
+                </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#313-315">remove_moved_matching</a>(|p| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">old_has_prefix</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#372">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>));
 
-                <span class="comment">// And we create permissions for the rhs</span>
-                <span class="kw">let</span> <span class="ident">new_acc_places</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#264">original_state</a>
-                    .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#193">acc</a>()
-                    .<span class="ident">iter</span>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">old_has_proper_prefix</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#378">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>))
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="ident">perm_amount</span>)<span class="op">|</span> (<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#330-334">old_replace_place</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#379">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>), <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#379">perm_amount</a>))
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#380">p</a>.<span class="ident">is_local</span>())
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                <span class="comment">// And we create permissions for the rhs
+                </span><span class="kw">let </span>new_acc_places: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#264">original_state</a>
+                    .<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#193">acc</a>()
+                    .iter()
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(p, <span class="kw">_</span>)| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#309">old_has_proper_prefix</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#378">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, perm_amount)| (<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#330-334">old_replace_place</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#379">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>), <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#379">perm_amount</a>))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(p, <span class="kw">_</span>)| !<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#380">p</a>.is_local())
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-                <span class="kw">let</span> <span class="ident">new_pred_places</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#264">original_state</a>
-                    .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#211">pred</a>()
-                    .<span class="ident">iter</span>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">old_has_prefix</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#386">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>))
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="ident">perm_amount</span>)<span class="op">|</span> (<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#330-334">old_replace_place</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#387">p</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>), <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#387">perm_amount</a>))
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                <span class="kw">let </span>new_pred_places: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#264">original_state</a>
+                    .<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#211">pred</a>()
+                    .iter()
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(p, <span class="kw">_</span>)| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#288">old_has_prefix</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#386">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, perm_amount)| (<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#330-334">old_replace_place</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#387">p</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#261">right</a>), <span class="kw-2">*</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#387">perm_amount</a>))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-                <span class="comment">// assert!(</span>
-                <span class="comment">//     (lhs_place == rhs_place) || !(new_acc_places.is_empty() &amp;&amp; new_pred_places.is_empty()),</span>
-                <span class="comment">//     &quot;Statement &#39;{}&#39; did not restore any permission in state with acc {{\n{}\n}}\nand pred {{\n{}\n}}&quot;,</span>
-                <span class="comment">//     self,</span>
-                <span class="comment">//     original_state.display_acc(),</span>
-                <span class="comment">//     original_state.display_pred()</span>
-                <span class="comment">// );</span>
+                <span class="comment">// assert!(
+                //     (lhs_place == rhs_place) || !(new_acc_places.is_empty() &amp;&amp; new_pred_places.is_empty()),
+                //     &quot;Statement &#39;{}&#39; did not restore any permission in state with acc {{\n{}\n}}\nand pred {{\n{}\n}}&quot;,
+                //     self,
+                //     original_state.display_acc(),
+                //     original_state.display_pred()
+                // );
 
-                <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;new_acc_places: {:?}&quot;</span>, <span class="ident">new_acc_places</span>);
-                <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;new_pred_places: {:?}&quot;</span>, <span class="ident">new_pred_places</span>);
+                </span><a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;new_acc_places: {:?}&quot;</span>, new_acc_places);
+                <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;new_pred_places: {:?}&quot;</span>, new_pred_places);
 
-                <span class="ident">state</span>.<span class="ident">insert_all_acc</span>(<span class="ident">new_acc_places</span>.<span class="ident">into_iter</span>())<span class="question-mark">?</span>;
-                <span class="ident">state</span>.<span class="ident">insert_all_pred</span>(<span class="ident">new_pred_places</span>.<span class="ident">into_iter</span>())<span class="question-mark">?</span>;
+                state.insert_all_acc(new_acc_places.into_iter())<span class="question-mark">?</span>;
+                state.insert_all_pred(new_pred_places.into_iter())<span class="question-mark">?</span>;
 
-                <span class="comment">// Move also the acc permission if the rhs is old.</span>
-                <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">contains_acc</span>(<span class="ident">left</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">state</span>.<span class="ident">contains_acc</span>(<span class="ident">right</span>) <span class="op">&amp;&amp;</span> <span class="ident">right</span>.<span class="ident">is_old</span>() {
-                    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Moving acc({}) to acc({}) state.&quot;</span>, <span class="ident">left</span>, <span class="ident">right</span>);
-                    <span class="ident">state</span>.<span class="ident">insert_acc</span>(<span class="ident">right</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">state</span>.<span class="ident">acc</span>().<span class="ident">get</span>(<span class="ident">left</span>).<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">left</span>.<span class="ident">is_local</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">left</span>.<span class="ident">is_curr</span>() {
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#438">remove_acc_place</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>);
+                <span class="comment">// Move also the acc permission if the rhs is old.
+                </span><span class="kw">if </span>state.contains_acc(left) &amp;&amp; !state.contains_acc(right) &amp;&amp; right.is_old() {
+                    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Moving acc({}) to acc({}) state.&quot;</span>, left, right);
+                    state.insert_acc(right.clone(), <span class="kw-2">*</span>state.acc().get(left).unwrap())<span class="question-mark">?</span>;
+                    <span class="kw">if </span>!left.is_local() &amp;&amp; !left.is_curr() {
+                        <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#438">remove_acc_place</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>);
                     }
                 }
 
-                <span class="comment">// Remove the lhs access permission if it was old.</span>
-                <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">contains_acc</span>(<span class="ident">left</span>) <span class="op">&amp;&amp;</span> <span class="ident">left</span>.<span class="ident">is_old</span>() {
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#438">remove_acc_place</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>);
+                <span class="comment">// Remove the lhs access permission if it was old.
+                </span><span class="kw">if </span>state.contains_acc(left) &amp;&amp; left.is_old() {
+                    <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#438">remove_acc_place</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>);
                 }
 
                 <span class="comment">/*
@@ -946,95 +946,95 @@
                         state.remove_acc_place(lhs_place);
                     }
                 }
-                */</span>
+                */
 
-                <span class="comment">// Finally, mark the lhs as moved</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">old_has_prefix</span>(<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">&amp;&amp;</span>   <span class="comment">// Maybe this is always true?</span>
-                        <span class="op">!</span><span class="ident">unchecked</span>
+                // Finally, mark the lhs as moved
+                </span><span class="kw">if </span>!old_has_prefix(left, right) &amp;&amp;   <span class="comment">// Maybe this is always true?
+                        </span>!unchecked
                 {
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#412">insert_moved</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#412">insert_moved</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#260">left</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 }
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::PackageMagicWand</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.PackageMagicWand.html">vir::PackageMagicWand</a> {
-                <span class="ident">magic_wand</span>:
-                    <span class="ident">vir::Expr::MagicWand</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.MagicWand.html">vir::MagicWand</a> {
-                        <span class="kw-2">ref</span> <span class="ident">left</span>,
-                        <span class="kw-2">ref</span> <span class="ident">right</span>,
+            <span class="kw-2">&amp;</span>vir::Stmt::PackageMagicWand(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.PackageMagicWand.html">vir::PackageMagicWand</a> {
+                magic_wand:
+                    vir::Expr::MagicWand(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.MagicWand.html">vir::MagicWand</a> {
+                        <span class="kw-2">ref </span>left,
+                        <span class="kw-2">ref </span>right,
                         ..
                     }),
                 ..
             }) =&gt; {
-                <span class="comment">// The semantics of the statements is handled in `foldunfold/mod.rs`.</span>
-                <span class="comment">//for stmt in package_stmts {</span>
-                <span class="comment">//    stmt.apply_on_state(state, predicates);</span>
-                <span class="comment">//}</span>
-                <span class="ident">exhale_expr</span>(<span class="ident">right</span>, <span class="ident">state</span>, <span class="ident">predicates</span>)<span class="question-mark">?</span>;
-                <span class="ident">inhale_expr</span>(<span class="ident">left</span>, <span class="ident">state</span>, <span class="ident">predicates</span>)<span class="question-mark">?</span>;
+                <span class="comment">// The semantics of the statements is handled in `foldunfold/mod.rs`.
+                //for stmt in package_stmts {
+                //    stmt.apply_on_state(state, predicates);
+                //}
+                </span>exhale_expr(right, state, predicates)<span class="question-mark">?</span>;
+                inhale_expr(left, state, predicates)<span class="question-mark">?</span>;
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::ApplyMagicWand</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.ApplyMagicWand.html">vir::ApplyMagicWand</a> {
-                <span class="ident">magic_wand</span>:
-                    <span class="ident">vir::Expr::MagicWand</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.MagicWand.html">vir::MagicWand</a> {
-                        <span class="kw-2">ref</span> <span class="ident">left</span>,
-                        <span class="kw-2">ref</span> <span class="ident">right</span>,
+            <span class="kw-2">&amp;</span>vir::Stmt::ApplyMagicWand(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.ApplyMagicWand.html">vir::ApplyMagicWand</a> {
+                magic_wand:
+                    vir::Expr::MagicWand(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.MagicWand.html">vir::MagicWand</a> {
+                        <span class="kw-2">ref </span>left,
+                        <span class="kw-2">ref </span>right,
                         ..
                     }),
                 ..
             }) =&gt; {
-                <span class="ident">exhale_expr</span>(<span class="ident">left</span>, <span class="ident">state</span>, <span class="ident">predicates</span>)<span class="question-mark">?</span>;
-                <span class="ident">inhale_expr</span>(<span class="ident">right</span>, <span class="ident">state</span>, <span class="ident">predicates</span>)<span class="question-mark">?</span>;
+                exhale_expr(left, state, predicates)<span class="question-mark">?</span>;
+                inhale_expr(right, state, predicates)<span class="question-mark">?</span>;
             }
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::ExpireBorrows</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.ExpireBorrows.html">vir::ExpireBorrows</a> { <span class="ident">dag</span>: <span class="kw-2">ref</span> <span class="ident">_dag</span> }) =&gt; {
-                <span class="comment">// TODO: #133</span>
-            }
+            <span class="kw-2">&amp;</span>vir::Stmt::ExpireBorrows(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.ExpireBorrows.html">vir::ExpireBorrows</a> { dag: <span class="kw-2">ref </span>_dag }) =&gt; {
+                <span class="comment">// TODO: #133
+            </span>}
 
-            <span class="kw-2">&amp;</span><span class="ident">vir::Stmt::Downcast</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Downcast.html">vir::Downcast</a> {
-                <span class="ident">base</span>: <span class="kw-2">ref</span> <span class="ident">enum_place</span>,
-                <span class="kw-2">ref</span> <span class="ident">field</span>,
+            <span class="kw-2">&amp;</span>vir::Stmt::Downcast(<a href="../../../../vir/gen/polymorphic/ast/stmt/struct.Downcast.html">vir::Downcast</a> {
+                base: <span class="kw-2">ref </span>enum_place,
+                <span class="kw-2">ref </span>field,
             }) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">found_variant</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#810">find_unfolded_variant</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#475">enum_place</a>) {
-                    <span class="comment">// The enum has already been downcasted.</span>
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">field</span>.<span class="ident">name</span>.<span class="ident">ends_with</span>(<span class="ident">found_variant</span>.<span class="ident">get_variant_name</span>()));
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(found_variant) = <a href="../../../../src/prusti_viper/encoder/foldunfold/path_ctxt.rs.html#810">find_unfolded_variant</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#475">enum_place</a>) {
+                    <span class="comment">// The enum has already been downcasted.
+                    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(field.name.ends_with(found_variant.get_variant_name()));
                     <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(
                         <span class="string">&quot;Place {} has already been downcasted to {}&quot;</span>,
-                        <span class="ident">enum_place</span>,
-                        <span class="ident">field</span>
+                        enum_place,
+                        field
                     );
-                } <span class="kw">else</span> {
-                    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Downcast {} to {}&quot;</span>, <span class="ident">enum_place</span>, <span class="ident">field</span>);
-                    <span class="kw">let</span> <span class="ident">predicate_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#475">enum_place</a>.<span class="ident">get_type</span>();
-                    <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#54">predicates</a>.<span class="ident">get</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#488">predicate_type</a>).<span class="ident">unwrap</span>();
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir::Predicate::Enum</span>(<span class="ident">enum_predicate</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#489">predicate</a> {
-                        <span class="kw">let</span> <span class="ident">discriminant_place</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#475">enum_place</a>
-                            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                            .<span class="ident">field</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#490">enum_predicate</a>.<span class="ident">discriminant_field</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">perm_amount</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#193">acc</a>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#491">discriminant_place</a>).<span class="ident">copied</span>() {
-                            <span class="comment">// Add the permissions of the variant</span>
-                            <span class="kw">let</span> <span class="ident">self_place</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#490">enum_predicate</a>.<span class="ident">this</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                            <span class="kw">let</span> <span class="ident">variant_footprint</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#490">enum_predicate</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#244">get_variant_footprint</a>(
-                                <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#476">field</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
-                            ).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">perm</span><span class="op">|</span>
-                                <span class="comment">// Update the permissiona and replace `self` with `enum_place`</span>
-                                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#499">perm</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#92">update_perm_amount</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#494">perm_amount</a>)
-                                    .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#65-67">map_place</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#502">place</a>.<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#496">self_place</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#475">enum_place</a>))
-                            ).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Downcast adds variant&#39;s footprint {:?}&quot;</span>, <span class="ident">variant_footprint</span>);
-                            <span class="ident">state</span>.<span class="ident">insert_all_perms</span>(<span class="ident">variant_footprint</span>.<span class="ident">into_iter</span>())<span class="question-mark">?</span>;
-                        } <span class="kw">else</span> {
-                            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Place {} has not been unfolded yet&quot;</span>, <span class="ident">discriminant_place</span>);
+                } <span class="kw">else </span>{
+                    <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Downcast {} to {}&quot;</span>, enum_place, field);
+                    <span class="kw">let </span>predicate_type = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#475">enum_place</a>.get_type();
+                    <span class="kw">let </span>predicate = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#54">predicates</a>.get(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#488">predicate_type</a>).unwrap();
+                    <span class="kw">if let </span>vir::Predicate::Enum(enum_predicate) = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#489">predicate</a> {
+                        <span class="kw">let </span>discriminant_place = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#475">enum_place</a>
+                            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                            .field(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#490">enum_predicate</a>.discriminant_field.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(perm_amount) = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#53">state</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/state.rs.html#193">acc</a>().get(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#491">discriminant_place</a>).copied() {
+                            <span class="comment">// Add the permissions of the variant
+                            </span><span class="kw">let </span>self_place: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#490">enum_predicate</a>.this.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                            <span class="kw">let </span>variant_footprint: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#490">enum_predicate</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#244">get_variant_footprint</a>(
+                                <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#476">field</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                            ).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|perm|
+                                <span class="comment">// Update the permissiona and replace `self` with `enum_place`
+                                </span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#499">perm</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#92">update_perm_amount</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#494">perm_amount</a>)
+                                    .<a href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#65-67">map_place</a>(|place| <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#502">place</a>.replace_place(<span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#496">self_place</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/semantics.rs.html#475">enum_place</a>))
+                            ).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Downcast adds variant&#39;s footprint {:?}&quot;</span>, variant_footprint);
+                            state.insert_all_perms(variant_footprint.into_iter())<span class="question-mark">?</span>;
+                        } <span class="kw">else </span>{
+                            <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Place {} has not been unfolded yet&quot;</span>, discriminant_place);
                         }
-                    } <span class="kw">else</span> {
+                    } <span class="kw">else </span>{
                         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
                     }
                 }
             }
 
-            <span class="kw-2">ref</span> <span class="ident">x</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>),
+            <span class="kw-2">ref </span>x =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;{}&quot;</span>, x),
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

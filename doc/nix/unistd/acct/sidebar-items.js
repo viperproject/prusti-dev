@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["disable","Disable process accounting"],["enable","Enable process accounting"]]};

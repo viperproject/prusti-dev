@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/sse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/sse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -509,516 +509,516 @@
 <span id="509">509</span>
 <span id="510">510</span>
 <span id="511">511</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Server-Sent Events (SSE)</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Example</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! use std::time::Duration;</span>
-<span class="doccomment">//! use std::convert::Infallible;</span>
-<span class="doccomment">//! use warp::{Filter, sse::Event};</span>
-<span class="doccomment">//! use futures_util::{stream::iter, Stream};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! fn sse_events() -&gt; impl Stream&lt;Item = Result&lt;Event, Infallible&gt;&gt; {</span>
-<span class="doccomment">//!     iter(vec![</span>
-<span class="doccomment">//!         Ok(Event::default().data(&quot;unnamed event&quot;)),</span>
-<span class="doccomment">//!         Ok(</span>
-<span class="doccomment">//!             Event::default().event(&quot;chat&quot;)</span>
-<span class="doccomment">//!             .data(&quot;chat message&quot;)</span>
-<span class="doccomment">//!         ),</span>
-<span class="doccomment">//!         Ok(</span>
-<span class="doccomment">//!             Event::default().id(13.to_string())</span>
-<span class="doccomment">//!             .event(&quot;chat&quot;)</span>
-<span class="doccomment">//!             .data(&quot;other chat message\nwith next line&quot;)</span>
-<span class="doccomment">//!             .retry(Duration::from_millis(5000))</span>
-<span class="doccomment">//!         )</span>
-<span class="doccomment">//!     ])</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let app = warp::path(&quot;push-notifications&quot;)</span>
-<span class="doccomment">//!     .and(warp::get())</span>
-<span class="doccomment">//!     .map(|| {</span>
-<span class="doccomment">//!         warp::sse::reply(warp::sse::keep_alive().stream(sse_events()))</span>
-<span class="doccomment">//!     });</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Each field already is event which can be sent to client.</span>
-<span class="doccomment">//! The events with multiple fields can be created by combining fields using tuples.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! See also the [EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) API,</span>
-<span class="doccomment">//! which specifies the expected behavior of Server Sent Events.</span>
-<span class="doccomment">//!</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Server-Sent Events (SSE)
+//!
+//! # Example
+//!
+//! ```
+//!
+//! use std::time::Duration;
+//! use std::convert::Infallible;
+//! use warp::{Filter, sse::Event};
+//! use futures_util::{stream::iter, Stream};
+//!
+//! fn sse_events() -&gt; impl Stream&lt;Item = Result&lt;Event, Infallible&gt;&gt; {
+//!     iter(vec![
+//!         Ok(Event::default().data(&quot;unnamed event&quot;)),
+//!         Ok(
+//!             Event::default().event(&quot;chat&quot;)
+//!             .data(&quot;chat message&quot;)
+//!         ),
+//!         Ok(
+//!             Event::default().id(13.to_string())
+//!             .event(&quot;chat&quot;)
+//!             .data(&quot;other chat message\nwith next line&quot;)
+//!             .retry(Duration::from_millis(5000))
+//!         )
+//!     ])
+//! }
+//!
+//! let app = warp::path(&quot;push-notifications&quot;)
+//!     .and(warp::get())
+//!     .map(|| {
+//!         warp::sse::reply(warp::sse::keep_alive().stream(sse_events()))
+//!     });
+//! ```
+//!
+//! Each field already is event which can be sent to client.
+//! The events with multiple fields can be created by combining fields using tuples.
+//!
+//! See also the [EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) API,
+//! which specifies the expected behavior of Server Sent Events.
+//!
 
-<span class="kw">use</span> <a class="ident" href="../../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">Write</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</span><span class="kw">use </span><a href="../../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">Write</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="kw">use</span> <span class="ident">futures_util</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>, <a class="ident" href="../../../futures_core/stream/trait.TryStream.html">TryStream</a>, <a class="ident" href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">TryStreamExt</a>};
-<span class="kw">use</span> <span class="ident">http::header</span>::{<a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>, <a class="ident" href="../../../http/header/name/constant.CACHE_CONTROL.html">CACHE_CONTROL</a>, <a class="ident" href="../../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>};
-<span class="kw">use</span> <a class="ident" href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>;
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
-<span class="kw">use</span> <span class="ident">serde_json</span>::{<a class="self" href="../../../serde_json/index.html">self</a>, <a class="ident" href="../../../serde_json/error/struct.Error.html">Error</a>};
-<span class="kw">use</span> <span class="ident">tokio::time</span>::{<a class="self" href="../../../tokio/time/index.html">self</a>, <a class="ident" href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>};
+<span class="kw">use </span>futures_util::{<a href="../../../futures_util/future/index.html">future</a>, <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>, <a href="../../../futures_core/stream/trait.TryStream.html">TryStream</a>, <a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">TryStreamExt</a>};
+<span class="kw">use </span>http::header::{<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>, <a href="../../../http/header/name/constant.CACHE_CONTROL.html">CACHE_CONTROL</a>, <a href="../../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>};
+<span class="kw">use </span><a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>;
+<span class="kw">use </span><a href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
+<span class="kw">use </span>serde_json::{<a class="self" href="../../../serde_json/index.html">self</a>, <a href="../../../serde_json/error/struct.Error.html">Error</a>};
+<span class="kw">use </span>tokio::time::{<a class="self" href="../../../tokio/time/index.html">self</a>, <a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#502"><span class="self">self</span>::sealed::SseError</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/warp/filters/mod.rs.html#15"><span class="kw">super</span>::header</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/warp/generic.rs.html#4"><span class="kw">crate</span>::filter::One</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/warp/reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a>, <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a>};
+<span class="kw">use </span><a href="../../../src/warp/filters/sse.rs.html#502"><span class="self">self</span>::sealed::SseError</a>;
+<span class="kw">use </span><a href="../../../src/warp/filters/mod.rs.html#15"><span class="kw">super</span>::header</a>;
+<span class="kw">use </span><a href="../../../src/warp/generic.rs.html#4"><span class="kw">crate</span>::filter::One</a>;
+<span class="kw">use </span><a href="../../../src/warp/reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a>;
+<span class="kw">use crate</span>::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>, <a href="../../../src/warp/reply.rs.html#228">Reply</a>};
 
-<span class="comment">// Server-sent event data type</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">DataType</span> {
-    <span class="ident">Text</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
-    <span class="ident">Json</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+<span class="comment">// Server-sent event data type
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>DataType {
+    Text(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    Json(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
 }
 
-<span class="doccomment">/// Server-sent event</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Event</span> {
-    <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/sse.rs.html#67">DataType</a><span class="op">&gt;</span>,
-    <span class="ident">event</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    <span class="ident">comment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    <span class="ident">retry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Server-sent event
+</span><span class="attribute">#[derive(Default, Debug)]
+</span><span class="kw">pub struct </span>Event {
+    id: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    data: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/warp/filters/sse.rs.html#67">DataType</a>&gt;,
+    event: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    comment: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    retry: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
-    <span class="doccomment">/// Set Server-sent event data</span>
-    <span class="doccomment">/// data field(s) (&quot;data:&lt;content&gt;&quot;)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#85">self</a>.<span class="ident">data</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#68">DataType::Text</a>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#85">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#85">self</a>
-    }
+<span class="kw">impl </span><a href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
+    <span class="doccomment">/// Set Server-sent event data
+    /// data field(s) (&quot;data:&lt;content&gt;&quot;)
+    </span><span class="kw">pub fn </span>data&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, data: T) -&gt; <a href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
+        <a class="self" href="../../../src/warp/filters/sse.rs.html#85">self</a>.data = <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/sse.rs.html#68">DataType::Text</a>(<a href="../../../src/warp/filters/sse.rs.html#85">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+        <span class="self"><a href="../../../src/warp/filters/sse.rs.html#85">self</a>
+    </span>}
 
-    <span class="doccomment">/// Set Server-sent event data</span>
-    <span class="doccomment">/// data field(s) (&quot;data:&lt;content&gt;&quot;)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">json_data</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../serde/ser/trait.Serialize.html">Serialize</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a>, <a class="ident" href="../../../serde_json/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#92">self</a>.<span class="ident">data</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#69">DataType::Json</a>(<span class="ident">serde_json::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>)<span class="question-mark">?</span>));
+    <span class="doccomment">/// Set Server-sent event data
+    /// data field(s) (&quot;data:&lt;content&gt;&quot;)
+    </span><span class="kw">pub fn </span>json_data&lt;T: <a href="../../../serde/ser/trait.Serialize.html">Serialize</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, data: T) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/warp/filters/sse.rs.html#74">Event</a>, <a href="../../../serde_json/error/struct.Error.html">Error</a>&gt; {
+        <a class="self" href="../../../src/warp/filters/sse.rs.html#92">self</a>.data = <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/sse.rs.html#69">DataType::Json</a>(serde_json::to_string(<span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>));
         <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/warp/filters/sse.rs.html#92">self</a>)
     }
 
-    <span class="doccomment">/// Set Server-sent event comment</span>
-    <span class="doccomment">/// Comment field (&quot;:&lt;comment-text&gt;&quot;)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comment</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">comment</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#99">self</a>.<span class="ident">comment</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#99">comment</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#99">self</a>
-    }
+    <span class="doccomment">/// Set Server-sent event comment
+    /// Comment field (&quot;:&lt;comment-text&gt;&quot;)
+    </span><span class="kw">pub fn </span>comment&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, comment: T) -&gt; <a href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
+        <a class="self" href="../../../src/warp/filters/sse.rs.html#99">self</a>.comment = <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/sse.rs.html#99">comment</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="self"><a href="../../../src/warp/filters/sse.rs.html#99">self</a>
+    </span>}
 
-    <span class="doccomment">/// Set Server-sent event event</span>
-    <span class="doccomment">/// Event name field (&quot;event:&lt;event-name&gt;&quot;)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">event</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#106">self</a>.<span class="ident">event</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#106">event</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#106">self</a>
-    }
+    <span class="doccomment">/// Set Server-sent event event
+    /// Event name field (&quot;event:&lt;event-name&gt;&quot;)
+    </span><span class="kw">pub fn </span>event&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, event: T) -&gt; <a href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
+        <a class="self" href="../../../src/warp/filters/sse.rs.html#106">self</a>.event = <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/sse.rs.html#106">event</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="self"><a href="../../../src/warp/filters/sse.rs.html#106">self</a>
+    </span>}
 
-    <span class="doccomment">/// Set Server-sent event retry</span>
-    <span class="doccomment">/// Retry timeout field (&quot;retry:&lt;timeout&gt;&quot;)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">retry</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#113">self</a>.<span class="ident">retry</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#113">duration</a>);
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#113">self</a>
-    }
+    <span class="doccomment">/// Set Server-sent event retry
+    /// Retry timeout field (&quot;retry:&lt;timeout&gt;&quot;)
+    </span><span class="kw">pub fn </span>retry(<span class="kw-2">mut </span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
+        <a class="self" href="../../../src/warp/filters/sse.rs.html#113">self</a>.retry = <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/sse.rs.html#113">duration</a>);
+        <span class="self"><a href="../../../src/warp/filters/sse.rs.html#113">self</a>
+    </span>}
 
-    <span class="doccomment">/// Set Server-sent event id</span>
-    <span class="doccomment">/// Identifier field (&quot;id:&lt;identifier&gt;&quot;)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#120">self</a>.<span class="ident">id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#120">id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#120">self</a>
-    }
+    <span class="doccomment">/// Set Server-sent event id
+    /// Identifier field (&quot;id:&lt;identifier&gt;&quot;)
+    </span><span class="kw">pub fn </span>id&lt;T: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, id: T) -&gt; <a href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
+        <a class="self" href="../../../src/warp/filters/sse.rs.html#120">self</a>.id = <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/sse.rs.html#120">id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="self"><a href="../../../src/warp/filters/sse.rs.html#120">self</a>
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">comment</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.<span class="ident">comment</span> {
-            <span class="string">&quot;:&quot;</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-            <span class="ident">comment</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/warp/filters/sse.rs.html#74">Event</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>comment) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.comment {
+            <span class="string">&quot;:&quot;</span>.fmt(f)<span class="question-mark">?</span>;
+            comment.fmt(f)<span class="question-mark">?</span>;
+            f.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">event</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.<span class="ident">event</span> {
-            <span class="string">&quot;event:&quot;</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-            <span class="ident">event</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>event) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.event {
+            <span class="string">&quot;event:&quot;</span>.fmt(f)<span class="question-mark">?</span>;
+            event.fmt(f)<span class="question-mark">?</span>;
+            f.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">match</span> <a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.<span class="ident">data</span> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#68">DataType::Text</a>(<span class="kw-2">ref</span> <span class="ident">data</span>)) =&gt; {
-                <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">split</span>(<span class="string">&#39;\n&#39;</span>) {
-                    <span class="string">&quot;data:&quot;</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-                    <span class="ident">line</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-                    <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.data {
+            <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/sse.rs.html#68">DataType::Text</a>(<span class="kw-2">ref </span>data)) =&gt; {
+                <span class="kw">for </span>line <span class="kw">in </span>data.split(<span class="string">&#39;\n&#39;</span>) {
+                    <span class="string">&quot;data:&quot;</span>.fmt(f)<span class="question-mark">?</span>;
+                    line.fmt(f)<span class="question-mark">?</span>;
+                    f.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
                 }
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#69">DataType::Json</a>(<span class="kw-2">ref</span> <span class="ident">data</span>)) =&gt; {
-                <span class="string">&quot;data:&quot;</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="ident">data</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/sse.rs.html#69">DataType::Json</a>(<span class="kw-2">ref </span>data)) =&gt; {
+                <span class="string">&quot;data:&quot;</span>.fmt(f)<span class="question-mark">?</span>;
+                data.fmt(f)<span class="question-mark">?</span>;
+                f.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">None</span> =&gt; {}
+            <span class="prelude-val">None </span>=&gt; {}
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">id</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.<span class="ident">id</span> {
-            <span class="string">&quot;id:&quot;</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-            <span class="ident">id</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>id) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.id {
+            <span class="string">&quot;id:&quot;</span>.fmt(f)<span class="question-mark">?</span>;
+            id.fmt(f)<span class="question-mark">?</span>;
+            f.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">duration</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.<span class="ident">retry</span> {
-            <span class="string">&quot;retry:&quot;</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>duration) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/sse.rs.html#127">self</a>.retry {
+            <span class="string">&quot;retry:&quot;</span>.fmt(f)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#162">duration</a>.<span class="ident">as_secs</span>();
-            <span class="kw">let</span> <span class="ident">millis</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#162">duration</a>.<span class="ident">subsec_millis</span>();
+            <span class="kw">let </span>secs = <a href="../../../src/warp/filters/sse.rs.html#162">duration</a>.as_secs();
+            <span class="kw">let </span>millis = <a href="../../../src/warp/filters/sse.rs.html#162">duration</a>.subsec_millis();
 
-            <span class="kw">if</span> <span class="ident">secs</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="comment">// format seconds</span>
-                <span class="ident">secs</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+            <span class="kw">if </span>secs &gt; <span class="number">0 </span>{
+                <span class="comment">// format seconds
+                </span>secs.fmt(f)<span class="question-mark">?</span>;
 
-                <span class="comment">// pad milliseconds</span>
-                <span class="kw">if</span> <span class="ident">millis</span> <span class="op">&lt;</span> <span class="number">10</span> {
-                    <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;00&quot;</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">millis</span> <span class="op">&lt;</span> <span class="number">100</span> {
-                    <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;0&#39;</span>)<span class="question-mark">?</span>;
+                <span class="comment">// pad milliseconds
+                </span><span class="kw">if </span>millis &lt; <span class="number">10 </span>{
+                    f.write_str(<span class="string">&quot;00&quot;</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else if </span>millis &lt; <span class="number">100 </span>{
+                    f.write_char(<span class="string">&#39;0&#39;</span>)<span class="question-mark">?</span>;
                 }
             }
 
-            <span class="comment">// format milliseconds</span>
-            <span class="ident">millis</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+            <span class="comment">// format milliseconds
+            </span>millis.fmt(f)<span class="question-mark">?</span>;
 
-            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+            f.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+        f.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="doccomment">/// Gets the optional last event id from request.</span>
-<span class="doccomment">/// Typically this identifier represented as number or string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// let app = warp::sse::last_event_id::&lt;u32&gt;();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // The identifier is present</span>
-<span class="doccomment">/// async {</span>
-<span class="doccomment">///     assert_eq!(</span>
-<span class="doccomment">///         warp::test::request()</span>
-<span class="doccomment">///            .header(&quot;Last-Event-ID&quot;, &quot;12&quot;)</span>
-<span class="doccomment">///            .filter(&amp;app)</span>
-<span class="doccomment">///            .await</span>
-<span class="doccomment">///            .unwrap(),</span>
-<span class="doccomment">///         Some(12)</span>
-<span class="doccomment">///     );</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     // The identifier is missing</span>
-<span class="doccomment">///     assert_eq!(</span>
-<span class="doccomment">///        warp::test::request()</span>
-<span class="doccomment">///            .filter(&amp;app)</span>
-<span class="doccomment">///            .await</span>
-<span class="doccomment">///            .unwrap(),</span>
-<span class="doccomment">///         None</span>
-<span class="doccomment">///     );</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     // The identifier is not a valid</span>
-<span class="doccomment">///     assert!(</span>
-<span class="doccomment">///        warp::test::request()</span>
-<span class="doccomment">///            .header(&quot;Last-Event-ID&quot;, &quot;abc&quot;)</span>
-<span class="doccomment">///            .filter(&amp;app)</span>
-<span class="doccomment">///            .await</span>
-<span class="doccomment">///            .is_err(),</span>
-<span class="doccomment">///     );</span>
-<span class="doccomment">///};</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_event_id</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">One</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Gets the optional last event id from request.
+/// Typically this identifier represented as number or string.
+///
+/// ```
+/// let app = warp::sse::last_event_id::&lt;u32&gt;();
+///
+/// // The identifier is present
+/// async {
+///     assert_eq!(
+///         warp::test::request()
+///            .header(&quot;Last-Event-ID&quot;, &quot;12&quot;)
+///            .filter(&amp;app)
+///            .await
+///            .unwrap(),
+///         Some(12)
+///     );
+///
+///     // The identifier is missing
+///     assert_eq!(
+///        warp::test::request()
+///            .filter(&amp;app)
+///            .await
+///            .unwrap(),
+///         None
+///     );
+///
+///     // The identifier is not a valid
+///     assert!(
+///        warp::test::request()
+///            .header(&quot;Last-Event-ID&quot;, &quot;abc&quot;)
+///            .filter(&amp;app)
+///            .await
+///            .is_err(),
+///     );
+///};
+/// ```
+</span><span class="kw">pub fn </span>last_event_id&lt;T&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;, Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a class="ident" href="../../../src/warp/filters/header.rs.html#76-80">header::optional</a>(<span class="string">&quot;last-event-id&quot;</span>)
+    <a href="../../../src/warp/filters/header.rs.html#76-80">header::optional</a>(<span class="string">&quot;last-event-id&quot;</span>)
 }
 
-<span class="doccomment">/// Server-sent events reply</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function converts stream of server events into a `Reply` with:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - Status of `200 OK`</span>
-<span class="doccomment">/// - Header `content-type: text/event-stream`</span>
-<span class="doccomment">/// - Header `cache-control: no-cache`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// use std::time::Duration;</span>
-<span class="doccomment">/// use futures_util::Stream;</span>
-<span class="doccomment">/// use futures_util::stream::iter;</span>
-<span class="doccomment">/// use std::convert::Infallible;</span>
-<span class="doccomment">/// use warp::{Filter, sse::Event};</span>
-<span class="doccomment">/// use serde_derive::Serialize;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[derive(Serialize)]</span>
-<span class="doccomment">/// struct Msg {</span>
-<span class="doccomment">///     from: u32,</span>
-<span class="doccomment">///     text: String,</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn event_stream() -&gt; impl Stream&lt;Item = Result&lt;Event, Infallible&gt;&gt; {</span>
-<span class="doccomment">///         iter(vec![</span>
-<span class="doccomment">///             // Unnamed event with data only</span>
-<span class="doccomment">///             Ok(Event::default().data(&quot;payload&quot;)),</span>
-<span class="doccomment">///             // Named event with ID and retry timeout</span>
-<span class="doccomment">///             Ok(</span>
-<span class="doccomment">///                 Event::default().data(&quot;other message\nwith next line&quot;)</span>
-<span class="doccomment">///                 .event(&quot;chat&quot;)</span>
-<span class="doccomment">///                 .id(1.to_string())</span>
-<span class="doccomment">///                 .retry(Duration::from_millis(15000))</span>
-<span class="doccomment">///             ),</span>
-<span class="doccomment">///             // Event with JSON data</span>
-<span class="doccomment">///             Ok(</span>
-<span class="doccomment">///                 Event::default().id(2.to_string())</span>
-<span class="doccomment">///                 .json_data(Msg {</span>
-<span class="doccomment">///                     from: 2,</span>
-<span class="doccomment">///                     text: &quot;hello&quot;.into(),</span>
-<span class="doccomment">///                 }).unwrap(),</span>
-<span class="doccomment">///             )</span>
-<span class="doccomment">///         ])</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// async {</span>
-<span class="doccomment">///     let app = warp::path(&quot;sse&quot;).and(warp::get()).map(|| {</span>
-<span class="doccomment">///        warp::sse::reply(event_stream())</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     let res = warp::test::request()</span>
-<span class="doccomment">///         .method(&quot;GET&quot;)</span>
-<span class="doccomment">///         .header(&quot;Connection&quot;, &quot;Keep-Alive&quot;)</span>
-<span class="doccomment">///         .path(&quot;/sse&quot;)</span>
-<span class="doccomment">///         .reply(&amp;app)</span>
-<span class="doccomment">///         .await</span>
-<span class="doccomment">///         .into_body();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     assert_eq!(</span>
-<span class="doccomment">///         res,</span>
-<span class="doccomment">///         r#&quot;data:payload</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// event:chat</span>
-<span class="doccomment">/// data:other message</span>
-<span class="doccomment">/// data:with next line</span>
-<span class="doccomment">/// id:1</span>
-<span class="doccomment">/// retry:15000</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// data:{&quot;from&quot;:2,&quot;text&quot;:&quot;hello&quot;}</span>
-<span class="doccomment">/// id:2</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &quot;#</span>
-<span class="doccomment">///     );</span>
-<span class="doccomment">/// };</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reply</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">event_stream</span>: <span class="ident">S</span>) -&gt; <span class="kw">impl</span> <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">S::Error</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Server-sent events reply
+///
+/// This function converts stream of server events into a `Reply` with:
+///
+/// - Status of `200 OK`
+/// - Header `content-type: text/event-stream`
+/// - Header `cache-control: no-cache`.
+///
+/// # Example
+///
+/// ```
+///
+/// use std::time::Duration;
+/// use futures_util::Stream;
+/// use futures_util::stream::iter;
+/// use std::convert::Infallible;
+/// use warp::{Filter, sse::Event};
+/// use serde_derive::Serialize;
+///
+/// #[derive(Serialize)]
+/// struct Msg {
+///     from: u32,
+///     text: String,
+/// }
+///
+/// fn event_stream() -&gt; impl Stream&lt;Item = Result&lt;Event, Infallible&gt;&gt; {
+///         iter(vec![
+///             // Unnamed event with data only
+///             Ok(Event::default().data(&quot;payload&quot;)),
+///             // Named event with ID and retry timeout
+///             Ok(
+///                 Event::default().data(&quot;other message\nwith next line&quot;)
+///                 .event(&quot;chat&quot;)
+///                 .id(1.to_string())
+///                 .retry(Duration::from_millis(15000))
+///             ),
+///             // Event with JSON data
+///             Ok(
+///                 Event::default().id(2.to_string())
+///                 .json_data(Msg {
+///                     from: 2,
+///                     text: &quot;hello&quot;.into(),
+///                 }).unwrap(),
+///             )
+///         ])
+/// }
+///
+/// async {
+///     let app = warp::path(&quot;sse&quot;).and(warp::get()).map(|| {
+///        warp::sse::reply(event_stream())
+///     });
+///
+///     let res = warp::test::request()
+///         .method(&quot;GET&quot;)
+///         .header(&quot;Connection&quot;, &quot;Keep-Alive&quot;)
+///         .path(&quot;/sse&quot;)
+///         .reply(&amp;app)
+///         .await
+///         .into_body();
+///
+///     assert_eq!(
+///         res,
+///         r#&quot;data:payload
+///
+/// event:chat
+/// data:other message
+/// data:with next line
+/// id:1
+/// retry:15000
+///
+/// data:{&quot;from&quot;:2,&quot;text&quot;:&quot;hello&quot;}
+/// id:2
+///
+/// &quot;#
+///     );
+/// };
+/// ```
+</span><span class="kw">pub fn </span>reply&lt;S&gt;(event_stream: S) -&gt; <span class="kw">impl </span><a href="../../../src/warp/reply.rs.html#228">Reply</a>
+<span class="kw">where
+    </span>S: TryStream&lt;<span class="prelude-val">Ok </span>= <a href="../../../src/warp/filters/sse.rs.html#74">Event</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    S::Error: <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a class="ident" href="../../../src/warp/filters/sse.rs.html#320">SseReply</a> { <a class="ident" href="../../../src/warp/filters/sse.rs.html#311">event_stream</a> }
+    <a href="../../../src/warp/filters/sse.rs.html#320">SseReply</a> { <a href="../../../src/warp/filters/sse.rs.html#311">event_stream</a> }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">struct</span> <span class="ident">SseReply</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">event_stream</span>: <span class="ident">S</span>,
+<span class="attribute">#[allow(missing_debug_implementations)]
+</span><span class="kw">struct </span>SseReply&lt;S&gt; {
+    event_stream: S,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">SseReply</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">S::Error</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">impl</span>&lt;S&gt; <a href="../../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>SseReply&lt;S&gt;
+<span class="kw">where
+    </span>S: TryStream&lt;<span class="prelude-val">Ok </span>= <a href="../../../src/warp/filters/sse.rs.html#74">Event</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    S::Error: <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">let</span> <span class="ident">body_stream</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/sse.rs.html#330">self</a>
-            .<span class="ident">event_stream</span>
-            .<a class="ident" href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_err</a>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
-                <span class="comment">// FIXME: error logging</span>
-                <a class="macro" href="../../../log/log/macro.error.html">log::error!</a>(<span class="string">&quot;sse stream error: {}&quot;</span>, <span class="ident">error</span>);
-                <a class="ident" href="../../../src/warp/filters/sse.rs.html#502">SseError</a>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">let </span>body_stream = <span class="self"><a href="../../../src/warp/filters/sse.rs.html#330">self</a>
+            </span>.event_stream
+            .<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_err</a>(|error| {
+                <span class="comment">// FIXME: error logging
+                </span><a class="macro" href="../../../log/log/macro.error.html">log::error!</a>(<span class="string">&quot;sse stream error: {}&quot;</span>, error);
+                <a href="../../../src/warp/filters/sse.rs.html#502">SseError</a>
             })
-            .<a class="ident" href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">into_stream</a>()
-            .<a class="ident" href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">and_then</a>(<span class="op">|</span><span class="ident">event</span><span class="op">|</span> <span class="ident">future::ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#339">event</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())));
+            .<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">into_stream</a>()
+            .<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">and_then</a>(|event| future::ready(<span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/sse.rs.html#339">event</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Response::new</span>(<span class="ident">Body::wrap_stream</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#331">body_stream</a>));
-        <span class="comment">// Set appropriate content type</span>
-        <a class="ident" href="../../../src/warp/filters/sse.rs.html#341">res</a>.<span class="ident">headers_mut</span>()
-            .<span class="ident">insert</span>(<a class="ident" href="../../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;text/event-stream&quot;</span>));
-        <span class="comment">// Disable response body caching</span>
-        <a class="ident" href="../../../src/warp/filters/sse.rs.html#341">res</a>.<span class="ident">headers_mut</span>()
-            .<span class="ident">insert</span>(<a class="ident" href="../../../http/header/name/constant.CACHE_CONTROL.html">CACHE_CONTROL</a>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;no-cache&quot;</span>));
-        <a class="ident" href="../../../src/warp/filters/sse.rs.html#341">res</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>res = Response::new(Body::wrap_stream(<a href="../../../src/warp/filters/sse.rs.html#331">body_stream</a>));
+        <span class="comment">// Set appropriate content type
+        </span><a href="../../../src/warp/filters/sse.rs.html#341">res</a>.headers_mut()
+            .insert(<a href="../../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>, HeaderValue::from_static(<span class="string">&quot;text/event-stream&quot;</span>));
+        <span class="comment">// Disable response body caching
+        </span><a href="../../../src/warp/filters/sse.rs.html#341">res</a>.headers_mut()
+            .insert(<a href="../../../http/header/name/constant.CACHE_CONTROL.html">CACHE_CONTROL</a>, HeaderValue::from_static(<span class="string">&quot;no-cache&quot;</span>));
+        <a href="../../../src/warp/filters/sse.rs.html#341">res</a>
     }
 }
 
-<span class="doccomment">/// Configure the interval between keep-alive messages, the content</span>
-<span class="doccomment">/// of each message, and the associated stream.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeepAlive</span> {
-    <span class="ident">comment_text</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
-    <span class="ident">max_interval</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
+<span class="doccomment">/// Configure the interval between keep-alive messages, the content
+/// of each message, and the associated stream.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>KeepAlive {
+    comment_text: Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    max_interval: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#355">KeepAlive</a> {
-    <span class="doccomment">/// Customize the interval between keep-alive messages.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Default is 15 seconds.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interval</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#364">self</a>.<span class="ident">max_interval</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#364">time</a>;
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#364">self</a>
-    }
+<span class="kw">impl </span><a href="../../../src/warp/filters/sse.rs.html#355">KeepAlive</a> {
+    <span class="doccomment">/// Customize the interval between keep-alive messages.
+    ///
+    /// Default is 15 seconds.
+    </span><span class="kw">pub fn </span>interval(<span class="kw-2">mut </span><span class="self">self</span>, time: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/warp/filters/sse.rs.html#364">self</a>.max_interval = <a href="../../../src/warp/filters/sse.rs.html#364">time</a>;
+        <span class="self"><a href="../../../src/warp/filters/sse.rs.html#364">self</a>
+    </span>}
 
-    <span class="doccomment">/// Customize the text of the keep-alive message.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Default is an empty comment.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">text</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#372">self</a>.<span class="ident">comment_text</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#372">text</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a class="self" href="../../../src/warp/filters/sse.rs.html#372">self</a>
-    }
+    <span class="doccomment">/// Customize the text of the keep-alive message.
+    ///
+    /// Default is an empty comment.
+    </span><span class="kw">pub fn </span>text(<span class="kw-2">mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/warp/filters/sse.rs.html#372">self</a>.comment_text = <a href="../../../src/warp/filters/sse.rs.html#372">text</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="self"><a href="../../../src/warp/filters/sse.rs.html#372">self</a>
+    </span>}
 
-    <span class="doccomment">/// Wrap an event stream with keep-alive functionality.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [`keep_alive`](keep_alive) for more.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Wrap an event stream with keep-alive functionality.
+    ///
+    /// See [`keep_alive`](keep_alive) for more.
+    </span><span class="kw">pub fn </span>stream&lt;S&gt;(
         <span class="self">self</span>,
-        <span class="ident">event_stream</span>: <span class="ident">S</span>,
-    ) -&gt; <span class="kw">impl</span> <span class="ident">TryStream</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a>, <span class="ident">Error</span> <span class="op">=</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">S::Error</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        event_stream: S,
+    ) -&gt; <span class="kw">impl </span>TryStream&lt;<span class="prelude-val">Ok </span>= <a href="../../../src/warp/filters/sse.rs.html#74">Event</a>, Error = <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static
+    </span><span class="kw">where
+        </span>S: TryStream&lt;<span class="prelude-val">Ok </span>= <a href="../../../src/warp/filters/sse.rs.html#74">Event</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        S::Error: <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> <span class="ident">alive_timer</span> <span class="op">=</span> <span class="ident">time::sleep</span>(<a class="self" href="../../../src/warp/filters/sse.rs.html#381">self</a>.<span class="ident">max_interval</span>);
-        <a class="ident" href="../../../src/warp/filters/sse.rs.html#400">SseKeepAlive</a> {
-            <a class="ident" href="../../../src/warp/filters/sse.rs.html#382">event_stream</a>,
-            <span class="ident">comment_text</span>: <a class="self" href="../../../src/warp/filters/sse.rs.html#381">self</a>.<span class="ident">comment_text</span>,
-            <span class="ident">max_interval</span>: <a class="self" href="../../../src/warp/filters/sse.rs.html#381">self</a>.<span class="ident">max_interval</span>,
-            <a class="ident" href="../../../src/warp/filters/sse.rs.html#388">alive_timer</a>,
+        <span class="kw">let </span>alive_timer = time::sleep(<a class="self" href="../../../src/warp/filters/sse.rs.html#381">self</a>.max_interval);
+        <a href="../../../src/warp/filters/sse.rs.html#400">SseKeepAlive</a> {
+            <a href="../../../src/warp/filters/sse.rs.html#382">event_stream</a>,
+            comment_text: <a class="self" href="../../../src/warp/filters/sse.rs.html#381">self</a>.comment_text,
+            max_interval: <a class="self" href="../../../src/warp/filters/sse.rs.html#381">self</a>.max_interval,
+            <a href="../../../src/warp/filters/sse.rs.html#388">alive_timer</a>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="attribute">#[<span class="ident">pin_project</span>]</span>
-<span class="kw">struct</span> <span class="ident">SseKeepAlive</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">pin</span>]</span>
-    <span class="ident">event_stream</span>: <span class="ident">S</span>,
-    <span class="ident">comment_text</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
-    <span class="ident">max_interval</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
-    <span class="attribute">#[<span class="ident">pin</span>]</span>
-    <span class="ident">alive_timer</span>: <a class="ident" href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>,
+<span class="attribute">#[allow(missing_debug_implementations)]
+#[pin_project]
+</span><span class="kw">struct </span>SseKeepAlive&lt;S&gt; {
+    <span class="attribute">#[pin]
+    </span>event_stream: S,
+    comment_text: Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    max_interval: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
+    <span class="attribute">#[pin]
+    </span>alive_timer: <a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>,
 }
 
-<span class="doccomment">/// Keeps event source connection alive when no events sent over a some time.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Some proxy servers may drop HTTP connection after a some timeout of inactivity.</span>
-<span class="doccomment">/// This function helps to prevent such behavior by sending comment events every</span>
-<span class="doccomment">/// `keep_interval` of inactivity.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// By default the comment is `:` (an empty comment) and the time interval between</span>
-<span class="doccomment">/// events is 15 seconds. Both may be customized using the builder pattern</span>
-<span class="doccomment">/// as shown below.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use std::time::Duration;</span>
-<span class="doccomment">/// use std::convert::Infallible;</span>
-<span class="doccomment">/// use futures_util::StreamExt;</span>
-<span class="doccomment">/// use tokio::time::interval;</span>
-<span class="doccomment">/// use tokio_stream::wrappers::IntervalStream;</span>
-<span class="doccomment">/// use warp::{Filter, Stream, sse::Event};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // create server-sent event</span>
-<span class="doccomment">/// fn sse_counter(counter: u64) -&gt;  Result&lt;Event, Infallible&gt; {</span>
-<span class="doccomment">///     Ok(Event::default().data(counter.to_string()))</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let routes = warp::path(&quot;ticks&quot;)</span>
-<span class="doccomment">///         .and(warp::get())</span>
-<span class="doccomment">///         .map(|| {</span>
-<span class="doccomment">///             let mut counter: u64 = 0;</span>
-<span class="doccomment">///             let interval = interval(Duration::from_secs(15));</span>
-<span class="doccomment">///             let stream = IntervalStream::new(interval);</span>
-<span class="doccomment">///             let event_stream = stream.map(move |_| {</span>
-<span class="doccomment">///                 counter += 1;</span>
-<span class="doccomment">///                 sse_counter(counter)</span>
-<span class="doccomment">///             });</span>
-<span class="doccomment">///             // reply using server-sent events</span>
-<span class="doccomment">///             let stream = warp::sse::keep_alive()</span>
-<span class="doccomment">///                 .interval(Duration::from_secs(5))</span>
-<span class="doccomment">///                 .text(&quot;thump&quot;.to_string())</span>
-<span class="doccomment">///                 .stream(event_stream);</span>
-<span class="doccomment">///             warp::sse::reply(stream)</span>
-<span class="doccomment">///         });</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [notes](https://www.w3.org/TR/2009/WD-eventsource-20090421/#notes).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keep_alive</span>() -&gt; <a class="ident" href="../../../src/warp/filters/sse.rs.html#355">KeepAlive</a> {
-    <a class="ident" href="../../../src/warp/filters/sse.rs.html#355">KeepAlive</a> {
-        <span class="ident">comment_text</span>: <span class="ident">Cow::Borrowed</span>(<span class="string">&quot;&quot;</span>),
-        <span class="ident">max_interval</span>: <span class="ident">Duration::from_secs</span>(<span class="number">15</span>),
+<span class="doccomment">/// Keeps event source connection alive when no events sent over a some time.
+///
+/// Some proxy servers may drop HTTP connection after a some timeout of inactivity.
+/// This function helps to prevent such behavior by sending comment events every
+/// `keep_interval` of inactivity.
+///
+/// By default the comment is `:` (an empty comment) and the time interval between
+/// events is 15 seconds. Both may be customized using the builder pattern
+/// as shown below.
+///
+/// ```
+/// use std::time::Duration;
+/// use std::convert::Infallible;
+/// use futures_util::StreamExt;
+/// use tokio::time::interval;
+/// use tokio_stream::wrappers::IntervalStream;
+/// use warp::{Filter, Stream, sse::Event};
+///
+/// // create server-sent event
+/// fn sse_counter(counter: u64) -&gt;  Result&lt;Event, Infallible&gt; {
+///     Ok(Event::default().data(counter.to_string()))
+/// }
+///
+/// fn main() {
+///     let routes = warp::path(&quot;ticks&quot;)
+///         .and(warp::get())
+///         .map(|| {
+///             let mut counter: u64 = 0;
+///             let interval = interval(Duration::from_secs(15));
+///             let stream = IntervalStream::new(interval);
+///             let event_stream = stream.map(move |_| {
+///                 counter += 1;
+///                 sse_counter(counter)
+///             });
+///             // reply using server-sent events
+///             let stream = warp::sse::keep_alive()
+///                 .interval(Duration::from_secs(5))
+///                 .text(&quot;thump&quot;.to_string())
+///                 .stream(event_stream);
+///             warp::sse::reply(stream)
+///         });
+/// }
+/// ```
+///
+/// See [notes](https://www.w3.org/TR/2009/WD-eventsource-20090421/#notes).
+</span><span class="kw">pub fn </span>keep_alive() -&gt; <a href="../../../src/warp/filters/sse.rs.html#355">KeepAlive</a> {
+    <a href="../../../src/warp/filters/sse.rs.html#355">KeepAlive</a> {
+        comment_text: Cow::Borrowed(<span class="string">&quot;&quot;</span>),
+        max_interval: Duration::from_secs(<span class="number">15</span>),
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">SseKeepAlive</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">S::Error</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">impl</span>&lt;S&gt; <a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>SseKeepAlive&lt;S&gt;
+<span class="kw">where
+    </span>S: TryStream&lt;<span class="prelude-val">Ok </span>= <a href="../../../src/warp/filters/sse.rs.html#74">Event</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    S::Error: <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/sse.rs.html#74">Event</a>, <a class="ident" href="../../../src/warp/filters/sse.rs.html#502">SseError</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../src/warp/filters/sse.rs.html#74">Event</a>, <a href="../../../src/warp/filters/sse.rs.html#502">SseError</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pin</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/sse.rs.html#468">self</a>.<a class="ident" href="../../../src/warp/filters/sse.rs.html#399">project</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#469">pin</a>.<span class="ident">event_stream</span>.<a class="ident" href="../../../futures_core/stream/trait.TryStream.html">try_poll_next</a>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#468">cx</a>) {
-            <span class="ident">Poll::Pending</span> =&gt; <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#469">pin</a>.<span class="ident">alive_timer</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#468">cx</a>) {
-                <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
-                <span class="ident">Poll::Ready</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="comment">// restart timer</span>
-                    <a class="ident" href="../../../src/warp/filters/sse.rs.html#469">pin</a>.<span class="ident">alive_timer</span>
-                        .<span class="ident">reset</span>(<span class="ident">tokio::time::Instant::now</span>() <span class="op">+</span> <span class="kw-2">*</span><a class="ident" href="../../../src/warp/filters/sse.rs.html#469">pin</a>.<span class="ident">max_interval</span>);
-                    <span class="kw">let</span> <span class="ident">comment_str</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#469">pin</a>.<span class="ident">comment_text</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">Event::default</span>().<a class="ident" href="../../../src/warp/filters/sse.rs.html#99">comment</a>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#477">comment_str</a>);
-                    <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#478">event</a>)))
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>pin = <a class="self" href="../../../src/warp/filters/sse.rs.html#468">self</a>.<a href="../../../src/warp/filters/sse.rs.html#399">project</a>();
+        <span class="kw">match </span><a href="../../../src/warp/filters/sse.rs.html#469">pin</a>.event_stream.<a href="../../../futures_core/stream/trait.TryStream.html">try_poll_next</a>(<a href="../../../src/warp/filters/sse.rs.html#468">cx</a>) {
+            Poll::Pending =&gt; <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="../../../src/warp/filters/sse.rs.html#469">pin</a>.alive_timer).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/warp/filters/sse.rs.html#468">cx</a>) {
+                Poll::Pending =&gt; Poll::Pending,
+                Poll::Ready(<span class="kw">_</span>) =&gt; {
+                    <span class="comment">// restart timer
+                    </span><a href="../../../src/warp/filters/sse.rs.html#469">pin</a>.alive_timer
+                        .reset(tokio::time::Instant::now() + <span class="kw-2">*</span><a href="../../../src/warp/filters/sse.rs.html#469">pin</a>.max_interval);
+                    <span class="kw">let </span>comment_str = <a href="../../../src/warp/filters/sse.rs.html#469">pin</a>.comment_text.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw">let </span>event = Event::default().<a href="../../../src/warp/filters/sse.rs.html#99">comment</a>(<a href="../../../src/warp/filters/sse.rs.html#477">comment_str</a>);
+                    Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/sse.rs.html#478">event</a>)))
                 }
             },
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">event</span>))) =&gt; {
-                <span class="comment">// restart timer</span>
-                <a class="ident" href="../../../src/warp/filters/sse.rs.html#469">pin</a>.<span class="ident">alive_timer</span>
-                    .<span class="ident">reset</span>(<span class="ident">tokio::time::Instant::now</span>() <span class="op">+</span> <span class="kw-2">*</span><a class="ident" href="../../../src/warp/filters/sse.rs.html#469">pin</a>.<span class="ident">max_interval</span>);
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#482">event</a>)))
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(event))) =&gt; {
+                <span class="comment">// restart timer
+                </span><a href="../../../src/warp/filters/sse.rs.html#469">pin</a>.alive_timer
+                    .reset(tokio::time::Instant::now() + <span class="kw-2">*</span><a href="../../../src/warp/filters/sse.rs.html#469">pin</a>.max_interval);
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/sse.rs.html#482">event</a>)))
             }
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">error</span>))) =&gt; {
-                <a class="macro" href="../../../log/log/macro.error.html">log::error!</a>(<span class="string">&quot;sse::keep error: {}&quot;</span>, <span class="ident">error</span>);
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#502">SseError</a>)))
+            Poll::Ready(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
+            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(error))) =&gt; {
+                <a class="macro" href="../../../log/log/macro.error.html">log::error!</a>(<span class="string">&quot;sse::keep error: {}&quot;</span>, error);
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../../src/warp/filters/sse.rs.html#502">SseError</a>)))
             }
         }
     }
 }
 
-<span class="kw">mod</span> <span class="ident">sealed</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="kw">mod </span>sealed {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="doccomment">/// SSE error type</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SseError</span>;
+    <span class="doccomment">/// SSE error type
+    </span><span class="attribute">#[derive(Debug)]
+    </span><span class="kw">pub struct </span>SseError;
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#502">SseError</a> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/warp/filters/sse.rs.html#505">f</a>, <span class="string">&quot;sse error&quot;</span>)
+    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/warp/filters/sse.rs.html#502">SseError</a> {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/warp/filters/sse.rs.html#505">f</a>, <span class="string">&quot;sse error&quot;</span>)
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/sse.rs.html#502">SseError</a> {}
+    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../../src/warp/filters/sse.rs.html#502">SseError</a> {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

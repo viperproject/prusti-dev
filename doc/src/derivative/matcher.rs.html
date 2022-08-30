@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derivative-2.2.0/src/matcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>matcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../derivative/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../derivative/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../derivative/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derivative-2.2.0/src/matcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>matcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../derivative/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../derivative/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../derivative/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -334,341 +334,341 @@
 <span id="334">334</span>
 <span id="335">335</span>
 <span id="336">336</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// TODO: remove</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(dead_code)] </span><span class="comment">// TODO: remove
 
-<span class="comment">// This is inspired from `synstructure`, but `synstructure` is not adapted in severals ways</span>
-<span class="comment">// including:</span>
-<span class="comment">//     * `&amp;mut` everywhere</span>
-<span class="comment">//     * not generic, we use our own `ast`, `synstructure` only knows about `syn`</span>
-<span class="comment">//     * missing information (what arm are we in?, what attributes? etc.)</span>
+// This is inspired from `synstructure`, but `synstructure` is not adapted in severals ways
+// including:
+//     * `&amp;mut` everywhere
+//     * not generic, we use our own `ast`, `synstructure` only knows about `syn`
+//     * missing information (what arm are we in?, what attributes? etc.)
 
-<span class="kw">use</span> <span class="ident">proc_macro2</span>::{<a class="self" href="../../proc_macro2/index.html">self</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
-<span class="kw">use</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
-<span class="kw">use</span> <a class="ident" href="../../syn/index.html">syn</a>;
+</span><span class="kw">use </span>proc_macro2::{<a class="self" href="../../proc_macro2/index.html">self</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
+<span class="kw">use </span><a href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
+<span class="kw">use </span><a href="../../syn/index.html">syn</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/derivative/lib.rs.html#20">ast</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/derivative/lib.rs.html#21">attr</a>;
-<span class="kw">use</span> <a class="ident" href="../../quote/index.html">quote</a>;
+<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#20">ast</a>;
+<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#21">attr</a>;
+<span class="kw">use </span><a href="../../quote/index.html">quote</a>;
 
-<span class="doccomment">/// The type of binding to use when generating a pattern.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BindingStyle</span> {
-    <span class="doccomment">/// `x`</span>
-    <span class="ident">Move</span>,
-    <span class="doccomment">/// `mut x`</span>
-    <span class="ident">MoveMut</span>,
-    <span class="doccomment">/// `ref x`</span>
-    <span class="ident">Ref</span>,
-    <span class="doccomment">/// `ref mut x`</span>
-    <span class="ident">RefMut</span>,
+<span class="doccomment">/// The type of binding to use when generating a pattern.
+</span><span class="attribute">#[derive(Debug, Copy, Clone)]
+</span><span class="kw">pub enum </span>BindingStyle {
+    <span class="doccomment">/// `x`
+    </span>Move,
+    <span class="doccomment">/// `mut x`
+    </span>MoveMut,
+    <span class="doccomment">/// `ref x`
+    </span>Ref,
+    <span class="doccomment">/// `ref mut x`
+    </span>RefMut,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/derivative/matcher.rs.html#19">BindingStyle</a> {
-    <span class="kw">fn</span> <span class="ident">with_packed</span>(<span class="self">self</span>, <span class="ident">is_packed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../src/derivative/matcher.rs.html#19">BindingStyle</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/derivative/matcher.rs.html#31">self</a> {
-            <a class="ident" href="../../src/derivative/matcher.rs.html#21">BindingStyle::Move</a> <span class="op">|</span> <a class="ident" href="../../src/derivative/matcher.rs.html#23">BindingStyle::MoveMut</a> =&gt; <a class="self" href="../../src/derivative/matcher.rs.html#31">self</a>,
-            <a class="ident" href="../../src/derivative/matcher.rs.html#25">BindingStyle::Ref</a> <span class="kw">if</span> <a class="ident" href="../../src/derivative/matcher.rs.html#31">is_packed</a> =&gt; <a class="ident" href="../../src/derivative/matcher.rs.html#21">BindingStyle::Move</a>,
-            <a class="ident" href="../../src/derivative/matcher.rs.html#27">BindingStyle::RefMut</a> <span class="kw">if</span> <a class="ident" href="../../src/derivative/matcher.rs.html#31">is_packed</a> =&gt; <a class="ident" href="../../src/derivative/matcher.rs.html#23">BindingStyle::MoveMut</a>,
-            <a class="ident" href="../../src/derivative/matcher.rs.html#25">BindingStyle::Ref</a> <span class="op">|</span> <a class="ident" href="../../src/derivative/matcher.rs.html#27">BindingStyle::RefMut</a> =&gt; <a class="self" href="../../src/derivative/matcher.rs.html#31">self</a>,
+<span class="kw">impl </span><a href="../../src/derivative/matcher.rs.html#19">BindingStyle</a> {
+    <span class="kw">fn </span>with_packed(<span class="self">self</span>, is_packed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../src/derivative/matcher.rs.html#19">BindingStyle</a> {
+        <span class="kw">match </span><span class="self"><a href="../../src/derivative/matcher.rs.html#31">self</a> </span>{
+            <a href="../../src/derivative/matcher.rs.html#21">BindingStyle::Move</a> | <a href="../../src/derivative/matcher.rs.html#23">BindingStyle::MoveMut</a> =&gt; <a class="self" href="../../src/derivative/matcher.rs.html#31">self</a>,
+            <a href="../../src/derivative/matcher.rs.html#25">BindingStyle::Ref</a> <span class="kw">if </span><a href="../../src/derivative/matcher.rs.html#31">is_packed</a> =&gt; <a href="../../src/derivative/matcher.rs.html#21">BindingStyle::Move</a>,
+            <a href="../../src/derivative/matcher.rs.html#27">BindingStyle::RefMut</a> <span class="kw">if </span><a href="../../src/derivative/matcher.rs.html#31">is_packed</a> =&gt; <a href="../../src/derivative/matcher.rs.html#23">BindingStyle::MoveMut</a>,
+            <a href="../../src/derivative/matcher.rs.html#25">BindingStyle::Ref</a> | <a href="../../src/derivative/matcher.rs.html#27">BindingStyle::RefMut</a> =&gt; <a class="self" href="../../src/derivative/matcher.rs.html#31">self</a>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/derivative/matcher.rs.html#19">BindingStyle</a> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/derivative/matcher.rs.html#42">self</a> {
-            <a class="ident" href="../../src/derivative/matcher.rs.html#21">BindingStyle::Move</a> =&gt; (),
-            <a class="ident" href="../../src/derivative/matcher.rs.html#23">BindingStyle::MoveMut</a> =&gt; <a class="ident" href="../../src/derivative/matcher.rs.html#42">tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw-2">mut</span>)),
-            <a class="ident" href="../../src/derivative/matcher.rs.html#25">BindingStyle::Ref</a> =&gt; <a class="ident" href="../../src/derivative/matcher.rs.html#42">tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw-2">ref</span>)),
-            <a class="ident" href="../../src/derivative/matcher.rs.html#27">BindingStyle::RefMut</a> =&gt; {
-                <a class="ident" href="../../src/derivative/matcher.rs.html#42">tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span>));
+<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a> <span class="kw">for </span><a href="../../src/derivative/matcher.rs.html#19">BindingStyle</a> {
+    <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/derivative/matcher.rs.html#42">self</a> </span>{
+            <a href="../../src/derivative/matcher.rs.html#21">BindingStyle::Move</a> =&gt; (),
+            <a href="../../src/derivative/matcher.rs.html#23">BindingStyle::MoveMut</a> =&gt; <a href="../../src/derivative/matcher.rs.html#42">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw-2">mut</span>)),
+            <a href="../../src/derivative/matcher.rs.html#25">BindingStyle::Ref</a> =&gt; <a href="../../src/derivative/matcher.rs.html#42">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw-2">ref</span>)),
+            <a href="../../src/derivative/matcher.rs.html#27">BindingStyle::RefMut</a> =&gt; {
+                <a href="../../src/derivative/matcher.rs.html#42">tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw-2">ref mut</span>));
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">expr</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="kw">pub</span> <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>BindingInfo&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub </span>expr: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    <span class="kw">pub </span>ident: <a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    <span class="kw">pub </span>field: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ast::Field&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CommonVariant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">path</span>: <a class="ident" href="../../syn/path/struct.Path.html">syn::Path</a>,
-    <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="ident">style</span>: <a class="ident" href="../../src/derivative/ast.rs.html#38">ast::Style</a>,
-    <span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/derivative/attr.rs.html#7">attr::Input</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>CommonVariant&lt;<span class="lifetime">&#39;a</span>&gt; {
+    path: <a href="../../syn/path/struct.Path.html">syn::Path</a>,
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+    style: <a href="../../src/derivative/ast.rs.html#38">ast::Style</a>,
+    attrs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/derivative/attr.rs.html#7">attr::Input</a>,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Matcher</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">binding_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">binding_style</span>: <a class="ident" href="../../src/derivative/matcher.rs.html#19">BindingStyle</a>,
-    <span class="ident">is_packed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">field_filter</span>: <span class="ident">T</span>,
+<span class="kw">pub struct </span>Matcher&lt;T&gt; {
+    binding_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    binding_style: <a href="../../src/derivative/matcher.rs.html#19">BindingStyle</a>,
+    is_packed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    field_filter: T,
 }
 
-<span class="kw">impl</span> <span class="ident">Matcher</span><span class="op">&lt;</span><span class="kw">fn</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#30">ast::Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">style</span>: <a class="ident" href="../../src/derivative/matcher.rs.html#19">BindingStyle</a>, <span class="ident">is_packed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/derivative/matcher.rs.html#69">Matcher</a> {
-            <span class="ident">binding_name</span>: <span class="string">&quot;__arg&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <span class="ident">binding_style</span>: <a class="ident" href="../../src/derivative/matcher.rs.html#77">style</a>.<a class="ident" href="../../src/derivative/matcher.rs.html#31">with_packed</a>(<a class="ident" href="../../src/derivative/matcher.rs.html#77">is_packed</a>),
-            <a class="ident" href="../../src/derivative/matcher.rs.html#77">is_packed</a>,
-            <span class="ident">field_filter</span>: <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="bool-val">true</span>,
+<span class="kw">impl </span>Matcher&lt;<span class="kw">fn </span>(<span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#30">ast::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+    <span class="kw">pub fn </span>new(style: <a href="../../src/derivative/matcher.rs.html#19">BindingStyle</a>, is_packed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/derivative/matcher.rs.html#69">Matcher</a> {
+            binding_name: <span class="string">&quot;__arg&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            binding_style: <a href="../../src/derivative/matcher.rs.html#77">style</a>.<a href="../../src/derivative/matcher.rs.html#31">with_packed</a>(<a href="../../src/derivative/matcher.rs.html#77">is_packed</a>),
+            <a href="../../src/derivative/matcher.rs.html#77">is_packed</a>,
+            field_filter: |<span class="kw">_</span>| <span class="bool-val">true</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Fn</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#30">ast::Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> <span class="ident">Matcher</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_name</span>(<span class="self">self</span>, <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/derivative/matcher.rs.html#69">Matcher</a> {
-            <span class="ident">binding_name</span>: <a class="ident" href="../../src/derivative/matcher.rs.html#88">name</a>,
-            ..<a class="self" href="../../src/derivative/matcher.rs.html#88">self</a>
+<span class="kw">impl</span>&lt;T: Fn (<span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#30">ast::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; Matcher&lt;T&gt; {
+    <span class="kw">pub fn </span>with_name(<span class="self">self</span>, name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/derivative/matcher.rs.html#69">Matcher</a> {
+            binding_name: <a href="../../src/derivative/matcher.rs.html#88">name</a>,
+            ..<span class="self"><a href="../../src/derivative/matcher.rs.html#88">self</a>
+        </span>}
+    }
+
+    <span class="kw">pub fn </span>with_field_filter&lt;P&gt;(<span class="self">self</span>, field_filter: P) -&gt; Matcher&lt;P&gt; {
+        <a href="../../src/derivative/matcher.rs.html#69">Matcher</a> {
+            <a href="../../src/derivative/matcher.rs.html#95">field_filter</a>,
+            binding_name: <a class="self" href="../../src/derivative/matcher.rs.html#95">self</a>.binding_name,
+            binding_style: <a class="self" href="../../src/derivative/matcher.rs.html#95">self</a>.binding_style,
+            is_packed: <a class="self" href="../../src/derivative/matcher.rs.html#95">self</a>.is_packed,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_field_filter</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">field_filter</span>: <span class="ident">P</span>) -&gt; <span class="ident">Matcher</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/derivative/matcher.rs.html#69">Matcher</a> {
-            <a class="ident" href="../../src/derivative/matcher.rs.html#95">field_filter</a>,
-            <span class="ident">binding_name</span>: <a class="self" href="../../src/derivative/matcher.rs.html#95">self</a>.<span class="ident">binding_name</span>,
-            <span class="ident">binding_style</span>: <a class="self" href="../../src/derivative/matcher.rs.html#95">self</a>.<span class="ident">binding_style</span>,
-            <span class="ident">is_packed</span>: <a class="self" href="../../src/derivative/matcher.rs.html#95">self</a>.<span class="ident">is_packed</span>,
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_arms</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#7">ast::Input</a>, <span class="ident">binding_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(
-            <a class="ident" href="../../syn/path/struct.Path.html">syn::Path</a>,
-            <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-            <a class="ident" href="../../src/derivative/ast.rs.html#38">ast::Style</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/attr.rs.html#7">attr::Input</a>,
-            <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/derivative/matcher.rs.html#55">BindingInfo</a><span class="op">&gt;</span>,
-        ) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    <span class="kw">pub fn </span>build_arms&lt;F&gt;(<span class="self">self</span>, input: <span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#7">ast::Input</a>, binding_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, f: F) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>
+    <span class="kw">where
+        </span>F: Fn(
+            <a href="../../syn/path/struct.Path.html">syn::Path</a>,
+            <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+            <span class="kw-2">&amp;</span><a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
+            <a href="../../src/derivative/ast.rs.html#38">ast::Style</a>,
+            <span class="kw-2">&amp;</span><a href="../../src/derivative/attr.rs.html#7">attr::Input</a>,
+            Vec&lt;<a href="../../src/derivative/matcher.rs.html#55">BindingInfo</a>&gt;,
+        ) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
     {
-        <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <a class="self" href="../../src/derivative/matcher.rs.html#104">self</a>.<a class="ident" href="../../src/derivative/matcher.rs.html#190-194">build_match_pattern</a>(<a class="ident" href="../../src/derivative/matcher.rs.html#104">input</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#104">binding_name</a>);
+        <span class="kw">let </span>variants = <a class="self" href="../../src/derivative/matcher.rs.html#104">self</a>.<a href="../../src/derivative/matcher.rs.html#190-194">build_match_pattern</a>(<a href="../../src/derivative/matcher.rs.html#104">input</a>, <a href="../../src/derivative/matcher.rs.html#104">binding_name</a>);
 
-        <span class="comment">// Now that we have the patterns, generate the actual branches of the match</span>
-        <span class="comment">// expression</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
-        <span class="kw">for</span> (<span class="ident">i</span>, (<span class="ident">variant</span>, (<span class="ident">pat</span>, <span class="ident">bindings</span>))) <span class="kw">in</span> <span class="ident">variants</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">f</span>(
-                <span class="ident">variant</span>.<span class="ident">path</span>,
-                <span class="ident">i</span>,
-                <span class="ident">variant</span>.<span class="ident">name</span>,
-                <span class="ident">variant</span>.<span class="ident">style</span>,
-                <span class="ident">variant</span>.<span class="ident">attrs</span>,
-                <span class="ident">bindings</span>,
+        <span class="comment">// Now that we have the patterns, generate the actual branches of the match
+        // expression
+        </span><span class="kw">let </span><span class="kw-2">mut </span>t = TokenStream::new();
+        <span class="kw">for </span>(i, (variant, (pat, bindings))) <span class="kw">in </span>variants.into_iter().enumerate() {
+            <span class="kw">let </span>body = f(
+                variant.path,
+                i,
+                variant.name,
+                variant.style,
+                variant.attrs,
+                bindings,
             );
-            <span class="macro">quote!</span>(#<span class="ident">pat</span> =&gt; { #<span class="ident">body</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(#pat =&gt; { #body }).to_tokens(<span class="kw-2">&amp;mut </span>t);
         }
 
-        <a class="ident" href="../../src/derivative/matcher.rs.html#119">t</a>
+        <a href="../../src/derivative/matcher.rs.html#119">t</a>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_2_arms</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
+    <span class="kw">pub fn </span>build_2_arms&lt;F&gt;(
         <span class="self">self</span>,
-        (<span class="ident">left_matched_expr</span>, <span class="ident">right_matched_expr</span>): (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>),
-        <span class="ident">left</span>: (<span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#7">ast::Input</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
-        <span class="ident">right</span>: (<span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#7">ast::Input</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
-        <span class="ident">f</span>: <span class="ident">F</span>,
-    ) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(
-            <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-            <a class="ident" href="../../src/derivative/matcher.rs.html#62">CommonVariant</a>,
-            <a class="ident" href="../../src/derivative/matcher.rs.html#62">CommonVariant</a>,
-            (<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/derivative/matcher.rs.html#55">BindingInfo</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/derivative/matcher.rs.html#55">BindingInfo</a><span class="op">&gt;</span>),
-        ) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+        (left_matched_expr, right_matched_expr): (<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>),
+        left: (<span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#7">ast::Input</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+        right: (<span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#7">ast::Input</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
+        f: F,
+    ) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>
+    <span class="kw">where
+        </span>F: Fn(
+            <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+            <a href="../../src/derivative/matcher.rs.html#62">CommonVariant</a>,
+            <a href="../../src/derivative/matcher.rs.html#62">CommonVariant</a>,
+            (Vec&lt;<a href="../../src/derivative/matcher.rs.html#55">BindingInfo</a>&gt;, Vec&lt;<a href="../../src/derivative/matcher.rs.html#55">BindingInfo</a>&gt;),
+        ) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
     {
-        <span class="kw">let</span> <span class="ident">left_variants</span> <span class="op">=</span> <a class="self" href="../../src/derivative/matcher.rs.html#136">self</a>.<a class="ident" href="../../src/derivative/matcher.rs.html#190-194">build_match_pattern</a>(<a class="ident" href="../../src/derivative/matcher.rs.html#138">left</a>.<span class="number">0</span>, <a class="ident" href="../../src/derivative/matcher.rs.html#138">left</a>.<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">right_variants</span> <span class="op">=</span> <a class="self" href="../../src/derivative/matcher.rs.html#136">self</a>.<a class="ident" href="../../src/derivative/matcher.rs.html#190-194">build_match_pattern</a>(<a class="ident" href="../../src/derivative/matcher.rs.html#139">right</a>.<span class="number">0</span>, <a class="ident" href="../../src/derivative/matcher.rs.html#139">right</a>.<span class="number">1</span>);
+        <span class="kw">let </span>left_variants = <a class="self" href="../../src/derivative/matcher.rs.html#136">self</a>.<a href="../../src/derivative/matcher.rs.html#190-194">build_match_pattern</a>(<a href="../../src/derivative/matcher.rs.html#138">left</a>.<span class="number">0</span>, <a href="../../src/derivative/matcher.rs.html#138">left</a>.<span class="number">1</span>);
+        <span class="kw">let </span>right_variants = <a class="self" href="../../src/derivative/matcher.rs.html#136">self</a>.<a href="../../src/derivative/matcher.rs.html#190-194">build_match_pattern</a>(<a href="../../src/derivative/matcher.rs.html#139">right</a>.<span class="number">0</span>, <a href="../../src/derivative/matcher.rs.html#139">right</a>.<span class="number">1</span>);
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">left_variants</span>.<span class="ident">len</span>(), <span class="ident">right_variants</span>.<span class="ident">len</span>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(left_variants.len(), right_variants.len());
 
-        <span class="kw">if</span> <span class="ident">left_variants</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-            <span class="kw">let</span> (<span class="ident">left</span>, (<span class="ident">left_pat</span>, <span class="ident">left_bindings</span>)) <span class="op">=</span> <a class="ident" href="../../src/derivative/matcher.rs.html#150">left_variants</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> (<span class="ident">right</span>, (<span class="ident">right_pat</span>, <span class="ident">right_bindings</span>)) <span class="op">=</span> <a class="ident" href="../../src/derivative/matcher.rs.html#151">right_variants</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>();
+        <span class="kw">if </span>left_variants.len() == <span class="number">1 </span>{
+            <span class="kw">let </span>(left, (left_pat, left_bindings)) = <a href="../../src/derivative/matcher.rs.html#150">left_variants</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
+            <span class="kw">let </span>(right, (right_pat, right_bindings)) = <a href="../../src/derivative/matcher.rs.html#151">right_variants</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap();
 
-            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/matcher.rs.html#140">f</a>(<span class="number">0</span>, <a class="ident" href="../../src/derivative/matcher.rs.html#156">left</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#157">right</a>, (<a class="ident" href="../../src/derivative/matcher.rs.html#156">left_bindings</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#157">right_bindings</a>));
+            <span class="kw">let </span>body = <a href="../../src/derivative/matcher.rs.html#140">f</a>(<span class="number">0</span>, <a href="../../src/derivative/matcher.rs.html#156">left</a>, <a href="../../src/derivative/matcher.rs.html#157">right</a>, (<a href="../../src/derivative/matcher.rs.html#156">left_bindings</a>, <a href="../../src/derivative/matcher.rs.html#157">right_bindings</a>));
 
-            <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a> {
-                <span class="kw">match</span> #<span class="ident">left_matched_expr</span> {
-                    #<span class="ident">left_pat</span> =&gt; <span class="kw">match</span> #<span class="ident">right_matched_expr</span> {
-                        #<span class="ident">right_pat</span> =&gt; #<span class="ident">body</span>,
+            <a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+                <span class="kw">match </span>#left_matched_expr {
+                    #left_pat =&gt; <span class="kw">match </span>#right_matched_expr {
+                        #right_pat =&gt; #body,
                     },
                 }
             }
-        } <span class="kw">else</span> {
-            <span class="comment">// Now that we have the patterns, generate the actual branches of the match</span>
-            <span class="comment">// expression</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
-            <span class="kw">for</span> (<span class="ident">i</span>, (<span class="ident">left</span>, <span class="ident">right</span>)) <span class="kw">in</span> <span class="ident">left_variants</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">right_variants</span>).<span class="ident">enumerate</span>() {
-                <span class="kw">let</span> (<span class="ident">left</span>, (<span class="ident">left_pat</span>, <span class="ident">left_bindings</span>)) <span class="op">=</span> <span class="ident">left</span>;
-                <span class="kw">let</span> (<span class="ident">right</span>, (<span class="ident">right_pat</span>, <span class="ident">right_bindings</span>)) <span class="op">=</span> <span class="ident">right</span>;
+        } <span class="kw">else </span>{
+            <span class="comment">// Now that we have the patterns, generate the actual branches of the match
+            // expression
+            </span><span class="kw">let </span><span class="kw-2">mut </span>t = TokenStream::new();
+            <span class="kw">for </span>(i, (left, right)) <span class="kw">in </span>left_variants.into_iter().zip(right_variants).enumerate() {
+                <span class="kw">let </span>(left, (left_pat, left_bindings)) = left;
+                <span class="kw">let </span>(right, (right_pat, right_bindings)) = right;
 
-                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">i</span>, <span class="ident">left</span>, <span class="ident">right</span>, (<span class="ident">left_bindings</span>, <span class="ident">right_bindings</span>));
-                <span class="macro">quote!</span>((#<span class="ident">left_pat</span>, #<span class="ident">right_pat</span>) =&gt; { #<span class="ident">body</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;mut</span> <span class="ident">t</span>);
+                <span class="kw">let </span>body = f(i, left, right, (left_bindings, right_bindings));
+                <span class="macro">quote!</span>((#left_pat, #right_pat) =&gt; { #body }).to_tokens(<span class="kw-2">&amp;mut </span>t);
             }
 
-            <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a> {
-                <span class="kw">match</span> (<span class="kw-2">&amp;</span>#<span class="ident">left_matched_expr</span>, <span class="kw-2">&amp;</span>#<span class="ident">right_matched_expr</span>) {
-                    #<span class="ident">t</span>
-                    <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+            <a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+                <span class="kw">match </span>(<span class="kw-2">&amp;</span>#left_matched_expr, <span class="kw-2">&amp;</span>#right_matched_expr) {
+                    #t
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 }
             }
         }
     }
 
-    <span class="doccomment">/// Generate patterns for matching against all of the variants</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_match_pattern</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Generate patterns for matching against all of the variants
+    </span><span class="kw">pub fn </span>build_match_pattern&lt;<span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/derivative/ast.rs.html#7">ast::Input</a>,
-        <span class="ident">binding_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">CommonVariant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>))<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/matcher.rs.html#192">input</a>.<span class="ident">ident</span>;
+        input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/derivative/ast.rs.html#7">ast::Input</a>,
+        binding_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    ) -&gt; Vec&lt;(CommonVariant&lt;<span class="lifetime">&#39;a</span>&gt;, (<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, Vec&lt;BindingInfo&lt;<span class="lifetime">&#39;a</span>&gt;&gt;))&gt; {
+        <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a href="../../src/derivative/matcher.rs.html#192">input</a>.ident;
 
-        <span class="kw">match</span> <a class="ident" href="../../src/derivative/matcher.rs.html#192">input</a>.<span class="ident">body</span> {
-            <a class="ident" href="../../src/derivative/ast.rs.html#17">ast::Body::Enum</a>(<span class="kw-2">ref</span> <span class="ident">variants</span>) =&gt; <a class="ident" href="../../src/derivative/matcher.rs.html#198">variants</a>
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">variant_ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/matcher.rs.html#200">variant</a>.<span class="ident">ident</span>;
-                    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(#<span class="ident">ident</span>::#<span class="ident">variant_ident</span>);
+        <span class="kw">match </span><a href="../../src/derivative/matcher.rs.html#192">input</a>.body {
+            <a href="../../src/derivative/ast.rs.html#17">ast::Body::Enum</a>(<span class="kw-2">ref </span>variants) =&gt; <a href="../../src/derivative/matcher.rs.html#198">variants</a>
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|variant| {
+                    <span class="kw">let </span>variant_ident = <span class="kw-2">&amp;</span><a href="../../src/derivative/matcher.rs.html#200">variant</a>.ident;
+                    <span class="kw">let </span>path = <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(#ident::#variant_ident);
 
-                    <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="self" href="../../src/derivative/matcher.rs.html#191">self</a>.<a class="ident" href="../../src/derivative/matcher.rs.html#237-245">build_match_pattern_impl</a>(
-                        <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/matcher.rs.html#202">path</a>,
-                        <a class="ident" href="../../src/derivative/matcher.rs.html#200">variant</a>.<span class="ident">style</span>,
-                        <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/matcher.rs.html#200">variant</a>.<span class="ident">fields</span>,
-                        <a class="ident" href="../../src/derivative/matcher.rs.html#193">binding_name</a>,
+                    <span class="kw">let </span>pat = <a class="self" href="../../src/derivative/matcher.rs.html#191">self</a>.<a href="../../src/derivative/matcher.rs.html#237-245">build_match_pattern_impl</a>(
+                        <span class="kw-2">&amp;</span><a href="../../src/derivative/matcher.rs.html#202">path</a>,
+                        <a href="../../src/derivative/matcher.rs.html#200">variant</a>.style,
+                        <span class="kw-2">&amp;</span><a href="../../src/derivative/matcher.rs.html#200">variant</a>.fields,
+                        <a href="../../src/derivative/matcher.rs.html#193">binding_name</a>,
                     );
 
                     (
-                        <a class="ident" href="../../src/derivative/matcher.rs.html#62">CommonVariant</a> {
-                            <a class="ident" href="../../src/derivative/matcher.rs.html#202">path</a>,
-                            <span class="ident">name</span>: <a class="ident" href="../../src/derivative/matcher.rs.html#201">variant_ident</a>,
-                            <span class="ident">style</span>: <a class="ident" href="../../src/derivative/matcher.rs.html#200">variant</a>.<span class="ident">style</span>,
-                            <span class="ident">attrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/matcher.rs.html#200">variant</a>.<span class="ident">attrs</span>,
+                        <a href="../../src/derivative/matcher.rs.html#62">CommonVariant</a> {
+                            <a href="../../src/derivative/matcher.rs.html#202">path</a>,
+                            name: <a href="../../src/derivative/matcher.rs.html#201">variant_ident</a>,
+                            style: <a href="../../src/derivative/matcher.rs.html#200">variant</a>.style,
+                            attrs: <span class="kw-2">&amp;</span><a href="../../src/derivative/matcher.rs.html#200">variant</a>.attrs,
                         },
-                        <a class="ident" href="../../src/derivative/matcher.rs.html#204">pat</a>,
+                        <a href="../../src/derivative/matcher.rs.html#204">pat</a>,
                     )
                 })
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a class="ident" href="../../src/derivative/ast.rs.html#18">ast::Body::Struct</a>(<span class="ident">style</span>, <span class="kw-2">ref</span> <span class="ident">vd</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(#<span class="ident">ident</span>);
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a href="../../src/derivative/ast.rs.html#18">ast::Body::Struct</a>(style, <span class="kw-2">ref </span>vd) =&gt; {
+                <span class="kw">let </span>path = <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(#ident);
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[(
-                    <span class="ident">CommonVariant</span> {
-                        <span class="ident">path</span>,
-                        <span class="ident">name</span>: <span class="ident">ident</span>,
-                        <span class="ident">style</span>,
-                        <span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">attrs</span>,
+                    CommonVariant {
+                        path,
+                        name: ident,
+                        style,
+                        attrs: <span class="kw-2">&amp;</span>input.attrs,
                     },
-                    <span class="self">self</span>.<span class="ident">build_match_pattern_impl</span>(<span class="ident">ident</span>, <span class="ident">style</span>, <span class="ident">vd</span>, <span class="ident">binding_name</span>),
+                    <span class="self">self</span>.build_match_pattern_impl(ident, style, vd, binding_name),
                 )]
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">build_match_pattern_impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">N</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>build_match_pattern_impl&lt;<span class="lifetime">&#39;a</span>, N&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">N</span>,
-        <span class="ident">style</span>: <a class="ident" href="../../src/derivative/ast.rs.html#38">ast::Style</a>,
-        <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ast::Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>],
-        <span class="ident">binding_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>)
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>,
+        name: <span class="kw-2">&amp;</span>N,
+        style: <a href="../../src/derivative/ast.rs.html#38">ast::Style</a>,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ast::Field&lt;<span class="lifetime">&#39;a</span>&gt;],
+        binding_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    ) -&gt; (<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, Vec&lt;BindingInfo&lt;<span class="lifetime">&#39;a</span>&gt;&gt;)
+    <span class="kw">where
+        </span>N: <a href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>,
     {
-        <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">matches</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/derivative/matcher.rs.html#240">style</a> {
-            <a class="ident" href="../../src/derivative/ast.rs.html#41">ast::Style::Unit</a> =&gt; (<span class="ident">TokenStream::new</span>(), <span class="ident">Vec::new</span>()),
-            <a class="ident" href="../../src/derivative/ast.rs.html#40">ast::Style::Tuple</a> =&gt; {
-                <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">matches</span>) <span class="op">=</span> <a class="ident" href="../../src/derivative/matcher.rs.html#241">fields</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(
-                    (<span class="ident">TokenStream::new</span>(), <span class="ident">Vec::new</span>()),
-                    <span class="op">|</span>(<span class="ident">stream</span>, <span class="ident">matches</span>), <span class="ident">field</span><span class="op">|</span> {
-                        <a class="self" href="../../src/derivative/matcher.rs.html#238">self</a>.<a class="ident" href="../../src/derivative/matcher.rs.html#301-307">build_inner_pattern</a>(
-                            (<a class="ident" href="../../src/derivative/matcher.rs.html#252">stream</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#252">matches</a>),
-                            <a class="ident" href="../../src/derivative/matcher.rs.html#252">field</a>,
-                            <a class="ident" href="../../src/derivative/matcher.rs.html#242">binding_name</a>,
-                            <span class="op">|</span><span class="ident">f</span>, <span class="ident">ident</span>, <span class="ident">binding</span><span class="op">|</span> {
-                                <span class="kw">if</span> (<span class="self">self</span>.<span class="ident">field_filter</span>)(<span class="ident">f</span>) {
-                                    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(#<span class="ident">binding</span> #<span class="ident">ident</span> ,)
-                                } <span class="kw">else</span> {
-                                    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw">_</span> ,)
+        <span class="kw">let </span>(stream, matches) = <span class="kw">match </span><a href="../../src/derivative/matcher.rs.html#240">style</a> {
+            <a href="../../src/derivative/ast.rs.html#41">ast::Style::Unit</a> =&gt; (TokenStream::new(), Vec::new()),
+            <a href="../../src/derivative/ast.rs.html#40">ast::Style::Tuple</a> =&gt; {
+                <span class="kw">let </span>(stream, matches) = <a href="../../src/derivative/matcher.rs.html#241">fields</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(
+                    (TokenStream::new(), Vec::new()),
+                    |(stream, matches), field| {
+                        <a class="self" href="../../src/derivative/matcher.rs.html#238">self</a>.<a href="../../src/derivative/matcher.rs.html#301-307">build_inner_pattern</a>(
+                            (<a href="../../src/derivative/matcher.rs.html#252">stream</a>, <a href="../../src/derivative/matcher.rs.html#252">matches</a>),
+                            <a href="../../src/derivative/matcher.rs.html#252">field</a>,
+                            <a href="../../src/derivative/matcher.rs.html#242">binding_name</a>,
+                            |f, ident, binding| {
+                                <span class="kw">if </span>(<span class="self">self</span>.field_filter)(f) {
+                                    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(#binding #ident ,)
+                                } <span class="kw">else </span>{
+                                    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="kw">_ </span>,)
                                 }
                             },
                         )
                     },
                 );
 
-                (<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a> { ( #<span class="ident">stream</span> ) }, <a class="ident" href="../../src/derivative/matcher.rs.html#250">matches</a>)
+                (<a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{ ( #stream ) }, <a href="../../src/derivative/matcher.rs.html#250">matches</a>)
             }
-            <a class="ident" href="../../src/derivative/ast.rs.html#39">ast::Style::Struct</a> =&gt; {
-                <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">matches</span>) <span class="op">=</span> <a class="ident" href="../../src/derivative/matcher.rs.html#241">fields</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(
-                    (<span class="ident">TokenStream::new</span>(), <span class="ident">Vec::new</span>()),
-                    <span class="op">|</span>(<span class="ident">stream</span>, <span class="ident">matches</span>), <span class="ident">field</span><span class="op">|</span> {
-                        <a class="self" href="../../src/derivative/matcher.rs.html#238">self</a>.<a class="ident" href="../../src/derivative/matcher.rs.html#301-307">build_inner_pattern</a>(
-                            (<a class="ident" href="../../src/derivative/matcher.rs.html#273">stream</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#273">matches</a>),
-                            <a class="ident" href="../../src/derivative/matcher.rs.html#273">field</a>,
-                            <a class="ident" href="../../src/derivative/matcher.rs.html#242">binding_name</a>,
-                            <span class="op">|</span><span class="ident">field</span>, <span class="ident">ident</span>, <span class="ident">binding</span><span class="op">|</span> {
-                                <span class="kw">let</span> <span class="ident">field_name</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/matcher.rs.html#278">field</a>.<span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
-                                <span class="kw">if</span> (<span class="self">self</span>.<span class="ident">field_filter</span>)(<span class="ident">field</span>) {
-                                    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(#<span class="ident">field_name</span> : #<span class="ident">binding</span> #<span class="ident">ident</span> ,)
-                                } <span class="kw">else</span> {
-                                    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(#<span class="ident">field_name</span> : <span class="kw">_</span> ,)
+            <a href="../../src/derivative/ast.rs.html#39">ast::Style::Struct</a> =&gt; {
+                <span class="kw">let </span>(stream, matches) = <a href="../../src/derivative/matcher.rs.html#241">fields</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(
+                    (TokenStream::new(), Vec::new()),
+                    |(stream, matches), field| {
+                        <a class="self" href="../../src/derivative/matcher.rs.html#238">self</a>.<a href="../../src/derivative/matcher.rs.html#301-307">build_inner_pattern</a>(
+                            (<a href="../../src/derivative/matcher.rs.html#273">stream</a>, <a href="../../src/derivative/matcher.rs.html#273">matches</a>),
+                            <a href="../../src/derivative/matcher.rs.html#273">field</a>,
+                            <a href="../../src/derivative/matcher.rs.html#242">binding_name</a>,
+                            |field, ident, binding| {
+                                <span class="kw">let </span>field_name = <a href="../../src/derivative/matcher.rs.html#278">field</a>.ident.as_ref().unwrap();
+                                <span class="kw">if </span>(<span class="self">self</span>.field_filter)(field) {
+                                    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(#field_name : #binding #ident ,)
+                                } <span class="kw">else </span>{
+                                    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(#field_name : <span class="kw">_ </span>,)
                                 }
                             },
                         )
                     },
                 );
 
-                (<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a> { { #<span class="ident">stream</span> } }, <a class="ident" href="../../src/derivative/matcher.rs.html#271">matches</a>)
+                (<a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{ { #stream } }, <a href="../../src/derivative/matcher.rs.html#271">matches</a>)
             }
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_tokens</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
-        <a class="ident" href="../../src/derivative/matcher.rs.html#239">name</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/derivative/matcher.rs.html#294">all_tokens</a>);
-        <a class="ident" href="../../src/derivative/matcher.rs.html#294">all_tokens</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/derivative/matcher.rs.html#247">stream</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>all_tokens = TokenStream::new();
+        <a href="../../src/derivative/matcher.rs.html#239">name</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<span class="kw-2">&amp;mut </span><a href="../../src/derivative/matcher.rs.html#294">all_tokens</a>);
+        <a href="../../src/derivative/matcher.rs.html#294">all_tokens</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/derivative/matcher.rs.html#247">stream</a>);
 
-        (<a class="ident" href="../../src/derivative/matcher.rs.html#294">all_tokens</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#247">matches</a>)
+        (<a href="../../src/derivative/matcher.rs.html#294">all_tokens</a>, <a href="../../src/derivative/matcher.rs.html#247">matches</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">build_inner_pattern</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>build_inner_pattern&lt;<span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        (<span class="kw-2">mut</span> <span class="ident">stream</span>, <span class="kw-2">mut</span> <span class="ident">matches</span>): (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>),
-        (<span class="ident">i</span>, <span class="ident">field</span>): (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/derivative/ast.rs.html#30">ast::Field</a>),
-        <span class="ident">binding_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#30">ast::Field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#19">BindingStyle</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    ) -&gt; (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">binding_style</span> <span class="op">=</span> <a class="self" href="../../src/derivative/matcher.rs.html#302">self</a>.<span class="ident">binding_style</span>;
+        (<span class="kw-2">mut </span>stream, <span class="kw-2">mut </span>matches): (<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, Vec&lt;BindingInfo&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
+        (i, field): (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/derivative/ast.rs.html#30">ast::Field</a>),
+        binding_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#30">ast::Field</a>, <span class="kw-2">&amp;</span><a href="../../proc_macro2/struct.Ident.html">syn::Ident</a>, <a href="../../src/derivative/matcher.rs.html#19">BindingStyle</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    ) -&gt; (<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, Vec&lt;BindingInfo&lt;<span class="lifetime">&#39;a</span>&gt;&gt;) {
+        <span class="kw">let </span>binding_style = <a class="self" href="../../src/derivative/matcher.rs.html#302">self</a>.binding_style;
 
-        <span class="kw">let</span> <span class="ident">ident</span>: <a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(
-            <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}_{}&quot;</span>, <span class="ident">binding_name</span>, <span class="ident">i</span>),
-            <span class="ident">proc_macro2::Span::call_site</span>(),
+        <span class="kw">let </span>ident: <a href="../../proc_macro2/struct.Ident.html">syn::Ident</a> = syn::Ident::new(
+            <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}_{}&quot;</span>, binding_name, i),
+            proc_macro2::Span::call_site(),
         );
-        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">syn::Expr::Path</span>(<a class="ident" href="../../syn/expr/struct.ExprPath.html">syn::ExprPath</a> {
-            <span class="ident">attrs</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            <span class="ident">qself</span>: <span class="prelude-val">None</span>,
-            <span class="ident">path</span>: <span class="ident">syn::Path::from</span>(<a class="ident" href="../../src/derivative/matcher.rs.html#310">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="kw">let </span>expr = syn::Expr::Path(<a href="../../syn/expr/struct.ExprPath.html">syn::ExprPath</a> {
+            attrs: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            qself: <span class="prelude-val">None</span>,
+            path: syn::Path::from(<a href="../../src/derivative/matcher.rs.html#310">ident</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         });
 
-        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_packed</span> {
-            <a class="ident" href="../../src/derivative/matcher.rs.html#314">expr</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>((<span class="kw-2">*</span>#<span class="ident">expr</span>))
+        <span class="kw">let </span>expr = <span class="kw">if </span><span class="self">self</span>.is_packed {
+            <a href="../../src/derivative/matcher.rs.html#314">expr</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>((<span class="kw-2">*</span>#expr))
         };
 
-        <a class="ident" href="../../src/derivative/matcher.rs.html#306">f</a>(<a class="ident" href="../../src/derivative/matcher.rs.html#304">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/matcher.rs.html#310">ident</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#308">binding_style</a>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/derivative/matcher.rs.html#303">stream</a>);
+        <a href="../../src/derivative/matcher.rs.html#306">f</a>(<a href="../../src/derivative/matcher.rs.html#304">field</a>, <span class="kw-2">&amp;</span><a href="../../src/derivative/matcher.rs.html#310">ident</a>, <a href="../../src/derivative/matcher.rs.html#308">binding_style</a>).<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<span class="kw-2">&amp;mut </span><a href="../../src/derivative/matcher.rs.html#303">stream</a>);
 
-        <a class="ident" href="../../src/derivative/matcher.rs.html#303">matches</a>.<span class="ident">push</span>(<a class="ident" href="../../src/derivative/matcher.rs.html#55">BindingInfo</a> {
-            <a class="ident" href="../../src/derivative/matcher.rs.html#320">expr</a>,
-            <a class="ident" href="../../src/derivative/matcher.rs.html#310">ident</a>,
-            <a class="ident" href="../../src/derivative/matcher.rs.html#304">field</a>,
+        <a href="../../src/derivative/matcher.rs.html#303">matches</a>.push(<a href="../../src/derivative/matcher.rs.html#55">BindingInfo</a> {
+            <a href="../../src/derivative/matcher.rs.html#320">expr</a>,
+            <a href="../../src/derivative/matcher.rs.html#310">ident</a>,
+            <a href="../../src/derivative/matcher.rs.html#304">field</a>,
         });
 
-        (<a class="ident" href="../../src/derivative/matcher.rs.html#303">stream</a>, <a class="ident" href="../../src/derivative/matcher.rs.html#303">matches</a>)
+        (<a href="../../src/derivative/matcher.rs.html#303">stream</a>, <a href="../../src/derivative/matcher.rs.html#303">matches</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derivative" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derivative" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

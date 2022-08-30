@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/async_fd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_fd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/async_fd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_fd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -670,677 +670,677 @@
 <span id="670">670</span>
 <span id="671">671</span>
 <span id="672">672</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::driver</span>::{<a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>, <a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>, <a class="ident" href="../../../src/tokio/io/driver/registration.rs.html#44">Registration</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::driver::{<a href="../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>, <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>, <a href="../../../src/tokio/io/driver/registration.rs.html#44">Registration</a>};
 
-<span class="kw">use</span> <span class="ident">mio::unix::SourceFd</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">task::Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">task::Poll</a>};
+<span class="kw">use </span>mio::unix::SourceFd;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">task::Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">task::Poll</a>};
 
-<span class="doccomment">/// Associates an IO object backed by a Unix file descriptor with the tokio</span>
-<span class="doccomment">/// reactor, allowing for readiness to be polled. The file descriptor must be of</span>
-<span class="doccomment">/// a type that can be used with the OS polling facilities (ie, `poll`, `epoll`,</span>
-<span class="doccomment">/// `kqueue`, etc), such as a network socket or pipe, and the file descriptor</span>
-<span class="doccomment">/// must have the nonblocking mode set to true.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Creating an AsyncFd registers the file descriptor with the current tokio</span>
-<span class="doccomment">/// Reactor, allowing you to directly await the file descriptor being readable</span>
-<span class="doccomment">/// or writable. Once registered, the file descriptor remains registered until</span>
-<span class="doccomment">/// the AsyncFd is dropped.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The AsyncFd takes ownership of an arbitrary object to represent the IO</span>
-<span class="doccomment">/// object. It is intended that this object will handle closing the file</span>
-<span class="doccomment">/// descriptor when it is dropped, avoiding resource leaks and ensuring that the</span>
-<span class="doccomment">/// AsyncFd can clean up the registration before closing the file descriptor.</span>
-<span class="doccomment">/// The [`AsyncFd::into_inner`] function can be used to extract the inner object</span>
-<span class="doccomment">/// to retake control from the tokio IO reactor.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The inner object is required to implement [`AsRawFd`]. This file descriptor</span>
-<span class="doccomment">/// must not change while [`AsyncFd`] owns the inner object, i.e. the</span>
-<span class="doccomment">/// [`AsRawFd::as_raw_fd`] method on the inner type must always return the same</span>
-<span class="doccomment">/// file descriptor when called multiple times. Failure to uphold this results</span>
-<span class="doccomment">/// in unspecified behavior in the IO driver, which may include breaking</span>
-<span class="doccomment">/// notifications for other sockets/etc.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Polling for readiness is done by calling the async functions [`readable`]</span>
-<span class="doccomment">/// and [`writable`]. These functions complete when the associated readiness</span>
-<span class="doccomment">/// condition is observed. Any number of tasks can query the same `AsyncFd` in</span>
-<span class="doccomment">/// parallel, on the same or different conditions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On some platforms, the readiness detecting mechanism relies on</span>
-<span class="doccomment">/// edge-triggered notifications. This means that the OS will only notify Tokio</span>
-<span class="doccomment">/// when the file descriptor transitions from not-ready to ready. For this to</span>
-<span class="doccomment">/// work you should first try to read or write and only poll for readiness</span>
-<span class="doccomment">/// if that fails with an error of [`std::io::ErrorKind::WouldBlock`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Tokio internally tracks when it has received a ready notification, and when</span>
-<span class="doccomment">/// readiness checking functions like [`readable`] and [`writable`] are called,</span>
-<span class="doccomment">/// if the readiness flag is set, these async functions will complete</span>
-<span class="doccomment">/// immediately. This however does mean that it is critical to ensure that this</span>
-<span class="doccomment">/// ready flag is cleared when (and only when) the file descriptor ceases to be</span>
-<span class="doccomment">/// ready. The [`AsyncFdReadyGuard`] returned from readiness checking functions</span>
-<span class="doccomment">/// serves this function; after calling a readiness-checking async function,</span>
-<span class="doccomment">/// you must use this [`AsyncFdReadyGuard`] to signal to tokio whether the file</span>
-<span class="doccomment">/// descriptor is no longer in a ready state.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Use with to a poll-based API</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In some cases it may be desirable to use `AsyncFd` from APIs similar to</span>
-<span class="doccomment">/// [`TcpStream::poll_read_ready`]. The [`AsyncFd::poll_read_ready`] and</span>
-<span class="doccomment">/// [`AsyncFd::poll_write_ready`] functions are provided for this purpose.</span>
-<span class="doccomment">/// Because these functions don&#39;t create a future to hold their state, they have</span>
-<span class="doccomment">/// the limitation that only one task can wait on each direction (read or write)</span>
-<span class="doccomment">/// at a time.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This example shows how to turn [`std::net::TcpStream`] asynchronous using</span>
-<span class="doccomment">/// `AsyncFd`.  It implements `read` as an async fn, and `AsyncWrite` as a trait</span>
-<span class="doccomment">/// to show how to implement both approaches.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use futures::ready;</span>
-<span class="doccomment">/// use std::io::{self, Read, Write};</span>
-<span class="doccomment">/// use std::net::TcpStream;</span>
-<span class="doccomment">/// use std::pin::Pin;</span>
-<span class="doccomment">/// use std::task::{Context, Poll};</span>
-<span class="doccomment">/// use tokio::io::AsyncWrite;</span>
-<span class="doccomment">/// use tokio::io::unix::AsyncFd;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// pub struct AsyncTcpStream {</span>
-<span class="doccomment">///     inner: AsyncFd&lt;TcpStream&gt;,</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl AsyncTcpStream {</span>
-<span class="doccomment">///     pub fn new(tcp: TcpStream) -&gt; io::Result&lt;Self&gt; {</span>
-<span class="doccomment">///         tcp.set_nonblocking(true)?;</span>
-<span class="doccomment">///         Ok(Self {</span>
-<span class="doccomment">///             inner: AsyncFd::new(tcp)?,</span>
-<span class="doccomment">///         })</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     pub async fn read(&amp;self, out: &amp;mut [u8]) -&gt; io::Result&lt;usize&gt; {</span>
-<span class="doccomment">///         loop {</span>
-<span class="doccomment">///             let mut guard = self.inner.readable().await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///             match guard.try_io(|inner| inner.get_ref().read(out)) {</span>
-<span class="doccomment">///                 Ok(result) =&gt; return result,</span>
-<span class="doccomment">///                 Err(_would_block) =&gt; continue,</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl AsyncWrite for AsyncTcpStream {</span>
-<span class="doccomment">///     fn poll_write(</span>
-<span class="doccomment">///         self: Pin&lt;&amp;mut Self&gt;,</span>
-<span class="doccomment">///         cx: &amp;mut Context&lt;&#39;_&gt;,</span>
-<span class="doccomment">///         buf: &amp;[u8]</span>
-<span class="doccomment">///     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {</span>
-<span class="doccomment">///         loop {</span>
-<span class="doccomment">///             let mut guard = ready!(self.inner.poll_write_ready(cx))?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///             match guard.try_io(|inner| inner.get_ref().write(buf)) {</span>
-<span class="doccomment">///                 Ok(result) =&gt; return Poll::Ready(result),</span>
-<span class="doccomment">///                 Err(_would_block) =&gt; continue,</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     fn poll_flush(</span>
-<span class="doccomment">///         self: Pin&lt;&amp;mut Self&gt;,</span>
-<span class="doccomment">///         cx: &amp;mut Context&lt;&#39;_&gt;,</span>
-<span class="doccomment">///     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {</span>
-<span class="doccomment">///         // tcp flush is a no-op</span>
-<span class="doccomment">///         Poll::Ready(Ok(()))</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     fn poll_shutdown(</span>
-<span class="doccomment">///         self: Pin&lt;&amp;mut Self&gt;,</span>
-<span class="doccomment">///         cx: &amp;mut Context&lt;&#39;_&gt;,</span>
-<span class="doccomment">///     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {</span>
-<span class="doccomment">///         self.inner.get_ref().shutdown(std::net::Shutdown::Write)?;</span>
-<span class="doccomment">///         Poll::Ready(Ok(()))</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`readable`]: method@Self::readable</span>
-<span class="doccomment">/// [`writable`]: method@Self::writable</span>
-<span class="doccomment">/// [`AsyncFdReadyGuard`]: struct@self::AsyncFdReadyGuard</span>
-<span class="doccomment">/// [`TcpStream::poll_read_ready`]: struct@crate::net::TcpStream</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> {
-    <span class="ident">registration</span>: <a class="ident" href="../../../src/tokio/io/driver/registration.rs.html#44">Registration</a>,
-    <span class="ident">inner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Associates an IO object backed by a Unix file descriptor with the tokio
+/// reactor, allowing for readiness to be polled. The file descriptor must be of
+/// a type that can be used with the OS polling facilities (ie, `poll`, `epoll`,
+/// `kqueue`, etc), such as a network socket or pipe, and the file descriptor
+/// must have the nonblocking mode set to true.
+///
+/// Creating an AsyncFd registers the file descriptor with the current tokio
+/// Reactor, allowing you to directly await the file descriptor being readable
+/// or writable. Once registered, the file descriptor remains registered until
+/// the AsyncFd is dropped.
+///
+/// The AsyncFd takes ownership of an arbitrary object to represent the IO
+/// object. It is intended that this object will handle closing the file
+/// descriptor when it is dropped, avoiding resource leaks and ensuring that the
+/// AsyncFd can clean up the registration before closing the file descriptor.
+/// The [`AsyncFd::into_inner`] function can be used to extract the inner object
+/// to retake control from the tokio IO reactor.
+///
+/// The inner object is required to implement [`AsRawFd`]. This file descriptor
+/// must not change while [`AsyncFd`] owns the inner object, i.e. the
+/// [`AsRawFd::as_raw_fd`] method on the inner type must always return the same
+/// file descriptor when called multiple times. Failure to uphold this results
+/// in unspecified behavior in the IO driver, which may include breaking
+/// notifications for other sockets/etc.
+///
+/// Polling for readiness is done by calling the async functions [`readable`]
+/// and [`writable`]. These functions complete when the associated readiness
+/// condition is observed. Any number of tasks can query the same `AsyncFd` in
+/// parallel, on the same or different conditions.
+///
+/// On some platforms, the readiness detecting mechanism relies on
+/// edge-triggered notifications. This means that the OS will only notify Tokio
+/// when the file descriptor transitions from not-ready to ready. For this to
+/// work you should first try to read or write and only poll for readiness
+/// if that fails with an error of [`std::io::ErrorKind::WouldBlock`].
+///
+/// Tokio internally tracks when it has received a ready notification, and when
+/// readiness checking functions like [`readable`] and [`writable`] are called,
+/// if the readiness flag is set, these async functions will complete
+/// immediately. This however does mean that it is critical to ensure that this
+/// ready flag is cleared when (and only when) the file descriptor ceases to be
+/// ready. The [`AsyncFdReadyGuard`] returned from readiness checking functions
+/// serves this function; after calling a readiness-checking async function,
+/// you must use this [`AsyncFdReadyGuard`] to signal to tokio whether the file
+/// descriptor is no longer in a ready state.
+///
+/// ## Use with to a poll-based API
+///
+/// In some cases it may be desirable to use `AsyncFd` from APIs similar to
+/// [`TcpStream::poll_read_ready`]. The [`AsyncFd::poll_read_ready`] and
+/// [`AsyncFd::poll_write_ready`] functions are provided for this purpose.
+/// Because these functions don&#39;t create a future to hold their state, they have
+/// the limitation that only one task can wait on each direction (read or write)
+/// at a time.
+///
+/// # Examples
+///
+/// This example shows how to turn [`std::net::TcpStream`] asynchronous using
+/// `AsyncFd`.  It implements `read` as an async fn, and `AsyncWrite` as a trait
+/// to show how to implement both approaches.
+///
+/// ```no_run
+/// use futures::ready;
+/// use std::io::{self, Read, Write};
+/// use std::net::TcpStream;
+/// use std::pin::Pin;
+/// use std::task::{Context, Poll};
+/// use tokio::io::AsyncWrite;
+/// use tokio::io::unix::AsyncFd;
+///
+/// pub struct AsyncTcpStream {
+///     inner: AsyncFd&lt;TcpStream&gt;,
+/// }
+///
+/// impl AsyncTcpStream {
+///     pub fn new(tcp: TcpStream) -&gt; io::Result&lt;Self&gt; {
+///         tcp.set_nonblocking(true)?;
+///         Ok(Self {
+///             inner: AsyncFd::new(tcp)?,
+///         })
+///     }
+///
+///     pub async fn read(&amp;self, out: &amp;mut [u8]) -&gt; io::Result&lt;usize&gt; {
+///         loop {
+///             let mut guard = self.inner.readable().await?;
+///
+///             match guard.try_io(|inner| inner.get_ref().read(out)) {
+///                 Ok(result) =&gt; return result,
+///                 Err(_would_block) =&gt; continue,
+///             }
+///         }
+///     }
+/// }
+///
+/// impl AsyncWrite for AsyncTcpStream {
+///     fn poll_write(
+///         self: Pin&lt;&amp;mut Self&gt;,
+///         cx: &amp;mut Context&lt;&#39;_&gt;,
+///         buf: &amp;[u8]
+///     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+///         loop {
+///             let mut guard = ready!(self.inner.poll_write_ready(cx))?;
+///
+///             match guard.try_io(|inner| inner.get_ref().write(buf)) {
+///                 Ok(result) =&gt; return Poll::Ready(result),
+///                 Err(_would_block) =&gt; continue,
+///             }
+///         }
+///     }
+///
+///     fn poll_flush(
+///         self: Pin&lt;&amp;mut Self&gt;,
+///         cx: &amp;mut Context&lt;&#39;_&gt;,
+///     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+///         // tcp flush is a no-op
+///         Poll::Ready(Ok(()))
+///     }
+///
+///     fn poll_shutdown(
+///         self: Pin&lt;&amp;mut Self&gt;,
+///         cx: &amp;mut Context&lt;&#39;_&gt;,
+///     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+///         self.inner.get_ref().shutdown(std::net::Shutdown::Write)?;
+///         Poll::Ready(Ok(()))
+///     }
+/// }
+/// ```
+///
+/// [`readable`]: method@Self::readable
+/// [`writable`]: method@Self::writable
+/// [`AsyncFdReadyGuard`]: struct@self::AsyncFdReadyGuard
+/// [`TcpStream::poll_read_ready`]: struct@crate::net::TcpStream
+</span><span class="kw">pub struct </span>AsyncFd&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; {
+    registration: <a href="../../../src/tokio/io/driver/registration.rs.html#44">Registration</a>,
+    inner: <span class="prelude-ty">Option</span>&lt;T&gt;,
 }
 
-<span class="doccomment">/// Represents an IO-ready event detected on a particular file descriptor that</span>
-<span class="doccomment">/// has not yet been acknowledged. This is a `must_use` structure to help ensure</span>
-<span class="doccomment">/// that you do not forget to explicitly clear (or not clear) the event.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type exposes an immutable reference to the underlying IO object.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;You must explicitly choose whether to clear the readiness state by calling a method on ReadyGuard&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsyncFdReadyGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> {
-    <span class="ident">async_fd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">event</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Represents an IO-ready event detected on a particular file descriptor that
+/// has not yet been acknowledged. This is a `must_use` structure to help ensure
+/// that you do not forget to explicitly clear (or not clear) the event.
+///
+/// This type exposes an immutable reference to the underlying IO object.
+</span><span class="attribute">#[must_use = <span class="string">&quot;You must explicitly choose whether to clear the readiness state by calling a method on ReadyGuard&quot;</span>]
+</span><span class="kw">pub struct </span>AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; {
+    async_fd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFd&lt;T&gt;,
+    event: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>&gt;,
 }
 
-<span class="doccomment">/// Represents an IO-ready event detected on a particular file descriptor that</span>
-<span class="doccomment">/// has not yet been acknowledged. This is a `must_use` structure to help ensure</span>
-<span class="doccomment">/// that you do not forget to explicitly clear (or not clear) the event.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type exposes a mutable reference to the underlying IO object.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;You must explicitly choose whether to clear the readiness state by calling a method on ReadyGuard&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsyncFdReadyMutGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> {
-    <span class="ident">async_fd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">event</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Represents an IO-ready event detected on a particular file descriptor that
+/// has not yet been acknowledged. This is a `must_use` structure to help ensure
+/// that you do not forget to explicitly clear (or not clear) the event.
+///
+/// This type exposes a mutable reference to the underlying IO object.
+</span><span class="attribute">#[must_use = <span class="string">&quot;You must explicitly choose whether to clear the readiness state by calling a method on ReadyGuard&quot;</span>]
+</span><span class="kw">pub struct </span>AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; {
+    async_fd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>AsyncFd&lt;T&gt;,
+    event: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>&gt;,
 }
 
-<span class="kw">const</span> <span class="ident">ALL_INTEREST</span>: <a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a> <span class="op">=</span> <span class="ident">Interest::READABLE</span>.<a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#94">add</a>(<span class="ident">Interest::WRITABLE</span>);
+<span class="kw">const </span>ALL_INTEREST: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a> = Interest::READABLE.<a href="../../../src/tokio/io/driver/interest.rs.html#94">add</a>(Interest::WRITABLE);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates an AsyncFd backed by (and taking ownership of) an object</span>
-    <span class="doccomment">/// implementing [`AsRawFd`]. The backing file descriptor is cached at the</span>
-    <span class="doccomment">/// time of creation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method must be called in the context of a tokio runtime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is no current reactor set, or if the `rt`</span>
-    <span class="doccomment">/// feature flag is not enabled.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">T</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>,
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; AsyncFd&lt;T&gt; {
+    <span class="doccomment">/// Creates an AsyncFd backed by (and taking ownership of) an object
+    /// implementing [`AsRawFd`]. The backing file descriptor is cached at the
+    /// time of creation.
+    ///
+    /// This method must be called in the context of a tokio runtime.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is no current reactor set, or if the `rt`
+    /// feature flag is not enabled.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>new(inner: T) -&gt; io::Result&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>,
     {
-        <span class="ident"><span class="self">Self</span>::with_interest</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#182">inner</a>, <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#167">ALL_INTEREST</a>)
+        <span class="self">Self</span>::with_interest(<a href="../../../src/tokio/io/async_fd.rs.html#182">inner</a>, <a href="../../../src/tokio/io/async_fd.rs.html#167">ALL_INTEREST</a>)
     }
 
-    <span class="doccomment">/// Creates new instance as `new` with additional ability to customize interest,</span>
-    <span class="doccomment">/// allowing to specify whether file descriptor will be polled for read, write or both.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if there is no current reactor set, or if the `rt`</span>
-    <span class="doccomment">/// feature flag is not enabled.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_interest</span>(<span class="ident">inner</span>: <span class="ident">T</span>, <span class="ident">interest</span>: <a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>,
+    <span class="doccomment">/// Creates new instance as `new` with additional ability to customize interest,
+    /// allowing to specify whether file descriptor will be polled for read, write or both.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if there is no current reactor set, or if the `rt`
+    /// feature flag is not enabled.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>with_interest(inner: T, interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>,
     {
-        <span class="ident"><span class="self">Self</span>::new_with_handle_and_interest</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#198">inner</a>, <span class="ident">Handle::current</span>(), <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#198">interest</a>)
+        <span class="self">Self</span>::new_with_handle_and_interest(<a href="../../../src/tokio/io/async_fd.rs.html#198">inner</a>, Handle::current(), <a href="../../../src/tokio/io/async_fd.rs.html#198">interest</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_with_handle_and_interest</span>(
-        <span class="ident">inner</span>: <span class="ident">T</span>,
-        <span class="ident">handle</span>: <a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>,
-        <span class="ident">interest</span>: <a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#206">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_handle_and_interest(
+        inner: T,
+        handle: <a href="../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>,
+        interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
+    ) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>fd = <a href="../../../src/tokio/io/async_fd.rs.html#206">inner</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
 
-        <span class="kw">let</span> <span class="ident">registration</span> <span class="op">=</span>
-            <span class="ident">Registration::new_with_interest_and_handle</span>(<span class="kw-2">&amp;mut</span> <span class="ident">SourceFd</span>(<span class="kw-2">&amp;</span><span class="ident">fd</span>), <span class="ident">interest</span>, <span class="ident">handle</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>registration =
+            Registration::new_with_interest_and_handle(<span class="kw-2">&amp;mut </span>SourceFd(<span class="kw-2">&amp;</span>fd), interest, handle)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#140">AsyncFd</a> {
-            <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#212">registration</a>,
-            <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#206">inner</a>),
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#140">AsyncFd</a> {
+            <a href="../../../src/tokio/io/async_fd.rs.html#212">registration</a>,
+            inner: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#206">inner</a>),
         })
     }
 
-    <span class="doccomment">/// Returns a shared reference to the backing object of this [`AsyncFd`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#223">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
+    <span class="doccomment">/// Returns a shared reference to the backing object of this [`AsyncFd`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#223">self</a>.inner.as_ref().unwrap()
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the backing object of this [`AsyncFd`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#229">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>()
+    <span class="doccomment">/// Returns a mutable reference to the backing object of this [`AsyncFd`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#229">self</a>.inner.as_mut().unwrap()
     }
 
-    <span class="kw">fn</span> <span class="ident">take_inner</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd::as_raw_fd</a>);
+    <span class="kw">fn </span>take_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="kw">let </span>fd = <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.inner.as_ref().map(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd::as_raw_fd</a>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fd</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#234">fd</a> {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.<span class="ident">registration</span>.<a class="ident" href="../../../src/tokio/io/driver/registration.rs.html#96">deregister</a>(<span class="kw-2">&amp;mut</span> <span class="ident">SourceFd</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/io/async_fd.rs.html#236">fd</a>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(fd) = <a href="../../../src/tokio/io/async_fd.rs.html#234">fd</a> {
+            <span class="kw">let _ </span>= <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.registration.<a href="../../../src/tokio/io/driver/registration.rs.html#96">deregister</a>(<span class="kw-2">&amp;mut </span>SourceFd(<span class="kw-2">&amp;</span><a href="../../../src/tokio/io/async_fd.rs.html#236">fd</a>));
         }
 
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>()
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#233">self</a>.inner.take()
     }
 
-    <span class="doccomment">/// Deregisters this file descriptor and returns ownership of the backing</span>
-    <span class="doccomment">/// object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#245">self</a>.<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#233">take_inner</a>().<span class="ident">unwrap</span>()
+    <span class="doccomment">/// Deregisters this file descriptor and returns ownership of the backing
+    /// object.
+    </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#245">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#233">take_inner</a>().unwrap()
     }
 
-    <span class="doccomment">/// Polls for read readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the file descriptor is not currently ready for reading, this method</span>
-    <span class="doccomment">/// will store a clone of the [`Waker`] from the provided [`Context`]. When the</span>
-    <span class="doccomment">/// file descriptor becomes ready for reading, [`Waker::wake`] will be called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that on multiple calls to [`poll_read_ready`] or</span>
-    <span class="doccomment">/// [`poll_read_ready_mut`], only the `Waker` from the `Context` passed to the</span>
-    <span class="doccomment">/// most recent call is scheduled to receive a wakeup. (However,</span>
-    <span class="doccomment">/// [`poll_write_ready`] retains a second, independent waker).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is intended for cases where creating and pinning a future</span>
-    <span class="doccomment">/// via [`readable`] is not feasible. Where possible, using [`readable`] is</span>
-    <span class="doccomment">/// preferred, as this supports polling from multiple tasks at once.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method takes `&amp;self`, so it is possible to call this method</span>
-    <span class="doccomment">/// concurrently with other methods on this struct. This method only</span>
-    <span class="doccomment">/// provides shared access to the inner IO resource when handling the</span>
-    <span class="doccomment">/// [`AsyncFdReadyGuard`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`poll_read_ready`]: method@Self::poll_read_ready</span>
-    <span class="doccomment">/// [`poll_read_ready_mut`]: method@Self::poll_read_ready_mut</span>
-    <span class="doccomment">/// [`poll_write_ready`]: method@Self::poll_write_ready</span>
-    <span class="doccomment">/// [`readable`]: method@Self::readable</span>
-    <span class="doccomment">/// [`Context`]: struct@std::task::Context</span>
-    <span class="doccomment">/// [`Waker`]: struct@std::task::Waker</span>
-    <span class="doccomment">/// [`Waker::wake`]: method@std::task::Waker::wake</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_read_ready</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">registration</span>.<span class="ident">poll_read_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Polls for read readiness.
+    ///
+    /// If the file descriptor is not currently ready for reading, this method
+    /// will store a clone of the [`Waker`] from the provided [`Context`]. When the
+    /// file descriptor becomes ready for reading, [`Waker::wake`] will be called.
+    ///
+    /// Note that on multiple calls to [`poll_read_ready`] or
+    /// [`poll_read_ready_mut`], only the `Waker` from the `Context` passed to the
+    /// most recent call is scheduled to receive a wakeup. (However,
+    /// [`poll_write_ready`] retains a second, independent waker).
+    ///
+    /// This method is intended for cases where creating and pinning a future
+    /// via [`readable`] is not feasible. Where possible, using [`readable`] is
+    /// preferred, as this supports polling from multiple tasks at once.
+    ///
+    /// This method takes `&amp;self`, so it is possible to call this method
+    /// concurrently with other methods on this struct. This method only
+    /// provides shared access to the inner IO resource when handling the
+    /// [`AsyncFdReadyGuard`].
+    ///
+    /// [`poll_read_ready`]: method@Self::poll_read_ready
+    /// [`poll_read_ready_mut`]: method@Self::poll_read_ready_mut
+    /// [`poll_write_ready`]: method@Self::poll_write_ready
+    /// [`readable`]: method@Self::readable
+    /// [`Context`]: struct@std::task::Context
+    /// [`Waker`]: struct@std::task::Waker
+    /// [`Waker::wake`]: method@std::task::Waker::wake
+    </span><span class="kw">pub fn </span>poll_read_ready&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;&gt; {
+        <span class="kw">let </span>event = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_read_ready(cx))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#151">AsyncFdReadyGuard</a> {
-            <span class="ident">async_fd</span>: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#277">self</a>,
-            <span class="ident">event</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#280">event</a>),
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#151">AsyncFdReadyGuard</a> {
+            async_fd: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#277">self</a>,
+            event: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#280">event</a>),
         })
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="doccomment">/// Polls for read readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the file descriptor is not currently ready for reading, this method</span>
-    <span class="doccomment">/// will store a clone of the [`Waker`] from the provided [`Context`]. When the</span>
-    <span class="doccomment">/// file descriptor becomes ready for reading, [`Waker::wake`] will be called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that on multiple calls to [`poll_read_ready`] or</span>
-    <span class="doccomment">/// [`poll_read_ready_mut`], only the `Waker` from the `Context` passed to the</span>
-    <span class="doccomment">/// most recent call is scheduled to receive a wakeup. (However,</span>
-    <span class="doccomment">/// [`poll_write_ready`] retains a second, independent waker).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is intended for cases where creating and pinning a future</span>
-    <span class="doccomment">/// via [`readable`] is not feasible. Where possible, using [`readable`] is</span>
-    <span class="doccomment">/// preferred, as this supports polling from multiple tasks at once.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method takes `&amp;mut self`, so it is possible to access the inner IO</span>
-    <span class="doccomment">/// resource mutably when handling the [`AsyncFdReadyMutGuard`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`poll_read_ready`]: method@Self::poll_read_ready</span>
-    <span class="doccomment">/// [`poll_read_ready_mut`]: method@Self::poll_read_ready_mut</span>
-    <span class="doccomment">/// [`poll_write_ready`]: method@Self::poll_write_ready</span>
-    <span class="doccomment">/// [`readable`]: method@Self::readable</span>
-    <span class="doccomment">/// [`Context`]: struct@std::task::Context</span>
-    <span class="doccomment">/// [`Waker`]: struct@std::task::Waker</span>
-    <span class="doccomment">/// [`Waker::wake`]: method@std::task::Waker::wake</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_read_ready_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyMutGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">registration</span>.<span class="ident">poll_read_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Polls for read readiness.
+    ///
+    /// If the file descriptor is not currently ready for reading, this method
+    /// will store a clone of the [`Waker`] from the provided [`Context`]. When the
+    /// file descriptor becomes ready for reading, [`Waker::wake`] will be called.
+    ///
+    /// Note that on multiple calls to [`poll_read_ready`] or
+    /// [`poll_read_ready_mut`], only the `Waker` from the `Context` passed to the
+    /// most recent call is scheduled to receive a wakeup. (However,
+    /// [`poll_write_ready`] retains a second, independent waker).
+    ///
+    /// This method is intended for cases where creating and pinning a future
+    /// via [`readable`] is not feasible. Where possible, using [`readable`] is
+    /// preferred, as this supports polling from multiple tasks at once.
+    ///
+    /// This method takes `&amp;mut self`, so it is possible to access the inner IO
+    /// resource mutably when handling the [`AsyncFdReadyMutGuard`].
+    ///
+    /// [`poll_read_ready`]: method@Self::poll_read_ready
+    /// [`poll_read_ready_mut`]: method@Self::poll_read_ready_mut
+    /// [`poll_write_ready`]: method@Self::poll_write_ready
+    /// [`readable`]: method@Self::readable
+    /// [`Context`]: struct@std::task::Context
+    /// [`Waker`]: struct@std::task::Waker
+    /// [`Waker::wake`]: method@std::task::Waker::wake
+    </span><span class="kw">pub fn </span>poll_read_ready_mut&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;&gt; {
+        <span class="kw">let </span>event = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_read_ready(cx))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#162">AsyncFdReadyMutGuard</a> {
-            <span class="ident">async_fd</span>: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#315">self</a>,
-            <span class="ident">event</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#318">event</a>),
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#162">AsyncFdReadyMutGuard</a> {
+            async_fd: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#315">self</a>,
+            event: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#318">event</a>),
         })
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="doccomment">/// Polls for write readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the file descriptor is not currently ready for writing, this method</span>
-    <span class="doccomment">/// will store a clone of the [`Waker`] from the provided [`Context`]. When the</span>
-    <span class="doccomment">/// file descriptor becomes ready for writing, [`Waker::wake`] will be called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that on multiple calls to [`poll_write_ready`] or</span>
-    <span class="doccomment">/// [`poll_write_ready_mut`], only the `Waker` from the `Context` passed to the</span>
-    <span class="doccomment">/// most recent call is scheduled to receive a wakeup. (However,</span>
-    <span class="doccomment">/// [`poll_read_ready`] retains a second, independent waker).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is intended for cases where creating and pinning a future</span>
-    <span class="doccomment">/// via [`writable`] is not feasible. Where possible, using [`writable`] is</span>
-    <span class="doccomment">/// preferred, as this supports polling from multiple tasks at once.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method takes `&amp;self`, so it is possible to call this method</span>
-    <span class="doccomment">/// concurrently with other methods on this struct. This method only</span>
-    <span class="doccomment">/// provides shared access to the inner IO resource when handling the</span>
-    <span class="doccomment">/// [`AsyncFdReadyGuard`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`poll_read_ready`]: method@Self::poll_read_ready</span>
-    <span class="doccomment">/// [`poll_write_ready`]: method@Self::poll_write_ready</span>
-    <span class="doccomment">/// [`poll_write_ready_mut`]: method@Self::poll_write_ready_mut</span>
-    <span class="doccomment">/// [`writable`]: method@Self::readable</span>
-    <span class="doccomment">/// [`Context`]: struct@std::task::Context</span>
-    <span class="doccomment">/// [`Waker`]: struct@std::task::Waker</span>
-    <span class="doccomment">/// [`Waker::wake`]: method@std::task::Waker::wake</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_write_ready</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">registration</span>.<span class="ident">poll_write_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Polls for write readiness.
+    ///
+    /// If the file descriptor is not currently ready for writing, this method
+    /// will store a clone of the [`Waker`] from the provided [`Context`]. When the
+    /// file descriptor becomes ready for writing, [`Waker::wake`] will be called.
+    ///
+    /// Note that on multiple calls to [`poll_write_ready`] or
+    /// [`poll_write_ready_mut`], only the `Waker` from the `Context` passed to the
+    /// most recent call is scheduled to receive a wakeup. (However,
+    /// [`poll_read_ready`] retains a second, independent waker).
+    ///
+    /// This method is intended for cases where creating and pinning a future
+    /// via [`writable`] is not feasible. Where possible, using [`writable`] is
+    /// preferred, as this supports polling from multiple tasks at once.
+    ///
+    /// This method takes `&amp;self`, so it is possible to call this method
+    /// concurrently with other methods on this struct. This method only
+    /// provides shared access to the inner IO resource when handling the
+    /// [`AsyncFdReadyGuard`].
+    ///
+    /// [`poll_read_ready`]: method@Self::poll_read_ready
+    /// [`poll_write_ready`]: method@Self::poll_write_ready
+    /// [`poll_write_ready_mut`]: method@Self::poll_write_ready_mut
+    /// [`writable`]: method@Self::readable
+    /// [`Context`]: struct@std::task::Context
+    /// [`Waker`]: struct@std::task::Waker
+    /// [`Waker::wake`]: method@std::task::Waker::wake
+    </span><span class="kw">pub fn </span>poll_write_ready&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;&gt; {
+        <span class="kw">let </span>event = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_write_ready(cx))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#151">AsyncFdReadyGuard</a> {
-            <span class="ident">async_fd</span>: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#355">self</a>,
-            <span class="ident">event</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#358">event</a>),
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#151">AsyncFdReadyGuard</a> {
+            async_fd: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#355">self</a>,
+            event: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#358">event</a>),
         })
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="doccomment">/// Polls for write readiness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the file descriptor is not currently ready for writing, this method</span>
-    <span class="doccomment">/// will store a clone of the [`Waker`] from the provided [`Context`]. When the</span>
-    <span class="doccomment">/// file descriptor becomes ready for writing, [`Waker::wake`] will be called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that on multiple calls to [`poll_write_ready`] or</span>
-    <span class="doccomment">/// [`poll_write_ready_mut`], only the `Waker` from the `Context` passed to the</span>
-    <span class="doccomment">/// most recent call is scheduled to receive a wakeup. (However,</span>
-    <span class="doccomment">/// [`poll_read_ready`] retains a second, independent waker).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is intended for cases where creating and pinning a future</span>
-    <span class="doccomment">/// via [`writable`] is not feasible. Where possible, using [`writable`] is</span>
-    <span class="doccomment">/// preferred, as this supports polling from multiple tasks at once.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method takes `&amp;mut self`, so it is possible to access the inner IO</span>
-    <span class="doccomment">/// resource mutably when handling the [`AsyncFdReadyMutGuard`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`poll_read_ready`]: method@Self::poll_read_ready</span>
-    <span class="doccomment">/// [`poll_write_ready`]: method@Self::poll_write_ready</span>
-    <span class="doccomment">/// [`poll_write_ready_mut`]: method@Self::poll_write_ready_mut</span>
-    <span class="doccomment">/// [`writable`]: method@Self::readable</span>
-    <span class="doccomment">/// [`Context`]: struct@std::task::Context</span>
-    <span class="doccomment">/// [`Waker`]: struct@std::task::Waker</span>
-    <span class="doccomment">/// [`Waker::wake`]: method@std::task::Waker::wake</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_write_ready_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyMutGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">registration</span>.<span class="ident">poll_write_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Polls for write readiness.
+    ///
+    /// If the file descriptor is not currently ready for writing, this method
+    /// will store a clone of the [`Waker`] from the provided [`Context`]. When the
+    /// file descriptor becomes ready for writing, [`Waker::wake`] will be called.
+    ///
+    /// Note that on multiple calls to [`poll_write_ready`] or
+    /// [`poll_write_ready_mut`], only the `Waker` from the `Context` passed to the
+    /// most recent call is scheduled to receive a wakeup. (However,
+    /// [`poll_read_ready`] retains a second, independent waker).
+    ///
+    /// This method is intended for cases where creating and pinning a future
+    /// via [`writable`] is not feasible. Where possible, using [`writable`] is
+    /// preferred, as this supports polling from multiple tasks at once.
+    ///
+    /// This method takes `&amp;mut self`, so it is possible to access the inner IO
+    /// resource mutably when handling the [`AsyncFdReadyMutGuard`].
+    ///
+    /// [`poll_read_ready`]: method@Self::poll_read_ready
+    /// [`poll_write_ready`]: method@Self::poll_write_ready
+    /// [`poll_write_ready_mut`]: method@Self::poll_write_ready_mut
+    /// [`writable`]: method@Self::readable
+    /// [`Context`]: struct@std::task::Context
+    /// [`Waker`]: struct@std::task::Waker
+    /// [`Waker::wake`]: method@std::task::Waker::wake
+    </span><span class="kw">pub fn </span>poll_write_ready_mut&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt;&gt; {
+        <span class="kw">let </span>event = <span class="macro">ready!</span>(<span class="self">self</span>.registration.poll_write_ready(cx))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#162">AsyncFdReadyMutGuard</a> {
-            <span class="ident">async_fd</span>: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#393">self</a>,
-            <span class="ident">event</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#396">event</a>),
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#162">AsyncFdReadyMutGuard</a> {
+            async_fd: <a class="self" href="../../../src/tokio/io/async_fd.rs.html#393">self</a>,
+            event: <span class="prelude-val">Some</span>(<a href="../../../src/tokio/io/async_fd.rs.html#396">event</a>),
         })
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">readiness</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">registration</span>.<span class="ident">readiness</span>(<span class="ident">interest</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">async fn </span>readiness(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+        <span class="kw">let </span>event = <span class="self">self</span>.registration.readiness(interest).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">AsyncFdReadyGuard</span> {
-            <span class="ident">async_fd</span>: <span class="self">self</span>,
-            <span class="ident">event</span>: <span class="prelude-val">Some</span>(<span class="ident">event</span>),
-        })
-    }
-
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">readiness_mut</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">interest</span>: <a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyMutGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">registration</span>.<span class="ident">readiness</span>(<span class="ident">interest</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(<span class="ident">AsyncFdReadyMutGuard</span> {
-            <span class="ident">async_fd</span>: <span class="self">self</span>,
-            <span class="ident">event</span>: <span class="prelude-val">Some</span>(<span class="ident">event</span>),
+        <span class="prelude-val">Ok</span>(AsyncFdReadyGuard {
+            async_fd: <span class="self">self</span>,
+            event: <span class="prelude-val">Some</span>(event),
         })
     }
 
-    <span class="doccomment">/// Waits for the file descriptor to become readable, returning a</span>
-    <span class="doccomment">/// [`AsyncFdReadyGuard`] that must be dropped to resume read-readiness</span>
-    <span class="doccomment">/// polling.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method takes `&amp;self`, so it is possible to call this method</span>
-    <span class="doccomment">/// concurrently with other methods on this struct. This method only</span>
-    <span class="doccomment">/// provides shared access to the inner IO resource when handling the</span>
-    <span class="doccomment">/// [`AsyncFdReadyGuard`].</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span> <span class="comment">// The lifetime improves rustdoc rendering.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">readable</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">readiness</span>(<span class="ident">Interest::READABLE</span>).<span class="kw">await</span>
+    <span class="kw">async fn </span>readiness_mut(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        interest: <a href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
+    ) -&gt; io::Result&lt;AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+        <span class="kw">let </span>event = <span class="self">self</span>.registration.readiness(interest).<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(AsyncFdReadyMutGuard {
+            async_fd: <span class="self">self</span>,
+            event: <span class="prelude-val">Some</span>(event),
+        })
     }
 
-    <span class="doccomment">/// Waits for the file descriptor to become readable, returning a</span>
-    <span class="doccomment">/// [`AsyncFdReadyMutGuard`] that must be dropped to resume read-readiness</span>
-    <span class="doccomment">/// polling.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method takes `&amp;mut self`, so it is possible to access the inner IO</span>
-    <span class="doccomment">/// resource mutably when handling the [`AsyncFdReadyMutGuard`].</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span> <span class="comment">// The lifetime improves rustdoc rendering.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">readable_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyMutGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">readiness_mut</span>(<span class="ident">Interest::READABLE</span>).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Waits for the file descriptor to become readable, returning a
+    /// [`AsyncFdReadyGuard`] that must be dropped to resume read-readiness
+    /// polling.
+    ///
+    /// This method takes `&amp;self`, so it is possible to call this method
+    /// concurrently with other methods on this struct. This method only
+    /// provides shared access to the inner IO resource when handling the
+    /// [`AsyncFdReadyGuard`].
+    </span><span class="attribute">#[allow(clippy::needless_lifetimes)] </span><span class="comment">// The lifetime improves rustdoc rendering.
+    </span><span class="kw">pub async fn </span>readable&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt; {
+        <span class="self">self</span>.readiness(Interest::READABLE).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Waits for the file descriptor to become writable, returning a</span>
-    <span class="doccomment">/// [`AsyncFdReadyGuard`] that must be dropped to resume write-readiness</span>
-    <span class="doccomment">/// polling.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method takes `&amp;self`, so it is possible to call this method</span>
-    <span class="doccomment">/// concurrently with other methods on this struct. This method only</span>
-    <span class="doccomment">/// provides shared access to the inner IO resource when handling the</span>
-    <span class="doccomment">/// [`AsyncFdReadyGuard`].</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span> <span class="comment">// The lifetime improves rustdoc rendering.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">writable</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">readiness</span>(<span class="ident">Interest::WRITABLE</span>).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Waits for the file descriptor to become readable, returning a
+    /// [`AsyncFdReadyMutGuard`] that must be dropped to resume read-readiness
+    /// polling.
+    ///
+    /// This method takes `&amp;mut self`, so it is possible to access the inner IO
+    /// resource mutably when handling the [`AsyncFdReadyMutGuard`].
+    </span><span class="attribute">#[allow(clippy::needless_lifetimes)] </span><span class="comment">// The lifetime improves rustdoc rendering.
+    </span><span class="kw">pub async fn </span>readable_mut&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt; {
+        <span class="self">self</span>.readiness_mut(Interest::READABLE).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Waits for the file descriptor to become writable, returning a</span>
-    <span class="doccomment">/// [`AsyncFdReadyMutGuard`] that must be dropped to resume write-readiness</span>
-    <span class="doccomment">/// polling.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method takes `&amp;mut self`, so it is possible to access the inner IO</span>
-    <span class="doccomment">/// resource mutably when handling the [`AsyncFdReadyMutGuard`].</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span> <span class="comment">// The lifetime improves rustdoc rendering.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">writable_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">AsyncFdReadyMutGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">readiness_mut</span>(<span class="ident">Interest::WRITABLE</span>).<span class="kw">await</span>
+    <span class="doccomment">/// Waits for the file descriptor to become writable, returning a
+    /// [`AsyncFdReadyGuard`] that must be dropped to resume write-readiness
+    /// polling.
+    ///
+    /// This method takes `&amp;self`, so it is possible to call this method
+    /// concurrently with other methods on this struct. This method only
+    /// provides shared access to the inner IO resource when handling the
+    /// [`AsyncFdReadyGuard`].
+    </span><span class="attribute">#[allow(clippy::needless_lifetimes)] </span><span class="comment">// The lifetime improves rustdoc rendering.
+    </span><span class="kw">pub async fn </span>writable&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; io::Result&lt;AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt; {
+        <span class="self">self</span>.readiness(Interest::WRITABLE).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Waits for the file descriptor to become writable, returning a
+    /// [`AsyncFdReadyMutGuard`] that must be dropped to resume write-readiness
+    /// polling.
+    ///
+    /// This method takes `&amp;mut self`, so it is possible to access the inner IO
+    /// resource mutably when handling the [`AsyncFdReadyMutGuard`].
+    </span><span class="attribute">#[allow(clippy::needless_lifetimes)] </span><span class="comment">// The lifetime improves rustdoc rendering.
+    </span><span class="kw">pub async fn </span>writable_mut&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt; {
+        <span class="self">self</span>.readiness_mut(Interest::WRITABLE).<span class="kw">await
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span>AsyncFd&lt;T&gt; {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#476">self</a>.inner.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#476">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>AsyncFd&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <a href="../../../src/tokio/io/async_fd.rs.html#482">f</a>.debug_struct(<span class="string">&quot;AsyncFd&quot;</span>)
+            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#482">self</a>.inner)
+            .finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#482">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;AsyncFd&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#482">self</a>.<span class="ident">inner</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>AsyncFd&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let _ </span>= <a class="self" href="../../../src/tokio/io/async_fd.rs.html#490">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#233">take_inner</a>();
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/io/async_fd.rs.html#490">self</a>.<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#233">take_inner</a>();
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Inner</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> <span class="ident">AsyncFdReadyGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Inner</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Indicates to tokio that the file descriptor is no longer ready. The</span>
-    <span class="doccomment">/// internal readiness flag will be cleared, and tokio will wait for the</span>
-    <span class="doccomment">/// next edge-triggered readiness notification from the OS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is critical that this function not be called unless your code</span>
-    <span class="doccomment">/// _actually observes_ that the file descriptor is _not_ ready. Do not call</span>
-    <span class="doccomment">/// it simply because, for example, a read succeeded; it should be called</span>
-    <span class="doccomment">/// when a read is observed to block.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`drop`]: method@std::mem::drop</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/io/async_fd.rs.html#506">self</a>.<span class="ident">event</span>.<span class="ident">take</span>() {
-            <a class="self" href="../../../src/tokio/io/async_fd.rs.html#506">self</a>.<span class="ident">async_fd</span>.<span class="ident">registration</span>.<a class="ident" href="../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#507">event</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Inner: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, Inner&gt; {
+    <span class="doccomment">/// Indicates to tokio that the file descriptor is no longer ready. The
+    /// internal readiness flag will be cleared, and tokio will wait for the
+    /// next edge-triggered readiness notification from the OS.
+    ///
+    /// It is critical that this function not be called unless your code
+    /// _actually observes_ that the file descriptor is _not_ ready. Do not call
+    /// it simply because, for example, a read succeeded; it should be called
+    /// when a read is observed to block.
+    ///
+    /// [`drop`]: method@std::mem::drop
+    </span><span class="kw">pub fn </span>clear_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = <a class="self" href="../../../src/tokio/io/async_fd.rs.html#506">self</a>.event.take() {
+            <a class="self" href="../../../src/tokio/io/async_fd.rs.html#506">self</a>.async_fd.registration.<a href="../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a href="../../../src/tokio/io/async_fd.rs.html#507">event</a>);
         }
     }
 
-    <span class="doccomment">/// This method should be invoked when you intentionally want to keep the</span>
-    <span class="doccomment">/// ready flag asserted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// While this function is itself a no-op, it satisfies the `#[must_use]`</span>
-    <span class="doccomment">/// constraint on the [`AsyncFdReadyGuard`] type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">retain_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// no-op</span>
-    }
+    <span class="doccomment">/// This method should be invoked when you intentionally want to keep the
+    /// ready flag asserted.
+    ///
+    /// While this function is itself a no-op, it satisfies the `#[must_use]`
+    /// constraint on the [`AsyncFdReadyGuard`] type.
+    </span><span class="kw">pub fn </span>retain_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// no-op
+    </span>}
 
-    <span class="doccomment">/// Performs the provided IO operation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `f` returns a [`WouldBlock`] error, the readiness state associated</span>
-    <span class="doccomment">/// with this file descriptor is cleared, and the method returns</span>
-    <span class="doccomment">/// `Err(TryIoError::WouldBlock)`. You will typically need to poll the</span>
-    <span class="doccomment">/// `AsyncFd` again when this happens.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method helps ensure that the readiness state of the underlying file</span>
-    <span class="doccomment">/// descriptor remains in sync with the tokio-side readiness state, by</span>
-    <span class="doccomment">/// clearing the tokio-side state only when a [`WouldBlock`] condition</span>
-    <span class="doccomment">/// occurs. It is the responsibility of the caller to ensure that `f`</span>
-    <span class="doccomment">/// returns [`WouldBlock`] only if the file descriptor that originated this</span>
-    <span class="doccomment">/// `AsyncFdReadyGuard` no longer expresses the readiness state that was queried to</span>
-    <span class="doccomment">/// create this `AsyncFdReadyGuard`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`WouldBlock`]: std::io::ErrorKind::WouldBlock</span>
-    <span class="comment">// Alias for old name in 0.x</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;with_io&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_io</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#541">f</a>(<a class="self" href="../../../src/tokio/io/async_fd.rs.html#540">self</a>.<span class="ident">async_fd</span>);
+    <span class="doccomment">/// Performs the provided IO operation.
+    ///
+    /// If `f` returns a [`WouldBlock`] error, the readiness state associated
+    /// with this file descriptor is cleared, and the method returns
+    /// `Err(TryIoError::WouldBlock)`. You will typically need to poll the
+    /// `AsyncFd` again when this happens.
+    ///
+    /// This method helps ensure that the readiness state of the underlying file
+    /// descriptor remains in sync with the tokio-side readiness state, by
+    /// clearing the tokio-side state only when a [`WouldBlock`] condition
+    /// occurs. It is the responsibility of the caller to ensure that `f`
+    /// returns [`WouldBlock`] only if the file descriptor that originated this
+    /// `AsyncFdReadyGuard` no longer expresses the readiness state that was queried to
+    /// create this `AsyncFdReadyGuard`.
+    ///
+    /// [`WouldBlock`]: std::io::ErrorKind::WouldBlock
+    </span><span class="comment">// Alias for old name in 0.x
+    </span><span class="attribute">#[cfg_attr(docsrs, doc(alias = <span class="string">&quot;with_io&quot;</span>))]
+    </span><span class="kw">pub fn </span>try_io&lt;R&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFd&lt;Inner&gt;) -&gt; io::Result&lt;R&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;io::Result&lt;R&gt;, <a href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>&gt; {
+        <span class="kw">let </span>result = <a href="../../../src/tokio/io/async_fd.rs.html#541">f</a>(<a class="self" href="../../../src/tokio/io/async_fd.rs.html#540">self</a>.async_fd);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#543">result</a>.<span class="ident">as_ref</span>() {
-            <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> {
-                <a class="self" href="../../../src/tokio/io/async_fd.rs.html#540">self</a>.<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#506">clear_ready</a>();
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../../src/tokio/io/async_fd.rs.html#543">result</a>.as_ref() {
+            <span class="kw">if </span>e.kind() == io::ErrorKind::WouldBlock {
+                <a class="self" href="../../../src/tokio/io/async_fd.rs.html#540">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#506">clear_ready</a>();
             }
         }
 
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#543">result</a> {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#552">err</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>(())),
-            <span class="ident">result</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#553">result</a>),
+        <span class="kw">match </span><a href="../../../src/tokio/io/async_fd.rs.html#543">result</a> {
+            <span class="prelude-val">Err</span>(err) <span class="kw">if </span><a href="../../../src/tokio/io/async_fd.rs.html#552">err</a>.kind() == io::ErrorKind::WouldBlock =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>(())),
+            result =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#553">result</a>),
         }
     }
 
-    <span class="doccomment">/// Returns a shared reference to the inner [`AsyncFd`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#558">self</a>.<span class="ident">async_fd</span>
+    <span class="doccomment">/// Returns a shared reference to the inner [`AsyncFd`].
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFd&lt;Inner&gt; {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#558">self</a>.async_fd
     }
 
-    <span class="doccomment">/// Returns a shared reference to the backing object of the inner [`AsyncFd`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Inner</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#563">self</a>.<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#558">get_ref</a>().<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#223">get_ref</a>()
+    <span class="doccomment">/// Returns a shared reference to the backing object of the inner [`AsyncFd`].
+    </span><span class="kw">pub fn </span>get_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Inner {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#563">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#558">get_ref</a>().<a href="../../../src/tokio/io/async_fd.rs.html#223">get_ref</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Inner</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> <span class="ident">AsyncFdReadyMutGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Inner</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Indicates to tokio that the file descriptor is no longer ready. The</span>
-    <span class="doccomment">/// internal readiness flag will be cleared, and tokio will wait for the</span>
-    <span class="doccomment">/// next edge-triggered readiness notification from the OS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is critical that this function not be called unless your code</span>
-    <span class="doccomment">/// _actually observes_ that the file descriptor is _not_ ready. Do not call</span>
-    <span class="doccomment">/// it simply because, for example, a read succeeded; it should be called</span>
-    <span class="doccomment">/// when a read is observed to block.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`drop`]: method@std::mem::drop</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/io/async_fd.rs.html#579">self</a>.<span class="ident">event</span>.<span class="ident">take</span>() {
-            <a class="self" href="../../../src/tokio/io/async_fd.rs.html#579">self</a>.<span class="ident">async_fd</span>.<span class="ident">registration</span>.<a class="ident" href="../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#580">event</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Inner: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, Inner&gt; {
+    <span class="doccomment">/// Indicates to tokio that the file descriptor is no longer ready. The
+    /// internal readiness flag will be cleared, and tokio will wait for the
+    /// next edge-triggered readiness notification from the OS.
+    ///
+    /// It is critical that this function not be called unless your code
+    /// _actually observes_ that the file descriptor is _not_ ready. Do not call
+    /// it simply because, for example, a read succeeded; it should be called
+    /// when a read is observed to block.
+    ///
+    /// [`drop`]: method@std::mem::drop
+    </span><span class="kw">pub fn </span>clear_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = <a class="self" href="../../../src/tokio/io/async_fd.rs.html#579">self</a>.event.take() {
+            <a class="self" href="../../../src/tokio/io/async_fd.rs.html#579">self</a>.async_fd.registration.<a href="../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a href="../../../src/tokio/io/async_fd.rs.html#580">event</a>);
         }
     }
 
-    <span class="doccomment">/// This method should be invoked when you intentionally want to keep the</span>
-    <span class="doccomment">/// ready flag asserted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// While this function is itself a no-op, it satisfies the `#[must_use]`</span>
-    <span class="doccomment">/// constraint on the [`AsyncFdReadyGuard`] type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">retain_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// no-op</span>
-    }
+    <span class="doccomment">/// This method should be invoked when you intentionally want to keep the
+    /// ready flag asserted.
+    ///
+    /// While this function is itself a no-op, it satisfies the `#[must_use]`
+    /// constraint on the [`AsyncFdReadyGuard`] type.
+    </span><span class="kw">pub fn </span>retain_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// no-op
+    </span>}
 
-    <span class="doccomment">/// Performs the provided IO operation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `f` returns a [`WouldBlock`] error, the readiness state associated</span>
-    <span class="doccomment">/// with this file descriptor is cleared, and the method returns</span>
-    <span class="doccomment">/// `Err(TryIoError::WouldBlock)`. You will typically need to poll the</span>
-    <span class="doccomment">/// `AsyncFd` again when this happens.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method helps ensure that the readiness state of the underlying file</span>
-    <span class="doccomment">/// descriptor remains in sync with the tokio-side readiness state, by</span>
-    <span class="doccomment">/// clearing the tokio-side state only when a [`WouldBlock`] condition</span>
-    <span class="doccomment">/// occurs. It is the responsibility of the caller to ensure that `f`</span>
-    <span class="doccomment">/// returns [`WouldBlock`] only if the file descriptor that originated this</span>
-    <span class="doccomment">/// `AsyncFdReadyGuard` no longer expresses the readiness state that was queried to</span>
-    <span class="doccomment">/// create this `AsyncFdReadyGuard`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`WouldBlock`]: std::io::ErrorKind::WouldBlock</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_io</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#612">f</a>(<a class="self" href="../../../src/tokio/io/async_fd.rs.html#611">self</a>.<span class="ident">async_fd</span>);
+    <span class="doccomment">/// Performs the provided IO operation.
+    ///
+    /// If `f` returns a [`WouldBlock`] error, the readiness state associated
+    /// with this file descriptor is cleared, and the method returns
+    /// `Err(TryIoError::WouldBlock)`. You will typically need to poll the
+    /// `AsyncFd` again when this happens.
+    ///
+    /// This method helps ensure that the readiness state of the underlying file
+    /// descriptor remains in sync with the tokio-side readiness state, by
+    /// clearing the tokio-side state only when a [`WouldBlock`] condition
+    /// occurs. It is the responsibility of the caller to ensure that `f`
+    /// returns [`WouldBlock`] only if the file descriptor that originated this
+    /// `AsyncFdReadyGuard` no longer expresses the readiness state that was queried to
+    /// create this `AsyncFdReadyGuard`.
+    ///
+    /// [`WouldBlock`]: std::io::ErrorKind::WouldBlock
+    </span><span class="kw">pub fn </span>try_io&lt;R&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>AsyncFd&lt;Inner&gt;) -&gt; io::Result&lt;R&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;io::Result&lt;R&gt;, <a href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>&gt; {
+        <span class="kw">let </span>result = <a href="../../../src/tokio/io/async_fd.rs.html#612">f</a>(<a class="self" href="../../../src/tokio/io/async_fd.rs.html#611">self</a>.async_fd);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#614">result</a>.<span class="ident">as_ref</span>() {
-            <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> {
-                <a class="self" href="../../../src/tokio/io/async_fd.rs.html#611">self</a>.<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#579">clear_ready</a>();
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <a href="../../../src/tokio/io/async_fd.rs.html#614">result</a>.as_ref() {
+            <span class="kw">if </span>e.kind() == io::ErrorKind::WouldBlock {
+                <a class="self" href="../../../src/tokio/io/async_fd.rs.html#611">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#579">clear_ready</a>();
             }
         }
 
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#614">result</a> {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#623">err</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>(())),
-            <span class="ident">result</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#624">result</a>),
+        <span class="kw">match </span><a href="../../../src/tokio/io/async_fd.rs.html#614">result</a> {
+            <span class="prelude-val">Err</span>(err) <span class="kw">if </span><a href="../../../src/tokio/io/async_fd.rs.html#623">err</a>.kind() == io::ErrorKind::WouldBlock =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/io/async_fd.rs.html#672">TryIoError</a>(())),
+            result =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/io/async_fd.rs.html#624">result</a>),
         }
     }
 
-    <span class="doccomment">/// Returns a shared reference to the inner [`AsyncFd`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#629">self</a>.<span class="ident">async_fd</span>
+    <span class="doccomment">/// Returns a shared reference to the inner [`AsyncFd`].
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>AsyncFd&lt;Inner&gt; {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#629">self</a>.async_fd
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the inner [`AsyncFd`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">AsyncFd</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#634">self</a>.<span class="ident">async_fd</span>
+    <span class="doccomment">/// Returns a mutable reference to the inner [`AsyncFd`].
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>AsyncFd&lt;Inner&gt; {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#634">self</a>.async_fd
     }
 
-    <span class="doccomment">/// Returns a shared reference to the backing object of the inner [`AsyncFd`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Inner</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#639">self</a>.<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#629">get_ref</a>().<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#223">get_ref</a>()
+    <span class="doccomment">/// Returns a shared reference to the backing object of the inner [`AsyncFd`].
+    </span><span class="kw">pub fn </span>get_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Inner {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#639">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#629">get_ref</a>().<a href="../../../src/tokio/io/async_fd.rs.html#223">get_ref</a>()
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the backing object of the inner [`AsyncFd`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_inner_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Inner</span> {
-        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#644">self</a>.<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#634">get_mut</a>().<a class="ident" href="../../../src/tokio/io/async_fd.rs.html#229">get_mut</a>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <span class="ident">AsyncFdReadyGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#650">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ReadyGuard&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;async_fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#650">self</a>.<span class="ident">async_fd</span>)
-            .<span class="ident">finish</span>()
+    <span class="doccomment">/// Returns a mutable reference to the backing object of the inner [`AsyncFd`].
+    </span><span class="kw">pub fn </span>get_inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Inner {
+        <a class="self" href="../../../src/tokio/io/async_fd.rs.html#644">self</a>.<a href="../../../src/tokio/io/async_fd.rs.html#634">get_mut</a>().<a href="../../../src/tokio/io/async_fd.rs.html#229">get_mut</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <span class="ident">AsyncFdReadyMutGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/io/async_fd.rs.html#658">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;MutReadyGuard&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;async_fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#658">self</a>.<span class="ident">async_fd</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>AsyncFdReadyGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <a href="../../../src/tokio/io/async_fd.rs.html#650">f</a>.debug_struct(<span class="string">&quot;ReadyGuard&quot;</span>)
+            .field(<span class="string">&quot;async_fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#650">self</a>.async_fd)
+            .finish()
     }
 }
 
-<span class="doccomment">/// The error type returned by [`try_io`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This error indicates that the IO resource returned a [`WouldBlock`] error.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`WouldBlock`]: std::io::ErrorKind::WouldBlock</span>
-<span class="doccomment">/// [`try_io`]: method@AsyncFdReadyGuard::try_io</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TryIoError</span>(());
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> + <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>AsyncFdReadyMutGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <a href="../../../src/tokio/io/async_fd.rs.html#658">f</a>.debug_struct(<span class="string">&quot;MutReadyGuard&quot;</span>)
+            .field(<span class="string">&quot;async_fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/async_fd.rs.html#658">self</a>.async_fd)
+            .finish()
+    }
+}
+
+<span class="doccomment">/// The error type returned by [`try_io`].
+///
+/// This error indicates that the IO resource returned a [`WouldBlock`] error.
+///
+/// [`WouldBlock`]: std::io::ErrorKind::WouldBlock
+/// [`try_io`]: method@AsyncFdReadyGuard::try_io
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>TryIoError(());
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

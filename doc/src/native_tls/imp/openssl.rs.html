@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/native-tls-0.2.10/src/imp/openssl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>openssl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../native_tls/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../native_tls/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../native_tls/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/native-tls-0.2.10/src/imp/openssl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>openssl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../native_tls/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../native_tls/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../native_tls/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -481,113 +481,113 @@
 <span id="481">481</span>
 <span id="482">482</span>
 <span id="483">483</span>
-</pre><pre class="rust"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">openssl</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">openssl_probe</span>;
+</pre><pre class="rust"><code><span class="kw">extern crate </span>openssl;
+<span class="kw">extern crate </span>openssl_probe;
 
-<span class="kw">use</span> <a class="ident" href="../../../openssl/error/struct.ErrorStack.html"><span class="self">self</span>::openssl::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../../openssl/hash/struct.MessageDigest.html"><span class="self">self</span>::openssl::hash::MessageDigest</a>;
-<span class="kw">use</span> <a class="ident" href="../../../openssl/nid/struct.Nid.html"><span class="self">self</span>::openssl::nid::Nid</a>;
-<span class="kw">use</span> <a class="ident" href="../../../openssl/pkcs12/struct.Pkcs12.html"><span class="self">self</span>::openssl::pkcs12::Pkcs12</a>;
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::openssl::pkey</span>::{<a class="ident" href="../../../openssl/pkey/struct.PKey.html">PKey</a>, <a class="ident" href="../../../openssl/pkey/enum.Private.html">Private</a>};
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::openssl::ssl</span>::{
-    <a class="self" href="../../../openssl/ssl/index.html">self</a>, <a class="ident" href="../../../openssl/ssl/struct.MidHandshakeSslStream.html">MidHandshakeSslStream</a>, <a class="ident" href="../../../openssl/ssl/connector/struct.SslAcceptor.html">SslAcceptor</a>, <a class="ident" href="../../../openssl/ssl/connector/struct.SslConnector.html">SslConnector</a>, <a class="ident" href="../../../openssl/ssl/struct.SslContextBuilder.html">SslContextBuilder</a>, <a class="ident" href="../../../openssl/ssl/struct.SslMethod.html">SslMethod</a>,
-    <a class="ident" href="../../../openssl/ssl/struct.SslVerifyMode.html">SslVerifyMode</a>,
+<span class="kw">use </span><a href="../../../openssl/error/struct.ErrorStack.html"><span class="self">self</span>::openssl::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../../../openssl/hash/struct.MessageDigest.html"><span class="self">self</span>::openssl::hash::MessageDigest</a>;
+<span class="kw">use </span><a href="../../../openssl/nid/struct.Nid.html"><span class="self">self</span>::openssl::nid::Nid</a>;
+<span class="kw">use </span><a href="../../../openssl/pkcs12/struct.Pkcs12.html"><span class="self">self</span>::openssl::pkcs12::Pkcs12</a>;
+<span class="kw">use </span><span class="self">self</span>::openssl::pkey::{<a href="../../../openssl/pkey/struct.PKey.html">PKey</a>, <a href="../../../openssl/pkey/enum.Private.html">Private</a>};
+<span class="kw">use </span><span class="self">self</span>::openssl::ssl::{
+    <a class="self" href="../../../openssl/ssl/index.html">self</a>, <a href="../../../openssl/ssl/struct.MidHandshakeSslStream.html">MidHandshakeSslStream</a>, <a href="../../../openssl/ssl/connector/struct.SslAcceptor.html">SslAcceptor</a>, <a href="../../../openssl/ssl/connector/struct.SslConnector.html">SslConnector</a>, <a href="../../../openssl/ssl/struct.SslContextBuilder.html">SslContextBuilder</a>, <a href="../../../openssl/ssl/struct.SslMethod.html">SslMethod</a>,
+    <a href="../../../openssl/ssl/struct.SslVerifyMode.html">SslVerifyMode</a>,
 };
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::openssl::x509</span>::{<a class="ident" href="../../../openssl/x509/store/struct.X509StoreBuilder.html">store::X509StoreBuilder</a>, <a class="ident" href="../../../openssl/x509/struct.X509VerifyResult.html">X509VerifyResult</a>, <a class="ident" href="../../../openssl/x509/struct.X509.html">X509</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">std::sync::Once</a>;
+<span class="kw">use </span><span class="self">self</span>::openssl::x509::{<a href="../../../openssl/x509/store/struct.X509StoreBuilder.html">store::X509StoreBuilder</a>, <a href="../../../openssl/x509/struct.X509VerifyResult.html">X509VerifyResult</a>, <a href="../../../openssl/x509/struct.X509.html">X509</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/error/index.html">std::error</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">std::sync::Once</a>;
 
-<span class="kw">use</span> {<a class="ident" href="../../../src/native_tls/lib.rs.html#314">Protocol</a>, <a class="ident" href="../../../src/native_tls/lib.rs.html#521">TlsAcceptorBuilder</a>, <a class="ident" href="../../../src/native_tls/lib.rs.html#333">TlsConnectorBuilder</a>};
+<span class="kw">use </span>{<a href="../../../src/native_tls/lib.rs.html#314">Protocol</a>, <a href="../../../src/native_tls/lib.rs.html#521">TlsAcceptorBuilder</a>, <a href="../../../src/native_tls/lib.rs.html#333">TlsConnectorBuilder</a>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">have_min_max_version</span>)]</span>
-<span class="kw">fn</span> <span class="ident">supported_protocols</span>(
-    <span class="ident">min</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/lib.rs.html#314">Protocol</a><span class="op">&gt;</span>,
-    <span class="ident">max</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/lib.rs.html#314">Protocol</a><span class="op">&gt;</span>,
-    <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../openssl/ssl/struct.SslContextBuilder.html">SslContextBuilder</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a><span class="op">&gt;</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../openssl/ssl/struct.SslVersion.html"><span class="self">self</span>::openssl::ssl::SslVersion</a>;
+<span class="attribute">#[cfg(have_min_max_version)]
+</span><span class="kw">fn </span>supported_protocols(
+    min: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/native_tls/lib.rs.html#314">Protocol</a>&gt;,
+    max: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/native_tls/lib.rs.html#314">Protocol</a>&gt;,
+    ctx: <span class="kw-2">&amp;mut </span><a href="../../../openssl/ssl/struct.SslContextBuilder.html">SslContextBuilder</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>&gt; {
+    <span class="kw">use </span><a href="../../../openssl/ssl/struct.SslVersion.html"><span class="self">self</span>::openssl::ssl::SslVersion</a>;
 
-    <span class="kw">fn</span> <span class="ident">cvt</span>(<span class="ident">p</span>: <a class="ident" href="../../../src/native_tls/lib.rs.html#314">Protocol</a>) -&gt; <a class="ident" href="../../../openssl/ssl/struct.SslVersion.html">SslVersion</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#29">p</a> {
-            <a class="ident" href="../../../src/native_tls/lib.rs.html#321">Protocol::Sslv3</a> =&gt; <span class="ident">SslVersion::SSL3</span>,
-            <a class="ident" href="../../../src/native_tls/lib.rs.html#323">Protocol::Tlsv10</a> =&gt; <span class="ident">SslVersion::TLS1</span>,
-            <a class="ident" href="../../../src/native_tls/lib.rs.html#325">Protocol::Tlsv11</a> =&gt; <span class="ident">SslVersion::TLS1_1</span>,
-            <a class="ident" href="../../../src/native_tls/lib.rs.html#327">Protocol::Tlsv12</a> =&gt; <span class="ident">SslVersion::TLS1_2</span>,
-            <a class="ident" href="../../../src/native_tls/lib.rs.html#329">Protocol::__NonExhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+    <span class="kw">fn </span>cvt(p: <a href="../../../src/native_tls/lib.rs.html#314">Protocol</a>) -&gt; <a href="../../../openssl/ssl/struct.SslVersion.html">SslVersion</a> {
+        <span class="kw">match </span><a href="../../../src/native_tls/imp/openssl.rs.html#29">p</a> {
+            <a href="../../../src/native_tls/lib.rs.html#321">Protocol::Sslv3</a> =&gt; SslVersion::SSL3,
+            <a href="../../../src/native_tls/lib.rs.html#323">Protocol::Tlsv10</a> =&gt; SslVersion::TLS1,
+            <a href="../../../src/native_tls/lib.rs.html#325">Protocol::Tlsv11</a> =&gt; SslVersion::TLS1_1,
+            <a href="../../../src/native_tls/lib.rs.html#327">Protocol::Tlsv12</a> =&gt; SslVersion::TLS1_2,
+            <a href="../../../src/native_tls/lib.rs.html#329">Protocol::__NonExhaustive</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 
-    <span class="ident">ctx</span>.<span class="ident">set_min_proto_version</span>(<span class="ident">min</span>.<span class="ident">map</span>(<span class="ident">cvt</span>))<span class="question-mark">?</span>;
-    <span class="ident">ctx</span>.<span class="ident">set_max_proto_version</span>(<span class="ident">max</span>.<span class="ident">map</span>(<span class="ident">cvt</span>))<span class="question-mark">?</span>;
+    ctx.set_min_proto_version(min.map(cvt))<span class="question-mark">?</span>;
+    ctx.set_max_proto_version(max.map(cvt))<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">have_min_max_version</span>))]</span>
-<span class="kw">fn</span> <span class="ident">supported_protocols</span>(
-    <span class="ident">min</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Protocol</span><span class="op">&gt;</span>,
-    <span class="ident">max</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Protocol</span><span class="op">&gt;</span>,
-    <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SslContextBuilder</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident"><span class="self">self</span>::openssl::ssl::SslOptions</span>;
+<span class="attribute">#[cfg(not(have_min_max_version))]
+</span><span class="kw">fn </span>supported_protocols(
+    min: <span class="prelude-ty">Option</span>&lt;Protocol&gt;,
+    max: <span class="prelude-ty">Option</span>&lt;Protocol&gt;,
+    ctx: <span class="kw-2">&amp;mut </span>SslContextBuilder,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+    <span class="kw">use </span><span class="self">self</span>::openssl::ssl::SslOptions;
 
-    <span class="kw">let</span> <span class="ident">no_ssl_mask</span> <span class="op">=</span> <span class="ident">SslOptions::NO_SSLV2</span>
-        <span class="op">|</span> <span class="ident">SslOptions::NO_SSLV3</span>
-        <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1</span>
-        <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1_1</span>
-        <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1_2</span>;
+    <span class="kw">let </span>no_ssl_mask = SslOptions::NO_SSLV2
+        | SslOptions::NO_SSLV3
+        | SslOptions::NO_TLSV1
+        | SslOptions::NO_TLSV1_1
+        | SslOptions::NO_TLSV1_2;
 
-    <span class="ident">ctx</span>.<span class="ident">clear_options</span>(<span class="ident">no_ssl_mask</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">SslOptions::empty</span>();
-    <span class="ident">options</span> <span class="op">|</span><span class="op">=</span> <span class="kw">match</span> <span class="ident">min</span> {
-        <span class="prelude-val">None</span> =&gt; <span class="ident">SslOptions::empty</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::Sslv3</span>) =&gt; <span class="ident">SslOptions::NO_SSLV2</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::Tlsv10</span>) =&gt; <span class="ident">SslOptions::NO_SSLV2</span> <span class="op">|</span> <span class="ident">SslOptions::NO_SSLV3</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::Tlsv11</span>) =&gt; {
-            <span class="ident">SslOptions::NO_SSLV2</span> <span class="op">|</span> <span class="ident">SslOptions::NO_SSLV3</span> <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1</span>
+    ctx.clear_options(no_ssl_mask);
+    <span class="kw">let </span><span class="kw-2">mut </span>options = SslOptions::empty();
+    options |= <span class="kw">match </span>min {
+        <span class="prelude-val">None </span>=&gt; SslOptions::empty(),
+        <span class="prelude-val">Some</span>(Protocol::Sslv3) =&gt; SslOptions::NO_SSLV2,
+        <span class="prelude-val">Some</span>(Protocol::Tlsv10) =&gt; SslOptions::NO_SSLV2 | SslOptions::NO_SSLV3,
+        <span class="prelude-val">Some</span>(Protocol::Tlsv11) =&gt; {
+            SslOptions::NO_SSLV2 | SslOptions::NO_SSLV3 | SslOptions::NO_TLSV1
         }
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::Tlsv12</span>) =&gt; {
-            <span class="ident">SslOptions::NO_SSLV2</span>
-                <span class="op">|</span> <span class="ident">SslOptions::NO_SSLV3</span>
-                <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1</span>
-                <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1_1</span>
+        <span class="prelude-val">Some</span>(Protocol::Tlsv12) =&gt; {
+            SslOptions::NO_SSLV2
+                | SslOptions::NO_SSLV3
+                | SslOptions::NO_TLSV1
+                | SslOptions::NO_TLSV1_1
         }
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::__NonExhaustive</span>) =&gt; <span class="macro">unreachable!</span>(),
+        <span class="prelude-val">Some</span>(Protocol::__NonExhaustive) =&gt; <span class="macro">unreachable!</span>(),
     };
-    <span class="ident">options</span> <span class="op">|</span><span class="op">=</span> <span class="kw">match</span> <span class="ident">max</span> {
-        <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">Protocol::Tlsv12</span>) =&gt; <span class="ident">SslOptions::empty</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::Tlsv11</span>) =&gt; <span class="ident">SslOptions::NO_TLSV1_2</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::Tlsv10</span>) =&gt; <span class="ident">SslOptions::NO_TLSV1_1</span> <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1_2</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::Sslv3</span>) =&gt; {
-            <span class="ident">SslOptions::NO_TLSV1</span> <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1_1</span> <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1_2</span>
+    options |= <span class="kw">match </span>max {
+        <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(Protocol::Tlsv12) =&gt; SslOptions::empty(),
+        <span class="prelude-val">Some</span>(Protocol::Tlsv11) =&gt; SslOptions::NO_TLSV1_2,
+        <span class="prelude-val">Some</span>(Protocol::Tlsv10) =&gt; SslOptions::NO_TLSV1_1 | SslOptions::NO_TLSV1_2,
+        <span class="prelude-val">Some</span>(Protocol::Sslv3) =&gt; {
+            SslOptions::NO_TLSV1 | SslOptions::NO_TLSV1_1 | SslOptions::NO_TLSV1_2
         }
-        <span class="prelude-val">Some</span>(<span class="ident">Protocol::__NonExhaustive</span>) =&gt; <span class="macro">unreachable!</span>(),
+        <span class="prelude-val">Some</span>(Protocol::__NonExhaustive) =&gt; <span class="macro">unreachable!</span>(),
     };
 
-    <span class="ident">ctx</span>.<span class="ident">set_options</span>(<span class="ident">options</span>);
+    ctx.set_options(options);
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">init_trust</span>() {
-    <span class="kw">static</span> <span class="ident">ONCE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> <span class="op">=</span> <span class="ident">Once::new</span>();
-    <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#92">ONCE</a>.<span class="ident">call_once</span>(<span class="ident">openssl_probe::init_ssl_cert_env_vars</span>);
+<span class="kw">fn </span>init_trust() {
+    <span class="kw">static </span>ONCE: <a href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> = Once::new();
+    <a href="../../../src/native_tls/imp/openssl.rs.html#92">ONCE</a>.call_once(openssl_probe::init_ssl_cert_env_vars);
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">load_android_root_certs</span>(<span class="ident">connector</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SslContextBuilder</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">std::fs</span>;
+<span class="attribute">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+</span><span class="kw">fn </span>load_android_root_certs(connector: <span class="kw-2">&amp;mut </span>SslContextBuilder) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">use </span>std::fs;
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">dir</span>) <span class="op">=</span> <span class="ident">fs::read_dir</span>(<span class="string">&quot;/system/etc/security/cacerts&quot;</span>) {
-        <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">dir</span>
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">ok</span>())
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">fs::read</span>(<span class="ident">e</span>.<span class="ident">path</span>()).<span class="ident">ok</span>())
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">X509::from_pem</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">ok</span>());
-        <span class="kw">for</span> <span class="ident">cert</span> <span class="kw">in</span> <span class="ident">certs</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">connector</span>.<span class="ident">cert_store_mut</span>().<span class="ident">add_cert</span>(<span class="ident">cert</span>) {
-                <span class="macro">debug!</span>(<span class="string">&quot;load_android_root_certs error: {:?}&quot;</span>, <span class="ident">err</span>);
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(dir) = fs::read_dir(<span class="string">&quot;/system/etc/security/cacerts&quot;</span>) {
+        <span class="kw">let </span>certs = dir
+            .filter_map(|r| r.ok())
+            .filter_map(|e| fs::read(e.path()).ok())
+            .filter_map(|b| X509::from_pem(<span class="kw-2">&amp;</span>b).ok());
+        <span class="kw">for </span>cert <span class="kw">in </span>certs {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = connector.cert_store_mut().add_cert(cert) {
+                <span class="macro">debug!</span>(<span class="string">&quot;load_android_root_certs error: {:?}&quot;</span>, err);
             }
         }
     }
@@ -595,374 +595,374 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="ident">Normal</span>(<a class="ident" href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>),
-    <span class="ident">Ssl</span>(<a class="ident" href="../../../openssl/ssl/error/struct.Error.html">ssl::Error</a>, <a class="ident" href="../../../openssl/x509/struct.X509VerifyResult.html">X509VerifyResult</a>),
-    <span class="ident">EmptyChain</span>,
-    <span class="ident">NotPkcs8</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Error {
+    Normal(<a href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>),
+    Ssl(<a href="../../../openssl/ssl/error/struct.Error.html">ssl::Error</a>, <a href="../../../openssl/x509/struct.X509VerifyResult.html">X509VerifyResult</a>),
+    EmptyChain,
+    NotPkcs8,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#124">self</a> {
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#117">Error::Normal</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error::source</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#126">e</a>),
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#118">Error::Ssl</a>(<span class="kw-2">ref</span> <span class="ident">e</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error::source</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#127">e</a>),
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#119">Error::EmptyChain</a> =&gt; <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#120">Error::NotPkcs8</a> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a> {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/native_tls/imp/openssl.rs.html#124">self</a> </span>{
+            <a href="../../../src/native_tls/imp/openssl.rs.html#117">Error::Normal</a>(<span class="kw-2">ref </span>e) =&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error::source</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#126">e</a>),
+            <a href="../../../src/native_tls/imp/openssl.rs.html#118">Error::Ssl</a>(<span class="kw-2">ref </span>e, <span class="kw">_</span>) =&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error::source</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#127">e</a>),
+            <a href="../../../src/native_tls/imp/openssl.rs.html#119">Error::EmptyChain</a> =&gt; <span class="prelude-val">None</span>,
+            <a href="../../../src/native_tls/imp/openssl.rs.html#120">Error::NotPkcs8</a> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#135">self</a> {
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#117">Error::Normal</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#137">e</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>),
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#118">Error::Ssl</a>(<span class="kw-2">ref</span> <span class="ident">e</span>, <span class="ident">X509VerifyResult::OK</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#138">e</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>),
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#118">Error::Ssl</a>(<span class="kw-2">ref</span> <span class="ident">e</span>, <span class="ident">v</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>, <span class="string">&quot;{} ({})&quot;</span>, <span class="ident">e</span>, <span class="ident">v</span>),
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#119">Error::EmptyChain</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-                <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>,
-                <span class="string">&quot;at least one certificate must be provided to create an identity&quot;</span>
-            ),
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#120">Error::NotPkcs8</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>, <span class="string">&quot;expected PKCS#8 PEM&quot;</span>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/native_tls/imp/openssl.rs.html#135">self</a> </span>{
+            <a href="../../../src/native_tls/imp/openssl.rs.html#117">Error::Normal</a>(<span class="kw-2">ref </span>e) =&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#137">e</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>),
+            <a href="../../../src/native_tls/imp/openssl.rs.html#118">Error::Ssl</a>(<span class="kw-2">ref </span>e, X509VerifyResult::OK) =&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#138">e</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>),
+            <a href="../../../src/native_tls/imp/openssl.rs.html#118">Error::Ssl</a>(<span class="kw-2">ref </span>e, v) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>, <span class="string">&quot;{} ({})&quot;</span>, e, v),
+            <a href="../../../src/native_tls/imp/openssl.rs.html#119">Error::EmptyChain</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
+                <a href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>,
+                <span class="string">&quot;at least one certificate must be provided to create an identity&quot;
+            </span>),
+            <a href="../../../src/native_tls/imp/openssl.rs.html#120">Error::NotPkcs8</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#135">fmt</a>, <span class="string">&quot;expected PKCS#8 PEM&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>) -&gt; <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a> {
-        <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#117">Error::Normal</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#150">err</a>)
+<span class="kw">impl </span>From&lt;<a href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>&gt; <span class="kw">for </span><a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a> {
+    <span class="kw">fn </span>from(err: <a href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>) -&gt; <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a> {
+        <a href="../../../src/native_tls/imp/openssl.rs.html#117">Error::Normal</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#150">err</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Identity</span> {
-    <span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../../openssl/pkey/enum.Private.html">Private</a><span class="op">&gt;</span>,
-    <span class="ident">cert</span>: <a class="ident" href="../../../openssl/x509/struct.X509.html">X509</a>,
-    <span class="ident">chain</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../openssl/x509/struct.X509.html">X509</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Identity {
+    pkey: PKey&lt;<a href="../../../openssl/pkey/enum.Private.html">Private</a>&gt;,
+    cert: <a href="../../../openssl/x509/struct.X509.html">X509</a>,
+    chain: Vec&lt;<a href="../../../openssl/x509/struct.X509.html">X509</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pkcs12</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">pass</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">pkcs12</span> <span class="op">=</span> <span class="ident">Pkcs12::from_der</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">pkcs12</span>.<span class="ident">parse</span>(<span class="ident">pass</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a> {
-            <span class="ident">pkey</span>: <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#165">parsed</a>.<span class="ident">pkey</span>,
-            <span class="ident">cert</span>: <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#165">parsed</a>.<span class="ident">cert</span>,
-            <span class="comment">// &gt; The stack is the reverse of what you might expect due to the way</span>
-            <span class="comment">// &gt; PKCS12_parse is implemented, so we need to load it backwards.</span>
-            <span class="comment">// &gt; https://github.com/sfackler/rust-native-tls/commit/05fb5e583be589ab63d9f83d986d095639f8ec44</span>
-            <span class="ident">chain</span>: <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#165">parsed</a>.<span class="ident">chain</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+<span class="kw">impl </span><a href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a> {
+    <span class="kw">pub fn </span>from_pkcs12(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], pass: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="kw">let </span>pkcs12 = Pkcs12::from_der(buf)<span class="question-mark">?</span>;
+        <span class="kw">let </span>parsed = pkcs12.parse(pass)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a> {
+            pkey: <a href="../../../src/native_tls/imp/openssl.rs.html#165">parsed</a>.pkey,
+            cert: <a href="../../../src/native_tls/imp/openssl.rs.html#165">parsed</a>.cert,
+            <span class="comment">// &gt; The stack is the reverse of what you might expect due to the way
+            // &gt; PKCS12_parse is implemented, so we need to load it backwards.
+            // &gt; https://github.com/sfackler/rust-native-tls/commit/05fb5e583be589ab63d9f83d986d095639f8ec44
+            </span>chain: <a href="../../../src/native_tls/imp/openssl.rs.html#165">parsed</a>.chain.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pkcs8</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">key</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">key</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;-----BEGIN PRIVATE KEY-----&quot;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#120">Error::NotPkcs8</a>);
+    <span class="kw">pub fn </span>from_pkcs8(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="kw">if </span>!key.starts_with(<span class="string">b&quot;-----BEGIN PRIVATE KEY-----&quot;</span>) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#120">Error::NotPkcs8</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::private_key_from_pem</span>(<span class="ident">key</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cert_chain</span> <span class="op">=</span> <span class="ident">X509::stack_from_pem</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">cert_chain</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">Error::EmptyChain</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">chain</span> <span class="op">=</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#182">cert_chain</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a> { <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#181">pkey</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#183">cert</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#184">chain</a> })
+        <span class="kw">let </span>pkey = PKey::private_key_from_pem(key)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>cert_chain = X509::stack_from_pem(buf)<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+        <span class="kw">let </span>cert = cert_chain.next().ok_or(Error::EmptyChain)<span class="question-mark">?</span>;
+        <span class="kw">let </span>chain = <a href="../../../src/native_tls/imp/openssl.rs.html#182">cert_chain</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#156">Identity</a> { <a href="../../../src/native_tls/imp/openssl.rs.html#181">pkey</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#183">cert</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#184">chain</a> })
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Certificate</span>(<a class="ident" href="../../../openssl/x509/struct.X509.html">X509</a>);
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Certificate(<a href="../../../openssl/x509/struct.X509.html">X509</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_der</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">X509::from_der</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#194">cert</a>))
+<span class="kw">impl </span><a href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a> {
+    <span class="kw">pub fn </span>from_der(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="kw">let </span>cert = X509::from_der(buf)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#194">cert</a>))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pem</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">X509::from_pem</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#199">cert</a>))
+    <span class="kw">pub fn </span>from_pem(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="kw">let </span>cert = X509::from_pem(buf)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#199">cert</a>))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_der</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">to_der</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#204">der</a>)
+    <span class="kw">pub fn </span>to_der(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="kw">let </span>der = <span class="self">self</span>.<span class="number">0</span>.to_der()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#204">der</a>)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MidHandshakeTlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">MidHandshakeSslStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);
+<span class="kw">pub struct </span>MidHandshakeTlsStream&lt;S&gt;(MidHandshakeSslStream&lt;S&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MidHandshakeTlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MidHandshakeTlsStream&lt;S&gt;
+<span class="kw">where
+    </span>S: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#215">self</a>.<span class="number">0</span>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#215">fmt</a>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#215">self</a>.<span class="number">0</span>, <a href="../../../src/native_tls/imp/openssl.rs.html#215">fmt</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">MidHandshakeTlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">S</span> {
-        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#221">self</a>.<span class="number">0</span>.<span class="ident">get_ref</span>()
+<span class="kw">impl</span>&lt;S&gt; MidHandshakeTlsStream&lt;S&gt; {
+    <span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
+        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#221">self</a>.<span class="number">0</span>.get_ref()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">S</span> {
-        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#225">self</a>.<span class="number">0</span>.<span class="ident">get_mut</span>()
+    <span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>S {
+        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#225">self</a>.<span class="number">0</span>.get_mut()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">MidHandshakeTlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
+<span class="kw">impl</span>&lt;S&gt; MidHandshakeTlsStream&lt;S&gt;
+<span class="kw">where
+    </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handshake</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#234">self</a>.<span class="number">0</span>.<span class="ident">handshake</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#391">TlsStream</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#236">s</a>)),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#237">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+    <span class="kw">pub fn </span>handshake(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;TlsStream&lt;S&gt;, HandshakeError&lt;S&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#234">self</a>.<span class="number">0</span>.handshake() {
+            <span class="prelude-val">Ok</span>(s) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#391">TlsStream</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#236">s</a>)),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#237">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">Failure</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>),
-    <span class="ident">WouldBlock</span>(<span class="ident">MidHandshakeTlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>),
+<span class="kw">pub enum </span>HandshakeError&lt;S&gt; {
+    Failure(<a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>),
+    WouldBlock(MidHandshakeTlsStream&lt;S&gt;),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ssl::HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">ssl::HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#248">e</a> {
-            <span class="ident">ssl::HandshakeError::SetupFailure</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#243">HandshakeError::Failure</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#250">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <span class="ident">ssl::HandshakeError::Failure</span>(<span class="ident">e</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#251">e</a>.<span class="ident">ssl</span>().<span class="ident">verify_result</span>();
-                <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#243">HandshakeError::Failure</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#118">Error::Ssl</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#251">e</a>.<span class="ident">into_error</span>(), <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#252">v</a>))
+<span class="kw">impl</span>&lt;S&gt; From&lt;ssl::HandshakeError&lt;S&gt;&gt; <span class="kw">for </span>HandshakeError&lt;S&gt; {
+    <span class="kw">fn </span>from(e: ssl::HandshakeError&lt;S&gt;) -&gt; HandshakeError&lt;S&gt; {
+        <span class="kw">match </span><a href="../../../src/native_tls/imp/openssl.rs.html#248">e</a> {
+            ssl::HandshakeError::SetupFailure(e) =&gt; <a href="../../../src/native_tls/imp/openssl.rs.html#243">HandshakeError::Failure</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#250">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            ssl::HandshakeError::Failure(e) =&gt; {
+                <span class="kw">let </span>v = <a href="../../../src/native_tls/imp/openssl.rs.html#251">e</a>.ssl().verify_result();
+                <a href="../../../src/native_tls/imp/openssl.rs.html#243">HandshakeError::Failure</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#118">Error::Ssl</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#251">e</a>.into_error(), <a href="../../../src/native_tls/imp/openssl.rs.html#252">v</a>))
             }
-            <span class="ident">ssl::HandshakeError::WouldBlock</span>(<span class="ident">s</span>) =&gt; {
-                <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#244">HandshakeError::WouldBlock</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#209">MidHandshakeTlsStream</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#255">s</a>))
+            ssl::HandshakeError::WouldBlock(s) =&gt; {
+                <a href="../../../src/native_tls/imp/openssl.rs.html#244">HandshakeError::WouldBlock</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#209">MidHandshakeTlsStream</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#255">s</a>))
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <a class="ident" href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>) -&gt; <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#243">HandshakeError::Failure</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#263">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+<span class="kw">impl</span>&lt;S&gt; From&lt;<a href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>&gt; <span class="kw">for </span>HandshakeError&lt;S&gt; {
+    <span class="kw">fn </span>from(e: <a href="../../../openssl/error/struct.ErrorStack.html">ErrorStack</a>) -&gt; HandshakeError&lt;S&gt; {
+        <a href="../../../src/native_tls/imp/openssl.rs.html#243">HandshakeError::Failure</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#263">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsConnector</span> {
-    <span class="ident">connector</span>: <a class="ident" href="../../../openssl/ssl/connector/struct.SslConnector.html">SslConnector</a>,
-    <span class="ident">use_sni</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">accept_invalid_hostnames</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">accept_invalid_certs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>TlsConnector {
+    connector: <a href="../../../openssl/ssl/connector/struct.SslConnector.html">SslConnector</a>,
+    use_sni: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    accept_invalid_hostnames: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    accept_invalid_certs: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#269">TlsConnector</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">builder</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/native_tls/lib.rs.html#333">TlsConnectorBuilder</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#269">TlsConnector</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#91">init_trust</a>();
+<span class="kw">impl </span><a href="../../../src/native_tls/imp/openssl.rs.html#269">TlsConnector</a> {
+    <span class="kw">pub fn </span>new(builder: <span class="kw-2">&amp;</span><a href="../../../src/native_tls/lib.rs.html#333">TlsConnectorBuilder</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/native_tls/imp/openssl.rs.html#269">TlsConnector</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <a href="../../../src/native_tls/imp/openssl.rs.html#91">init_trust</a>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">connector</span> <span class="op">=</span> <span class="ident">SslConnector::builder</span>(<span class="ident">SslMethod::tls</span>())<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">identity</span>) <span class="op">=</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#277">builder</a>.<span class="ident">identity</span> {
-            <span class="ident">connector</span>.<span class="ident">set_certificate</span>(<span class="kw-2">&amp;</span><span class="ident">identity</span>.<span class="number">0</span>.<span class="ident">cert</span>)<span class="question-mark">?</span>;
-            <span class="ident">connector</span>.<span class="ident">set_private_key</span>(<span class="kw-2">&amp;</span><span class="ident">identity</span>.<span class="number">0</span>.<span class="ident">pkey</span>)<span class="question-mark">?</span>;
-            <span class="kw">for</span> <span class="ident">cert</span> <span class="kw">in</span> <span class="ident">identity</span>.<span class="number">0</span>.<span class="ident">chain</span>.<span class="ident">iter</span>() {
-                <span class="comment">// https://www.openssl.org/docs/manmaster/man3/SSL_CTX_add_extra_chain_cert.html</span>
-                <span class="comment">// specifies that &quot;When sending a certificate chain, extra chain certificates are</span>
-                <span class="comment">// sent in order following the end entity certificate.&quot;</span>
-                <span class="ident">connector</span>.<span class="ident">add_extra_chain_cert</span>(<span class="ident">cert</span>.<span class="ident">to_owned</span>())<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>connector = SslConnector::builder(SslMethod::tls())<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>identity) = <a href="../../../src/native_tls/imp/openssl.rs.html#277">builder</a>.identity {
+            connector.set_certificate(<span class="kw-2">&amp;</span>identity.<span class="number">0</span>.cert)<span class="question-mark">?</span>;
+            connector.set_private_key(<span class="kw-2">&amp;</span>identity.<span class="number">0</span>.pkey)<span class="question-mark">?</span>;
+            <span class="kw">for </span>cert <span class="kw">in </span>identity.<span class="number">0</span>.chain.iter() {
+                <span class="comment">// https://www.openssl.org/docs/manmaster/man3/SSL_CTX_add_extra_chain_cert.html
+                // specifies that &quot;When sending a certificate chain, extra chain certificates are
+                // sent in order following the end entity certificate.&quot;
+                </span>connector.add_extra_chain_cert(cert.to_owned())<span class="question-mark">?</span>;
             }
         }
-        <span class="ident">supported_protocols</span>(<span class="ident">builder</span>.<span class="ident">min_protocol</span>, <span class="ident">builder</span>.<span class="ident">max_protocol</span>, <span class="kw-2">&amp;mut</span> <span class="ident">connector</span>)<span class="question-mark">?</span>;
+        supported_protocols(builder.min_protocol, builder.max_protocol, <span class="kw-2">&amp;mut </span>connector)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">builder</span>.<span class="ident">disable_built_in_roots</span> {
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#280">connector</a>.<span class="ident">set_cert_store</span>(<span class="ident">X509StoreBuilder::new</span>()<span class="question-mark">?</span>.<span class="ident">build</span>());
+        <span class="kw">if </span>builder.disable_built_in_roots {
+            <a href="../../../src/native_tls/imp/openssl.rs.html#280">connector</a>.set_cert_store(X509StoreBuilder::new()<span class="question-mark">?</span>.build());
         }
 
-        <span class="kw">for</span> <span class="ident">cert</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">builder</span>.<span class="ident">root_certificates</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">connector</span>.<span class="ident">cert_store_mut</span>().<span class="ident">add_cert</span>((<span class="ident">cert</span>.<span class="number">0</span>).<span class="number">0</span>.<span class="ident">clone</span>()) {
-                <span class="macro">debug!</span>(<span class="string">&quot;add_cert error: {:?}&quot;</span>, <span class="ident">err</span>);
+        <span class="kw">for </span>cert <span class="kw">in </span><span class="kw-2">&amp;</span>builder.root_certificates {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = connector.cert_store_mut().add_cert((cert.<span class="number">0</span>).<span class="number">0</span>.clone()) {
+                <span class="macro">debug!</span>(<span class="string">&quot;add_cert error: {:?}&quot;</span>, err);
             }
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alpn&quot;</span>)]</span>
-        {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">builder</span>.<span class="ident">alpn</span>.<span class="ident">is_empty</span>() {
-                <span class="comment">// Wire format is each alpn preceded by its length as a byte.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">alpn_wire_format</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(
-                    <span class="ident">builder</span>
-                        .<span class="ident">alpn</span>
-                        .<span class="ident">iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>())
-                        .<span class="ident">sum</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()
-                        <span class="op">+</span> <span class="ident">builder</span>.<span class="ident">alpn</span>.<span class="ident">len</span>(),
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;alpn&quot;</span>)]
+        </span>{
+            <span class="kw">if </span>!builder.alpn.is_empty() {
+                <span class="comment">// Wire format is each alpn preceded by its length as a byte.
+                </span><span class="kw">let </span><span class="kw-2">mut </span>alpn_wire_format = Vec::with_capacity(
+                    builder
+                        .alpn
+                        .iter()
+                        .map(|s| s.as_bytes().len())
+                        .sum::&lt;usize&gt;()
+                        + builder.alpn.len(),
                 );
-                <span class="kw">for</span> <span class="ident">alpn</span> <span class="kw">in</span> <span class="ident">builder</span>.<span class="ident">alpn</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>()) {
-                    <span class="ident">alpn_wire_format</span>.<span class="ident">push</span>(<span class="ident">alpn</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u8</span>);
-                    <span class="ident">alpn_wire_format</span>.<span class="ident">extend</span>(<span class="ident">alpn</span>);
+                <span class="kw">for </span>alpn <span class="kw">in </span>builder.alpn.iter().map(|s| s.as_bytes()) {
+                    alpn_wire_format.push(alpn.len() <span class="kw">as </span>u8);
+                    alpn_wire_format.extend(alpn);
                 }
-                <span class="ident">connector</span>.<span class="ident">set_alpn_protos</span>(<span class="kw-2">&amp;</span><span class="ident">alpn_wire_format</span>)<span class="question-mark">?</span>;
+                connector.set_alpn_protos(<span class="kw-2">&amp;</span>alpn_wire_format)<span class="question-mark">?</span>;
             }
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>)]</span>
-        <span class="ident">load_android_root_certs</span>(<span class="kw-2">&amp;mut</span> <span class="ident">connector</span>)<span class="question-mark">?</span>;
+        <span class="attribute">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+        </span>load_android_root_certs(<span class="kw-2">&amp;mut </span>connector)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#269">TlsConnector</a> {
-            <span class="ident">connector</span>: <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#280">connector</a>.<span class="ident">build</span>(),
-            <span class="ident">use_sni</span>: <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#277">builder</a>.<span class="ident">use_sni</span>,
-            <span class="ident">accept_invalid_hostnames</span>: <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#277">builder</a>.<span class="ident">accept_invalid_hostnames</span>,
-            <span class="ident">accept_invalid_certs</span>: <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#277">builder</a>.<span class="ident">accept_invalid_certs</span>,
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#269">TlsConnector</a> {
+            connector: <a href="../../../src/native_tls/imp/openssl.rs.html#280">connector</a>.build(),
+            use_sni: <a href="../../../src/native_tls/imp/openssl.rs.html#277">builder</a>.use_sni,
+            accept_invalid_hostnames: <a href="../../../src/native_tls/imp/openssl.rs.html#277">builder</a>.accept_invalid_hostnames,
+            accept_invalid_certs: <a href="../../../src/native_tls/imp/openssl.rs.html#277">builder</a>.accept_invalid_certs,
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">stream</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
+    <span class="kw">pub fn </span>connect&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, stream: S) -&gt; <span class="prelude-ty">Result</span>&lt;TlsStream&lt;S&gt;, HandshakeError&lt;S&gt;&gt;
+    <span class="kw">where
+        </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">connector</span>
-            .<span class="ident">configure</span>()<span class="question-mark">?</span>
-            .<span class="ident">use_server_name_indication</span>(<a class="self" href="../../../src/native_tls/imp/openssl.rs.html#334">self</a>.<span class="ident">use_sni</span>)
-            .<span class="ident">verify_hostname</span>(<span class="op">!</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#334">self</a>.<span class="ident">accept_invalid_hostnames</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">accept_invalid_certs</span> {
-            <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#338">ssl</a>.<span class="ident">set_verify</span>(<span class="ident">SslVerifyMode::NONE</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>ssl = <span class="self">self
+            </span>.connector
+            .configure()<span class="question-mark">?
+            </span>.use_server_name_indication(<a class="self" href="../../../src/native_tls/imp/openssl.rs.html#334">self</a>.use_sni)
+            .verify_hostname(!<a class="self" href="../../../src/native_tls/imp/openssl.rs.html#334">self</a>.accept_invalid_hostnames);
+        <span class="kw">if </span><span class="self">self</span>.accept_invalid_certs {
+            <a href="../../../src/native_tls/imp/openssl.rs.html#338">ssl</a>.set_verify(SslVerifyMode::NONE);
         }
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">ssl</span>.<span class="ident">connect</span>(<span class="ident">domain</span>, <span class="ident">stream</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#391">TlsStream</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#347">s</a>))
+        <span class="kw">let </span>s = ssl.connect(domain, stream)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#391">TlsStream</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#347">s</a>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#269">TlsConnector</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#353">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;TlsConnector&quot;</span>)
-            <span class="comment">// n.b. SslConnector is a newtype on SslContext which implements a noop Debug so it&#39;s omitted</span>
-            .<span class="ident">field</span>(<span class="string">&quot;use_sni&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#353">self</a>.<span class="ident">use_sni</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;accept_invalid_hostnames&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#353">self</a>.<span class="ident">accept_invalid_hostnames</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;accept_invalid_certs&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#353">self</a>.<span class="ident">accept_invalid_certs</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/native_tls/imp/openssl.rs.html#269">TlsConnector</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/native_tls/imp/openssl.rs.html#353">fmt</a>.debug_struct(<span class="string">&quot;TlsConnector&quot;</span>)
+            <span class="comment">// n.b. SslConnector is a newtype on SslContext which implements a noop Debug so it&#39;s omitted
+            </span>.field(<span class="string">&quot;use_sni&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#353">self</a>.use_sni)
+            .field(<span class="string">&quot;accept_invalid_hostnames&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#353">self</a>.accept_invalid_hostnames)
+            .field(<span class="string">&quot;accept_invalid_certs&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#353">self</a>.accept_invalid_certs)
+            .finish()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsAcceptor</span>(<a class="ident" href="../../../openssl/ssl/connector/struct.SslAcceptor.html">SslAcceptor</a>);
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>TlsAcceptor(<a href="../../../openssl/ssl/connector/struct.SslAcceptor.html">SslAcceptor</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#364">TlsAcceptor</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">builder</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/native_tls/lib.rs.html#521">TlsAcceptorBuilder</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#364">TlsAcceptor</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">acceptor</span> <span class="op">=</span> <span class="ident">SslAcceptor::mozilla_intermediate</span>(<span class="ident">SslMethod::tls</span>())<span class="question-mark">?</span>;
-        <span class="ident">acceptor</span>.<span class="ident">set_private_key</span>(<span class="kw-2">&amp;</span><span class="ident">builder</span>.<span class="ident">identity</span>.<span class="number">0</span>.<span class="ident">pkey</span>)<span class="question-mark">?</span>;
-        <span class="ident">acceptor</span>.<span class="ident">set_certificate</span>(<span class="kw-2">&amp;</span><span class="ident">builder</span>.<span class="ident">identity</span>.<span class="number">0</span>.<span class="ident">cert</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">cert</span> <span class="kw">in</span> <span class="ident">builder</span>.<span class="ident">identity</span>.<span class="number">0</span>.<span class="ident">chain</span>.<span class="ident">iter</span>() {
-            <span class="comment">// https://www.openssl.org/docs/manmaster/man3/SSL_CTX_add_extra_chain_cert.html</span>
-            <span class="comment">// specifies that &quot;When sending a certificate chain, extra chain certificates are</span>
-            <span class="comment">// sent in order following the end entity certificate.&quot;</span>
-            <span class="ident">acceptor</span>.<span class="ident">add_extra_chain_cert</span>(<span class="ident">cert</span>.<span class="ident">to_owned</span>())<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../src/native_tls/imp/openssl.rs.html#364">TlsAcceptor</a> {
+    <span class="kw">pub fn </span>new(builder: <span class="kw-2">&amp;</span><a href="../../../src/native_tls/lib.rs.html#521">TlsAcceptorBuilder</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/native_tls/imp/openssl.rs.html#364">TlsAcceptor</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>acceptor = SslAcceptor::mozilla_intermediate(SslMethod::tls())<span class="question-mark">?</span>;
+        acceptor.set_private_key(<span class="kw-2">&amp;</span>builder.identity.<span class="number">0</span>.pkey)<span class="question-mark">?</span>;
+        acceptor.set_certificate(<span class="kw-2">&amp;</span>builder.identity.<span class="number">0</span>.cert)<span class="question-mark">?</span>;
+        <span class="kw">for </span>cert <span class="kw">in </span>builder.identity.<span class="number">0</span>.chain.iter() {
+            <span class="comment">// https://www.openssl.org/docs/manmaster/man3/SSL_CTX_add_extra_chain_cert.html
+            // specifies that &quot;When sending a certificate chain, extra chain certificates are
+            // sent in order following the end entity certificate.&quot;
+            </span>acceptor.add_extra_chain_cert(cert.to_owned())<span class="question-mark">?</span>;
         }
-        <span class="ident">supported_protocols</span>(<span class="ident">builder</span>.<span class="ident">min_protocol</span>, <span class="ident">builder</span>.<span class="ident">max_protocol</span>, <span class="kw-2">&amp;mut</span> <span class="ident">acceptor</span>)<span class="question-mark">?</span>;
+        supported_protocols(builder.min_protocol, builder.max_protocol, <span class="kw-2">&amp;mut </span>acceptor)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#364">TlsAcceptor</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#368">acceptor</a>.<span class="ident">build</span>()))
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#364">TlsAcceptor</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#368">acceptor</a>.build()))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stream</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
+    <span class="kw">pub fn </span>accept&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, stream: S) -&gt; <span class="prelude-ty">Result</span>&lt;TlsStream&lt;S&gt;, HandshakeError&lt;S&gt;&gt;
+    <span class="kw">where
+        </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
     {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">accept</span>(<span class="ident">stream</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#391">TlsStream</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#386">s</a>))
+        <span class="kw">let </span>s = <span class="self">self</span>.<span class="number">0</span>.accept(stream)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#391">TlsStream</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#386">s</a>))
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">ssl::SslStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);
+<span class="kw">pub struct </span>TlsStream&lt;S&gt;(ssl::SslStream&lt;S&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#394">self</a>.<span class="number">0</span>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#394">fmt</a>)
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>TlsStream&lt;S&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#394">self</a>.<span class="number">0</span>, <a href="../../../src/native_tls/imp/openssl.rs.html#394">fmt</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">S</span> {
-        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#400">self</a>.<span class="number">0</span>.<span class="ident">get_ref</span>()
+<span class="kw">impl</span>&lt;S&gt; TlsStream&lt;S&gt; {
+    <span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
+        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#400">self</a>.<span class="number">0</span>.get_ref()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">S</span> {
-        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#404">self</a>.<span class="number">0</span>.<span class="ident">get_mut</span>()
+    <span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>S {
+        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#404">self</a>.<span class="number">0</span>.get_mut()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a><span class="op">&gt;</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">buffered_read_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/native_tls/imp/openssl.rs.html#410">self</a>.<span class="number">0</span>.<span class="ident">ssl</span>().<span class="ident">pending</span>())
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>&gt; TlsStream&lt;S&gt; {
+    <span class="kw">pub fn </span>buffered_read_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/native_tls/imp/openssl.rs.html#410">self</a>.<span class="number">0</span>.ssl().pending())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_certificate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/native_tls/imp/openssl.rs.html#414">self</a>.<span class="number">0</span>.<span class="ident">ssl</span>().<span class="ident">peer_certificate</span>().<span class="ident">map</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>))
+    <span class="kw">pub fn </span>peer_certificate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>&gt;, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/native_tls/imp/openssl.rs.html#414">self</a>.<span class="number">0</span>.ssl().peer_certificate().map(<a href="../../../src/native_tls/imp/openssl.rs.html#190">Certificate</a>))
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alpn&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negotiated_alpn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>
-            .<span class="number">0</span>
-            .<span class="ident">ssl</span>()
-            .<span class="ident">selected_alpn_protocol</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">alpn</span><span class="op">|</span> <span class="ident">alpn</span>.<span class="ident">to_vec</span>()))
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;alpn&quot;</span>)]
+    </span><span class="kw">pub fn </span>negotiated_alpn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;, Error&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self
+            </span>.<span class="number">0
+            </span>.ssl()
+            .selected_alpn_protocol()
+            .map(|alpn| alpn.to_vec()))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tls_server_end_point</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">ssl</span>().<span class="ident">is_server</span>() {
-            <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#427">self</a>.<span class="number">0</span>.<span class="ident">ssl</span>().<span class="ident">certificate</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#429">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
-        } <span class="kw">else</span> {
-            <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#427">self</a>.<span class="number">0</span>.<span class="ident">ssl</span>().<span class="ident">peer_certificate</span>()
+    <span class="kw">pub fn </span>tls_server_end_point(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;, <a href="../../../src/native_tls/imp/openssl.rs.html#116">Error</a>&gt; {
+        <span class="kw">let </span>cert = <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.ssl().is_server() {
+            <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#427">self</a>.<span class="number">0</span>.ssl().certificate().map(|x| <a href="../../../src/native_tls/imp/openssl.rs.html#429">x</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+        } <span class="kw">else </span>{
+            <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#427">self</a>.<span class="number">0</span>.ssl().peer_certificate()
         };
 
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#428">cert</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">cert</span>) =&gt; <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#435">cert</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="kw">let </span>cert = <span class="kw">match </span><a href="../../../src/native_tls/imp/openssl.rs.html#428">cert</a> {
+            <span class="prelude-val">Some</span>(cert) =&gt; <a href="../../../src/native_tls/imp/openssl.rs.html#435">cert</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
 
-        <span class="kw">let</span> <span class="ident">algo_nid</span> <span class="op">=</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#434">cert</a>.<span class="ident">signature_algorithm</span>().<span class="ident">object</span>().<span class="ident">nid</span>();
-        <span class="kw">let</span> <span class="ident">signature_algorithms</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#439">algo_nid</a>.<span class="ident">signature_algorithms</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">algs</span>) =&gt; <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#441">algs</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="kw">let </span>algo_nid = <a href="../../../src/native_tls/imp/openssl.rs.html#434">cert</a>.signature_algorithm().object().nid();
+        <span class="kw">let </span>signature_algorithms = <span class="kw">match </span><a href="../../../src/native_tls/imp/openssl.rs.html#439">algo_nid</a>.signature_algorithms() {
+            <span class="prelude-val">Some</span>(algs) =&gt; <a href="../../../src/native_tls/imp/openssl.rs.html#441">algs</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
 
-        <span class="kw">let</span> <span class="ident">md</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#440">signature_algorithms</a>.<span class="ident">digest</span> {
-            <span class="ident">Nid::MD5</span> <span class="op">|</span> <span class="ident">Nid::SHA1</span> =&gt; <span class="ident">MessageDigest::sha256</span>(),
-            <span class="ident">nid</span> =&gt; <span class="kw">match</span> <span class="ident">MessageDigest::from_nid</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#447">nid</a>) {
-                <span class="prelude-val">Some</span>(<span class="ident">md</span>) =&gt; <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#448">md</a>,
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="kw">let </span>md = <span class="kw">match </span><a href="../../../src/native_tls/imp/openssl.rs.html#440">signature_algorithms</a>.digest {
+            Nid::MD5 | Nid::SHA1 =&gt; MessageDigest::sha256(),
+            nid =&gt; <span class="kw">match </span>MessageDigest::from_nid(<a href="../../../src/native_tls/imp/openssl.rs.html#447">nid</a>) {
+                <span class="prelude-val">Some</span>(md) =&gt; <a href="../../../src/native_tls/imp/openssl.rs.html#448">md</a>,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             },
         };
 
-        <span class="kw">let</span> <span class="ident">digest</span> <span class="op">=</span> <span class="ident">cert</span>.<span class="ident">digest</span>(<span class="ident">md</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>digest = cert.digest(md)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#453">digest</a>.<span class="ident">to_vec</span>()))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#453">digest</a>.to_vec()))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#458">self</a>.<span class="number">0</span>.<span class="ident">shutdown</span>() {
+    <span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/native_tls/imp/openssl.rs.html#458">self</a>.<span class="number">0</span>.shutdown() {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#461">e</a>.<span class="ident">code</span>() <span class="op">==</span> <span class="ident">ssl::ErrorCode::ZERO_RETURN</span> =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#462">e</a>
-                .<span class="ident">into_io_error</span>()
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#464">e</a>))),
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span><a href="../../../src/native_tls/imp/openssl.rs.html#461">e</a>.code() == ssl::ErrorCode::ZERO_RETURN =&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/native_tls/imp/openssl.rs.html#462">e</a>
+                .into_io_error()
+                .unwrap_or_else(|e| io::Error::new(io::ErrorKind::Other, <a href="../../../src/native_tls/imp/openssl.rs.html#464">e</a>))),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#470">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#470">buf</a>)
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for </span>TlsStream&lt;S&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#470">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#470">buf</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#476">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/native_tls/imp/openssl.rs.html#476">buf</a>)
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for </span>TlsStream&lt;S&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#476">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../src/native_tls/imp/openssl.rs.html#476">buf</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#480">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/native_tls/imp/openssl.rs.html#480">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="native_tls" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="native_tls" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/verifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_viper/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/verifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_viper/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -433,339 +433,339 @@
 <span id="433">433</span>
 <span id="434">434</span>
 <span id="435">435</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <span class="ident">prusti_common::vir</span>::{<a class="ident" href="../../prusti_common/vir/optimizations/fn.optimize_program.html">optimizations::optimize_program</a>};
-<span class="kw">use</span> <span class="ident">prusti_common</span>::{
-    <a class="ident" href="../../prusti_common/config/index.html">config</a>, <a class="ident" href="../../prusti_common/report/log/index.html">report::log</a>, <a class="ident" href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>, <a class="ident" href="../../prusti_common/vir/program/enum.Program.html">vir::program::Program</a>,
+</span><span class="kw">use </span>prusti_common::vir::{<a href="../../prusti_common/vir/optimizations/fn.optimize_program.html">optimizations::optimize_program</a>};
+<span class="kw">use </span>prusti_common::{
+    <a href="../../prusti_common/config/index.html">config</a>, <a href="../../prusti_common/report/log/index.html">report::log</a>, <a href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>, <a href="../../prusti_common/vir/program/enum.Program.html">vir::program::Program</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../vir/common/check_mode/enum.CheckMode.html">vir_crate::common::check_mode::CheckMode</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#65"><span class="kw">crate</span>::encoder::Encoder</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/prusti_viper/encoder/mod.rs.html#35"><span class="kw">crate</span>::encoder::counterexample_translation</a>;
-<span class="comment">// use prusti_filter::validators::Validator;</span>
-<span class="kw">use</span> <a class="ident" href="../../prusti_interface/data/enum.VerificationResult.html">prusti_interface::data::VerificationResult</a>;
-<span class="kw">use</span> <a class="ident" href="../../prusti_interface/data/struct.VerificationTask.html">prusti_interface::data::VerificationTask</a>;
-<span class="kw">use</span> <a class="ident" href="../../prusti_interface/environment/struct.Environment.html">prusti_interface::environment::Environment</a>;
-<span class="kw">use</span> <a class="ident" href="../../prusti_interface/prusti_error/struct.PrustiError.html">prusti_interface::PrustiError</a>;
-<span class="comment">// use prusti_interface::specifications::TypedSpecificationMap;</span>
+<span class="kw">use </span><a href="../../vir/common/check_mode/enum.CheckMode.html">vir_crate::common::check_mode::CheckMode</a>;
+<span class="kw">use </span><a href="../../src/prusti_viper/encoder/encoder.rs.html#65"><span class="kw">crate</span>::encoder::Encoder</a>;
+<span class="kw">use </span><a href="../../src/prusti_viper/encoder/mod.rs.html#35"><span class="kw">crate</span>::encoder::counterexample_translation</a>;
+<span class="comment">// use prusti_filter::validators::Validator;
+</span><span class="kw">use </span><a href="../../prusti_interface/data/enum.VerificationResult.html">prusti_interface::data::VerificationResult</a>;
+<span class="kw">use </span><a href="../../prusti_interface/data/struct.VerificationTask.html">prusti_interface::data::VerificationTask</a>;
+<span class="kw">use </span><a href="../../prusti_interface/environment/struct.Environment.html">prusti_interface::environment::Environment</a>;
+<span class="kw">use </span><a href="../../prusti_interface/prusti_error/struct.PrustiError.html">prusti_interface::PrustiError</a>;
+<span class="comment">// use prusti_interface::specifications::TypedSpecificationMap;
 
-<span class="kw">use</span> <span class="ident">viper</span>::{<a class="self" href="../../viper/index.html">self</a>, <a class="ident" href="../../viper/cache/struct.PersistentCache.html">PersistentCache</a>, <a class="ident" href="../../viper/viper/struct.Viper.html">Viper</a>};
+</span><span class="kw">use </span>viper::{<a class="self" href="../../viper/index.html">self</a>, <a href="../../viper/cache/struct.PersistentCache.html">PersistentCache</a>, <a href="../../viper/viper/struct.Viper.html">Viper</a>};
 
 
 
-<span class="kw">use</span> <a class="ident" href="../../prusti_interface/specs/typed/index.html">prusti_interface::specs::typed</a>;
-<span class="kw">use</span> <span class="ident">::log</span>::{<a class="ident" href="../../log/macro.info.html">info</a>, <a class="ident" href="../../log/macro.debug.html">debug</a>, <a class="ident" href="../../log/macro.error.html">error</a>};
-<span class="kw">use</span> <span class="ident">prusti_server</span>::{<a class="ident" href="../../prusti_server/verification_request/struct.VerificationRequest.html">VerificationRequest</a>, <a class="ident" href="../../prusti_server/client/struct.PrustiClient.html">PrustiClient</a>, <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>, <a class="ident" href="../../prusti_server/server/fn.spawn_server_thread.html">spawn_server_thread</a>, <a class="ident" href="../../prusti_server/verification_request/struct.ViperBackendConfig.html">ViperBackendConfig</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">prusti_rustc_interface::span::DUMMY_SP</a>;
-<span class="kw">use</span> <a class="ident" href="../../tokio/runtime/builder/struct.Builder.html">prusti_server::tokio::runtime::Builder</a>;
+<span class="kw">use </span><a href="../../prusti_interface/specs/typed/index.html">prusti_interface::specs::typed</a>;
+<span class="kw">use </span>::log::{<a href="../../log/macro.info.html">info</a>, <a href="../../log/macro.debug.html">debug</a>, <a href="../../log/macro.error.html">error</a>};
+<span class="kw">use </span>prusti_server::{<a href="../../prusti_server/verification_request/struct.VerificationRequest.html">VerificationRequest</a>, <a href="../../prusti_server/client/struct.PrustiClient.html">PrustiClient</a>, <a href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>, <a href="../../prusti_server/server/fn.spawn_server_thread.html">spawn_server_thread</a>, <a href="../../prusti_server/verification_request/struct.ViperBackendConfig.html">ViperBackendConfig</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">prusti_rustc_interface::span::DUMMY_SP</a>;
+<span class="kw">use </span><a href="../../tokio/runtime/builder/struct.Builder.html">prusti_server::tokio::runtime::Builder</a>;
 
-<span class="comment">// /// A verifier builder is an object that lives entire program&#39;s</span>
-<span class="comment">// /// lifetime, has no mutable state, and is responsible for constructing</span>
-<span class="comment">// /// verification context instances. The user of this interface is supposed</span>
-<span class="comment">// /// to create a new verifier for each crate he or she wants to verify.</span>
-<span class="comment">// /// The main motivation for having a builder is to be able to cache the JVM</span>
-<span class="comment">// /// initialization.</span>
-<span class="comment">// pub struct VerifierBuilder {</span>
-<span class="comment">//     viper: Viper,</span>
-<span class="comment">// }</span>
+<span class="comment">// /// A verifier builder is an object that lives entire program&#39;s
+// /// lifetime, has no mutable state, and is responsible for constructing
+// /// verification context instances. The user of this interface is supposed
+// /// to create a new verifier for each crate he or she wants to verify.
+// /// The main motivation for having a builder is to be able to cache the JVM
+// /// initialization.
+// pub struct VerifierBuilder {
+//     viper: Viper,
+// }
 
-<span class="comment">// impl VerifierBuilder {</span>
-<span class="comment">//     pub fn new() -&gt; Self {</span>
-<span class="comment">//         VerifierBuilder {</span>
-<span class="comment">//             viper: Viper::new_with_args(</span>
-<span class="comment">//                 config::extra_jvm_args(),</span>
-<span class="comment">//                 VerificationBackend::from_str(&amp;config::viper_backend())</span>
-<span class="comment">//             ),</span>
-<span class="comment">//         }</span>
-<span class="comment">//     }</span>
+// impl VerifierBuilder {
+//     pub fn new() -&gt; Self {
+//         VerifierBuilder {
+//             viper: Viper::new_with_args(
+//                 config::extra_jvm_args(),
+//                 VerificationBackend::from_str(&amp;config::viper_backend())
+//             ),
+//         }
+//     }
 
-<span class="comment">//     pub fn new_verification_context(&amp;self) -&gt; VerificationContext {</span>
-<span class="comment">//         let verification_ctx = self.viper.new_verification_context();</span>
-<span class="comment">//         VerificationContext::new(verification_ctx)</span>
-<span class="comment">//     }</span>
-<span class="comment">// }</span>
+//     pub fn new_verification_context(&amp;self) -&gt; VerificationContext {
+//         let verification_ctx = self.viper.new_verification_context();
+//         VerificationContext::new(verification_ctx)
+//     }
+// }
 
-<span class="comment">// impl Default for VerifierBuilder {</span>
-<span class="comment">//     fn default() -&gt; Self {</span>
-<span class="comment">//         VerifierBuilder::new()</span>
-<span class="comment">//     }</span>
-<span class="comment">// }</span>
+// impl Default for VerifierBuilder {
+//     fn default() -&gt; Self {
+//         VerifierBuilder::new()
+//     }
+// }
 
-<span class="comment">// /// A verification context is an object that lives entire verification&#39;s lifetime.</span>
-<span class="comment">// /// Its main purpose is to build verifiers.</span>
-<span class="comment">// /// The main motivation for having a verification context is to be able to detach the current</span>
-<span class="comment">// /// thread from the JVM when the verification context goes out of scope.</span>
-<span class="comment">// pub struct VerificationContext&lt;&#39;v&gt; {</span>
-<span class="comment">//     verification_ctx: viper::VerificationContext&lt;&#39;v&gt;,</span>
-<span class="comment">// }</span>
+// /// A verification context is an object that lives entire verification&#39;s lifetime.
+// /// Its main purpose is to build verifiers.
+// /// The main motivation for having a verification context is to be able to detach the current
+// /// thread from the JVM when the verification context goes out of scope.
+// pub struct VerificationContext&lt;&#39;v&gt; {
+//     verification_ctx: viper::VerificationContext&lt;&#39;v&gt;,
+// }
 
-<span class="comment">// impl&lt;&#39;v, &#39;r, &#39;a, &#39;tcx&gt; VerificationContext&lt;&#39;v&gt;</span>
-<span class="comment">//     where</span>
-<span class="comment">//         &#39;r: &#39;v,</span>
-<span class="comment">//         &#39;a: &#39;r,</span>
-<span class="comment">//         &#39;tcx: &#39;a,</span>
-<span class="comment">// {</span>
-<span class="comment">//     fn new(verification_ctx: viper::VerificationContext&lt;&#39;v&gt;) -&gt; Self {</span>
-<span class="comment">//         VerificationContext { verification_ctx }</span>
-<span class="comment">//     }</span>
+// impl&lt;&#39;v, &#39;r, &#39;a, &#39;tcx&gt; VerificationContext&lt;&#39;v&gt;
+//     where
+//         &#39;r: &#39;v,
+//         &#39;a: &#39;r,
+//         &#39;tcx: &#39;a,
+// {
+//     fn new(verification_ctx: viper::VerificationContext&lt;&#39;v&gt;) -&gt; Self {
+//         VerificationContext { verification_ctx }
+//     }
 
-<span class="comment">//     pub fn new_verifier(</span>
-<span class="comment">//         &amp;&#39;v self,</span>
-<span class="comment">//         env: &amp;&#39;v Environment&lt;&#39;tcx&gt;,</span>
-<span class="comment">//         spec: &amp;&#39;v typed::SpecificationMap&lt;&#39;tcx&gt;,</span>
-<span class="comment">//     ) -&gt; Verifier&lt;&#39;v, &#39;tcx&gt; {</span>
-<span class="comment">//         let backend = VerificationBackend::from_str(&amp;config::viper_backend());</span>
+//     pub fn new_verifier(
+//         &amp;&#39;v self,
+//         env: &amp;&#39;v Environment&lt;&#39;tcx&gt;,
+//         spec: &amp;&#39;v typed::SpecificationMap&lt;&#39;tcx&gt;,
+//     ) -&gt; Verifier&lt;&#39;v, &#39;tcx&gt; {
+//         let backend = VerificationBackend::from_str(&amp;config::viper_backend());
 
-<span class="comment">//         let mut verifier_args: Vec&lt;String&gt; = vec![];</span>
-<span class="comment">//         let log_path: PathBuf = config::log_dir().join(&quot;viper_tmp&quot;);</span>
-<span class="comment">//         fs::create_dir_all(&amp;log_path).unwrap();</span>
-<span class="comment">//         let report_path: PathBuf = log_path.join(&quot;report.csv&quot;);</span>
-<span class="comment">//         let log_dir_str = log_path.to_str().unwrap();</span>
-<span class="comment">//         if let VerificationBackend::Silicon = backend {</span>
-<span class="comment">//             if config::use_more_complete_exhale() {</span>
-<span class="comment">//                 verifier_args.push(&quot;--enableMoreCompleteExhale&quot;.to_string()); // Buggy :(</span>
-<span class="comment">//             }</span>
-<span class="comment">//             verifier_args.extend(vec![</span>
-<span class="comment">//                 &quot;--assertTimeout&quot;.to_string(),</span>
-<span class="comment">//                 config::assert_timeout().to_string(),</span>
-<span class="comment">//                 &quot;--tempDirectory&quot;.to_string(),</span>
-<span class="comment">//                 log_dir_str.to_string(),</span>
-<span class="comment">//                 //&quot;--logLevel&quot;.to_string(), &quot;WARN&quot;.to_string(),</span>
-<span class="comment">//             ]);</span>
-<span class="comment">//         } else {</span>
-<span class="comment">//             verifier_args.extend(vec![</span>
-<span class="comment">//                 &quot;--disableAllocEncoding&quot;.to_string(),</span>
-<span class="comment">//                 &quot;--boogieOpt&quot;.to_string(),</span>
-<span class="comment">//                 format!(&quot;/logPrefix {}&quot;, log_dir_str),</span>
-<span class="comment">//             ]);</span>
-<span class="comment">//         }</span>
-<span class="comment">//         if config::dump_debug_info() {</span>
-<span class="comment">//             if let VerificationBackend::Silicon = backend {</span>
-<span class="comment">//                 verifier_args.extend(vec![</span>
-<span class="comment">//                     &quot;--printMethodCFGs&quot;.to_string(),</span>
-<span class="comment">//                     &quot;--logLevel&quot;.to_string(),</span>
-<span class="comment">//                     &quot;INFO&quot;.to_string(),</span>
-<span class="comment">//                     //&quot;--printTranslatedProgram&quot;.to_string(),</span>
-<span class="comment">//                 ]);</span>
-<span class="comment">//             } else {</span>
-<span class="comment">//                 verifier_args.extend::&lt;Vec&lt;_&gt;&gt;(vec![</span>
-<span class="comment">//                     //&quot;--print&quot;.to_string(), &quot;./log/boogie_program/program.bpl&quot;.to_string(),</span>
-<span class="comment">//                 ]);</span>
-<span class="comment">//             }</span>
-<span class="comment">//         }</span>
-<span class="comment">//         verifier_args.extend(config::extra_verifier_args());</span>
-<span class="comment">//         Verifier::new(</span>
-<span class="comment">//             self.verification_ctx.new_ast_utils(),</span>
-<span class="comment">//             self.verification_ctx.new_ast_factory(),</span>
-<span class="comment">//             self.verification_ctx</span>
-<span class="comment">//                 .new_verifier_with_args(backend, verifier_args, Some(report_path)),</span>
-<span class="comment">//             env,</span>
-<span class="comment">//             spec,</span>
-<span class="comment">//         )</span>
-<span class="comment">//     }</span>
-<span class="comment">// }</span>
+//         let mut verifier_args: Vec&lt;String&gt; = vec![];
+//         let log_path: PathBuf = config::log_dir().join(&quot;viper_tmp&quot;);
+//         fs::create_dir_all(&amp;log_path).unwrap();
+//         let report_path: PathBuf = log_path.join(&quot;report.csv&quot;);
+//         let log_dir_str = log_path.to_str().unwrap();
+//         if let VerificationBackend::Silicon = backend {
+//             if config::use_more_complete_exhale() {
+//                 verifier_args.push(&quot;--enableMoreCompleteExhale&quot;.to_string()); // Buggy :(
+//             }
+//             verifier_args.extend(vec![
+//                 &quot;--assertTimeout&quot;.to_string(),
+//                 config::assert_timeout().to_string(),
+//                 &quot;--tempDirectory&quot;.to_string(),
+//                 log_dir_str.to_string(),
+//                 //&quot;--logLevel&quot;.to_string(), &quot;WARN&quot;.to_string(),
+//             ]);
+//         } else {
+//             verifier_args.extend(vec![
+//                 &quot;--disableAllocEncoding&quot;.to_string(),
+//                 &quot;--boogieOpt&quot;.to_string(),
+//                 format!(&quot;/logPrefix {}&quot;, log_dir_str),
+//             ]);
+//         }
+//         if config::dump_debug_info() {
+//             if let VerificationBackend::Silicon = backend {
+//                 verifier_args.extend(vec![
+//                     &quot;--printMethodCFGs&quot;.to_string(),
+//                     &quot;--logLevel&quot;.to_string(),
+//                     &quot;INFO&quot;.to_string(),
+//                     //&quot;--printTranslatedProgram&quot;.to_string(),
+//                 ]);
+//             } else {
+//                 verifier_args.extend::&lt;Vec&lt;_&gt;&gt;(vec![
+//                     //&quot;--print&quot;.to_string(), &quot;./log/boogie_program/program.bpl&quot;.to_string(),
+//                 ]);
+//             }
+//         }
+//         verifier_args.extend(config::extra_verifier_args());
+//         Verifier::new(
+//             self.verification_ctx.new_ast_utils(),
+//             self.verification_ctx.new_ast_factory(),
+//             self.verification_ctx
+//                 .new_verifier_with_args(backend, verifier_args, Some(report_path)),
+//             env,
+//             spec,
+//         )
+//     }
+// }
 
-<span class="doccomment">/// A verifier is an object for verifying a single crate, potentially</span>
-<span class="doccomment">/// many times.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>,
+</span><span class="doccomment">/// A verifier is an object for verifying a single crate, potentially
+/// many times.
+</span><span class="kw">pub struct </span>Verifier&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;
+<span class="kw">where
+    </span><span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>,
 {
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">encoder</span>: <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    encoder: Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">def_spec</span>: <a class="ident" href="../../prusti_interface/specs/typed/struct.DefSpecificationMap.html">typed::DefSpecificationMap</a>,
-    ) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#139">Verifier</a> {
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#149">env</a>,
-            <span class="ident">encoder</span>: <span class="ident">Encoder::new</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#149">env</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#150">def_spec</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; Verifier&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub fn </span>new(
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        def_spec: <a href="../../prusti_interface/specs/typed/struct.DefSpecificationMap.html">typed::DefSpecificationMap</a>,
+    ) -&gt; <span class="self">Self </span>{
+        <a href="../../src/prusti_viper/verifier.rs.html#139">Verifier</a> {
+            <a href="../../src/prusti_viper/verifier.rs.html#149">env</a>,
+            encoder: Encoder::new(<a href="../../src/prusti_viper/verifier.rs.html#149">env</a>, <a href="../../src/prusti_viper/verifier.rs.html#150">def_spec</a>),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../prusti_interface/data/struct.VerificationTask.html">VerificationTask</a>) -&gt; <a class="ident" href="../../prusti_interface/data/enum.VerificationResult.html">VerificationResult</a> {
+    <span class="kw">pub fn </span>verify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, task: <span class="kw-2">&amp;</span><a href="../../prusti_interface/data/struct.VerificationTask.html">VerificationTask</a>) -&gt; <a href="../../prusti_interface/data/enum.VerificationResult.html">VerificationResult</a> {
         <a class="macro" href="../../log/macro.info.html">info!</a>(
             <span class="string">&quot;Received {} functions to be verified:&quot;</span>,
-            <span class="ident">task</span>.<span class="ident">procedures</span>.<span class="ident">len</span>()
+            task.procedures.len()
         );
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;encoding to Viper&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;encoding to Viper&quot;</span>);
 
-        <span class="comment">// Dump the configuration</span>
-        <span class="kw">if</span> <span class="ident">config::dump_debug_info</span>() {
-            <span class="ident">log::report</span>(<span class="string">&quot;config&quot;</span>, <span class="string">&quot;prusti&quot;</span>, <span class="ident">config::dump</span>());
+        <span class="comment">// Dump the configuration
+        </span><span class="kw">if </span>config::dump_debug_info() {
+            log::report(<span class="string">&quot;config&quot;</span>, <span class="string">&quot;prusti&quot;</span>, config::dump());
         }
 
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">proc_id</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">task</span>.<span class="ident">procedures</span> {
-            <span class="kw">let</span> <span class="ident">proc_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">name</span>.<span class="ident">get_absolute_item_name</span>(<span class="ident">proc_id</span>);
-            <span class="kw">let</span> <span class="ident">proc_def_path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">name</span>.<span class="ident">get_item_def_path</span>(<span class="ident">proc_id</span>);
-            <span class="kw">let</span> <span class="ident">proc_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">query</span>.<span class="ident">get_def_span</span>(<span class="ident">proc_id</span>);
-            <span class="macro">info!</span>(<span class="string">&quot; - {} ({})&quot;</span>, <span class="ident">proc_name</span>, <span class="ident">proc_def_path</span>);
-            <span class="macro">info!</span>(<span class="string">&quot;   Source: {:?}&quot;</span>, <span class="ident">proc_span</span>);
+        <span class="kw">for </span><span class="kw-2">&amp;</span>proc_id <span class="kw">in </span><span class="kw-2">&amp;</span>task.procedures {
+            <span class="kw">let </span>proc_name = <span class="self">self</span>.env.name.get_absolute_item_name(proc_id);
+            <span class="kw">let </span>proc_def_path = <span class="self">self</span>.env.name.get_item_def_path(proc_id);
+            <span class="kw">let </span>proc_span = <span class="self">self</span>.env.query.get_def_span(proc_id);
+            <span class="macro">info!</span>(<span class="string">&quot; - {} ({})&quot;</span>, proc_name, proc_def_path);
+            <span class="macro">info!</span>(<span class="string">&quot;   Source: {:?}&quot;</span>, proc_span);
         }
 
-        <span class="comment">// // Check support status, and queue encoding</span>
-        <span class="comment">// let validator = Validator::new(self.env.tcx());</span>
+        <span class="comment">// // Check support status, and queue encoding
+        // let validator = Validator::new(self.env.tcx());
 
-        <span class="comment">// let report_support_status = config::report_support_status();</span>
-        <span class="comment">// let skip_unsupported_features = config::skip_unsupported_features();</span>
-        <span class="comment">// let error_on_partially_supported = config::error_on_partially_supported();</span>
-        <span class="comment">// let mut skipped_functions_count = 0;</span>
+        // let report_support_status = config::report_support_status();
+        // let skip_unsupported_features = config::skip_unsupported_features();
+        // let error_on_partially_supported = config::error_on_partially_supported();
+        // let mut skipped_functions_count = 0;
 
-        <span class="comment">// for &amp;proc_id in &amp;task.procedures {</span>
-        <span class="comment">//     let proc_name = self.env.get_absolute_item_name(proc_id);</span>
-        <span class="comment">//     let proc_span = self.env.query.get_def_span(proc_id);</span>
-        <span class="comment">//     let is_pure_function = self.env.has_prusti_attribute(proc_id, &quot;pure&quot;);</span>
+        // for &amp;proc_id in &amp;task.procedures {
+        //     let proc_name = self.env.get_absolute_item_name(proc_id);
+        //     let proc_span = self.env.query.get_def_span(proc_id);
+        //     let is_pure_function = self.env.has_prusti_attribute(proc_id, &quot;pure&quot;);
 
-        <span class="comment">//     let support_status = if is_pure_function {</span>
-        <span class="comment">//         validator.pure_function_support_status(proc_id)</span>
-        <span class="comment">//     } else {</span>
-        <span class="comment">//         validator.procedure_support_status(proc_id)</span>
-        <span class="comment">//     };</span>
+        //     let support_status = if is_pure_function {
+        //         validator.pure_function_support_status(proc_id)
+        //     } else {
+        //         validator.procedure_support_status(proc_id)
+        //     };
 
-        <span class="comment">//     if report_support_status {</span>
-        <span class="comment">//         support_status.report_support_status(</span>
-        <span class="comment">//             &amp;self.env,</span>
-        <span class="comment">//             is_pure_function,</span>
-        <span class="comment">//             // true ==&gt; raise compiler errors for partially supported functions</span>
-        <span class="comment">//             error_on_partially_supported,</span>
-        <span class="comment">//             // true ==&gt; raise compiler errors for unsupported functions</span>
-        <span class="comment">//             error_on_partially_supported || !skip_unsupported_features,</span>
-        <span class="comment">//         );</span>
-        <span class="comment">//     }</span>
+        //     if report_support_status {
+        //         support_status.report_support_status(
+        //             &amp;self.env,
+        //             is_pure_function,
+        //             // true ==&gt; raise compiler errors for partially supported functions
+        //             error_on_partially_supported,
+        //             // true ==&gt; raise compiler errors for unsupported functions
+        //             error_on_partially_supported || !skip_unsupported_features,
+        //         );
+        //     }
 
-        <span class="comment">//     if !support_status.is_supported() &amp;&amp; skip_unsupported_features {</span>
-        <span class="comment">//         warn!(</span>
-        <span class="comment">//             &quot;Skip verification of {}, as it is not fully supported.&quot;,</span>
-        <span class="comment">//             proc_name</span>
-        <span class="comment">//         );</span>
-        <span class="comment">//         self.env.span_warn_with_help_and_note(</span>
-        <span class="comment">//             proc_span,</span>
-        <span class="comment">//             &amp;format!(</span>
-        <span class="comment">//                 &quot;this function will be ignored because it is not fully supported by \</span>
-        <span class="comment">//                 Prusti: {}&quot;,</span>
-        <span class="comment">//                 proc_name</span>
-        <span class="comment">//             ),</span>
-        <span class="comment">//             &amp;Some(if report_support_status {</span>
-        <span class="comment">//                 &quot;Disable the SKIP_UNSUPPORTED_FEATURES configuration flag to verify \</span>
-        <span class="comment">//                     this function anyway.&quot;</span>
-        <span class="comment">//                     .to_string()</span>
-        <span class="comment">//             } else {</span>
-        <span class="comment">//                 &quot;Enable the REPORT_SUPPORT_STATUS configuration flag for more details \</span>
-        <span class="comment">//                     on why the function is not fully supported, or disable \</span>
-        <span class="comment">//                     SKIP_UNSUPPORTED_FEATURES to verify this function anyway.&quot;</span>
-        <span class="comment">//                     .to_string()</span>
-        <span class="comment">//             }),</span>
-        <span class="comment">//             &amp;None,</span>
-        <span class="comment">//         );</span>
-        <span class="comment">//         skipped_functions_count += 1;</span>
-        <span class="comment">//     } else {</span>
-        <span class="comment">//         self.encoder.queue_procedure_encoding(proc_id);</span>
-        <span class="comment">//     }</span>
-        <span class="comment">// }</span>
-        <span class="comment">// info!(</span>
-        <span class="comment">//     &quot;Out of {} functions, {} are not fully supported and have been skipped.&quot;,</span>
-        <span class="comment">//     task.procedures.len(),</span>
-        <span class="comment">//     skipped_functions_count,</span>
-        <span class="comment">// );</span>
+        //     if !support_status.is_supported() &amp;&amp; skip_unsupported_features {
+        //         warn!(
+        //             &quot;Skip verification of {}, as it is not fully supported.&quot;,
+        //             proc_name
+        //         );
+        //         self.env.span_warn_with_help_and_note(
+        //             proc_span,
+        //             &amp;format!(
+        //                 &quot;this function will be ignored because it is not fully supported by \
+        //                 Prusti: {}&quot;,
+        //                 proc_name
+        //             ),
+        //             &amp;Some(if report_support_status {
+        //                 &quot;Disable the SKIP_UNSUPPORTED_FEATURES configuration flag to verify \
+        //                     this function anyway.&quot;
+        //                     .to_string()
+        //             } else {
+        //                 &quot;Enable the REPORT_SUPPORT_STATUS configuration flag for more details \
+        //                     on why the function is not fully supported, or disable \
+        //                     SKIP_UNSUPPORTED_FEATURES to verify this function anyway.&quot;
+        //                     .to_string()
+        //             }),
+        //             &amp;None,
+        //         );
+        //         skipped_functions_count += 1;
+        //     } else {
+        //         self.encoder.queue_procedure_encoding(proc_id);
+        //     }
+        // }
+        // info!(
+        //     &quot;Out of {} functions, {} are not fully supported and have been skipped.&quot;,
+        //     task.procedures.len(),
+        //     skipped_functions_count,
+        // );
 
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">proc_id</span> <span class="kw">in</span> <span class="ident">task</span>.<span class="ident">procedures</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
-            <span class="comment">// FIXME: Use the loop above.</span>
-            <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">queue_procedure_encoding</span>(<span class="ident">proc_id</span>);
+        </span><span class="kw">for </span><span class="kw-2">&amp;</span>proc_id <span class="kw">in </span>task.procedures.iter().rev() {
+            <span class="comment">// FIXME: Use the loop above.
+            </span><span class="self">self</span>.encoder.queue_procedure_encoding(proc_id);
         }
-        <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#665">process_encoding_queue</a>();
+        <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.encoder.<a href="../../src/prusti_viper/encoder/encoder.rs.html#665">process_encoding_queue</a>();
 
-        <span class="kw">let</span> <span class="ident">encoding_errors_count</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#238">count_encoding_errors</a>();
+        <span class="kw">let </span>encoding_errors_count = <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.encoder.<a href="../../src/prusti_viper/encoder/encoder.rs.html#238">count_encoding_errors</a>();
 
-        <span class="kw">let</span> <span class="ident">polymorphic_programs</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#221">get_viper_programs</a>();
+        <span class="kw">let </span>polymorphic_programs = <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.encoder.<a href="../../src/prusti_viper/encoder/encoder.rs.html#221">get_viper_programs</a>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../prusti_common/vir/program/enum.Program.html">Program</a><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">config::simplify_encoding</span>() {
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;optimizing Viper program&quot;</span>);
-            <span class="kw">let</span> <span class="ident">source_file_name</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().<span class="ident">name</span>.<span class="ident">source_file_name</span>();
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#252">polymorphic_programs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
-                <span class="op">|</span><span class="ident">program</span><span class="op">|</span> <span class="ident">Program::Legacy</span>(<a class="ident" href="../../prusti_common/vir/optimizations/fn.optimize_program.html">optimize_program</a>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#258">program</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#256">source_file_name</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-            ).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#252">polymorphic_programs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
-                <span class="op">|</span><span class="ident">program</span><span class="op">|</span> <span class="ident">Program::Legacy</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#262">program</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-            ).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="kw">let </span><span class="kw-2">mut </span>programs: Vec&lt;<a href="../../prusti_common/vir/program/enum.Program.html">Program</a>&gt; = <span class="kw">if </span>config::simplify_encoding() {
+            <a href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.start_next(<span class="string">&quot;optimizing Viper program&quot;</span>);
+            <span class="kw">let </span>source_file_name = <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.encoder.<a href="../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().name.source_file_name();
+            <a href="../../src/prusti_viper/verifier.rs.html#252">polymorphic_programs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+                |program| Program::Legacy(<a href="../../prusti_common/vir/optimizations/fn.optimize_program.html">optimize_program</a>(<a href="../../src/prusti_viper/verifier.rs.html#258">program</a>, <span class="kw-2">&amp;</span><a href="../../src/prusti_viper/verifier.rs.html#256">source_file_name</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            ).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        } <span class="kw">else </span>{
+            <a href="../../src/prusti_viper/verifier.rs.html#252">polymorphic_programs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+                |program| Program::Legacy(<a href="../../src/prusti_viper/verifier.rs.html#262">program</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            ).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
         };
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#254">programs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#225">get_core_proof_programs</a>());
+        <a href="../../src/prusti_viper/verifier.rs.html#254">programs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.encoder.<a href="../../src/prusti_viper/encoder/encoder.rs.html#225">get_core_proof_programs</a>());
 
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;verifying Viper program&quot;</span>);
-        <span class="kw">let</span> <span class="ident">verification_results</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#365-366">verify_programs</a>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">env</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#254">programs</a>);
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.<span class="ident">finish</span>();
+        <a href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.start_next(<span class="string">&quot;verifying Viper program&quot;</span>);
+        <span class="kw">let </span>verification_results = <a href="../../src/prusti_viper/verifier.rs.html#365-366">verify_programs</a>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.env, <a href="../../src/prusti_viper/verifier.rs.html#254">programs</a>);
+        <a href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.finish();
 
-        <span class="comment">// Group verification results</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verification_errors</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">consistency_errors</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">java_exceptions</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">for</span> (<span class="ident">method_name</span>, <span class="ident">result</span>) <span class="kw">in</span> <span class="ident">verification_results</span>.<span class="ident">into_iter</span>() {
-            <span class="kw">match</span> <span class="ident">result</span> {
-                <span class="ident">viper::VerificationResult::Success</span> =&gt; {}
-                <span class="ident">viper::VerificationResult::ConsistencyErrors</span>(<span class="ident">errors</span>) =&gt; {
-                    <span class="kw">for</span> <span class="ident">error</span> <span class="kw">in</span> <span class="ident">errors</span>.<span class="ident">into_iter</span>() {
-                        <span class="ident">consistency_errors</span>.<span class="ident">push</span>((<span class="ident">method_name</span>.<span class="ident">clone</span>(), <span class="ident">error</span>));
+        <span class="comment">// Group verification results
+        </span><span class="kw">let </span><span class="kw-2">mut </span>verification_errors : Vec&lt;<span class="kw">_</span>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>consistency_errors : Vec&lt;<span class="kw">_</span>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">let </span><span class="kw-2">mut </span>java_exceptions : Vec&lt;<span class="kw">_</span>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">for </span>(method_name, result) <span class="kw">in </span>verification_results.into_iter() {
+            <span class="kw">match </span>result {
+                viper::VerificationResult::Success =&gt; {}
+                viper::VerificationResult::ConsistencyErrors(errors) =&gt; {
+                    <span class="kw">for </span>error <span class="kw">in </span>errors.into_iter() {
+                        consistency_errors.push((method_name.clone(), error));
                     }
                 }
-                <span class="ident">viper::VerificationResult::Failure</span>(<span class="ident">errors</span>) =&gt; {
-                    <span class="kw">for</span> <span class="ident">error</span> <span class="kw">in</span> <span class="ident">errors</span>.<span class="ident">into_iter</span>() {
-                        <span class="ident">verification_errors</span>.<span class="ident">push</span>((<span class="ident">method_name</span>.<span class="ident">clone</span>(), <span class="ident">error</span>));
+                viper::VerificationResult::Failure(errors) =&gt; {
+                    <span class="kw">for </span>error <span class="kw">in </span>errors.into_iter() {
+                        verification_errors.push((method_name.clone(), error));
                     }
                 }
-                <span class="ident">viper::VerificationResult::JavaException</span>(<span class="ident">exception</span>) =&gt; {
-                    <span class="ident">java_exceptions</span>.<span class="ident">push</span>((<span class="ident">method_name</span>, <span class="ident">exception</span>));
+                viper::VerificationResult::JavaException(exception) =&gt; {
+                    java_exceptions.push((method_name, exception));
                 }
             }
         }
 
-        <span class="comment">// Convert verification results to Prusti errors</span>
-        <span class="kw">let</span> <span class="ident">error_manager</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#212">error_manager</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Success</span>;
+        <span class="comment">// Convert verification results to Prusti errors
+        </span><span class="kw">let </span>error_manager = <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.encoder.<a href="../../src/prusti_viper/encoder/encoder.rs.html#212">error_manager</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>result = VerificationResult::Success;
 
-        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">error</span>) <span class="kw">in</span> <span class="ident">consistency_errors</span>.<span class="ident">into_iter</span>() {
-            <span class="ident">PrustiError::internal</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;consistency error in {}: {}&quot;</span>, <span class="ident">method</span>, <span class="ident">error</span>), <span class="ident">DUMMY_SP</span>.<span class="ident">into</span>()
-            ).<span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">env</span>.<span class="ident">diagnostic</span>);
-            <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+        <span class="kw">for </span>(method, error) <span class="kw">in </span>consistency_errors.into_iter() {
+            PrustiError::internal(
+                <span class="macro">format!</span>(<span class="string">&quot;consistency error in {}: {}&quot;</span>, method, error), DUMMY_SP.into()
+            ).emit(<span class="kw-2">&amp;</span><span class="self">self</span>.env.diagnostic);
+            result = VerificationResult::Failure;
         }
 
-        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">exception</span>) <span class="kw">in</span> <span class="ident">java_exceptions</span>.<span class="ident">into_iter</span>() {
-            <span class="macro">error!</span>(<span class="string">&quot;Java exception: {}&quot;</span>, <span class="ident">exception</span>.<span class="ident">get_stack_trace</span>());
-            <span class="ident">PrustiError::internal</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;in {}: {}&quot;</span>, <span class="ident">method</span>, <span class="ident">exception</span>), <span class="ident">DUMMY_SP</span>.<span class="ident">into</span>()
-            ).<span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">env</span>.<span class="ident">diagnostic</span>);
-            <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+        <span class="kw">for </span>(method, exception) <span class="kw">in </span>java_exceptions.into_iter() {
+            <span class="macro">error!</span>(<span class="string">&quot;Java exception: {}&quot;</span>, exception.get_stack_trace());
+            PrustiError::internal(
+                <span class="macro">format!</span>(<span class="string">&quot;in {}: {}&quot;</span>, method, exception), DUMMY_SP.into()
+            ).emit(<span class="kw-2">&amp;</span><span class="self">self</span>.env.diagnostic);
+            result = VerificationResult::Failure;
         }
 
-        <span class="comment">// Report verification errors</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">verification_error</span>) <span class="kw">in</span> <span class="ident">verification_errors</span>.<span class="ident">into_iter</span>() {
-            <span class="macro">debug!</span>(<span class="string">&quot;Verification error in {}: {:?}&quot;</span>, <span class="ident">method</span>, <span class="ident">verification_error</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_error</span> <span class="op">=</span> <span class="ident">error_manager</span>.<span class="ident">translate_verification_error</span>(<span class="kw-2">&amp;</span><span class="ident">verification_error</span>);
+        <span class="comment">// Report verification errors
+        </span><span class="kw">let </span><span class="kw-2">mut </span>prusti_errors: Vec&lt;<span class="kw">_</span>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">for </span>(method, verification_error) <span class="kw">in </span>verification_errors.into_iter() {
+            <span class="macro">debug!</span>(<span class="string">&quot;Verification error in {}: {:?}&quot;</span>, method, verification_error);
+            <span class="kw">let </span><span class="kw-2">mut </span>prusti_error = error_manager.translate_verification_error(<span class="kw-2">&amp;</span>verification_error);
 
-            <span class="comment">// annotate with counterexample, if requested</span>
-            <span class="kw">if</span> <span class="ident">config::counterexample</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">silicon_counterexample</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">verification_error</span>.<span class="ident">counterexample</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">def_id</span>) <span class="op">=</span> <span class="ident">error_manager</span>.<span class="ident">get_def_id</span>(<span class="kw-2">&amp;</span><span class="ident">verification_error</span>) {
-                        <span class="kw">let</span> <span class="ident">counterexample</span> <span class="op">=</span> <span class="ident">counterexample_translation::backtranslate</span>(
-                            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">encoder</span>,
-                            <span class="ident">def_id</span>,
-                            <span class="ident">silicon_counterexample</span>,
+            <span class="comment">// annotate with counterexample, if requested
+            </span><span class="kw">if </span>config::counterexample() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(silicon_counterexample) = <span class="kw-2">&amp;</span>verification_error.counterexample {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(def_id) = error_manager.get_def_id(<span class="kw-2">&amp;</span>verification_error) {
+                        <span class="kw">let </span>counterexample = counterexample_translation::backtranslate(
+                            <span class="kw-2">&amp;</span><span class="self">self</span>.encoder,
+                            def_id,
+                            silicon_counterexample,
                         );
-                        <span class="ident">prusti_error</span> <span class="op">=</span> <span class="ident">counterexample</span>.<span class="ident">annotate_error</span>(<span class="ident">prusti_error</span>);
-                    } <span class="kw">else</span> {
-                        <span class="ident">prusti_error</span> <span class="op">=</span> <span class="ident">prusti_error</span>.<span class="ident">add_note</span>(
+                        prusti_error = counterexample.annotate_error(prusti_error);
+                    } <span class="kw">else </span>{
+                        prusti_error = prusti_error.add_note(
                             <span class="macro">format!</span>(
                                 <span class="string">&quot;the verifier produced a counterexample for {}, but it could not be mapped to source code&quot;</span>,
-                                <span class="ident">method</span>
+                                method
                             ),
                             <span class="prelude-val">None</span>,
                         );
@@ -773,100 +773,100 @@
                 }
             }
 
-            <span class="ident">prusti_errors</span>.<span class="ident">push</span>(<span class="ident">prusti_error</span>);
+            prusti_errors.push(prusti_error);
         }
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#314">prusti_errors</a>.<span class="ident">sort</span>();
+        <a href="../../src/prusti_viper/verifier.rs.html#314">prusti_errors</a>.sort();
 
-        <span class="kw">for</span> <span class="ident">prusti_error</span> <span class="kw">in</span> <span class="ident">prusti_errors</span> {
-            <span class="macro">debug!</span>(<span class="string">&quot;Prusti error: {:?}&quot;</span>, <span class="ident">prusti_error</span>);
-            <span class="kw">if</span> <span class="ident">prusti_error</span>.<span class="ident">is_disabled</span>() {
-                <span class="ident">prusti_error</span>.<span class="ident">cancel</span>();
-            } <span class="kw">else</span> {
-                <span class="ident">prusti_error</span>.<span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">env</span>.<span class="ident">diagnostic</span>);
+        <span class="kw">for </span>prusti_error <span class="kw">in </span>prusti_errors {
+            <span class="macro">debug!</span>(<span class="string">&quot;Prusti error: {:?}&quot;</span>, prusti_error);
+            <span class="kw">if </span>prusti_error.is_disabled() {
+                prusti_error.cancel();
+            } <span class="kw">else </span>{
+                prusti_error.emit(<span class="kw-2">&amp;</span><span class="self">self</span>.env.diagnostic);
             }
-            <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+            result = VerificationResult::Failure;
         }
 
-        <span class="kw">if</span> <span class="ident">encoding_errors_count</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#296">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+        <span class="kw">if </span>encoding_errors_count != <span class="number">0 </span>{
+            <a href="../../src/prusti_viper/verifier.rs.html#296">result</a> = VerificationResult::Failure;
         }
 
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#296">result</a>
+        <a href="../../src/prusti_viper/verifier.rs.html#296">result</a>
     }
 }
 
-<span class="doccomment">/// Verify a list of programs.</span>
-<span class="doccomment">/// Returns a list of (program_name, verification_result) tuples.</span>
-<span class="kw">fn</span> <span class="ident">verify_programs</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../prusti_interface/environment/struct.Environment.html">Environment</a>, <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../prusti_common/vir/program/enum.Program.html">Program</a><span class="op">&gt;</span>)
-    -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a>)<span class="op">&gt;</span>
+<span class="doccomment">/// Verify a list of programs.
+/// Returns a list of (program_name, verification_result) tuples.
+</span><span class="kw">fn </span>verify_programs(env: <span class="kw-2">&amp;</span><a href="../../prusti_interface/environment/struct.Environment.html">Environment</a>, programs: Vec&lt;<a href="../../prusti_common/vir/program/enum.Program.html">Program</a>&gt;)
+    -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a>)&gt;
 {
-    <span class="kw">let</span> <span class="ident">source_path</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#365">env</a>.<span class="ident">name</span>.<span class="ident">source_path</span>();
-    <span class="kw">let</span> <span class="ident">rust_program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#368">source_path</a>
-        .<span class="ident">file_name</span>()
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">to_str</span>()
-        .<span class="ident">unwrap</span>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
-    <span class="kw">let</span> <span class="ident">verification_requests</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#365">programs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">program</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">program</a>.<span class="ident">get_name</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let</span> <span class="ident">check_mode</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">program</a>.<span class="ident">get_check_mode</span>();
-        <span class="comment">// Prepend the Rust file name to the program.</span>
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">program</a>.<span class="ident">set_name</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}_{}&quot;</span>, <span class="ident">rust_program_name</span>, <span class="ident">program_name</span>));
-        <span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">check_mode</span> <span class="op">==</span> <span class="ident">CheckMode::Specifications</span> {
-            <span class="ident">config::verify_specifications_backend</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">config::viper_backend</span>()
+    <span class="kw">let </span>source_path = <a href="../../src/prusti_viper/verifier.rs.html#365">env</a>.name.source_path();
+    <span class="kw">let </span>rust_program_name = <a href="../../src/prusti_viper/verifier.rs.html#368">source_path</a>
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
+    <span class="kw">let </span>verification_requests = <a href="../../src/prusti_viper/verifier.rs.html#365">programs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">mut </span>program| {
+        <span class="kw">let </span>program_name = <a href="../../src/prusti_viper/verifier.rs.html#375">program</a>.get_name().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>check_mode = <a href="../../src/prusti_viper/verifier.rs.html#375">program</a>.get_check_mode();
+        <span class="comment">// Prepend the Rust file name to the program.
+        </span><a href="../../src/prusti_viper/verifier.rs.html#375">program</a>.set_name(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}_{}&quot;</span>, rust_program_name, program_name));
+        <span class="kw">let </span>backend = <span class="kw">if </span>check_mode == CheckMode::Specifications {
+            config::verify_specifications_backend()
+        } <span class="kw">else </span>{
+            config::viper_backend()
         };
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <a class="ident" href="../../prusti_server/verification_request/struct.VerificationRequest.html">VerificationRequest</a> {
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">program</a>,
-            <span class="ident">backend_config</span>: <span class="ident">ViperBackendConfig::new</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#380">backend</a>),
+        <span class="kw">let </span>request = <a href="../../prusti_server/verification_request/struct.VerificationRequest.html">VerificationRequest</a> {
+            <a href="../../src/prusti_viper/verifier.rs.html#375">program</a>,
+            backend_config: ViperBackendConfig::new(<a href="../../src/prusti_viper/verifier.rs.html#380">backend</a>),
         };
-        (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#376">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#385">request</a>)
+        (<a href="../../src/prusti_viper/verifier.rs.html#376">program_name</a>, <a href="../../src/prusti_viper/verifier.rs.html#385">request</a>)
     });
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">server_address</span>) <span class="op">=</span> <span class="ident">config::server_address</span>() {
-        <span class="kw">let</span> <span class="ident">server_address</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">server_address</span> <span class="op">==</span> <span class="string">&quot;MOCK&quot;</span> {
-            <a class="ident" href="../../prusti_server/server/fn.spawn_server_thread.html">spawn_server_thread</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#391">server_address</a>
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(server_address) = config::server_address() {
+        <span class="kw">let </span>server_address = <span class="kw">if </span>server_address == <span class="string">&quot;MOCK&quot; </span>{
+            <a href="../../prusti_server/server/fn.spawn_server_thread.html">spawn_server_thread</a>().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+        } <span class="kw">else </span>{
+            <a href="../../src/prusti_viper/verifier.rs.html#391">server_address</a>
         };
-        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Connecting to Prusti server at {}&quot;</span>, <span class="ident">server_address</span>);
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">PrustiClient::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#392">server_address</a>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
+        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Connecting to Prusti server at {}&quot;</span>, server_address);
+        <span class="kw">let </span>client = PrustiClient::new(<span class="kw-2">&amp;</span><a href="../../src/prusti_viper/verifier.rs.html#392">server_address</a>).unwrap_or_else(|error| {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
                 <span class="string">&quot;Could not parse server address ({}) due to {:?}&quot;</span>,
-                <span class="ident">server_address</span>, <span class="ident">error</span>
+                server_address, error
             )
         });
-        <span class="comment">// Here we construct a Tokio runtime to block until completion of the futures returned by</span>
-        <span class="comment">// `client.verify`. However, to report verification errors as early as possible,</span>
-        <span class="comment">// `verify_programs` should return an asynchronous stream of verification results.</span>
-        <span class="kw">let</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">Builder::new_current_thread</span>()
-            .<span class="ident">thread_name</span>(<span class="string">&quot;prusti-viper&quot;</span>)
-            .<span class="ident">enable_all</span>()
-            .<span class="ident">build</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">verification_requests</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">request</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">remote_result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#407">runtime</a>.<span class="ident">block_on</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#398">client</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#412">request</a>));
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#413">remote_result</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
+        <span class="comment">// Here we construct a Tokio runtime to block until completion of the futures returned by
+        // `client.verify`. However, to report verification errors as early as possible,
+        // `verify_programs` should return an asynchronous stream of verification results.
+        </span><span class="kw">let </span>runtime = Builder::new_current_thread()
+            .thread_name(<span class="string">&quot;prusti-viper&quot;</span>)
+            .enable_all()
+            .build()
+            .expect(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
+        <a href="../../src/prusti_viper/verifier.rs.html#375">verification_requests</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(program_name, request)| {
+            <span class="kw">let </span>remote_result = <a href="../../src/prusti_viper/verifier.rs.html#407">runtime</a>.block_on(<a href="../../src/prusti_viper/verifier.rs.html#398">client</a>.verify(<a href="../../src/prusti_viper/verifier.rs.html#412">request</a>));
+            <span class="kw">let </span>result = <a href="../../src/prusti_viper/verifier.rs.html#413">remote_result</a>.unwrap_or_else(|error| {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
                     <span class="string">&quot;Verification request of program {} failed: {:?}&quot;</span>,
-                    <span class="ident">program_name</span>,
-                    <span class="ident">error</span>
+                    program_name,
+                    error
                 )
             });
-            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#412">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#414">result</a>)
-        }).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
-    } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
-        <span class="kw">let</span> <span class="ident">viper</span> <span class="op">=</span> <span class="ident">Viper::new_with_args</span>(<span class="kw-2">&amp;</span><span class="ident">config::viper_home</span>(), <span class="ident">config::extra_jvm_args</span>());
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;attach current thread to the JVM&quot;</span>);
-        <span class="kw">let</span> <span class="ident">viper_thread</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#425">viper</a>.<span class="ident">attach_current_thread</span>();
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">stopwatch</a>.<span class="ident">finish</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">PersistentCache::load_cache</span>(<span class="ident">config::cache_path</span>());
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">verification_requests</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">request</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#427">viper_thread</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#430">request</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#429">cache</a>);
-            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#430">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#431">result</a>)
-        }).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+            (<a href="../../src/prusti_viper/verifier.rs.html#412">program_name</a>, <a href="../../src/prusti_viper/verifier.rs.html#414">result</a>)
+        }).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    } <span class="kw">else </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
+        <span class="kw">let </span>viper = Viper::new_with_args(<span class="kw-2">&amp;</span>config::viper_home(), config::extra_jvm_args());
+        <a href="../../src/prusti_viper/verifier.rs.html#424">stopwatch</a>.start_next(<span class="string">&quot;attach current thread to the JVM&quot;</span>);
+        <span class="kw">let </span>viper_thread = <a href="../../src/prusti_viper/verifier.rs.html#425">viper</a>.attach_current_thread();
+        <a href="../../src/prusti_viper/verifier.rs.html#424">stopwatch</a>.finish();
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = PersistentCache::load_cache(config::cache_path());
+        <a href="../../src/prusti_viper/verifier.rs.html#375">verification_requests</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(program_name, request)| {
+            <span class="kw">let </span>result = <a href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>(<span class="kw-2">&amp;</span><a href="../../src/prusti_viper/verifier.rs.html#427">viper_thread</a>, <a href="../../src/prusti_viper/verifier.rs.html#430">request</a>, <span class="kw-2">&amp;mut </span><a href="../../src/prusti_viper/verifier.rs.html#429">cache</a>);
+            (<a href="../../src/prusti_viper/verifier.rs.html#430">program_name</a>, <a href="../../src/prusti_viper/verifier.rs.html#431">result</a>)
+        }).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

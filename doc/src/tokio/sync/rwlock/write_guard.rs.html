@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/rwlock/write_guard.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write_guard.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/rwlock/write_guard.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write_guard.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -280,287 +280,287 @@
 <span id="280">280</span>
 <span id="281">281</span>
 <span id="282">282</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#36"><span class="kw">crate</span>::sync::batch_semaphore::Semaphore</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/read_guard.rs.html#15"><span class="kw">crate</span>::sync::rwlock::read_guard::RwLockReadGuard</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16"><span class="kw">crate</span>::sync::rwlock::write_guard_mapped::RwLockMappedWriteGuard</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/tokio/sync/batch_semaphore.rs.html#36"><span class="kw">crate</span>::sync::batch_semaphore::Semaphore</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/sync/rwlock/read_guard.rs.html#15"><span class="kw">crate</span>::sync::rwlock::read_guard::RwLockReadGuard</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16"><span class="kw">crate</span>::sync::rwlock::write_guard_mapped::RwLockMappedWriteGuard</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
 
-<span class="doccomment">/// RAII structure used to release the exclusive write access of a lock when</span>
-<span class="doccomment">/// dropped.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This structure is created by the [`write`] method</span>
-<span class="doccomment">/// on [`RwLock`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`write`]: method@crate::sync::RwLock::write</span>
-<span class="doccomment">/// [`RwLock`]: struct@crate::sync::RwLock</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">permits_acquired</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// RAII structure used to release the exclusive write access of a lock when
+/// dropped.
+///
+/// This structure is created by the [`write`] method
+/// on [`RwLock`].
+///
+/// [`write`]: method@crate::sync::RwLock::write
+/// [`RwLock`]: struct@crate::sync::RwLock
+</span><span class="kw">pub struct </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) resource_span: tracing::Span,
+    <span class="kw">pub</span>(<span class="kw">super</span>) permits_acquired: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) data: <span class="kw-2">*mut </span>T,
+    <span class="kw">pub</span>(<span class="kw">super</span>) marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Makes a new [`RwLockMappedWriteGuard`] for a component of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operation cannot fail as the `RwLockWriteGuard` passed in already</span>
-    <span class="doccomment">/// locked the data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an associated function that needs to be used as</span>
-    <span class="doccomment">/// `RwLockWriteGuard::map(..)`. A method would interfere with methods of</span>
-    <span class="doccomment">/// the same name on the contents of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an asynchronous version of [`RwLockWriteGuard::map`] from the</span>
-    <span class="doccomment">/// [`parking_lot` crate].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RwLockMappedWriteGuard`]: struct@crate::sync::RwLockMappedWriteGuard</span>
-    <span class="doccomment">/// [`RwLockWriteGuard::map`]: https://docs.rs/lock_api/latest/lock_api/struct.RwLockWriteGuard.html#method.map</span>
-    <span class="doccomment">/// [`parking_lot` crate]: https://crates.io/crates/parking_lot</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::{RwLock, RwLockWriteGuard};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[derive(Debug, Clone, Copy, PartialEq, Eq)]</span>
-    <span class="doccomment">/// struct Foo(u32);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # #[tokio::main]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// let lock = RwLock::new(Foo(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// {</span>
-    <span class="doccomment">///     let mut mapped = RwLockWriteGuard::map(lock.write().await, |f| &amp;mut f.0);</span>
-    <span class="doccomment">///     *mapped = 2;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(Foo(2), *lock.read().await);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">RwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">U</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="doccomment">/// Makes a new [`RwLockMappedWriteGuard`] for a component of the locked data.
+    ///
+    /// This operation cannot fail as the `RwLockWriteGuard` passed in already
+    /// locked the data.
+    ///
+    /// This is an associated function that needs to be used as
+    /// `RwLockWriteGuard::map(..)`. A method would interfere with methods of
+    /// the same name on the contents of the locked data.
+    ///
+    /// This is an asynchronous version of [`RwLockWriteGuard::map`] from the
+    /// [`parking_lot` crate].
+    ///
+    /// [`RwLockMappedWriteGuard`]: struct@crate::sync::RwLockMappedWriteGuard
+    /// [`RwLockWriteGuard::map`]: https://docs.rs/lock_api/latest/lock_api/struct.RwLockWriteGuard.html#method.map
+    /// [`parking_lot` crate]: https://crates.io/crates/parking_lot
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::{RwLock, RwLockWriteGuard};
+    ///
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    /// struct Foo(u32);
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let lock = RwLock::new(Foo(1));
+    ///
+    /// {
+    ///     let mut mapped = RwLockWriteGuard::map(lock.write().await, |f| &amp;mut f.0);
+    ///     *mapped = 2;
+    /// }
+    ///
+    /// assert_eq!(Foo(2), *lock.read().await);
+    /// # }
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>map&lt;F, U: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">mut </span>this: <span class="self">Self</span>, f: F) -&gt; RwLockMappedWriteGuard&lt;<span class="lifetime">&#39;a</span>, U&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="kw-2">&amp;mut </span>U,
     {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">f</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">U</span>;
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>.<span class="ident">s</span>;
-        <span class="kw">let</span> <span class="ident">permits_acquired</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>.<span class="ident">permits_acquired</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
-        <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
-        <span class="ident">mem::forget</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>);
-        <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">RwLockMappedWriteGuard</a> {
-            <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#70">permits_acquired</a>,
-            <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#69">s</a>,
-            <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#68">data</a>,
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        <span class="kw">let </span>data = <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>) <span class="kw">as </span><span class="kw-2">*mut </span>U;
+        <span class="kw">let </span>s = <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>.s;
+        <span class="kw">let </span>permits_acquired = <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>.permits_acquired;
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = this.resource_span.clone();
+        <span class="comment">// NB: Forget to avoid drop impl from being called.
+        </span>mem::forget(<a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>);
+        <a href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">RwLockMappedWriteGuard</a> {
+            <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#70">permits_acquired</a>,
+            <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#69">s</a>,
+            <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#68">data</a>,
+            marker: marker::PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 
-    <span class="doccomment">/// Attempts to make  a new [`RwLockMappedWriteGuard`] for a component of</span>
-    <span class="doccomment">/// the locked data. The original guard is returned if the closure returns</span>
-    <span class="doccomment">/// `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operation cannot fail as the `RwLockWriteGuard` passed in already</span>
-    <span class="doccomment">/// locked the data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an associated function that needs to be</span>
-    <span class="doccomment">/// used as `RwLockWriteGuard::try_map(...)`. A method would interfere with</span>
-    <span class="doccomment">/// methods of the same name on the contents of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an asynchronous version of [`RwLockWriteGuard::try_map`] from</span>
-    <span class="doccomment">/// the [`parking_lot` crate].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RwLockMappedWriteGuard`]: struct@crate::sync::RwLockMappedWriteGuard</span>
-    <span class="doccomment">/// [`RwLockWriteGuard::try_map`]: https://docs.rs/lock_api/latest/lock_api/struct.RwLockWriteGuard.html#method.try_map</span>
-    <span class="doccomment">/// [`parking_lot` crate]: https://crates.io/crates/parking_lot</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::{RwLock, RwLockWriteGuard};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[derive(Debug, Clone, Copy, PartialEq, Eq)]</span>
-    <span class="doccomment">/// struct Foo(u32);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # #[tokio::main]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// let lock = RwLock::new(Foo(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// {</span>
-    <span class="doccomment">///     let guard = lock.write().await;</span>
-    <span class="doccomment">///     let mut guard = RwLockWriteGuard::try_map(guard, |f| Some(&amp;mut f.0)).expect(&quot;should not fail&quot;);</span>
-    <span class="doccomment">///     *guard = 2;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(Foo(2), *lock.read().await);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(
-        <span class="kw-2">mut</span> <span class="ident">this</span>: <span class="self">Self</span>,
-        <span class="ident">f</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">U</span><span class="op">&gt;</span>, <span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">U</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Attempts to make  a new [`RwLockMappedWriteGuard`] for a component of
+    /// the locked data. The original guard is returned if the closure returns
+    /// `None`.
+    ///
+    /// This operation cannot fail as the `RwLockWriteGuard` passed in already
+    /// locked the data.
+    ///
+    /// This is an associated function that needs to be
+    /// used as `RwLockWriteGuard::try_map(...)`. A method would interfere with
+    /// methods of the same name on the contents of the locked data.
+    ///
+    /// This is an asynchronous version of [`RwLockWriteGuard::try_map`] from
+    /// the [`parking_lot` crate].
+    ///
+    /// [`RwLockMappedWriteGuard`]: struct@crate::sync::RwLockMappedWriteGuard
+    /// [`RwLockWriteGuard::try_map`]: https://docs.rs/lock_api/latest/lock_api/struct.RwLockWriteGuard.html#method.try_map
+    /// [`parking_lot` crate]: https://crates.io/crates/parking_lot
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::{RwLock, RwLockWriteGuard};
+    ///
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    /// struct Foo(u32);
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let lock = RwLock::new(Foo(1));
+    ///
+    /// {
+    ///     let guard = lock.write().await;
+    ///     let mut guard = RwLockWriteGuard::try_map(guard, |f| Some(&amp;mut f.0)).expect(&quot;should not fail&quot;);
+    ///     *guard = 2;
+    /// }
+    ///
+    /// assert_eq!(Foo(2), *lock.read().await);
+    /// # }
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_map&lt;F, U: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(
+        <span class="kw-2">mut </span>this: <span class="self">Self</span>,
+        f: F,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;RwLockMappedWriteGuard&lt;<span class="lifetime">&#39;a</span>, U&gt;, <span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>U&gt;,
     {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#127">f</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#133">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">U</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>),
+        <span class="kw">let </span>data = <span class="kw">match </span><a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#127">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>) {
+            <span class="prelude-val">Some</span>(data) =&gt; <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#133">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>U,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>),
         };
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>.<span class="ident">s</span>;
-        <span class="kw">let</span> <span class="ident">permits_acquired</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>.<span class="ident">permits_acquired</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
-        <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
-        <span class="ident">mem::forget</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">RwLockMappedWriteGuard</a> {
-            <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#137">permits_acquired</a>,
-            <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#136">s</a>,
-            <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#132">data</a>,
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        <span class="kw">let </span>s = <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>.s;
+        <span class="kw">let </span>permits_acquired = <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>.permits_acquired;
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = this.resource_span.clone();
+        <span class="comment">// NB: Forget to avoid drop impl from being called.
+        </span>mem::forget(<a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>);
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">RwLockMappedWriteGuard</a> {
+            <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#137">permits_acquired</a>,
+            <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#136">s</a>,
+            <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#132">data</a>,
+            marker: marker::PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         })
     }
 
-    <span class="doccomment">/// Converts this `RwLockWriteGuard` into an `RwLockMappedWriteGuard`. This</span>
-    <span class="doccomment">/// method can be used to store a non-mapped guard in a struct field that</span>
-    <span class="doccomment">/// expects a mapped guard.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is equivalent to calling `RwLockWriteGuard::map(guard, |me| me)`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_mapped</span>(<span class="ident">this</span>: <span class="self">Self</span>) -&gt; <span class="ident">RwLockMappedWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">RwLockWriteGuard::map</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#158">this</a>, <span class="op">|</span><span class="ident">me</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#159">me</a>)
+    <span class="doccomment">/// Converts this `RwLockWriteGuard` into an `RwLockMappedWriteGuard`. This
+    /// method can be used to store a non-mapped guard in a struct field that
+    /// expects a mapped guard.
+    ///
+    /// This is equivalent to calling `RwLockWriteGuard::map(guard, |me| me)`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>into_mapped(this: <span class="self">Self</span>) -&gt; RwLockMappedWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        RwLockWriteGuard::map(<a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#158">this</a>, |me| <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#159">me</a>)
     }
 
-    <span class="doccomment">/// Atomically downgrades a write lock into a read lock without allowing</span>
-    <span class="doccomment">/// any writers to take exclusive access of the lock in the meantime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note:** This won&#39;t *necessarily* allow any additional readers to acquire</span>
-    <span class="doccomment">/// locks, since [`RwLock`] is fair and it is possible that a writer is next</span>
-    <span class="doccomment">/// in line.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will drop this read access of the `RwLock`</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::sync::RwLock;</span>
-    <span class="doccomment">/// # use std::sync::Arc;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # #[tokio::main]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// let lock = Arc::new(RwLock::new(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let n = lock.write().await;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let cloned_lock = lock.clone();</span>
-    <span class="doccomment">/// let handle = tokio::spawn(async move {</span>
-    <span class="doccomment">///     *cloned_lock.write().await = 2;</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let n = n.downgrade();</span>
-    <span class="doccomment">/// assert_eq!(*n, 1, &quot;downgrade is atomic&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// drop(n);</span>
-    <span class="doccomment">/// handle.await.unwrap();</span>
-    <span class="doccomment">/// assert_eq!(*lock.read().await, 2, &quot;second writer obtained write lock&quot;);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RwLock`]: struct@crate::sync::RwLock</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downgrade</span>(<span class="self">self</span>) -&gt; <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#17">RwLockWriteGuard</a> { <span class="ident">s</span>, <span class="ident">data</span>, .. } <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>;
-        <span class="kw">let</span> <span class="ident">to_release</span> <span class="op">=</span> (<a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>.<span class="ident">permits_acquired</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="comment">// Release all but one of the permits held by the write guard</span>
-        <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">s</a>.<a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#201">to_release</a>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+    <span class="doccomment">/// Atomically downgrades a write lock into a read lock without allowing
+    /// any writers to take exclusive access of the lock in the meantime.
+    ///
+    /// **Note:** This won&#39;t *necessarily* allow any additional readers to acquire
+    /// locks, since [`RwLock`] is fair and it is possible that a writer is next
+    /// in line.
+    ///
+    /// Returns an RAII guard which will drop this read access of the `RwLock`
+    /// when dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::sync::RwLock;
+    /// # use std::sync::Arc;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let lock = Arc::new(RwLock::new(1));
+    ///
+    /// let n = lock.write().await;
+    ///
+    /// let cloned_lock = lock.clone();
+    /// let handle = tokio::spawn(async move {
+    ///     *cloned_lock.write().await = 2;
+    /// });
+    ///
+    /// let n = n.downgrade();
+    /// assert_eq!(*n, 1, &quot;downgrade is atomic&quot;);
+    ///
+    /// drop(n);
+    /// handle.await.unwrap();
+    /// assert_eq!(*lock.read().await, 2, &quot;second writer obtained write lock&quot;);
+    /// # }
+    /// ```
+    ///
+    /// [`RwLock`]: struct@crate::sync::RwLock
+    </span><span class="kw">pub fn </span>downgrade(<span class="self">self</span>) -&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        <span class="kw">let </span><a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#17">RwLockWriteGuard</a> { s, data, .. } = <a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>;
+        <span class="kw">let </span>to_release = (<a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>.permits_acquired - <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="comment">// Release all but one of the permits held by the write guard
+        </span><a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">s</a>.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#201">to_release</a>);
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">write_locked</span> <span class="op">=</span> <span class="bool-val">false</span>,
-            <span class="ident">write_locked</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            write_locked = <span class="bool-val">false</span>,
+            write_locked.op = <span class="string">&quot;override&quot;</span>,
             )
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">current_readers</span> <span class="op">=</span> <span class="number">1</span>,
-            <span class="ident">current_readers</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;add&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            current_readers = <span class="number">1</span>,
+            current_readers.op = <span class="string">&quot;add&quot;</span>,
             )
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
-        <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
-        <span class="ident">mem::forget</span>(<a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>);
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
+        <span class="comment">// NB: Forget to avoid drop impl from being called.
+        </span>mem::forget(<a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>);
 
-        <a class="ident" href="../../../../src/tokio/sync/rwlock/read_guard.rs.html#15">RwLockReadGuard</a> {
-            <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">s</a>,
-            <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">data</a>,
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        <a href="../../../../src/tokio/sync/rwlock/read_guard.rs.html#15">RwLockReadGuard</a> {
+            <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">s</a>,
+            <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">data</a>,
+            marker: marker::PhantomData,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">type </span>Target = T;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#240">self</a>.<span class="ident">data</span> }
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#240">self</a>.data }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">ops::DerefMut</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#246">self</a>.<span class="ident">data</span> }
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">ops::DerefMut</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#246">self</a>.data }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#255">self</a>, <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#255">f</a>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#255">self</a>, <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#255">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#264">self</a>, <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#264">f</a>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#264">self</a>, <a href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#264">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#270">self</a>.<span class="ident">s</span>.<a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#270">self</a>.<span class="ident">permits_acquired</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#270">self</a>.s.<a href="../../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#270">self</a>.permits_acquired <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-            <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-            <span class="ident">write_locked</span> <span class="op">=</span> <span class="bool-val">false</span>,
-            <span class="ident">write_locked</span>.<span class="ident">op</span> <span class="op">=</span> <span class="string">&quot;override&quot;</span>,
+            target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+            write_locked = <span class="bool-val">false</span>,
+            write_locked.op = <span class="string">&quot;override&quot;</span>,
             )
         });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

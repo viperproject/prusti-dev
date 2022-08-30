@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/sign.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sign.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/sign.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sign.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -872,662 +872,662 @@
 <span id="872">872</span>
 <span id="873">873</span>
 <span id="874">874</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Message signatures.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The `Signer` allows for the computation of cryptographic signatures of</span>
-<span class="doccomment">//! data given a private key. The `Verifier` can then be used with the</span>
-<span class="doccomment">//! corresponding public key to verify the integrity and authenticity of that</span>
-<span class="doccomment">//! data given the signature.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Sign and verify data given an RSA keypair:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::sign::{Signer, Verifier};</span>
-<span class="doccomment">//! use openssl::rsa::Rsa;</span>
-<span class="doccomment">//! use openssl::pkey::PKey;</span>
-<span class="doccomment">//! use openssl::hash::MessageDigest;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Generate a keypair</span>
-<span class="doccomment">//! let keypair = Rsa::generate(2048).unwrap();</span>
-<span class="doccomment">//! let keypair = PKey::from_rsa(keypair).unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let data = b&quot;hello, world!&quot;;</span>
-<span class="doccomment">//! let data2 = b&quot;hola, mundo!&quot;;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Sign the data</span>
-<span class="doccomment">//! let mut signer = Signer::new(MessageDigest::sha256(), &amp;keypair).unwrap();</span>
-<span class="doccomment">//! signer.update(data).unwrap();</span>
-<span class="doccomment">//! signer.update(data2).unwrap();</span>
-<span class="doccomment">//! let signature = signer.sign_to_vec().unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Verify the data</span>
-<span class="doccomment">//! let mut verifier = Verifier::new(MessageDigest::sha256(), &amp;keypair).unwrap();</span>
-<span class="doccomment">//! verifier.update(data).unwrap();</span>
-<span class="doccomment">//! verifier.update(data2).unwrap();</span>
-<span class="doccomment">//! assert!(verifier.verify(&amp;signature).unwrap());</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Compute an HMAC:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::hash::MessageDigest;</span>
-<span class="doccomment">//! use openssl::memcmp;</span>
-<span class="doccomment">//! use openssl::pkey::PKey;</span>
-<span class="doccomment">//! use openssl::sign::Signer;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Create a PKey</span>
-<span class="doccomment">//! let key = PKey::hmac(b&quot;my secret&quot;).unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let data = b&quot;hello, world!&quot;;</span>
-<span class="doccomment">//! let data2 = b&quot;hola, mundo!&quot;;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Compute the HMAC</span>
-<span class="doccomment">//! let mut signer = Signer::new(MessageDigest::sha256(), &amp;key).unwrap();</span>
-<span class="doccomment">//! signer.update(data).unwrap();</span>
-<span class="doccomment">//! signer.update(data2).unwrap();</span>
-<span class="doccomment">//! let hmac = signer.sign_to_vec().unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // `Verifier` cannot be used with HMACs; use the `memcmp::eq` function instead</span>
-<span class="doccomment">//! //</span>
-<span class="doccomment">//! // Do not simply check for equality with `==`!</span>
-<span class="doccomment">//! # let target = hmac.clone();</span>
-<span class="doccomment">//! assert!(memcmp::eq(&amp;hmac, &amp;target));</span>
-<span class="doccomment">//! ```</span>
-<span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
-<span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! Message signatures.
+//!
+//! The `Signer` allows for the computation of cryptographic signatures of
+//! data given a private key. The `Verifier` can then be used with the
+//! corresponding public key to verify the integrity and authenticity of that
+//! data given the signature.
+//!
+//! # Examples
+//!
+//! Sign and verify data given an RSA keypair:
+//!
+//! ```rust
+//! use openssl::sign::{Signer, Verifier};
+//! use openssl::rsa::Rsa;
+//! use openssl::pkey::PKey;
+//! use openssl::hash::MessageDigest;
+//!
+//! // Generate a keypair
+//! let keypair = Rsa::generate(2048).unwrap();
+//! let keypair = PKey::from_rsa(keypair).unwrap();
+//!
+//! let data = b&quot;hello, world!&quot;;
+//! let data2 = b&quot;hola, mundo!&quot;;
+//!
+//! // Sign the data
+//! let mut signer = Signer::new(MessageDigest::sha256(), &amp;keypair).unwrap();
+//! signer.update(data).unwrap();
+//! signer.update(data2).unwrap();
+//! let signature = signer.sign_to_vec().unwrap();
+//!
+//! // Verify the data
+//! let mut verifier = Verifier::new(MessageDigest::sha256(), &amp;keypair).unwrap();
+//! verifier.update(data).unwrap();
+//! verifier.update(data2).unwrap();
+//! assert!(verifier.verify(&amp;signature).unwrap());
+//! ```
+//!
+//! Compute an HMAC:
+//!
+//! ```rust
+//! use openssl::hash::MessageDigest;
+//! use openssl::memcmp;
+//! use openssl::pkey::PKey;
+//! use openssl::sign::Signer;
+//!
+//! // Create a PKey
+//! let key = PKey::hmac(b&quot;my secret&quot;).unwrap();
+//!
+//! let data = b&quot;hello, world!&quot;;
+//! let data2 = b&quot;hola, mundo!&quot;;
+//!
+//! // Compute the HMAC
+//! let mut signer = Signer::new(MessageDigest::sha256(), &amp;key).unwrap();
+//! signer.update(data).unwrap();
+//! signer.update(data2).unwrap();
+//! let hmac = signer.sign_to_vec().unwrap();
+//!
+//! // `Verifier` cannot be used with HMACs; use the `memcmp::eq` function instead
+//! //
+//! // Do not simply check for equality with `==`!
+//! # let target = hmac.clone();
+//! assert!(memcmp::eq(&amp;hmac, &amp;target));
+//! ```
+</span><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span><a href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
+<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
+<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/rsa.rs.html#46"><span class="kw">crate</span>::rsa::Padding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../../src/openssl/hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
+<span class="kw">use </span><a href="../../src/openssl/rsa.rs.html#46"><span class="kw">crate</span>::rsa::Padding</a>;
+<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
-        <span class="kw">use</span> <span class="ident">ffi</span>::{<a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>, <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>};
-    } <span class="kw">else</span> {
-        <span class="kw">use</span> <span class="ident">ffi</span>::{<span class="ident">EVP_MD_CTX_create</span> <span class="kw">as</span> <span class="ident">EVP_MD_CTX_new</span>, <span class="ident">EVP_MD_CTX_destroy</span> <span class="kw">as</span> <span class="ident">EVP_MD_CTX_free</span>};
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(ossl110)] </span>{
+        <span class="kw">use </span>ffi::{<a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>, <a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>};
+    } <span class="kw">else </span>{
+        <span class="kw">use </span>ffi::{EVP_MD_CTX_create <span class="kw">as </span>EVP_MD_CTX_new, EVP_MD_CTX_destroy <span class="kw">as </span>EVP_MD_CTX_free};
     }
 }
 
-<span class="doccomment">/// Salt lengths that must be used with `set_rsa_pss_saltlen`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RsaPssSaltlen</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>);
+<span class="doccomment">/// Salt lengths that must be used with `set_rsa_pss_saltlen`.
+</span><span class="kw">pub struct </span>RsaPssSaltlen(<a href="../../libc/unix/type.c_int.html">c_int</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a> {
-    <span class="doccomment">/// Returns the integer representation of `RsaPssSaltlen`.</span>
-    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="../../src/openssl/sign.rs.html#90">self</a>.<span class="number">0</span>
+<span class="kw">impl </span><a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a> {
+    <span class="doccomment">/// Returns the integer representation of `RsaPssSaltlen`.
+    </span><span class="kw">fn </span>as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+        <a class="self" href="../../src/openssl/sign.rs.html#90">self</a>.<span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Sets the salt length to the given value.
+    </span><span class="kw">pub fn </span>custom(val: <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a> {
+        <a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>(<a href="../../src/openssl/sign.rs.html#95">val</a>)
     }
 
-    <span class="doccomment">/// Sets the salt length to the given value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">custom</span>(<span class="ident">val</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a> {
-        <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>(<a class="ident" href="../../src/openssl/sign.rs.html#95">val</a>)
-    }
-
-    <span class="doccomment">/// The salt length is set to the digest length.</span>
-    <span class="doccomment">/// Corresponds to the special value `-1`.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DIGEST_LENGTH</span>: <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>(<span class="op">-</span><span class="number">1</span>);
-    <span class="doccomment">/// The salt length is set to the maximum permissible value.</span>
-    <span class="doccomment">/// Corresponds to the special value `-2`.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAXIMUM_LENGTH</span>: <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>(<span class="op">-</span><span class="number">2</span>);
+    <span class="doccomment">/// The salt length is set to the digest length.
+    /// Corresponds to the special value `-1`.
+    </span><span class="kw">pub const </span>DIGEST_LENGTH: <a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a> = <a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>(-<span class="number">1</span>);
+    <span class="doccomment">/// The salt length is set to the maximum permissible value.
+    /// Corresponds to the special value `-2`.
+    </span><span class="kw">pub const </span>MAXIMUM_LENGTH: <a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a> = <a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>(-<span class="number">2</span>);
 }
 
-<span class="doccomment">/// A type which computes cryptographic signatures of data.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">md_ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
-    <span class="ident">pctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
-    <span class="ident">_p</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> ()<span class="op">&gt;</span>,
+<span class="doccomment">/// A type which computes cryptographic signatures of data.
+</span><span class="kw">pub struct </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    md_ctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
+    pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
+    _p: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// pkey_ctx is owned by the md_ctx, so no need to explicitly free it.</span>
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="../../src/openssl/sign.rs.html#118">self</a>.<span class="ident">md_ctx</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// pkey_ctx is owned by the md_ctx, so no need to explicitly free it.
+        </span><span class="kw">unsafe </span>{
+            <a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="../../src/openssl/sign.rs.html#118">self</a>.md_ctx);
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::len_without_is_empty</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `Signer`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This cannot be used with Ed25519 or Ed448 keys. Please refer to</span>
-    <span class="doccomment">/// `new_without_digest`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestSignInit`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestSignInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestSignInit.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">type_</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>, <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+<span class="attribute">#[allow(clippy::len_without_is_empty)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Creates a new `Signer`.
+    ///
+    /// This cannot be used with Ed25519 or Ed448 keys. Please refer to
+    /// `new_without_digest`.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestSignInit`].
+    ///
+    /// [`EVP_DigestSignInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestSignInit.html
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(type_: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>, pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="ident"><span class="self">Self</span>::new_intern</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/sign.rs.html#136">type_</a>), <a class="ident" href="../../src/openssl/sign.rs.html#136">pkey</a>)
+        <span class="self">Self</span>::new_intern(<span class="prelude-val">Some</span>(<a href="../../src/openssl/sign.rs.html#136">type_</a>), <a href="../../src/openssl/sign.rs.html#136">pkey</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Signer` without a digest.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is the only way to create a `Verifier` for Ed25519 or Ed448 keys.</span>
-    <span class="doccomment">/// It can also be used to create a CMAC.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestSignInit`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestSignInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestSignInit.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_without_digest</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+    <span class="doccomment">/// Creates a new `Signer` without a digest.
+    ///
+    /// This is the only way to create a `Verifier` for Ed25519 or Ed448 keys.
+    /// It can also be used to create a CMAC.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestSignInit`].
+    ///
+    /// [`EVP_DigestSignInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestSignInit.html
+    </span><span class="kw">pub fn </span>new_without_digest&lt;T&gt;(pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="ident"><span class="self">Self</span>::new_intern</span>(<span class="prelude-val">None</span>, <a class="ident" href="../../src/openssl/sign.rs.html#151">pkey</a>)
+        <span class="self">Self</span>::new_intern(<span class="prelude-val">None</span>, <a href="../../src/openssl/sign.rs.html#151">pkey</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">new_intern</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="ident">type_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a><span class="op">&gt;</span>,
-        <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+    <span class="kw">fn </span>new_intern&lt;T&gt;(
+        type_: <span class="prelude-ty">Option</span>&lt;<a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>&gt;,
+        pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Signer&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">EVP_MD_CTX_new</span>())<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EVP_DigestSignInit</span>(
-                <a class="ident" href="../../src/openssl/sign.rs.html#168">ctx</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#169">pctx</a>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#159">type_</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <a class="ident" href="../../src/openssl/sign.rs.html#173">t</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>()).<span class="ident">unwrap_or</span>(<span class="ident">ptr::null</span>()),
-                <span class="ident">ptr::null_mut</span>(),
-                <a class="ident" href="../../src/openssl/sign.rs.html#160">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <span class="kw">let </span>ctx = cvt_p(EVP_MD_CTX_new())<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a> = ptr::null_mut();
+            <span class="kw">let </span>r = ffi::EVP_DigestSignInit(
+                <a href="../../src/openssl/sign.rs.html#168">ctx</a>,
+                <span class="kw-2">&amp;mut </span><a href="../../src/openssl/sign.rs.html#169">pctx</a>,
+                <a href="../../src/openssl/sign.rs.html#159">type_</a>.map(|t| <a href="../../src/openssl/sign.rs.html#173">t</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>()).unwrap_or(ptr::null()),
+                ptr::null_mut(),
+                <a href="../../src/openssl/sign.rs.html#160">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             );
-            <span class="kw">if</span> <span class="ident">r</span> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-                <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="ident" href="../../src/openssl/sign.rs.html#168">ctx</a>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>());
+            <span class="kw">if </span>r != <span class="number">1 </span>{
+                <a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a href="../../src/openssl/sign.rs.html#168">ctx</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorStack::get());
             }
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">pctx</span>.<span class="ident">is_null</span>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!pctx.is_null());
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#108">Signer</a> {
-                <span class="ident">md_ctx</span>: <a class="ident" href="../../src/openssl/sign.rs.html#168">ctx</a>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#169">pctx</a>,
-                <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#108">Signer</a> {
+                md_ctx: <a href="../../src/openssl/sign.rs.html#168">ctx</a>,
+                <a href="../../src/openssl/sign.rs.html#169">pctx</a>,
+                _p: PhantomData,
             })
         }
     }
 
-    <span class="doccomment">/// Returns the RSA padding mode in use.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rsa_padding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pad</span> <span class="op">=</span> <span class="number">0</span>;
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_get_rsa_padding</span>(<a class="self" href="../../src/openssl/sign.rs.html#197">self</a>.<span class="ident">pctx</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#199">pad</a>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Padding::from_raw</span>(<a class="ident" href="../../src/openssl/sign.rs.html#199">pad</a>))
+    <span class="doccomment">/// Returns the RSA padding mode in use.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.
+    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/rsa.rs.html#46">Padding</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>pad = <span class="number">0</span>;
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_get_rsa_padding(<a class="self" href="../../src/openssl/sign.rs.html#197">self</a>.pctx, <span class="kw-2">&amp;mut </span><a href="../../src/openssl/sign.rs.html#199">pad</a>))
+                .map(|<span class="kw">_</span>| Padding::from_raw(<a href="../../src/openssl/sign.rs.html#199">pad</a>))
         }
     }
 
-    <span class="doccomment">/// Sets the RSA padding mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_padding</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_padding</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#212">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#212">padding</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#61">as_raw</a>(),
+    <span class="doccomment">/// Sets the RSA padding mode.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html
+    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="../../src/openssl/rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_padding(
+                <a class="self" href="../../src/openssl/sign.rs.html#212">self</a>.pctx,
+                <a href="../../src/openssl/sign.rs.html#212">padding</a>.<a href="../../src/openssl/rsa.rs.html#61">as_raw</a>(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA PSS salt length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_pss_saltlen`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_pss_saltlen`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_pss_saltlen.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_pss_saltlen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_pss_saltlen</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#229">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#229">len</a>.<a class="ident" href="../../src/openssl/sign.rs.html#90">as_raw</a>(),
+    <span class="doccomment">/// Sets the RSA PSS salt length.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_pss_saltlen`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_pss_saltlen`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_pss_saltlen.html
+    </span><span class="kw">pub fn </span>set_rsa_pss_saltlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_pss_saltlen(
+                <a class="self" href="../../src/openssl/sign.rs.html#229">self</a>.pctx,
+                <a href="../../src/openssl/sign.rs.html#229">len</a>.<a href="../../src/openssl/sign.rs.html#90">as_raw</a>(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA MGF1 algorithm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_mgf1_md</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">md</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_mgf1_md</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#246">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#246">md</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Sets the RSA MGF1 algorithm.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html
+    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
+                <a class="self" href="../../src/openssl/sign.rs.html#246">self</a>.pctx,
+                <a href="../../src/openssl/sign.rs.html#246">md</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Feeds more data into the `Signer`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Please note that PureEdDSA (Ed25519 and Ed448 keys) do not support streaming.</span>
-    <span class="doccomment">/// Use `sign_oneshot` instead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestUpdate`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestUpdate`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestUpdate</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#264">self</a>.<span class="ident">md_ctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#264">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#264">buf</a>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Feeds more data into the `Signer`.
+    ///
+    /// Please note that PureEdDSA (Ed25519 and Ed448 keys) do not support streaming.
+    /// Use `sign_oneshot` instead.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestUpdate`].
+    ///
+    /// [`EVP_DigestUpdate`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_DigestUpdate(
+                <a class="self" href="../../src/openssl/sign.rs.html#264">self</a>.md_ctx,
+                <a href="../../src/openssl/sign.rs.html#264">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <a href="../../src/openssl/sign.rs.html#264">buf</a>.len(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Computes an upper bound on the signature length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The actual signature may be shorter than this value. Check the return value of</span>
-    <span class="doccomment">/// `sign` to get the exact length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestSignFinal`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestSignFinal`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestSignFinal.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/openssl/sign.rs.html#283">self</a>.<a class="ident" href="../../src/openssl/sign.rs.html#301">len_intern</a>()
+    <span class="doccomment">/// Computes an upper bound on the signature length.
+    ///
+    /// The actual signature may be shorter than this value. Check the return value of
+    /// `sign` to get the exact length.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestSignFinal`].
+    ///
+    /// [`EVP_DigestSignFinal`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestSignFinal.html
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <a class="self" href="../../src/openssl/sign.rs.html#283">self</a>.<a href="../../src/openssl/sign.rs.html#301">len_intern</a>()
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl111</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">len_intern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_DigestSignFinal</span>(
-                <span class="self">self</span>.<span class="ident">md_ctx</span>,
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
+    <span class="attribute">#[cfg(not(ossl111))]
+    </span><span class="kw">fn </span>len_intern(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ErrorStack&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
+            cvt(ffi::EVP_DigestSignFinal(
+                <span class="self">self</span>.md_ctx,
+                ptr::null_mut(),
+                <span class="kw-2">&amp;mut </span>len,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">len</span>)
+            <span class="prelude-val">Ok</span>(len)
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">len_intern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_DigestSign</span>(
-                <span class="self">self</span>.<span class="ident">md_ctx</span>,
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
-                <span class="ident">ptr::null</span>(),
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">fn </span>len_intern(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
+            cvt(ffi::EVP_DigestSign(
+                <span class="self">self</span>.md_ctx,
+                ptr::null_mut(),
+                <span class="kw-2">&amp;mut </span>len,
+                ptr::null(),
                 <span class="number">0</span>,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#303">len</a>)
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#303">len</a>)
         }
     }
 
-    <span class="doccomment">/// Writes the signature into the provided buffer, returning the number of bytes written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will fail if the buffer is not large enough for the signature. Use the `len`</span>
-    <span class="doccomment">/// method to get an upper bound on the required size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestSignFinal`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestSignFinal`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestSignFinal.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/sign.rs.html#323">buf</a>.<span class="ident">len</span>();
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_DigestSignFinal</span>(
-                <span class="self">self</span>.<span class="ident">md_ctx</span>,
-                <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
+    <span class="doccomment">/// Writes the signature into the provided buffer, returning the number of bytes written.
+    ///
+    /// This method will fail if the buffer is not large enough for the signature. Use the `len`
+    /// method to get an upper bound on the required size.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestSignFinal`].
+    ///
+    /// [`EVP_DigestSignFinal`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestSignFinal.html
+    </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>len = <a href="../../src/openssl/sign.rs.html#323">buf</a>.len();
+            cvt(ffi::EVP_DigestSignFinal(
+                <span class="self">self</span>.md_ctx,
+                buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                <span class="kw-2">&amp;mut </span>len,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#325">len</a>)
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#325">len</a>)
         }
     }
 
-    <span class="doccomment">/// Returns the signature.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a simple convenience wrapper over `len` and `sign`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign_to_vec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">len</span>()<span class="question-mark">?</span>];
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sign</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <span class="comment">// The advertised length is not always equal to the real length for things like DSA</span>
-        <a class="ident" href="../../src/openssl/sign.rs.html#339">buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/openssl/sign.rs.html#340">len</a>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#339">buf</a>)
+    <span class="doccomment">/// Returns the signature.
+    ///
+    /// This is a simple convenience wrapper over `len` and `sign`.
+    </span><span class="kw">pub fn </span>sign_to_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.len()<span class="question-mark">?</span>];
+        <span class="kw">let </span>len = <span class="self">self</span>.sign(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
+        <span class="comment">// The advertised length is not always equal to the real length for things like DSA
+        </span><a href="../../src/openssl/sign.rs.html#339">buf</a>.truncate(<a href="../../src/openssl/sign.rs.html#340">len</a>);
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#339">buf</a>)
     }
 
-    <span class="doccomment">/// Signs the data in `data_buf` and writes the signature into the buffer `sig_buf`, returning the</span>
-    <span class="doccomment">/// number of bytes written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For PureEdDSA (Ed25519 and Ed448 keys), this is the only way to sign data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will fail if the buffer is not large enough for the signature. Use the `len`</span>
-    <span class="doccomment">/// method to get an upper bound on the required size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestSign`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestSign`]: https://www.openssl.org/docs/man1.1.1/man3/EVP_DigestSign.html</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign_oneshot</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">sig_buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">data_buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig_len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/sign.rs.html#360">sig_buf</a>.<span class="ident">len</span>();
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_DigestSign</span>(
-                <span class="self">self</span>.<span class="ident">md_ctx</span>,
-                <span class="ident">sig_buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">sig_len</span>,
-                <span class="ident">data_buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <span class="ident">data_buf</span>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Signs the data in `data_buf` and writes the signature into the buffer `sig_buf`, returning the
+    /// number of bytes written.
+    ///
+    /// For PureEdDSA (Ed25519 and Ed448 keys), this is the only way to sign data.
+    ///
+    /// This method will fail if the buffer is not large enough for the signature. Use the `len`
+    /// method to get an upper bound on the required size.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestSign`].
+    ///
+    /// [`EVP_DigestSign`]: https://www.openssl.org/docs/man1.1.1/man3/EVP_DigestSign.html
+    </span><span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>sign_oneshot(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        sig_buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        data_buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>sig_len = <a href="../../src/openssl/sign.rs.html#360">sig_buf</a>.len();
+            cvt(ffi::EVP_DigestSign(
+                <span class="self">self</span>.md_ctx,
+                sig_buf.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                <span class="kw-2">&amp;mut </span>sig_len,
+                data_buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                data_buf.len(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#364">sig_len</a>)
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#364">sig_len</a>)
         }
     }
 
-    <span class="doccomment">/// Returns the signature.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a simple convenience wrapper over `len` and `sign_oneshot`.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign_oneshot_to_vec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data_buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig_buf</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">len</span>()<span class="question-mark">?</span>];
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sign_oneshot</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sig_buf</span>, <span class="ident">data_buf</span>)<span class="question-mark">?</span>;
-        <span class="comment">// The advertised length is not always equal to the real length for things like DSA</span>
-        <a class="ident" href="../../src/openssl/sign.rs.html#381">sig_buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/openssl/sign.rs.html#382">len</a>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#381">sig_buf</a>)
+    <span class="doccomment">/// Returns the signature.
+    ///
+    /// This is a simple convenience wrapper over `len` and `sign_oneshot`.
+    </span><span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>sign_oneshot_to_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data_buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>sig_buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.len()<span class="question-mark">?</span>];
+        <span class="kw">let </span>len = <span class="self">self</span>.sign_oneshot(<span class="kw-2">&amp;mut </span>sig_buf, data_buf)<span class="question-mark">?</span>;
+        <span class="comment">// The advertised length is not always equal to the real length for things like DSA
+        </span><a href="../../src/openssl/sign.rs.html#381">sig_buf</a>.truncate(<a href="../../src/openssl/sign.rs.html#382">len</a>);
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#381">sig_buf</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">update</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#390">buf</a>.<span class="ident">len</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>Signer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="self">self</span>.update(buf)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#390">buf</a>.len())
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">md_ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
-    <span class="ident">pctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
-    <span class="ident">pkey_pd</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> ()<span class="op">&gt;</span>,
+<span class="kw">pub struct </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+    md_ctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
+    pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
+    pkey_pd: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// pkey_ctx is owned by the md_ctx, so no need to explicitly free it.</span>
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="../../src/openssl/sign.rs.html#410">self</a>.<span class="ident">md_ctx</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// pkey_ctx is owned by the md_ctx, so no need to explicitly free it.
+        </span><span class="kw">unsafe </span>{
+            <a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="../../src/openssl/sign.rs.html#410">self</a>.md_ctx);
         }
     }
 }
 
-<span class="doccomment">/// A type which verifies cryptographic signatures of data.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `Verifier`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This cannot be used with Ed25519 or Ed448 keys. Please refer to</span>
-    <span class="doccomment">/// `new_without_digest`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestVerifyInit`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestVerifyInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyInit.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">type_</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>, <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+<span class="doccomment">/// A type which verifies cryptographic signatures of data.
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Creates a new `Verifier`.
+    ///
+    /// This cannot be used with Ed25519 or Ed448 keys. Please refer to
+    /// `new_without_digest`.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestVerifyInit`].
+    ///
+    /// [`EVP_DigestVerifyInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyInit.html
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(type_: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>, pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
     {
-        <span class="ident">Verifier::new_intern</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/sign.rs.html#428">type_</a>), <a class="ident" href="../../src/openssl/sign.rs.html#428">pkey</a>)
+        Verifier::new_intern(<span class="prelude-val">Some</span>(<a href="../../src/openssl/sign.rs.html#428">type_</a>), <a href="../../src/openssl/sign.rs.html#428">pkey</a>)
     }
 
-    <span class="doccomment">/// Creates a new `Verifier` without a digest.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is the only way to create a `Verifier` for Ed25519 or Ed448 keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestVerifyInit`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestVerifyInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyInit.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_without_digest</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+    <span class="doccomment">/// Creates a new `Verifier` without a digest.
+    ///
+    /// This is the only way to create a `Verifier` for Ed25519 or Ed448 keys.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestVerifyInit`].
+    ///
+    /// [`EVP_DigestVerifyInit`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyInit.html
+    </span><span class="kw">pub fn </span>new_without_digest&lt;T&gt;(pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
     {
-        <span class="ident">Verifier::new_intern</span>(<span class="prelude-val">None</span>, <a class="ident" href="../../src/openssl/sign.rs.html#442">pkey</a>)
+        Verifier::new_intern(<span class="prelude-val">None</span>, <a href="../../src/openssl/sign.rs.html#442">pkey</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">new_intern</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="ident">type_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a><span class="op">&gt;</span>,
-        <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+    <span class="kw">fn </span>new_intern&lt;T&gt;(
+        type_: <span class="prelude-ty">Option</span>&lt;<a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>&gt;,
+        pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Verifier&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
     {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">EVP_MD_CTX_new</span>())<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EVP_DigestVerifyInit</span>(
-                <a class="ident" href="../../src/openssl/sign.rs.html#459">ctx</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#460">pctx</a>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#450">type_</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <a class="ident" href="../../src/openssl/sign.rs.html#464">t</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>()).<span class="ident">unwrap_or</span>(<span class="ident">ptr::null</span>()),
-                <span class="ident">ptr::null_mut</span>(),
-                <a class="ident" href="../../src/openssl/sign.rs.html#451">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <span class="kw">let </span>ctx = cvt_p(EVP_MD_CTX_new())<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a> = ptr::null_mut();
+            <span class="kw">let </span>r = ffi::EVP_DigestVerifyInit(
+                <a href="../../src/openssl/sign.rs.html#459">ctx</a>,
+                <span class="kw-2">&amp;mut </span><a href="../../src/openssl/sign.rs.html#460">pctx</a>,
+                <a href="../../src/openssl/sign.rs.html#450">type_</a>.map(|t| <a href="../../src/openssl/sign.rs.html#464">t</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>()).unwrap_or(ptr::null()),
+                ptr::null_mut(),
+                <a href="../../src/openssl/sign.rs.html#451">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             );
-            <span class="kw">if</span> <span class="ident">r</span> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-                <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="ident" href="../../src/openssl/sign.rs.html#459">ctx</a>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>());
+            <span class="kw">if </span>r != <span class="number">1 </span>{
+                <a href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a href="../../src/openssl/sign.rs.html#459">ctx</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorStack::get());
             }
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">pctx</span>.<span class="ident">is_null</span>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!pctx.is_null());
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#400">Verifier</a> {
-                <span class="ident">md_ctx</span>: <a class="ident" href="../../src/openssl/sign.rs.html#459">ctx</a>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#460">pctx</a>,
-                <span class="ident">pkey_pd</span>: <span class="ident">PhantomData</span>,
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#400">Verifier</a> {
+                md_ctx: <a href="../../src/openssl/sign.rs.html#459">ctx</a>,
+                <a href="../../src/openssl/sign.rs.html#460">pctx</a>,
+                pkey_pd: PhantomData,
             })
         }
     }
 
-    <span class="doccomment">/// Returns the RSA padding mode in use.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rsa_padding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pad</span> <span class="op">=</span> <span class="number">0</span>;
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_get_rsa_padding</span>(<a class="self" href="../../src/openssl/sign.rs.html#488">self</a>.<span class="ident">pctx</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#490">pad</a>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Padding::from_raw</span>(<a class="ident" href="../../src/openssl/sign.rs.html#490">pad</a>))
+    <span class="doccomment">/// Returns the RSA padding mode in use.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.
+    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/rsa.rs.html#46">Padding</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>pad = <span class="number">0</span>;
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_get_rsa_padding(<a class="self" href="../../src/openssl/sign.rs.html#488">self</a>.pctx, <span class="kw-2">&amp;mut </span><a href="../../src/openssl/sign.rs.html#490">pad</a>))
+                .map(|<span class="kw">_</span>| Padding::from_raw(<a href="../../src/openssl/sign.rs.html#490">pad</a>))
         }
     }
 
-    <span class="doccomment">/// Sets the RSA padding mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_padding</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_padding</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#503">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#503">padding</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#61">as_raw</a>(),
+    <span class="doccomment">/// Sets the RSA padding mode.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html
+    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="../../src/openssl/rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_padding(
+                <a class="self" href="../../src/openssl/sign.rs.html#503">self</a>.pctx,
+                <a href="../../src/openssl/sign.rs.html#503">padding</a>.<a href="../../src/openssl/rsa.rs.html#61">as_raw</a>(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA PSS salt length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_pss_saltlen`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_pss_saltlen`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_pss_saltlen.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_pss_saltlen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_pss_saltlen</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#520">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#520">len</a>.<a class="ident" href="../../src/openssl/sign.rs.html#90">as_raw</a>(),
+    <span class="doccomment">/// Sets the RSA PSS salt length.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_pss_saltlen`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_pss_saltlen`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_pss_saltlen.html
+    </span><span class="kw">pub fn </span>set_rsa_pss_saltlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="../../src/openssl/sign.rs.html#86">RsaPssSaltlen</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_pss_saltlen(
+                <a class="self" href="../../src/openssl/sign.rs.html#520">self</a>.pctx,
+                <a href="../../src/openssl/sign.rs.html#520">len</a>.<a href="../../src/openssl/sign.rs.html#90">as_raw</a>(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA MGF1 algorithm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_mgf1_md</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">md</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_mgf1_md</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#537">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#537">md</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Sets the RSA MGF1 algorithm.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html
+    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
+                <a class="self" href="../../src/openssl/sign.rs.html#537">self</a>.pctx,
+                <a href="../../src/openssl/sign.rs.html#537">md</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Feeds more data into the `Verifier`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Please note that PureEdDSA (Ed25519 and Ed448 keys) do not support streaming.</span>
-    <span class="doccomment">/// Use `verify_oneshot` instead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestUpdate`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestUpdate`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestUpdate</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#555">self</a>.<span class="ident">md_ctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#555">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#555">buf</a>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Feeds more data into the `Verifier`.
+    ///
+    /// Please note that PureEdDSA (Ed25519 and Ed448 keys) do not support streaming.
+    /// Use `verify_oneshot` instead.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestUpdate`].
+    ///
+    /// [`EVP_DigestUpdate`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html
+    </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_DigestUpdate(
+                <a class="self" href="../../src/openssl/sign.rs.html#555">self</a>.md_ctx,
+                <a href="../../src/openssl/sign.rs.html#555">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <a href="../../src/openssl/sign.rs.html#555">buf</a>.len(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Determines if the data fed into the `Verifier` matches the provided signature.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestVerifyFinal`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestVerifyFinal`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyFinal.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signature</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span>
-                <a class="ident" href="../../src/openssl/sign.rs.html#629-633">EVP_DigestVerifyFinal</a>(<a class="self" href="../../src/openssl/sign.rs.html#571">self</a>.<span class="ident">md_ctx</span>, <a class="ident" href="../../src/openssl/sign.rs.html#571">signature</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <a class="ident" href="../../src/openssl/sign.rs.html#571">signature</a>.<span class="ident">len</span>());
-            <span class="kw">match</span> <a class="ident" href="../../src/openssl/sign.rs.html#573">r</a> {
-                <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-                <span class="number">0</span> =&gt; {
-                    <span class="ident">ErrorStack::get</span>(); <span class="comment">// discard error stack</span>
-                    <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
+    <span class="doccomment">/// Determines if the data fed into the `Verifier` matches the provided signature.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestVerifyFinal`].
+    ///
+    /// [`EVP_DigestVerifyFinal`]: https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyFinal.html
+    </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;</span><span class="self">self</span>, signature: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>r =
+                <a href="../../src/openssl/sign.rs.html#629-633">EVP_DigestVerifyFinal</a>(<a class="self" href="../../src/openssl/sign.rs.html#571">self</a>.md_ctx, <a href="../../src/openssl/sign.rs.html#571">signature</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="../../src/openssl/sign.rs.html#571">signature</a>.len());
+            <span class="kw">match </span><a href="../../src/openssl/sign.rs.html#573">r</a> {
+                <span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+                <span class="number">0 </span>=&gt; {
+                    ErrorStack::get(); <span class="comment">// discard error stack
+                    </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
                 }
-                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>()),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ErrorStack::get()),
             }
         }
     }
 
-    <span class="doccomment">/// Determines if the data given in `buf` matches the provided signature.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_DigestVerify`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_DigestVerify`]: https://www.openssl.org/docs/man1.1.1/man3/EVP_DigestVerify.html</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_oneshot</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">signature</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EVP_DigestVerify</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#592">self</a>.<span class="ident">md_ctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#592">signature</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#592">signature</a>.<span class="ident">len</span>(),
-                <a class="ident" href="../../src/openssl/sign.rs.html#592">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#592">buf</a>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Determines if the data given in `buf` matches the provided signature.
+    ///
+    /// OpenSSL documentation at [`EVP_DigestVerify`].
+    ///
+    /// [`EVP_DigestVerify`]: https://www.openssl.org/docs/man1.1.1/man3/EVP_DigestVerify.html
+    </span><span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>verify_oneshot(<span class="kw-2">&amp;mut </span><span class="self">self</span>, signature: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>r = ffi::EVP_DigestVerify(
+                <a class="self" href="../../src/openssl/sign.rs.html#592">self</a>.md_ctx,
+                <a href="../../src/openssl/sign.rs.html#592">signature</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <a href="../../src/openssl/sign.rs.html#592">signature</a>.len(),
+                <a href="../../src/openssl/sign.rs.html#592">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <a href="../../src/openssl/sign.rs.html#592">buf</a>.len(),
             );
-            <span class="kw">match</span> <a class="ident" href="../../src/openssl/sign.rs.html#594">r</a> {
-                <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-                <span class="number">0</span> =&gt; {
-                    <span class="ident">ErrorStack::get</span>();
+            <span class="kw">match </span><a href="../../src/openssl/sign.rs.html#594">r</a> {
+                <span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+                <span class="number">0 </span>=&gt; {
+                    ErrorStack::get();
                     <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
                 }
-                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>()),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ErrorStack::get()),
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">update</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#614">buf</a>.<span class="ident">len</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>Verifier&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="self">self</span>.update(buf)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/sign.rs.html#614">buf</a>.len())
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl101</span>))]</span>
-<span class="kw">use</span> <span class="ident">ffi::EVP_DigestVerifyFinal</span>;
+<span class="attribute">#[cfg(not(ossl101))]
+</span><span class="kw">use </span>ffi::EVP_DigestVerifyFinal;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl101</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_DigestVerifyFinal</span>(
-    <span class="ident">ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
-    <span class="ident">sigret</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/type.c_uchar.html">::libc::c_uchar</a>,
-    <span class="ident">siglen</span>: <a class="ident" href="../../libc/unix/type.size_t.html">::libc::size_t</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">::libc::c_int</a> {
-    <span class="ident">ffi::EVP_DigestVerifyFinal</span>(<a class="ident" href="../../src/openssl/sign.rs.html#630">ctx</a>, <a class="ident" href="../../src/openssl/sign.rs.html#631">sigret</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <a class="ident" href="../../src/openssl/sign.rs.html#632">siglen</a>)
+<span class="attribute">#[cfg(ossl101)]
+#[allow(bad_style)]
+</span><span class="kw">unsafe fn </span>EVP_DigestVerifyFinal(
+    ctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
+    sigret: <span class="kw-2">*const </span><a href="../../libc/unix/type.c_uchar.html">::libc::c_uchar</a>,
+    siglen: <a href="../../libc/unix/type.size_t.html">::libc::size_t</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">::libc::c_int</a> {
+    ffi::EVP_DigestVerifyFinal(<a href="../../src/openssl/sign.rs.html#630">ctx</a>, <a href="../../src/openssl/sign.rs.html#631">sigret</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="../../src/openssl/sign.rs.html#632">siglen</a>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident">hex</span>::{<span class="self">self</span>, <span class="ident">FromHex</span>};
-    <span class="kw">use</span> <span class="ident">std::iter</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use </span>hex::{<span class="self">self</span>, FromHex};
+    <span class="kw">use </span>std::iter;
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ec</span>::{<span class="ident">EcGroup</span>, <span class="ident">EcKey</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hash::MessageDigest</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::nid::Nid</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey::PKey</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::rsa</span>::{<span class="ident">Padding</span>, <span class="ident">Rsa</span>};
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sign::RsaPssSaltlen</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sign</span>::{<span class="ident">Signer</span>, <span class="ident">Verifier</span>};
+    <span class="kw">use </span><span class="kw">crate</span>::ec::{EcGroup, EcKey};
+    <span class="kw">use </span><span class="kw">crate</span>::hash::MessageDigest;
+    <span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+    <span class="kw">use </span><span class="kw">crate</span>::pkey::PKey;
+    <span class="kw">use </span><span class="kw">crate</span>::rsa::{Padding, Rsa};
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">use </span><span class="kw">crate</span>::sign::RsaPssSaltlen;
+    <span class="kw">use </span><span class="kw">crate</span>::sign::{Signer, Verifier};
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span>
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str =
         <span class="string">&quot;65794a68624763694f694a53557a49314e694a392e65794a7063334d694f694a71623255694c41304b49434a6c\
          654841694f6a457a4d4441344d546b7a4f44417344516f67496d6830644841364c79396c654746746347786c4c\
          6d4e76625339706331397962323930496a7030636e566c6651&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">SIGNATURE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span>
+    <span class="kw">const </span>SIGNATURE: <span class="kw-2">&amp;</span>str =
         <span class="string">&quot;702e218943e88fd11eb5d82dbf7845f34106ae1b81fff7731116add1717d83656d420afd3c96eedd73a2663e51\
          66687b000b87226e0187ed1073f945e582adfcef16d85a798ee8c66ddb3db8975b17d09402beedd5d9d9700710\
          8db28160d5f8040ca7445762b81fbe7ff9d92e0ae76f24f25b33bbe6f44ae61eb1040acb20044d3ef9128ed401\
@@ -1535,216 +1535,216 @@
          15911273a05f23b9e838faaf849d698429ef5a1e88798236c3d40e604522a544c8f27a7a2db80663d16cf7caea\
          56de405cb2215a45b2c25566b55ac1a748a070dfc8a32a469543d019eefb47&quot;</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">rsa_sign</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">Rsa::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>rsa_sign() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
+        <span class="kw">let </span>private_key = Rsa::private_key_from_pem(key).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(private_key).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">Signer::new</span>(<span class="ident">MessageDigest::sha256</span>(), <span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">signer</span>.<span class="ident">rsa_padding</span>().<span class="ident">unwrap</span>(), <span class="ident">Padding::PKCS1</span>);
-        <span class="ident">signer</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1</span>).<span class="ident">unwrap</span>();
-        <span class="ident">signer</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">INPUT</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">signer</span>.<span class="ident">sign_to_vec</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>signer = Signer::new(MessageDigest::sha256(), <span class="kw-2">&amp;</span>pkey).unwrap();
+        <span class="macro">assert_eq!</span>(signer.rsa_padding().unwrap(), Padding::PKCS1);
+        signer.set_rsa_padding(Padding::PKCS1).unwrap();
+        signer.update(<span class="kw-2">&amp;</span>Vec::from_hex(INPUT).unwrap()).unwrap();
+        <span class="kw">let </span>result = signer.sign_to_vec().unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="ident">result</span>), <span class="ident">SIGNATURE</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(result), SIGNATURE);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">rsa_verify_ok</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">Rsa::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>rsa_verify_ok() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
+        <span class="kw">let </span>private_key = Rsa::private_key_from_pem(key).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(private_key).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier</span> <span class="op">=</span> <span class="ident">Verifier::new</span>(<span class="ident">MessageDigest::sha256</span>(), <span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">verifier</span>.<span class="ident">rsa_padding</span>().<span class="ident">unwrap</span>(), <span class="ident">Padding::PKCS1</span>);
-        <span class="ident">verifier</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">INPUT</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">verifier</span>.<span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">SIGNATURE</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>verifier = Verifier::new(MessageDigest::sha256(), <span class="kw-2">&amp;</span>pkey).unwrap();
+        <span class="macro">assert_eq!</span>(verifier.rsa_padding().unwrap(), Padding::PKCS1);
+        verifier.update(<span class="kw-2">&amp;</span>Vec::from_hex(INPUT).unwrap()).unwrap();
+        <span class="macro">assert!</span>(verifier.verify(<span class="kw-2">&amp;</span>Vec::from_hex(SIGNATURE).unwrap()).unwrap());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">rsa_verify_invalid</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">Rsa::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>rsa_verify_invalid() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
+        <span class="kw">let </span>private_key = Rsa::private_key_from_pem(key).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(private_key).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier</span> <span class="op">=</span> <span class="ident">Verifier::new</span>(<span class="ident">MessageDigest::sha256</span>(), <span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">verifier</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">INPUT</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="ident">verifier</span>.<span class="ident">update</span>(<span class="string">b&quot;foobar&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">verifier</span>.<span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">SIGNATURE</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>verifier = Verifier::new(MessageDigest::sha256(), <span class="kw-2">&amp;</span>pkey).unwrap();
+        verifier.update(<span class="kw-2">&amp;</span>Vec::from_hex(INPUT).unwrap()).unwrap();
+        verifier.update(<span class="string">b&quot;foobar&quot;</span>).unwrap();
+        <span class="macro">assert!</span>(!verifier.verify(<span class="kw-2">&amp;</span>Vec::from_hex(SIGNATURE).unwrap()).unwrap());
     }
 
-    <span class="kw">fn</span> <span class="ident">test_hmac</span>(<span class="ident">ty</span>: <span class="ident">MessageDigest</span>, <span class="ident">tests</span>: <span class="kw-2">&amp;</span>[(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)]) {
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">key</span>, <span class="kw-2">ref</span> <span class="ident">data</span>, <span class="kw-2">ref</span> <span class="ident">res</span>) <span class="kw">in</span> <span class="ident">tests</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::hmac</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">Signer::new</span>(<span class="ident">ty</span>, <span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-            <span class="ident">signer</span>.<span class="ident">update</span>(<span class="ident">data</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">signer</span>.<span class="ident">sign_to_vec</span>().<span class="ident">unwrap</span>(), <span class="kw-2">*</span><span class="ident">res</span>);
+    <span class="kw">fn </span>test_hmac(ty: MessageDigest, tests: <span class="kw-2">&amp;</span>[(Vec&lt;u8&gt;, Vec&lt;u8&gt;, Vec&lt;u8&gt;)]) {
+        <span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>key, <span class="kw-2">ref </span>data, <span class="kw-2">ref </span>res) <span class="kw">in </span>tests.iter() {
+            <span class="kw">let </span>pkey = PKey::hmac(key).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>signer = Signer::new(ty, <span class="kw-2">&amp;</span>pkey).unwrap();
+            signer.update(data).unwrap();
+            <span class="macro">assert_eq!</span>(signer.sign_to_vec().unwrap(), <span class="kw-2">*</span>res);
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hmac_md5</span>() {
-        <span class="comment">// test vectors from RFC 2202</span>
-        <span class="kw">let</span> <span class="ident">tests</span>: [(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>); <span class="number">7</span>] <span class="op">=</span> [
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>hmac_md5() {
+        <span class="comment">// test vectors from RFC 2202
+        </span><span class="kw">let </span>tests: [(Vec&lt;u8&gt;, Vec&lt;u8&gt;, Vec&lt;u8&gt;); <span class="number">7</span>] = [
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0x0b_u8</span>).<span class="ident">take</span>(<span class="number">16</span>).<span class="ident">collect</span>(),
-                <span class="string">b&quot;Hi There&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;9294727a3638bb1c13f48ef8158bfc9d&quot;</span>).<span class="ident">unwrap</span>(),
+                iter::repeat(<span class="number">0x0b_u8</span>).take(<span class="number">16</span>).collect(),
+                <span class="string">b&quot;Hi There&quot;</span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;9294727a3638bb1c13f48ef8158bfc9d&quot;</span>).unwrap(),
             ),
             (
-                <span class="string">b&quot;Jefe&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="string">b&quot;what do ya want for nothing?&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;750c783e6ab0b503eaa86e310a5db738&quot;</span>).<span class="ident">unwrap</span>(),
+                <span class="string">b&quot;Jefe&quot;</span>.to_vec(),
+                <span class="string">b&quot;what do ya want for nothing?&quot;</span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;750c783e6ab0b503eaa86e310a5db738&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0xaa_u8</span>).<span class="ident">take</span>(<span class="number">16</span>).<span class="ident">collect</span>(),
-                <span class="ident">iter::repeat</span>(<span class="number">0xdd_u8</span>).<span class="ident">take</span>(<span class="number">50</span>).<span class="ident">collect</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;56be34521d144c88dbb8c733f0e8b3f6&quot;</span>).<span class="ident">unwrap</span>(),
+                iter::repeat(<span class="number">0xaa_u8</span>).take(<span class="number">16</span>).collect(),
+                iter::repeat(<span class="number">0xdd_u8</span>).take(<span class="number">50</span>).collect(),
+                Vec::from_hex(<span class="string">&quot;56be34521d144c88dbb8c733f0e8b3f6&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;0102030405060708090a0b0c0d0e0f10111213141516171819&quot;</span>).<span class="ident">unwrap</span>(),
-                <span class="ident">iter::repeat</span>(<span class="number">0xcd_u8</span>).<span class="ident">take</span>(<span class="number">50</span>).<span class="ident">collect</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;697eaf0aca3a3aea3a75164746ffaa79&quot;</span>).<span class="ident">unwrap</span>(),
+                Vec::from_hex(<span class="string">&quot;0102030405060708090a0b0c0d0e0f10111213141516171819&quot;</span>).unwrap(),
+                iter::repeat(<span class="number">0xcd_u8</span>).take(<span class="number">50</span>).collect(),
+                Vec::from_hex(<span class="string">&quot;697eaf0aca3a3aea3a75164746ffaa79&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0x0c_u8</span>).<span class="ident">take</span>(<span class="number">16</span>).<span class="ident">collect</span>(),
-                <span class="string">b&quot;Test With Truncation&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;56461ef2342edc00f9bab995690efd4c&quot;</span>).<span class="ident">unwrap</span>(),
+                iter::repeat(<span class="number">0x0c_u8</span>).take(<span class="number">16</span>).collect(),
+                <span class="string">b&quot;Test With Truncation&quot;</span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;56461ef2342edc00f9bab995690efd4c&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0xaa_u8</span>).<span class="ident">take</span>(<span class="number">80</span>).<span class="ident">collect</span>(),
-                <span class="string">b&quot;Test Using Larger Than Block-Size Key - Hash Key First&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd&quot;</span>).<span class="ident">unwrap</span>(),
+                iter::repeat(<span class="number">0xaa_u8</span>).take(<span class="number">80</span>).collect(),
+                <span class="string">b&quot;Test Using Larger Than Block-Size Key - Hash Key First&quot;</span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0xaa_u8</span>).<span class="ident">take</span>(<span class="number">80</span>).<span class="ident">collect</span>(),
+                iter::repeat(<span class="number">0xaa_u8</span>).take(<span class="number">80</span>).collect(),
                 <span class="string">b&quot;Test Using Larger Than Block-Size Key \
-              and Larger Than One Block-Size Data&quot;</span>
-                    .<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;6f630fad67cda0ee1fb1f562db3aa53e&quot;</span>).<span class="ident">unwrap</span>(),
+              and Larger Than One Block-Size Data&quot;
+                    </span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;6f630fad67cda0ee1fb1f562db3aa53e&quot;</span>).unwrap(),
             ),
         ];
 
-        <span class="ident">test_hmac</span>(<span class="ident">MessageDigest::md5</span>(), <span class="kw-2">&amp;</span><span class="ident">tests</span>);
+        test_hmac(MessageDigest::md5(), <span class="kw-2">&amp;</span>tests);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hmac_sha1</span>() {
-        <span class="comment">// test vectors from RFC 2202</span>
-        <span class="kw">let</span> <span class="ident">tests</span>: [(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>); <span class="number">7</span>] <span class="op">=</span> [
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>hmac_sha1() {
+        <span class="comment">// test vectors from RFC 2202
+        </span><span class="kw">let </span>tests: [(Vec&lt;u8&gt;, Vec&lt;u8&gt;, Vec&lt;u8&gt;); <span class="number">7</span>] = [
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0x0b_u8</span>).<span class="ident">take</span>(<span class="number">20</span>).<span class="ident">collect</span>(),
-                <span class="string">b&quot;Hi There&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;b617318655057264e28bc0b6fb378c8ef146be00&quot;</span>).<span class="ident">unwrap</span>(),
+                iter::repeat(<span class="number">0x0b_u8</span>).take(<span class="number">20</span>).collect(),
+                <span class="string">b&quot;Hi There&quot;</span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;b617318655057264e28bc0b6fb378c8ef146be00&quot;</span>).unwrap(),
             ),
             (
-                <span class="string">b&quot;Jefe&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="string">b&quot;what do ya want for nothing?&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;effcdf6ae5eb2fa2d27416d5f184df9c259a7c79&quot;</span>).<span class="ident">unwrap</span>(),
+                <span class="string">b&quot;Jefe&quot;</span>.to_vec(),
+                <span class="string">b&quot;what do ya want for nothing?&quot;</span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;effcdf6ae5eb2fa2d27416d5f184df9c259a7c79&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0xaa_u8</span>).<span class="ident">take</span>(<span class="number">20</span>).<span class="ident">collect</span>(),
-                <span class="ident">iter::repeat</span>(<span class="number">0xdd_u8</span>).<span class="ident">take</span>(<span class="number">50</span>).<span class="ident">collect</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;125d7342b9ac11cd91a39af48aa17b4f63f175d3&quot;</span>).<span class="ident">unwrap</span>(),
+                iter::repeat(<span class="number">0xaa_u8</span>).take(<span class="number">20</span>).collect(),
+                iter::repeat(<span class="number">0xdd_u8</span>).take(<span class="number">50</span>).collect(),
+                Vec::from_hex(<span class="string">&quot;125d7342b9ac11cd91a39af48aa17b4f63f175d3&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;0102030405060708090a0b0c0d0e0f10111213141516171819&quot;</span>).<span class="ident">unwrap</span>(),
-                <span class="ident">iter::repeat</span>(<span class="number">0xcd_u8</span>).<span class="ident">take</span>(<span class="number">50</span>).<span class="ident">collect</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;4c9007f4026250c6bc8414f9bf50c86c2d7235da&quot;</span>).<span class="ident">unwrap</span>(),
+                Vec::from_hex(<span class="string">&quot;0102030405060708090a0b0c0d0e0f10111213141516171819&quot;</span>).unwrap(),
+                iter::repeat(<span class="number">0xcd_u8</span>).take(<span class="number">50</span>).collect(),
+                Vec::from_hex(<span class="string">&quot;4c9007f4026250c6bc8414f9bf50c86c2d7235da&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0x0c_u8</span>).<span class="ident">take</span>(<span class="number">20</span>).<span class="ident">collect</span>(),
-                <span class="string">b&quot;Test With Truncation&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;4c1a03424b55e07fe7f27be1d58bb9324a9a5a04&quot;</span>).<span class="ident">unwrap</span>(),
+                iter::repeat(<span class="number">0x0c_u8</span>).take(<span class="number">20</span>).collect(),
+                <span class="string">b&quot;Test With Truncation&quot;</span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;4c1a03424b55e07fe7f27be1d58bb9324a9a5a04&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0xaa_u8</span>).<span class="ident">take</span>(<span class="number">80</span>).<span class="ident">collect</span>(),
-                <span class="string">b&quot;Test Using Larger Than Block-Size Key - Hash Key First&quot;</span>.<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;aa4ae5e15272d00e95705637ce8a3b55ed402112&quot;</span>).<span class="ident">unwrap</span>(),
+                iter::repeat(<span class="number">0xaa_u8</span>).take(<span class="number">80</span>).collect(),
+                <span class="string">b&quot;Test Using Larger Than Block-Size Key - Hash Key First&quot;</span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;aa4ae5e15272d00e95705637ce8a3b55ed402112&quot;</span>).unwrap(),
             ),
             (
-                <span class="ident">iter::repeat</span>(<span class="number">0xaa_u8</span>).<span class="ident">take</span>(<span class="number">80</span>).<span class="ident">collect</span>(),
+                iter::repeat(<span class="number">0xaa_u8</span>).take(<span class="number">80</span>).collect(),
                 <span class="string">b&quot;Test Using Larger Than Block-Size Key \
-              and Larger Than One Block-Size Data&quot;</span>
-                    .<span class="ident">to_vec</span>(),
-                <span class="ident">Vec::from_hex</span>(<span class="string">&quot;e8e99d0f45237d786d6bbaa7965c7808bbff1a91&quot;</span>).<span class="ident">unwrap</span>(),
+              and Larger Than One Block-Size Data&quot;
+                    </span>.to_vec(),
+                Vec::from_hex(<span class="string">&quot;e8e99d0f45237d786d6bbaa7965c7808bbff1a91&quot;</span>).unwrap(),
             ),
         ];
 
-        <span class="ident">test_hmac</span>(<span class="ident">MessageDigest::sha1</span>(), <span class="kw-2">&amp;</span><span class="ident">tests</span>);
+        test_hmac(MessageDigest::sha1(), <span class="kw-2">&amp;</span>tests);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">test_cmac</span>() {
-        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::symm::Cipher::aes_128_cbc</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="string">&quot;9294727a3638bb1c13f48ef8158bfc9d&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::cmac</span>(<span class="kw-2">&amp;</span><span class="ident">cipher</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">Signer::new_without_digest</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg(ossl110)]
+    </span><span class="kw">fn </span>test_cmac() {
+        <span class="kw">let </span>cipher = <span class="kw">crate</span>::symm::Cipher::aes_128_cbc();
+        <span class="kw">let </span>key = Vec::from_hex(<span class="string">&quot;9294727a3638bb1c13f48ef8158bfc9d&quot;</span>).unwrap();
+        <span class="kw">let </span>pkey = PKey::cmac(<span class="kw-2">&amp;</span>cipher, <span class="kw-2">&amp;</span>key).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>signer = Signer::new_without_digest(<span class="kw-2">&amp;</span>pkey).unwrap();
 
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">b&quot;Hi There&quot;</span>;
-        <span class="ident">signer</span>.<span class="ident">update</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>data = <span class="string">b&quot;Hi There&quot;</span>;
+        signer.update(data <span class="kw">as </span><span class="kw-2">&amp;</span>[u8]).unwrap();
 
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">vec!</span>[
+        <span class="kw">let </span>expected = <span class="macro">vec!</span>[
             <span class="number">136</span>, <span class="number">101</span>, <span class="number">61</span>, <span class="number">167</span>, <span class="number">61</span>, <span class="number">30</span>, <span class="number">248</span>, <span class="number">234</span>, <span class="number">124</span>, <span class="number">166</span>, <span class="number">196</span>, <span class="number">157</span>, <span class="number">203</span>, <span class="number">52</span>, <span class="number">171</span>, <span class="number">19</span>,
         ];
-        <span class="macro">assert_eq!</span>(<span class="ident">signer</span>.<span class="ident">sign_to_vec</span>().<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(signer.sign_to_vec().unwrap(), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ec</span>() {
-        <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">EcGroup::from_curve_name</span>(<span class="ident">Nid::X9_62_PRIME256V1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">EcKey::generate</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">PKey::from_ec_key</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>ec() {
+        <span class="kw">let </span>group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
+        <span class="kw">let </span>key = EcKey::generate(<span class="kw-2">&amp;</span>group).unwrap();
+        <span class="kw">let </span>key = PKey::from_ec_key(key).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">Signer::new</span>(<span class="ident">MessageDigest::sha256</span>(), <span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="ident">signer</span>.<span class="ident">update</span>(<span class="string">b&quot;hello world&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">signer</span>.<span class="ident">sign_to_vec</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>signer = Signer::new(MessageDigest::sha256(), <span class="kw-2">&amp;</span>key).unwrap();
+        signer.update(<span class="string">b&quot;hello world&quot;</span>).unwrap();
+        <span class="kw">let </span>signature = signer.sign_to_vec().unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier</span> <span class="op">=</span> <span class="ident">Verifier::new</span>(<span class="ident">MessageDigest::sha256</span>(), <span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="ident">verifier</span>.<span class="ident">update</span>(<span class="string">b&quot;hello world&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">verifier</span>.<span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="ident">signature</span>).<span class="ident">unwrap</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>verifier = Verifier::new(MessageDigest::sha256(), <span class="kw-2">&amp;</span>key).unwrap();
+        verifier.update(<span class="string">b&quot;hello world&quot;</span>).unwrap();
+        <span class="macro">assert!</span>(verifier.verify(<span class="kw-2">&amp;</span>signature).unwrap());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">eddsa</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">PKey::generate_ed25519</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg(ossl111)]
+    </span><span class="kw">fn </span>eddsa() {
+        <span class="kw">let </span>key = PKey::generate_ed25519().unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">Signer::new_without_digest</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">signer</span>.<span class="ident">sign_oneshot_to_vec</span>(<span class="string">b&quot;hello world&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>signer = Signer::new_without_digest(<span class="kw-2">&amp;</span>key).unwrap();
+        <span class="kw">let </span>signature = signer.sign_oneshot_to_vec(<span class="string">b&quot;hello world&quot;</span>).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier</span> <span class="op">=</span> <span class="ident">Verifier::new_without_digest</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">verifier</span>.<span class="ident">verify_oneshot</span>(<span class="kw-2">&amp;</span><span class="ident">signature</span>, <span class="string">b&quot;hello world&quot;</span>).<span class="ident">unwrap</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>verifier = Verifier::new_without_digest(<span class="kw-2">&amp;</span>key).unwrap();
+        <span class="macro">assert!</span>(verifier.verify_oneshot(<span class="kw-2">&amp;</span>signature, <span class="string">b&quot;hello world&quot;</span>).unwrap());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">rsa_sign_verify</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">Rsa::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg(ossl111)]
+    </span><span class="kw">fn </span>rsa_sign_verify() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
+        <span class="kw">let </span>private_key = Rsa::private_key_from_pem(key).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(private_key).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">Signer::new</span>(<span class="ident">MessageDigest::sha256</span>(), <span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">signer</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1_PSS</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">signer</span>.<span class="ident">rsa_padding</span>().<span class="ident">unwrap</span>(), <span class="ident">Padding::PKCS1_PSS</span>);
-        <span class="ident">signer</span>
-            .<span class="ident">set_rsa_pss_saltlen</span>(<span class="ident">RsaPssSaltlen::DIGEST_LENGTH</span>)
-            .<span class="ident">unwrap</span>();
-        <span class="ident">signer</span>.<span class="ident">set_rsa_mgf1_md</span>(<span class="ident">MessageDigest::sha256</span>()).<span class="ident">unwrap</span>();
-        <span class="ident">signer</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">INPUT</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">signer</span>.<span class="ident">sign_to_vec</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>signer = Signer::new(MessageDigest::sha256(), <span class="kw-2">&amp;</span>pkey).unwrap();
+        signer.set_rsa_padding(Padding::PKCS1_PSS).unwrap();
+        <span class="macro">assert_eq!</span>(signer.rsa_padding().unwrap(), Padding::PKCS1_PSS);
+        signer
+            .set_rsa_pss_saltlen(RsaPssSaltlen::DIGEST_LENGTH)
+            .unwrap();
+        signer.set_rsa_mgf1_md(MessageDigest::sha256()).unwrap();
+        signer.update(<span class="kw-2">&amp;</span>Vec::from_hex(INPUT).unwrap()).unwrap();
+        <span class="kw">let </span>signature = signer.sign_to_vec().unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier</span> <span class="op">=</span> <span class="ident">Verifier::new</span>(<span class="ident">MessageDigest::sha256</span>(), <span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">verifier</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1_PSS</span>).<span class="ident">unwrap</span>();
-        <span class="ident">verifier</span>
-            .<span class="ident">set_rsa_pss_saltlen</span>(<span class="ident">RsaPssSaltlen::DIGEST_LENGTH</span>)
-            .<span class="ident">unwrap</span>();
-        <span class="ident">verifier</span>.<span class="ident">set_rsa_mgf1_md</span>(<span class="ident">MessageDigest::sha256</span>()).<span class="ident">unwrap</span>();
-        <span class="ident">verifier</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">INPUT</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">verifier</span>.<span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="ident">signature</span>).<span class="ident">unwrap</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>verifier = Verifier::new(MessageDigest::sha256(), <span class="kw-2">&amp;</span>pkey).unwrap();
+        verifier.set_rsa_padding(Padding::PKCS1_PSS).unwrap();
+        verifier
+            .set_rsa_pss_saltlen(RsaPssSaltlen::DIGEST_LENGTH)
+            .unwrap();
+        verifier.set_rsa_mgf1_md(MessageDigest::sha256()).unwrap();
+        verifier.update(<span class="kw-2">&amp;</span>Vec::from_hex(INPUT).unwrap()).unwrap();
+        <span class="macro">assert!</span>(verifier.verify(<span class="kw-2">&amp;</span>signature).unwrap());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

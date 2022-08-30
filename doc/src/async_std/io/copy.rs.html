@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/io/copy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>copy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/io/copy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>copy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -182,187 +182,187 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../async_std/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../async_std/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="self" href="../../../src/async_std/lib.rs.html#307">self</a>, <a class="ident" href="../../../async_std/io/trait.BufRead.html">BufRead</a>, <a class="ident" href="../../../src/async_std/io/buf_reader.rs.html#10-53">BufReader</a>, <a class="ident" href="../../../async_std/io/trait.Read.html">Read</a>, <a class="ident" href="../../../async_std/io/trait.Write.html">Write</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::task</span>::{<a class="ident" href="../../../async_std/task/struct.Context.html">Context</a>, <a class="ident" href="../../../async_std/task/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/async_std/utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as</span> <span class="kw">_</span>;
+<span class="kw">use </span><span class="kw">crate</span>::io::{<a class="self" href="../../../src/async_std/lib.rs.html#307">self</a>, <a href="../../../async_std/io/trait.BufRead.html">BufRead</a>, <a href="../../../src/async_std/io/buf_reader.rs.html#10-53">BufReader</a>, <a href="../../../async_std/io/trait.Read.html">Read</a>, <a href="../../../async_std/io/trait.Write.html">Write</a>};
+<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../async_std/task/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../src/async_std/utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as _</span>;
 
-<span class="doccomment">/// Copies the entire contents of a reader into a writer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will continuously read data from `reader` and then</span>
-<span class="doccomment">/// write it into `writer` in a streaming fashion until `reader`</span>
-<span class="doccomment">/// returns EOF.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On success, the total number of bytes that were copied from</span>
-<span class="doccomment">/// `reader` to `writer` is returned.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If you’re wanting to copy the contents of one file to another and you’re</span>
-<span class="doccomment">/// working with filesystem paths, see the [`fs::copy`] function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is an async version of [`std::io::copy`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`std::io::copy`]: https://doc.rust-lang.org/std/io/fn.copy.html</span>
-<span class="doccomment">/// [`fs::copy`]: ../fs/fn.copy.html</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Errors</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will return an error immediately if any call to `read` or</span>
-<span class="doccomment">/// `write` returns an error. All instances of `ErrorKind::Interrupted` are</span>
-<span class="doccomment">/// handled by this function and the underlying operation is retried.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// use async_std::io;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut reader: &amp;[u8] = b&quot;hello&quot;;</span>
-<span class="doccomment">/// let mut writer = io::stdout();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// io::copy(&amp;mut reader, &amp;mut writer).await?;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # Ok(()) }) }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docs&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">copy</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>, <span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">W</span>: <span class="ident">Write</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+<span class="doccomment">/// Copies the entire contents of a reader into a writer.
+///
+/// This function will continuously read data from `reader` and then
+/// write it into `writer` in a streaming fashion until `reader`
+/// returns EOF.
+///
+/// On success, the total number of bytes that were copied from
+/// `reader` to `writer` is returned.
+///
+/// If you’re wanting to copy the contents of one file to another and you’re
+/// working with filesystem paths, see the [`fs::copy`] function.
+///
+/// This function is an async version of [`std::io::copy`].
+///
+/// [`std::io::copy`]: https://doc.rust-lang.org/std/io/fn.copy.html
+/// [`fs::copy`]: ../fs/fn.copy.html
+///
+/// # Errors
+///
+/// This function will return an error immediately if any call to `read` or
+/// `write` returns an error. All instances of `ErrorKind::Interrupted` are
+/// handled by this function and the underlying operation is retried.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+/// #
+/// use async_std::io;
+///
+/// let mut reader: &amp;[u8] = b&quot;hello&quot;;
+/// let mut writer = io::stdout();
+///
+/// io::copy(&amp;mut reader, &amp;mut writer).await?;
+/// #
+/// # Ok(()) }) }
+/// ```
+</span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;docs&quot;</span>, not(feature = <span class="string">&quot;unstable&quot;</span>)))]
+</span><span class="kw">pub async fn </span>copy&lt;R, W&gt;(reader: <span class="kw-2">&amp;mut </span>R, writer: <span class="kw-2">&amp;mut </span>W) -&gt; io::Result&lt;u64&gt;
+<span class="kw">where
+    </span>R: Read + Unpin + <span class="question-mark">?</span>Sized,
+    W: Write + Unpin + <span class="question-mark">?</span>Sized,
 {
-    <span class="macro">pin_project!</span> {
-        <span class="kw">struct</span> <span class="ident">CopyFuture</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span> {
-            <span class="attribute">#[<span class="ident">pin</span>]</span>
-            <span class="ident">reader</span>: <span class="ident">R</span>,
-            <span class="attribute">#[<span class="ident">pin</span>]</span>
-            <span class="ident">writer</span>: <span class="ident">W</span>,
-            <span class="ident">amt</span>: <span class="ident">u64</span>,
+    <span class="macro">pin_project! </span>{
+        <span class="kw">struct </span>CopyFuture&lt;R, W&gt; {
+            <span class="attribute">#[pin]
+            </span>reader: R,
+            <span class="attribute">#[pin]
+            </span>writer: W,
+            amt: u64,
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">CopyFuture</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">BufRead</span>,
-        <span class="ident">W</span>: <span class="ident">Write</span> <span class="op">+</span> <span class="ident">Unpin</span>,
+    <span class="kw">impl</span>&lt;R, W&gt; Future <span class="kw">for </span>CopyFuture&lt;R, W&gt;
+    <span class="kw">where
+        </span>R: BufRead,
+        W: Write + Unpin,
     {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>;
+        <span class="kw">type </span>Output = io::Result&lt;u64&gt;;
 
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
-            <span class="kw">loop</span> {
-                <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">futures_core::ready!</span>(<span class="ident">this</span>.<span class="ident">reader</span>.<span class="ident">as_mut</span>().<span class="ident">poll_fill_buf</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_empty</span>() {
-                    <span class="macro">futures_core::ready!</span>(<span class="ident">this</span>.<span class="ident">writer</span>.<span class="ident">as_mut</span>().<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">amt</span>));
+        <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+            <span class="kw">loop </span>{
+                <span class="kw">let </span>buffer = <span class="macro">futures_core::ready!</span>(this.reader.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
+                <span class="kw">if </span>buffer.is_empty() {
+                    <span class="macro">futures_core::ready!</span>(this.writer.as_mut().poll_flush(cx))<span class="question-mark">?</span>;
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span>this.amt));
                 }
 
-                <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="macro">futures_core::ready!</span>(<span class="ident">this</span>.<span class="ident">writer</span>.<span class="ident">as_mut</span>().<span class="ident">poll_write</span>(<span class="ident">cx</span>, <span class="ident">buffer</span>))<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WriteZero</span>.<span class="ident">into</span>()));
+                <span class="kw">let </span>i = <span class="macro">futures_core::ready!</span>(this.writer.as_mut().poll_write(cx, buffer))<span class="question-mark">?</span>;
+                <span class="kw">if </span>i == <span class="number">0 </span>{
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(io::ErrorKind::WriteZero.into()));
                 }
-                <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">amt</span> <span class="op">+</span><span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span>;
-                <span class="ident">this</span>.<span class="ident">reader</span>.<span class="ident">as_mut</span>().<span class="ident">consume</span>(<span class="ident">i</span>);
+                <span class="kw-2">*</span>this.amt += i <span class="kw">as </span>u64;
+                this.reader.as_mut().consume(i);
             }
         }
     }
 
-    <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">CopyFuture</span> {
-        <span class="ident">reader</span>: <span class="ident">BufReader::new</span>(<span class="ident">reader</span>),
-        <span class="ident">writer</span>,
-        <span class="ident">amt</span>: <span class="number">0</span>,
+    <span class="kw">let </span>future = CopyFuture {
+        reader: BufReader::new(reader),
+        writer,
+        amt: <span class="number">0</span>,
     };
-    <span class="ident">future</span>.<span class="kw">await</span>.<span class="ident">context</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">String::from</span>(<span class="string">&quot;io::copy failed&quot;</span>))
+    future.<span class="kw">await</span>.context(|| String::from(<span class="string">&quot;io::copy failed&quot;</span>))
 }
 
-<span class="doccomment">/// Copies the entire contents of a reader into a writer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will continuously read data from `reader` and then</span>
-<span class="doccomment">/// write it into `writer` in a streaming fashion until `reader`</span>
-<span class="doccomment">/// returns EOF.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On success, the total number of bytes that were copied from</span>
-<span class="doccomment">/// `reader` to `writer` is returned.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If you’re wanting to copy the contents of one file to another and you’re</span>
-<span class="doccomment">/// working with filesystem paths, see the [`fs::copy`] function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is an async version of [`std::io::copy`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`std::io::copy`]: https://doc.rust-lang.org/std/io/fn.copy.html</span>
-<span class="doccomment">/// [`fs::copy`]: ../fs/fn.copy.html</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Errors</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will return an error immediately if any call to `read` or</span>
-<span class="doccomment">/// `write` returns an error. All instances of `ErrorKind::Interrupted` are</span>
-<span class="doccomment">/// handled by this function and the underlying operation is retried.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// use async_std::io;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut reader: &amp;[u8] = b&quot;hello&quot;;</span>
-<span class="doccomment">/// let mut writer = io::stdout();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// io::copy(&amp;mut reader, &amp;mut writer).await?;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # Ok(()) }) }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docs&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">copy</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">writer</span>: <span class="ident">W</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="../../../async_std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">W</span>: <a class="ident" href="../../../async_std/io/trait.Write.html">Write</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="doccomment">/// Copies the entire contents of a reader into a writer.
+///
+/// This function will continuously read data from `reader` and then
+/// write it into `writer` in a streaming fashion until `reader`
+/// returns EOF.
+///
+/// On success, the total number of bytes that were copied from
+/// `reader` to `writer` is returned.
+///
+/// If you’re wanting to copy the contents of one file to another and you’re
+/// working with filesystem paths, see the [`fs::copy`] function.
+///
+/// This function is an async version of [`std::io::copy`].
+///
+/// [`std::io::copy`]: https://doc.rust-lang.org/std/io/fn.copy.html
+/// [`fs::copy`]: ../fs/fn.copy.html
+///
+/// # Errors
+///
+/// This function will return an error immediately if any call to `read` or
+/// `write` returns an error. All instances of `ErrorKind::Interrupted` are
+/// handled by this function and the underlying operation is retried.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+/// #
+/// use async_std::io;
+///
+/// let mut reader: &amp;[u8] = b&quot;hello&quot;;
+/// let mut writer = io::stdout();
+///
+/// io::copy(&amp;mut reader, &amp;mut writer).await?;
+/// #
+/// # Ok(()) }) }
+/// ```
+</span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;unstable&quot;</span>, not(feature = <span class="string">&quot;docs&quot;</span>)))]
+</span><span class="kw">pub async fn </span>copy&lt;R, W&gt;(reader: R, writer: W) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;
+<span class="kw">where
+    </span>R: <a href="../../../async_std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    W: <a href="../../../async_std/io/trait.Write.html">Write</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="macro">pin_project!</span> {
-        <span class="kw">struct</span> <span class="ident">CopyFuture</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span> {
-            <span class="attribute">#[<span class="ident">pin</span>]</span>
-            <span class="ident">reader</span>: <span class="ident">R</span>,
-            <span class="attribute">#[<span class="ident">pin</span>]</span>
-            <span class="ident">writer</span>: <span class="ident">W</span>,
-            <span class="ident">amt</span>: <span class="ident">u64</span>,
+    <span class="macro">pin_project! </span>{
+        <span class="kw">struct </span>CopyFuture&lt;R, W&gt; {
+            <span class="attribute">#[pin]
+            </span>reader: R,
+            <span class="attribute">#[pin]
+            </span>writer: W,
+            amt: u64,
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">CopyFuture</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">BufRead</span>,
-        <span class="ident">W</span>: <span class="ident">Write</span> <span class="op">+</span> <span class="ident">Unpin</span>,
+    <span class="kw">impl</span>&lt;R, W&gt; Future <span class="kw">for </span>CopyFuture&lt;R, W&gt;
+    <span class="kw">where
+        </span>R: BufRead,
+        W: Write + Unpin,
     {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>;
+        <span class="kw">type </span>Output = io::Result&lt;u64&gt;;
 
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
-            <span class="kw">loop</span> {
-                <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">futures_core::ready!</span>(<span class="ident">this</span>.<span class="ident">reader</span>.<span class="ident">as_mut</span>().<span class="ident">poll_fill_buf</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_empty</span>() {
-                    <span class="macro">futures_core::ready!</span>(<span class="ident">this</span>.<span class="ident">writer</span>.<span class="ident">as_mut</span>().<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">amt</span>));
+        <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+            <span class="kw">loop </span>{
+                <span class="kw">let </span>buffer = <span class="macro">futures_core::ready!</span>(this.reader.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
+                <span class="kw">if </span>buffer.is_empty() {
+                    <span class="macro">futures_core::ready!</span>(this.writer.as_mut().poll_flush(cx))<span class="question-mark">?</span>;
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span>this.amt));
                 }
 
-                <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="macro">futures_core::ready!</span>(<span class="ident">this</span>.<span class="ident">writer</span>.<span class="ident">as_mut</span>().<span class="ident">poll_write</span>(<span class="ident">cx</span>, <span class="ident">buffer</span>))<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WriteZero</span>.<span class="ident">into</span>()));
+                <span class="kw">let </span>i = <span class="macro">futures_core::ready!</span>(this.writer.as_mut().poll_write(cx, buffer))<span class="question-mark">?</span>;
+                <span class="kw">if </span>i == <span class="number">0 </span>{
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(io::ErrorKind::WriteZero.into()));
                 }
-                <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">amt</span> <span class="op">+</span><span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span>;
-                <span class="ident">this</span>.<span class="ident">reader</span>.<span class="ident">as_mut</span>().<span class="ident">consume</span>(<span class="ident">i</span>);
+                <span class="kw-2">*</span>this.amt += i <span class="kw">as </span>u64;
+                this.reader.as_mut().consume(i);
             }
         }
     }
 
-    <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">CopyFuture</span> {
-        <span class="ident">reader</span>: <span class="ident">BufReader::new</span>(<span class="ident">reader</span>),
-        <span class="ident">writer</span>,
-        <span class="ident">amt</span>: <span class="number">0</span>,
+    <span class="kw">let </span>future = CopyFuture {
+        reader: BufReader::new(reader),
+        writer,
+        amt: <span class="number">0</span>,
     };
-    <span class="ident">future</span>.<span class="kw">await</span>.<span class="ident">context</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">String::from</span>(<span class="string">&quot;io::copy failed&quot;</span>))
+    future.<span class="kw">await</span>.context(|| String::from(<span class="string">&quot;io::copy failed&quot;</span>))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

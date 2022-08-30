@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/fs/read_dir.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read_dir.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/fs/read_dir.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read_dir.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -293,300 +293,300 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/tokio/fs/mod.rs.html#132-135"><span class="kw">crate</span>::fs::asyncify</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/tokio/fs/mod.rs.html#132-135"><span class="kw">crate</span>::fs::asyncify</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
-<span class="kw">use</span> <span class="ident">std::fs</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.FileType.html">FileType</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <span class="ident">std::path</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
+<span class="kw">use </span>std::fs::{<a href="https://doc.rust-lang.org/nightly/std/fs/struct.FileType.html">FileType</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mocks::spawn_blocking</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mocks::JoinHandle</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111"><span class="kw">crate</span>::blocking::spawn_blocking</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/task/join.rs.html#145"><span class="kw">crate</span>::blocking::JoinHandle</a>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">use </span><span class="kw">super</span>::mocks::spawn_blocking;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">use </span><span class="kw">super</span>::mocks::JoinHandle;
+<span class="attribute">#[cfg(not(test))]
+</span><span class="kw">use </span><a href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111"><span class="kw">crate</span>::blocking::spawn_blocking</a>;
+<span class="attribute">#[cfg(not(test))]
+</span><span class="kw">use </span><a href="../../../src/tokio/runtime/task/join.rs.html#145"><span class="kw">crate</span>::blocking::JoinHandle</a>;
 
-<span class="doccomment">/// Returns a stream over the entries within a directory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is an async version of [`std::fs::read_dir`](std::fs::read_dir)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This operation is implemented by running the equivalent blocking</span>
-<span class="doccomment">/// operation on a separate thread pool using [`spawn_blocking`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`spawn_blocking`]: crate::task::spawn_blocking</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_dir</span>(<span class="ident">path</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#57">ReadDir</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="ident">asyncify</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::read_dir</span>(<span class="ident">path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
+<span class="doccomment">/// Returns a stream over the entries within a directory.
+///
+/// This is an async version of [`std::fs::read_dir`](std::fs::read_dir)
+///
+/// This operation is implemented by running the equivalent blocking
+/// operation on a separate thread pool using [`spawn_blocking`].
+///
+/// [`spawn_blocking`]: crate::task::spawn_blocking
+</span><span class="kw">pub async fn </span>read_dir(path: <span class="kw">impl </span>AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;) -&gt; io::Result&lt;<a href="../../../src/tokio/fs/read_dir.rs.html#57">ReadDir</a>&gt; {
+    <span class="kw">let </span>path = path.as_ref().to_owned();
+    <span class="kw">let </span>std = asyncify(|| std::fs::read_dir(path)).<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<span class="ident">ReadDir</span>(<span class="ident">State::Idle</span>(<span class="prelude-val">Some</span>(<span class="ident">std</span>))))
+    <span class="prelude-val">Ok</span>(ReadDir(State::Idle(<span class="prelude-val">Some</span>(std))))
 }
 
-<span class="doccomment">/// Reads the entries in a directory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct is returned from the [`read_dir`] function of this module and</span>
-<span class="doccomment">/// will yield instances of [`DirEntry`]. Through a [`DirEntry`] information</span>
-<span class="doccomment">/// like the entry&#39;s path and possibly other metadata can be learned.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A `ReadDir` can be turned into a `Stream` with [`ReadDirStream`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`ReadDirStream`]: https://docs.rs/tokio-stream/0.1/tokio_stream/wrappers/struct.ReadDirStream.html</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Errors</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This stream will return an [`Err`] if there&#39;s some sort of intermittent</span>
-<span class="doccomment">/// IO error during iteration.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`read_dir`]: read_dir</span>
-<span class="doccomment">/// [`DirEntry`]: DirEntry</span>
-<span class="doccomment">/// [`Err`]: std::result::Result::Err</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReadDir</span>(<a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#60">State</a>);
+<span class="doccomment">/// Reads the entries in a directory.
+///
+/// This struct is returned from the [`read_dir`] function of this module and
+/// will yield instances of [`DirEntry`]. Through a [`DirEntry`] information
+/// like the entry&#39;s path and possibly other metadata can be learned.
+///
+/// A `ReadDir` can be turned into a `Stream` with [`ReadDirStream`].
+///
+/// [`ReadDirStream`]: https://docs.rs/tokio-stream/0.1/tokio_stream/wrappers/struct.ReadDirStream.html
+///
+/// # Errors
+///
+/// This stream will return an [`Err`] if there&#39;s some sort of intermittent
+/// IO error during iteration.
+///
+/// [`read_dir`]: read_dir
+/// [`DirEntry`]: DirEntry
+/// [`Err`]: std::result::Result::Err
+</span><span class="attribute">#[derive(Debug)]
+#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+</span><span class="kw">pub struct </span>ReadDir(<a href="../../../src/tokio/fs/read_dir.rs.html#60">State</a>);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="ident">Idle</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.ReadDir.html">std::fs::ReadDir</a><span class="op">&gt;</span>),
-    <span class="ident">Pending</span>(<span class="ident">JoinHandle</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.ReadDir.html">std::fs::ReadDir</a>)<span class="op">&gt;</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>State {
+    Idle(<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.ReadDir.html">std::fs::ReadDir</a>&gt;),
+    Pending(JoinHandle&lt;(<span class="prelude-ty">Option</span>&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a>&gt;&gt;, <a href="https://doc.rust-lang.org/nightly/std/fs/struct.ReadDir.html">std::fs::ReadDir</a>)&gt;),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#57">ReadDir</a> {
-    <span class="doccomment">/// Returns the next entry in the directory stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is cancellation safe.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">next_entry</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::future::poll_fn</span>;
-        <span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">poll_next_entry</span>(<span class="ident">cx</span>)).<span class="kw">await</span>
-    }
+<span class="kw">impl </span><a href="../../../src/tokio/fs/read_dir.rs.html#57">ReadDir</a> {
+    <span class="doccomment">/// Returns the next entry in the directory stream.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is cancellation safe.
+    </span><span class="kw">pub async fn </span>next_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a>&gt;&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
+        poll_fn(|cx| <span class="self">self</span>.poll_next_entry(cx)).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Polls for the next directory entry in the stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///  * `Poll::Pending` if the next directory entry is not yet available.</span>
-    <span class="doccomment">///  * `Poll::Ready(Ok(Some(entry)))` if the next directory entry is available.</span>
-    <span class="doccomment">///  * `Poll::Ready(Ok(None))` if there are no more directory entries in this</span>
-    <span class="doccomment">///    stream.</span>
-    <span class="doccomment">///  * `Poll::Ready(Err(err))` if an IO error occurred while reading the next</span>
-    <span class="doccomment">///    directory entry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When the method returns `Poll::Pending`, the `Waker` in the provided</span>
-    <span class="doccomment">/// `Context` is scheduled to receive a wakeup when the next directory entry</span>
-    <span class="doccomment">/// becomes available on the underlying IO resource.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that on multiple calls to `poll_next_entry`, only the `Waker` from</span>
-    <span class="doccomment">/// the `Context` passed to the most recent call is scheduled to receive a</span>
-    <span class="doccomment">/// wakeup.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_next_entry</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#94">self</a>.<span class="number">0</span> {
-                <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#61">State::Idle</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">std</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">std</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#97">std</a>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+    <span class="doccomment">/// Polls for the next directory entry in the stream.
+    ///
+    /// This method returns:
+    ///
+    ///  * `Poll::Pending` if the next directory entry is not yet available.
+    ///  * `Poll::Ready(Ok(Some(entry)))` if the next directory entry is available.
+    ///  * `Poll::Ready(Ok(None))` if there are no more directory entries in this
+    ///    stream.
+    ///  * `Poll::Ready(Err(err))` if an IO error occurred while reading the next
+    ///    directory entry.
+    ///
+    /// When the method returns `Poll::Pending`, the `Waker` in the provided
+    /// `Context` is scheduled to receive a wakeup when the next directory entry
+    /// becomes available on the underlying IO resource.
+    ///
+    /// Note that on multiple calls to `poll_next_entry`, only the `Waker` from
+    /// the `Context` passed to the most recent call is scheduled to receive a
+    /// wakeup.
+    </span><span class="kw">pub fn </span>poll_next_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a>&gt;&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a class="self" href="../../../src/tokio/fs/read_dir.rs.html#94">self</a>.<span class="number">0 </span>{
+                <a href="../../../src/tokio/fs/read_dir.rs.html#61">State::Idle</a>(<span class="kw-2">ref mut </span>std) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>std = <a href="../../../src/tokio/fs/read_dir.rs.html#97">std</a>.take().unwrap();
 
-                    <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#94">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#62">State::Pending</a>(<a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#98">std</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                        (<a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#101">ret</a>, <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#98">std</a>)
+                    <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#94">self</a>.<span class="number">0 </span>= <a href="../../../src/tokio/fs/read_dir.rs.html#62">State::Pending</a>(<a href="../../../src/tokio/runtime/blocking/pool.rs.html#108-111">spawn_blocking</a>(<span class="kw">move </span>|| {
+                        <span class="kw">let </span>ret = <a href="../../../src/tokio/fs/read_dir.rs.html#98">std</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                        (<a href="../../../src/tokio/fs/read_dir.rs.html#101">ret</a>, <a href="../../../src/tokio/fs/read_dir.rs.html#98">std</a>)
                     }));
                 }
-                <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#62">State::Pending</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rx</span>) =&gt; {
-                    <span class="kw">let</span> (<span class="ident">ret</span>, <span class="ident">std</span>) <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">rx</span>).<span class="ident">poll</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-                    <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#94">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#61">State::Idle</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#106">std</a>));
+                <a href="../../../src/tokio/fs/read_dir.rs.html#62">State::Pending</a>(<span class="kw-2">ref mut </span>rx) =&gt; {
+                    <span class="kw">let </span>(ret, std) = <span class="macro">ready!</span>(Pin::new(rx).poll(cx))<span class="question-mark">?</span>;
+                    <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#94">self</a>.<span class="number">0 </span>= <a href="../../../src/tokio/fs/read_dir.rs.html#61">State::Idle</a>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/read_dir.rs.html#106">std</a>));
 
-                    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#106">ret</a> {
-                        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">std</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a>(<span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#110">std</a>)))),
-                        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#111">e</a>),
-                        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+                    <span class="kw">let </span>ret = <span class="kw">match </span><a href="../../../src/tokio/fs/read_dir.rs.html#106">ret</a> {
+                        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(std)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a>(Arc::new(<a href="../../../src/tokio/fs/read_dir.rs.html#110">std</a>)))),
+                        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/fs/read_dir.rs.html#111">e</a>),
+                        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
                     };
 
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#109">ret</a>);
+                    <span class="kw">return </span>Poll::Ready(<a href="../../../src/tokio/fs/read_dir.rs.html#109">ret</a>);
                 }
             }
         }
     }
 }
 
-<span class="macro">feature!</span> {
-    <span class="attribute">#![<span class="ident">unix</span>]</span>
+<span class="macro">feature! </span>{
+    <span class="attribute">#![unix]
 
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.DirEntryExt.html">std::os::unix::fs::DirEntryExt</a>;
+    </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.DirEntryExt.html">std::os::unix::fs::DirEntryExt</a>;
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a> {
-        <span class="doccomment">/// Returns the underlying `d_ino` field in the contained `dirent`</span>
-        <span class="doccomment">/// structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">/// use tokio::fs;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # #[tokio::main]</span>
-        <span class="doccomment">/// # async fn main() -&gt; std::io::Result&lt;()&gt; {</span>
-        <span class="doccomment">/// let mut entries = fs::read_dir(&quot;.&quot;).await?;</span>
-        <span class="doccomment">/// while let Some(entry) = entries.next_entry().await? {</span>
-        <span class="doccomment">///     // Here, `entry` is a `DirEntry`.</span>
-        <span class="doccomment">///     println!(&quot;{:?}: {}&quot;, entry.file_name(), entry.ino());</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// # Ok(())</span>
-        <span class="doccomment">/// # }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ino</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-            <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#146">self</a>.<a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#292">as_inner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.DirEntryExt.html">ino</a>()
+    <span class="kw">impl </span><a href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a> {
+        <span class="doccomment">/// Returns the underlying `d_ino` field in the contained `dirent`
+        /// structure.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use tokio::fs;
+        ///
+        /// # #[tokio::main]
+        /// # async fn main() -&gt; std::io::Result&lt;()&gt; {
+        /// let mut entries = fs::read_dir(&quot;.&quot;).await?;
+        /// while let Some(entry) = entries.next_entry().await? {
+        ///     // Here, `entry` is a `DirEntry`.
+        ///     println!(&quot;{:?}: {}&quot;, entry.file_name(), entry.ino());
+        /// }
+        /// # Ok(())
+        /// # }
+        /// ```
+        </span><span class="kw">pub fn </span>ino(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+            <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#146">self</a>.<a href="../../../src/tokio/fs/read_dir.rs.html#292">as_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.DirEntryExt.html">ino</a>()
         }
     }
 }
 
-<span class="doccomment">/// Entries returned by the [`ReadDir`] stream.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`ReadDir`]: struct@ReadDir</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is a specialized version of [`std::fs::DirEntry`] for usage from the</span>
-<span class="doccomment">/// Tokio runtime.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An instance of `DirEntry` represents an entry inside of a directory on the</span>
-<span class="doccomment">/// filesystem. Each entry can be inspected via methods to learn about the full</span>
-<span class="doccomment">/// path or possibly other metadata through per-platform extension traits.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DirEntry</span>(<span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a><span class="op">&gt;</span>);
+<span class="doccomment">/// Entries returned by the [`ReadDir`] stream.
+///
+/// [`ReadDir`]: struct@ReadDir
+///
+/// This is a specialized version of [`std::fs::DirEntry`] for usage from the
+/// Tokio runtime.
+///
+/// An instance of `DirEntry` represents an entry inside of a directory on the
+/// filesystem. Each entry can be inspected via methods to learn about the full
+/// path or possibly other metadata through per-platform extension traits.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>DirEntry(Arc&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a>&gt;);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a> {
-    <span class="doccomment">/// Returns the full path to the file that this entry represents.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The full path is created by joining the original path to `read_dir`</span>
-    <span class="doccomment">/// with the filename of this entry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::fs;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut entries = fs::read_dir(&quot;.&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(entry) = entries.next_entry().await? {</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, entry.path());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This prints output like:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">/// &quot;./whatever.txt&quot;</span>
-    <span class="doccomment">/// &quot;./foo.html&quot;</span>
-    <span class="doccomment">/// &quot;./hello_world.rs&quot;</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The exact text, of course, depends on what files you have in `.`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
-        <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#195">self</a>.<span class="number">0</span>.<span class="ident">path</span>()
+<span class="kw">impl </span><a href="../../../src/tokio/fs/read_dir.rs.html#163">DirEntry</a> {
+    <span class="doccomment">/// Returns the full path to the file that this entry represents.
+    ///
+    /// The full path is created by joining the original path to `read_dir`
+    /// with the filename of this entry.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::fs;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut entries = fs::read_dir(&quot;.&quot;).await?;
+    ///
+    /// while let Some(entry) = entries.next_entry().await? {
+    ///     println!(&quot;{:?}&quot;, entry.path());
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// This prints output like:
+    ///
+    /// ```text
+    /// &quot;./whatever.txt&quot;
+    /// &quot;./foo.html&quot;
+    /// &quot;./hello_world.rs&quot;
+    /// ```
+    ///
+    /// The exact text, of course, depends on what files you have in `.`.
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
+        <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#195">self</a>.<span class="number">0</span>.path()
     }
 
-    <span class="doccomment">/// Returns the bare file name of this directory entry without any other</span>
-    <span class="doccomment">/// leading path component.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::fs;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut entries = fs::read_dir(&quot;.&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(entry) = entries.next_entry().await? {</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, entry.file_name());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
-        <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#216">self</a>.<span class="number">0</span>.<span class="ident">file_name</span>()
+    <span class="doccomment">/// Returns the bare file name of this directory entry without any other
+    /// leading path component.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::fs;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut entries = fs::read_dir(&quot;.&quot;).await?;
+    ///
+    /// while let Some(entry) = entries.next_entry().await? {
+    ///     println!(&quot;{:?}&quot;, entry.file_name());
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
+        <a class="self" href="../../../src/tokio/fs/read_dir.rs.html#216">self</a>.<span class="number">0</span>.file_name()
     }
 
-    <span class="doccomment">/// Returns the metadata for the file that this entry points at.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will not traverse symlinks if this entry points at a</span>
-    <span class="doccomment">/// symlink.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Platform-specific behavior</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Windows this function is cheap to call (no extra system calls</span>
-    <span class="doccomment">/// needed), but on Unix platforms this function is the equivalent of</span>
-    <span class="doccomment">/// calling `symlink_metadata` on the path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::fs;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut entries = fs::read_dir(&quot;.&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(entry) = entries.next_entry().await? {</span>
-    <span class="doccomment">///     if let Ok(metadata) = entry.metadata().await {</span>
-    <span class="doccomment">///         // Now let&#39;s show our entry&#39;s permissions!</span>
-    <span class="doccomment">///         println!(&quot;{:?}: {:?}&quot;, entry.path(), metadata.permissions());</span>
-    <span class="doccomment">///     } else {</span>
-    <span class="doccomment">///         println!(&quot;Couldn&#39;t get file type for {:?}&quot;, entry.path());</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
-        <span class="ident">asyncify</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>.<span class="ident">metadata</span>()).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Returns the metadata for the file that this entry points at.
+    ///
+    /// This function will not traverse symlinks if this entry points at a
+    /// symlink.
+    ///
+    /// # Platform-specific behavior
+    ///
+    /// On Windows this function is cheap to call (no extra system calls
+    /// needed), but on Unix platforms this function is the equivalent of
+    /// calling `symlink_metadata` on the path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::fs;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut entries = fs::read_dir(&quot;.&quot;).await?;
+    ///
+    /// while let Some(entry) = entries.next_entry().await? {
+    ///     if let Ok(metadata) = entry.metadata().await {
+    ///         // Now let&#39;s show our entry&#39;s permissions!
+    ///         println!(&quot;{:?}: {:?}&quot;, entry.path(), metadata.permissions());
+    ///     } else {
+    ///         println!(&quot;Couldn&#39;t get file type for {:?}&quot;, entry.path());
+    ///     }
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub async fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a>&gt; {
+        <span class="kw">let </span>std = <span class="self">self</span>.<span class="number">0</span>.clone();
+        asyncify(<span class="kw">move </span>|| std.metadata()).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Returns the file type for the file that this entry points at.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will not traverse symlinks if this entry points at a</span>
-    <span class="doccomment">/// symlink.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Platform-specific behavior</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Windows and most Unix platforms this function is free (no extra</span>
-    <span class="doccomment">/// system calls needed), but some Unix platforms may require the equivalent</span>
-    <span class="doccomment">/// call to `symlink_metadata` to learn about the target file type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::fs;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut entries = fs::read_dir(&quot;.&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(entry) = entries.next_entry().await? {</span>
-    <span class="doccomment">///     if let Ok(file_type) = entry.file_type().await {</span>
-    <span class="doccomment">///         // Now let&#39;s show our entry&#39;s file type!</span>
-    <span class="doccomment">///         println!(&quot;{:?}: {:?}&quot;, entry.path(), file_type);</span>
-    <span class="doccomment">///     } else {</span>
-    <span class="doccomment">///         println!(&quot;Couldn&#39;t get file type for {:?}&quot;, entry.path());</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">file_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.FileType.html">FileType</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">std</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
-        <span class="ident">asyncify</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>.<span class="ident">file_type</span>()).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Returns the file type for the file that this entry points at.
+    ///
+    /// This function will not traverse symlinks if this entry points at a
+    /// symlink.
+    ///
+    /// # Platform-specific behavior
+    ///
+    /// On Windows and most Unix platforms this function is free (no extra
+    /// system calls needed), but some Unix platforms may require the equivalent
+    /// call to `symlink_metadata` to learn about the target file type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::fs;
+    ///
+    /// # async fn dox() -&gt; std::io::Result&lt;()&gt; {
+    /// let mut entries = fs::read_dir(&quot;.&quot;).await?;
+    ///
+    /// while let Some(entry) = entries.next_entry().await? {
+    ///     if let Ok(file_type) = entry.file_type().await {
+    ///         // Now let&#39;s show our entry&#39;s file type!
+    ///         println!(&quot;{:?}: {:?}&quot;, entry.path(), file_type);
+    ///     } else {
+    ///         println!(&quot;Couldn&#39;t get file type for {:?}&quot;, entry.path());
+    ///     }
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub async fn </span>file_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.FileType.html">FileType</a>&gt; {
+        <span class="kw">let </span>std = <span class="self">self</span>.<span class="number">0</span>.clone();
+        asyncify(<span class="kw">move </span>|| std.file_type()).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Returns a reference to the underlying `std::fs::DirEntry`.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">as_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/fs/read_dir.rs.html#292">self</a>.<span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns a reference to the underlying `std::fs::DirEntry`.
+    </span><span class="attribute">#[cfg(unix)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/fs/read_dir.rs.html#292">self</a>.<span class="number">0
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

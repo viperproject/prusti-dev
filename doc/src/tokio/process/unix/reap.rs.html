@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/process/unix/reap.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reap.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/process/unix/reap.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reap.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -296,303 +296,303 @@
 <span id="296">296</span>
 <span id="297">297</span>
 <span id="298">298</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::process::imp::orphan</span>::{<a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#27">OrphanQueue</a>, <a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/process/kill.rs.html#4"><span class="kw">crate</span>::process::kill::Kill</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/signal/unix.rs.html#485"><span class="kw">crate</span>::signal::unix::InternalStream</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::process::imp::orphan::{<a href="../../../../src/tokio/process/unix/orphan.rs.html#27">OrphanQueue</a>, <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/process/kill.rs.html#4"><span class="kw">crate</span>::process::kill::Kill</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/signal/unix.rs.html#485"><span class="kw">crate</span>::signal::unix::InternalStream</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">std::process::ExitStatus</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">std::process::ExitStatus</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">std::task::Context</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
 
-<span class="doccomment">/// Orchestrates between registering interest for receiving signals when a</span>
-<span class="doccomment">/// child process has exited, and attempting to poll for process completion.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Reaper</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">W</span>: <a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
-    <span class="ident">Q</span>: <span class="ident">OrphanQueue</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Orchestrates between registering interest for receiving signals when a
+/// child process has exited, and attempting to poll for process completion.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reaper&lt;W, Q, S&gt;
+<span class="kw">where
+    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    Q: OrphanQueue&lt;W&gt;,
 {
-    <span class="ident">inner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
-    <span class="ident">orphan_queue</span>: <span class="ident">Q</span>,
-    <span class="ident">signal</span>: <span class="ident">S</span>,
+    inner: <span class="prelude-ty">Option</span>&lt;W&gt;,
+    orphan_queue: Q,
+    signal: S,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">Reaper</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">W</span>: <a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
-    <span class="ident">Q</span>: <span class="ident">OrphanQueue</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;W, Q, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
+<span class="kw">where
+    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    Q: OrphanQueue&lt;W&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">W</span>;
+    <span class="kw">type </span>Target = W;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#33">self</a>.<a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#51">inner</a>()
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#33">self</a>.<a href="../../../../src/tokio/process/unix/reap.rs.html#51">inner</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Reaper</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">W</span>: <a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
-    <span class="ident">Q</span>: <span class="ident">OrphanQueue</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;W, Q, S&gt; Reaper&lt;W, Q, S&gt;
+<span class="kw">where
+    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    Q: OrphanQueue&lt;W&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">W</span>, <span class="ident">orphan_queue</span>: <span class="ident">Q</span>, <span class="ident">signal</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#43">inner</a>),
-            <a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#43">orphan_queue</a>,
-            <a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#43">signal</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: W, orphan_queue: Q, signal: S) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/process/unix/reap.rs.html#43">inner</a>),
+            <a href="../../../../src/tokio/process/unix/reap.rs.html#43">orphan_queue</a>,
+            <a href="../../../../src/tokio/process/unix/reap.rs.html#43">signal</a>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">W</span> {
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#51">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;inner has gone away&quot;</span>)
+    <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>W {
+        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#51">self</a>.inner.as_ref().expect(<span class="string">&quot;inner has gone away&quot;</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inner_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">W</span> {
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#55">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;inner has gone away&quot;</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>W {
+        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#55">self</a>.inner.as_mut().expect(<span class="string">&quot;inner has gone away&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Reaper</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">W</span>: <a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">Q</span>: <span class="ident">OrphanQueue</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/signal/unix.rs.html#485">InternalStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;W, Q, S&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
+<span class="kw">where
+    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    Q: OrphanQueue&lt;W&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S: <a href="../../../../src/tokio/signal/unix.rs.html#485">InternalStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/process/struct.ExitStatus.html">ExitStatus</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="comment">// If the child hasn&#39;t exited yet, then it&#39;s our responsibility to</span>
-            <span class="comment">// ensure the current task gets notified when it might be able to</span>
-            <span class="comment">// make progress. We can use the delivery of a SIGCHLD signal as a</span>
-            <span class="comment">// sign that we can potentially make progress.</span>
-            <span class="comment">//</span>
-            <span class="comment">// However, we will register for a notification on the next signal</span>
-            <span class="comment">// BEFORE we poll the child. Otherwise it is possible that the child</span>
-            <span class="comment">// can exit and the signal can arrive after we last polled the child,</span>
-            <span class="comment">// but before we&#39;ve registered for a notification on the next signal</span>
-            <span class="comment">// (this can cause a deadlock if there are no more spawned children</span>
-            <span class="comment">// which can generate a different signal for us). A side effect of</span>
-            <span class="comment">// pre-registering for signal notifications is that when the child</span>
-            <span class="comment">// exits, we will have already registered for an additional</span>
-            <span class="comment">// notification we don&#39;t need to consume. If another signal arrives,</span>
-            <span class="comment">// this future&#39;s task will be notified/woken up again. Since the</span>
-            <span class="comment">// futures model allows for spurious wake ups this extra wakeup</span>
-            <span class="comment">// should not cause significant issues with parent futures.</span>
-            <span class="kw">let</span> <span class="ident">registered_interest</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#68">self</a>.<span class="ident">signal</span>.<a class="ident" href="../../../../src/tokio/signal/unix.rs.html#486">poll_recv</a>(<a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#68">cx</a>).<span class="ident">is_pending</span>();
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">loop </span>{
+            <span class="comment">// If the child hasn&#39;t exited yet, then it&#39;s our responsibility to
+            // ensure the current task gets notified when it might be able to
+            // make progress. We can use the delivery of a SIGCHLD signal as a
+            // sign that we can potentially make progress.
+            //
+            // However, we will register for a notification on the next signal
+            // BEFORE we poll the child. Otherwise it is possible that the child
+            // can exit and the signal can arrive after we last polled the child,
+            // but before we&#39;ve registered for a notification on the next signal
+            // (this can cause a deadlock if there are no more spawned children
+            // which can generate a different signal for us). A side effect of
+            // pre-registering for signal notifications is that when the child
+            // exits, we will have already registered for an additional
+            // notification we don&#39;t need to consume. If another signal arrives,
+            // this future&#39;s task will be notified/woken up again. Since the
+            // futures model allows for spurious wake ups this extra wakeup
+            // should not cause significant issues with parent futures.
+            </span><span class="kw">let </span>registered_interest = <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#68">self</a>.signal.<a href="../../../../src/tokio/signal/unix.rs.html#486">poll_recv</a>(<a href="../../../../src/tokio/process/unix/reap.rs.html#68">cx</a>).is_pending();
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner_mut</span>().<span class="ident">try_wait</span>()<span class="question-mark">?</span> {
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#89">status</a>));
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(status) = <span class="self">self</span>.inner_mut().try_wait()<span class="question-mark">? </span>{
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/process/unix/reap.rs.html#89">status</a>));
             }
 
-            <span class="comment">// If our attempt to poll for the next signal was not ready, then</span>
-            <span class="comment">// we&#39;ve arranged for our task to get notified and we can bail out.</span>
-            <span class="kw">if</span> <span class="ident">registered_interest</span> {
-                <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
-            } <span class="kw">else</span> {
-                <span class="comment">// Otherwise, if the signal stream delivered a signal to us, we</span>
-                <span class="comment">// won&#39;t get notified at the next signal, so we&#39;ll loop and try</span>
-                <span class="comment">// again.</span>
-                <span class="kw">continue</span>;
+            <span class="comment">// If our attempt to poll for the next signal was not ready, then
+            // we&#39;ve arranged for our task to get notified and we can bail out.
+            </span><span class="kw">if </span>registered_interest {
+                <span class="kw">return </span>Poll::Pending;
+            } <span class="kw">else </span>{
+                <span class="comment">// Otherwise, if the signal stream delivered a signal to us, we
+                // won&#39;t get notified at the next signal, so we&#39;ll loop and try
+                // again.
+                </span><span class="kw">continue</span>;
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/process/kill.rs.html#4">Kill</a> <span class="kw">for</span> <span class="ident">Reaper</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">W</span>: <a class="ident" href="../../../../src/tokio/process/kill.rs.html#4">Kill</a> <span class="op">+</span> <a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
-    <span class="ident">Q</span>: <span class="ident">OrphanQueue</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;W, Q, S&gt; <a href="../../../../src/tokio/process/kill.rs.html#4">Kill</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
+<span class="kw">where
+    </span>W: <a href="../../../../src/tokio/process/kill.rs.html#4">Kill</a> + <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    Q: OrphanQueue&lt;W&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">kill</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#112">self</a>.<a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#55">inner_mut</a>().<a class="ident" href="../../../../src/tokio/process/kill.rs.html#6">kill</a>()
+    <span class="kw">fn </span>kill(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#112">self</a>.<a href="../../../../src/tokio/process/unix/reap.rs.html#55">inner_mut</a>().<a href="../../../../src/tokio/process/kill.rs.html#6">kill</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Reaper</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">Q</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">W</span>: <a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
-    <span class="ident">Q</span>: <span class="ident">OrphanQueue</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;W, Q, S&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Reaper&lt;W, Q, S&gt;
+<span class="kw">where
+    </span>W: <a href="../../../../src/tokio/process/unix/orphan.rs.html#9">Wait</a>,
+    Q: OrphanQueue&lt;W&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=</span> <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.<a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#55">inner_mut</a>().<a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#13">try_wait</a>() {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) = <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.<a href="../../../../src/tokio/process/unix/reap.rs.html#55">inner_mut</a>().<a href="../../../../src/tokio/process/unix/orphan.rs.html#13">try_wait</a>() {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">orphan</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.<span class="ident">orphan_queue</span>.<a class="ident" href="../../../../src/tokio/process/unix/orphan.rs.html#29">push_orphan</a>(<a class="ident" href="../../../../src/tokio/process/unix/reap.rs.html#127">orphan</a>);
+        <span class="kw">let </span>orphan = <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.inner.take().unwrap();
+        <a class="self" href="../../../../src/tokio/process/unix/reap.rs.html#122">self</a>.orphan_queue.<a href="../../../../src/tokio/process/unix/orphan.rs.html#29">push_orphan</a>(<a href="../../../../src/tokio/process/unix/reap.rs.html#127">orphan</a>);
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">not</span>(<span class="ident">loom</span>)))]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(all(test, not(loom)))]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::process::unix::orphan::test::MockQueue</span>;
-    <span class="kw">use</span> <span class="ident">futures::future::FutureExt</span>;
-    <span class="kw">use</span> <span class="ident">std::os::unix::process::ExitStatusExt</span>;
-    <span class="kw">use</span> <span class="ident">std::process::ExitStatus</span>;
-    <span class="kw">use</span> <span class="ident">std::task::Context</span>;
-    <span class="kw">use</span> <span class="ident">std::task::Poll</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::process::unix::orphan::test::MockQueue;
+    <span class="kw">use </span>futures::future::FutureExt;
+    <span class="kw">use </span>std::os::unix::process::ExitStatusExt;
+    <span class="kw">use </span>std::process::ExitStatus;
+    <span class="kw">use </span>std::task::Context;
+    <span class="kw">use </span>std::task::Poll;
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">MockWait</span> {
-        <span class="ident">total_kills</span>: <span class="ident">usize</span>,
-        <span class="ident">total_waits</span>: <span class="ident">usize</span>,
-        <span class="ident">num_wait_until_status</span>: <span class="ident">usize</span>,
-        <span class="ident">status</span>: <span class="ident">ExitStatus</span>,
+    <span class="attribute">#[derive(Debug)]
+    </span><span class="kw">struct </span>MockWait {
+        total_kills: usize,
+        total_waits: usize,
+        num_wait_until_status: usize,
+        status: ExitStatus,
     }
 
-    <span class="kw">impl</span> <span class="ident">MockWait</span> {
-        <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">status</span>: <span class="ident">ExitStatus</span>, <span class="ident">num_wait_until_status</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span> {
-                <span class="ident">total_kills</span>: <span class="number">0</span>,
-                <span class="ident">total_waits</span>: <span class="number">0</span>,
-                <span class="ident">num_wait_until_status</span>,
-                <span class="ident">status</span>,
+    <span class="kw">impl </span>MockWait {
+        <span class="kw">fn </span>new(status: ExitStatus, num_wait_until_status: usize) -&gt; <span class="self">Self </span>{
+            <span class="self">Self </span>{
+                total_kills: <span class="number">0</span>,
+                total_waits: <span class="number">0</span>,
+                num_wait_until_status,
+                status,
             }
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Wait</span> <span class="kw">for</span> <span class="ident">MockWait</span> {
-        <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-            <span class="number">0</span>
-        }
+    <span class="kw">impl </span>Wait <span class="kw">for </span>MockWait {
+        <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+            <span class="number">0
+        </span>}
 
-        <span class="kw">fn</span> <span class="ident">try_wait</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_wait_until_status</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">total_waits</span> {
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">status</span>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            };
+        <span class="kw">fn </span>try_wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+            <span class="kw">let </span>ret = <span class="kw">if </span><span class="self">self</span>.num_wait_until_status == <span class="self">self</span>.total_waits {
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.status)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>};
 
-            <span class="self">self</span>.<span class="ident">total_waits</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">ret</span>)
+            <span class="self">self</span>.total_waits += <span class="number">1</span>;
+            <span class="prelude-val">Ok</span>(ret)
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Kill</span> <span class="kw">for</span> <span class="ident">MockWait</span> {
-        <span class="kw">fn</span> <span class="ident">kill</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">total_kills</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="kw">impl </span>Kill <span class="kw">for </span>MockWait {
+        <span class="kw">fn </span>kill(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+            <span class="self">self</span>.total_kills += <span class="number">1</span>;
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="kw">struct</span> <span class="ident">MockStream</span> {
-        <span class="ident">total_polls</span>: <span class="ident">usize</span>,
-        <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">struct </span>MockStream {
+        total_polls: usize,
+        values: Vec&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt;,
     }
 
-    <span class="kw">impl</span> <span class="ident">MockStream</span> {
-        <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span> {
-                <span class="ident">total_polls</span>: <span class="number">0</span>,
-                <span class="ident">values</span>,
+    <span class="kw">impl </span>MockStream {
+        <span class="kw">fn </span>new(values: Vec&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt;) -&gt; <span class="self">Self </span>{
+            <span class="self">Self </span>{
+                total_polls: <span class="number">0</span>,
+                values,
             }
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">InternalStream</span> <span class="kw">for</span> <span class="ident">MockStream</span> {
-        <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">total_polls</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">remove</span>(<span class="number">0</span>) {
-                <span class="prelude-val">Some</span>(()) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(())),
-                <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Pending</span>,
+    <span class="kw">impl </span>InternalStream <span class="kw">for </span>MockStream {
+        <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt; {
+            <span class="self">self</span>.total_polls += <span class="number">1</span>;
+            <span class="kw">match </span><span class="self">self</span>.values.remove(<span class="number">0</span>) {
+                <span class="prelude-val">Some</span>(()) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(())),
+                <span class="prelude-val">None </span>=&gt; Poll::Pending,
             }
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reaper</span>() {
-        <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="ident">ExitStatus::from_raw</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">MockWait::new</span>(<span class="ident">exit</span>, <span class="number">3</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">grim</span> <span class="op">=</span> <span class="ident">Reaper::new</span>(
-            <span class="ident">mock</span>,
-            <span class="ident">MockQueue::new</span>(),
-            <span class="ident">MockStream::new</span>(<span class="macro">vec!</span>[<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(()), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>]),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>reaper() {
+        <span class="kw">let </span>exit = ExitStatus::from_raw(<span class="number">0</span>);
+        <span class="kw">let </span>mock = MockWait::new(exit, <span class="number">3</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>grim = Reaper::new(
+            mock,
+            MockQueue::new(),
+            MockStream::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(()), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>]),
         );
 
-        <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">futures::task::noop_waker</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><span class="ident">waker</span>);
+        <span class="kw">let </span>waker = futures::task::noop_waker();
+        <span class="kw">let </span><span class="kw-2">mut </span>context = Context::from_waker(<span class="kw-2">&amp;</span>waker);
 
-        <span class="comment">// Not yet exited, interest registered</span>
-        <span class="macro">assert!</span>(<span class="ident">grim</span>.<span class="ident">poll_unpin</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">is_pending</span>());
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">grim</span>.<span class="ident">signal</span>.<span class="ident">total_polls</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">grim</span>.<span class="ident">total_waits</span>);
-        <span class="macro">assert!</span>(<span class="ident">grim</span>.<span class="ident">orphan_queue</span>.<span class="ident">all_enqueued</span>.<span class="ident">borrow</span>().<span class="ident">is_empty</span>());
+        <span class="comment">// Not yet exited, interest registered
+        </span><span class="macro">assert!</span>(grim.poll_unpin(<span class="kw-2">&amp;mut </span>context).is_pending());
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, grim.signal.total_polls);
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, grim.total_waits);
+        <span class="macro">assert!</span>(grim.orphan_queue.all_enqueued.borrow().is_empty());
 
-        <span class="comment">// Not yet exited, couldn&#39;t register interest the first time</span>
-        <span class="comment">// but managed to register interest the second time around</span>
-        <span class="macro">assert!</span>(<span class="ident">grim</span>.<span class="ident">poll_unpin</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">is_pending</span>());
-        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">grim</span>.<span class="ident">signal</span>.<span class="ident">total_polls</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">grim</span>.<span class="ident">total_waits</span>);
-        <span class="macro">assert!</span>(<span class="ident">grim</span>.<span class="ident">orphan_queue</span>.<span class="ident">all_enqueued</span>.<span class="ident">borrow</span>().<span class="ident">is_empty</span>());
+        <span class="comment">// Not yet exited, couldn&#39;t register interest the first time
+        // but managed to register interest the second time around
+        </span><span class="macro">assert!</span>(grim.poll_unpin(<span class="kw-2">&amp;mut </span>context).is_pending());
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, grim.signal.total_polls);
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, grim.total_waits);
+        <span class="macro">assert!</span>(grim.orphan_queue.all_enqueued.borrow().is_empty());
 
-        <span class="comment">// Exited</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="ident">grim</span>.<span class="ident">poll_unpin</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>) {
-            <span class="macro">assert!</span>(<span class="ident">r</span>.<span class="ident">is_ok</span>());
-            <span class="kw">let</span> <span class="ident">exit_code</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">exit_code</span>, <span class="ident">exit</span>);
-        } <span class="kw">else</span> {
+        <span class="comment">// Exited
+        </span><span class="kw">if let </span>Poll::Ready(r) = grim.poll_unpin(<span class="kw-2">&amp;mut </span>context) {
+            <span class="macro">assert!</span>(r.is_ok());
+            <span class="kw">let </span>exit_code = r.unwrap();
+            <span class="macro">assert_eq!</span>(exit_code, exit);
+        } <span class="kw">else </span>{
             <span class="macro">unreachable!</span>();
         }
-        <span class="macro">assert_eq!</span>(<span class="number">4</span>, <span class="ident">grim</span>.<span class="ident">signal</span>.<span class="ident">total_polls</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">4</span>, <span class="ident">grim</span>.<span class="ident">total_waits</span>);
-        <span class="macro">assert!</span>(<span class="ident">grim</span>.<span class="ident">orphan_queue</span>.<span class="ident">all_enqueued</span>.<span class="ident">borrow</span>().<span class="ident">is_empty</span>());
+        <span class="macro">assert_eq!</span>(<span class="number">4</span>, grim.signal.total_polls);
+        <span class="macro">assert_eq!</span>(<span class="number">4</span>, grim.total_waits);
+        <span class="macro">assert!</span>(grim.orphan_queue.all_enqueued.borrow().is_empty());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">kill</span>() {
-        <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="ident">ExitStatus::from_raw</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">grim</span> <span class="op">=</span> <span class="ident">Reaper::new</span>(
-            <span class="ident">MockWait::new</span>(<span class="ident">exit</span>, <span class="number">0</span>),
-            <span class="ident">MockQueue::new</span>(),
-            <span class="ident">MockStream::new</span>(<span class="macro">vec!</span>[<span class="prelude-val">None</span>]),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>kill() {
+        <span class="kw">let </span>exit = ExitStatus::from_raw(<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>grim = Reaper::new(
+            MockWait::new(exit, <span class="number">0</span>),
+            MockQueue::new(),
+            MockStream::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>]),
         );
 
-        <span class="ident">grim</span>.<span class="ident">kill</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">grim</span>.<span class="ident">total_kills</span>);
-        <span class="macro">assert!</span>(<span class="ident">grim</span>.<span class="ident">orphan_queue</span>.<span class="ident">all_enqueued</span>.<span class="ident">borrow</span>().<span class="ident">is_empty</span>());
+        grim.kill().unwrap();
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, grim.total_kills);
+        <span class="macro">assert!</span>(grim.orphan_queue.all_enqueued.borrow().is_empty());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">drop_reaps_if_possible</span>() {
-        <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="ident">ExitStatus::from_raw</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">MockWait::new</span>(<span class="ident">exit</span>, <span class="number">0</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>drop_reaps_if_possible() {
+        <span class="kw">let </span>exit = ExitStatus::from_raw(<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>mock = MockWait::new(exit, <span class="number">0</span>);
 
         {
-            <span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">MockQueue::new</span>();
+            <span class="kw">let </span>queue = MockQueue::new();
 
-            <span class="kw">let</span> <span class="ident">grim</span> <span class="op">=</span> <span class="ident">Reaper::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">mock</span>, <span class="kw-2">&amp;</span><span class="ident">queue</span>, <span class="ident">MockStream::new</span>(<span class="macro">vec!</span>[]));
+            <span class="kw">let </span>grim = Reaper::new(<span class="kw-2">&amp;mut </span>mock, <span class="kw-2">&amp;</span>queue, MockStream::new(<span class="macro">vec!</span>[]));
 
-            <span class="ident">drop</span>(<span class="ident">grim</span>);
+            drop(grim);
 
-            <span class="macro">assert!</span>(<span class="ident">queue</span>.<span class="ident">all_enqueued</span>.<span class="ident">borrow</span>().<span class="ident">is_empty</span>());
+            <span class="macro">assert!</span>(queue.all_enqueued.borrow().is_empty());
         }
 
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">mock</span>.<span class="ident">total_waits</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">mock</span>.<span class="ident">total_kills</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, mock.total_waits);
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, mock.total_kills);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">drop_enqueues_orphan_if_wait_fails</span>() {
-        <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="ident">ExitStatus::from_raw</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">MockWait::new</span>(<span class="ident">exit</span>, <span class="number">2</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>drop_enqueues_orphan_if_wait_fails() {
+        <span class="kw">let </span>exit = ExitStatus::from_raw(<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>mock = MockWait::new(exit, <span class="number">2</span>);
 
         {
-            <span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">MockQueue</span>::<span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">MockWait</span><span class="op">&gt;</span><span class="ident">::new</span>();
-            <span class="kw">let</span> <span class="ident">grim</span> <span class="op">=</span> <span class="ident">Reaper::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">mock</span>, <span class="kw-2">&amp;</span><span class="ident">queue</span>, <span class="ident">MockStream::new</span>(<span class="macro">vec!</span>[]));
-            <span class="ident">drop</span>(<span class="ident">grim</span>);
+            <span class="kw">let </span>queue = MockQueue::&lt;<span class="kw-2">&amp;mut </span>MockWait&gt;::new();
+            <span class="kw">let </span>grim = Reaper::new(<span class="kw-2">&amp;mut </span>mock, <span class="kw-2">&amp;</span>queue, MockStream::new(<span class="macro">vec!</span>[]));
+            drop(grim);
 
-            <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">queue</span>.<span class="ident">all_enqueued</span>.<span class="ident">borrow</span>().<span class="ident">len</span>());
+            <span class="macro">assert_eq!</span>(<span class="number">1</span>, queue.all_enqueued.borrow().len());
         }
 
-        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">mock</span>.<span class="ident">total_waits</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">mock</span>.<span class="ident">total_kills</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, mock.total_waits);
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, mock.total_kills);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

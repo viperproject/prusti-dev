@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/sink/with_flat_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>with_flat_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/sink/with_flat_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>with_flat_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -125,132 +125,132 @@
 <span id="125">125</span>
 <span id="126">126</span>
 <span id="127">127</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span><a href="../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span>futures_core::stream::{<a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Sink for the [`with_flat_map`](super::SinkExt::with_flat_map) method.</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;sinks do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithFlatMap</span><span class="op">&lt;</span><span class="ident">Si</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">sink</span>: <span class="ident">Si</span>,
-        <span class="ident">f</span>: <span class="ident">F</span>,
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">stream</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>,
-        <span class="ident">buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
-        <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw">fn</span>(<span class="ident">U</span>)<span class="op">&gt;</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Sink for the [`with_flat_map`](super::SinkExt::with_flat_map) method.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;sinks do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>WithFlatMap&lt;Si, Item, U, St, F&gt; {
+        <span class="attribute">#[pin]
+        </span>sink: Si,
+        f: F,
+        <span class="attribute">#[pin]
+        </span>stream: <span class="prelude-ty">Option</span>&lt;St&gt;,
+        buffer: <span class="prelude-ty">Option</span>&lt;Item&gt;,
+        _marker: PhantomData&lt;<span class="kw">fn</span>(U)&gt;,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Si</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">WithFlatMap</span><span class="op">&lt;</span><span class="ident">Si</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Si</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    <span class="ident">St</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    <span class="ident">Item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;Si, Item, U, St, F&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>WithFlatMap&lt;Si, Item, U, St, F&gt;
+<span class="kw">where
+    </span>Si: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    St: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#30">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;WithFlatMap&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;sink&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#30">self</a>.<span class="ident">sink</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#30">self</a>.<span class="ident">stream</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;buffer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#30">self</a>.<span class="ident">buffer</span>)
-            .<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/futures_util/sink/with_flat_map.rs.html#30">f</a>.debug_struct(<span class="string">&quot;WithFlatMap&quot;</span>)
+            .field(<span class="string">&quot;sink&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#30">self</a>.sink)
+            .field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#30">self</a>.stream)
+            .field(<span class="string">&quot;buffer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#30">self</a>.buffer)
+            .finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Si</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">WithFlatMap</span><span class="op">&lt;</span><span class="ident">Si</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Si</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">U</span>) -&gt; <span class="ident">St</span>,
-    <span class="ident">St</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Si::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Si, Item, U, St, F&gt; WithFlatMap&lt;Si, Item, U, St, F&gt;
+<span class="kw">where
+    </span>Si: Sink&lt;Item&gt;,
+    F: FnMut(U) -&gt; St,
+    St: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Item, Si::Error&gt;&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sink</span>: <span class="ident">Si</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#45">sink</a>, <a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#45">f</a>, <span class="ident">stream</span>: <span class="prelude-val">None</span>, <span class="ident">buffer</span>: <span class="prelude-val">None</span>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(sink: Si, f: F) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../../src/futures_util/sink/with_flat_map.rs.html#45">sink</a>, <a href="../../../src/futures_util/sink/with_flat_map.rs.html#45">f</a>, stream: <span class="prelude-val">None</span>, buffer: <span class="prelude-val">None</span>, _marker: PhantomData }
     }
 
-    <a class="macro" href="../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(<span class="ident">sink</span>, <span class="ident">Si</span>, ());
+    <a class="macro" href="../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(sink, Si, ());
 
-    <span class="kw">fn</span> <span class="ident">try_empty_stream</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Si::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#51">self</a>.<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#10-22">project</a>();
+    <span class="kw">fn </span>try_empty_stream(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), Si::Error&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#51">self</a>.<a href="../../../src/futures_util/sink/with_flat_map.rs.html#10-22">project</a>();
 
-        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">buffer</span>.<span class="ident">is_some</span>() {
-            <span class="macro">ready!</span>(<span class="ident">this</span>.<span class="ident">sink</span>.<span class="ident">as_mut</span>().<span class="ident">poll_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#52">this</a>.<span class="ident">buffer</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-            <span class="ident">this</span>.<span class="ident">sink</span>.<span class="ident">as_mut</span>().<span class="ident">start_send</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
+        <span class="kw">if </span>this.buffer.is_some() {
+            <span class="macro">ready!</span>(this.sink.as_mut().poll_ready(cx))<span class="question-mark">?</span>;
+            <span class="kw">let </span>item = <a href="../../../src/futures_util/sink/with_flat_map.rs.html#52">this</a>.buffer.take().unwrap();
+            this.sink.as_mut().start_send(item)<span class="question-mark">?</span>;
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">some_stream</span>) <span class="op">=</span> <a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#52">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">some_stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>) {
-                <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">sink</span>.<span class="ident">as_mut</span>().<span class="ident">poll_ready</span>(<span class="ident">cx</span>)<span class="question-mark">?</span> {
-                    <span class="ident">Poll::Ready</span>(()) =&gt; <span class="ident">this</span>.<span class="ident">sink</span>.<span class="ident">as_mut</span>().<span class="ident">start_send</span>(<span class="ident">item</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Poll::Pending</span> =&gt; {
-                        <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">buffer</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>);
-                        <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>some_stream) = <a href="../../../src/futures_util/sink/with_flat_map.rs.html#52">this</a>.stream.as_mut().as_pin_mut() {
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = <span class="macro">ready!</span>(some_stream.as_mut().poll_next(cx)<span class="question-mark">?</span>) {
+                <span class="kw">match </span>this.sink.as_mut().poll_ready(cx)<span class="question-mark">? </span>{
+                    Poll::Ready(()) =&gt; this.sink.as_mut().start_send(item)<span class="question-mark">?</span>,
+                    Poll::Pending =&gt; {
+                        <span class="kw-2">*</span>this.buffer = <span class="prelude-val">Some</span>(item);
+                        <span class="kw">return </span>Poll::Pending;
                     }
                 };
             }
         }
-        <a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#52">this</a>.<span class="ident">stream</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+        <a href="../../../src/futures_util/sink/with_flat_map.rs.html#52">this</a>.stream.set(<span class="prelude-val">None</span>);
+        Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 
-<span class="comment">// Forwarding impl of Stream from the underlying sink</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">WithFlatMap</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">U</span>) -&gt; <span class="ident">St</span>,
-    <span class="ident">St</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">S::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="comment">// Forwarding impl of Stream from the underlying sink
+</span><span class="kw">impl</span>&lt;S, Item, U, St, F&gt; <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>WithFlatMap&lt;S, Item, U, St, F&gt;
+<span class="kw">where
+    </span>S: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> + Sink&lt;Item&gt;,
+    F: FnMut(U) -&gt; St,
+    St: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Item, S::Error&gt;&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">S::Item</span>;
+    <span class="kw">type </span>Item = S::Item;
 
-    <a class="macro" href="../../../src/futures_util/lib.rs.html#96-108">delegate_stream!</a>(<span class="ident">sink</span>);
+    <a class="macro" href="../../../src/futures_util/lib.rs.html#96-108">delegate_stream!</a>(sink);
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">WithFlatMap</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">U</span>) -&gt; <span class="ident">St</span>,
-    <span class="ident">St</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">S::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;S, Item, U, St, F&gt; <a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>WithFlatMap&lt;S, Item, U, St, F&gt;
+<span class="kw">where
+    </span>S: <a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> + Sink&lt;Item&gt;,
+    F: FnMut(U) -&gt; St,
+    St: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Item, S::Error&gt;&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#93">self</a>.<span class="ident">sink</span>.<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#93">self</a>.sink.<a href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Si</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">WithFlatMap</span><span class="op">&lt;</span><span class="ident">Si</span>, <span class="ident">Item</span>, <span class="ident">U</span>, <span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Si</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">U</span>) -&gt; <span class="ident">St</span>,
-    <span class="ident">St</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Si::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Si, Item, U, St, F&gt; Sink&lt;U&gt; <span class="kw">for </span>WithFlatMap&lt;Si, Item, U, St, F&gt;
+<span class="kw">where
+    </span>Si: Sink&lt;Item&gt;,
+    F: FnMut(U) -&gt; St,
+    St: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;Item, Si::Error&gt;&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Si::Error</span>;
+    <span class="kw">type </span>Error = Si::Error;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#106">self</a>.<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#51">try_empty_stream</a>(<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#106">cx</a>)
+    <span class="kw">fn </span>poll_ready(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#106">self</a>.<a href="../../../src/futures_util/sink/with_flat_map.rs.html#51">try_empty_stream</a>(<a href="../../../src/futures_util/sink/with_flat_map.rs.html#106">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">item</span>: <span class="ident">U</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#110">self</a>.<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#10-22">project</a>();
+    <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: U) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#110">self</a>.<a href="../../../src/futures_util/sink/with_flat_map.rs.html#10-22">project</a>();
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">is_none</span>());
-        <a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#111">this</a>.<span class="ident">stream</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#111">this</a>.<span class="ident">f</span>)(<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#110">item</a>)));
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(this.stream.is_none());
+        <a href="../../../src/futures_util/sink/with_flat_map.rs.html#111">this</a>.stream.set(<span class="prelude-val">Some</span>((<a href="../../../src/futures_util/sink/with_flat_map.rs.html#111">this</a>.f)(<a href="../../../src/futures_util/sink/with_flat_map.rs.html#110">item</a>)));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">try_empty_stream</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>);
-        <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#118">self</a>.<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#10-22">project</a>().<span class="ident">sink</span>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#118">cx</a>)
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.as_mut().try_empty_stream(cx)<span class="question-mark">?</span>);
+        <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#118">self</a>.<a href="../../../src/futures_util/sink/with_flat_map.rs.html#10-22">project</a>().sink.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="../../../src/futures_util/sink/with_flat_map.rs.html#118">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">try_empty_stream</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>);
-        <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#123">self</a>.<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#10-22">project</a>().<span class="ident">sink</span>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../src/futures_util/sink/with_flat_map.rs.html#123">cx</a>)
+    <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <a class="macro" href="../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.as_mut().try_empty_stream(cx)<span class="question-mark">?</span>);
+        <a class="self" href="../../../src/futures_util/sink/with_flat_map.rs.html#123">self</a>.<a href="../../../src/futures_util/sink/with_flat_map.rs.html#10-22">project</a>().sink.<a href="../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a href="../../../src/futures_util/sink/with_flat_map.rs.html#123">cx</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/handshake/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tungstenite/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/handshake/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tungstenite/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -319,311 +319,311 @@
 <span id="319">319</span>
 <span id="320">320</span>
 <span id="321">321</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Server handshake machine.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Server handshake machine.
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
-    <span class="ident">marker::PhantomData</span>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">result::Result</a> <span class="kw">as</span> <span class="ident">StdResult</span>,
+</span><span class="kw">use </span>std::{
+    io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
+    marker::PhantomData,
+    <a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">result::Result</a> <span class="kw">as </span>StdResult,
 };
 
-<span class="kw">use</span> <span class="ident">http</span>::{
-    <a class="ident" href="../../../http/response/struct.Builder.html">response::Builder</a>, <a class="ident" href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>, <a class="ident" href="../../../http/request/struct.Request.html">Request</a> <span class="kw">as</span> <span class="ident">HttpRequest</span>, <a class="ident" href="../../../http/response/struct.Response.html">Response</a> <span class="kw">as</span> <span class="ident">HttpResponse</span>, <a class="ident" href="../../../http/status/struct.StatusCode.html">StatusCode</a>,
+<span class="kw">use </span>http::{
+    <a href="../../../http/response/struct.Builder.html">response::Builder</a>, <a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../http/request/struct.Request.html">Request</a> <span class="kw">as </span>HttpRequest, <a href="../../../http/response/struct.Response.html">Response</a> <span class="kw">as </span>HttpResponse, <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../httparse/enum.Status.html">httparse::Status</a>;
-<span class="kw">use</span> <a class="ident" href="../../../log/index.html">log</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="../../../httparse/enum.Status.html">httparse::Status</a>;
+<span class="kw">use </span><a href="../../../log/index.html">log</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#117">derive_accept_key</a>,
-    <span class="ident">headers</span>::{<a class="ident" href="../../../src/tungstenite/handshake/headers.rs.html#13">FromHttparse</a>, <a class="ident" href="../../../src/tungstenite/handshake/headers.rs.html#10">MAX_HEADERS</a>},
-    <span class="ident">machine</span>::{<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a>, <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#102">StageResult</a>, <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a>},
-    <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>, <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a>, <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#108">ProcessingResult</a>,
+<span class="kw">use super</span>::{
+    <a href="../../../src/tungstenite/handshake/mod.rs.html#117">derive_accept_key</a>,
+    headers::{<a href="../../../src/tungstenite/handshake/headers.rs.html#13">FromHttparse</a>, <a href="../../../src/tungstenite/handshake/headers.rs.html#10">MAX_HEADERS</a>},
+    machine::{<a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a>, <a href="../../../src/tungstenite/handshake/machine.rs.html#102">StageResult</a>, <a href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a>},
+    <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>, <a href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a>, <a href="../../../src/tungstenite/handshake/mod.rs.html#108">ProcessingResult</a>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::{<a class="ident" href="../../../src/tungstenite/error.rs.html#14">Error</a>, <a class="ident" href="../../../src/tungstenite/error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>},
-    <span class="ident">protocol</span>::{<a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#30">Role</a>, <a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#77">WebSocket</a>, <a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>},
+<span class="kw">use crate</span>::{
+    error::{<a href="../../../src/tungstenite/error.rs.html#14">Error</a>, <a href="../../../src/tungstenite/error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>},
+    protocol::{<a href="../../../src/tungstenite/protocol/mod.rs.html#30">Role</a>, <a href="../../../src/tungstenite/protocol/mod.rs.html#77">WebSocket</a>, <a href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>},
 };
 
-<span class="doccomment">/// Server request type.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Request</span> <span class="op">=</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="doccomment">/// Server request type.
+</span><span class="kw">pub type </span>Request = HttpRequest&lt;()&gt;;
 
-<span class="doccomment">/// Server response type.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">HttpResponse</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="doccomment">/// Server response type.
+</span><span class="kw">pub type </span>Response = HttpResponse&lt;()&gt;;
 
-<span class="doccomment">/// Server error response type.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ErrorResponse</span> <span class="op">=</span> <span class="ident">HttpResponse</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Server error response type.
+</span><span class="kw">pub type </span>ErrorResponse = HttpResponse&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;;
 
-<span class="kw">fn</span> <span class="ident">create_parts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">request</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../http/response/struct.Builder.html">Builder</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">request</span>.<span class="ident">method</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">http::Method::GET</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#145">ProtocolError::WrongHttpMethod</a>));
+<span class="kw">fn </span>create_parts&lt;T&gt;(request: <span class="kw-2">&amp;</span>HttpRequest&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../http/response/struct.Builder.html">Builder</a>&gt; {
+    <span class="kw">if </span>request.method() != http::Method::GET {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#145">ProtocolError::WrongHttpMethod</a>));
     }
 
-    <span class="kw">if</span> <span class="ident">request</span>.<span class="ident">version</span>() <span class="op">&lt;</span> <span class="ident">http::Version::HTTP_11</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#148">ProtocolError::WrongHttpVersion</a>));
+    <span class="kw">if </span>request.version() &lt; http::Version::HTTP_11 {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#148">ProtocolError::WrongHttpVersion</a>));
     }
 
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">request</span>
-        .<span class="ident">headers</span>()
-        .<span class="ident">get</span>(<span class="string">&quot;Connection&quot;</span>)
-        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">to_str</span>().<span class="ident">ok</span>())
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">split</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39; &#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;,&#39;</span>).<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;Upgrade&quot;</span>)))
-        .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+    <span class="kw">if </span>!request
+        .headers()
+        .get(<span class="string">&quot;Connection&quot;</span>)
+        .and_then(|h| h.to_str().ok())
+        .map(|h| h.split(|c| c == <span class="string">&#39; &#39; </span>|| c == <span class="string">&#39;,&#39;</span>).any(|p| p.eq_ignore_ascii_case(<span class="string">&quot;Upgrade&quot;</span>)))
+        .unwrap_or(<span class="bool-val">false</span>)
     {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#151">ProtocolError::MissingConnectionUpgradeHeader</a>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#151">ProtocolError::MissingConnectionUpgradeHeader</a>));
     }
 
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">request</span>
-        .<span class="ident">headers</span>()
-        .<span class="ident">get</span>(<span class="string">&quot;Upgrade&quot;</span>)
-        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">to_str</span>().<span class="ident">ok</span>())
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;websocket&quot;</span>))
-        .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+    <span class="kw">if </span>!request
+        .headers()
+        .get(<span class="string">&quot;Upgrade&quot;</span>)
+        .and_then(|h| h.to_str().ok())
+        .map(|h| h.eq_ignore_ascii_case(<span class="string">&quot;websocket&quot;</span>))
+        .unwrap_or(<span class="bool-val">false</span>)
     {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#154">ProtocolError::MissingUpgradeWebSocketHeader</a>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#154">ProtocolError::MissingUpgradeWebSocketHeader</a>));
     }
 
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">request</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="string">&quot;Sec-WebSocket-Version&quot;</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span> <span class="op">==</span> <span class="string">&quot;13&quot;</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>) {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#157">ProtocolError::MissingSecWebSocketVersionHeader</a>));
+    <span class="kw">if </span>!request.headers().get(<span class="string">&quot;Sec-WebSocket-Version&quot;</span>).map(|h| h == <span class="string">&quot;13&quot;</span>).unwrap_or(<span class="bool-val">false</span>) {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#157">ProtocolError::MissingSecWebSocketVersionHeader</a>));
     }
 
-    <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">request</span>
-        .<span class="ident">headers</span>()
-        .<span class="ident">get</span>(<span class="string">&quot;Sec-WebSocket-Key&quot;</span>)
-        .<span class="ident">ok_or</span>(<span class="ident">Error::Protocol</span>(<span class="ident">ProtocolError::MissingSecWebSocketKey</span>))<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = request
+        .headers()
+        .get(<span class="string">&quot;Sec-WebSocket-Key&quot;</span>)
+        .ok_or(Error::Protocol(ProtocolError::MissingSecWebSocketKey))<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">Response::builder</span>()
-        .<span class="ident">status</span>(<span class="ident">StatusCode::SWITCHING_PROTOCOLS</span>)
-        .<span class="ident">version</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#35">request</a>.<span class="ident">version</span>())
-        .<span class="ident">header</span>(<span class="string">&quot;Connection&quot;</span>, <span class="string">&quot;Upgrade&quot;</span>)
-        .<span class="ident">header</span>(<span class="string">&quot;Upgrade&quot;</span>, <span class="string">&quot;websocket&quot;</span>)
-        .<span class="ident">header</span>(<span class="string">&quot;Sec-WebSocket-Accept&quot;</span>, <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#117">derive_accept_key</a>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#68">key</a>.<span class="ident">as_bytes</span>()));
+    <span class="kw">let </span>builder = Response::builder()
+        .status(StatusCode::SWITCHING_PROTOCOLS)
+        .version(<a href="../../../src/tungstenite/handshake/server.rs.html#35">request</a>.version())
+        .header(<span class="string">&quot;Connection&quot;</span>, <span class="string">&quot;Upgrade&quot;</span>)
+        .header(<span class="string">&quot;Upgrade&quot;</span>, <span class="string">&quot;websocket&quot;</span>)
+        .header(<span class="string">&quot;Sec-WebSocket-Accept&quot;</span>, <a href="../../../src/tungstenite/handshake/mod.rs.html#117">derive_accept_key</a>(<a href="../../../src/tungstenite/handshake/server.rs.html#68">key</a>.as_bytes()));
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#73">builder</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/server.rs.html#73">builder</a>)
 }
 
-<span class="doccomment">/// Create a response for the request.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_response</span>(<span class="ident">request</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a><span class="op">&gt;</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">create_parts</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>)<span class="question-mark">?</span>.<span class="ident">body</span>(())<span class="question-mark">?</span>)
+<span class="doccomment">/// Create a response for the request.
+</span><span class="kw">pub fn </span>create_response(request: <span class="kw-2">&amp;</span><a href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>&gt; {
+    <span class="prelude-val">Ok</span>(create_parts(<span class="kw-2">&amp;</span>request)<span class="question-mark">?</span>.body(())<span class="question-mark">?</span>)
 }
 
-<span class="doccomment">/// Create a response for the request with a custom body.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_response_with_body</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-    <span class="ident">request</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">generate_body</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">create_parts</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>)<span class="question-mark">?</span>.<span class="ident">body</span>(<span class="ident">generate_body</span>())<span class="question-mark">?</span>)
+<span class="doccomment">/// Create a response for the request with a custom body.
+</span><span class="kw">pub fn </span>create_response_with_body&lt;T&gt;(
+    request: <span class="kw-2">&amp;</span>HttpRequest&lt;T&gt;,
+    generate_body: <span class="kw">impl </span>FnOnce() -&gt; T,
+) -&gt; <span class="prelude-ty">Result</span>&lt;HttpResponse&lt;T&gt;&gt; {
+    <span class="prelude-val">Ok</span>(create_parts(<span class="kw-2">&amp;</span>request)<span class="question-mark">?</span>.body(generate_body())<span class="question-mark">?</span>)
 }
 
-<span class="comment">// Assumes that this is a valid response</span>
-<span class="kw">fn</span> <span class="ident">write_response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">w</span>: <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>, <span class="ident">response</span>: <span class="kw-2">&amp;</span><span class="ident">HttpResponse</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="comment">// Assumes that this is a valid response
+</span><span class="kw">fn </span>write_response&lt;T&gt;(<span class="kw-2">mut </span>w: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>, response: <span class="kw-2">&amp;</span>HttpResponse&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="macro">writeln!</span>(
-        <span class="ident">w</span>,
+        w,
         <span class="string">&quot;{version:?} {status}\r&quot;</span>,
-        <span class="ident">version</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">version</span>(),
-        <span class="ident">status</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">status</span>()
+        version = response.version(),
+        status = response.status()
     )<span class="question-mark">?</span>;
 
-    <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">response</span>.<span class="ident">headers</span>() {
-        <span class="macro">writeln!</span>(<span class="ident">w</span>, <span class="string">&quot;{}: {}\r&quot;</span>, <span class="ident">k</span>, <span class="ident">v</span>.<span class="ident">to_str</span>()<span class="question-mark">?</span>).<span class="ident">unwrap</span>();
+    <span class="kw">for </span>(k, v) <span class="kw">in </span>response.headers() {
+        <span class="macro">writeln!</span>(w, <span class="string">&quot;{}: {}\r&quot;</span>, k, v.to_str()<span class="question-mark">?</span>).unwrap();
     }
 
-    <span class="macro">writeln!</span>(<span class="ident">w</span>, <span class="string">&quot;\r&quot;</span>)<span class="question-mark">?</span>;
+    <span class="macro">writeln!</span>(w, <span class="string">&quot;\r&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a> {
-    <span class="kw">fn</span> <span class="ident">try_parse</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="self">Self</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hbuffer</span> <span class="op">=</span> [<span class="ident">httparse::EMPTY_HEADER</span>; <a class="ident" href="../../../src/tungstenite/handshake/headers.rs.html#10">MAX_HEADERS</a>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">httparse::Request::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#116">hbuffer</a>);
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">req</span>.<span class="ident">parse</span>(<span class="ident">buf</span>)<span class="question-mark">?</span> {
-            <span class="ident">Status::Partial</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Status::Complete</span>(<span class="ident">size</span>) =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#120">size</a>, <span class="ident">Request::from_httparse</span>(<span class="ident">req</span>)<span class="question-mark">?</span>)),
+<span class="kw">impl </span><a href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a> <span class="kw">for </span><a href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a> {
+    <span class="kw">fn </span>try_parse(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="self">Self</span>)&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>hbuffer = [httparse::EMPTY_HEADER; <a href="../../../src/tungstenite/handshake/headers.rs.html#10">MAX_HEADERS</a>];
+        <span class="kw">let </span><span class="kw-2">mut </span>req = httparse::Request::new(<span class="kw-2">&amp;mut </span><a href="../../../src/tungstenite/handshake/server.rs.html#116">hbuffer</a>);
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>req.parse(buf)<span class="question-mark">? </span>{
+            Status::Partial =&gt; <span class="prelude-val">None</span>,
+            Status::Complete(size) =&gt; <span class="prelude-val">Some</span>((<a href="../../../src/tungstenite/handshake/server.rs.html#120">size</a>, Request::from_httparse(req)<span class="question-mark">?</span>)),
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;h</span><span class="op">&gt;</span> <span class="ident">FromHttparse</span><span class="op">&lt;</span><span class="ident">httparse::Request</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a> {
-    <span class="kw">fn</span> <span class="ident">from_httparse</span>(<span class="ident">raw</span>: <span class="ident">httparse::Request</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">method</span>.<span class="ident">expect</span>(<span class="string">&quot;Bug: no method in header&quot;</span>) <span class="op">!</span><span class="op">=</span> <span class="string">&quot;GET&quot;</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#145">ProtocolError::WrongHttpMethod</a>));
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;h</span>&gt; FromHttparse&lt;httparse::Request&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>&gt;&gt; <span class="kw">for </span><a href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a> {
+    <span class="kw">fn </span>from_httparse(raw: httparse::Request&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>raw.method.expect(<span class="string">&quot;Bug: no method in header&quot;</span>) != <span class="string">&quot;GET&quot; </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#145">ProtocolError::WrongHttpMethod</a>));
         }
 
-        <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">version</span>.<span class="ident">expect</span>(<span class="string">&quot;Bug: no HTTP version&quot;</span>) <span class="op">&lt;</span> <span class="comment">/*1.*/</span><span class="number">1</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#148">ProtocolError::WrongHttpVersion</a>));
+        <span class="kw">if </span>raw.version.expect(<span class="string">&quot;Bug: no HTTP version&quot;</span>) &lt; <span class="comment">/*1.*/</span><span class="number">1 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#148">ProtocolError::WrongHttpVersion</a>));
         }
 
-        <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::from_httparse</span>(<span class="ident">raw</span>.<span class="ident">headers</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>headers = HeaderMap::from_httparse(raw.headers)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">Request::new</span>(());
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>.<span class="ident">method_mut</span>() <span class="op">=</span> <span class="ident">http::Method::GET</span>;
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>.<span class="ident">headers_mut</span>() <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#135">headers</a>;
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>.<span class="ident">uri_mut</span>() <span class="op">=</span> <span class="ident">raw</span>.<span class="ident">path</span>.<span class="ident">expect</span>(<span class="string">&quot;Bug: no path in header&quot;</span>).<span class="ident">parse</span>()<span class="question-mark">?</span>;
-        <span class="comment">// TODO: httparse only supports HTTP 0.9/1.0/1.1 but not HTTP 2.0</span>
-        <span class="comment">// so the only valid value we could get in the response would be 1.1.</span>
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>.<span class="ident">version_mut</span>() <span class="op">=</span> <span class="ident">http::Version::HTTP_11</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>request = Request::new(());
+        <span class="kw-2">*</span><a href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>.method_mut() = http::Method::GET;
+        <span class="kw-2">*</span><a href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>.headers_mut() = <a href="../../../src/tungstenite/handshake/server.rs.html#135">headers</a>;
+        <span class="kw-2">*</span><a href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>.uri_mut() = raw.path.expect(<span class="string">&quot;Bug: no path in header&quot;</span>).parse()<span class="question-mark">?</span>;
+        <span class="comment">// TODO: httparse only supports HTTP 0.9/1.0/1.1 but not HTTP 2.0
+        // so the only valid value we could get in the response would be 1.1.
+        </span><span class="kw-2">*</span><a href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>.version_mut() = http::Version::HTTP_11;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/server.rs.html#137">request</a>)
     }
 }
 
-<span class="doccomment">/// The callback trait.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The callback is called when the server receives an incoming WebSocket</span>
-<span class="doccomment">/// handshake request from the client. Specifying a callback allows you to analyze incoming headers</span>
-<span class="doccomment">/// and add additional headers to the response that server sends to the client and/or reject the</span>
-<span class="doccomment">/// connection based on the incoming headers.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Callback</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="doccomment">/// Called whenever the server read the request from the client and is ready to reply to it.</span>
-    <span class="doccomment">/// May return additional reply headers.</span>
-    <span class="doccomment">/// Returning an error resulting in rejecting the incoming connection.</span>
-    <span class="kw">fn</span> <span class="ident">on_request</span>(
+<span class="doccomment">/// The callback trait.
+///
+/// The callback is called when the server receives an incoming WebSocket
+/// handshake request from the client. Specifying a callback allows you to analyze incoming headers
+/// and add additional headers to the response that server sends to the client and/or reject the
+/// connection based on the incoming headers.
+</span><span class="kw">pub trait </span>Callback: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+    <span class="doccomment">/// Called whenever the server read the request from the client and is ready to reply to it.
+    /// May return additional reply headers.
+    /// Returning an error resulting in rejecting the incoming connection.
+    </span><span class="kw">fn </span>on_request(
         <span class="self">self</span>,
-        <span class="ident">request</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>,
-        <span class="ident">response</span>: <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>,
-    ) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a><span class="op">&gt;</span>;
+        request: <span class="kw-2">&amp;</span><a href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>,
+        response: <a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>,
+    ) -&gt; StdResult&lt;<a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a>&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#155">Callback</a> <span class="kw">for</span> <span class="ident">F</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;F&gt; <a href="../../../src/tungstenite/handshake/server.rs.html#155">Callback</a> <span class="kw">for </span>F
+<span class="kw">where
+    </span>F: FnOnce(<span class="kw-2">&amp;</span><a href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>) -&gt; StdResult&lt;<a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a>&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">on_request</span>(
+    <span class="kw">fn </span>on_request(
         <span class="self">self</span>,
-        <span class="ident">request</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>,
-        <span class="ident">response</span>: <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>,
-    ) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#171">self</a>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#172">request</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#173">response</a>)
+        request: <span class="kw-2">&amp;</span><a href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>,
+        response: <a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>,
+    ) -&gt; StdResult&lt;<a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a>&gt; {
+        <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#171">self</a>(<a href="../../../src/tungstenite/handshake/server.rs.html#172">request</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#173">response</a>)
     }
 }
 
-<span class="doccomment">/// Stub for callback that does nothing.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoCallback</span>;
+<span class="doccomment">/// Stub for callback that does nothing.
+</span><span class="attribute">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">pub struct </span>NoCallback;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#155">Callback</a> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a> {
-    <span class="kw">fn</span> <span class="ident">on_request</span>(
+<span class="kw">impl </span><a href="../../../src/tungstenite/handshake/server.rs.html#155">Callback</a> <span class="kw">for </span><a href="../../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a> {
+    <span class="kw">fn </span>on_request(
         <span class="self">self</span>,
-        <span class="ident">_request</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>,
-        <span class="ident">response</span>: <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>,
-    ) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#187">response</a>)
+        _request: <span class="kw-2">&amp;</span><a href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>,
+        response: <a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>,
+    ) -&gt; StdResult&lt;<a href="../../../src/tungstenite/handshake/server.rs.html#30">Response</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/server.rs.html#187">response</a>)
     }
 }
 
-<span class="doccomment">/// Server handshake role.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_copy_implementations</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Callback which is called whenever the server read the request from the client and is ready</span>
-    <span class="doccomment">/// to reply to it. The callback returns an optional headers which will be added to the reply</span>
-    <span class="doccomment">/// which the server sends to the user.</span>
-    <span class="ident">callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// WebSocket configuration.</span>
-    <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// Error code/flag. If set, an error will be returned after sending response to the client.</span>
-    <span class="ident">error_response</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// Internal stream type.</span>
-    <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Server handshake role.
+</span><span class="attribute">#[allow(missing_copy_implementations)]
+#[derive(Debug)]
+</span><span class="kw">pub struct </span>ServerHandshake&lt;S, C&gt; {
+    <span class="doccomment">/// Callback which is called whenever the server read the request from the client and is ready
+    /// to reply to it. The callback returns an optional headers which will be added to the reply
+    /// which the server sends to the user.
+    </span>callback: <span class="prelude-ty">Option</span>&lt;C&gt;,
+    <span class="doccomment">/// WebSocket configuration.
+    </span>config: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>&gt;,
+    <span class="doccomment">/// Error code/flag. If set, an error will be returned after sending response to the client.
+    </span>error_response: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tungstenite/handshake/server.rs.html#33">ErrorResponse</a>&gt;,
+    <span class="doccomment">/// Internal stream type.
+    </span>_marker: PhantomData&lt;S&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, <span class="ident">C</span>: <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#155">Callback</a><span class="op">&gt;</span> <span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Start server handshake. `callback` specifies a custom callback which the user can pass to</span>
-    <span class="doccomment">/// the handshake, this callback will be called when the a websocket client connnects to the</span>
-    <span class="doccomment">/// server, you can specify the callback if you want to add additional header to the client</span>
-    <span class="doccomment">/// upon join based on the incoming headers.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="ident">stream</span>: <span class="ident">S</span>, <span class="ident">callback</span>: <span class="ident">C</span>, <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a><span class="op">&gt;</span>) -&gt; <span class="ident">MidHandshake</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, C: <a href="../../../src/tungstenite/handshake/server.rs.html#155">Callback</a>&gt; ServerHandshake&lt;S, C&gt; {
+    <span class="doccomment">/// Start server handshake. `callback` specifies a custom callback which the user can pass to
+    /// the handshake, this callback will be called when the a websocket client connnects to the
+    /// server, you can specify the callback if you want to add additional header to the client
+    /// upon join based on the incoming headers.
+    </span><span class="kw">pub fn </span>start(stream: S, callback: C, config: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>&gt;) -&gt; MidHandshake&lt;<span class="self">Self</span>&gt; {
         <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Server handshake initiated.&quot;</span>);
-        <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a> {
-            <span class="ident">machine</span>: <span class="ident">HandshakeMachine::start_read</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#214">stream</a>),
-            <span class="ident">role</span>: <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#196">ServerHandshake</a> {
-                <span class="ident">callback</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#214">callback</a>),
-                <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#214">config</a>,
-                <span class="ident">error_response</span>: <span class="prelude-val">None</span>,
-                <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
+        <a href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a> {
+            machine: HandshakeMachine::start_read(<a href="../../../src/tungstenite/handshake/server.rs.html#214">stream</a>),
+            role: <a href="../../../src/tungstenite/handshake/server.rs.html#196">ServerHandshake</a> {
+                callback: <span class="prelude-val">Some</span>(<a href="../../../src/tungstenite/handshake/server.rs.html#214">callback</a>),
+                <a href="../../../src/tungstenite/handshake/server.rs.html#214">config</a>,
+                error_response: <span class="prelude-val">None</span>,
+                _marker: PhantomData,
             },
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, <span class="ident">C</span>: <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#155">Callback</a><span class="op">&gt;</span> <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a> <span class="kw">for</span> <span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">IncomingData</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>;
-    <span class="kw">type</span> <span class="ident">InternalStream</span> <span class="op">=</span> <span class="ident">S</span>;
-    <span class="kw">type</span> <span class="ident">FinalResult</span> <span class="op">=</span> <span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, C: <a href="../../../src/tungstenite/handshake/server.rs.html#155">Callback</a>&gt; <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a> <span class="kw">for </span>ServerHandshake&lt;S, C&gt; {
+    <span class="kw">type </span>IncomingData = <a href="../../../src/tungstenite/handshake/server.rs.html#27">Request</a>;
+    <span class="kw">type </span>InternalStream = S;
+    <span class="kw">type </span>FinalResult = WebSocket&lt;S&gt;;
 
-    <span class="kw">fn</span> <span class="ident">stage_finished</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">finish</span>: <span class="ident">StageResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::IncomingData</span>, <span class="ident"><span class="self">Self</span>::InternalStream</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ProcessingResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::InternalStream</span>, <span class="ident"><span class="self">Self</span>::FinalResult</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#235">finish</a> {
-            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#104">StageResult::DoneReading</a> { <span class="ident">stream</span>, <span class="ident">result</span>, <span class="ident">tail</span> } =&gt; {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">tail</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#166">ProtocolError::JunkAfterRequest</a>));
+    <span class="kw">fn </span>stage_finished(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        finish: StageResult&lt;<span class="self">Self</span>::IncomingData, <span class="self">Self</span>::InternalStream&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ProcessingResult&lt;<span class="self">Self</span>::InternalStream, <span class="self">Self</span>::FinalResult&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="../../../src/tungstenite/handshake/server.rs.html#235">finish</a> {
+            <a href="../../../src/tungstenite/handshake/machine.rs.html#104">StageResult::DoneReading</a> { stream, result, tail } =&gt; {
+                <span class="kw">if </span>!tail.is_empty() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#166">ProtocolError::JunkAfterRequest</a>));
                 }
 
-                <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">create_response</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">callback_result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">callback</span>) <span class="op">=</span> <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.<span class="ident">callback</span>.<span class="ident">take</span>() {
-                    <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#244">callback</a>.<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#159-163">on_request</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#238">result</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#243">response</a>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#243">response</a>)
+                <span class="kw">let </span>response = create_response(<span class="kw-2">&amp;</span>result)<span class="question-mark">?</span>;
+                <span class="kw">let </span>callback_result = <span class="kw">if let </span><span class="prelude-val">Some</span>(callback) = <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.callback.take() {
+                    <a href="../../../src/tungstenite/handshake/server.rs.html#244">callback</a>.<a href="../../../src/tungstenite/handshake/server.rs.html#159-163">on_request</a>(<span class="kw-2">&amp;</span><a href="../../../src/tungstenite/handshake/server.rs.html#238">result</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#243">response</a>)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/server.rs.html#243">response</a>)
                 };
 
-                <span class="kw">match</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#244">callback_result</a> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">response</span>) =&gt; {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-                        <span class="ident">write_response</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>, <span class="kw-2">&amp;</span><span class="ident">response</span>)<span class="question-mark">?</span>;
-                        <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#109">ProcessingResult::Continue</a>(<span class="ident">HandshakeMachine::start_write</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#238">stream</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#252">output</a>))
+                <span class="kw">match </span><a href="../../../src/tungstenite/handshake/server.rs.html#244">callback_result</a> {
+                    <span class="prelude-val">Ok</span>(response) =&gt; {
+                        <span class="kw">let </span><span class="kw-2">mut </span>output = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                        write_response(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;</span>response)<span class="question-mark">?</span>;
+                        <a href="../../../src/tungstenite/handshake/mod.rs.html#109">ProcessingResult::Continue</a>(HandshakeMachine::start_write(<a href="../../../src/tungstenite/handshake/server.rs.html#238">stream</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#252">output</a>))
                     }
 
-                    <span class="prelude-val">Err</span>(<span class="ident">resp</span>) =&gt; {
-                        <span class="kw">if</span> <span class="ident">resp</span>.<span class="ident">status</span>().<span class="ident">is_success</span>() {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#169">ProtocolError::CustomResponseSuccessful</a>));
+                    <span class="prelude-val">Err</span>(resp) =&gt; {
+                        <span class="kw">if </span>resp.status().is_success() {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#169">ProtocolError::CustomResponseSuccessful</a>));
                         }
 
-                        <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.<span class="ident">error_response</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#257">resp</a>);
-                        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.<span class="ident">error_response</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+                        <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.error_response = <span class="prelude-val">Some</span>(<a href="../../../src/tungstenite/handshake/server.rs.html#257">resp</a>);
+                        <span class="kw">let </span>resp = <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.error_response.as_ref().unwrap();
 
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-                        <span class="ident">write_response</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>, <span class="kw-2">&amp;</span><span class="ident">resp</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let </span><span class="kw-2">mut </span>output = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+                        write_response(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;</span>resp)<span class="question-mark">?</span>;
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#263">resp</a>.<span class="ident">body</span>() {
-                            <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#265">output</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#268">body</a>.<span class="ident">as_bytes</span>());
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <a href="../../../src/tungstenite/handshake/server.rs.html#263">resp</a>.body() {
+                            <a href="../../../src/tungstenite/handshake/server.rs.html#265">output</a>.extend_from_slice(<a href="../../../src/tungstenite/handshake/server.rs.html#268">body</a>.as_bytes());
                         }
 
-                        <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#109">ProcessingResult::Continue</a>(<span class="ident">HandshakeMachine::start_write</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#238">stream</a>, <a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#265">output</a>))
+                        <a href="../../../src/tungstenite/handshake/mod.rs.html#109">ProcessingResult::Continue</a>(HandshakeMachine::start_write(<a href="../../../src/tungstenite/handshake/server.rs.html#238">stream</a>, <a href="../../../src/tungstenite/handshake/server.rs.html#265">output</a>))
                     }
                 }
             }
 
-            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#106">StageResult::DoneWriting</a>(<span class="ident">stream</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.<span class="ident">error_response</span>.<span class="ident">take</span>() {
+            <a href="../../../src/tungstenite/handshake/machine.rs.html#106">StageResult::DoneWriting</a>(stream) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.error_response.take() {
                     <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Server handshake failed.&quot;</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#66">Error::Http</a>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#278">err</a>));
-                } <span class="kw">else</span> {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#66">Error::Http</a>(<a href="../../../src/tungstenite/handshake/server.rs.html#278">err</a>));
+                } <span class="kw">else </span>{
                     <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Server handshake done.&quot;</span>);
-                    <span class="kw">let</span> <span class="ident">websocket</span> <span class="op">=</span> <span class="ident">WebSocket::from_raw_socket</span>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#277">stream</a>, <a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#32">Role::Server</a>, <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.<span class="ident">config</span>);
-                    <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#110">ProcessingResult::Done</a>(<a class="ident" href="../../../src/tungstenite/handshake/server.rs.html#283">websocket</a>)
+                    <span class="kw">let </span>websocket = WebSocket::from_raw_socket(<a href="../../../src/tungstenite/handshake/server.rs.html#277">stream</a>, <a href="../../../src/tungstenite/protocol/mod.rs.html#32">Role::Server</a>, <a class="self" href="../../../src/tungstenite/handshake/server.rs.html#234">self</a>.config);
+                    <a href="../../../src/tungstenite/handshake/mod.rs.html#110">ProcessingResult::Done</a>(<a href="../../../src/tungstenite/handshake/server.rs.html#283">websocket</a>)
                 }
             }
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident"><span class="kw">super</span>::machine::TryParse</span>, <span class="ident">create_response</span>, <span class="ident">Request</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::{<span class="kw">super</span>::machine::TryParse, create_response, Request};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">request_parsing</span>() {
-        <span class="kw">const</span> <span class="ident">DATA</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;GET /script.ws HTTP/1.1\r\nHost: foo.com\r\n\r\n&quot;</span>;
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">req</span>) <span class="op">=</span> <span class="ident">Request::try_parse</span>(<span class="ident">DATA</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">path</span>(), <span class="string">&quot;/script.ws&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="string">&quot;Host&quot;</span>).<span class="ident">unwrap</span>(), <span class="kw-2">&amp;</span><span class="string">b&quot;foo.com&quot;</span>[..]);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>request_parsing() {
+        <span class="kw">const </span>DATA: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;GET /script.ws HTTP/1.1\r\nHost: foo.com\r\n\r\n&quot;</span>;
+        <span class="kw">let </span>(<span class="kw">_</span>, req) = Request::try_parse(DATA).unwrap().unwrap();
+        <span class="macro">assert_eq!</span>(req.uri().path(), <span class="string">&quot;/script.ws&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.headers().get(<span class="string">&quot;Host&quot;</span>).unwrap(), <span class="kw-2">&amp;</span><span class="string">b&quot;foo.com&quot;</span>[..]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">request_replying</span>() {
-        <span class="kw">const</span> <span class="ident">DATA</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;\
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>request_replying() {
+        <span class="kw">const </span>DATA: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;\
             GET /script.ws HTTP/1.1\r\n\
             Host: foo.com\r\n\
             Connection: upgrade\r\n\
@@ -631,14 +631,14 @@
             Sec-WebSocket-Version: 13\r\n\
             Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\
             \r\n&quot;</span>;
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">req</span>) <span class="op">=</span> <span class="ident">Request::try_parse</span>(<span class="ident">DATA</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">create_response</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>(<span class="kw">_</span>, req) = Request::try_parse(DATA).unwrap().unwrap();
+        <span class="kw">let </span>response = create_response(<span class="kw-2">&amp;</span>req).unwrap();
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">response</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="string">&quot;Sec-WebSocket-Accept&quot;</span>).<span class="ident">unwrap</span>(),
-            <span class="string">b&quot;s3pPLMBiTxaQ9kYGzzhZRbK+xOo=&quot;</span>.<span class="ident">as_ref</span>()
+            response.headers().get(<span class="string">&quot;Sec-WebSocket-Accept&quot;</span>).unwrap(),
+            <span class="string">b&quot;s3pPLMBiTxaQ9kYGzzhZRbK+xOo=&quot;</span>.as_ref()
         );
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

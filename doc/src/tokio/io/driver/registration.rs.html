@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/driver/registration.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>registration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/driver/registration.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>registration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -249,256 +249,256 @@
 <span id="249">249</span>
 <span id="250">250</span>
 <span id="251">251</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;net&quot;</span>), allow(dead_code))]
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::driver</span>::{<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#81">Direction</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>, <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>, <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#25">ScheduledIo</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/mod.rs.html#3"><span class="kw">crate</span>::util::slab</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::io::driver::{<a href="../../../../src/tokio/io/driver/mod.rs.html#81">Direction</a>, <a href="../../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>, <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>, <a href="../../../../src/tokio/io/driver/scheduled_io.rs.html#25">ScheduledIo</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/util/mod.rs.html#3"><span class="kw">crate</span>::util::slab</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../mio/event/source/trait.Source.html">mio::event::Source</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../../mio/event/source/trait.Source.html">mio::event::Source</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="macro">cfg_io_driver!</span> {
-    <span class="doccomment">/// Associates an I/O resource with the reactor instance that drives it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A registration represents an I/O resource registered with a Reactor such</span>
-    <span class="doccomment">/// that it will receive task notifications on readiness. This is the lowest</span>
-    <span class="doccomment">/// level API for integrating with a reactor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The association between an I/O resource is made by calling</span>
-    <span class="doccomment">/// [`new_with_interest_and_handle`].</span>
-    <span class="doccomment">/// Once the association is established, it remains established until the</span>
-    <span class="doccomment">/// registration instance is dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A registration instance represents two separate readiness streams. One</span>
-    <span class="doccomment">/// for the read readiness and one for write readiness. These streams are</span>
-    <span class="doccomment">/// independent and can be consumed from separate tasks.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: while `Registration` is `Sync`, the caller must ensure that</span>
-    <span class="doccomment">/// there are at most two tasks that use a registration instance</span>
-    <span class="doccomment">/// concurrently. One task for [`poll_read_ready`] and one task for</span>
-    <span class="doccomment">/// [`poll_write_ready`]. While violating this requirement is &quot;safe&quot; from a</span>
-    <span class="doccomment">/// Rust memory safety point of view, it will result in unexpected behavior</span>
-    <span class="doccomment">/// in the form of lost notifications and tasks hanging.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Platform-specific events</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `Registration` also allows receiving platform-specific `mio::Ready`</span>
-    <span class="doccomment">/// events. These events are included as part of the read readiness event</span>
-    <span class="doccomment">/// stream. The write readiness event stream is only for `Ready::writable()`</span>
-    <span class="doccomment">/// events.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`new_with_interest_and_handle`]: method@Self::new_with_interest_and_handle</span>
-    <span class="doccomment">/// [`poll_read_ready`]: method@Self::poll_read_ready`</span>
-    <span class="doccomment">/// [`poll_write_ready`]: method@Self::poll_write_ready`</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Registration</span> {
-        <span class="doccomment">/// Handle to the associated driver.</span>
-        <span class="ident">handle</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>,
+<span class="macro">cfg_io_driver! </span>{
+    <span class="doccomment">/// Associates an I/O resource with the reactor instance that drives it.
+    ///
+    /// A registration represents an I/O resource registered with a Reactor such
+    /// that it will receive task notifications on readiness. This is the lowest
+    /// level API for integrating with a reactor.
+    ///
+    /// The association between an I/O resource is made by calling
+    /// [`new_with_interest_and_handle`].
+    /// Once the association is established, it remains established until the
+    /// registration instance is dropped.
+    ///
+    /// A registration instance represents two separate readiness streams. One
+    /// for the read readiness and one for write readiness. These streams are
+    /// independent and can be consumed from separate tasks.
+    ///
+    /// **Note**: while `Registration` is `Sync`, the caller must ensure that
+    /// there are at most two tasks that use a registration instance
+    /// concurrently. One task for [`poll_read_ready`] and one task for
+    /// [`poll_write_ready`]. While violating this requirement is &quot;safe&quot; from a
+    /// Rust memory safety point of view, it will result in unexpected behavior
+    /// in the form of lost notifications and tasks hanging.
+    ///
+    /// ## Platform-specific events
+    ///
+    /// `Registration` also allows receiving platform-specific `mio::Ready`
+    /// events. These events are included as part of the read readiness event
+    /// stream. The write readiness event stream is only for `Ready::writable()`
+    /// events.
+    ///
+    /// [`new_with_interest_and_handle`]: method@Self::new_with_interest_and_handle
+    /// [`poll_read_ready`]: method@Self::poll_read_ready`
+    /// [`poll_write_ready`]: method@Self::poll_write_ready`
+    </span><span class="attribute">#[derive(Debug)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Registration {
+        <span class="doccomment">/// Handle to the associated driver.
+        </span>handle: <a href="../../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>,
 
-        <span class="doccomment">/// Reference to state stored by the driver.</span>
-        <span class="ident">shared</span>: <span class="ident">slab::Ref</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#25">ScheduledIo</a><span class="op">&gt;</span>,
+        <span class="doccomment">/// Reference to state stored by the driver.
+        </span>shared: slab::Ref&lt;<a href="../../../../src/tokio/io/driver/scheduled_io.rs.html#25">ScheduledIo</a>&gt;,
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {}
 
-<span class="comment">// ===== impl Registration =====</span>
+<span class="comment">// ===== impl Registration =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {
-    <span class="doccomment">/// Registers the I/O resource with the default reactor, for a specific</span>
-    <span class="doccomment">/// `Interest`. `new_with_interest` should be used over `new` when you need</span>
-    <span class="doccomment">/// control over the readiness state, such as when a file descriptor only</span>
-    <span class="doccomment">/// allows reads. This does not add `hup` or `error` so if you are</span>
-    <span class="doccomment">/// interested in those states, you will need to add them to the readiness</span>
-    <span class="doccomment">/// state passed to this function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Return</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - `Ok` if the registration happened successfully</span>
-    <span class="doccomment">/// - `Err` if an error was encountered during registration</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_with_interest_and_handle</span>(
-        <span class="ident">io</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="../../../../mio/event/source/trait.Source.html">Source</a>,
-        <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
-        <span class="ident">handle</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">inner</span>.<span class="ident">add_source</span>(<span class="ident">io</span>, <span class="ident">interest</span>)<span class="question-mark">?</span>;
+</span><span class="kw">impl </span><a href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {
+    <span class="doccomment">/// Registers the I/O resource with the default reactor, for a specific
+    /// `Interest`. `new_with_interest` should be used over `new` when you need
+    /// control over the readiness state, such as when a file descriptor only
+    /// allows reads. This does not add `hup` or `error` so if you are
+    /// interested in those states, you will need to add them to the readiness
+    /// state passed to this function.
+    ///
+    /// # Return
+    ///
+    /// - `Ok` if the registration happened successfully
+    /// - `Err` if an error was encountered during registration
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_interest_and_handle(
+        io: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="../../../../mio/event/source/trait.Source.html">Source</a>,
+        interest: <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
+        handle: <a href="../../../../src/tokio/io/driver/mod.rs.html#52">Handle</a>,
+    ) -&gt; io::Result&lt;<a href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a>&gt; {
+        <span class="kw">let </span>shared = handle.inner.add_source(io, interest)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> { <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#73">handle</a>, <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#75">shared</a> })
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> { <a href="../../../../src/tokio/io/driver/registration.rs.html#73">handle</a>, <a href="../../../../src/tokio/io/driver/registration.rs.html#75">shared</a> })
     }
 
-    <span class="doccomment">/// Deregisters the I/O resource from the reactor it is associated with.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function must be called before the I/O resource associated with the</span>
-    <span class="doccomment">/// registration is dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that deregistering does not guarantee that the I/O resource can be</span>
-    <span class="doccomment">/// registered with a different reactor. Some I/O resource types can only be</span>
-    <span class="doccomment">/// associated with a single reactor instance for their lifetime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Return</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the deregistration was successful, `Ok` is returned. Any calls to</span>
-    <span class="doccomment">/// `Reactor::turn` that happen after a successful call to `deregister` will</span>
-    <span class="doccomment">/// no longer result in notifications getting sent for this registration.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `Err` is returned if an error is encountered.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">io</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="../../../../mio/event/source/trait.Source.html">Source</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#96">self</a>.<span class="ident">handle</span>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#354">deregister_source</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#96">io</a>)
+    <span class="doccomment">/// Deregisters the I/O resource from the reactor it is associated with.
+    ///
+    /// This function must be called before the I/O resource associated with the
+    /// registration is dropped.
+    ///
+    /// Note that deregistering does not guarantee that the I/O resource can be
+    /// registered with a different reactor. Some I/O resource types can only be
+    /// associated with a single reactor instance for their lifetime.
+    ///
+    /// # Return
+    ///
+    /// If the deregistration was successful, `Ok` is returned. Any calls to
+    /// `Reactor::turn` that happen after a successful call to `deregister` will
+    /// no longer result in notifications getting sent for this registration.
+    ///
+    /// `Err` is returned if an error is encountered.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, io: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="../../../../mio/event/source/trait.Source.html">Source</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#96">self</a>.handle.inner.<a href="../../../../src/tokio/io/driver/mod.rs.html#354">deregister_source</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#96">io</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear_readiness</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>) {
-        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#100">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#339">clear_readiness</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#100">event</a>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear_readiness(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <a href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>) {
+        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#100">self</a>.shared.<a href="../../../../src/tokio/io/driver/scheduled_io.rs.html#339">clear_readiness</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#100">event</a>);
     }
 
-    <span class="comment">// Uses the poll path, requiring the caller to ensure mutual exclusion for</span>
-    <span class="comment">// correctness. Only the last task to call this function is notified.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_read_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#106">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#140-144">poll_ready</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#106">cx</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#82">Direction::Read</a>)
+    <span class="comment">// Uses the poll path, requiring the caller to ensure mutual exclusion for
+    // correctness. Only the last task to call this function is notified.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_read_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<a href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>&gt;&gt; {
+        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#106">self</a>.<a href="../../../../src/tokio/io/driver/registration.rs.html#140-144">poll_ready</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#106">cx</a>, <a href="../../../../src/tokio/io/driver/mod.rs.html#82">Direction::Read</a>)
     }
 
-    <span class="comment">// Uses the poll path, requiring the caller to ensure mutual exclusion for</span>
-    <span class="comment">// correctness. Only the last task to call this function is notified.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_write_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#112">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#140-144">poll_ready</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#112">cx</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#83">Direction::Write</a>)
+    <span class="comment">// Uses the poll path, requiring the caller to ensure mutual exclusion for
+    // correctness. Only the last task to call this function is notified.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_write_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<a href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>&gt;&gt; {
+        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#112">self</a>.<a href="../../../../src/tokio/io/driver/registration.rs.html#140-144">poll_ready</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#112">cx</a>, <a href="../../../../src/tokio/io/driver/mod.rs.html#83">Direction::Write</a>)
     }
 
-    <span class="comment">// Uses the poll path, requiring the caller to ensure mutual exclusion for</span>
-    <span class="comment">// correctness. Only the last task to call this function is notified.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_read_io</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
+    <span class="comment">// Uses the poll path, requiring the caller to ensure mutual exclusion for
+    // correctness. Only the last task to call this function is notified.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_read_io&lt;R&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#119">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#157-162">poll_io</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#120">cx</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#82">Direction::Read</a>, <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#121">f</a>)
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        f: <span class="kw">impl </span>FnMut() -&gt; io::Result&lt;R&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;R&gt;&gt; {
+        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#119">self</a>.<a href="../../../../src/tokio/io/driver/registration.rs.html#157-162">poll_io</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#120">cx</a>, <a href="../../../../src/tokio/io/driver/mod.rs.html#82">Direction::Read</a>, <a href="../../../../src/tokio/io/driver/registration.rs.html#121">f</a>)
     }
 
-    <span class="comment">// Uses the poll path, requiring the caller to ensure mutual exclusion for</span>
-    <span class="comment">// correctness. Only the last task to call this function is notified.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_write_io</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
+    <span class="comment">// Uses the poll path, requiring the caller to ensure mutual exclusion for
+    // correctness. Only the last task to call this function is notified.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_write_io&lt;R&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#129">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#157-162">poll_io</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#130">cx</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#83">Direction::Write</a>, <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#131">f</a>)
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        f: <span class="kw">impl </span>FnMut() -&gt; io::Result&lt;R&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;R&gt;&gt; {
+        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#129">self</a>.<a href="../../../../src/tokio/io/driver/registration.rs.html#157-162">poll_io</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#130">cx</a>, <a href="../../../../src/tokio/io/driver/mod.rs.html#83">Direction::Write</a>, <a href="../../../../src/tokio/io/driver/registration.rs.html#131">f</a>)
     }
 
-    <span class="doccomment">/// Polls for events on the I/O resource&#39;s `direction` readiness stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If called with a task context, notify the task when a new event is</span>
-    <span class="doccomment">/// received.</span>
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(
+    <span class="doccomment">/// Polls for events on the I/O resource&#39;s `direction` readiness stream.
+    ///
+    /// If called with a task context, notify the task when a new event is
+    /// received.
+    </span><span class="kw">fn </span>poll_ready(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">direction</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#81">Direction</a>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Keep track of task budget</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
-        <span class="kw">let</span> <span class="ident">ev</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">poll_readiness</span>(<span class="ident">cx</span>, <span class="ident">direction</span>));
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        direction: <a href="../../../../src/tokio/io/driver/mod.rs.html#81">Direction</a>,
+    ) -&gt; Poll&lt;io::Result&lt;<a href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>&gt;&gt; {
+        <span class="comment">// Keep track of task budget
+        </span><span class="kw">let </span>coop = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="kw">crate</span>::coop::poll_proceed(cx));
+        <span class="kw">let </span>ev = <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.shared.poll_readiness(cx, direction));
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">inner</span>.<span class="ident">is_shutdown</span>() {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#213">gone</a>()));
+        <span class="kw">if </span><span class="self">self</span>.handle.inner.is_shutdown() {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../../src/tokio/io/driver/registration.rs.html#213">gone</a>()));
         }
 
-        <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#146">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#147">ev</a>))
+        <a href="../../../../src/tokio/io/driver/registration.rs.html#146">coop</a>.<a href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+        Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/io/driver/registration.rs.html#147">ev</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_io</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>poll_io&lt;R&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">direction</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#81">Direction</a>,
-        <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">ev</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>, <span class="ident">direction</span>))<span class="question-mark">?</span>;
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        direction: <a href="../../../../src/tokio/io/driver/mod.rs.html#81">Direction</a>,
+        <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut() -&gt; io::Result&lt;R&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;R&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>ev = <span class="macro">ready!</span>(<span class="self">self</span>.poll_ready(cx, direction))<span class="question-mark">?</span>;
 
-            <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#161">f</a>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">ret</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#167">ret</a>));
+            <span class="kw">match </span><a href="../../../../src/tokio/io/driver/registration.rs.html#161">f</a>() {
+                <span class="prelude-val">Ok</span>(ret) =&gt; {
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/io/driver/registration.rs.html#167">ret</a>));
                 }
-                <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#170">e</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; {
-                    <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#158">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#164">ev</a>);
+                <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span><a href="../../../../src/tokio/io/driver/registration.rs.html#170">e</a>.kind() == io::ErrorKind::WouldBlock =&gt; {
+                    <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#158">self</a>.<a href="../../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#164">ev</a>);
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#173">e</a>)),
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../../src/tokio/io/driver/registration.rs.html#173">e</a>)),
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_io</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_io&lt;R&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ev</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#179">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#270">ready_event</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#180">interest</a>);
+        interest: <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
+        f: <span class="kw">impl </span>FnOnce() -&gt; io::Result&lt;R&gt;,
+    ) -&gt; io::Result&lt;R&gt; {
+        <span class="kw">let </span>ev = <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#179">self</a>.shared.<a href="../../../../src/tokio/io/driver/scheduled_io.rs.html#270">ready_event</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#180">interest</a>);
 
-        <span class="comment">// Don&#39;t attempt the operation if the resource is not ready.</span>
-        <span class="kw">if</span> <span class="ident">ev</span>.<span class="ident">ready</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WouldBlock</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="comment">// Don&#39;t attempt the operation if the resource is not ready.
+        </span><span class="kw">if </span>ev.ready.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(io::ErrorKind::WouldBlock.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#181">f</a>() {
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#191">e</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; {
-                <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#179">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#183">ev</a>);
-                <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WouldBlock</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <span class="kw">match </span><a href="../../../../src/tokio/io/driver/registration.rs.html#181">f</a>() {
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span><a href="../../../../src/tokio/io/driver/registration.rs.html#191">e</a>.kind() == io::ErrorKind::WouldBlock =&gt; {
+                <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#179">self</a>.<a href="../../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a href="../../../../src/tokio/io/driver/registration.rs.html#183">ev</a>);
+                <span class="prelude-val">Err</span>(io::ErrorKind::WouldBlock.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
-            <span class="ident">res</span> =&gt; <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#195">res</a>,
+            res =&gt; <a href="../../../../src/tokio/io/driver/registration.rs.html#195">res</a>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// It is possible for a cycle to be created between wakers stored in</span>
-        <span class="comment">// `ScheduledIo` instances and `Arc&lt;driver::Inner&gt;`. To break this</span>
-        <span class="comment">// cycle, wakers are cleared. This is an imperfect solution as it is</span>
-        <span class="comment">// possible to store a `Registration` in a waker. In this case, the</span>
-        <span class="comment">// cycle would remain.</span>
-        <span class="comment">//</span>
-        <span class="comment">// See tokio-rs/tokio#3481 for more details.</span>
-        <a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#201">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#348">clear_wakers</a>();
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// It is possible for a cycle to be created between wakers stored in
+        // `ScheduledIo` instances and `Arc&lt;driver::Inner&gt;`. To break this
+        // cycle, wakers are cleared. This is an imperfect solution as it is
+        // possible to store a `Registration` in a waker. In this case, the
+        // cycle would remain.
+        //
+        // See tokio-rs/tokio#3481 for more details.
+        </span><a class="self" href="../../../../src/tokio/io/driver/registration.rs.html#201">self</a>.shared.<a href="../../../../src/tokio/io/driver/scheduled_io.rs.html#348">clear_wakers</a>();
     }
 }
 
-<span class="kw">fn</span> <span class="ident">gone</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-    <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;IO driver has terminated&quot;</span>)
+<span class="kw">fn </span>gone() -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
+    io::Error::new(io::ErrorKind::Other, <span class="string">&quot;IO driver has terminated&quot;</span>)
 }
 
-<span class="macro">cfg_io_readiness!</span> {
-    <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">readiness</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a><span class="op">&gt;</span> {
-            <span class="kw">use</span> <span class="ident">std::future::Future</span>;
-            <span class="kw">use</span> <span class="ident">std::pin::Pin</span>;
+<span class="macro">cfg_io_readiness! </span>{
+    <span class="kw">impl </span><a href="../../../../src/tokio/io/driver/registration.rs.html#44">Registration</a> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>readiness(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; io::Result&lt;<a href="../../../../src/tokio/io/driver/mod.rs.html#57">ReadyEvent</a>&gt; {
+            <span class="kw">use </span>std::future::Future;
+            <span class="kw">use </span>std::pin::Pin;
 
-            <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">readiness</span>(<span class="ident">interest</span>);
-            <span class="macro">pin!</span>(<span class="ident">fut</span>);
+            <span class="kw">let </span>fut = <span class="self">self</span>.shared.readiness(interest);
+            <span class="macro">pin!</span>(fut);
 
-            <span class="ident"><span class="kw">crate</span>::future::poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">inner</span>.<span class="ident">is_shutdown</span>() {
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
-                        <span class="ident">io::ErrorKind::Other</span>,
-                        <span class="ident"><span class="kw">crate</span>::util::error::RUNTIME_SHUTTING_DOWN_ERROR</span>
+            <span class="kw">crate</span>::future::poll_fn(|cx| {
+                <span class="kw">if </span><span class="self">self</span>.handle.inner.is_shutdown() {
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(io::Error::new(
+                        io::ErrorKind::Other,
+                        <span class="kw">crate</span>::util::error::RUNTIME_SHUTTING_DOWN_ERROR
                     )));
                 }
 
-                <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">fut</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">map</span>(<span class="prelude-val">Ok</span>)
-            }).<span class="kw">await</span>
-        }
+                Pin::new(<span class="kw-2">&amp;mut </span>fut).poll(cx).map(<span class="prelude-val">Ok</span>)
+            }).<span class="kw">await
+        </span>}
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">async_io</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-            <span class="kw">loop</span> {
-                <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">readiness</span>(<span class="ident">interest</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>async_io&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, interest: <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut() -&gt; io::Result&lt;R&gt;) -&gt; io::Result&lt;R&gt; {
+            <span class="kw">loop </span>{
+                <span class="kw">let </span>event = <span class="self">self</span>.readiness(interest).<span class="kw">await</span><span class="question-mark">?</span>;
 
-                <span class="kw">match</span> <span class="ident">f</span>() {
-                    <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; {
-                        <span class="self">self</span>.<span class="ident">clear_readiness</span>(<span class="ident">event</span>);
+                <span class="kw">match </span>f() {
+                    <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span>e.kind() == io::ErrorKind::WouldBlock =&gt; {
+                        <span class="self">self</span>.clear_readiness(event);
                     }
-                    <span class="ident">x</span> =&gt; <span class="kw">return</span> <span class="ident">x</span>,
+                    x =&gt; <span class="kw">return </span>x,
                 }
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

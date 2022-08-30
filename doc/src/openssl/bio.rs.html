@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/bio.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bio.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/bio.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bio.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -82,89 +82,89 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/lib.rs.html#185"><span class="kw">crate</span>::cvt_p</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../../src/openssl/lib.rs.html#185"><span class="kw">crate</span>::cvt_p</a>;
+<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MemBioSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>);
+<span class="kw">pub struct </span>MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">MemBioSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">ffi::BIO_free_all</span>(<a class="self" href="../../src/openssl/bio.rs.html#13">self</a>.<span class="number">0</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            ffi::BIO_free_all(<a class="self" href="../../src/openssl/bio.rs.html#13">self</a>.<span class="number">0</span>);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">MemBioSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MemBioSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub fn </span>new(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;MemBioSlice&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
-        <span class="kw">let</span> <span class="ident">bio</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">cvt_p</span>(<span class="ident">BIO_new_mem_buf</span>(
-                <span class="ident">buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_int</span>,
-            ))<span class="question-mark">?</span>
-        };
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(buf.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
+        <span class="kw">let </span>bio = <span class="kw">unsafe </span>{
+            cvt_p(BIO_new_mem_buf(
+                buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                buf.len() <span class="kw">as </span>c_int,
+            ))<span class="question-mark">?
+        </span>};
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>(<a class="ident" href="../../src/openssl/bio.rs.html#25">bio</a>, <span class="ident">PhantomData</span>))
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>(<a href="../../src/openssl/bio.rs.html#25">bio</a>, PhantomData))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a> {
-        <a class="self" href="../../src/openssl/bio.rs.html#35">self</a>.<span class="number">0</span>
-    }
+    <span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a> {
+        <a class="self" href="../../src/openssl/bio.rs.html#35">self</a>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MemBio</span>(<span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>);
+<span class="kw">pub struct </span>MemBio(<span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>);
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">ffi::BIO_free_all</span>(<a class="self" href="../../src/openssl/bio.rs.html#43">self</a>.<span class="number">0</span>);
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/openssl/bio.rs.html#40">MemBio</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            ffi::BIO_free_all(<a class="self" href="../../src/openssl/bio.rs.html#43">self</a>.<span class="number">0</span>);
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
+<span class="kw">impl </span><a href="../../src/openssl/bio.rs.html#40">MemBio</a> {
+    <span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-        <span class="kw">let</span> <span class="ident">bio</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cvt_p</span>(<span class="ident">ffi::BIO_new</span>(<span class="ident">ffi::BIO_s_mem</span>()))<span class="question-mark">?</span> };
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a>(<a class="ident" href="../../src/openssl/bio.rs.html#54">bio</a>))
+        <span class="kw">let </span>bio = <span class="kw">unsafe </span>{ cvt_p(ffi::BIO_new(ffi::BIO_s_mem()))<span class="question-mark">? </span>};
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/bio.rs.html#40">MemBio</a>(<a href="../../src/openssl/bio.rs.html#54">bio</a>))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a> {
-        <a class="self" href="../../src/openssl/bio.rs.html#58">self</a>.<span class="number">0</span>
-    }
+    <span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a> {
+        <a class="self" href="../../src/openssl/bio.rs.html#58">self</a>.<span class="number">0
+    </span>}
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_buf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">ffi::BIO_get_mem_data</span>(<a class="self" href="../../src/openssl/bio.rs.html#62">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bio.rs.html#64">ptr</a>);
-            <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../src/openssl/bio.rs.html#64">ptr</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <a class="ident" href="../../src/openssl/bio.rs.html#65">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    <span class="kw">pub fn </span>get_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>ptr = ptr::null_mut();
+            <span class="kw">let </span>len = ffi::BIO_get_mem_data(<a class="self" href="../../src/openssl/bio.rs.html#62">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;mut </span><a href="../../src/openssl/bio.rs.html#64">ptr</a>);
+            slice::from_raw_parts(<a href="../../src/openssl/bio.rs.html#64">ptr</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="../../src/openssl/bio.rs.html#65">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_ptr</span>(<span class="ident">bio</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>) -&gt; <a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a> {
-        <a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a>(<a class="ident" href="../../src/openssl/bio.rs.html#70">bio</a>)
+    <span class="kw">pub unsafe fn </span>from_ptr(bio: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.BIO.html">ffi::BIO</a>) -&gt; <a href="../../src/openssl/bio.rs.html#40">MemBio</a> {
+        <a href="../../src/openssl/bio.rs.html#40">MemBio</a>(<a href="../../src/openssl/bio.rs.html#70">bio</a>)
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span> {
-        <span class="kw">use</span> <a class="ident" href="../../openssl_sys/handwritten/bio/fn.BIO_new_mem_buf.html">ffi::BIO_new_mem_buf</a>;
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">BIO_new_mem_buf</span>(<span class="ident">buf</span>: <span class="kw-2">*const</span> <span class="ident">::libc::c_void</span>, <span class="ident">len</span>: <span class="ident">::libc::c_int</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">ffi::BIO</span> {
-            <span class="ident">ffi::BIO_new_mem_buf</span>(<span class="ident">buf</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="ident">len</span>)
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(ossl102)] </span>{
+        <span class="kw">use </span><a href="../../openssl_sys/handwritten/bio/fn.BIO_new_mem_buf.html">ffi::BIO_new_mem_buf</a>;
+    } <span class="kw">else </span>{
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>BIO_new_mem_buf(buf: <span class="kw-2">*const </span>::libc::c_void, len: ::libc::c_int) -&gt; <span class="kw-2">*mut </span>ffi::BIO {
+            ffi::BIO_new_mem_buf(buf <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, len)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

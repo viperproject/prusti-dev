@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/functions/simplifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>simplifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/functions/simplifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>simplifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -241,248 +241,248 @@
 <span id="241">241</span>
 <span id="242">242</span>
 <span id="243">243</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="doccomment">//! Function simplifier that simplifies expressions.</span>
+</span><span class="doccomment">//! Function simplifier that simplifies expressions.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::vir::polymorphic_vir::ast</span>::{<a class="self" href="../../../../../prusti_common/vir/polymorphic_vir/ast/index.html">self</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../../log/macro.trace.html">log::trace</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir::ast::{<a class="self" href="../../../../../prusti_common/vir/polymorphic_vir/ast/index.html">self</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a>};
+<span class="kw">use </span><a href="../../../../../log/macro.trace.html">log::trace</a>;
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Simplifier</span> {
-    <span class="doccomment">/// Simplify by doing constant evaluation.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">simplify</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+<span class="kw">pub trait </span>Simplifier {
+    <span class="doccomment">/// Simplify by doing constant evaluation.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">fn </span>simplify(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#12">Simplifier</a> <span class="kw">for</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a> {
-    <span class="doccomment">/// Simplify functions in a way that tries to work-around regressions caused by</span>
-    <span class="doccomment">/// &lt;https://github.com/viperproject/silicon/issues/387&gt;</span>
-    <span class="kw">fn</span> <span class="ident">simplify</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#12">Simplifier</a> <span class="kw">for </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a> {
+    <span class="doccomment">/// Simplify functions in a way that tries to work-around regressions caused by
+    /// &lt;https://github.com/viperproject/silicon/issues/387&gt;
+    </span><span class="kw">fn </span>simplify(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] simplify = {}&quot;</span>, <span class="self">self</span>);
-        <span class="kw">let</span> <span class="ident">new_body</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#21">self</a>.<span class="ident">body</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#23">b</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#15">simplify</a>());
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#21">self</a>.<span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#23">new_body</a>;
+        <span class="kw">let </span>new_body = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#21">self</a>.body.map(|b| <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#23">b</a>.<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#15">simplify</a>());
+        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#21">self</a>.body = <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#23">new_body</a>;
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] simplify = {}&quot;</span>, <span class="self">self</span>);
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#21">self</a>
+        <span class="self"><a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#21">self</a>
+    </span>}
+}
+
+<span class="kw">impl </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#12">Simplifier</a> <span class="kw">for </span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+    <span class="attribute">#[must_use]
+    </span><span class="kw">fn </span>simplify(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>folder = <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#38">ExprSimplifier</a> {};
+        <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#33">folder</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#32">self</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#12">Simplifier</a> <span class="kw">for</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">simplify</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">folder</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#38">ExprSimplifier</a> {};
-        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#33">folder</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#32">self</a>)
-    }
-}
+<span class="kw">struct </span>ExprSimplifier {}
 
-<span class="kw">struct</span> <span class="ident">ExprSimplifier</span> {}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#38">ExprSimplifier</a> {
-    <span class="kw">fn</span> <span class="ident">apply_rules</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">e</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] apply_rules={}&quot;</span>, <span class="ident">e</span>);
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">e</a> {
-            <span class="ident">ast::Expr::UnaryOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.UnaryOp.html">ast::UnaryOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::UnaryOpKind::Not</span>,
-                <span class="ident">argument</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b</span>),
+<span class="kw">impl </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#38">ExprSimplifier</a> {
+    <span class="kw">fn </span>apply_rules(<span class="kw-2">&amp;</span><span class="self">self</span>, e: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+        <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] apply_rules={}&quot;</span>, e);
+        <span class="kw">let </span>result = <span class="kw">match </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">e</a> {
+            ast::Expr::UnaryOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.UnaryOp.html">ast::UnaryOp</a> {
+                op_kind: ast::UnaryOpKind::Not,
+                argument:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b),
                         ..
                     }),
-                <span class="ident">position</span>: <span class="ident">pos</span>,
-            }) =&gt; <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="op">!</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#48">b</a>),
-                <span class="ident">position</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#51">pos</a>,
+                position: pos,
+            }) =&gt; ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                value: ast::Const::Bool(!<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#48">b</a>),
+                position: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#51">pos</a>,
             }),
-            <span class="ident">ast::Expr::UnaryOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.UnaryOp.html">ast::UnaryOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::UnaryOpKind::Not</span>,
-                <span class="ident">argument</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                        <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::EqCmp</span>,
-                        <span class="kw">box</span> <span class="ident">left</span>,
-                        <span class="kw">box</span> <span class="ident">right</span>,
+            ast::Expr::UnaryOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.UnaryOp.html">ast::UnaryOp</a> {
+                op_kind: ast::UnaryOpKind::Not,
+                argument:
+                    <span class="kw">box </span>ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                        op_kind: ast::BinaryOpKind::EqCmp,
+                        <span class="kw">box </span>left,
+                        <span class="kw">box </span>right,
                         ..
                     }),
-                <span class="ident">position</span>: <span class="ident">pos</span>,
-            }) =&gt; <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::NeCmp</span>,
-                <span class="ident">left</span>: <span class="kw">box</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#61">left</a>,
-                <span class="ident">right</span>: <span class="kw">box</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#62">right</a>,
-                <span class="ident">position</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#65">pos</a>,
+                position: pos,
+            }) =&gt; ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::NeCmp,
+                left: <span class="kw">box </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#61">left</a>,
+                right: <span class="kw">box </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#62">right</a>,
+                position: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#65">pos</a>,
             }),
-            <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::And</span>,
-                <span class="ident">left</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b1</span>),
+            ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::And,
+                left:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b1),
                         ..
                     }),
-                <span class="ident">right</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b2</span>),
+                right:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b2),
                         ..
                     }),
-                <span class="ident">position</span>: <span class="ident">pos</span>,
-            }) =&gt; <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#76">b1</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#81">b2</a>),
-                <span class="ident">position</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#84">pos</a>,
+                position: pos,
+            }) =&gt; ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                value: ast::Const::Bool(<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#76">b1</a> &amp;&amp; <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#81">b2</a>),
+                position: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#84">pos</a>,
             }),
-            <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::And</span>,
-                <span class="ident">left</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b</span>),
+            ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::And,
+                left:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b),
                         ..
                     }),
-                <span class="ident">right</span>: <span class="kw">box</span> <span class="ident">conjunct</span>,
+                right: <span class="kw">box </span>conjunct,
                 ..
             })
-            <span class="op">|</span> <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::And</span>,
-                <span class="ident">left</span>: <span class="kw">box</span> <span class="ident">conjunct</span>,
-                <span class="ident">right</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b</span>),
+            | ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::And,
+                left: <span class="kw">box </span>conjunct,
+                right:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b),
                         ..
                     }),
                 ..
             }) =&gt; {
-                <span class="kw">if</span> <span class="ident">b</span> {
-                    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#96">conjunct</a>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                <span class="kw">if </span>b {
+                    <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#96">conjunct</a>
+                } <span class="kw">else </span>{
+                    <span class="bool-val">false</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
                 }
             }
-            <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::Or</span>,
-                <span class="ident">left</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b</span>),
+            ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::Or,
+                left:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b),
                         ..
                     }),
-                <span class="ident">right</span>: <span class="kw">box</span> <span class="ident">disjunct</span>,
+                right: <span class="kw">box </span>disjunct,
                 ..
             })
-            <span class="op">|</span> <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::Or</span>,
-                <span class="ident">left</span>: <span class="kw">box</span> <span class="ident">disjunct</span>,
-                <span class="ident">right</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b</span>),
+            | ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::Or,
+                left: <span class="kw">box </span>disjunct,
+                right:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b),
                         ..
                     }),
                 ..
             }) =&gt; {
-                <span class="kw">if</span> <span class="ident">b</span> {
-                    <span class="bool-val">true</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
-                } <span class="kw">else</span> {
-                    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#122">disjunct</a>
+                <span class="kw">if </span>b {
+                    <span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                } <span class="kw">else </span>{
+                    <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#122">disjunct</a>
                 }
             }
-            <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::Implies</span>,
-                <span class="ident">left</span>: <span class="ident">guard</span>,
-                <span class="ident">right</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b</span>),
+            ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::Implies,
+                left: guard,
+                right:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b),
                         ..
                     }),
-                <span class="ident">position</span>: <span class="ident">pos</span>,
+                position: pos,
             }) =&gt; {
-                <span class="kw">if</span> <span class="ident">b</span> {
-                    <span class="bool-val">true</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
-                } <span class="kw">else</span> {
-                    <span class="ident">ast::Expr::UnaryOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.UnaryOp.html">ast::UnaryOp</a> {
-                        <span class="ident">op_kind</span>: <span class="ident">ast::UnaryOpKind::Not</span>,
-                        <span class="ident">argument</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#143">guard</a>,
-                        <span class="ident">position</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#149">pos</a>,
+                <span class="kw">if </span>b {
+                    <span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                } <span class="kw">else </span>{
+                    ast::Expr::UnaryOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.UnaryOp.html">ast::UnaryOp</a> {
+                        op_kind: ast::UnaryOpKind::Not,
+                        argument: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#143">guard</a>,
+                        position: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#149">pos</a>,
                     })
                 }
             }
-            <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::Implies</span>,
-                <span class="ident">left</span>:
-                    <span class="kw">box</span> <span class="ident">ast::Expr::Const</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
-                        <span class="ident">value</span>: <span class="ident">ast::Const::Bool</span>(<span class="ident">b</span>),
+            ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::Implies,
+                left:
+                    <span class="kw">box </span>ast::Expr::Const(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ConstExpr.html">ast::ConstExpr</a> {
+                        value: ast::Const::Bool(b),
                         ..
                     }),
-                <span class="ident">right</span>: <span class="kw">box</span> <span class="ident">body</span>,
+                right: <span class="kw">box </span>body,
                 ..
             }) =&gt; {
-                <span class="kw">if</span> <span class="ident">b</span> {
-                    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#168">body</a>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">true</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+                <span class="kw">if </span>b {
+                    <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#168">body</a>
+                } <span class="kw">else </span>{
+                    <span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
                 }
             }
-            <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::And</span>,
-                <span class="ident">left</span>: <span class="kw">box</span> <span class="ident">op1</span>,
-                <span class="ident">right</span>: <span class="kw">box</span> <span class="ident">op2</span>,
-                <span class="ident">position</span>: <span class="ident">pos</span>,
-            }) =&gt; <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::And</span>,
-                <span class="ident">left</span>: <span class="kw">box</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">apply_rules</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#179">op1</a>),
-                <span class="ident">right</span>: <span class="kw">box</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">apply_rules</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#180">op2</a>),
-                <span class="ident">position</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#181">pos</a>,
+            ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::And,
+                left: <span class="kw">box </span>op1,
+                right: <span class="kw">box </span>op2,
+                position: pos,
+            }) =&gt; ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::And,
+                left: <span class="kw">box </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">apply_rules</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#179">op1</a>),
+                right: <span class="kw">box </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">apply_rules</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#180">op2</a>),
+                position: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#181">pos</a>,
             }),
-            <span class="ident">r</span> =&gt; <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#188">r</a>,
+            r =&gt; <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#188">r</a>,
         };
-        <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] apply_rules={}&quot;</span>, <span class="ident">result</span>);
-        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#43">result</a>
+        <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[exit] apply_rules={}&quot;</span>, result);
+        <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#43">result</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#38">ExprSimplifier</a> {
-    <span class="kw">fn</span> <span class="ident">fold</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <span class="kw">let</span> <span class="ident">folded_expr</span> <span class="op">=</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/fn.default_fold_expr.html">ast::default_fold_expr</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#196">self</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#196">e</a>);
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#196">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">apply_rules</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#197">folded_expr</a>)
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ExprFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#38">ExprSimplifier</a> {
+    <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+        <span class="kw">let </span>folded_expr = <a href="../../../../../prusti_common/vir/polymorphic_vir/fn.default_fold_expr.html">ast::default_fold_expr</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#196">self</a>, <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#196">e</a>);
+        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#196">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">apply_rules</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#197">folded_expr</a>)
     }
-    <span class="kw">fn</span> <span class="ident">fold_cond</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a> {
-            <span class="ident">guard</span>,
-            <span class="ident">then_expr</span>,
-            <span class="ident">else_expr</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <span class="kw">let</span> <span class="ident">simplified_guard</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#201">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#203">guard</a>);
-        <span class="kw">let</span> <span class="ident">simplified_then</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#201">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#204">then_expr</a>);
-        <span class="kw">let</span> <span class="ident">simplified_else</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#201">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#205">else_expr</a>);
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">simplified_then</span>.<span class="ident">is_bool</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">simplified_else</span>.<span class="ident">is_bool</span>() {
-            <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::And</span>,
-                <span class="ident">left</span>: <span class="kw">box</span> <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                    <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::Implies</span>,
-                    <span class="ident">left</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#209">simplified_guard</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <span class="ident">right</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#210">simplified_then</a>,
-                    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
+    <span class="kw">fn </span>fold_cond(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a> {
+            guard,
+            then_expr,
+            else_expr,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+        <span class="kw">let </span>simplified_guard = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#201">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#203">guard</a>);
+        <span class="kw">let </span>simplified_then = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#201">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#204">then_expr</a>);
+        <span class="kw">let </span>simplified_else = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#201">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#205">else_expr</a>);
+        <span class="kw">let </span>result = <span class="kw">if </span>simplified_then.is_bool() || simplified_else.is_bool() {
+            ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                op_kind: ast::BinaryOpKind::And,
+                left: <span class="kw">box </span>ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                    op_kind: ast::BinaryOpKind::Implies,
+                    left: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#209">simplified_guard</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    right: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#210">simplified_then</a>,
+                    <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
                 }),
-                <span class="ident">right</span>: <span class="kw">box</span> <span class="ident">ast::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
-                    <span class="ident">op_kind</span>: <span class="ident">ast::BinaryOpKind::Implies</span>,
-                    <span class="ident">left</span>: <span class="kw">box</span> <span class="ident">ast::Expr::UnaryOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.UnaryOp.html">ast::UnaryOp</a> {
-                        <span class="ident">op_kind</span>: <span class="ident">ast::UnaryOpKind::Not</span>,
-                        <span class="ident">argument</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#209">simplified_guard</a>,
-                        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
+                right: <span class="kw">box </span>ast::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">ast::BinOp</a> {
+                    op_kind: ast::BinaryOpKind::Implies,
+                    left: <span class="kw">box </span>ast::Expr::UnaryOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.UnaryOp.html">ast::UnaryOp</a> {
+                        op_kind: ast::UnaryOpKind::Not,
+                        argument: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#209">simplified_guard</a>,
+                        <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
                     }),
-                    <span class="ident">right</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#211">simplified_else</a>,
-                    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
+                    right: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#211">simplified_else</a>,
+                    <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
                 }),
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
             })
-        } <span class="kw">else</span> {
-            <span class="ident">ast::Expr::Cond</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a> {
-                <span class="ident">guard</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#209">simplified_guard</a>,
-                <span class="ident">then_expr</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#210">simplified_then</a>,
-                <span class="ident">else_expr</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#211">simplified_else</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
+        } <span class="kw">else </span>{
+            ast::Expr::Cond(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Cond.html">ast::Cond</a> {
+                guard: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#209">simplified_guard</a>,
+                then_expr: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#210">simplified_then</a>,
+                else_expr: <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#211">simplified_else</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#206">position</a>,
             })
         };
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#201">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">apply_rules</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#212">result</a>)
+        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#201">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#41">apply_rules</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/simplifier.rs.html#212">result</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

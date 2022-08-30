@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/dyld_cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dyld_cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/dyld_cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dyld_cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -341,348 +341,348 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a class="ident" href="../../../../src/object/read/any.rs.html#173">File</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/object/lib.rs.html#110">macho</a>, <a class="ident" href="../../../../src/object/common.rs.html#5">Architecture</a>, <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>, <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a href="../../../../src/object/read/any.rs.html#173">File</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{<a href="../../../../src/object/lib.rs.html#110">macho</a>, <a href="../../../../src/object/common.rs.html#5">Architecture</a>, <a href="../../../../src/object/endian.rs.html#13">Endian</a>, <a href="../../../../src/object/endian.rs.html#278">Endianness</a>};
 
-<span class="doccomment">/// A parsed representation of the dyld shared cache.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DyldCache</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A parsed representation of the dyld shared cache.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>DyldCache&lt;<span class="lifetime">&#39;data</span>, E = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="ident">endian</span>: <span class="ident">E</span>,
-    <span class="ident">data</span>: <span class="ident">R</span>,
-    <span class="ident">subcaches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DyldSubCache</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">mappings</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">macho::DyldCacheMappingInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>],
-    <span class="ident">images</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">macho::DyldCacheImageInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>],
-    <span class="ident">arch</span>: <a class="ident" href="../../../../src/object/common.rs.html#5">Architecture</a>,
+    endian: E,
+    data: R,
+    subcaches: Vec&lt;DyldSubCache&lt;<span class="lifetime">&#39;data</span>, E, R&gt;&gt;,
+    mappings: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[macho::DyldCacheMappingInfo&lt;E&gt;],
+    images: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[macho::DyldCacheImageInfo&lt;E&gt;],
+    arch: <a href="../../../../src/object/common.rs.html#5">Architecture</a>,
 }
 
-<span class="doccomment">/// Information about a subcache.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DyldSubCache</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Information about a subcache.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>DyldSubCache&lt;<span class="lifetime">&#39;data</span>, E = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="ident">data</span>: <span class="ident">R</span>,
-    <span class="ident">mappings</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">macho::DyldCacheMappingInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>],
+    data: R,
+    mappings: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[macho::DyldCacheMappingInfo&lt;E&gt;],
 }
 
-<span class="comment">// This is the offset of the images_across_all_subcaches_count field.</span>
-<span class="kw">const</span> <span class="ident">MIN_HEADER_SIZE_SUBCACHES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0x1c4</span>;
+<span class="comment">// This is the offset of the images_across_all_subcaches_count field.
+</span><span class="kw">const </span>MIN_HEADER_SIZE_SUBCACHES: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0x1c4</span>;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">DyldCache</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, E, R&gt; DyldCache&lt;<span class="lifetime">&#39;data</span>, E, R&gt;
+<span class="kw">where
+    </span>E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="doccomment">/// Parse the raw dyld shared cache data.</span>
-    <span class="doccomment">/// For shared caches from macOS 12 / iOS 15 and above, the subcache files need to be</span>
-    <span class="doccomment">/// supplied as well, in the correct order, with the .symbols subcache last (if present).</span>
-    <span class="doccomment">/// For example, data would be the data for dyld_shared_cache_x86_64,</span>
-    <span class="doccomment">/// and subcache_data would be the data for [dyld_shared_cache_x86_64.1, dyld_shared_cache_x86_64.2, ...]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">data</span>: <span class="ident">R</span>, <span class="ident">subcache_data</span>: <span class="kw-2">&amp;</span>[<span class="ident">R</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">macho::DyldCacheHeader::parse</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> (<span class="ident">arch</span>, <span class="ident">endian</span>) <span class="op">=</span> <span class="ident">header</span>.<span class="ident">parse_magic</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">mappings</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">mappings</span>(<span class="ident">endian</span>, <span class="ident">data</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Parse the raw dyld shared cache data.
+    /// For shared caches from macOS 12 / iOS 15 and above, the subcache files need to be
+    /// supplied as well, in the correct order, with the .symbols subcache last (if present).
+    /// For example, data would be the data for dyld_shared_cache_x86_64,
+    /// and subcache_data would be the data for [dyld_shared_cache_x86_64.1, dyld_shared_cache_x86_64.2, ...]
+    </span><span class="kw">pub fn </span>parse(data: R, subcache_data: <span class="kw-2">&amp;</span>[R]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>header = macho::DyldCacheHeader::parse(data)<span class="question-mark">?</span>;
+        <span class="kw">let </span>(arch, endian) = header.parse_magic()<span class="question-mark">?</span>;
+        <span class="kw">let </span>mappings = header.mappings(endian, data)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">symbols_subcache_uuid</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#47">header</a>.<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#275">symbols_subcache_uuid</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#48">endian</a>);
-        <span class="kw">let</span> <span class="ident">subcaches_info</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">subcaches</span>(<span class="ident">endian</span>, <span class="ident">data</span>)<span class="question-mark">?</span>.<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span>[]);
+        <span class="kw">let </span>symbols_subcache_uuid = <a href="../../../../src/object/read/macho/dyld_cache.rs.html#47">header</a>.<a href="../../../../src/object/read/macho/dyld_cache.rs.html#275">symbols_subcache_uuid</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#48">endian</a>);
+        <span class="kw">let </span>subcaches_info = header.subcaches(endian, data)<span class="question-mark">?</span>.unwrap_or(<span class="kw-2">&amp;</span>[]);
 
-        <span class="kw">if</span> <span class="ident">subcache_data</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">subcaches_info</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">symbols_subcache_uuid</span>.<span class="ident">is_some</span>() <span class="kw">as</span> <span class="ident">usize</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Incorrect number of SubCaches&quot;</span>));
+        <span class="kw">if </span>subcache_data.len() != subcaches_info.len() + symbols_subcache_uuid.is_some() <span class="kw">as </span>usize {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Incorrect number of SubCaches&quot;</span>));
         }
 
-        <span class="comment">// Split out the .symbols subcache data from the other subcaches.</span>
-        <span class="kw">let</span> (<span class="ident">symbols_subcache_data_and_uuid</span>, <span class="ident">subcache_data</span>) <span class="op">=</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">symbols_uuid</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#51">symbols_subcache_uuid</a> {
-                <span class="kw">let</span> (<span class="ident">sym_data</span>, <span class="ident">rest_data</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#46">subcache_data</a>.<span class="ident">split_last</span>().<span class="ident">unwrap</span>();
-                (<span class="prelude-val">Some</span>((<span class="kw-2">*</span><a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#61">sym_data</a>, <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#60">symbols_uuid</a>)), <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#61">rest_data</a>)
-            } <span class="kw">else</span> {
-                (<span class="prelude-val">None</span>, <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#46">subcache_data</a>)
+        <span class="comment">// Split out the .symbols subcache data from the other subcaches.
+        </span><span class="kw">let </span>(symbols_subcache_data_and_uuid, subcache_data) =
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(symbols_uuid) = <a href="../../../../src/object/read/macho/dyld_cache.rs.html#51">symbols_subcache_uuid</a> {
+                <span class="kw">let </span>(sym_data, rest_data) = <a href="../../../../src/object/read/macho/dyld_cache.rs.html#46">subcache_data</a>.split_last().unwrap();
+                (<span class="prelude-val">Some</span>((<span class="kw-2">*</span><a href="../../../../src/object/read/macho/dyld_cache.rs.html#61">sym_data</a>, <a href="../../../../src/object/read/macho/dyld_cache.rs.html#60">symbols_uuid</a>)), <a href="../../../../src/object/read/macho/dyld_cache.rs.html#61">rest_data</a>)
+            } <span class="kw">else </span>{
+                (<span class="prelude-val">None</span>, <a href="../../../../src/object/read/macho/dyld_cache.rs.html#46">subcache_data</a>)
             };
 
-        <span class="comment">// Read the regular SubCaches (.1, .2, ...), if present.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subcaches</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="ident">info</span>) <span class="kw">in</span> <span class="ident">subcache_data</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">subcaches_info</span>.<span class="ident">iter</span>()) {
-            <span class="kw">let</span> <span class="ident">sc_header</span> <span class="op">=</span> <span class="ident">macho::DyldCacheHeader</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="ident">::parse</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">sc_header</span>.<span class="ident">uuid</span> <span class="op">!</span><span class="op">=</span> <span class="ident">info</span>.<span class="ident">uuid</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(<span class="string">&quot;Unexpected SubCache UUID&quot;</span>));
+        <span class="comment">// Read the regular SubCaches (.1, .2, ...), if present.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>subcaches = Vec::new();
+        <span class="kw">for </span>(<span class="kw-2">&amp;</span>data, info) <span class="kw">in </span>subcache_data.iter().zip(subcaches_info.iter()) {
+            <span class="kw">let </span>sc_header = macho::DyldCacheHeader::&lt;E&gt;::parse(data)<span class="question-mark">?</span>;
+            <span class="kw">if </span>sc_header.uuid != info.uuid {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Unexpected SubCache UUID&quot;</span>));
             }
-            <span class="kw">let</span> <span class="ident">mappings</span> <span class="op">=</span> <span class="ident">sc_header</span>.<span class="ident">mappings</span>(<span class="ident">endian</span>, <span class="ident">data</span>)<span class="question-mark">?</span>;
-            <span class="ident">subcaches</span>.<span class="ident">push</span>(<span class="ident">DyldSubCache</span> { <span class="ident">data</span>, <span class="ident">mappings</span> });
+            <span class="kw">let </span>mappings = sc_header.mappings(endian, data)<span class="question-mark">?</span>;
+            subcaches.push(DyldSubCache { data, mappings });
         }
 
-        <span class="comment">// Read the .symbols SubCache, if present.</span>
-        <span class="comment">// Other than the UUID verification, the symbols SubCache is currently unused.</span>
-        <span class="kw">let</span> <span class="ident">_symbols_subcache</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#59">symbols_subcache_data_and_uuid</a> {
-            <span class="prelude-val">Some</span>((<span class="ident">data</span>, <span class="ident">uuid</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">sc_header</span> <span class="op">=</span> <span class="ident">macho::DyldCacheHeader</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="ident">::parse</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">sc_header</span>.<span class="ident">uuid</span> <span class="op">!</span><span class="op">=</span> <span class="ident">uuid</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Unexpected .symbols SubCache UUID&quot;</span>));
+        <span class="comment">// Read the .symbols SubCache, if present.
+        // Other than the UUID verification, the symbols SubCache is currently unused.
+        </span><span class="kw">let </span>_symbols_subcache = <span class="kw">match </span><a href="../../../../src/object/read/macho/dyld_cache.rs.html#59">symbols_subcache_data_and_uuid</a> {
+            <span class="prelude-val">Some</span>((data, uuid)) =&gt; {
+                <span class="kw">let </span>sc_header = macho::DyldCacheHeader::&lt;E&gt;::parse(data)<span class="question-mark">?</span>;
+                <span class="kw">if </span>sc_header.uuid != uuid {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Unexpected .symbols SubCache UUID&quot;</span>));
                 }
-                <span class="kw">let</span> <span class="ident">mappings</span> <span class="op">=</span> <span class="ident">sc_header</span>.<span class="ident">mappings</span>(<span class="ident">endian</span>, <span class="ident">data</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#24">DyldSubCache</a> { <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#81">data</a>, <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#86">mappings</a> })
+                <span class="kw">let </span>mappings = sc_header.mappings(endian, data)<span class="question-mark">?</span>;
+                <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#24">DyldSubCache</a> { <a href="../../../../src/object/read/macho/dyld_cache.rs.html#81">data</a>, <a href="../../../../src/object/read/macho/dyld_cache.rs.html#86">mappings</a> })
             }
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">images</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">images</span>(<span class="ident">endian</span>, <span class="ident">data</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#9">DyldCache</a> {
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#48">endian</a>,
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#46">data</a>,
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#68">subcaches</a>,
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#49">mappings</a>,
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#92">images</a>,
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#48">arch</a>,
+        <span class="kw">let </span>images = header.images(endian, data)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#9">DyldCache</a> {
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#48">endian</a>,
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#46">data</a>,
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#68">subcaches</a>,
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#49">mappings</a>,
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#92">images</a>,
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#48">arch</a>,
         })
     }
 
-    <span class="doccomment">/// Get the architecture type of the file.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">architecture</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#5">Architecture</a> {
-        <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#104">self</a>.<span class="ident">arch</span>
+    <span class="doccomment">/// Get the architecture type of the file.
+    </span><span class="kw">pub fn </span>architecture(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/common.rs.html#5">Architecture</a> {
+        <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#104">self</a>.arch
     }
 
-    <span class="doccomment">/// Get the endianness of the file.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">endianness</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_little_endian</span>() {
-            <a class="ident" href="../../../../src/object/endian.rs.html#280">Endianness::Little</a>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/object/endian.rs.html#282">Endianness::Big</a>
+    <span class="doccomment">/// Get the endianness of the file.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>endianness(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/endian.rs.html#278">Endianness</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_little_endian() {
+            <a href="../../../../src/object/endian.rs.html#280">Endianness::Little</a>
+        } <span class="kw">else </span>{
+            <a href="../../../../src/object/endian.rs.html#282">Endianness::Big</a>
         }
     }
 
-    <span class="doccomment">/// Return true if the file is little endian, false if it is big endian.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#119">self</a>.<span class="ident">endian</span>.<a class="ident" href="../../../../src/object/endian.rs.html#31">is_little_endian</a>()
+    <span class="doccomment">/// Return true if the file is little endian, false if it is big endian.
+    </span><span class="kw">pub fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#119">self</a>.endian.<a href="../../../../src/object/endian.rs.html#31">is_little_endian</a>()
     }
 
-    <span class="doccomment">/// Iterate over the images in this cache.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">images</span><span class="op">&lt;</span><span class="lifetime">&#39;cache</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;cache</span> <span class="self">self</span>) -&gt; <span class="ident">DyldCacheImageIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#150">DyldCacheImageIterator</a> {
-            <span class="ident">cache</span>: <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#124">self</a>,
-            <span class="ident">iter</span>: <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#124">self</a>.<span class="ident">images</span>.<span class="ident">iter</span>(),
+    <span class="doccomment">/// Iterate over the images in this cache.
+    </span><span class="kw">pub fn </span>images&lt;<span class="lifetime">&#39;cache</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;cache </span><span class="self">self</span>) -&gt; DyldCacheImageIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt; {
+        <a href="../../../../src/object/read/macho/dyld_cache.rs.html#150">DyldCacheImageIterator</a> {
+            cache: <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#124">self</a>,
+            iter: <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#124">self</a>.images.iter(),
         }
     }
 
-    <span class="doccomment">/// Find the address in a mapping and return the cache or subcache data it was found in,</span>
-    <span class="doccomment">/// together with the translated file offset.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_and_offset_for_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">R</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file_offset</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#329-333">address_to_file_offset</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#133">address</a>, <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#133">self</a>.<span class="ident">endian</span>, <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#133">self</a>.<span class="ident">mappings</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#133">self</a>.<span class="ident">data</span>, <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#134">file_offset</a>));
+    <span class="doccomment">/// Find the address in a mapping and return the cache or subcache data it was found in,
+    /// together with the translated file offset.
+    </span><span class="kw">pub fn </span>data_and_offset_for_address(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(R, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(file_offset) = <a href="../../../../src/object/read/macho/dyld_cache.rs.html#329-333">address_to_file_offset</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#133">address</a>, <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#133">self</a>.endian, <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#133">self</a>.mappings) {
+            <span class="kw">return </span><span class="prelude-val">Some</span>((<a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#133">self</a>.data, <a href="../../../../src/object/read/macho/dyld_cache.rs.html#134">file_offset</a>));
         }
-        <span class="kw">for</span> <span class="ident">subcache</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">subcaches</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file_offset</span>) <span class="op">=</span>
-                <span class="ident">address_to_file_offset</span>(<span class="ident">address</span>, <span class="self">self</span>.<span class="ident">endian</span>, <span class="ident">subcache</span>.<span class="ident">mappings</span>)
+        <span class="kw">for </span>subcache <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.subcaches {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(file_offset) =
+                address_to_file_offset(address, <span class="self">self</span>.endian, subcache.mappings)
             {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">subcache</span>.<span class="ident">data</span>, <span class="ident">file_offset</span>));
+                <span class="kw">return </span><span class="prelude-val">Some</span>((subcache.data, file_offset));
             }
         }
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="doccomment">/// An iterator over all the images (dylibs) in the dyld shared cache.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DyldCacheImageIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over all the images (dylibs) in the dyld shared cache.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>DyldCacheImageIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="ident">cache</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cache</span> <span class="ident">DyldCache</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">iter</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">macho::DyldCacheImageInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    cache: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cache </span>DyldCache&lt;<span class="lifetime">&#39;data</span>, E, R&gt;,
+    iter: slice::Iter&lt;<span class="lifetime">&#39;data</span>, macho::DyldCacheImageInfo&lt;E&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">DyldCacheImageIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>DyldCacheImageIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt;
+<span class="kw">where
+    </span>E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">DyldCacheImage</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = DyldCacheImage&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt;;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DyldCacheImage</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">image_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#177">DyldCacheImage</a> {
-            <span class="ident">cache</span>: <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#166">self</a>.<span class="ident">cache</span>,
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#167">image_info</a>,
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DyldCacheImage&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt;&gt; {
+        <span class="kw">let </span>image_info = <span class="self">self</span>.iter.next()<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#177">DyldCacheImage</a> {
+            cache: <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#166">self</a>.cache,
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#167">image_info</a>,
         })
     }
 }
 
-<span class="doccomment">/// One image (dylib) from inside the dyld shared cache.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DyldCacheImage</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// One image (dylib) from inside the dyld shared cache.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>DyldCacheImage&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">cache</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cache</span> <span class="ident">DyldCache</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">image_info</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DyldCacheImageInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) cache: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cache </span>DyldCache&lt;<span class="lifetime">&#39;data</span>, E, R&gt;,
+    image_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DyldCacheImageInfo&lt;E&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">DyldCacheImage</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt; DyldCacheImage&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt;
+<span class="kw">where
+    </span>E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="doccomment">/// The file system path of this image.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">image_info</span>.<span class="ident">path</span>(<span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">data</span>)<span class="question-mark">?</span>;
-        <span class="comment">// The path should always be ascii, so from_utf8 should alway succeed.</span>
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">core::str::from_utf8</span>(<span class="ident">path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>(<span class="string">&quot;Path string not valid utf-8&quot;</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#195">path</a>)
+    <span class="doccomment">/// The file system path of this image.
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <span class="kw">let </span>path = <span class="self">self</span>.image_info.path(<span class="self">self</span>.cache.endian, <span class="self">self</span>.cache.data)<span class="question-mark">?</span>;
+        <span class="comment">// The path should always be ascii, so from_utf8 should alway succeed.
+        </span><span class="kw">let </span>path = core::str::from_utf8(path).map_err(|<span class="kw">_</span>| Error(<span class="string">&quot;Path string not valid utf-8&quot;</span>))<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#195">path</a>)
     }
 
-    <span class="doccomment">/// The subcache data which contains the Mach-O header for this image,</span>
-    <span class="doccomment">/// together with the file offset at which this image starts.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">image_data_and_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">R</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#201">self</a>.<span class="ident">image_info</span>.<span class="ident">address</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#201">self</a>.<span class="ident">cache</span>.<span class="ident">endian</span>);
-        <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#201">self</a>.<span class="ident">cache</span>
-            .<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#133">data_and_offset_for_address</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#202">address</a>)
-            .<span class="ident">ok_or</span>(<a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Address not found in any mapping&quot;</span>))
+    <span class="doccomment">/// The subcache data which contains the Mach-O header for this image,
+    /// together with the file offset at which this image starts.
+    </span><span class="kw">pub fn </span>image_data_and_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(R, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt; {
+        <span class="kw">let </span>address = <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#201">self</a>.image_info.address.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#201">self</a>.cache.endian);
+        <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#201">self</a>.cache
+            .<a href="../../../../src/object/read/macho/dyld_cache.rs.html#133">data_and_offset_for_address</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#202">address</a>)
+            .ok_or(<a href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Address not found in any mapping&quot;</span>))
     }
 
-    <span class="doccomment">/// Parse this image into an Object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">File::parse_dyld_cache_image</span>(<a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#209">self</a>)
+    <span class="doccomment">/// Parse this image into an Object.
+    </span><span class="kw">pub fn </span>parse_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;File&lt;<span class="lifetime">&#39;data</span>, R&gt;&gt; {
+        File::parse_dyld_cache_image(<a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#209">self</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">macho::DyldCacheHeader</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Read the dyld cache header.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#216">data</a>.<a class="ident" href="../../../../src/object/read/read_ref.rs.html#84">read_at</a>::<span class="op">&lt;</span><span class="ident">macho::DyldCacheHeader</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="number">0</span>)
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache header size or alignment&quot;</span>)
+<span class="kw">impl</span>&lt;E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt; macho::DyldCacheHeader&lt;E&gt; {
+    <span class="doccomment">/// Read the dyld cache header.
+    </span><span class="kw">pub fn </span>parse&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(data: R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="self">Self</span>&gt; {
+        <a href="../../../../src/object/read/macho/dyld_cache.rs.html#216">data</a>.<a href="../../../../src/object/read/read_ref.rs.html#84">read_at</a>::&lt;macho::DyldCacheHeader&lt;E&gt;&gt;(<span class="number">0</span>)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache header size or alignment&quot;</span>)
     }
 
-    <span class="doccomment">/// Returns (arch, endian) based on the magic string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_magic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../../src/object/common.rs.html#5">Architecture</a>, <span class="ident">E</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">arch</span>, <span class="ident">is_big_endian</span>) <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#222">self</a>.<span class="ident">magic</span> {
-            <span class="string">b&quot;dyld_v1    i386\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#11">Architecture::I386</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1  x86_64\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#12">Architecture::X86_64</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1 x86_64h\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#12">Architecture::X86_64</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1     ppc\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#20">Architecture::PowerPc</a>, <span class="bool-val">true</span>),
-            <span class="string">b&quot;dyld_v1   armv6\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1   armv7\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1  armv7f\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1  armv7s\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1  armv7k\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1   arm64\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#7">Architecture::Aarch64</a>, <span class="bool-val">false</span>),
-            <span class="string">b&quot;dyld_v1  arm64e\0&quot;</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#7">Architecture::Aarch64</a>, <span class="bool-val">false</span>),
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Unrecognized dyld cache magic&quot;</span>)),
+    <span class="doccomment">/// Returns (arch, endian) based on the magic string.
+    </span><span class="kw">pub fn </span>parse_magic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="../../../../src/object/common.rs.html#5">Architecture</a>, E)&gt; {
+        <span class="kw">let </span>(arch, is_big_endian) = <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#222">self</a>.magic {
+            <span class="string">b&quot;dyld_v1    i386\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#11">Architecture::I386</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1  x86_64\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#12">Architecture::X86_64</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1 x86_64h\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#12">Architecture::X86_64</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1     ppc\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#20">Architecture::PowerPc</a>, <span class="bool-val">true</span>),
+            <span class="string">b&quot;dyld_v1   armv6\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1   armv7\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1  armv7f\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1  armv7s\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1  armv7k\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1   arm64\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#7">Architecture::Aarch64</a>, <span class="bool-val">false</span>),
+            <span class="string">b&quot;dyld_v1  arm64e\0&quot; </span>=&gt; (<a href="../../../../src/object/common.rs.html#7">Architecture::Aarch64</a>, <span class="bool-val">false</span>),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Unrecognized dyld cache magic&quot;</span>)),
         };
-        <span class="kw">let</span> <span class="ident">endian</span> <span class="op">=</span>
-            <span class="ident">E::from_big_endian</span>(<span class="ident">is_big_endian</span>).<span class="ident">read_error</span>(<span class="string">&quot;Unsupported dyld cache endian&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#223">arch</a>, <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#237">endian</a>))
+        <span class="kw">let </span>endian =
+            E::from_big_endian(is_big_endian).read_error(<span class="string">&quot;Unsupported dyld cache endian&quot;</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((<a href="../../../../src/object/read/macho/dyld_cache.rs.html#223">arch</a>, <a href="../../../../src/object/read/macho/dyld_cache.rs.html#237">endian</a>))
     }
 
-    <span class="doccomment">/// Return the mapping information table.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mappings</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Return the mapping information table.
+    </span><span class="kw">pub fn </span>mappings&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident">E</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">macho::DyldCacheMappingInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#246">data</a>.<a class="ident" href="../../../../src/object/read/read_ref.rs.html#109">read_slice_at</a>::<span class="op">&lt;</span><span class="ident">macho::DyldCacheMappingInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-            <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#244">self</a>.<span class="ident">mapping_offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#245">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#244">self</a>.<span class="ident">mapping_count</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#245">endian</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        endian: E,
+        data: R,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[macho::DyldCacheMappingInfo&lt;E&gt;]&gt; {
+        <a href="../../../../src/object/read/macho/dyld_cache.rs.html#246">data</a>.<a href="../../../../src/object/read/read_ref.rs.html#109">read_slice_at</a>::&lt;macho::DyldCacheMappingInfo&lt;E&gt;&gt;(
+            <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#244">self</a>.mapping_offset.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#245">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#244">self</a>.mapping_count.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#245">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         )
-        .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache mapping size or alignment&quot;</span>)
+        .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache mapping size or alignment&quot;</span>)
     }
 
-    <span class="doccomment">/// Return the information about subcaches, if present.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subcaches</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Return the information about subcaches, if present.
+    </span><span class="kw">pub fn </span>subcaches&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident">E</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">macho::DyldSubCacheInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mapping_offset</span>.<span class="ident">get</span>(<span class="ident">endian</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN_HEADER_SIZE_SUBCACHES</span> {
-            <span class="kw">let</span> <span class="ident">subcaches</span> <span class="op">=</span> <span class="ident">data</span>
-                .<span class="ident">read_slice_at</span>::<span class="op">&lt;</span><span class="ident">macho::DyldSubCacheInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-                    <span class="self">self</span>.<span class="ident">subcaches_offset</span>.<span class="ident">get</span>(<span class="ident">endian</span>).<span class="ident">into</span>(),
-                    <span class="self">self</span>.<span class="ident">subcaches_count</span>.<span class="ident">get</span>(<span class="ident">endian</span>) <span class="kw">as</span> <span class="ident">usize</span>,
+        endian: E,
+        data: R,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[macho::DyldSubCacheInfo&lt;E&gt;]&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.mapping_offset.get(endian) &gt;= MIN_HEADER_SIZE_SUBCACHES {
+            <span class="kw">let </span>subcaches = data
+                .read_slice_at::&lt;macho::DyldSubCacheInfo&lt;E&gt;&gt;(
+                    <span class="self">self</span>.subcaches_offset.get(endian).into(),
+                    <span class="self">self</span>.subcaches_count.get(endian) <span class="kw">as </span>usize,
                 )
-                .<span class="ident">read_error</span>(<span class="string">&quot;Invalid dyld subcaches size or alignment&quot;</span>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#262">subcaches</a>))
-        } <span class="kw">else</span> {
+                .read_error(<span class="string">&quot;Invalid dyld subcaches size or alignment&quot;</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#262">subcaches</a>))
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Return the UUID for the .symbols subcache, if present.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbols_subcache_uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mapping_offset</span>.<span class="ident">get</span>(<span class="ident">endian</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN_HEADER_SIZE_SUBCACHES</span> {
-            <span class="kw">let</span> <span class="ident">uuid</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#275">self</a>.<span class="ident">symbols_subcache_uuid</span>;
-            <span class="kw">if</span> <span class="ident">uuid</span> <span class="op">!</span><span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>] {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#277">uuid</a>);
+    <span class="doccomment">/// Return the UUID for the .symbols subcache, if present.
+    </span><span class="kw">pub fn </span>symbols_subcache_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: E) -&gt; <span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>]&gt; {
+        <span class="kw">if </span><span class="self">self</span>.mapping_offset.get(endian) &gt;= MIN_HEADER_SIZE_SUBCACHES {
+            <span class="kw">let </span>uuid = <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#275">self</a>.symbols_subcache_uuid;
+            <span class="kw">if </span>uuid != [<span class="number">0</span>; <span class="number">16</span>] {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#277">uuid</a>);
             }
         }
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="doccomment">/// Return the image information table.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">images</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Return the image information table.
+    </span><span class="kw">pub fn </span>images&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident">E</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">macho::DyldCacheImageInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mapping_offset</span>.<span class="ident">get</span>(<span class="ident">endian</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN_HEADER_SIZE_SUBCACHES</span> {
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#289">data</a>.<a class="ident" href="../../../../src/object/read/read_ref.rs.html#109">read_slice_at</a>::<span class="op">&lt;</span><span class="ident">macho::DyldCacheImageInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-                <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#287">self</a>.<span class="ident">images_across_all_subcaches_offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#288">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#287">self</a>.<span class="ident">images_across_all_subcaches_count</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#288">endian</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        endian: E,
+        data: R,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[macho::DyldCacheImageInfo&lt;E&gt;]&gt; {
+        <span class="kw">if </span><span class="self">self</span>.mapping_offset.get(endian) &gt;= MIN_HEADER_SIZE_SUBCACHES {
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#289">data</a>.<a href="../../../../src/object/read/read_ref.rs.html#109">read_slice_at</a>::&lt;macho::DyldCacheImageInfo&lt;E&gt;&gt;(
+                <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#287">self</a>.images_across_all_subcaches_offset.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#288">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#287">self</a>.images_across_all_subcaches_count.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#288">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
             )
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache image size or alignment&quot;</span>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#289">data</a>.<a class="ident" href="../../../../src/object/read/read_ref.rs.html#109">read_slice_at</a>::<span class="op">&lt;</span><span class="ident">macho::DyldCacheImageInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-                <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#287">self</a>.<span class="ident">images_offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#288">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#287">self</a>.<span class="ident">images_count</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#288">endian</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache image size or alignment&quot;</span>)
+        } <span class="kw">else </span>{
+            <a href="../../../../src/object/read/macho/dyld_cache.rs.html#289">data</a>.<a href="../../../../src/object/read/read_ref.rs.html#109">read_slice_at</a>::&lt;macho::DyldCacheImageInfo&lt;E&gt;&gt;(
+                <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#287">self</a>.images_offset.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#288">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#287">self</a>.images_count.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#288">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
             )
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache image size or alignment&quot;</span>)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache image size or alignment&quot;</span>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">macho::DyldCacheImageInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The file system path of this image.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">data</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">r_start</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#309">self</a>.<span class="ident">path_file_offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#309">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let</span> <span class="ident">r_end</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">len</span>().<span class="ident">read_error</span>(<span class="string">&quot;Couldn&#39;t get data len()&quot;</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#309">data</a>.<a class="ident" href="../../../../src/object/read/read_ref.rs.html#52">read_bytes_at_until</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#310">r_start</a>..<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#311">r_end</a>, <span class="number">0</span>)
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Couldn&#39;t read dyld cache image path&quot;</span>)
+<span class="kw">impl</span>&lt;E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt; macho::DyldCacheImageInfo&lt;E&gt; {
+    <span class="doccomment">/// The file system path of this image.
+    </span><span class="kw">pub fn </span>path&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: E, data: R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">let </span>r_start = <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#309">self</a>.path_file_offset.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#309">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>r_end = data.len().read_error(<span class="string">&quot;Couldn&#39;t get data len()&quot;</span>)<span class="question-mark">?</span>;
+        <a href="../../../../src/object/read/macho/dyld_cache.rs.html#309">data</a>.<a href="../../../../src/object/read/read_ref.rs.html#52">read_bytes_at_until</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#310">r_start</a>..<a href="../../../../src/object/read/macho/dyld_cache.rs.html#311">r_end</a>, <span class="number">0</span>)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Couldn&#39;t read dyld cache image path&quot;</span>)
     }
 
-    <span class="doccomment">/// Find the file offset of the image by looking up its address in the mappings.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_offset</span>(
+    <span class="doccomment">/// Find the file offset of the image by looking up its address in the mappings.
+    </span><span class="kw">pub fn </span>file_offset(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident">E</span>,
-        <span class="ident">mappings</span>: <span class="kw-2">&amp;</span>[<span class="ident">macho::DyldCacheMappingInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#318">self</a>.<span class="ident">address</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#319">endian</a>);
-        <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#329-333">address_to_file_offset</a>(<a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#322">address</a>, <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#319">endian</a>, <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#320">mappings</a>)
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache image address&quot;</span>)
+        endian: E,
+        mappings: <span class="kw-2">&amp;</span>[macho::DyldCacheMappingInfo&lt;E&gt;],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+        <span class="kw">let </span>address = <a class="self" href="../../../../src/object/read/macho/dyld_cache.rs.html#318">self</a>.address.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#319">endian</a>);
+        <a href="../../../../src/object/read/macho/dyld_cache.rs.html#329-333">address_to_file_offset</a>(<a href="../../../../src/object/read/macho/dyld_cache.rs.html#322">address</a>, <a href="../../../../src/object/read/macho/dyld_cache.rs.html#319">endian</a>, <a href="../../../../src/object/read/macho/dyld_cache.rs.html#320">mappings</a>)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid dyld cache image address&quot;</span>)
     }
 }
 
-<span class="doccomment">/// Find the file offset of the image by looking up its address in the mappings.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">address_to_file_offset</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>(
-    <span class="ident">address</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="ident">endian</span>: <span class="ident">E</span>,
-    <span class="ident">mappings</span>: <span class="kw-2">&amp;</span>[<span class="ident">macho::DyldCacheMappingInfo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>],
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-    <span class="kw">for</span> <span class="ident">mapping</span> <span class="kw">in</span> <span class="ident">mappings</span> {
-        <span class="kw">let</span> <span class="ident">mapping_address</span> <span class="op">=</span> <span class="ident">mapping</span>.<span class="ident">address</span>.<span class="ident">get</span>(<span class="ident">endian</span>);
-        <span class="kw">if</span> <span class="ident">address</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">mapping_address</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">address</span> <span class="op">&lt;</span> <span class="ident">mapping_address</span>.<span class="ident">wrapping_add</span>(<span class="ident">mapping</span>.<span class="ident">size</span>.<span class="ident">get</span>(<span class="ident">endian</span>))
+<span class="doccomment">/// Find the file offset of the image by looking up its address in the mappings.
+</span><span class="kw">pub fn </span>address_to_file_offset&lt;E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt;(
+    address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    endian: E,
+    mappings: <span class="kw-2">&amp;</span>[macho::DyldCacheMappingInfo&lt;E&gt;],
+) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+    <span class="kw">for </span>mapping <span class="kw">in </span>mappings {
+        <span class="kw">let </span>mapping_address = mapping.address.get(endian);
+        <span class="kw">if </span>address &gt;= mapping_address
+            &amp;&amp; address &lt; mapping_address.wrapping_add(mapping.size.get(endian))
         {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">address</span> <span class="op">-</span> <span class="ident">mapping_address</span> <span class="op">+</span> <span class="ident">mapping</span>.<span class="ident">file_offset</span>.<span class="ident">get</span>(<span class="ident">endian</span>));
+            <span class="kw">return </span><span class="prelude-val">Some</span>(address - mapping_address + mapping.file_offset.get(endian));
         }
     }
-    <span class="prelude-val">None</span>
-}
+    <span class="prelude-val">None
+</span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

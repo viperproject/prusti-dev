@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/endian.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>endian.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../object/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/endian.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>endian.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../object/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -769,776 +769,776 @@
 <span id="769">769</span>
 <span id="770">770</span>
 <span id="771">771</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Types for compile-time and run-time endianness.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Types for compile-time and run-time endianness.
 
-<span class="kw">use</span> <a class="ident" href="../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use</span> <span class="ident">core::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
-<span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
+</span><span class="kw">use </span><a href="../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
+<span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>};
+<span class="kw">use </span>core::marker::PhantomData;
 
-<span class="doccomment">/// A trait for using an endianness specification.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Provides methods for converting between the specified endianness and</span>
-<span class="doccomment">/// the native endianness of the target machine.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This trait does not require that the endianness is known at compile time.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Endian</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-    <span class="doccomment">/// Construct a specification for the endianness of some values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the type does not support specifying the given endianness.</span>
-    <span class="kw">fn</span> <span class="ident">from_big_endian</span>(<span class="ident">big_endian</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A trait for using an endianness specification.
+///
+/// Provides methods for converting between the specified endianness and
+/// the native endianness of the target machine.
+///
+/// This trait does not require that the endianness is known at compile time.
+</span><span class="kw">pub trait </span>Endian: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> + <span class="lifetime">&#39;static </span>{
+    <span class="doccomment">/// Construct a specification for the endianness of some values.
+    ///
+    /// Returns `None` if the type does not support specifying the given endianness.
+    </span><span class="kw">fn </span>from_big_endian(big_endian: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 
-    <span class="doccomment">/// Construct a specification for the endianness of some values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the type does not support specifying the given endianness.</span>
-    <span class="kw">fn</span> <span class="ident">from_little_endian</span>(<span class="ident">little_endian</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::from_big_endian</span>(<span class="op">!</span><a class="ident" href="../../src/object/endian.rs.html#22">little_endian</a>)
+    <span class="doccomment">/// Construct a specification for the endianness of some values.
+    ///
+    /// Returns `None` if the type does not support specifying the given endianness.
+    </span><span class="kw">fn </span>from_little_endian(little_endian: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="self">Self</span>::from_big_endian(!<a href="../../src/object/endian.rs.html#22">little_endian</a>)
     }
 
-    <span class="doccomment">/// Return true for big endian byte order.</span>
-    <span class="kw">fn</span> <span class="ident">is_big_endian</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Return true for big endian byte order.
+    </span><span class="kw">fn </span>is_big_endian(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
-    <span class="doccomment">/// Return true for little endian byte order.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_little_endian</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">!</span><a class="self" href="../../src/object/endian.rs.html#31">self</a>.<a class="ident" href="../../src/object/endian.rs.html#27">is_big_endian</a>()
+    <span class="doccomment">/// Return true for little endian byte order.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_little_endian(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        !<a class="self" href="../../src/object/endian.rs.html#31">self</a>.<a href="../../src/object/endian.rs.html#27">is_big_endian</a>()
     }
 
-    <span class="doccomment">/// Converts an unsigned 16 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u16</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u16::from_be</span>(<a class="ident" href="../../src/object/endian.rs.html#37">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u16::from_le</span>(<a class="ident" href="../../src/object/endian.rs.html#37">n</a>)
+    <span class="doccomment">/// Converts an unsigned 16 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_u16(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u16::from_be(<a href="../../src/object/endian.rs.html#37">n</a>)
+        } <span class="kw">else </span>{
+            u16::from_le(<a href="../../src/object/endian.rs.html#37">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unsigned 32 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u32</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u32::from_be</span>(<a class="ident" href="../../src/object/endian.rs.html#47">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u32::from_le</span>(<a class="ident" href="../../src/object/endian.rs.html#47">n</a>)
+    <span class="doccomment">/// Converts an unsigned 32 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_u32(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u32::from_be(<a href="../../src/object/endian.rs.html#47">n</a>)
+        } <span class="kw">else </span>{
+            u32::from_le(<a href="../../src/object/endian.rs.html#47">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unsigned 64 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u64</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u64::from_be</span>(<a class="ident" href="../../src/object/endian.rs.html#57">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u64::from_le</span>(<a class="ident" href="../../src/object/endian.rs.html#57">n</a>)
+    <span class="doccomment">/// Converts an unsigned 64 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_u64(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u64::from_be(<a href="../../src/object/endian.rs.html#57">n</a>)
+        } <span class="kw">else </span>{
+            u64::from_le(<a href="../../src/object/endian.rs.html#57">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts a signed 16 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i16</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i16::from_be</span>(<a class="ident" href="../../src/object/endian.rs.html#67">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i16::from_le</span>(<a class="ident" href="../../src/object/endian.rs.html#67">n</a>)
+    <span class="doccomment">/// Converts a signed 16 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_i16(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i16::from_be(<a href="../../src/object/endian.rs.html#67">n</a>)
+        } <span class="kw">else </span>{
+            i16::from_le(<a href="../../src/object/endian.rs.html#67">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts a signed 32 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i32</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i32::from_be</span>(<a class="ident" href="../../src/object/endian.rs.html#77">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i32::from_le</span>(<a class="ident" href="../../src/object/endian.rs.html#77">n</a>)
+    <span class="doccomment">/// Converts a signed 32 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_i32(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i32::from_be(<a href="../../src/object/endian.rs.html#77">n</a>)
+        } <span class="kw">else </span>{
+            i32::from_le(<a href="../../src/object/endian.rs.html#77">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts a signed 64 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i64</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i64::from_be</span>(<a class="ident" href="../../src/object/endian.rs.html#87">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i64::from_le</span>(<a class="ident" href="../../src/object/endian.rs.html#87">n</a>)
+    <span class="doccomment">/// Converts a signed 64 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_i64(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i64::from_be(<a href="../../src/object/endian.rs.html#87">n</a>)
+        } <span class="kw">else </span>{
+            i64::from_le(<a href="../../src/object/endian.rs.html#87">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned unsigned 16 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u16_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u16::from_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#97">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u16::from_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#97">n</a>)
+    <span class="doccomment">/// Converts an unaligned unsigned 16 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_u16_bytes(<span class="self">self</span>, n: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u16::from_be_bytes(<a href="../../src/object/endian.rs.html#97">n</a>)
+        } <span class="kw">else </span>{
+            u16::from_le_bytes(<a href="../../src/object/endian.rs.html#97">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned unsigned 32 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u32_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u32::from_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#107">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u32::from_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#107">n</a>)
+    <span class="doccomment">/// Converts an unaligned unsigned 32 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_u32_bytes(<span class="self">self</span>, n: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u32::from_be_bytes(<a href="../../src/object/endian.rs.html#107">n</a>)
+        } <span class="kw">else </span>{
+            u32::from_le_bytes(<a href="../../src/object/endian.rs.html#107">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned unsigned 64 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u64_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u64::from_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#117">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u64::from_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#117">n</a>)
+    <span class="doccomment">/// Converts an unaligned unsigned 64 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_u64_bytes(<span class="self">self</span>, n: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u64::from_be_bytes(<a href="../../src/object/endian.rs.html#117">n</a>)
+        } <span class="kw">else </span>{
+            u64::from_le_bytes(<a href="../../src/object/endian.rs.html#117">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned signed 16 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i16_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i16::from_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#127">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i16::from_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#127">n</a>)
+    <span class="doccomment">/// Converts an unaligned signed 16 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_i16_bytes(<span class="self">self</span>, n: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i16::from_be_bytes(<a href="../../src/object/endian.rs.html#127">n</a>)
+        } <span class="kw">else </span>{
+            i16::from_le_bytes(<a href="../../src/object/endian.rs.html#127">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned signed 32 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i32_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i32::from_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#137">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i32::from_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#137">n</a>)
+    <span class="doccomment">/// Converts an unaligned signed 32 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_i32_bytes(<span class="self">self</span>, n: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i32::from_be_bytes(<a href="../../src/object/endian.rs.html#137">n</a>)
+        } <span class="kw">else </span>{
+            i32::from_le_bytes(<a href="../../src/object/endian.rs.html#137">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned signed 64 bit integer to native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i64_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i64::from_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#147">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i64::from_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#147">n</a>)
+    <span class="doccomment">/// Converts an unaligned signed 64 bit integer to native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_i64_bytes(<span class="self">self</span>, n: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i64::from_be_bytes(<a href="../../src/object/endian.rs.html#147">n</a>)
+        } <span class="kw">else </span>{
+            i64::from_le_bytes(<a href="../../src/object/endian.rs.html#147">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unsigned 16 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u16::to_be</span>(<a class="ident" href="../../src/object/endian.rs.html#157">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u16::to_le</span>(<a class="ident" href="../../src/object/endian.rs.html#157">n</a>)
+    <span class="doccomment">/// Converts an unsigned 16 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_u16(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u16::to_be(<a href="../../src/object/endian.rs.html#157">n</a>)
+        } <span class="kw">else </span>{
+            u16::to_le(<a href="../../src/object/endian.rs.html#157">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unsigned 32 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u32::to_be</span>(<a class="ident" href="../../src/object/endian.rs.html#167">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u32::to_le</span>(<a class="ident" href="../../src/object/endian.rs.html#167">n</a>)
+    <span class="doccomment">/// Converts an unsigned 32 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_u32(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u32::to_be(<a href="../../src/object/endian.rs.html#167">n</a>)
+        } <span class="kw">else </span>{
+            u32::to_le(<a href="../../src/object/endian.rs.html#167">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unsigned 64 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u64::to_be</span>(<a class="ident" href="../../src/object/endian.rs.html#177">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u64::to_le</span>(<a class="ident" href="../../src/object/endian.rs.html#177">n</a>)
+    <span class="doccomment">/// Converts an unsigned 64 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_u64(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u64::to_be(<a href="../../src/object/endian.rs.html#177">n</a>)
+        } <span class="kw">else </span>{
+            u64::to_le(<a href="../../src/object/endian.rs.html#177">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts a signed 16 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i16</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i16::to_be</span>(<a class="ident" href="../../src/object/endian.rs.html#187">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i16::to_le</span>(<a class="ident" href="../../src/object/endian.rs.html#187">n</a>)
+    <span class="doccomment">/// Converts a signed 16 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_i16(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i16::to_be(<a href="../../src/object/endian.rs.html#187">n</a>)
+        } <span class="kw">else </span>{
+            i16::to_le(<a href="../../src/object/endian.rs.html#187">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts a signed 32 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i32</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i32::to_be</span>(<a class="ident" href="../../src/object/endian.rs.html#197">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i32::to_le</span>(<a class="ident" href="../../src/object/endian.rs.html#197">n</a>)
+    <span class="doccomment">/// Converts a signed 32 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_i32(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i32::to_be(<a href="../../src/object/endian.rs.html#197">n</a>)
+        } <span class="kw">else </span>{
+            i32::to_le(<a href="../../src/object/endian.rs.html#197">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts a signed 64 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i64</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i64::to_be</span>(<a class="ident" href="../../src/object/endian.rs.html#207">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i64::to_le</span>(<a class="ident" href="../../src/object/endian.rs.html#207">n</a>)
+    <span class="doccomment">/// Converts a signed 64 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_i64(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i64::to_be(<a href="../../src/object/endian.rs.html#207">n</a>)
+        } <span class="kw">else </span>{
+            i64::to_le(<a href="../../src/object/endian.rs.html#207">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned unsigned 16 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u16_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>] {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u16::to_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#217">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u16::to_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#217">n</a>)
+    <span class="doccomment">/// Converts an unaligned unsigned 16 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_u16_bytes(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>] {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u16::to_be_bytes(<a href="../../src/object/endian.rs.html#217">n</a>)
+        } <span class="kw">else </span>{
+            u16::to_le_bytes(<a href="../../src/object/endian.rs.html#217">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned unsigned 32 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u32_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>] {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u32::to_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#227">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u32::to_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#227">n</a>)
+    <span class="doccomment">/// Converts an unaligned unsigned 32 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_u32_bytes(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>] {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u32::to_be_bytes(<a href="../../src/object/endian.rs.html#227">n</a>)
+        } <span class="kw">else </span>{
+            u32::to_le_bytes(<a href="../../src/object/endian.rs.html#227">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned unsigned 64 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u64_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">u64::to_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#237">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">u64::to_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#237">n</a>)
+    <span class="doccomment">/// Converts an unaligned unsigned 64 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_u64_bytes(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            u64::to_be_bytes(<a href="../../src/object/endian.rs.html#237">n</a>)
+        } <span class="kw">else </span>{
+            u64::to_le_bytes(<a href="../../src/object/endian.rs.html#237">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned signed 16 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i16_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>] {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i16::to_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#247">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i16::to_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#247">n</a>)
+    <span class="doccomment">/// Converts an unaligned signed 16 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_i16_bytes(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>] {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i16::to_be_bytes(<a href="../../src/object/endian.rs.html#247">n</a>)
+        } <span class="kw">else </span>{
+            i16::to_le_bytes(<a href="../../src/object/endian.rs.html#247">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned signed 32 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i32_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>] {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i32::to_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#257">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i32::to_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#257">n</a>)
+    <span class="doccomment">/// Converts an unaligned signed 32 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_i32_bytes(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>] {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i32::to_be_bytes(<a href="../../src/object/endian.rs.html#257">n</a>)
+        } <span class="kw">else </span>{
+            i32::to_le_bytes(<a href="../../src/object/endian.rs.html#257">n</a>)
         }
     }
 
-    <span class="doccomment">/// Converts an unaligned signed 64 bit integer from native endian.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i64_bytes</span>(<span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_big_endian</span>() {
-            <span class="ident">i64::to_be_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#267">n</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">i64::to_le_bytes</span>(<a class="ident" href="../../src/object/endian.rs.html#267">n</a>)
+    <span class="doccomment">/// Converts an unaligned signed 64 bit integer from native endian.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write_i64_bytes(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] {
+        <span class="kw">if </span><span class="self">self</span>.is_big_endian() {
+            i64::to_be_bytes(<a href="../../src/object/endian.rs.html#267">n</a>)
+        } <span class="kw">else </span>{
+            i64::to_le_bytes(<a href="../../src/object/endian.rs.html#267">n</a>)
         }
     }
 }
 
-<span class="doccomment">/// An endianness that is selectable at run-time.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Endianness</span> {
-    <span class="doccomment">/// Little endian byte order.</span>
-    <span class="ident">Little</span>,
-    <span class="doccomment">/// Big endian byte order.</span>
-    <span class="ident">Big</span>,
+<span class="doccomment">/// An endianness that is selectable at run-time.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+</span><span class="kw">pub enum </span>Endianness {
+    <span class="doccomment">/// Little endian byte order.
+    </span>Little,
+    <span class="doccomment">/// Big endian byte order.
+    </span>Big,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/object/endian.rs.html#278">Endianness</a> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/object/endian.rs.html#278">Endianness</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#280">Endianness::Little</a>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/object/endian.rs.html#278">Endianness</a> {
+    <span class="attribute">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
+    #[inline]
+    </span><span class="kw">fn </span>default() -&gt; <a href="../../src/object/endian.rs.html#278">Endianness</a> {
+        <a href="../../src/object/endian.rs.html#280">Endianness::Little</a>
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Endianness</span> {
-        <span class="ident">Endianness::Big</span>
+    <span class="attribute">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
+    #[inline]
+    </span><span class="kw">fn </span>default() -&gt; Endianness {
+        Endianness::Big
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a> <span class="kw">for</span> <a class="ident" href="../../src/object/endian.rs.html#278">Endianness</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_big_endian</span>(<span class="ident">big_endian</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="kw">if</span> <span class="ident">big_endian</span> {
-            <a class="ident" href="../../src/object/endian.rs.html#282">Endianness::Big</a>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../src/object/endian.rs.html#280">Endianness::Little</a>
+<span class="kw">impl </span><a href="../../src/object/endian.rs.html#13">Endian</a> <span class="kw">for </span><a href="../../src/object/endian.rs.html#278">Endianness</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_big_endian(big_endian: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Some</span>(<span class="kw">if </span>big_endian {
+            <a href="../../src/object/endian.rs.html#282">Endianness::Big</a>
+        } <span class="kw">else </span>{
+            <a href="../../src/object/endian.rs.html#280">Endianness::Little</a>
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_big_endian</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/object/endian.rs.html#310">self</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#280">Endianness::Little</a>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_big_endian(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="self"><a href="../../src/object/endian.rs.html#310">self</a> </span>!= <a href="../../src/object/endian.rs.html#280">Endianness::Little</a>
     }
 }
 
-<span class="doccomment">/// Compile-time little endian byte order.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LittleEndian</span>;
+<span class="doccomment">/// Compile-time little endian byte order.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>LittleEndian;
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/object/endian.rs.html#317">LittleEndian</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/object/endian.rs.html#317">LittleEndian</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#317">LittleEndian</a>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/object/endian.rs.html#317">LittleEndian</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <a href="../../src/object/endian.rs.html#317">LittleEndian</a> {
+        <a href="../../src/object/endian.rs.html#317">LittleEndian</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a> <span class="kw">for</span> <a class="ident" href="../../src/object/endian.rs.html#317">LittleEndian</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_big_endian</span>(<span class="ident">big_endian</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">big_endian</span> {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/object/endian.rs.html#317">LittleEndian</a>)
+<span class="kw">impl </span><a href="../../src/object/endian.rs.html#13">Endian</a> <span class="kw">for </span><a href="../../src/object/endian.rs.html#317">LittleEndian</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_big_endian(big_endian: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>big_endian {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<a href="../../src/object/endian.rs.html#317">LittleEndian</a>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_big_endian</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="bool-val">false</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_big_endian(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="bool-val">false
+    </span>}
+}
+
+<span class="doccomment">/// Compile-time big endian byte order.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>BigEndian;
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/object/endian.rs.html#344">BigEndian</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <a href="../../src/object/endian.rs.html#344">BigEndian</a> {
+        <a href="../../src/object/endian.rs.html#344">BigEndian</a>
     }
 }
 
-<span class="doccomment">/// Compile-time big endian byte order.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BigEndian</span>;
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/object/endian.rs.html#344">BigEndian</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/object/endian.rs.html#344">BigEndian</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#344">BigEndian</a>
+<span class="kw">impl </span><a href="../../src/object/endian.rs.html#13">Endian</a> <span class="kw">for </span><a href="../../src/object/endian.rs.html#344">BigEndian</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_big_endian(big_endian: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>big_endian {
+            <span class="prelude-val">Some</span>(<a href="../../src/object/endian.rs.html#344">BigEndian</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_big_endian(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="bool-val">true
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a> <span class="kw">for</span> <a class="ident" href="../../src/object/endian.rs.html#344">BigEndian</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_big_endian</span>(<span class="ident">big_endian</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">big_endian</span> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/object/endian.rs.html#344">BigEndian</a>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
-    }
+<span class="doccomment">/// The native endianness for the target platform.
+</span><span class="attribute">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
+</span><span class="kw">pub type </span>NativeEndian = <a href="../../src/object/endian.rs.html#317">LittleEndian</a>;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_big_endian</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="bool-val">true</span>
-    }
-}
+<span class="attribute">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
+#[allow(non_upper_case_globals)]
+#[doc(hidden)]
+</span><span class="kw">pub const </span>NativeEndian: <a href="../../src/object/endian.rs.html#317">LittleEndian</a> = <a href="../../src/object/endian.rs.html#317">LittleEndian</a>;
 
-<span class="doccomment">/// The native endianness for the target platform.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NativeEndian</span> <span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#317">LittleEndian</a>;
+<span class="doccomment">/// The native endianness for the target platform.
+</span><span class="attribute">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
+</span><span class="kw">pub type </span>NativeEndian = BigEndian;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NativeEndian</span>: <a class="ident" href="../../src/object/endian.rs.html#317">LittleEndian</a> <span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#317">LittleEndian</a>;
+<span class="attribute">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
+#[allow(non_upper_case_globals)]
+#[doc(hidden)]
+</span><span class="kw">pub const </span>NativeEndian: BigEndian = BigEndian;
 
-<span class="doccomment">/// The native endianness for the target platform.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NativeEndian</span> <span class="op">=</span> <span class="ident">BigEndian</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NativeEndian</span>: <span class="ident">BigEndian</span> <span class="op">=</span> <span class="ident">BigEndian</span>;
-
-<span class="macro">macro_rules!</span> <span class="ident">unsafe_impl_endian_pod</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">struct_name</span>:<span class="ident">ident</span>),<span class="op">+</span> $(,)<span class="question-mark">?</span>) =&gt; {
+<span class="macro">macro_rules! </span>unsafe_impl_endian_pod {
+    ($(<span class="macro-nonterminal">$struct_name</span>:ident),+ $(,)<span class="question-mark">?</span>) =&gt; {
         $(
-            <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">Pod</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">struct_name</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> { }
-        )<span class="op">+</span>
+            <span class="kw">unsafe impl</span>&lt;E: Endian&gt; Pod <span class="kw">for </span><span class="macro-nonterminal">$struct_name</span>&lt;E&gt; { }
+        )+
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unaligned&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">aligned</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">fmt</span>, <span class="ident">Endian</span>, <span class="ident">PhantomData</span>, <span class="ident">Pod</span>};
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;unaligned&quot;</span>))]
+</span><span class="kw">mod </span>aligned {
+    <span class="kw">use super</span>::{fmt, Endian, PhantomData, Pod};
 
-    <span class="doccomment">/// A `u16` value with an externally specified endianness of type `E`.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span>(<span class="ident">u16</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+    <span class="doccomment">/// A `u16` value with an externally specified endianness of type `E`.
+    </span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[repr(transparent)]
+    </span><span class="kw">pub struct </span>U16&lt;E: Endian&gt;(u16, PhantomData&lt;E&gt;);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Construct a new value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span>(<span class="ident">e</span>.<span class="ident">write_u16</span>(<span class="ident">n</span>), <span class="ident">PhantomData</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; U16&lt;E&gt; {
+        <span class="doccomment">/// Construct a new value given a native endian value.
+        </span><span class="kw">pub fn </span>new(e: E, n: u16) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>(e.write_u16(n), PhantomData)
         }
 
-        <span class="doccomment">/// Return the value as a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <span class="ident">u16</span> {
-            <span class="ident">e</span>.<span class="ident">read_u16</span>(<span class="self">self</span>.<span class="number">0</span>)
+        <span class="doccomment">/// Return the value as a native endian value.
+        </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; u16 {
+            e.read_u16(<span class="self">self</span>.<span class="number">0</span>)
         }
 
-        <span class="doccomment">/// Set the value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">u16</span>) {
-            <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">write_u16</span>(<span class="ident">n</span>);
+        <span class="doccomment">/// Set the value given a native endian value.
+        </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: u16) {
+            <span class="self">self</span>.<span class="number">0 </span>= e.write_u16(n);
         }
     }
 
-    <span class="doccomment">/// A `u32` value with an externally specified endianness of type `E`.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span>(<span class="ident">u32</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+    <span class="doccomment">/// A `u32` value with an externally specified endianness of type `E`.
+    </span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[repr(transparent)]
+    </span><span class="kw">pub struct </span>U32&lt;E: Endian&gt;(u32, PhantomData&lt;E&gt;);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Construct a new value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span>(<span class="ident">e</span>.<span class="ident">write_u32</span>(<span class="ident">n</span>), <span class="ident">PhantomData</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; U32&lt;E&gt; {
+        <span class="doccomment">/// Construct a new value given a native endian value.
+        </span><span class="kw">pub fn </span>new(e: E, n: u32) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>(e.write_u32(n), PhantomData)
         }
-        <span class="doccomment">/// Return the value as a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <span class="ident">u32</span> {
-            <span class="ident">e</span>.<span class="ident">read_u32</span>(<span class="self">self</span>.<span class="number">0</span>)
+        <span class="doccomment">/// Return the value as a native endian value.
+        </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; u32 {
+            e.read_u32(<span class="self">self</span>.<span class="number">0</span>)
         }
-        <span class="doccomment">/// Set the value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">u32</span>) {
-            <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">write_u32</span>(<span class="ident">n</span>);
+        <span class="doccomment">/// Set the value given a native endian value.
+        </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: u32) {
+            <span class="self">self</span>.<span class="number">0 </span>= e.write_u32(n);
         }
     }
 
-    <span class="doccomment">/// A `u64` value with an externally specified endianness of type `E`.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span>(<span class="ident">u64</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+    <span class="doccomment">/// A `u64` value with an externally specified endianness of type `E`.
+    </span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[repr(transparent)]
+    </span><span class="kw">pub struct </span>U64&lt;E: Endian&gt;(u64, PhantomData&lt;E&gt;);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Construct a new value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span>(<span class="ident">e</span>.<span class="ident">write_u64</span>(<span class="ident">n</span>), <span class="ident">PhantomData</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; U64&lt;E&gt; {
+        <span class="doccomment">/// Construct a new value given a native endian value.
+        </span><span class="kw">pub fn </span>new(e: E, n: u64) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>(e.write_u64(n), PhantomData)
         }
-        <span class="doccomment">/// Return the value as a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <span class="ident">u64</span> {
-            <span class="ident">e</span>.<span class="ident">read_u64</span>(<span class="self">self</span>.<span class="number">0</span>)
+        <span class="doccomment">/// Return the value as a native endian value.
+        </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; u64 {
+            e.read_u64(<span class="self">self</span>.<span class="number">0</span>)
         }
-        <span class="doccomment">/// Set the value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">u64</span>) {
-            <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">write_u64</span>(<span class="ident">n</span>);
+        <span class="doccomment">/// Set the value given a native endian value.
+        </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: u64) {
+            <span class="self">self</span>.<span class="number">0 </span>= e.write_u64(n);
         }
     }
 
-    <span class="doccomment">/// An `i16` value with an externally specified endianness of type `E`.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">I16</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span>(<span class="ident">i16</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+    <span class="doccomment">/// An `i16` value with an externally specified endianness of type `E`.
+    </span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[repr(transparent)]
+    </span><span class="kw">pub struct </span>I16&lt;E: Endian&gt;(i16, PhantomData&lt;E&gt;);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">I16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Construct a new value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">i16</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span>(<span class="ident">e</span>.<span class="ident">write_i16</span>(<span class="ident">n</span>), <span class="ident">PhantomData</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; I16&lt;E&gt; {
+        <span class="doccomment">/// Construct a new value given a native endian value.
+        </span><span class="kw">pub fn </span>new(e: E, n: i16) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>(e.write_i16(n), PhantomData)
         }
-        <span class="doccomment">/// Return the value as a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <span class="ident">i16</span> {
-            <span class="ident">e</span>.<span class="ident">read_i16</span>(<span class="self">self</span>.<span class="number">0</span>)
+        <span class="doccomment">/// Return the value as a native endian value.
+        </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; i16 {
+            e.read_i16(<span class="self">self</span>.<span class="number">0</span>)
         }
-        <span class="doccomment">/// Set the value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">i16</span>) {
-            <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">write_i16</span>(<span class="ident">n</span>);
+        <span class="doccomment">/// Set the value given a native endian value.
+        </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: i16) {
+            <span class="self">self</span>.<span class="number">0 </span>= e.write_i16(n);
         }
     }
 
-    <span class="doccomment">/// An `i32` value with an externally specified endianness of type `E`.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">I32</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span>(<span class="ident">i32</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+    <span class="doccomment">/// An `i32` value with an externally specified endianness of type `E`.
+    </span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[repr(transparent)]
+    </span><span class="kw">pub struct </span>I32&lt;E: Endian&gt;(i32, PhantomData&lt;E&gt;);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">I32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Construct a new value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span>(<span class="ident">e</span>.<span class="ident">write_i32</span>(<span class="ident">n</span>), <span class="ident">PhantomData</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; I32&lt;E&gt; {
+        <span class="doccomment">/// Construct a new value given a native endian value.
+        </span><span class="kw">pub fn </span>new(e: E, n: i32) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>(e.write_i32(n), PhantomData)
         }
-        <span class="doccomment">/// Return the value as a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <span class="ident">i32</span> {
-            <span class="ident">e</span>.<span class="ident">read_i32</span>(<span class="self">self</span>.<span class="number">0</span>)
+        <span class="doccomment">/// Return the value as a native endian value.
+        </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; i32 {
+            e.read_i32(<span class="self">self</span>.<span class="number">0</span>)
         }
-        <span class="doccomment">/// Set the value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">i32</span>) {
-            <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">write_i32</span>(<span class="ident">n</span>);
+        <span class="doccomment">/// Set the value given a native endian value.
+        </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: i32) {
+            <span class="self">self</span>.<span class="number">0 </span>= e.write_i32(n);
         }
     }
 
-    <span class="doccomment">/// An `i64` value with an externally specified endianness of type `E`.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">I64</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span>(<span class="ident">i64</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+    <span class="doccomment">/// An `i64` value with an externally specified endianness of type `E`.
+    </span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[repr(transparent)]
+    </span><span class="kw">pub struct </span>I64&lt;E: Endian&gt;(i64, PhantomData&lt;E&gt;);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">I64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Construct a new value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">i64</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">Self</span>(<span class="ident">e</span>.<span class="ident">write_i64</span>(<span class="ident">n</span>), <span class="ident">PhantomData</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; I64&lt;E&gt; {
+        <span class="doccomment">/// Construct a new value given a native endian value.
+        </span><span class="kw">pub fn </span>new(e: E, n: i64) -&gt; <span class="self">Self </span>{
+            <span class="self">Self</span>(e.write_i64(n), PhantomData)
         }
-        <span class="doccomment">/// Return the value as a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <span class="ident">i64</span> {
-            <span class="ident">e</span>.<span class="ident">read_i64</span>(<span class="self">self</span>.<span class="number">0</span>)
+        <span class="doccomment">/// Return the value as a native endian value.
+        </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; i64 {
+            e.read_i64(<span class="self">self</span>.<span class="number">0</span>)
         }
-        <span class="doccomment">/// Set the value given a native endian value.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <span class="ident">i64</span>) {
-            <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">write_i64</span>(<span class="ident">n</span>);
+        <span class="doccomment">/// Set the value given a native endian value.
+        </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: i64) {
+            <span class="self">self</span>.<span class="number">0 </span>= e.write_i64(n);
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;U16({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; fmt::Debug <span class="kw">for </span>U16&lt;E&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">&quot;U16({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;U32({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; fmt::Debug <span class="kw">for </span>U32&lt;E&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">&quot;U32({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;U64({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; fmt::Debug <span class="kw">for </span>U64&lt;E&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">&quot;U64({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">I16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;I16({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; fmt::Debug <span class="kw">for </span>I16&lt;E&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">&quot;I16({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">I32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;I32({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; fmt::Debug <span class="kw">for </span>I32&lt;E&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">&quot;I32({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">I64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;I64({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+    <span class="kw">impl</span>&lt;E: Endian&gt; fmt::Debug <span class="kw">for </span>I64&lt;E&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">&quot;I64({:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
         }
     }
 
-    <span class="macro">unsafe_impl_endian_pod!</span>(<span class="ident">U16</span>, <span class="ident">U32</span>, <span class="ident">U64</span>, <span class="ident">I16</span>, <span class="ident">I32</span>, <span class="ident">I64</span>);
+    <span class="macro">unsafe_impl_endian_pod!</span>(U16, U32, U64, I16, I32, I64);
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unaligned&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">aligned</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;unaligned&quot;</span>))]
+</span><span class="kw">pub use </span>aligned::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// A `u16` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unaligned&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">U16Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A `u16` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;unaligned&quot;</span>)]
+</span><span class="kw">pub type </span>U16&lt;E&gt; = U16Bytes&lt;E&gt;;
 
-<span class="doccomment">/// A `u32` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unaligned&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">U32Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A `u32` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;unaligned&quot;</span>)]
+</span><span class="kw">pub type </span>U32&lt;E&gt; = U32Bytes&lt;E&gt;;
 
-<span class="doccomment">/// A `u64` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unaligned&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">U64Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A `u64` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;unaligned&quot;</span>)]
+</span><span class="kw">pub type </span>U64&lt;E&gt; = U64Bytes&lt;E&gt;;
 
-<span class="doccomment">/// An `i16` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unaligned&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">I16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">I16Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An `i16` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;unaligned&quot;</span>)]
+</span><span class="kw">pub type </span>I16&lt;E&gt; = I16Bytes&lt;E&gt;;
 
-<span class="doccomment">/// An `i32` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unaligned&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">I32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">I32Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An `i32` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;unaligned&quot;</span>)]
+</span><span class="kw">pub type </span>I32&lt;E&gt; = I32Bytes&lt;E&gt;;
 
-<span class="doccomment">/// An `i64` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unaligned&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">I64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">I64Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An `i64` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;unaligned&quot;</span>)]
+</span><span class="kw">pub type </span>I64&lt;E&gt; = I64Bytes&lt;E&gt;;
 
-<span class="doccomment">/// An unaligned `u16` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">U16Bytes</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>([<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>], <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+<span class="doccomment">/// An unaligned `u16` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>U16Bytes&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt;([<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>], PhantomData&lt;E&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">U16Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct a new value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../src/object/endian.rs.html#594">e</a>.<a class="ident" href="../../src/object/endian.rs.html#217">write_u16_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#594">n</a>), <span class="ident">PhantomData</span>)
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; U16Bytes&lt;E&gt; {
+    <span class="doccomment">/// Construct a new value given a native endian value.
+    </span><span class="kw">pub fn </span>new(e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<a href="../../src/object/endian.rs.html#594">e</a>.<a href="../../src/object/endian.rs.html#217">write_u16_bytes</a>(<a href="../../src/object/endian.rs.html#594">n</a>), PhantomData)
     }
 
-    <span class="doccomment">/// Return the value as a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#599">e</a>.<a class="ident" href="../../src/object/endian.rs.html#97">read_u16_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#599">self</a>.<span class="number">0</span>)
+    <span class="doccomment">/// Return the value as a native endian value.
+    </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+        <a href="../../src/object/endian.rs.html#599">e</a>.<a href="../../src/object/endian.rs.html#97">read_u16_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#599">self</a>.<span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Set the value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-        <a class="self" href="../../src/object/endian.rs.html#604">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#604">e</a>.<a class="ident" href="../../src/object/endian.rs.html#217">write_u16_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#604">n</a>);
-    }
-}
-
-<span class="doccomment">/// An unaligned `u32` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">U32Bytes</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>([<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>], <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">U32Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct a new value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../src/object/endian.rs.html#616">e</a>.<a class="ident" href="../../src/object/endian.rs.html#227">write_u32_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#616">n</a>), <span class="ident">PhantomData</span>)
-    }
-
-    <span class="doccomment">/// Return the value as a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#621">e</a>.<a class="ident" href="../../src/object/endian.rs.html#107">read_u32_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#621">self</a>.<span class="number">0</span>)
-    }
-
-    <span class="doccomment">/// Set the value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="../../src/object/endian.rs.html#626">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#626">e</a>.<a class="ident" href="../../src/object/endian.rs.html#227">write_u32_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#626">n</a>);
+    <span class="doccomment">/// Set the value given a native endian value.
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+        <a class="self" href="../../src/object/endian.rs.html#604">self</a>.<span class="number">0 </span>= <a href="../../src/object/endian.rs.html#604">e</a>.<a href="../../src/object/endian.rs.html#217">write_u16_bytes</a>(<a href="../../src/object/endian.rs.html#604">n</a>);
     }
 }
 
-<span class="doccomment">/// An unaligned `u64` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">U64Bytes</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>([<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>], <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+<span class="doccomment">/// An unaligned `u32` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>U32Bytes&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt;([<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>], PhantomData&lt;E&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">U64Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct a new value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../src/object/endian.rs.html#638">e</a>.<a class="ident" href="../../src/object/endian.rs.html#237">write_u64_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#638">n</a>), <span class="ident">PhantomData</span>)
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; U32Bytes&lt;E&gt; {
+    <span class="doccomment">/// Construct a new value given a native endian value.
+    </span><span class="kw">pub fn </span>new(e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<a href="../../src/object/endian.rs.html#616">e</a>.<a href="../../src/object/endian.rs.html#227">write_u32_bytes</a>(<a href="../../src/object/endian.rs.html#616">n</a>), PhantomData)
     }
 
-    <span class="doccomment">/// Return the value as a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#643">e</a>.<a class="ident" href="../../src/object/endian.rs.html#117">read_u64_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#643">self</a>.<span class="number">0</span>)
+    <span class="doccomment">/// Return the value as a native endian value.
+    </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a href="../../src/object/endian.rs.html#621">e</a>.<a href="../../src/object/endian.rs.html#107">read_u32_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#621">self</a>.<span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Set the value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../src/object/endian.rs.html#648">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#648">e</a>.<a class="ident" href="../../src/object/endian.rs.html#237">write_u64_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#648">n</a>);
-    }
-}
-
-<span class="doccomment">/// An unaligned `i16` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">I16Bytes</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>([<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>], <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">I16Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct a new value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../src/object/endian.rs.html#660">e</a>.<a class="ident" href="../../src/object/endian.rs.html#247">write_i16_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#660">n</a>), <span class="ident">PhantomData</span>)
-    }
-
-    <span class="doccomment">/// Return the value as a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#665">e</a>.<a class="ident" href="../../src/object/endian.rs.html#127">read_i16_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#665">self</a>.<span class="number">0</span>)
-    }
-
-    <span class="doccomment">/// Set the value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) {
-        <a class="self" href="../../src/object/endian.rs.html#670">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#670">e</a>.<a class="ident" href="../../src/object/endian.rs.html#247">write_i16_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#670">n</a>);
+    <span class="doccomment">/// Set the value given a native endian value.
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <a class="self" href="../../src/object/endian.rs.html#626">self</a>.<span class="number">0 </span>= <a href="../../src/object/endian.rs.html#626">e</a>.<a href="../../src/object/endian.rs.html#227">write_u32_bytes</a>(<a href="../../src/object/endian.rs.html#626">n</a>);
     }
 }
 
-<span class="doccomment">/// An unaligned `i32` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">I32Bytes</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>([<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>], <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+<span class="doccomment">/// An unaligned `u64` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>U64Bytes&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt;([<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>], PhantomData&lt;E&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">I32Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct a new value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../src/object/endian.rs.html#682">e</a>.<a class="ident" href="../../src/object/endian.rs.html#257">write_i32_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#682">n</a>), <span class="ident">PhantomData</span>)
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; U64Bytes&lt;E&gt; {
+    <span class="doccomment">/// Construct a new value given a native endian value.
+    </span><span class="kw">pub fn </span>new(e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<a href="../../src/object/endian.rs.html#638">e</a>.<a href="../../src/object/endian.rs.html#237">write_u64_bytes</a>(<a href="../../src/object/endian.rs.html#638">n</a>), PhantomData)
     }
 
-    <span class="doccomment">/// Return the value as a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#687">e</a>.<a class="ident" href="../../src/object/endian.rs.html#137">read_i32_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#687">self</a>.<span class="number">0</span>)
+    <span class="doccomment">/// Return the value as a native endian value.
+    </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a href="../../src/object/endian.rs.html#643">e</a>.<a href="../../src/object/endian.rs.html#117">read_u64_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#643">self</a>.<span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Set the value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
-        <a class="self" href="../../src/object/endian.rs.html#692">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#692">e</a>.<a class="ident" href="../../src/object/endian.rs.html#257">write_i32_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#692">n</a>);
-    }
-}
-
-<span class="doccomment">/// An unaligned `i64` value with an externally specified endianness of type `E`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">I64Bytes</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>([<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>], <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">I64Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct a new value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../src/object/endian.rs.html#704">e</a>.<a class="ident" href="../../src/object/endian.rs.html#267">write_i64_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#704">n</a>), <span class="ident">PhantomData</span>)
-    }
-
-    <span class="doccomment">/// Return the value as a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
-        <a class="ident" href="../../src/object/endian.rs.html#709">e</a>.<a class="ident" href="../../src/object/endian.rs.html#147">read_i64_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#709">self</a>.<span class="number">0</span>)
-    }
-
-    <span class="doccomment">/// Set the value given a native endian value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <span class="ident">E</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
-        <a class="self" href="../../src/object/endian.rs.html#714">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../src/object/endian.rs.html#714">e</a>.<a class="ident" href="../../src/object/endian.rs.html#267">write_i64_bytes</a>(<a class="ident" href="../../src/object/endian.rs.html#714">n</a>);
+    <span class="doccomment">/// Set the value given a native endian value.
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <a class="self" href="../../src/object/endian.rs.html#648">self</a>.<span class="number">0 </span>= <a href="../../src/object/endian.rs.html#648">e</a>.<a href="../../src/object/endian.rs.html#237">write_u64_bytes</a>(<a href="../../src/object/endian.rs.html#648">n</a>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">U16Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/object/endian.rs.html#720">f</a>, <span class="string">&quot;U16({:x}, {:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>],)
+<span class="doccomment">/// An unaligned `i16` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>I16Bytes&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt;([<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">2</span>], PhantomData&lt;E&gt;);
+
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; I16Bytes&lt;E&gt; {
+    <span class="doccomment">/// Construct a new value given a native endian value.
+    </span><span class="kw">pub fn </span>new(e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<a href="../../src/object/endian.rs.html#660">e</a>.<a href="../../src/object/endian.rs.html#247">write_i16_bytes</a>(<a href="../../src/object/endian.rs.html#660">n</a>), PhantomData)
+    }
+
+    <span class="doccomment">/// Return the value as a native endian value.
+    </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a> {
+        <a href="../../src/object/endian.rs.html#665">e</a>.<a href="../../src/object/endian.rs.html#127">read_i16_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#665">self</a>.<span class="number">0</span>)
+    }
+
+    <span class="doccomment">/// Set the value given a native endian value.
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) {
+        <a class="self" href="../../src/object/endian.rs.html#670">self</a>.<span class="number">0 </span>= <a href="../../src/object/endian.rs.html#670">e</a>.<a href="../../src/object/endian.rs.html#247">write_i16_bytes</a>(<a href="../../src/object/endian.rs.html#670">n</a>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">U32Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="doccomment">/// An unaligned `i32` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>I32Bytes&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt;([<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>], PhantomData&lt;E&gt;);
+
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; I32Bytes&lt;E&gt; {
+    <span class="doccomment">/// Construct a new value given a native endian value.
+    </span><span class="kw">pub fn </span>new(e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<a href="../../src/object/endian.rs.html#682">e</a>.<a href="../../src/object/endian.rs.html#257">write_i32_bytes</a>(<a href="../../src/object/endian.rs.html#682">n</a>), PhantomData)
+    }
+
+    <span class="doccomment">/// Return the value as a native endian value.
+    </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
+        <a href="../../src/object/endian.rs.html#687">e</a>.<a href="../../src/object/endian.rs.html#137">read_i32_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#687">self</a>.<span class="number">0</span>)
+    }
+
+    <span class="doccomment">/// Set the value given a native endian value.
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) {
+        <a class="self" href="../../src/object/endian.rs.html#692">self</a>.<span class="number">0 </span>= <a href="../../src/object/endian.rs.html#692">e</a>.<a href="../../src/object/endian.rs.html#257">write_i32_bytes</a>(<a href="../../src/object/endian.rs.html#692">n</a>);
+    }
+}
+
+<span class="doccomment">/// An unaligned `i64` value with an externally specified endianness of type `E`.
+</span><span class="attribute">#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>I64Bytes&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt;([<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>], PhantomData&lt;E&gt;);
+
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; I64Bytes&lt;E&gt; {
+    <span class="doccomment">/// Construct a new value given a native endian value.
+    </span><span class="kw">pub fn </span>new(e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<a href="../../src/object/endian.rs.html#704">e</a>.<a href="../../src/object/endian.rs.html#267">write_i64_bytes</a>(<a href="../../src/object/endian.rs.html#704">n</a>), PhantomData)
+    }
+
+    <span class="doccomment">/// Return the value as a native endian value.
+    </span><span class="kw">pub fn </span>get(<span class="self">self</span>, e: E) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> {
+        <a href="../../src/object/endian.rs.html#709">e</a>.<a href="../../src/object/endian.rs.html#147">read_i64_bytes</a>(<a class="self" href="../../src/object/endian.rs.html#709">self</a>.<span class="number">0</span>)
+    }
+
+    <span class="doccomment">/// Set the value given a native endian value.
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: E, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) {
+        <a class="self" href="../../src/object/endian.rs.html#714">self</a>.<span class="number">0 </span>= <a href="../../src/object/endian.rs.html#714">e</a>.<a href="../../src/object/endian.rs.html#267">write_i64_bytes</a>(<a href="../../src/object/endian.rs.html#714">n</a>);
+    }
+}
+
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>U16Bytes&lt;E&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/object/endian.rs.html#720">f</a>, <span class="string">&quot;U16({:x}, {:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>],)
+    }
+}
+
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>U32Bytes&lt;E&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a class="ident" href="../../src/object/endian.rs.html#726">f</a>,
+            <a href="../../src/object/endian.rs.html#726">f</a>,
             <span class="string">&quot;U32({:x}, {:x}, {:x}, {:x})&quot;</span>,
             <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">2</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">3</span>],
         )
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">U64Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>U64Bytes&lt;E&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a class="ident" href="../../src/object/endian.rs.html#736">f</a>,
+            <a href="../../src/object/endian.rs.html#736">f</a>,
             <span class="string">&quot;U64({:x}, {:x}, {:x}, {:x}, {:x}, {:x}, {:x}, {:x})&quot;</span>,
             <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">2</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">3</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">4</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">5</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">6</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">7</span>],
         )
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">I16Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/object/endian.rs.html#746">f</a>, <span class="string">&quot;I16({:x}, {:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>],)
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>I16Bytes&lt;E&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/object/endian.rs.html#746">f</a>, <span class="string">&quot;I16({:x}, {:x})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>],)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">I32Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>I32Bytes&lt;E&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a class="ident" href="../../src/object/endian.rs.html#752">f</a>,
+            <a href="../../src/object/endian.rs.html#752">f</a>,
             <span class="string">&quot;I32({:x}, {:x}, {:x}, {:x})&quot;</span>,
             <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">2</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">3</span>],
         )
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">I64Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;E: <a href="../../src/object/endian.rs.html#13">Endian</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>I64Bytes&lt;E&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a class="ident" href="../../src/object/endian.rs.html#762">f</a>,
+            <a href="../../src/object/endian.rs.html#762">f</a>,
             <span class="string">&quot;I64({:x}, {:x}, {:x}, {:x}, {:x}, {:x}, {:x}, {:x})&quot;</span>,
             <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">2</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">3</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">4</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">5</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">6</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">7</span>],
         )
     }
 }
 
-<a class="macro" href="../../src/object/endian.rs.html#387-393">unsafe_impl_endian_pod!</a>(<span class="ident">U16Bytes</span>, <span class="ident">U32Bytes</span>, <span class="ident">U64Bytes</span>, <span class="ident">I16Bytes</span>, <span class="ident">I32Bytes</span>, <span class="ident">I64Bytes</span>);
+<a class="macro" href="../../src/object/endian.rs.html#387-393">unsafe_impl_endian_pod!</a>(U16Bytes, U32Bytes, U64Bytes, I16Bytes, I32Bytes, I64Bytes);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

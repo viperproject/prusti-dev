@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/blob.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>blob.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/blob.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>blob.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -206,213 +206,213 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/object.rs.html#12">Object</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>};
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/object.rs.html#12">Object</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>};
 
-<span class="doccomment">/// A structure to represent a git [blob][1]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [1]: http://git-scm.com/book/en/Git-Internals-Git-Objects</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_blob.html">raw::git_blob</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A structure to represent a git [blob][1]
+///
+/// [1]: http://git-scm.com/book/en/Git-Internals-Git-Objects
+</span><span class="kw">pub struct </span>Blob&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_blob.html">raw::git_blob</a>,
+    _marker: marker::PhantomData&lt;Object&lt;<span class="lifetime">&#39;repo</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Get the id (SHA1) of a repository blob</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="ident">raw::git_blob_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#19">self</a>.<span class="ident">raw</span>)) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Blob&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Get the id (SHA1) of a repository blob
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/oid.rs.html#15">Oid</a> {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(raw::git_blob_id(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/blob.rs.html#19">self</a>.raw)) }
     }
 
-    <span class="doccomment">/// Determine if the blob content is most certainly binary or not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_binary</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_blob_is_binary</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#24">self</a>.<span class="ident">raw</span>) <span class="op">==</span> <span class="number">1</span> }
+    <span class="doccomment">/// Determine if the blob content is most certainly binary or not.
+    </span><span class="kw">pub fn </span>is_binary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">unsafe </span>{ raw::git_blob_is_binary(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/blob.rs.html#24">self</a>.raw) == <span class="number">1 </span>}
     }
 
-    <span class="doccomment">/// Get the content of this blob.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">content</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">raw::git_blob_rawcontent</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#29">self</a>.<span class="ident">raw</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">raw::git_blob_rawsize</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#29">self</a>.<span class="ident">raw</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../src/git2/blob.rs.html#31">data</a>, <a class="ident" href="../../src/git2/blob.rs.html#32">len</a>)
+    <span class="doccomment">/// Get the content of this blob.
+    </span><span class="kw">pub fn </span>content(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>data = raw::git_blob_rawcontent(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/blob.rs.html#29">self</a>.raw) <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+            <span class="kw">let </span>len = raw::git_blob_rawsize(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/blob.rs.html#29">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            slice::from_raw_parts(<a href="../../src/git2/blob.rs.html#31">data</a>, <a href="../../src/git2/blob.rs.html#32">len</a>)
         }
     }
 
-    <span class="doccomment">/// Get the size in bytes of the contents of this blob.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_blob_rawsize</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#38">self</a>.<span class="ident">raw</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    <span class="doccomment">/// Get the size in bytes of the contents of this blob.
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">unsafe </span>{ raw::git_blob_rawsize(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/blob.rs.html#38">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
-    <span class="doccomment">/// Casts this Blob to be usable as an `Object`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="self" href="../../src/git2/blob.rs.html#43">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>) }
+    <span class="doccomment">/// Casts this Blob to be usable as an `Object`
+    </span><span class="kw">pub fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="self"><a href="../../src/git2/blob.rs.html#43">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt;) }
     }
 
-    <span class="doccomment">/// Consumes Blob to be returned as an `Object`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_object</span>(<span class="self">self</span>) -&gt; <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>());
-        <span class="kw">unsafe</span> { <span class="ident">mem::transmute</span>(<a class="self" href="../../src/git2/blob.rs.html#48">self</a>) }
+    <span class="doccomment">/// Consumes Blob to be returned as an `Object`
+    </span><span class="kw">pub fn </span>into_object(<span class="self">self</span>) -&gt; Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::size_of_val(<span class="kw-2">&amp;</span><span class="self">self</span>), mem::size_of::&lt;Object&lt;<span class="lifetime">&#39;_</span>&gt;&gt;());
+        <span class="kw">unsafe </span>{ mem::transmute(<a class="self" href="../../src/git2/blob.rs.html#48">self</a>) }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_blob.html">raw::git_blob</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Blob&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_blob.html">raw::git_blob</a>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_blob.html">raw::git_blob</a>) -&gt; <span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/blob.rs.html#12">Blob</a> {
-            <a class="ident" href="../../src/git2/blob.rs.html#57">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_blob.html">raw::git_blob</a>) -&gt; Blob&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/blob.rs.html#12">Blob</a> {
+            <a href="../../src/git2/blob.rs.html#57">raw</a>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_blob.html">raw::git_blob</a> {
-        <a class="self" href="../../src/git2/blob.rs.html#63">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_blob.html">raw::git_blob</a> {
+        <a class="self" href="../../src/git2/blob.rs.html#63">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">std::fmt::Error</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/blob.rs.html#69">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Blob&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/blob.rs.html#69">self</a>.<a class="ident" href="../../src/git2/blob.rs.html#19">id</a>()).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>Blob&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">std::fmt::Error</a>&gt; {
+        <a href="../../src/git2/blob.rs.html#69">f</a>.debug_struct(<span class="string">&quot;Blob&quot;</span>).field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/blob.rs.html#69">self</a>.<a href="../../src/git2/blob.rs.html#19">id</a>()).finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/blob.rs.html#75">self</a>.<a class="ident" href="../../src/git2/blob.rs.html#43">as_object</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../src/git2/object.rs.html#133">into_blob</a>().<span class="ident">ok</span>().<span class="ident">unwrap</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Blob&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/git2/blob.rs.html#75">self</a>.<a href="../../src/git2/blob.rs.html#43">as_object</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="../../src/git2/object.rs.html#133">into_blob</a>().ok().unwrap()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_blob_free</span>(<a class="self" href="../../src/git2/blob.rs.html#81">self</a>.<span class="ident">raw</span>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Blob&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{ raw::git_blob_free(<a class="self" href="../../src/git2/blob.rs.html#81">self</a>.raw) }
     }
 }
 
-<span class="doccomment">/// A structure to represent a git writestream for blobs</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BlobWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_writestream.html">raw::git_writestream</a>,
-    <span class="ident">need_cleanup</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A structure to represent a git writestream for blobs
+</span><span class="kw">pub struct </span>BlobWriter&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_writestream.html">raw::git_writestream</a>,
+    need_cleanup: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    _marker: marker::PhantomData&lt;Object&lt;<span class="lifetime">&#39;repo</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">BlobWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Finalize blob writing stream and write the blob to the object db</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">commit</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="comment">// After commit we already doesn&#39;t need cleanup on drop</span>
-        <a class="self" href="../../src/git2/blob.rs.html#95">self</a>.<span class="ident">need_cleanup</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
-            <span class="ident">id</span>: [<span class="number">0</span>; <span class="ident">raw::GIT_OID_RAWSZ</span>],
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; BlobWriter&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Finalize blob writing stream and write the blob to the object db
+    </span><span class="kw">pub fn </span>commit(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="comment">// After commit we already doesn&#39;t need cleanup on drop
+        </span><a class="self" href="../../src/git2/blob.rs.html#95">self</a>.need_cleanup = <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>raw = <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
+            id: [<span class="number">0</span>; raw::GIT_OID_RAWSZ],
         };
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_blob_create_fromstream_commit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw</span>, <span class="self">self</span>.<span class="ident">raw</span>));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/blob.rs.html#98">raw</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_blob_create_fromstream_commit(<span class="kw-2">&amp;mut </span>raw, <span class="self">self</span>.raw));
+            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/blob.rs.html#98">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">BlobWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_writestream.html">raw::git_writestream</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>BlobWriter&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_writestream.html">raw::git_writestream</a>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_writestream.html">raw::git_writestream</a>) -&gt; <span class="ident">BlobWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/blob.rs.html#87">BlobWriter</a> {
-            <a class="ident" href="../../src/git2/blob.rs.html#111">raw</a>,
-            <span class="ident">need_cleanup</span>: <span class="bool-val">true</span>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_writestream.html">raw::git_writestream</a>) -&gt; BlobWriter&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/blob.rs.html#87">BlobWriter</a> {
+            <a href="../../src/git2/blob.rs.html#111">raw</a>,
+            need_cleanup: <span class="bool-val">true</span>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_writestream.html">raw::git_writestream</a> {
-        <a class="self" href="../../src/git2/blob.rs.html#118">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_writestream.html">raw::git_writestream</a> {
+        <a class="self" href="../../src/git2/blob.rs.html#118">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">BlobWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// We need cleanup in case the stream has not been committed</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">need_cleanup</span> {
-            <span class="kw">unsafe</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> (<span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#124">self</a>.<span class="ident">raw</span>).<span class="ident">free</span> {
-                    <a class="ident" href="../../src/git2/blob.rs.html#128">f</a>(<a class="self" href="../../src/git2/blob.rs.html#124">self</a>.<span class="ident">raw</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>BlobWriter&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// We need cleanup in case the stream has not been committed
+        </span><span class="kw">if </span><span class="self">self</span>.need_cleanup {
+            <span class="kw">unsafe </span>{
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = (<span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#124">self</a>.raw).free {
+                    <a href="../../src/git2/blob.rs.html#128">f</a>(<a class="self" href="../../src/git2/blob.rs.html#124">self</a>.raw)
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <span class="ident">BlobWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> (<span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#137">self</a>.<span class="ident">raw</span>).<span class="ident">write</span> {
-                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/git2/blob.rs.html#139">f</a>(<a class="self" href="../../src/git2/blob.rs.html#137">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/blob.rs.html#137">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <a class="ident" href="../../src/git2/blob.rs.html#137">buf</a>.<span class="ident">len</span>());
-                <span class="kw">if</span> <span class="ident">res</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                    <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;Write error&quot;</span>))
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/blob.rs.html#137">buf</a>.<span class="ident">len</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for </span>BlobWriter&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = (<span class="kw-2">*</span><a class="self" href="../../src/git2/blob.rs.html#137">self</a>.raw).write {
+                <span class="kw">let </span>res = <a href="../../src/git2/blob.rs.html#139">f</a>(<a class="self" href="../../src/git2/blob.rs.html#137">self</a>.raw, <a href="../../src/git2/blob.rs.html#137">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <a href="../../src/git2/blob.rs.html#137">buf</a>.len());
+                <span class="kw">if </span>res &lt; <span class="number">0 </span>{
+                    <span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Other, <span class="string">&quot;Write error&quot;</span>))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Ok</span>(<a href="../../src/git2/blob.rs.html#137">buf</a>.len())
                 }
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;no write callback&quot;</span>))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Other, <span class="string">&quot;no write callback&quot;</span>))
             }
         }
     }
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Repository</span>;
-    <span class="kw">use</span> <span class="ident">std::fs::File</span>;
-    <span class="kw">use</span> <span class="ident">std::io::prelude</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std::path::Path</span>;
-    <span class="kw">use</span> <span class="ident">tempfile::TempDir</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::Repository;
+    <span class="kw">use </span>std::fs::File;
+    <span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::path::Path;
+    <span class="kw">use </span>tempfile::TempDir;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">buffer</span>() {
-        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir::new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">repo</span> <span class="op">=</span> <span class="ident">Repository::init</span>(<span class="ident">td</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">blob</span>(<span class="kw-2">&amp;</span>[<span class="number">5</span>, <span class="number">4</span>, <span class="number">6</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">blob</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_blob</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>buffer() {
+        <span class="kw">let </span>td = TempDir::new().unwrap();
+        <span class="kw">let </span>repo = Repository::init(td.path()).unwrap();
+        <span class="kw">let </span>id = repo.blob(<span class="kw-2">&amp;</span>[<span class="number">5</span>, <span class="number">4</span>, <span class="number">6</span>]).unwrap();
+        <span class="kw">let </span>blob = repo.find_blob(id).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">blob</span>.<span class="ident">id</span>(), <span class="ident">id</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">blob</span>.<span class="ident">size</span>(), <span class="number">3</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">blob</span>.<span class="ident">content</span>(), [<span class="number">5</span>, <span class="number">4</span>, <span class="number">6</span>]);
-        <span class="macro">assert!</span>(<span class="ident">blob</span>.<span class="ident">is_binary</span>());
+        <span class="macro">assert_eq!</span>(blob.id(), id);
+        <span class="macro">assert_eq!</span>(blob.size(), <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(blob.content(), [<span class="number">5</span>, <span class="number">4</span>, <span class="number">6</span>]);
+        <span class="macro">assert!</span>(blob.is_binary());
 
-        <span class="ident">repo</span>.<span class="ident">find_object</span>(<span class="ident">id</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>().<span class="ident">as_blob</span>().<span class="ident">unwrap</span>();
-        <span class="ident">repo</span>.<span class="ident">find_object</span>(<span class="ident">id</span>, <span class="prelude-val">None</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">into_blob</span>()
-            .<span class="ident">ok</span>()
-            .<span class="ident">unwrap</span>();
+        repo.find_object(id, <span class="prelude-val">None</span>).unwrap().as_blob().unwrap();
+        repo.find_object(id, <span class="prelude-val">None</span>)
+            .unwrap()
+            .into_blob()
+            .ok()
+            .unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">path</span>() {
-        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir::new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;foo&quot;</span>);
-        <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>().<span class="ident">write_all</span>(<span class="kw-2">&amp;</span>[<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">repo</span> <span class="op">=</span> <span class="ident">Repository::init</span>(<span class="ident">td</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">blob_path</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">blob</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_blob</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">blob</span>.<span class="ident">content</span>(), [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]);
-        <span class="ident">blob</span>.<span class="ident">into_object</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>path() {
+        <span class="kw">let </span>td = TempDir::new().unwrap();
+        <span class="kw">let </span>path = td.path().join(<span class="string">&quot;foo&quot;</span>);
+        File::create(<span class="kw-2">&amp;</span>path).unwrap().write_all(<span class="kw-2">&amp;</span>[<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]).unwrap();
+        <span class="kw">let </span>repo = Repository::init(td.path()).unwrap();
+        <span class="kw">let </span>id = repo.blob_path(<span class="kw-2">&amp;</span>path).unwrap();
+        <span class="kw">let </span>blob = repo.find_blob(id).unwrap();
+        <span class="macro">assert_eq!</span>(blob.content(), [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]);
+        blob.into_object();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">stream</span>() {
-        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir::new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">repo</span> <span class="op">=</span> <span class="ident">Repository::init</span>(<span class="ident">td</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ws</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">blob_writer</span>(<span class="prelude-val">Some</span>(<span class="ident">Path::new</span>(<span class="string">&quot;foo&quot;</span>))).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">wl</span> <span class="op">=</span> <span class="ident">ws</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span>[<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>]).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">wl</span>, <span class="number">3</span>);
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">ws</span>.<span class="ident">commit</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">blob</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_blob</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">blob</span>.<span class="ident">content</span>(), [<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>]);
-        <span class="ident">blob</span>.<span class="ident">into_object</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>stream() {
+        <span class="kw">let </span>td = TempDir::new().unwrap();
+        <span class="kw">let </span>repo = Repository::init(td.path()).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>ws = repo.blob_writer(<span class="prelude-val">Some</span>(Path::new(<span class="string">&quot;foo&quot;</span>))).unwrap();
+        <span class="kw">let </span>wl = ws.write(<span class="kw-2">&amp;</span>[<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>]).unwrap();
+        <span class="macro">assert_eq!</span>(wl, <span class="number">3</span>);
+        <span class="kw">let </span>id = ws.commit().unwrap();
+        <span class="kw">let </span>blob = repo.find_blob(id).unwrap();
+        <span class="macro">assert_eq!</span>(blob.content(), [<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>]);
+        blob.into_object();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

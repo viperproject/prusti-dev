@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.11/src/sync/wait_group.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wait_group.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../crossbeam_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.11/src/sync/wait_group.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wait_group.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../crossbeam_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -144,151 +144,151 @@
 <span id="144">144</span>
 <span id="145">145</span>
 <span id="146">146</span>
-</pre><pre class="rust"><code><span class="comment">// Necessary for using `Mutex&lt;usize&gt;` for conditional variables</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::mutex_atomic</span>)]</span>
+</pre><pre class="rust"><code><span class="comment">// Necessary for using `Mutex&lt;usize&gt;` for conditional variables
+</span><span class="attribute">#![allow(clippy::mutex_atomic)]
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::primitive::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::primitive::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="doccomment">/// Enables threads to synchronize the beginning or end of some computation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Wait groups vs barriers</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `WaitGroup` is very similar to [`Barrier`], but there are a few differences:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * [`Barrier`] needs to know the number of threads at construction, while `WaitGroup` is cloned to</span>
-<span class="doccomment">///   register more threads.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * A [`Barrier`] can be reused even after all threads have synchronized, while a `WaitGroup`</span>
-<span class="doccomment">///   synchronizes threads only once.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * All threads wait for others to reach the [`Barrier`]. With `WaitGroup`, each thread can choose</span>
-<span class="doccomment">///   to either wait for other threads or to continue without blocking.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use crossbeam_utils::sync::WaitGroup;</span>
-<span class="doccomment">/// use std::thread;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Create a new wait group.</span>
-<span class="doccomment">/// let wg = WaitGroup::new();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// for _ in 0..4 {</span>
-<span class="doccomment">///     // Create another reference to the wait group.</span>
-<span class="doccomment">///     let wg = wg.clone();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     thread::spawn(move || {</span>
-<span class="doccomment">///         // Do some work.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///         // Drop the reference to the wait group.</span>
-<span class="doccomment">///         drop(wg);</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Block until all threads have finished their work.</span>
-<span class="doccomment">/// wg.wait();</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Barrier`]: std::sync::Barrier</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WaitGroup</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#53">Inner</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Enables threads to synchronize the beginning or end of some computation.
+///
+/// # Wait groups vs barriers
+///
+/// `WaitGroup` is very similar to [`Barrier`], but there are a few differences:
+///
+/// * [`Barrier`] needs to know the number of threads at construction, while `WaitGroup` is cloned to
+///   register more threads.
+///
+/// * A [`Barrier`] can be reused even after all threads have synchronized, while a `WaitGroup`
+///   synchronizes threads only once.
+///
+/// * All threads wait for others to reach the [`Barrier`]. With `WaitGroup`, each thread can choose
+///   to either wait for other threads or to continue without blocking.
+///
+/// # Examples
+///
+/// ```
+/// use crossbeam_utils::sync::WaitGroup;
+/// use std::thread;
+///
+/// // Create a new wait group.
+/// let wg = WaitGroup::new();
+///
+/// for _ in 0..4 {
+///     // Create another reference to the wait group.
+///     let wg = wg.clone();
+///
+///     thread::spawn(move || {
+///         // Do some work.
+///
+///         // Drop the reference to the wait group.
+///         drop(wg);
+///     });
+/// }
+///
+/// // Block until all threads have finished their work.
+/// wg.wait();
+/// ```
+///
+/// [`Barrier`]: std::sync::Barrier
+</span><span class="kw">pub struct </span>WaitGroup {
+    inner: Arc&lt;<a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#53">Inner</a>&gt;,
 }
 
-<span class="doccomment">/// Inner state of a `WaitGroup`.</span>
-<span class="kw">struct</span> <span class="ident">Inner</span> {
-    <span class="ident">cvar</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
-    <span class="ident">count</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Inner state of a `WaitGroup`.
+</span><span class="kw">struct </span>Inner {
+    cvar: <a href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
+    count: Mutex&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#53">Inner</a> {
-                <span class="ident">cvar</span>: <span class="ident">Condvar::new</span>(),
-                <span class="ident">count</span>: <span class="ident">Mutex::new</span>(<span class="number">1</span>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Arc::new(<a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#53">Inner</a> {
+                cvar: Condvar::new(),
+                count: Mutex::new(<span class="number">1</span>),
             }),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
-    <span class="doccomment">/// Creates a new wait group and returns the single reference to it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use crossbeam_utils::sync::WaitGroup;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let wg = WaitGroup::new();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::default</span>()
+<span class="kw">impl </span><a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
+    <span class="doccomment">/// Creates a new wait group and returns the single reference to it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crossbeam_utils::sync::WaitGroup;
+    ///
+    /// let wg = WaitGroup::new();
+    /// ```
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::default()
     }
 
-    <span class="doccomment">/// Drops this reference and waits until all other references are dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use crossbeam_utils::sync::WaitGroup;</span>
-    <span class="doccomment">/// use std::thread;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let wg = WaitGroup::new();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// thread::spawn({</span>
-    <span class="doccomment">///     let wg = wg.clone();</span>
-    <span class="doccomment">///     move || {</span>
-    <span class="doccomment">///         // Block until both threads have reached `wait()`.</span>
-    <span class="doccomment">///         wg.wait();</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Block until both threads have reached `wait()`.</span>
-    <span class="doccomment">/// wg.wait();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait</span>(<span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">count</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">==</span> <span class="number">1</span> {
+    <span class="doccomment">/// Drops this reference and waits until all other references are dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crossbeam_utils::sync::WaitGroup;
+    /// use std::thread;
+    ///
+    /// let wg = WaitGroup::new();
+    ///
+    /// thread::spawn({
+    ///     let wg = wg.clone();
+    ///     move || {
+    ///         // Block until both threads have reached `wait()`.
+    ///         wg.wait();
+    ///     }
+    /// });
+    ///
+    /// // Block until both threads have reached `wait()`.
+    /// wg.wait();
+    /// ```
+    </span><span class="kw">pub fn </span>wait(<span class="self">self</span>) {
+        <span class="kw">if </span><span class="kw-2">*</span><span class="self">self</span>.inner.count.lock().unwrap() == <span class="number">1 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#104">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#104">self</a>);
+        <span class="kw">let </span>inner = <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#104">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#104">self</a>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#109">inner</a>.<span class="ident">count</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw">while</span> <span class="kw-2">*</span><span class="ident">count</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="ident">count</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">cvar</span>.<span class="ident">wait</span>(<span class="ident">count</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>count = <a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#109">inner</a>.count.lock().unwrap();
+        <span class="kw">while </span><span class="kw-2">*</span>count &gt; <span class="number">0 </span>{
+            count = inner.cvar.wait(count).unwrap();
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#120">self</a>.<span class="ident">inner</span>.<span class="ident">count</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw-2">*</span><a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#121">count</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>count = <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#120">self</a>.inner.count.lock().unwrap();
+        <span class="kw-2">*</span><a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#121">count</a> -= <span class="number">1</span>;
 
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
-            <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#120">self</a>.<span class="ident">inner</span>.<span class="ident">cvar</span>.<span class="ident">notify_all</span>();
+        <span class="kw">if </span><span class="kw-2">*</span>count == <span class="number">0 </span>{
+            <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#120">self</a>.inner.cvar.notify_all();
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#131">self</a>.<span class="ident">inner</span>.<span class="ident">count</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw-2">*</span><a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#132">count</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>count = <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#131">self</a>.inner.count.lock().unwrap();
+        <span class="kw-2">*</span><a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#132">count</a> += <span class="number">1</span>;
 
-        <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#131">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
+            inner: <a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#131">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">count</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#142">self</a>.<span class="ident">inner</span>.<span class="ident">count</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#142">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;WaitGroup&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;count&quot;</span>, <a class="ident" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#143">count</a>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#48">WaitGroup</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span>count: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="kw-2">&amp;*</span><a class="self" href="../../../src/crossbeam_utils/sync/wait_group.rs.html#142">self</a>.inner.count.lock().unwrap();
+        <a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#142">f</a>.debug_struct(<span class="string">&quot;WaitGroup&quot;</span>).field(<span class="string">&quot;count&quot;</span>, <a href="../../../src/crossbeam_utils/sync/wait_group.rs.html#143">count</a>).finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

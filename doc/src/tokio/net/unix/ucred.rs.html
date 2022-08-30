@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/net/unix/ucred.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ucred.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/net/unix/ucred.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ucred.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -250,257 +250,257 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../../../libc/unix/type.gid_t.html">gid_t</a>, <a class="ident" href="../../../../libc/unix/type.pid_t.html">pid_t</a>, <a class="ident" href="../../../../libc/unix/type.uid_t.html">uid_t</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a href="../../../../libc/unix/type.gid_t.html">gid_t</a>, <a href="../../../../libc/unix/type.pid_t.html">pid_t</a>, <a href="../../../../libc/unix/type.uid_t.html">uid_t</a>};
 
-<span class="doccomment">/// Credentials of a process.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UCred</span> {
-    <span class="doccomment">/// PID (process ID) of the process.</span>
-    <span class="ident">pid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../libc/unix/type.pid_t.html">pid_t</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// UID (user ID) of the process.</span>
-    <span class="ident">uid</span>: <a class="ident" href="../../../../libc/unix/type.uid_t.html">uid_t</a>,
-    <span class="doccomment">/// GID (group ID) of the process.</span>
-    <span class="ident">gid</span>: <a class="ident" href="../../../../libc/unix/type.gid_t.html">gid_t</a>,
+<span class="doccomment">/// Credentials of a process.
+</span><span class="attribute">#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+</span><span class="kw">pub struct </span>UCred {
+    <span class="doccomment">/// PID (process ID) of the process.
+    </span>pid: <span class="prelude-ty">Option</span>&lt;<a href="../../../../libc/unix/type.pid_t.html">pid_t</a>&gt;,
+    <span class="doccomment">/// UID (user ID) of the process.
+    </span>uid: <a href="../../../../libc/unix/type.uid_t.html">uid_t</a>,
+    <span class="doccomment">/// GID (group ID) of the process.
+    </span>gid: <a href="../../../../libc/unix/type.gid_t.html">gid_t</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#5">UCred</a> {
-    <span class="doccomment">/// Gets UID (user ID) of the process.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../libc/unix/type.uid_t.html">uid_t</a> {
-        <a class="self" href="../../../../src/tokio/net/unix/ucred.rs.html#16">self</a>.<span class="ident">uid</span>
+<span class="kw">impl </span><a href="../../../../src/tokio/net/unix/ucred.rs.html#5">UCred</a> {
+    <span class="doccomment">/// Gets UID (user ID) of the process.
+    </span><span class="kw">pub fn </span>uid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../libc/unix/type.uid_t.html">uid_t</a> {
+        <a class="self" href="../../../../src/tokio/net/unix/ucred.rs.html#16">self</a>.uid
     }
 
-    <span class="doccomment">/// Gets GID (group ID) of the process.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../libc/unix/type.gid_t.html">gid_t</a> {
-        <a class="self" href="../../../../src/tokio/net/unix/ucred.rs.html#21">self</a>.<span class="ident">gid</span>
+    <span class="doccomment">/// Gets GID (group ID) of the process.
+    </span><span class="kw">pub fn </span>gid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../libc/unix/type.gid_t.html">gid_t</a> {
+        <a class="self" href="../../../../src/tokio/net/unix/ucred.rs.html#21">self</a>.gid
     }
 
-    <span class="doccomment">/// Gets PID (process ID) of the process.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only implemented under Linux, Android, iOS, macOS, Solaris and</span>
-    <span class="doccomment">/// Illumos. On other platforms this will always return `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../libc/unix/type.pid_t.html">pid_t</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/net/unix/ucred.rs.html#29">self</a>.<span class="ident">pid</span>
+    <span class="doccomment">/// Gets PID (process ID) of the process.
+    ///
+    /// This is only implemented under Linux, Android, iOS, macOS, Solaris and
+    /// Illumos. On other platforms this will always return `None`.
+    </span><span class="kw">pub fn </span>pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../libc/unix/type.pid_t.html">pid_t</a>&gt; {
+        <a class="self" href="../../../../src/tokio/net/unix/ucred.rs.html#29">self</a>.pid
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#61"><span class="self">self</span>::impl_linux::get_peer_cred</a>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../../src/tokio/net/unix/ucred.rs.html#61"><span class="self">self</span>::impl_linux::get_peer_cred</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::impl_netbsd::get_peer_cred</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;netbsd&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::impl_netbsd::get_peer_cred;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::impl_bsd::get_peer_cred</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::impl_bsd::get_peer_cred;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::impl_macos::get_peer_cred</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::impl_macos::get_peer_cred;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::impl_solaris::get_peer_cred</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;solaris&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::impl_solaris::get_peer_cred;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">impl_linux</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/net/unix/stream.rs.html#35"><span class="kw">crate</span>::net::unix::UnixStream</a>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_linux {
+    <span class="kw">use </span><a href="../../../../src/tokio/net/unix/stream.rs.html#35"><span class="kw">crate</span>::net::unix::UnixStream</a>;
 
-    <span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../../../libc/unix/fn.getsockopt.html">getsockopt</a>, <a class="ident" href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>, <a class="ident" href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">SOL_SOCKET</a>, <a class="ident" href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SO_PEERCRED.html">SO_PEERCRED</a>};
-    <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+    <span class="kw">use </span>libc::{<a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../../../libc/unix/fn.getsockopt.html">getsockopt</a>, <a href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>, <a href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">SOL_SOCKET</a>, <a href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SO_PEERCRED.html">SO_PEERCRED</a>};
+    <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="ident">libc::sockpeercred</span> <span class="kw">as</span> <span class="ident">ucred</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-    <span class="kw">use</span> <a class="ident" href="../../../../libc/unix/linux_like/linux/struct.ucred.html">libc::ucred</a>;
+    <span class="attribute">#[cfg(target_os = <span class="string">&quot;openbsd&quot;</span>)]
+    </span><span class="kw">use </span>libc::sockpeercred <span class="kw">as </span>ucred;
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    </span><span class="kw">use </span><a href="../../../../libc/unix/linux_like/linux/struct.ucred.html">libc::ucred</a>;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_peer_cred</span>(<span class="ident">sock</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/net/unix/stream.rs.html#35">UnixStream</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#5"><span class="kw">super</span>::UCred</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_peer_cred(sock: <span class="kw-2">&amp;</span><a href="../../../../src/tokio/net/unix/stream.rs.html#35">UnixStream</a>) -&gt; io::Result&lt;<a href="../../../../src/tokio/net/unix/ucred.rs.html#5"><span class="kw">super</span>::UCred</a>&gt; {
+        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a>;
 
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw_fd</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#61">sock</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw_fd = <a href="../../../../src/tokio/net/unix/ucred.rs.html#61">sock</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ucred</span> <span class="op">=</span> <a class="ident" href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a> {
-                <span class="ident">pid</span>: <span class="number">0</span>,
-                <span class="ident">uid</span>: <span class="number">0</span>,
-                <span class="ident">gid</span>: <span class="number">0</span>,
+            <span class="kw">let </span><span class="kw-2">mut </span>ucred = <a href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a> {
+                pid: <span class="number">0</span>,
+                uid: <span class="number">0</span>,
+                gid: <span class="number">0</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">ucred_size</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a><span class="op">&gt;</span>();
+            <span class="kw">let </span>ucred_size = mem::size_of::&lt;<a href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a>&gt;();
 
-            <span class="comment">// These paranoid checks should be optimized-out</span>
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>());
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">ucred_size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">u32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="comment">// These paranoid checks should be optimized-out
+            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(mem::size_of::&lt;u32&gt;() &lt;= mem::size_of::&lt;usize&gt;());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(ucred_size &lt;= u32::MAX <span class="kw">as </span>usize);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ucred_size</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#73">ucred_size</a> <span class="kw">as</span> <a class="ident" href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>;
+            <span class="kw">let </span><span class="kw-2">mut </span>ucred_size = <a href="../../../../src/tokio/net/unix/ucred.rs.html#73">ucred_size</a> <span class="kw">as </span><a href="../../../../libc/unix/linux_like/linux/type.socklen_t.html">socklen_t</a>;
 
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../../libc/unix/fn.getsockopt.html">getsockopt</a>(
-                <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#65">raw_fd</a>,
-                <a class="ident" href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">SOL_SOCKET</a>,
-                <a class="ident" href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SO_PEERCRED.html">SO_PEERCRED</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#67">ucred</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#79">ucred_size</a>,
+            <span class="kw">let </span>ret = <a href="../../../../libc/unix/fn.getsockopt.html">getsockopt</a>(
+                <a href="../../../../src/tokio/net/unix/ucred.rs.html#65">raw_fd</a>,
+                <a href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SOL_SOCKET.html">SOL_SOCKET</a>,
+                <a href="../../../../libc/unix/linux_like/linux/arch/generic/constant.SO_PEERCRED.html">SO_PEERCRED</a>,
+                <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/net/unix/ucred.rs.html#67">ucred</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../../libc/unix/linux_like/linux/struct.ucred.html">ucred</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+                <span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/net/unix/ucred.rs.html#79">ucred_size</a>,
             );
-            <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">ucred_size</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">ucred</span><span class="op">&gt;</span>() {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#5"><span class="kw">super</span>::UCred</a> {
-                    <span class="ident">uid</span>: <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#67">ucred</a>.<span class="ident">uid</span>,
-                    <span class="ident">gid</span>: <a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#67">ucred</a>.<span class="ident">gid</span>,
-                    <span class="ident">pid</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/net/unix/ucred.rs.html#67">ucred</a>.<span class="ident">pid</span>),
+            <span class="kw">if </span>ret == <span class="number">0 </span>&amp;&amp; ucred_size <span class="kw">as </span>usize == mem::size_of::&lt;ucred&gt;() {
+                <span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/net/unix/ucred.rs.html#5"><span class="kw">super</span>::UCred</a> {
+                    uid: <a href="../../../../src/tokio/net/unix/ucred.rs.html#67">ucred</a>.uid,
+                    gid: <a href="../../../../src/tokio/net/unix/ucred.rs.html#67">ucred</a>.gid,
+                    pid: <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/net/unix/ucred.rs.html#67">ucred</a>.pid),
                 })
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">io::Error::last_os_error</span>())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(io::Error::last_os_error())
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">impl_netbsd</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::net::unix::UnixStream</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;netbsd&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_netbsd {
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::UnixStream;
 
-    <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_void</span>, <span class="ident">getsockopt</span>, <span class="ident">socklen_t</span>, <span class="ident">unpcbid</span>, <span class="ident">LOCAL_PEEREID</span>, <span class="ident">SOL_SOCKET</span>};
-    <span class="kw">use</span> <span class="ident">std::io</span>;
-    <span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
-    <span class="kw">use</span> <span class="ident">std::os::unix::io::AsRawFd</span>;
+    <span class="kw">use </span>libc::{c_void, getsockopt, socklen_t, unpcbid, LOCAL_PEEREID, SOL_SOCKET};
+    <span class="kw">use </span>std::io;
+    <span class="kw">use </span>std::mem::size_of;
+    <span class="kw">use </span>std::os::unix::io::AsRawFd;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_peer_cred</span>(<span class="ident">sock</span>: <span class="kw-2">&amp;</span><span class="ident">UnixStream</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::UCred</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw_fd</span> <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">as_raw_fd</span>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_peer_cred(sock: <span class="kw-2">&amp;</span>UnixStream) -&gt; io::Result&lt;<span class="kw">super</span>::UCred&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw_fd = sock.as_raw_fd();
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unpcbid</span> <span class="op">=</span> <span class="ident">unpcbid</span> {
-                <span class="ident">unp_pid</span>: <span class="number">0</span>,
-                <span class="ident">unp_euid</span>: <span class="number">0</span>,
-                <span class="ident">unp_egid</span>: <span class="number">0</span>,
+            <span class="kw">let </span><span class="kw-2">mut </span>unpcbid = unpcbid {
+                unp_pid: <span class="number">0</span>,
+                unp_euid: <span class="number">0</span>,
+                unp_egid: <span class="number">0</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">unpcbid_size</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">unpcbid</span><span class="op">&gt;</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unpcbid_size</span> <span class="op">=</span> <span class="ident">unpcbid_size</span> <span class="kw">as</span> <span class="ident">socklen_t</span>;
+            <span class="kw">let </span>unpcbid_size = size_of::&lt;unpcbid&gt;();
+            <span class="kw">let </span><span class="kw-2">mut </span>unpcbid_size = unpcbid_size <span class="kw">as </span>socklen_t;
 
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">getsockopt</span>(
-                <span class="ident">raw_fd</span>,
-                <span class="ident">SOL_SOCKET</span>,
-                <span class="ident">LOCAL_PEEREID</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">unpcbid</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">unpcbid</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">unpcbid_size</span>,
+            <span class="kw">let </span>ret = getsockopt(
+                raw_fd,
+                SOL_SOCKET,
+                LOCAL_PEEREID,
+                <span class="kw-2">&amp;mut </span>unpcbid <span class="kw">as </span><span class="kw-2">*mut </span>unpcbid <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
+                <span class="kw-2">&amp;mut </span>unpcbid_size,
             );
-            <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">unpcbid_size</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">unpcbid</span><span class="op">&gt;</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident"><span class="kw">super</span>::UCred</span> {
-                    <span class="ident">uid</span>: <span class="ident">unpcbid</span>.<span class="ident">unp_euid</span>,
-                    <span class="ident">gid</span>: <span class="ident">unpcbid</span>.<span class="ident">unp_egid</span>,
-                    <span class="ident">pid</span>: <span class="prelude-val">Some</span>(<span class="ident">unpcbid</span>.<span class="ident">unp_pid</span>),
+            <span class="kw">if </span>ret == <span class="number">0 </span>&amp;&amp; unpcbid_size <span class="kw">as </span>usize == size_of::&lt;unpcbid&gt;() {
+                <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
+                    uid: unpcbid.unp_euid,
+                    gid: unpcbid.unp_egid,
+                    pid: <span class="prelude-val">Some</span>(unpcbid.unp_pid),
                 })
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">io::Error::last_os_error</span>())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(io::Error::last_os_error())
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">impl_bsd</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::net::unix::UnixStream</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_bsd {
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::UnixStream;
 
-    <span class="kw">use</span> <span class="ident">libc::getpeereid</span>;
-    <span class="kw">use</span> <span class="ident">std::io</span>;
-    <span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
-    <span class="kw">use</span> <span class="ident">std::os::unix::io::AsRawFd</span>;
+    <span class="kw">use </span>libc::getpeereid;
+    <span class="kw">use </span>std::io;
+    <span class="kw">use </span>std::mem::MaybeUninit;
+    <span class="kw">use </span>std::os::unix::io::AsRawFd;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_peer_cred</span>(<span class="ident">sock</span>: <span class="kw-2">&amp;</span><span class="ident">UnixStream</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::UCred</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw_fd</span> <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">as_raw_fd</span>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_peer_cred(sock: <span class="kw-2">&amp;</span>UnixStream) -&gt; io::Result&lt;<span class="kw">super</span>::UCred&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw_fd = sock.as_raw_fd();
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">uid</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gid</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>uid = MaybeUninit::uninit();
+            <span class="kw">let </span><span class="kw-2">mut </span>gid = MaybeUninit::uninit();
 
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">getpeereid</span>(<span class="ident">raw_fd</span>, <span class="ident">uid</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">gid</span>.<span class="ident">as_mut_ptr</span>());
+            <span class="kw">let </span>ret = getpeereid(raw_fd, uid.as_mut_ptr(), gid.as_mut_ptr());
 
-            <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident"><span class="kw">super</span>::UCred</span> {
-                    <span class="ident">uid</span>: <span class="ident">uid</span>.<span class="ident">assume_init</span>(),
-                    <span class="ident">gid</span>: <span class="ident">gid</span>.<span class="ident">assume_init</span>(),
-                    <span class="ident">pid</span>: <span class="prelude-val">None</span>,
+            <span class="kw">if </span>ret == <span class="number">0 </span>{
+                <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
+                    uid: uid.assume_init(),
+                    gid: gid.assume_init(),
+                    pid: <span class="prelude-val">None</span>,
                 })
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">io::Error::last_os_error</span>())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(io::Error::last_os_error())
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">impl_macos</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::net::unix::UnixStream</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_macos {
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::UnixStream;
 
-    <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_void</span>, <span class="ident">getpeereid</span>, <span class="ident">getsockopt</span>, <span class="ident">pid_t</span>, <span class="ident">LOCAL_PEEREPID</span>, <span class="ident">SOL_LOCAL</span>};
-    <span class="kw">use</span> <span class="ident">std::io</span>;
-    <span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
-    <span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
-    <span class="kw">use</span> <span class="ident">std::os::unix::io::AsRawFd</span>;
+    <span class="kw">use </span>libc::{c_void, getpeereid, getsockopt, pid_t, LOCAL_PEEREPID, SOL_LOCAL};
+    <span class="kw">use </span>std::io;
+    <span class="kw">use </span>std::mem::size_of;
+    <span class="kw">use </span>std::mem::MaybeUninit;
+    <span class="kw">use </span>std::os::unix::io::AsRawFd;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_peer_cred</span>(<span class="ident">sock</span>: <span class="kw-2">&amp;</span><span class="ident">UnixStream</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::UCred</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw_fd</span> <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">as_raw_fd</span>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_peer_cred(sock: <span class="kw-2">&amp;</span>UnixStream) -&gt; io::Result&lt;<span class="kw">super</span>::UCred&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw_fd = sock.as_raw_fd();
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">uid</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gid</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pid</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">pid_t</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pid_size</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::new</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">pid_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>uid = MaybeUninit::uninit();
+            <span class="kw">let </span><span class="kw-2">mut </span>gid = MaybeUninit::uninit();
+            <span class="kw">let </span><span class="kw-2">mut </span>pid: MaybeUninit&lt;pid_t&gt; = MaybeUninit::uninit();
+            <span class="kw">let </span><span class="kw-2">mut </span>pid_size: MaybeUninit&lt;u32&gt; = MaybeUninit::new(size_of::&lt;pid_t&gt;() <span class="kw">as </span>u32);
 
-            <span class="kw">if</span> <span class="ident">getsockopt</span>(
-                <span class="ident">raw_fd</span>,
-                <span class="ident">SOL_LOCAL</span>,
-                <span class="ident">LOCAL_PEEREPID</span>,
-                <span class="ident">pid</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-                <span class="ident">pid_size</span>.<span class="ident">as_mut_ptr</span>(),
-            ) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-            {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::last_os_error</span>());
+            <span class="kw">if </span>getsockopt(
+                raw_fd,
+                SOL_LOCAL,
+                LOCAL_PEEREPID,
+                pid.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
+                pid_size.as_mut_ptr(),
+            ) != <span class="number">0
+            </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::last_os_error());
             }
 
-            <span class="macro">assert!</span>(<span class="ident">pid_size</span>.<span class="ident">assume_init</span>() <span class="op">==</span> (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">pid_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>));
+            <span class="macro">assert!</span>(pid_size.assume_init() == (size_of::&lt;pid_t&gt;() <span class="kw">as </span>u32));
 
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">getpeereid</span>(<span class="ident">raw_fd</span>, <span class="ident">uid</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">gid</span>.<span class="ident">as_mut_ptr</span>());
+            <span class="kw">let </span>ret = getpeereid(raw_fd, uid.as_mut_ptr(), gid.as_mut_ptr());
 
-            <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident"><span class="kw">super</span>::UCred</span> {
-                    <span class="ident">uid</span>: <span class="ident">uid</span>.<span class="ident">assume_init</span>(),
-                    <span class="ident">gid</span>: <span class="ident">gid</span>.<span class="ident">assume_init</span>(),
-                    <span class="ident">pid</span>: <span class="prelude-val">Some</span>(<span class="ident">pid</span>.<span class="ident">assume_init</span>()),
+            <span class="kw">if </span>ret == <span class="number">0 </span>{
+                <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
+                    uid: uid.assume_init(),
+                    gid: gid.assume_init(),
+                    pid: <span class="prelude-val">Some</span>(pid.assume_init()),
                 })
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">io::Error::last_os_error</span>())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(io::Error::last_os_error())
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">impl_solaris</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::net::unix::UnixStream</span>;
-    <span class="kw">use</span> <span class="ident">std::io</span>;
-    <span class="kw">use</span> <span class="ident">std::os::unix::io::AsRawFd</span>;
-    <span class="kw">use</span> <span class="ident">std::ptr</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;solaris&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>impl_solaris {
+    <span class="kw">use </span><span class="kw">crate</span>::net::unix::UnixStream;
+    <span class="kw">use </span>std::io;
+    <span class="kw">use </span>std::os::unix::io::AsRawFd;
+    <span class="kw">use </span>std::ptr;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_peer_cred</span>(<span class="ident">sock</span>: <span class="kw-2">&amp;</span><span class="ident">UnixStream</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::UCred</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw_fd</span> <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">as_raw_fd</span>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_peer_cred(sock: <span class="kw-2">&amp;</span>UnixStream) -&gt; io::Result&lt;<span class="kw">super</span>::UCred&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw_fd = sock.as_raw_fd();
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cred</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::getpeerucred</span>(<span class="ident">raw_fd</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cred</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>cred = ptr::null_mut();
+            <span class="kw">let </span>ret = libc::getpeerucred(raw_fd, <span class="kw-2">&amp;mut </span>cred);
 
-            <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">let</span> <span class="ident">uid</span> <span class="op">=</span> <span class="ident">libc::ucred_geteuid</span>(<span class="ident">cred</span>);
-                <span class="kw">let</span> <span class="ident">gid</span> <span class="op">=</span> <span class="ident">libc::ucred_getegid</span>(<span class="ident">cred</span>);
-                <span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="ident">libc::ucred_getpid</span>(<span class="ident">cred</span>);
+            <span class="kw">if </span>ret == <span class="number">0 </span>{
+                <span class="kw">let </span>uid = libc::ucred_geteuid(cred);
+                <span class="kw">let </span>gid = libc::ucred_getegid(cred);
+                <span class="kw">let </span>pid = libc::ucred_getpid(cred);
 
-                <span class="ident">libc::ucred_free</span>(<span class="ident">cred</span>);
+                libc::ucred_free(cred);
 
-                <span class="prelude-val">Ok</span>(<span class="ident"><span class="kw">super</span>::UCred</span> {
-                    <span class="ident">uid</span>,
-                    <span class="ident">gid</span>,
-                    <span class="ident">pid</span>: <span class="prelude-val">Some</span>(<span class="ident">pid</span>),
+                <span class="prelude-val">Ok</span>(<span class="kw">super</span>::UCred {
+                    uid,
+                    gid,
+                    pid: <span class="prelude-val">Some</span>(pid),
                 })
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">io::Error::last_os_error</span>())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(io::Error::last_os_error())
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/pkey.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkey.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/pkey.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkey.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1029,1036 +1029,1036 @@
 <span id="1029">1029</span>
 <span id="1030">1030</span>
 <span id="1031">1031</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Public/private key processing.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Asymmetric public key algorithms solve the problem of establishing and sharing</span>
-<span class="doccomment">//! secret keys to securely send and receive messages.</span>
-<span class="doccomment">//! This system uses a pair of keys: a public key, which can be freely</span>
-<span class="doccomment">//! distributed, and a private key, which is kept to oneself. An entity may</span>
-<span class="doccomment">//! encrypt information using a user&#39;s public key. The encrypted information can</span>
-<span class="doccomment">//! only be deciphered using that user&#39;s private key.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module offers support for five popular algorithms:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! * RSA</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! * DSA</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! * Diffie-Hellman</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! * Elliptic Curves</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! * HMAC</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! These algorithms rely on hard mathematical problems - namely integer factorization,</span>
-<span class="doccomment">//! discrete logarithms, and elliptic curve relationships - that currently do not</span>
-<span class="doccomment">//! yield efficient solutions. This property ensures the security of these</span>
-<span class="doccomment">//! cryptographic algorithms.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Example</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Generate a 2048-bit RSA public/private key pair and print the public key.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::rsa::Rsa;</span>
-<span class="doccomment">//! use openssl::pkey::PKey;</span>
-<span class="doccomment">//! use std::str;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let rsa = Rsa::generate(2048).unwrap();</span>
-<span class="doccomment">//! let pkey = PKey::from_rsa(rsa).unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let pub_key: Vec&lt;u8&gt; = pkey.public_key_to_pem().unwrap();</span>
-<span class="doccomment">//! println!(&quot;{:?}&quot;, str::from_utf8(pub_key.as_slice()).unwrap());</span>
-<span class="doccomment">//! ```</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::missing_safety_doc</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bio</span>::{<a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a class="ident" href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371"><span class="kw">crate</span>::cipher::CipherRef</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/dh.rs.html#12-19"><span class="kw">crate</span>::dh::Dh</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/dsa.rs.html#22-62"><span class="kw">crate</span>::dsa::Dsa</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/ec.rs.html#617-625"><span class="kw">crate</span>::ec::EcKey</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/pkey_ctx.rs.html#85-93"><span class="kw">crate</span>::pkey_ctx::PkeyCtx</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/rsa.rs.html#66-75"><span class="kw">crate</span>::rsa::Rsa</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<a class="ident" href="../../src/openssl/util.rs.html#40-47">invoke_passwd_cb</a>, <a class="ident" href="../../src/openssl/util.rs.html#12">CallbackState</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
-<span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <span class="ident">foreign_types</span>::{<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>};
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! Public/private key processing.
+//!
+//! Asymmetric public key algorithms solve the problem of establishing and sharing
+//! secret keys to securely send and receive messages.
+//! This system uses a pair of keys: a public key, which can be freely
+//! distributed, and a private key, which is kept to oneself. An entity may
+//! encrypt information using a user&#39;s public key. The encrypted information can
+//! only be deciphered using that user&#39;s private key.
+//!
+//! This module offers support for five popular algorithms:
+//!
+//! * RSA
+//!
+//! * DSA
+//!
+//! * Diffie-Hellman
+//!
+//! * Elliptic Curves
+//!
+//! * HMAC
+//!
+//! These algorithms rely on hard mathematical problems - namely integer factorization,
+//! discrete logarithms, and elliptic curve relationships - that currently do not
+//! yield efficient solutions. This property ensures the security of these
+//! cryptographic algorithms.
+//!
+//! # Example
+//!
+//! Generate a 2048-bit RSA public/private key pair and print the public key.
+//!
+//! ```rust
+//! use openssl::rsa::Rsa;
+//! use openssl::pkey::PKey;
+//! use std::str;
+//!
+//! let rsa = Rsa::generate(2048).unwrap();
+//! let pkey = PKey::from_rsa(rsa).unwrap();
+//!
+//! let pub_key: Vec&lt;u8&gt; = pkey.public_key_to_pem().unwrap();
+//! println!(&quot;{:?}&quot;, str::from_utf8(pub_key.as_slice()).unwrap());
+//! ```
+</span><span class="attribute">#![allow(clippy::missing_safety_doc)]
+</span><span class="kw">use </span><span class="kw">crate</span>::bio::{<a href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>};
+<span class="attribute">#[cfg(ossl110)]
+</span><span class="kw">use </span><a href="../../src/openssl/cipher.rs.html#371"><span class="kw">crate</span>::cipher::CipherRef</a>;
+<span class="kw">use </span><a href="../../src/openssl/dh.rs.html#12-19"><span class="kw">crate</span>::dh::Dh</a>;
+<span class="kw">use </span><a href="../../src/openssl/dsa.rs.html#22-62"><span class="kw">crate</span>::dsa::Dsa</a>;
+<span class="kw">use </span><a href="../../src/openssl/ec.rs.html#617-625"><span class="kw">crate</span>::ec::EcKey</a>;
+<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="attribute">#[cfg(ossl110)]
+</span><span class="kw">use </span><a href="../../src/openssl/pkey_ctx.rs.html#85-93"><span class="kw">crate</span>::pkey_ctx::PkeyCtx</a>;
+<span class="kw">use </span><a href="../../src/openssl/rsa.rs.html#66-75"><span class="kw">crate</span>::rsa::Rsa</a>;
+<span class="kw">use </span><a href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
+<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="../../src/openssl/util.rs.html#40-47">invoke_passwd_cb</a>, <a href="../../src/openssl/util.rs.html#12">CallbackState</a>};
+<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
+<span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>};
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="doccomment">/// A tag type indicating that a key only has parameters.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Params</span> {}
+<span class="doccomment">/// A tag type indicating that a key only has parameters.
+</span><span class="kw">pub enum </span>Params {}
 
-<span class="doccomment">/// A tag type indicating that a key only has public components.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Public</span> {}
+<span class="doccomment">/// A tag type indicating that a key only has public components.
+</span><span class="kw">pub enum </span>Public {}
 
-<span class="doccomment">/// A tag type indicating that a key has private components.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Private</span> {}
+<span class="doccomment">/// A tag type indicating that a key has private components.
+</span><span class="kw">pub enum </span>Private {}
 
-<span class="doccomment">/// An identifier of a kind of key.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Id</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>);
+<span class="doccomment">/// An identifier of a kind of key.
+</span><span class="attribute">#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Id(<a href="../../libc/unix/type.c_int.html">c_int</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RSA</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_RSA</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HMAC</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_HMAC</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CMAC</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_CMAC</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DSA</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_DSA</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DH</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_DH</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EC</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_EC</span>);
+<span class="kw">impl </span><a href="../../src/openssl/pkey.rs.html#77">Id</a> {
+    <span class="kw">pub const </span>RSA: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_RSA);
+    <span class="kw">pub const </span>HMAC: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_HMAC);
+    <span class="kw">pub const </span>CMAC: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_CMAC);
+    <span class="kw">pub const </span>DSA: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_DSA);
+    <span class="kw">pub const </span>DH: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_DH);
+    <span class="kw">pub const </span>EC: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_EC);
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HKDF</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_HKDF</span>);
+    <span class="attribute">#[cfg(ossl110)]
+    </span><span class="kw">pub const </span>HKDF: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_HKDF);
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ED25519</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_ED25519</span>);
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ED448</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_ED448</span>);
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">X25519</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_X25519</span>);
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">X448</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<span class="ident">ffi::EVP_PKEY_X448</span>);
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub const </span>ED25519: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_ED25519);
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub const </span>ED448: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_ED448);
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub const </span>X25519: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_X25519);
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub const </span>X448: <a href="../../src/openssl/pkey.rs.html#77">Id</a> = <a href="../../src/openssl/pkey.rs.html#77">Id</a>(ffi::EVP_PKEY_X448);
 
-    <span class="doccomment">/// Creates a `Id` from an integer representation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">value</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> {
-        <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>(<a class="ident" href="../../src/openssl/pkey.rs.html#100">value</a>)
+    <span class="doccomment">/// Creates a `Id` from an integer representation.
+    </span><span class="kw">pub fn </span>from_raw(value: <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../src/openssl/pkey.rs.html#77">Id</a> {
+        <a href="../../src/openssl/pkey.rs.html#77">Id</a>(<a href="../../src/openssl/pkey.rs.html#100">value</a>)
     }
 
-    <span class="doccomment">/// Returns the integer representation of the `Id`.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="../../src/openssl/pkey.rs.html#106">self</a>.<span class="number">0</span>
+    <span class="doccomment">/// Returns the integer representation of the `Id`.
+    </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
+    </span><span class="kw">pub fn </span>as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+        <a class="self" href="../../src/openssl/pkey.rs.html#106">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="doccomment">/// A trait indicating that a key has parameters.
+</span><span class="kw">pub unsafe trait </span>HasParams {}
+
+<span class="kw">unsafe impl </span><a href="../../src/openssl/pkey.rs.html#112">HasParams</a> <span class="kw">for </span><a href="../../src/openssl/pkey.rs.html#67">Params</a> {}
+
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="../../src/openssl/pkey.rs.html#112">HasParams</a> <span class="kw">for </span>T <span class="kw">where </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a> {}
+
+<span class="doccomment">/// A trait indicating that a key has public components.
+</span><span class="kw">pub unsafe trait </span>HasPublic {}
+
+<span class="kw">unsafe impl </span><a href="../../src/openssl/pkey.rs.html#119">HasPublic</a> <span class="kw">for </span><a href="../../src/openssl/pkey.rs.html#70">Public</a> {}
+
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a> <span class="kw">for </span>T <span class="kw">where </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a> {}
+
+<span class="doccomment">/// A trait indicating that a key has private components.
+</span><span class="kw">pub unsafe trait </span>HasPrivate {}
+
+<span class="kw">unsafe impl </span><a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a> <span class="kw">for </span><a href="../../src/openssl/pkey.rs.html#73">Private</a> {}
+
+<a class="macro" href="../../src/openssl/macros.rs.html#164-269">generic_foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/types/enum.EVP_PKEY.html">ffi::EVP_PKEY</a>;
+    <span class="kw">fn </span>drop = ffi::EVP_PKEY_free;
+
+    <span class="doccomment">/// A public or private key.
+    </span><span class="kw">pub struct </span>PKey&lt;T&gt;;
+    <span class="doccomment">/// Reference to `PKey`.
+    </span><span class="kw">pub struct </span>PKeyRef&lt;T&gt;;
+}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="kw">for </span>PKeyRef&lt;T&gt; {
+    <span class="kw">type </span>Owned = PKey&lt;T&gt;;
+
+    <span class="kw">fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PKey&lt;T&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl_sys/handwritten/evp/fn.EVP_PKEY_up_ref.html">EVP_PKEY_up_ref</a>(<a class="self" href="../../src/openssl/pkey.rs.html#143">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            PKey::from_ptr(<a class="self" href="../../src/openssl/pkey.rs.html#143">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
+        }
     }
 }
 
-<span class="doccomment">/// A trait indicating that a key has parameters.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">HasParams</span> {}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a> {}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a> {}
-
-<span class="doccomment">/// A trait indicating that a key has public components.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">HasPublic</span> {}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a> {}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a> {}
-
-<span class="doccomment">/// A trait indicating that a key has private components.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">HasPrivate</span> {}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a> {}
-
-<a class="macro" href="../../src/openssl/macros.rs.html#164-269">generic_foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/types/enum.EVP_PKEY.html">ffi::EVP_PKEY</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::EVP_PKEY_free</span>;
-
-    <span class="doccomment">/// A public or private key.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-    <span class="doccomment">/// Reference to `PKey`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="kw">for</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Owned</span> <span class="op">=</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_PKEY_up_ref.html">EVP_PKEY_up_ref</a>(<a class="self" href="../../src/openssl/pkey.rs.html#143">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="ident">PKey::from_ptr</span>(<a class="self" href="../../src/openssl/pkey.rs.html#143">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Returns a copy of the internal RSA key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_get1_RSA</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rsa</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_get1_RSA</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">Rsa::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#156">rsa</a>))
+<span class="kw">impl</span>&lt;T&gt; PKeyRef&lt;T&gt; {
+    <span class="doccomment">/// Returns a copy of the internal RSA key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_get1_RSA)]
+    </span><span class="kw">pub fn </span>rsa(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Rsa&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>rsa = cvt_p(ffi::EVP_PKEY_get1_RSA(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(Rsa::from_ptr(<a href="../../src/openssl/pkey.rs.html#156">rsa</a>))
         }
     }
 
-    <span class="doccomment">/// Returns a copy of the internal DSA key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_get1_DSA</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dsa</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_get1_DSA</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">Dsa::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#165">dsa</a>))
+    <span class="doccomment">/// Returns a copy of the internal DSA key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_get1_DSA)]
+    </span><span class="kw">pub fn </span>dsa(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Dsa&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>dsa = cvt_p(ffi::EVP_PKEY_get1_DSA(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(Dsa::from_ptr(<a href="../../src/openssl/pkey.rs.html#165">dsa</a>))
         }
     }
 
-    <span class="doccomment">/// Returns a copy of the internal DH key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_get1_DH</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dh</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_get1_DH</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">Dh::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#174">dh</a>))
+    <span class="doccomment">/// Returns a copy of the internal DH key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_get1_DH)]
+    </span><span class="kw">pub fn </span>dh(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>dh = cvt_p(ffi::EVP_PKEY_get1_DH(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(Dh::from_ptr(<a href="../../src/openssl/pkey.rs.html#174">dh</a>))
         }
     }
 
-    <span class="doccomment">/// Returns a copy of the internal elliptic curve key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_get1_EC_KEY</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ec_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ec_key</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_get1_EC_KEY</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#183">ec_key</a>))
+    <span class="doccomment">/// Returns a copy of the internal elliptic curve key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_get1_EC_KEY)]
+    </span><span class="kw">pub fn </span>ec_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>ec_key = cvt_p(ffi::EVP_PKEY_get1_EC_KEY(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(EcKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#183">ec_key</a>))
         }
     }
 
-    <span class="doccomment">/// Returns the `Id` that represents the type of this key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_id</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a> {
-        <span class="kw">unsafe</span> { <span class="ident">Id::from_raw</span>(<span class="ident">ffi::EVP_PKEY_id</span>(<a class="self" href="../../src/openssl/pkey.rs.html#190">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
+    <span class="doccomment">/// Returns the `Id` that represents the type of this key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_id)]
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/openssl/pkey.rs.html#77">Id</a> {
+        <span class="kw">unsafe </span>{ Id::from_raw(ffi::EVP_PKEY_id(<a class="self" href="../../src/openssl/pkey.rs.html#190">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
     }
 
-    <span class="doccomment">/// Returns the maximum size of a signature in bytes.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_size</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::EVP_PKEY_size</span>(<a class="self" href="../../src/openssl/pkey.rs.html#196">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    <span class="doccomment">/// Returns the maximum size of a signature in bytes.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_size)]
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">unsafe </span>{ ffi::EVP_PKEY_size(<a class="self" href="../../src/openssl/pkey.rs.html#196">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+<span class="kw">impl</span>&lt;T&gt; PKeyRef&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
 {
-    <a class="macro" href="../../src/openssl/macros.rs.html#76-87">to_pem!</a> {
-        <span class="doccomment">/// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The output will have a header of `-----BEGIN PUBLIC KEY-----`.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_PUBKEY</span>)]</span>
-        <span class="ident">public_key_to_pem</span>,
-        <span class="ident">ffi::PEM_write_bio_PUBKEY</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#76-87">to_pem! </a>{
+        <span class="doccomment">/// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.
+        ///
+        /// The output will have a header of `-----BEGIN PUBLIC KEY-----`.
+        </span><span class="attribute">#[corresponds(PEM_write_bio_PUBKEY)]
+        </span>public_key_to_pem,
+        ffi::PEM_write_bio_PUBKEY
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der!</a> {
-        <span class="doccomment">/// Serializes the public key into a DER-encoded SubjectPublicKeyInfo structure.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_PUBKEY</span>)]</span>
-        <span class="ident">public_key_to_der</span>,
-        <span class="ident">ffi::i2d_PUBKEY</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der! </a>{
+        <span class="doccomment">/// Serializes the public key into a DER-encoded SubjectPublicKeyInfo structure.
+        </span><span class="attribute">#[corresponds(i2d_PUBKEY)]
+        </span>public_key_to_der,
+        ffi::i2d_PUBKEY
     }
 
-    <span class="doccomment">/// Returns the size of the key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to the bit length of the modulus of an RSA key, and the bit length of the</span>
-    <span class="doccomment">/// group order for an elliptic curve key, for example.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_bits</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::EVP_PKEY_bits</span>(<a class="self" href="../../src/openssl/pkey.rs.html#226">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
+    <span class="doccomment">/// Returns the size of the key.
+    ///
+    /// This corresponds to the bit length of the modulus of an RSA key, and the bit length of the
+    /// group order for an elliptic curve key, for example.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_bits)]
+    </span><span class="kw">pub fn </span>bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="kw">unsafe </span>{ ffi::EVP_PKEY_bits(<a class="self" href="../../src/openssl/pkey.rs.html#226">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
     }
 
-    <span class="doccomment">/// Compares the public component of this key with another.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_cmp</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_eq</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+    <span class="doccomment">/// Compares the public component of this key with another.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_cmp)]
+    </span><span class="kw">pub fn </span>public_eq&lt;U&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>PKeyRef&lt;U&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
+    <span class="kw">where
+        </span>U: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
     {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::EVP_PKEY_cmp</span>(<a class="self" href="../../src/openssl/pkey.rs.html#232">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/pkey.rs.html#232">other</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="op">==</span> <span class="number">1</span> }
+        <span class="kw">unsafe </span>{ ffi::EVP_PKEY_cmp(<a class="self" href="../../src/openssl/pkey.rs.html#232">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="../../src/openssl/pkey.rs.html#232">other</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) == <span class="number">1 </span>}
     }
 
-    <span class="doccomment">/// Raw byte representation of a public key</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function only works for algorithms that support raw public keys.</span>
-    <span class="doccomment">/// Currently this is: X25519, ED25519, X448 or ED448</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_get_raw_public_key</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_public_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_get_raw_public_key</span>(
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
+    <span class="doccomment">/// Raw byte representation of a public key
+    ///
+    /// This function only works for algorithms that support raw public keys.
+    /// Currently this is: X25519, ED25519, X448 or ED448
+    </span><span class="attribute">#[corresponds(EVP_PKEY_get_raw_public_key)]
+    #[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>raw_public_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
+            cvt(ffi::EVP_PKEY_get_raw_public_key(
+                <span class="self">self</span>.as_ptr(),
+                ptr::null_mut(),
+                <span class="kw-2">&amp;mut </span>len,
             ))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0u8</span>; <span class="ident">len</span>];
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_get_raw_public_key</span>(
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0u8</span>; len];
+            cvt(ffi::EVP_PKEY_get_raw_public_key(
+                <span class="self">self</span>.as_ptr(),
+                buf.as_mut_ptr(),
+                <span class="kw-2">&amp;mut </span>len,
             ))<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/openssl/pkey.rs.html#253">buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#247">len</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#253">buf</a>)
+            <a href="../../src/openssl/pkey.rs.html#253">buf</a>.truncate(<a href="../../src/openssl/pkey.rs.html#247">len</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkey.rs.html#253">buf</a>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+<span class="kw">impl</span>&lt;T&gt; PKeyRef&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
 {
-    <a class="macro" href="../../src/openssl/macros.rs.html#37-74">private_key_to_pem!</a> {
-        <span class="doccomment">/// Serializes the private key to a PEM-encoded PKCS#8 PrivateKeyInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The output will have a header of `-----BEGIN PRIVATE KEY-----`.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_PKCS8PrivateKey</span>)]</span>
-        <span class="ident">private_key_to_pem_pkcs8</span>,
-        <span class="doccomment">/// Serializes the private key to a PEM-encoded PKCS#8 EncryptedPrivateKeyInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The output will have a header of `-----BEGIN ENCRYPTED PRIVATE KEY-----`.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_PKCS8PrivateKey</span>)]</span>
-        <span class="ident">private_key_to_pem_pkcs8_passphrase</span>,
-        <span class="ident">ffi::PEM_write_bio_PKCS8PrivateKey</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#37-74">private_key_to_pem! </a>{
+        <span class="doccomment">/// Serializes the private key to a PEM-encoded PKCS#8 PrivateKeyInfo structure.
+        ///
+        /// The output will have a header of `-----BEGIN PRIVATE KEY-----`.
+        </span><span class="attribute">#[corresponds(PEM_write_bio_PKCS8PrivateKey)]
+        </span>private_key_to_pem_pkcs8,
+        <span class="doccomment">/// Serializes the private key to a PEM-encoded PKCS#8 EncryptedPrivateKeyInfo structure.
+        ///
+        /// The output will have a header of `-----BEGIN ENCRYPTED PRIVATE KEY-----`.
+        </span><span class="attribute">#[corresponds(PEM_write_bio_PKCS8PrivateKey)]
+        </span>private_key_to_pem_pkcs8_passphrase,
+        ffi::PEM_write_bio_PKCS8PrivateKey
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der!</a> {
-        <span class="doccomment">/// Serializes the private key to a DER-encoded key type specific format.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_PrivateKey</span>)]</span>
-        <span class="ident">private_key_to_der</span>,
-        <span class="ident">ffi::i2d_PrivateKey</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der! </a>{
+        <span class="doccomment">/// Serializes the private key to a DER-encoded key type specific format.
+        </span><span class="attribute">#[corresponds(i2d_PrivateKey)]
+        </span>private_key_to_der,
+        ffi::i2d_PrivateKey
     }
 
-    <span class="doccomment">/// Raw byte representation of a private key</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function only works for algorithms that support raw private keys.</span>
-    <span class="doccomment">/// Currently this is: HMAC, X25519, ED25519, X448 or ED448</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_get_raw_private_key</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_private_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_get_raw_private_key</span>(
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
+    <span class="doccomment">/// Raw byte representation of a private key
+    ///
+    /// This function only works for algorithms that support raw private keys.
+    /// Currently this is: HMAC, X25519, ED25519, X448 or ED448
+    </span><span class="attribute">#[corresponds(EVP_PKEY_get_raw_private_key)]
+    #[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>raw_private_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
+            cvt(ffi::EVP_PKEY_get_raw_private_key(
+                <span class="self">self</span>.as_ptr(),
+                ptr::null_mut(),
+                <span class="kw-2">&amp;mut </span>len,
             ))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0u8</span>; <span class="ident">len</span>];
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_get_raw_private_key</span>(
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0u8</span>; len];
+            cvt(ffi::EVP_PKEY_get_raw_private_key(
+                <span class="self">self</span>.as_ptr(),
+                buf.as_mut_ptr(),
+                <span class="kw-2">&amp;mut </span>len,
             ))<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/openssl/pkey.rs.html#304">buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#298">len</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#304">buf</a>)
+            <a href="../../src/openssl/pkey.rs.html#304">buf</a>.truncate(<a href="../../src/openssl/pkey.rs.html#298">len</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkey.rs.html#304">buf</a>)
         }
     }
 
-    <span class="doccomment">/// Serializes a private key into a DER-formatted PKCS#8, using the supplied password to</span>
-    <span class="doccomment">/// encrypt the key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `passphrase` contains an embedded null.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_PKCS8PrivateKey_bio</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_key_to_pkcs8_passphrase</span>(
+    <span class="doccomment">/// Serializes a private key into a DER-formatted PKCS#8, using the supplied password to
+    /// encrypt the key.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `passphrase` contains an embedded null.
+    </span><span class="attribute">#[corresponds(i2d_PKCS8PrivateKey_bio)]
+    </span><span class="kw">pub fn </span>private_key_to_pkcs8_passphrase(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">cipher</span>: <a class="ident" href="../../src/openssl/symm.rs.html#73">Cipher</a>,
-        <span class="ident">passphrase</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">bio</span> <span class="op">=</span> <span class="ident">MemBio::new</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#325">passphrase</a>.<span class="ident">len</span>();
-            <span class="kw">let</span> <span class="ident">passphrase</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#325">passphrase</a>).<span class="ident">unwrap</span>();
-            <span class="ident">cvt</span>(<span class="ident">ffi::i2d_PKCS8PrivateKey_bio</span>(
-                <span class="ident">bio</span>.<span class="ident">as_ptr</span>(),
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">cipher</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">passphrase</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <span class="ident">len</span> <span class="kw">as</span> <span class="ident">::libc::c_int</span>,
+        cipher: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+        passphrase: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>bio = MemBio::new()<span class="question-mark">?</span>;
+            <span class="kw">let </span>len = <a href="../../src/openssl/pkey.rs.html#325">passphrase</a>.len();
+            <span class="kw">let </span>passphrase = CString::new(<a href="../../src/openssl/pkey.rs.html#325">passphrase</a>).unwrap();
+            cvt(ffi::i2d_PKCS8PrivateKey_bio(
+                bio.as_ptr(),
+                <span class="self">self</span>.as_ptr(),
+                cipher.as_ptr(),
+                passphrase.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                len <span class="kw">as </span>::libc::c_int,
                 <span class="prelude-val">None</span>,
-                <span class="ident">ptr::null_mut</span>(),
+                ptr::null_mut(),
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#328">bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkey.rs.html#328">bio</a>.<a href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">alg</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/openssl/pkey.rs.html#347">self</a>.<a class="ident" href="../../src/openssl/pkey.rs.html#190">id</a>() {
-            <span class="ident">Id::RSA</span> =&gt; <span class="string">&quot;RSA&quot;</span>,
-            <span class="ident">Id::HMAC</span> =&gt; <span class="string">&quot;HMAC&quot;</span>,
-            <span class="ident">Id::DSA</span> =&gt; <span class="string">&quot;DSA&quot;</span>,
-            <span class="ident">Id::DH</span> =&gt; <span class="string">&quot;DH&quot;</span>,
-            <span class="ident">Id::EC</span> =&gt; <span class="string">&quot;EC&quot;</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-            <span class="ident">Id::ED25519</span> =&gt; <span class="string">&quot;Ed25519&quot;</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-            <span class="ident">Id::ED448</span> =&gt; <span class="string">&quot;Ed448&quot;</span>,
-            <span class="kw">_</span> =&gt; <span class="string">&quot;unknown&quot;</span>,
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>PKey&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span>alg = <span class="kw">match </span><a class="self" href="../../src/openssl/pkey.rs.html#347">self</a>.<a href="../../src/openssl/pkey.rs.html#190">id</a>() {
+            Id::RSA =&gt; <span class="string">&quot;RSA&quot;</span>,
+            Id::HMAC =&gt; <span class="string">&quot;HMAC&quot;</span>,
+            Id::DSA =&gt; <span class="string">&quot;DSA&quot;</span>,
+            Id::DH =&gt; <span class="string">&quot;DH&quot;</span>,
+            Id::EC =&gt; <span class="string">&quot;EC&quot;</span>,
+            <span class="attribute">#[cfg(ossl111)]
+            </span>Id::ED25519 =&gt; <span class="string">&quot;Ed25519&quot;</span>,
+            <span class="attribute">#[cfg(ossl111)]
+            </span>Id::ED448 =&gt; <span class="string">&quot;Ed448&quot;</span>,
+            <span class="kw">_ </span>=&gt; <span class="string">&quot;unknown&quot;</span>,
         };
-        <a class="ident" href="../../src/openssl/pkey.rs.html#347">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;PKey&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;algorithm&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/pkey.rs.html#348">alg</a>).<span class="ident">finish</span>()
-        <span class="comment">// TODO: Print details for each specific type of key</span>
+        <a href="../../src/openssl/pkey.rs.html#347">fmt</a>.debug_struct(<span class="string">&quot;PKey&quot;</span>).field(<span class="string">&quot;algorithm&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/openssl/pkey.rs.html#348">alg</a>).finish()
+        <span class="comment">// TODO: Print details for each specific type of key
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>PKey&lt;T&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PKey&lt;T&gt; {
+        PKeyRef::to_owned(<a class="self" href="../../src/openssl/pkey.rs.html#366">self</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">PKeyRef::to_owned</span>(<a class="self" href="../../src/openssl/pkey.rs.html#366">self</a>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `PKey` containing an RSA key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_assign_RSA</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_rsa</span>(<span class="ident">rsa</span>: <span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">evp</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_new</span>())<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#376">evp</a>);
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_assign</span>(
-                <span class="ident">pkey</span>.<span class="number">0</span>,
-                <span class="ident">ffi::EVP_PKEY_RSA</span>,
-                <span class="ident">rsa</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+<span class="kw">impl</span>&lt;T&gt; PKey&lt;T&gt; {
+    <span class="doccomment">/// Creates a new `PKey` containing an RSA key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_assign_RSA)]
+    </span><span class="kw">pub fn </span>from_rsa(rsa: Rsa&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>evp = cvt_p(ffi::EVP_PKEY_new())<span class="question-mark">?</span>;
+            <span class="kw">let </span>pkey = PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#376">evp</a>);
+            cvt(ffi::EVP_PKEY_assign(
+                pkey.<span class="number">0</span>,
+                ffi::EVP_PKEY_RSA,
+                rsa.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#374">rsa</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#377">pkey</a>)
+            mem::forget(<a href="../../src/openssl/pkey.rs.html#374">rsa</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkey.rs.html#377">pkey</a>)
         }
     }
 
-    <span class="doccomment">/// Creates a new `PKey` containing a DSA key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_assign_DSA</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_dsa</span>(<span class="ident">dsa</span>: <span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">evp</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_new</span>())<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#392">evp</a>);
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_assign</span>(
-                <span class="ident">pkey</span>.<span class="number">0</span>,
-                <span class="ident">ffi::EVP_PKEY_DSA</span>,
-                <span class="ident">dsa</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Creates a new `PKey` containing a DSA key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_assign_DSA)]
+    </span><span class="kw">pub fn </span>from_dsa(dsa: Dsa&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>evp = cvt_p(ffi::EVP_PKEY_new())<span class="question-mark">?</span>;
+            <span class="kw">let </span>pkey = PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#392">evp</a>);
+            cvt(ffi::EVP_PKEY_assign(
+                pkey.<span class="number">0</span>,
+                ffi::EVP_PKEY_DSA,
+                dsa.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#390">dsa</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#393">pkey</a>)
+            mem::forget(<a href="../../src/openssl/pkey.rs.html#390">dsa</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkey.rs.html#393">pkey</a>)
         }
     }
 
-    <span class="doccomment">/// Creates a new `PKey` containing a Diffie-Hellman key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_assign_DH</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_dh</span>(<span class="ident">dh</span>: <span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">evp</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_new</span>())<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#408">evp</a>);
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_assign</span>(
-                <span class="ident">pkey</span>.<span class="number">0</span>,
-                <span class="ident">ffi::EVP_PKEY_DH</span>,
-                <span class="ident">dh</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Creates a new `PKey` containing a Diffie-Hellman key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_assign_DH)]
+    </span><span class="kw">pub fn </span>from_dh(dh: Dh&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>evp = cvt_p(ffi::EVP_PKEY_new())<span class="question-mark">?</span>;
+            <span class="kw">let </span>pkey = PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#408">evp</a>);
+            cvt(ffi::EVP_PKEY_assign(
+                pkey.<span class="number">0</span>,
+                ffi::EVP_PKEY_DH,
+                dh.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#406">dh</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#409">pkey</a>)
+            mem::forget(<a href="../../src/openssl/pkey.rs.html#406">dh</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkey.rs.html#409">pkey</a>)
         }
     }
 
-    <span class="doccomment">/// Creates a new `PKey` containing an elliptic curve key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_assign_EC_KEY</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_ec_key</span>(<span class="ident">ec_key</span>: <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">evp</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_new</span>())<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#424">evp</a>);
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_assign</span>(
-                <span class="ident">pkey</span>.<span class="number">0</span>,
-                <span class="ident">ffi::EVP_PKEY_EC</span>,
-                <span class="ident">ec_key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Creates a new `PKey` containing an elliptic curve key.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_assign_EC_KEY)]
+    </span><span class="kw">pub fn </span>from_ec_key(ec_key: EcKey&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>evp = cvt_p(ffi::EVP_PKEY_new())<span class="question-mark">?</span>;
+            <span class="kw">let </span>pkey = PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#424">evp</a>);
+            cvt(ffi::EVP_PKEY_assign(
+                pkey.<span class="number">0</span>,
+                ffi::EVP_PKEY_EC,
+                ec_key.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#422">ec_key</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#425">pkey</a>)
+            mem::forget(<a href="../../src/openssl/pkey.rs.html#422">ec_key</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkey.rs.html#425">pkey</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `PKey` containing an HMAC key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To compute HMAC values, use the `sign` module.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_new_mac_key</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hmac</span>(<span class="ident">key</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">key</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
-            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_new_mac_key</span>(
-                <span class="ident">ffi::EVP_PKEY_HMAC</span>,
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <span class="ident">key</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_int</span>,
+<span class="kw">impl </span>PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt; {
+    <span class="doccomment">/// Creates a new `PKey` containing an HMAC key.
+    ///
+    /// # Note
+    ///
+    /// To compute HMAC values, use the `sign` module.
+    </span><span class="attribute">#[corresponds(EVP_PKEY_new_mac_key)]
+    </span><span class="kw">pub fn </span>hmac(key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
+            <span class="kw">let </span>key = cvt_p(ffi::EVP_PKEY_new_mac_key(
+                ffi::EVP_PKEY_HMAC,
+                ptr::null_mut(),
+                key.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                key.len() <span class="kw">as </span>c_int,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#447">key</a>))
+            <span class="prelude-val">Ok</span>(PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#447">key</a>))
         }
     }
 
-    <span class="doccomment">/// Creates a new `PKey` containing a CMAC key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To compute CMAC values, use the `sign` module.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cmac</span>(<span class="ident">cipher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/symm.rs.html#73">Cipher</a>, <span class="ident">key</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">PkeyCtx::new_id</span>(<span class="ident">Id::CMAC</span>)<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">keygen_init</span>()<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_keygen_cipher</span>(<span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">cipher</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) })<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_keygen_mac_key</span>(<span class="ident">key</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/openssl/pkey.rs.html#467">ctx</a>.<a class="ident" href="../../src/openssl/pkey_ctx.rs.html#578">keygen</a>()
+    <span class="doccomment">/// Creates a new `PKey` containing a CMAC key.
+    ///
+    /// Requires OpenSSL 1.1.0 or newer.
+    ///
+    /// # Note
+    ///
+    /// To compute CMAC values, use the `sign` module.
+    </span><span class="attribute">#[cfg(ossl110)]
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    </span><span class="kw">pub fn </span>cmac(cipher: <span class="kw-2">&amp;</span><a href="../../src/openssl/symm.rs.html#73">Cipher</a>, key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = PkeyCtx::new_id(Id::CMAC)<span class="question-mark">?</span>;
+        ctx.keygen_init()<span class="question-mark">?</span>;
+        ctx.set_keygen_cipher(<span class="kw">unsafe </span>{ CipherRef::from_ptr(cipher.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) })<span class="question-mark">?</span>;
+        ctx.set_keygen_mac_key(key)<span class="question-mark">?</span>;
+        <a href="../../src/openssl/pkey.rs.html#467">ctx</a>.<a href="../../src/openssl/pkey_ctx.rs.html#578">keygen</a>()
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">generate_eddsa</span>(<span class="ident">id</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">PkeyCtx::new_id</span>(<span class="ident">id</span>)<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">keygen_init</span>()<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/openssl/pkey.rs.html#476">ctx</a>.<a class="ident" href="../../src/openssl/pkey_ctx.rs.html#578">keygen</a>()
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">fn </span>generate_eddsa(id: <a href="../../src/openssl/pkey.rs.html#77">Id</a>) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = PkeyCtx::new_id(id)<span class="question-mark">?</span>;
+        ctx.keygen_init()<span class="question-mark">?</span>;
+        <a href="../../src/openssl/pkey.rs.html#476">ctx</a>.<a href="../../src/openssl/pkey_ctx.rs.html#578">keygen</a>()
     }
 
-    <span class="doccomment">/// Generates a new private Ed25519 key</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_x25519</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">PKey::generate_eddsa</span>(<span class="ident">Id::X25519</span>)
+    <span class="doccomment">/// Generates a new private Ed25519 key
+    </span><span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>generate_x25519() -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        PKey::generate_eddsa(Id::X25519)
     }
 
-    <span class="doccomment">/// Generates a new private Ed448 key</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_x448</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">PKey::generate_eddsa</span>(<span class="ident">Id::X448</span>)
+    <span class="doccomment">/// Generates a new private Ed448 key
+    </span><span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>generate_x448() -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        PKey::generate_eddsa(Id::X448)
     }
 
-    <span class="doccomment">/// Generates a new private Ed25519 key</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_ed25519</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">PKey::generate_eddsa</span>(<span class="ident">Id::ED25519</span>)
+    <span class="doccomment">/// Generates a new private Ed25519 key
+    </span><span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>generate_ed25519() -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        PKey::generate_eddsa(Id::ED25519)
     }
 
-    <span class="doccomment">/// Generates a new private Ed448 key</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_ed448</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">PKey::generate_eddsa</span>(<span class="ident">Id::ED448</span>)
+    <span class="doccomment">/// Generates a new private Ed448 key
+    </span><span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>generate_ed448() -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        PKey::generate_eddsa(Id::ED448)
     }
 
-    <span class="doccomment">/// Generates a new EC key using the provided curve.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires OpenSSL 3.0.0 or newer.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_EC_gen</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ec_gen</span>(<span class="ident">curve</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-        <span class="ident">ffi::init</span>();
+    <span class="doccomment">/// Generates a new EC key using the provided curve.
+    ///
+    /// Requires OpenSSL 3.0.0 or newer.
+    </span><span class="attribute">#[corresponds(EVP_EC_gen)]
+    #[cfg(ossl300)]
+    </span><span class="kw">pub fn </span>ec_gen(curve: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;Private&gt;, ErrorStack&gt; {
+        ffi::init();
 
-        <span class="kw">let</span> <span class="ident">curve</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">curve</span>).<span class="ident">unwrap</span>();
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_EC_gen</span>(<span class="ident">curve</span>.<span class="ident">as_ptr</span>()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">PKey::from_ptr</span>(<span class="ident">ptr</span>))
+        <span class="kw">let </span>curve = CString::new(curve).unwrap();
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>ptr = cvt_p(ffi::EVP_EC_gen(curve.as_ptr()))<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(PKey::from_ptr(ptr))
         }
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#1-35">private_key_from_pem!</a> {
-        <span class="doccomment">/// Deserializes a private key from a PEM-encoded key type specific format.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_PrivateKey</span>)]</span>
-        <span class="ident">private_key_from_pem</span>,
+    <a class="macro" href="../../src/openssl/macros.rs.html#1-35">private_key_from_pem! </a>{
+        <span class="doccomment">/// Deserializes a private key from a PEM-encoded key type specific format.
+        </span><span class="attribute">#[corresponds(PEM_read_bio_PrivateKey)]
+        </span>private_key_from_pem,
 
-        <span class="doccomment">/// Deserializes a private key from a PEM-encoded encrypted key type specific format.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_PrivateKey</span>)]</span>
-        <span class="ident">private_key_from_pem_passphrase</span>,
+        <span class="doccomment">/// Deserializes a private key from a PEM-encoded encrypted key type specific format.
+        </span><span class="attribute">#[corresponds(PEM_read_bio_PrivateKey)]
+        </span>private_key_from_pem_passphrase,
 
-        <span class="doccomment">/// Deserializes a private key from a PEM-encoded encrypted key type specific format.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The callback should fill the password into the provided buffer and return its length.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_PrivateKey</span>)]</span>
-        <span class="ident">private_key_from_pem_callback</span>,
-        <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span>,
-        <span class="ident">ffi::PEM_read_bio_PrivateKey</span>
+        <span class="doccomment">/// Deserializes a private key from a PEM-encoded encrypted key type specific format.
+        ///
+        /// The callback should fill the password into the provided buffer and return its length.
+        </span><span class="attribute">#[corresponds(PEM_read_bio_PrivateKey)]
+        </span>private_key_from_pem_callback,
+        PKey&lt;Private&gt;,
+        ffi::PEM_read_bio_PrivateKey
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der!</a> {
-        <span class="doccomment">/// Decodes a DER-encoded private key.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will attempt to automatically detect the underlying key format, and</span>
-        <span class="doccomment">/// supports the unencrypted PKCS#8 PrivateKeyInfo structures as well as key type specific</span>
-        <span class="doccomment">/// formats.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_AutoPrivateKey</span>)]</span>
-        <span class="ident">private_key_from_der</span>,
-        <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span>,
-        <span class="ident">ffi::d2i_AutoPrivateKey</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der! </a>{
+        <span class="doccomment">/// Decodes a DER-encoded private key.
+        ///
+        /// This function will attempt to automatically detect the underlying key format, and
+        /// supports the unencrypted PKCS#8 PrivateKeyInfo structures as well as key type specific
+        /// formats.
+        </span><span class="attribute">#[corresponds(d2i_AutoPrivateKey)]
+        </span>private_key_from_der,
+        PKey&lt;Private&gt;,
+        ffi::d2i_AutoPrivateKey
     }
 
-    <span class="doccomment">/// Deserializes a DER-formatted PKCS#8 unencrypted private key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is mainly for interoperability reasons. Encrypted keyfiles should be preferred.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_key_from_pkcs8</span>(<span class="ident">der</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkey.rs.html#553">der</a>.<span class="ident">len</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<span class="ident">c_long::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="kw">as</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>;
-            <span class="kw">let</span> <span class="ident">p8inf</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::d2i_PKCS8_PRIV_KEY_INFO</span>(
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">der</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">len</span>,
+    <span class="doccomment">/// Deserializes a DER-formatted PKCS#8 unencrypted private key.
+    ///
+    /// This method is mainly for interoperability reasons. Encrypted keyfiles should be preferred.
+    </span><span class="kw">pub fn </span>private_key_from_pkcs8(der: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            <span class="kw">let </span>len = <a href="../../src/openssl/pkey.rs.html#553">der</a>.len().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(c_long::max_value() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="kw">as </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>;
+            <span class="kw">let </span>p8inf = cvt_p(ffi::d2i_PKCS8_PRIV_KEY_INFO(
+                ptr::null_mut(),
+                <span class="kw-2">&amp;mut </span>der.as_ptr(),
+                len,
             ))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EVP_PKCS82PKEY</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#557">p8inf</a>)).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#562">p</a>));
-            <span class="ident">ffi::PKCS8_PRIV_KEY_INFO_free</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#557">p8inf</a>);
-            <a class="ident" href="../../src/openssl/pkey.rs.html#562">res</a>
+            <span class="kw">let </span>res = <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::EVP_PKCS82PKEY(<a href="../../src/openssl/pkey.rs.html#557">p8inf</a>)).map(|p| PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#562">p</a>));
+            ffi::PKCS8_PRIV_KEY_INFO_free(<a href="../../src/openssl/pkey.rs.html#557">p8inf</a>);
+            <a href="../../src/openssl/pkey.rs.html#562">res</a>
         }
     }
 
-    <span class="doccomment">/// Deserializes a DER-formatted PKCS#8 private key, using a callback to retrieve the password</span>
-    <span class="doccomment">/// if the key is encrypted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The callback should copy the password into the provided buffer and return the number of</span>
-    <span class="doccomment">/// bytes written.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_PKCS8PrivateKey_bio</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_key_from_pkcs8_callback</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">der</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">callback</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Deserializes a DER-formatted PKCS#8 private key, using a callback to retrieve the password
+    /// if the key is encrypted.
+    ///
+    /// The callback should copy the password into the provided buffer and return the number of
+    /// bytes written.
+    </span><span class="attribute">#[corresponds(d2i_PKCS8PrivateKey_bio)]
+    </span><span class="kw">pub fn </span>private_key_from_pkcs8_callback&lt;F&gt;(
+        der: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        callback: F,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;,
     {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cb</span> <span class="op">=</span> <span class="ident">CallbackState::new</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#576">callback</a>);
-            <span class="kw">let</span> <span class="ident">bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<span class="ident">der</span>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::d2i_PKCS8PrivateKey_bio</span>(
-                <a class="ident" href="../../src/openssl/pkey.rs.html#584">bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident">invoke_passwd_cb</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>),
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/pkey.rs.html#583">cb</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>cb = CallbackState::new(<a href="../../src/openssl/pkey.rs.html#576">callback</a>);
+            <span class="kw">let </span>bio = MemBioSlice::new(der)<span class="question-mark">?</span>;
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::d2i_PKCS8PrivateKey_bio(
+                <a href="../../src/openssl/pkey.rs.html#584">bio</a>.<a href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
+                ptr::null_mut(),
+                <span class="prelude-val">Some</span>(invoke_passwd_cb::&lt;F&gt;),
+                <span class="kw-2">&amp;mut </span><a href="../../src/openssl/pkey.rs.html#583">cb</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#591">p</a>))
+            .map(|p| PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#591">p</a>))
         }
     }
 
-    <span class="doccomment">/// Deserializes a DER-formatted PKCS#8 private key, using the supplied password if the key is</span>
-    <span class="doccomment">/// encrypted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `passphrase` contains an embedded null.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_PKCS8PrivateKey_bio</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_key_from_pkcs8_passphrase</span>(
-        <span class="ident">der</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">passphrase</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <span class="kw">let</span> <span class="ident">bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<span class="ident">der</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">passphrase</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#604">passphrase</a>).<span class="ident">unwrap</span>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::d2i_PKCS8PrivateKey_bio</span>(
-                <a class="ident" href="../../src/openssl/pkey.rs.html#608">bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
-                <span class="ident">ptr::null_mut</span>(),
+    <span class="doccomment">/// Deserializes a DER-formatted PKCS#8 private key, using the supplied password if the key is
+    /// encrypted.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `passphrase` contains an embedded null.
+    </span><span class="attribute">#[corresponds(d2i_PKCS8PrivateKey_bio)]
+    </span><span class="kw">pub fn </span>private_key_from_pkcs8_passphrase(
+        der: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        passphrase: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            <span class="kw">let </span>bio = MemBioSlice::new(der)<span class="question-mark">?</span>;
+            <span class="kw">let </span>passphrase = CString::new(<a href="../../src/openssl/pkey.rs.html#604">passphrase</a>).unwrap();
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::d2i_PKCS8PrivateKey_bio(
+                <a href="../../src/openssl/pkey.rs.html#608">bio</a>.<a href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
+                ptr::null_mut(),
                 <span class="prelude-val">None</span>,
-                <a class="ident" href="../../src/openssl/pkey.rs.html#609">passphrase</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                <a href="../../src/openssl/pkey.rs.html#609">passphrase</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#616">p</a>))
+            .map(|p| PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#616">p</a>))
         }
     }
 
-    <span class="doccomment">/// Creates a private key from its raw byte representation</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Algorithm types that support raw private keys are HMAC, X25519, ED25519, X448 or ED448</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_new_raw_private_key</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_key_from_raw_bytes</span>(
-        <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">key_type</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EVP_PKEY_new_raw_private_key</span>(
-                <a class="ident" href="../../src/openssl/pkey.rs.html#627">key_type</a>.<a class="ident" href="../../src/openssl/pkey.rs.html#106">as_raw</a>(),
-                <span class="ident">ptr::null_mut</span>(),
-                <a class="ident" href="../../src/openssl/pkey.rs.html#626">bytes</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/pkey.rs.html#626">bytes</a>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Creates a private key from its raw byte representation
+    ///
+    /// Algorithm types that support raw private keys are HMAC, X25519, ED25519, X448 or ED448
+    </span><span class="attribute">#[corresponds(EVP_PKEY_new_raw_private_key)]
+    #[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>private_key_from_raw_bytes(
+        bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        key_type: <a href="../../src/openssl/pkey.rs.html#77">Id</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#73">Private</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::EVP_PKEY_new_raw_private_key(
+                <a href="../../src/openssl/pkey.rs.html#627">key_type</a>.<a href="../../src/openssl/pkey.rs.html#106">as_raw</a>(),
+                ptr::null_mut(),
+                <a href="../../src/openssl/pkey.rs.html#626">bytes</a>.as_ptr(),
+                <a href="../../src/openssl/pkey.rs.html#626">bytes</a>.len(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#637">p</a>))
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span> {
-    <a class="macro" href="../../src/openssl/macros.rs.html#119-131">from_pem!</a> {
-        <span class="doccomment">/// Decodes a PEM-encoded SubjectPublicKeyInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The input should have a header of `-----BEGIN PUBLIC KEY-----`.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_PUBKEY</span>)]</span>
-        <span class="ident">public_key_from_pem</span>,
-        <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Public</span><span class="op">&gt;</span>,
-        <span class="ident">ffi::PEM_read_bio_PUBKEY</span>
-    }
-
-    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der!</a> {
-        <span class="doccomment">/// Decodes a DER-encoded SubjectPublicKeyInfo structure.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_PUBKEY</span>)]</span>
-        <span class="ident">public_key_from_der</span>,
-        <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Public</span><span class="op">&gt;</span>,
-        <span class="ident">ffi::d2i_PUBKEY</span>
-    }
-
-    <span class="doccomment">/// Creates a public key from its raw byte representation</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Algorithm types that support raw public keys are X25519, ED25519, X448 or ED448</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PKEY_new_raw_public_key</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_key_from_raw_bytes</span>(
-        <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">key_type</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#77">Id</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EVP_PKEY_new_raw_public_key</span>(
-                <a class="ident" href="../../src/openssl/pkey.rs.html#668">key_type</a>.<a class="ident" href="../../src/openssl/pkey.rs.html#106">as_raw</a>(),
-                <span class="ident">ptr::null_mut</span>(),
-                <a class="ident" href="../../src/openssl/pkey.rs.html#667">bytes</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/pkey.rs.html#667">bytes</a>.<span class="ident">len</span>(),
-            ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">PKey::from_ptr</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#678">p</a>))
+            .map(|p| PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#637">p</a>))
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span> {
-        <span class="kw">use</span> <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_PKEY_up_ref.html">ffi::EVP_PKEY_up_ref</a>;
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_up_ref</span>(<span class="ident">pkey</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::EVP_PKEY</span>) {
-            <span class="ident">ffi::CRYPTO_add_lock</span>(
-                <span class="kw-2">&amp;mut</span> (<span class="kw-2">*</span><span class="ident">pkey</span>).<span class="ident">references</span>,
+<span class="kw">impl </span>PKey&lt;<a href="../../src/openssl/pkey.rs.html#70">Public</a>&gt; {
+    <a class="macro" href="../../src/openssl/macros.rs.html#119-131">from_pem! </a>{
+        <span class="doccomment">/// Decodes a PEM-encoded SubjectPublicKeyInfo structure.
+        ///
+        /// The input should have a header of `-----BEGIN PUBLIC KEY-----`.
+        </span><span class="attribute">#[corresponds(PEM_read_bio_PUBKEY)]
+        </span>public_key_from_pem,
+        PKey&lt;Public&gt;,
+        ffi::PEM_read_bio_PUBKEY
+    }
+
+    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der! </a>{
+        <span class="doccomment">/// Decodes a DER-encoded SubjectPublicKeyInfo structure.
+        </span><span class="attribute">#[corresponds(d2i_PUBKEY)]
+        </span>public_key_from_der,
+        PKey&lt;Public&gt;,
+        ffi::d2i_PUBKEY
+    }
+
+    <span class="doccomment">/// Creates a public key from its raw byte representation
+    ///
+    /// Algorithm types that support raw public keys are X25519, ED25519, X448 or ED448
+    </span><span class="attribute">#[corresponds(EVP_PKEY_new_raw_public_key)]
+    #[cfg(ossl111)]
+    </span><span class="kw">pub fn </span>public_key_from_raw_bytes(
+        bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        key_type: <a href="../../src/openssl/pkey.rs.html#77">Id</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;<a href="../../src/openssl/pkey.rs.html#70">Public</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::EVP_PKEY_new_raw_public_key(
+                <a href="../../src/openssl/pkey.rs.html#668">key_type</a>.<a href="../../src/openssl/pkey.rs.html#106">as_raw</a>(),
+                ptr::null_mut(),
+                <a href="../../src/openssl/pkey.rs.html#667">bytes</a>.as_ptr(),
+                <a href="../../src/openssl/pkey.rs.html#667">bytes</a>.len(),
+            ))
+            .map(|p| PKey::from_ptr(<a href="../../src/openssl/pkey.rs.html#678">p</a>))
+        }
+    }
+}
+
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl270))] </span>{
+        <span class="kw">use </span><a href="../../openssl_sys/handwritten/evp/fn.EVP_PKEY_up_ref.html">ffi::EVP_PKEY_up_ref</a>;
+    } <span class="kw">else </span>{
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>EVP_PKEY_up_ref(pkey: <span class="kw-2">*mut </span>ffi::EVP_PKEY) {
+            ffi::CRYPTO_add_lock(
+                <span class="kw-2">&amp;mut </span>(<span class="kw-2">*</span>pkey).references,
                 <span class="number">1</span>,
-                <span class="ident">ffi::CRYPTO_LOCK_EVP_PKEY</span>,
-                <span class="string">&quot;pkey.rs\0&quot;</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <span class="macro">line!</span>() <span class="kw">as</span> <span class="ident">c_int</span>,
+                ffi::CRYPTO_LOCK_EVP_PKEY,
+                <span class="string">&quot;pkey.rs\0&quot;</span>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <span class="macro">line!</span>() <span class="kw">as </span>c_int,
             );
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;EcKey&lt;T&gt;&gt; <span class="kw">for </span>PKey&lt;T&gt; {
+    <span class="kw">type </span>Error = <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">ec_key</span>: <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">PKey::from_ec_key</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#703">ec_key</a>)
+    <span class="kw">fn </span>try_from(ec_key: EcKey&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        PKey::from_ec_key(<a href="../../src/openssl/pkey.rs.html#703">ec_key</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;PKey&lt;T&gt;&gt; <span class="kw">for </span>EcKey&lt;T&gt; {
+    <span class="kw">type </span>Error = <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/openssl/pkey.rs.html#711">pkey</a>.<a class="ident" href="../../src/openssl/pkey.rs.html#181">ec_key</a>()
+    <span class="kw">fn </span>try_from(pkey: PKey&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <a href="../../src/openssl/pkey.rs.html#711">pkey</a>.<a href="../../src/openssl/pkey.rs.html#181">ec_key</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;Rsa&lt;T&gt;&gt; <span class="kw">for </span>PKey&lt;T&gt; {
+    <span class="kw">type </span>Error = <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">rsa</span>: <span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">PKey::from_rsa</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#719">rsa</a>)
+    <span class="kw">fn </span>try_from(rsa: Rsa&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        PKey::from_rsa(<a href="../../src/openssl/pkey.rs.html#719">rsa</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;PKey&lt;T&gt;&gt; <span class="kw">for </span>Rsa&lt;T&gt; {
+    <span class="kw">type </span>Error = <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/openssl/pkey.rs.html#727">pkey</a>.<a class="ident" href="../../src/openssl/pkey.rs.html#154">rsa</a>()
+    <span class="kw">fn </span>try_from(pkey: PKey&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Rsa&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <a href="../../src/openssl/pkey.rs.html#727">pkey</a>.<a href="../../src/openssl/pkey.rs.html#154">rsa</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;Dsa&lt;T&gt;&gt; <span class="kw">for </span>PKey&lt;T&gt; {
+    <span class="kw">type </span>Error = <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">dsa</span>: <span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">PKey::from_dsa</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#735">dsa</a>)
+    <span class="kw">fn </span>try_from(dsa: Dsa&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        PKey::from_dsa(<a href="../../src/openssl/pkey.rs.html#735">dsa</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;PKey&lt;T&gt;&gt; <span class="kw">for </span>Dsa&lt;T&gt; {
+    <span class="kw">type </span>Error = <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/openssl/pkey.rs.html#743">pkey</a>.<a class="ident" href="../../src/openssl/pkey.rs.html#163">dsa</a>()
+    <span class="kw">fn </span>try_from(pkey: PKey&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Dsa&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <a href="../../src/openssl/pkey.rs.html#743">pkey</a>.<a href="../../src/openssl/pkey.rs.html#163">dsa</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;Dh&lt;T&gt;&gt; <span class="kw">for </span>PKey&lt;T&gt; {
+    <span class="kw">type </span>Error = <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">dh</span>: <span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">PKey::from_dh</span>(<a class="ident" href="../../src/openssl/pkey.rs.html#751">dh</a>)
+    <span class="kw">fn </span>try_from(dh: Dh&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        PKey::from_dh(<a href="../../src/openssl/pkey.rs.html#751">dh</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;PKey&lt;T&gt;&gt; <span class="kw">for </span>Dh&lt;T&gt; {
+    <span class="kw">type </span>Error = <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/openssl/pkey.rs.html#759">pkey</a>.<a class="ident" href="../../src/openssl/pkey.rs.html#172">dh</a>()
+    <span class="kw">fn </span>try_from(pkey: PKey&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;T&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <a href="../../src/openssl/pkey.rs.html#759">pkey</a>.<a href="../../src/openssl/pkey.rs.html#172">dh</a>()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::convert::TryInto;
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::dh::Dh</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::dsa::Dsa</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ec::EcKey</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::nid::Nid</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::rsa::Rsa</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::symm::Cipher</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::dh::Dh;
+    <span class="kw">use </span><span class="kw">crate</span>::dsa::Dsa;
+    <span class="kw">use </span><span class="kw">crate</span>::ec::EcKey;
+    <span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+    <span class="kw">use </span><span class="kw">crate</span>::rsa::Rsa;
+    <span class="kw">use </span><span class="kw">crate</span>::symm::Cipher;
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::rand::rand_bytes</span>;
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">use </span><span class="kw">crate</span>::rand::rand_bytes;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_to_password</span>() {
-        <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <span class="ident">Rsa::generate</span>(<span class="number">2048</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">rsa</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pem</span> <span class="op">=</span> <span class="ident">pkey</span>
-            .<span class="ident">private_key_to_pem_pkcs8_passphrase</span>(<span class="ident">Cipher::aes_128_cbc</span>(), <span class="string">b&quot;foobar&quot;</span>)
-            .<span class="ident">unwrap</span>();
-        <span class="ident">PKey::private_key_from_pem_passphrase</span>(<span class="kw-2">&amp;</span><span class="ident">pem</span>, <span class="string">b&quot;foobar&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">PKey::private_key_from_pem_passphrase</span>(<span class="kw-2">&amp;</span><span class="ident">pem</span>, <span class="string">b&quot;fizzbuzz&quot;</span>).<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_to_password() {
+        <span class="kw">let </span>rsa = Rsa::generate(<span class="number">2048</span>).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(rsa).unwrap();
+        <span class="kw">let </span>pem = pkey
+            .private_key_to_pem_pkcs8_passphrase(Cipher::aes_128_cbc(), <span class="string">b&quot;foobar&quot;</span>)
+            .unwrap();
+        PKey::private_key_from_pem_passphrase(<span class="kw-2">&amp;</span>pem, <span class="string">b&quot;foobar&quot;</span>).unwrap();
+        <span class="macro">assert!</span>(PKey::private_key_from_pem_passphrase(<span class="kw-2">&amp;</span>pem, <span class="string">b&quot;fizzbuzz&quot;</span>).is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_unencrypted_pkcs8</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/pkcs8-nocrypt.der&quot;</span>);
-        <span class="ident">PKey::private_key_from_pkcs8</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_unencrypted_pkcs8() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/pkcs8-nocrypt.der&quot;</span>);
+        PKey::private_key_from_pkcs8(key).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_encrypted_pkcs8_passphrase</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/pkcs8.der&quot;</span>);
-        <span class="ident">PKey::private_key_from_pkcs8_passphrase</span>(<span class="ident">key</span>, <span class="string">b&quot;mypass&quot;</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_encrypted_pkcs8_passphrase() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/pkcs8.der&quot;</span>);
+        PKey::private_key_from_pkcs8_passphrase(key, <span class="string">b&quot;mypass&quot;</span>).unwrap();
 
-        <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <span class="ident">Rsa::generate</span>(<span class="number">2048</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">rsa</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="ident">pkey</span>
-            .<span class="ident">private_key_to_pkcs8_passphrase</span>(<span class="ident">Cipher::aes_128_cbc</span>(), <span class="string">b&quot;mypass&quot;</span>)
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey2</span> <span class="op">=</span> <span class="ident">PKey::private_key_from_pkcs8_passphrase</span>(<span class="kw-2">&amp;</span><span class="ident">der</span>, <span class="string">b&quot;mypass&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>rsa = Rsa::generate(<span class="number">2048</span>).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(rsa).unwrap();
+        <span class="kw">let </span>der = pkey
+            .private_key_to_pkcs8_passphrase(Cipher::aes_128_cbc(), <span class="string">b&quot;mypass&quot;</span>)
+            .unwrap();
+        <span class="kw">let </span>pkey2 = PKey::private_key_from_pkcs8_passphrase(<span class="kw-2">&amp;</span>der, <span class="string">b&quot;mypass&quot;</span>).unwrap();
         <span class="macro">assert_eq!</span>(
-            <span class="ident">pkey</span>.<span class="ident">private_key_to_der</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">pkey2</span>.<span class="ident">private_key_to_der</span>().<span class="ident">unwrap</span>()
+            pkey.private_key_to_der().unwrap(),
+            pkey2.private_key_to_der().unwrap()
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_encrypted_pkcs8_callback</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">password_queried</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/pkcs8.der&quot;</span>);
-        <span class="ident">PKey::private_key_from_pkcs8_callback</span>(<span class="ident">key</span>, <span class="op">|</span><span class="ident">password</span><span class="op">|</span> {
-            <span class="ident">password_queried</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="ident">password</span>[..<span class="number">6</span>].<span class="ident">copy_from_slice</span>(<span class="string">b&quot;mypass&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_encrypted_pkcs8_callback() {
+        <span class="kw">let </span><span class="kw-2">mut </span>password_queried = <span class="bool-val">false</span>;
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/pkcs8.der&quot;</span>);
+        PKey::private_key_from_pkcs8_callback(key, |password| {
+            password_queried = <span class="bool-val">true</span>;
+            password[..<span class="number">6</span>].copy_from_slice(<span class="string">b&quot;mypass&quot;</span>);
             <span class="prelude-val">Ok</span>(<span class="number">6</span>)
         })
-        .<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">password_queried</span>);
+        .unwrap();
+        <span class="macro">assert!</span>(password_queried);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_private_key_from_pem</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
-        <span class="ident">PKey::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_private_key_from_pem() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
+        PKey::private_key_from_pem(key).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_public_key_from_pem</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem.pub&quot;</span>);
-        <span class="ident">PKey::public_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_public_key_from_pem() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem.pub&quot;</span>);
+        PKey::public_key_from_pem(key).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_public_key_from_der</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.der.pub&quot;</span>);
-        <span class="ident">PKey::public_key_from_der</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_public_key_from_der() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.der.pub&quot;</span>);
+        PKey::public_key_from_der(key).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_private_key_from_der</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.der&quot;</span>);
-        <span class="ident">PKey::private_key_from_der</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_private_key_from_der() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.der&quot;</span>);
+        PKey::private_key_from_der(key).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_pem</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">PKey::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_pem() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
+        <span class="kw">let </span>key = PKey::private_key_from_pem(key).unwrap();
 
-        <span class="kw">let</span> <span class="ident">priv_key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">private_key_to_pem_pkcs8</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pub_key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">public_key_to_pem</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>priv_key = key.private_key_to_pem_pkcs8().unwrap();
+        <span class="kw">let </span>pub_key = key.public_key_to_pem().unwrap();
 
-        <span class="comment">// As a super-simple verification, just check that the buffers contain</span>
-        <span class="comment">// the `PRIVATE KEY` or `PUBLIC KEY` strings.</span>
-        <span class="macro">assert!</span>(<span class="ident">priv_key</span>.<span class="ident">windows</span>(<span class="number">11</span>).<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">b&quot;PRIVATE KEY&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">pub_key</span>.<span class="ident">windows</span>(<span class="number">10</span>).<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">b&quot;PUBLIC KEY&quot;</span>));
+        <span class="comment">// As a super-simple verification, just check that the buffers contain
+        // the `PRIVATE KEY` or `PUBLIC KEY` strings.
+        </span><span class="macro">assert!</span>(priv_key.windows(<span class="number">11</span>).any(|s| s == <span class="string">b&quot;PRIVATE KEY&quot;</span>));
+        <span class="macro">assert!</span>(pub_key.windows(<span class="number">10</span>).any(|s| s == <span class="string">b&quot;PUBLIC KEY&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_rsa_accessor</span>() {
-        <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <span class="ident">Rsa::generate</span>(<span class="number">2048</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">rsa</span>).<span class="ident">unwrap</span>();
-        <span class="ident">pkey</span>.<span class="ident">rsa</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">pkey</span>.<span class="ident">id</span>(), <span class="ident">Id::RSA</span>);
-        <span class="macro">assert!</span>(<span class="ident">pkey</span>.<span class="ident">dsa</span>().<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_rsa_accessor() {
+        <span class="kw">let </span>rsa = Rsa::generate(<span class="number">2048</span>).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(rsa).unwrap();
+        pkey.rsa().unwrap();
+        <span class="macro">assert_eq!</span>(pkey.id(), Id::RSA);
+        <span class="macro">assert!</span>(pkey.dsa().is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_dsa_accessor</span>() {
-        <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">Dsa::generate</span>(<span class="number">2048</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_dsa</span>(<span class="ident">dsa</span>).<span class="ident">unwrap</span>();
-        <span class="ident">pkey</span>.<span class="ident">dsa</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">pkey</span>.<span class="ident">id</span>(), <span class="ident">Id::DSA</span>);
-        <span class="macro">assert!</span>(<span class="ident">pkey</span>.<span class="ident">rsa</span>().<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_dsa_accessor() {
+        <span class="kw">let </span>dsa = Dsa::generate(<span class="number">2048</span>).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_dsa(dsa).unwrap();
+        pkey.dsa().unwrap();
+        <span class="macro">assert_eq!</span>(pkey.id(), Id::DSA);
+        <span class="macro">assert!</span>(pkey.rsa().is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_accessor</span>() {
-        <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/dhparams.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">Dh::params_from_pem</span>(<span class="ident">dh</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_dh</span>(<span class="ident">dh</span>).<span class="ident">unwrap</span>();
-        <span class="ident">pkey</span>.<span class="ident">dh</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">pkey</span>.<span class="ident">id</span>(), <span class="ident">Id::DH</span>);
-        <span class="macro">assert!</span>(<span class="ident">pkey</span>.<span class="ident">rsa</span>().<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_dh_accessor() {
+        <span class="kw">let </span>dh = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/dhparams.pem&quot;</span>);
+        <span class="kw">let </span>dh = Dh::params_from_pem(dh).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_dh(dh).unwrap();
+        pkey.dh().unwrap();
+        <span class="macro">assert_eq!</span>(pkey.id(), Id::DH);
+        <span class="macro">assert!</span>(pkey.rsa().is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_ec_key_accessor</span>() {
-        <span class="kw">let</span> <span class="ident">ec_key</span> <span class="op">=</span> <span class="ident">EcKey::from_curve_name</span>(<span class="ident">Nid::X9_62_PRIME256V1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_ec_key</span>(<span class="ident">ec_key</span>).<span class="ident">unwrap</span>();
-        <span class="ident">pkey</span>.<span class="ident">ec_key</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">pkey</span>.<span class="ident">id</span>(), <span class="ident">Id::EC</span>);
-        <span class="macro">assert!</span>(<span class="ident">pkey</span>.<span class="ident">rsa</span>().<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_ec_key_accessor() {
+        <span class="kw">let </span>ec_key = EcKey::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_ec_key(ec_key).unwrap();
+        pkey.ec_key().unwrap();
+        <span class="macro">assert_eq!</span>(pkey.id(), Id::EC);
+        <span class="macro">assert!</span>(pkey.rsa().is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_rsa_conversion</span>() {
-        <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <span class="ident">Rsa::generate</span>(<span class="number">2048</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">rsa</span>.<span class="ident">clone</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">rsa_</span>: <span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">pkey</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-        <span class="comment">// Eq is missing</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">rsa</span>.<span class="ident">p</span>(), <span class="ident">rsa_</span>.<span class="ident">p</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">rsa</span>.<span class="ident">q</span>(), <span class="ident">rsa_</span>.<span class="ident">q</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_rsa_conversion() {
+        <span class="kw">let </span>rsa = Rsa::generate(<span class="number">2048</span>).unwrap();
+        <span class="kw">let </span>pkey: PKey&lt;Private&gt; = rsa.clone().try_into().unwrap();
+        <span class="kw">let </span>rsa_: Rsa&lt;Private&gt; = pkey.try_into().unwrap();
+        <span class="comment">// Eq is missing
+        </span><span class="macro">assert_eq!</span>(rsa.p(), rsa_.p());
+        <span class="macro">assert_eq!</span>(rsa.q(), rsa_.q());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_dsa_conversion</span>() {
-        <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">Dsa::generate</span>(<span class="number">2048</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">dsa</span>.<span class="ident">clone</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dsa_</span>: <span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">pkey</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-        <span class="comment">// Eq is missing</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">dsa</span>.<span class="ident">priv_key</span>(), <span class="ident">dsa_</span>.<span class="ident">priv_key</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_dsa_conversion() {
+        <span class="kw">let </span>dsa = Dsa::generate(<span class="number">2048</span>).unwrap();
+        <span class="kw">let </span>pkey: PKey&lt;Private&gt; = dsa.clone().try_into().unwrap();
+        <span class="kw">let </span>dsa_: Dsa&lt;Private&gt; = pkey.try_into().unwrap();
+        <span class="comment">// Eq is missing
+        </span><span class="macro">assert_eq!</span>(dsa.priv_key(), dsa_.priv_key());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_ec_key_conversion</span>() {
-        <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::ec::EcGroup::from_curve_name</span>(<span class="ident"><span class="kw">crate</span>::nid::Nid::X9_62_PRIME256V1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">ec_key</span> <span class="op">=</span> <span class="ident">EcKey::generate</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ec_key</span>.<span class="ident">clone</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">ec_key_</span>: <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">pkey</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-        <span class="comment">// Eq is missing</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">ec_key</span>.<span class="ident">private_key</span>(), <span class="ident">ec_key_</span>.<span class="ident">private_key</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_ec_key_conversion() {
+        <span class="kw">let </span>group = <span class="kw">crate</span>::ec::EcGroup::from_curve_name(<span class="kw">crate</span>::nid::Nid::X9_62_PRIME256V1).unwrap();
+        <span class="kw">let </span>ec_key = EcKey::generate(<span class="kw-2">&amp;</span>group).unwrap();
+        <span class="kw">let </span>pkey: PKey&lt;Private&gt; = ec_key.clone().try_into().unwrap();
+        <span class="kw">let </span>ec_key_: EcKey&lt;Private&gt; = pkey.try_into().unwrap();
+        <span class="comment">// Eq is missing
+        </span><span class="macro">assert_eq!</span>(ec_key.private_key(), ec_key_.private_key());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_dh_conversion</span>() {
-        <span class="kw">let</span> <span class="ident">dh_params</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/dhparams.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">dh_params</span> <span class="op">=</span> <span class="ident">Dh::params_from_pem</span>(<span class="ident">dh_params</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">dh_params</span>.<span class="ident">generate_key</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_dh_conversion() {
+        <span class="kw">let </span>dh_params = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/dhparams.pem&quot;</span>);
+        <span class="kw">let </span>dh_params = Dh::params_from_pem(dh_params).unwrap();
+        <span class="kw">let </span>dh = dh_params.generate_key().unwrap();
 
-        <span class="comment">// Clone is missing for Dh, save the parameters</span>
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">dh</span>.<span class="ident">prime_p</span>().<span class="ident">to_owned</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">dh</span>.<span class="ident">prime_q</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="ident">q</span>.<span class="ident">to_owned</span>().<span class="ident">unwrap</span>());
-        <span class="kw">let</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">dh</span>.<span class="ident">generator</span>().<span class="ident">to_owned</span>().<span class="ident">unwrap</span>();
+        <span class="comment">// Clone is missing for Dh, save the parameters
+        </span><span class="kw">let </span>p = dh.prime_p().to_owned().unwrap();
+        <span class="kw">let </span>q = dh.prime_q().map(|q| q.to_owned().unwrap());
+        <span class="kw">let </span>g = dh.generator().to_owned().unwrap();
 
-        <span class="kw">let</span> <span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">dh</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dh_</span>: <span class="ident">Dh</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">pkey</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>pkey: PKey&lt;Private&gt; = dh.try_into().unwrap();
+        <span class="kw">let </span>dh_: Dh&lt;Private&gt; = pkey.try_into().unwrap();
 
-        <span class="comment">// Eq is missing</span>
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>, <span class="ident">dh_</span>.<span class="ident">prime_p</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">q</span>, <span class="ident">dh_</span>.<span class="ident">prime_q</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="ident">q</span>.<span class="ident">to_owned</span>().<span class="ident">unwrap</span>()));
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">g</span>, <span class="ident">dh_</span>.<span class="ident">generator</span>());
+        <span class="comment">// Eq is missing
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>p, dh_.prime_p());
+        <span class="macro">assert_eq!</span>(q, dh_.prime_q().map(|q| q.to_owned().unwrap()));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>g, dh_.generator());
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">test_raw_public_key</span>(<span class="ident">gen</span>: <span class="kw">fn</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span>, <span class="ident">key_type</span>: <span class="ident">Id</span>) {
-        <span class="comment">// Generate a new key</span>
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">gen</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">fn </span>test_raw_public_key(gen: <span class="kw">fn</span>() -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;Private&gt;, ErrorStack&gt;, key_type: Id) {
+        <span class="comment">// Generate a new key
+        </span><span class="kw">let </span>key = gen().unwrap();
 
-        <span class="comment">// Get the raw bytes, and create a new key from the raw bytes</span>
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">raw_public_key</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">from_raw</span> <span class="op">=</span> <span class="ident">PKey::public_key_from_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">raw</span>, <span class="ident">key_type</span>).<span class="ident">unwrap</span>();
+        <span class="comment">// Get the raw bytes, and create a new key from the raw bytes
+        </span><span class="kw">let </span>raw = key.raw_public_key().unwrap();
+        <span class="kw">let </span>from_raw = PKey::public_key_from_raw_bytes(<span class="kw-2">&amp;</span>raw, key_type).unwrap();
 
-        <span class="comment">// Compare the der encoding of the original and raw / restored public key</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">key</span>.<span class="ident">public_key_to_der</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">from_raw</span>.<span class="ident">public_key_to_der</span>().<span class="ident">unwrap</span>()
+        <span class="comment">// Compare the der encoding of the original and raw / restored public key
+        </span><span class="macro">assert_eq!</span>(
+            key.public_key_to_der().unwrap(),
+            from_raw.public_key_to_der().unwrap()
         );
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">test_raw_private_key</span>(<span class="ident">gen</span>: <span class="kw">fn</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span>, <span class="ident">key_type</span>: <span class="ident">Id</span>) {
-        <span class="comment">// Generate a new key</span>
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">gen</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[cfg(ossl111)]
+    </span><span class="kw">fn </span>test_raw_private_key(gen: <span class="kw">fn</span>() -&gt; <span class="prelude-ty">Result</span>&lt;PKey&lt;Private&gt;, ErrorStack&gt;, key_type: Id) {
+        <span class="comment">// Generate a new key
+        </span><span class="kw">let </span>key = gen().unwrap();
 
-        <span class="comment">// Get the raw bytes, and create a new key from the raw bytes</span>
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">raw_private_key</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">from_raw</span> <span class="op">=</span> <span class="ident">PKey::private_key_from_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">raw</span>, <span class="ident">key_type</span>).<span class="ident">unwrap</span>();
+        <span class="comment">// Get the raw bytes, and create a new key from the raw bytes
+        </span><span class="kw">let </span>raw = key.raw_private_key().unwrap();
+        <span class="kw">let </span>from_raw = PKey::private_key_from_raw_bytes(<span class="kw-2">&amp;</span>raw, key_type).unwrap();
 
-        <span class="comment">// Compare the der encoding of the original and raw / restored public key</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">key</span>.<span class="ident">private_key_to_der</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">from_raw</span>.<span class="ident">private_key_to_der</span>().<span class="ident">unwrap</span>()
+        <span class="comment">// Compare the der encoding of the original and raw / restored public key
+        </span><span class="macro">assert_eq!</span>(
+            key.private_key_to_der().unwrap(),
+            from_raw.private_key_to_der().unwrap()
         );
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_raw_public_key_bytes</span>() {
-        <span class="ident">test_raw_public_key</span>(<span class="ident">PKey::generate_x25519</span>, <span class="ident">Id::X25519</span>);
-        <span class="ident">test_raw_public_key</span>(<span class="ident">PKey::generate_ed25519</span>, <span class="ident">Id::ED25519</span>);
-        <span class="ident">test_raw_public_key</span>(<span class="ident">PKey::generate_x448</span>, <span class="ident">Id::X448</span>);
-        <span class="ident">test_raw_public_key</span>(<span class="ident">PKey::generate_ed448</span>, <span class="ident">Id::ED448</span>);
+    <span class="attribute">#[cfg(ossl111)]
+    #[test]
+    </span><span class="kw">fn </span>test_raw_public_key_bytes() {
+        test_raw_public_key(PKey::generate_x25519, Id::X25519);
+        test_raw_public_key(PKey::generate_ed25519, Id::ED25519);
+        test_raw_public_key(PKey::generate_x448, Id::X448);
+        test_raw_public_key(PKey::generate_ed448, Id::ED448);
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_raw_private_key_bytes</span>() {
-        <span class="ident">test_raw_private_key</span>(<span class="ident">PKey::generate_x25519</span>, <span class="ident">Id::X25519</span>);
-        <span class="ident">test_raw_private_key</span>(<span class="ident">PKey::generate_ed25519</span>, <span class="ident">Id::ED25519</span>);
-        <span class="ident">test_raw_private_key</span>(<span class="ident">PKey::generate_x448</span>, <span class="ident">Id::X448</span>);
-        <span class="ident">test_raw_private_key</span>(<span class="ident">PKey::generate_ed448</span>, <span class="ident">Id::ED448</span>);
+    <span class="attribute">#[cfg(ossl111)]
+    #[test]
+    </span><span class="kw">fn </span>test_raw_private_key_bytes() {
+        test_raw_private_key(PKey::generate_x25519, Id::X25519);
+        test_raw_private_key(PKey::generate_ed25519, Id::ED25519);
+        test_raw_private_key(PKey::generate_x448, Id::X448);
+        test_raw_private_key(PKey::generate_ed448, Id::ED448);
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_raw_hmac</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test_bytes</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="number">32</span>];
-        <span class="ident">rand_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="ident">test_bytes</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[cfg(ossl111)]
+    #[test]
+    </span><span class="kw">fn </span>test_raw_hmac() {
+        <span class="kw">let </span><span class="kw-2">mut </span>test_bytes = <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="number">32</span>];
+        rand_bytes(<span class="kw-2">&amp;mut </span>test_bytes).unwrap();
 
-        <span class="kw">let</span> <span class="ident">hmac_key</span> <span class="op">=</span> <span class="ident">PKey::hmac</span>(<span class="kw-2">&amp;</span><span class="ident">test_bytes</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">hmac_key</span>.<span class="ident">raw_public_key</span>().<span class="ident">is_err</span>());
+        <span class="kw">let </span>hmac_key = PKey::hmac(<span class="kw-2">&amp;</span>test_bytes).unwrap();
+        <span class="macro">assert!</span>(hmac_key.raw_public_key().is_err());
 
-        <span class="kw">let</span> <span class="ident">key_bytes</span> <span class="op">=</span> <span class="ident">hmac_key</span>.<span class="ident">raw_private_key</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">key_bytes</span>, <span class="ident">test_bytes</span>);
+        <span class="kw">let </span>key_bytes = hmac_key.raw_private_key().unwrap();
+        <span class="macro">assert_eq!</span>(key_bytes, test_bytes);
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_raw_key_fail</span>() {
-        <span class="comment">// Getting a raw byte representation will not work with Nist curves</span>
-        <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::ec::EcGroup::from_curve_name</span>(<span class="ident">Nid::SECP256K1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">ec_key</span> <span class="op">=</span> <span class="ident">EcKey::generate</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_ec_key</span>(<span class="ident">ec_key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">pkey</span>.<span class="ident">raw_private_key</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert!</span>(<span class="ident">pkey</span>.<span class="ident">raw_public_key</span>().<span class="ident">is_err</span>());
+    <span class="attribute">#[cfg(ossl111)]
+    #[test]
+    </span><span class="kw">fn </span>test_raw_key_fail() {
+        <span class="comment">// Getting a raw byte representation will not work with Nist curves
+        </span><span class="kw">let </span>group = <span class="kw">crate</span>::ec::EcGroup::from_curve_name(Nid::SECP256K1).unwrap();
+        <span class="kw">let </span>ec_key = EcKey::generate(<span class="kw-2">&amp;</span>group).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_ec_key(ec_key).unwrap();
+        <span class="macro">assert!</span>(pkey.raw_private_key().is_err());
+        <span class="macro">assert!</span>(pkey.raw_public_key().is_err());
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_ec_gen</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">PKey::ec_gen</span>(<span class="string">&quot;prime256v1&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">key</span>.<span class="ident">ec_key</span>().<span class="ident">is_ok</span>());
+    <span class="attribute">#[cfg(ossl300)]
+    #[test]
+    </span><span class="kw">fn </span>test_ec_gen() {
+        <span class="kw">let </span>key = PKey::ec_gen(<span class="string">&quot;prime256v1&quot;</span>).unwrap();
+        <span class="macro">assert!</span>(key.ec_key().is_ok());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

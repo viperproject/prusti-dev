@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/future/either.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>either.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/future/either.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>either.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -295,302 +295,302 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <span class="ident">futures_core::future</span>::{<a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
-<span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>futures_core::future::{<a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
+<span class="kw">use </span>futures_core::stream::{<a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
 
-<span class="doccomment">/// Combines two different futures, streams, or sinks having the same associated types into a single type.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is useful when conditionally choosing between two distinct future types:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use futures::future::Either;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// let cond = true;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let fut = if cond {</span>
-<span class="doccomment">///     Either::Left(async move { 12 })</span>
-<span class="doccomment">/// } else {</span>
-<span class="doccomment">///     Either::Right(async move { 44 })</span>
-<span class="doccomment">/// };</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(fut.await, 12);</span>
-<span class="doccomment">/// # })</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// First branch of the type</span>
-    <span class="ident">Left</span>(<span class="comment">/* #[pin] */</span> <span class="ident">A</span>),
-    <span class="doccomment">/// Second branch of the type</span>
-    <span class="ident">Right</span>(<span class="comment">/* #[pin] */</span> <span class="ident">B</span>),
+<span class="doccomment">/// Combines two different futures, streams, or sinks having the same associated types into a single type.
+///
+/// This is useful when conditionally choosing between two distinct future types:
+///
+/// ```rust
+/// use futures::future::Either;
+///
+/// # futures::executor::block_on(async {
+/// let cond = true;
+///
+/// let fut = if cond {
+///     Either::Left(async move { 12 })
+/// } else {
+///     Either::Right(async move { 44 })
+/// };
+///
+/// assert_eq!(fut.await, 12);
+/// # })
+/// ```
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub enum </span>Either&lt;A, B&gt; {
+    <span class="doccomment">/// First branch of the type
+    </span>Left(<span class="comment">/* #[pin] */ </span>A),
+    <span class="doccomment">/// Second branch of the type
+    </span>Right(<span class="comment">/* #[pin] */ </span>B),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">A</span><span class="op">&gt;</span>, <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#36">self</a>.<span class="ident">get_unchecked_mut</span>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">a</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">Pin::new_unchecked</span>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#39">a</a>)),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">Pin::new_unchecked</span>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#40">b</a>)),
+<span class="kw">impl</span>&lt;A, B&gt; Either&lt;A, B&gt; {
+    <span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Either&lt;Pin&lt;<span class="kw-2">&amp;mut </span>A&gt;, Pin&lt;<span class="kw-2">&amp;mut </span>B&gt;&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#36">self</a>.get_unchecked_mut() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(a) =&gt; <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(Pin::new_unchecked(<a href="../../../src/futures_util/future/either.rs.html#39">a</a>)),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(b) =&gt; <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(Pin::new_unchecked(<a href="../../../src/futures_util/future/either.rs.html#40">b</a>)),
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="ident">A</span>), (<span class="ident">T</span>, <span class="ident">B</span>)<span class="op">&gt;</span> {
-    <span class="doccomment">/// Factor out a homogeneous type from an either of pairs.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Here, the homogeneous type is the first element of the pairs.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">factor_first</span>(<span class="self">self</span>) -&gt; (<span class="ident">T</span>, <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#50">self</a> {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((<span class="ident">x</span>, <span class="ident">a</span>)) =&gt; (<a class="ident" href="../../../src/futures_util/future/either.rs.html#52">x</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#52">a</a>)),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((<span class="ident">x</span>, <span class="ident">b</span>)) =&gt; (<a class="ident" href="../../../src/futures_util/future/either.rs.html#53">x</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#53">b</a>)),
+<span class="kw">impl</span>&lt;A, B, T&gt; Either&lt;(T, A), (T, B)&gt; {
+    <span class="doccomment">/// Factor out a homogeneous type from an either of pairs.
+    ///
+    /// Here, the homogeneous type is the first element of the pairs.
+    </span><span class="kw">pub fn </span>factor_first(<span class="self">self</span>) -&gt; (T, Either&lt;A, B&gt;) {
+        <span class="kw">match </span><span class="self"><a href="../../../src/futures_util/future/either.rs.html#50">self</a> </span>{
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((x, a)) =&gt; (<a href="../../../src/futures_util/future/either.rs.html#52">x</a>, <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<a href="../../../src/futures_util/future/either.rs.html#52">a</a>)),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((x, b)) =&gt; (<a href="../../../src/futures_util/future/either.rs.html#53">x</a>, <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<a href="../../../src/futures_util/future/either.rs.html#53">b</a>)),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span>(<span class="ident">A</span>, <span class="ident">T</span>), (<span class="ident">B</span>, <span class="ident">T</span>)<span class="op">&gt;</span> {
-    <span class="doccomment">/// Factor out a homogeneous type from an either of pairs.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Here, the homogeneous type is the second element of the pairs.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">factor_second</span>(<span class="self">self</span>) -&gt; (<span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">T</span>) {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#62">self</a> {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((<span class="ident">a</span>, <span class="ident">x</span>)) =&gt; (<a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#64">a</a>), <a class="ident" href="../../../src/futures_util/future/either.rs.html#64">x</a>),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((<span class="ident">b</span>, <span class="ident">x</span>)) =&gt; (<a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#65">b</a>), <a class="ident" href="../../../src/futures_util/future/either.rs.html#65">x</a>),
+<span class="kw">impl</span>&lt;A, B, T&gt; Either&lt;(A, T), (B, T)&gt; {
+    <span class="doccomment">/// Factor out a homogeneous type from an either of pairs.
+    ///
+    /// Here, the homogeneous type is the second element of the pairs.
+    </span><span class="kw">pub fn </span>factor_second(<span class="self">self</span>) -&gt; (Either&lt;A, B&gt;, T) {
+        <span class="kw">match </span><span class="self"><a href="../../../src/futures_util/future/either.rs.html#62">self</a> </span>{
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((a, x)) =&gt; (<a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<a href="../../../src/futures_util/future/either.rs.html#64">a</a>), <a href="../../../src/futures_util/future/either.rs.html#64">x</a>),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((b, x)) =&gt; (<a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<a href="../../../src/futures_util/future/either.rs.html#65">b</a>), <a href="../../../src/futures_util/future/either.rs.html#65">x</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Extract the value of an either over two equivalent types.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#72">self</a> {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#74">x</a>,
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#75">x</a>,
+<span class="kw">impl</span>&lt;T&gt; Either&lt;T, T&gt; {
+    <span class="doccomment">/// Extract the value of an either over two equivalent types.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <span class="kw">match </span><span class="self"><a href="../../../src/futures_util/future/either.rs.html#72">self</a> </span>{
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#74">x</a>,
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#75">x</a>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">B</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">A::Output</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;A, B&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Either&lt;A, B&gt;
+<span class="kw">where
+    </span>A: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    B: Future&lt;Output = A::Output&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">A::Output</span>;
+    <span class="kw">type </span>Output = A::Output;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#87">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#89">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#87">cx</a>),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#90">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#87">cx</a>),
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#87">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#89">x</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/futures_util/future/either.rs.html#87">cx</a>),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#90">x</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/futures_util/future/either.rs.html#87">cx</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>,
-    <span class="ident">B</span>: <span class="ident">FusedFuture</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">A::Output</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;A, B&gt; <a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a> <span class="kw">for </span>Either&lt;A, B&gt;
+<span class="kw">where
+    </span>A: <a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>,
+    B: FusedFuture&lt;Output = A::Output&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#100">self</a> {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#102">x</a>.<a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">is_terminated</a>(),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#103">x</a>.<a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">is_terminated</a>(),
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../src/futures_util/future/either.rs.html#100">self</a> </span>{
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#102">x</a>.<a href="../../../futures_util/future/trait.FusedFuture.html">is_terminated</a>(),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#103">x</a>.<a href="../../../futures_util/future/trait.FusedFuture.html">is_terminated</a>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">B</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;A, B&gt; <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Either&lt;A, B&gt;
+<span class="kw">where
+    </span>A: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    B: Stream&lt;Item = A::Item&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span>;
+    <span class="kw">type </span>Item = A::Item;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#115">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#117">x</a>.<a class="ident" href="../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#115">cx</a>),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#118">x</a>.<a class="ident" href="../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#115">cx</a>),
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#115">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#117">x</a>.<a href="../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../../src/futures_util/future/either.rs.html#115">cx</a>),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#118">x</a>.<a href="../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../../src/futures_util/future/either.rs.html#115">cx</a>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#122">self</a> {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#124">x</a>.<a class="ident" href="../../../futures_util/stream/trait.Stream.html">size_hint</a>(),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#125">x</a>.<a class="ident" href="../../../futures_util/stream/trait.Stream.html">size_hint</a>(),
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <span class="kw">match </span><span class="self"><a href="../../../src/futures_util/future/either.rs.html#122">self</a> </span>{
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#124">x</a>.<a href="../../../futures_util/stream/trait.Stream.html">size_hint</a>(),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#125">x</a>.<a href="../../../futures_util/stream/trait.Stream.html">size_hint</a>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>,
-    <span class="ident">B</span>: <span class="ident">FusedStream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;A, B&gt; <a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>Either&lt;A, B&gt;
+<span class="kw">where
+    </span>A: <a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>,
+    B: FusedStream&lt;Item = A::Item&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#135">self</a> {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#137">x</a>.<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>(),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#138">x</a>.<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>(),
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../src/futures_util/future/either.rs.html#135">self</a> </span>{
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#137">x</a>.<a href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>(),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#138">x</a>.<a href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
-    <span class="ident">B</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">A::Error</span><span class="op">&gt;</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
+</span><span class="kw">impl</span>&lt;A, B, Item&gt; Sink&lt;Item&gt; <span class="kw">for </span>Either&lt;A, B&gt;
+<span class="kw">where
+    </span>A: Sink&lt;Item&gt;,
+    B: Sink&lt;Item, Error = A::Error&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">A::Error</span>;
+    <span class="kw">type </span>Error = A::Error;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#151">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#153">x</a>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">poll_ready</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#151">cx</a>),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#154">x</a>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">poll_ready</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#151">cx</a>),
+    <span class="kw">fn </span>poll_ready(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#151">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#153">x</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_ready</a>(<a href="../../../src/futures_util/future/either.rs.html#151">cx</a>),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#154">x</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_ready</a>(<a href="../../../src/futures_util/future/either.rs.html#151">cx</a>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">item</span>: <span class="ident">Item</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#158">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#160">x</a>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">start_send</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#158">item</a>),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#161">x</a>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">start_send</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#158">item</a>),
+    <span class="kw">fn </span>start_send(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#158">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#160">x</a>.<a href="../../../futures_util/sink/trait.Sink.html">start_send</a>(<a href="../../../src/futures_util/future/either.rs.html#158">item</a>),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#161">x</a>.<a href="../../../futures_util/sink/trait.Sink.html">start_send</a>(<a href="../../../src/futures_util/future/either.rs.html#158">item</a>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#165">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#167">x</a>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#165">cx</a>),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#168">x</a>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#165">cx</a>),
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#165">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#167">x</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="../../../src/futures_util/future/either.rs.html#165">cx</a>),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#168">x</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="../../../src/futures_util/future/either.rs.html#165">cx</a>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#172">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#174">x</a>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#172">cx</a>),
-            <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#175">x</a>.<a class="ident" href="../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#172">cx</a>),
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#172">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+            <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#174">x</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a href="../../../src/futures_util/future/either.rs.html#172">cx</a>),
+            <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#175">x</a>.<a href="../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a href="../../../src/futures_util/future/either.rs.html#172">cx</a>),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">if_std</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;io&quot;</span>)]
+#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">mod </span>if_std {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-    <span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-    <span class="kw">use</span> <span class="ident">futures_io</span>::{
-        <a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>, <a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>, <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSliceMut.html">IoSliceMut</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+    <span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+    <span class="kw">use </span>futures_io::{
+        <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>, <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>, <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSliceMut.html">IoSliceMut</a>, <span class="prelude-ty">Result</span>, <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
     };
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">A</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>,
-        <span class="ident">B</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>,
+    <span class="kw">impl</span>&lt;A, B&gt; <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>Either&lt;A, B&gt;
+    <span class="kw">where
+        </span>A: <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>,
+        B: <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>,
     {
-        <span class="kw">fn</span> <span class="ident">poll_read</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#197">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#202">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">poll_read</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#198">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#199">buf</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#203">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">poll_read</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#198">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#199">buf</a>),
+        <span class="kw">fn </span>poll_read(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#197">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#202">x</a>.<a href="../../../futures_util/io/trait.AsyncRead.html">poll_read</a>(<a href="../../../src/futures_util/future/either.rs.html#198">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#199">buf</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#203">x</a>.<a href="../../../futures_util/io/trait.AsyncRead.html">poll_read</a>(<a href="../../../src/futures_util/future/either.rs.html#198">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#199">buf</a>),
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_read_vectored</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">bufs</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSliceMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#208">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#213">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">poll_read_vectored</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#209">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#210">bufs</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#214">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">poll_read_vectored</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#209">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#210">bufs</a>),
+        <span class="kw">fn </span>poll_read_vectored(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#208">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#213">x</a>.<a href="../../../futures_util/io/trait.AsyncRead.html">poll_read_vectored</a>(<a href="../../../src/futures_util/future/either.rs.html#209">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#210">bufs</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#214">x</a>.<a href="../../../futures_util/io/trait.AsyncRead.html">poll_read_vectored</a>(<a href="../../../src/futures_util/future/either.rs.html#209">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#210">bufs</a>),
             }
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">A</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>,
-        <span class="ident">B</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>,
+    <span class="kw">impl</span>&lt;A, B&gt; <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>Either&lt;A, B&gt;
+    <span class="kw">where
+        </span>A: <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>,
+        B: <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>,
     {
-        <span class="kw">fn</span> <span class="ident">poll_write</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#225">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#230">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#226">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#227">buf</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#231">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#226">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#227">buf</a>),
+        <span class="kw">fn </span>poll_write(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#225">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#230">x</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="../../../src/futures_util/future/either.rs.html#226">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#227">buf</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#231">x</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="../../../src/futures_util/future/either.rs.html#226">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#227">buf</a>),
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#236">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#241">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#237">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#238">bufs</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#242">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#237">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#238">bufs</a>),
+        <span class="kw">fn </span>poll_write_vectored(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#236">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#241">x</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="../../../src/futures_util/future/either.rs.html#237">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#238">bufs</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#242">x</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="../../../src/futures_util/future/either.rs.html#237">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#238">bufs</a>),
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#246">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#248">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#246">cx</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#249">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#246">cx</a>),
+        <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#246">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#248">x</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a href="../../../src/futures_util/future/either.rs.html#246">cx</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#249">x</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a href="../../../src/futures_util/future/either.rs.html#246">cx</a>),
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#253">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#255">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#253">cx</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#256">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#253">cx</a>),
+        <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#253">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#255">x</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a href="../../../src/futures_util/future/either.rs.html#253">cx</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#256">x</a>.<a href="../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a href="../../../src/futures_util/future/either.rs.html#253">cx</a>),
             }
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">A</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>,
-        <span class="ident">B</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>,
+    <span class="kw">impl</span>&lt;A, B&gt; <a href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a> <span class="kw">for </span>Either&lt;A, B&gt;
+    <span class="kw">where
+        </span>A: <a href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>,
+        B: <a href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>,
     {
-        <span class="kw">fn</span> <span class="ident">poll_seek</span>(
-            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#267">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#272">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#268">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#269">pos</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#273">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#268">cx</a>, <a class="ident" href="../../../src/futures_util/future/either.rs.html#269">pos</a>),
+        <span class="kw">fn </span>poll_seek(
+            <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
+        ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#267">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#272">x</a>.<a href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a href="../../../src/futures_util/future/either.rs.html#268">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#269">pos</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#273">x</a>.<a href="../../../futures_util/io/trait.AsyncSeek.html">poll_seek</a>(<a href="../../../src/futures_util/future/either.rs.html#268">cx</a>, <a href="../../../src/futures_util/future/either.rs.html#269">pos</a>),
             }
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">A</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>,
-        <span class="ident">B</span>: <a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>,
+    <span class="kw">impl</span>&lt;A, B&gt; <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for </span>Either&lt;A, B&gt;
+    <span class="kw">where
+        </span>A: <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>,
+        B: <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>,
     {
-        <span class="kw">fn</span> <span class="ident">poll_fill_buf</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#283">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#285">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">poll_fill_buf</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#283">cx</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#286">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">poll_fill_buf</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#283">cx</a>),
+        <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#283">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#285">x</a>.<a href="../../../futures_util/io/trait.AsyncBufRead.html">poll_fill_buf</a>(<a href="../../../src/futures_util/future/either.rs.html#283">cx</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#286">x</a>.<a href="../../../futures_util/io/trait.AsyncBufRead.html">poll_fill_buf</a>(<a href="../../../src/futures_util/future/either.rs.html#283">cx</a>),
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">consume</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-            <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/either.rs.html#290">self</a>.<a class="ident" href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#292">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#290">amt</a>),
-                <a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../../src/futures_util/future/either.rs.html#293">x</a>.<a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#290">amt</a>),
+        <span class="kw">fn </span>consume(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+            <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/either.rs.html#290">self</a>.<a href="../../../src/futures_util/future/either.rs.html#36">project</a>() {
+                <a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#292">x</a>.<a href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a href="../../../src/futures_util/future/either.rs.html#290">amt</a>),
+                <a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>(x) =&gt; <a href="../../../src/futures_util/future/either.rs.html#293">x</a>.<a href="../../../futures_util/io/trait.AsyncBufRead.html">consume</a>(<a href="../../../src/futures_util/future/either.rs.html#290">amt</a>),
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

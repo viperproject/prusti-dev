@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/net/udp/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/net/udp/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -589,594 +589,594 @@
 <span id="587">587</span>
 <span id="588">588</span>
 <span id="589">589</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../async_std/net/enum.SocketAddr.html">std::net::SocketAddr</a>;
-<span class="kw">use</span> <span class="ident">std::net</span>::{<a class="ident" href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>, <a class="ident" href="../../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="../../../../async_std/net/enum.SocketAddr.html">std::net::SocketAddr</a>;
+<span class="kw">use </span>std::net::{<a href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="../../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../../async_io/struct.Async.html">async_io::Async</a>;
+<span class="kw">use </span><a href="../../../../async_io/struct.Async.html">async_io::Async</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/async_std/net/addr.rs.html#45"><span class="kw">crate</span>::net::ToSocketAddrs</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/async_std/utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as</span> <span class="kw">_</span>;
+<span class="kw">use </span><a href="../../../../src/async_std/net/addr.rs.html#45"><span class="kw">crate</span>::net::ToSocketAddrs</a>;
+<span class="kw">use </span><a href="../../../../src/async_std/utils.rs.html#58"><span class="kw">crate</span>::utils::Context</a> <span class="kw">as _</span>;
 
-<span class="doccomment">/// A UDP socket.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// After creating a `UdpSocket` by [`bind`]ing it to a socket address, data can be [sent to] and</span>
-<span class="doccomment">/// [received from] any other socket address.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// As stated in the User Datagram Protocol&#39;s specification in [IETF RFC 768], UDP is an unordered,</span>
-<span class="doccomment">/// unreliable protocol. Refer to [`TcpListener`] and [`TcpStream`] for async TCP primitives.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is an async version of [`std::net::UdpSocket`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`bind`]: #method.bind</span>
-<span class="doccomment">/// [received from]: #method.recv_from</span>
-<span class="doccomment">/// [sent to]: #method.send_to</span>
-<span class="doccomment">/// [`TcpListener`]: struct.TcpListener.html</span>
-<span class="doccomment">/// [`TcpStream`]: struct.TcpStream.html</span>
-<span class="doccomment">/// [`std::net`]: https://doc.rust-lang.org/std/net/index.html</span>
-<span class="doccomment">/// [IETF RFC 768]: https://tools.ietf.org/html/rfc768</span>
-<span class="doccomment">/// [`std::net::UdpSocket`]: https://doc.rust-lang.org/std/net/struct.UdpSocket.html</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// use async_std::net::UdpSocket;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:8080&quot;).await?;</span>
-<span class="doccomment">/// let mut buf = vec![0u8; 1024];</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// loop {</span>
-<span class="doccomment">///     let (n, peer) = socket.recv_from(&amp;mut buf).await?;</span>
-<span class="doccomment">///     socket.send_to(&amp;buf[..n], &amp;peer).await?;</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # }) }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UdpSocket</span> {
-    <span class="ident">watcher</span>: <span class="ident">Async</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A UDP socket.
+///
+/// After creating a `UdpSocket` by [`bind`]ing it to a socket address, data can be [sent to] and
+/// [received from] any other socket address.
+///
+/// As stated in the User Datagram Protocol&#39;s specification in [IETF RFC 768], UDP is an unordered,
+/// unreliable protocol. Refer to [`TcpListener`] and [`TcpStream`] for async TCP primitives.
+///
+/// This type is an async version of [`std::net::UdpSocket`].
+///
+/// [`bind`]: #method.bind
+/// [received from]: #method.recv_from
+/// [sent to]: #method.send_to
+/// [`TcpListener`]: struct.TcpListener.html
+/// [`TcpStream`]: struct.TcpStream.html
+/// [`std::net`]: https://doc.rust-lang.org/std/net/index.html
+/// [IETF RFC 768]: https://tools.ietf.org/html/rfc768
+/// [`std::net::UdpSocket`]: https://doc.rust-lang.org/std/net/struct.UdpSocket.html
+///
+/// ## Examples
+///
+/// ```no_run
+/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+/// #
+/// use async_std::net::UdpSocket;
+///
+/// let socket = UdpSocket::bind(&quot;127.0.0.1:8080&quot;).await?;
+/// let mut buf = vec![0u8; 1024];
+///
+/// loop {
+///     let (n, peer) = socket.recv_from(&amp;mut buf).await?;
+///     socket.send_to(&amp;buf[..n], &amp;peer).await?;
+/// }
+/// #
+/// # }) }
+/// ```
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>UdpSocket {
+    watcher: Async&lt;<a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
-    <span class="doccomment">/// Creates a UDP socket from the given address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Binding with a port number of 0 will request that the OS assigns a port to this socket. The</span>
-    <span class="doccomment">/// port allocated can be queried via the [`local_addr`] method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`local_addr`]: #method.local_addr</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="../../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a><span class="op">&gt;</span>(<span class="ident">addrs</span>: <span class="ident">A</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="ident">addrs</span>.<span class="ident">to_socket_addrs</span>().<span class="kw">await</span><span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
+    <span class="doccomment">/// Creates a UDP socket from the given address.
+    ///
+    /// Binding with a port number of 0 will request that the OS assigns a port to this socket. The
+    /// port allocated can be queried via the [`local_addr`] method.
+    ///
+    /// [`local_addr`]: #method.local_addr
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>bind&lt;A: <a href="../../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a>&gt;(addrs: A) -&gt; io::Result&lt;<a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>last_err = <span class="prelude-val">None</span>;
+        <span class="kw">let </span>addrs = addrs.to_socket_addrs().<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <span class="ident">addr</span> <span class="kw">in</span> <span class="ident">addrs</span> {
-            <span class="kw">match</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">std::net::UdpSocket</span><span class="op">&gt;</span><span class="ident">::bind</span>(<span class="ident">addr</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">socket</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">UdpSocket</span> { <span class="ident">watcher</span>: <span class="ident">socket</span> });
+        <span class="kw">for </span>addr <span class="kw">in </span>addrs {
+            <span class="kw">match </span>Async::&lt;std::net::UdpSocket&gt;::bind(addr) {
+                <span class="prelude-val">Ok</span>(socket) =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(UdpSocket { watcher: socket });
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
+                <span class="prelude-val">Err</span>(err) =&gt; last_err = <span class="prelude-val">Some</span>(err),
             }
         }
 
-        <span class="prelude-val">Err</span>(<span class="ident">last_err</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidInput</span>,
+        <span class="prelude-val">Err</span>(last_err.unwrap_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
                 <span class="string">&quot;could not resolve to any addresses&quot;</span>,
             )
         }))
     }
 
-    <span class="doccomment">/// Returns the peer address that this listener is connected to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be useful, for example, when connect to port 0 to figure out which port was</span>
-    <span class="doccomment">/// actually connected.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket1 = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// let socket2 = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// socket1.connect(socket2.local_addr()?).await?;</span>
-    <span class="doccomment">/// let addr = socket1.peer_addr()?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#110">self</a>.<span class="ident">watcher</span>
-            .<span class="ident">get_ref</span>()
-            .<span class="ident">peer_addr</span>()
-            .<a class="ident" href="../../../../src/async_std/utils.rs.html#59">context</a>(<span class="op">|</span><span class="op">|</span> <span class="ident">String::from</span>(<span class="string">&quot;could not get peer address&quot;</span>))
+    <span class="doccomment">/// Returns the peer address that this listener is connected to.
+    ///
+    /// This can be useful, for example, when connect to port 0 to figure out which port was
+    /// actually connected.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket1 = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let socket2 = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// socket1.connect(socket2.local_addr()?).await?;
+    /// let addr = socket1.peer_addr()?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#110">self</a>.watcher
+            .get_ref()
+            .peer_addr()
+            .<a href="../../../../src/async_std/utils.rs.html#59">context</a>(|| String::from(<span class="string">&quot;could not get peer address&quot;</span>))
     }
 
-    <span class="doccomment">/// Returns the local address that this listener is bound to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be useful, for example, when binding to port 0 to figure out which port was</span>
-    <span class="doccomment">/// actually bound.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// let addr = socket.local_addr()?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#134">self</a>.<span class="ident">watcher</span>
-            .<span class="ident">get_ref</span>()
-            .<span class="ident">local_addr</span>()
-            .<a class="ident" href="../../../../src/async_std/utils.rs.html#59">context</a>(<span class="op">|</span><span class="op">|</span> <span class="ident">String::from</span>(<span class="string">&quot;could not get local address&quot;</span>))
+    <span class="doccomment">/// Returns the local address that this listener is bound to.
+    ///
+    /// This can be useful, for example, when binding to port 0 to figure out which port was
+    /// actually bound.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let addr = socket.local_addr()?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#134">self</a>.watcher
+            .get_ref()
+            .local_addr()
+            .<a href="../../../../src/async_std/utils.rs.html#59">context</a>(|| String::from(<span class="string">&quot;could not get local address&quot;</span>))
     }
 
-    <span class="doccomment">/// Sends data on the socket to the given address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// const THE_MERCHANT_OF_VENICE: &amp;[u8] = b&quot;</span>
-    <span class="doccomment">///     If you prick us, do we not bleed?</span>
-    <span class="doccomment">///     If you tickle us, do we not laugh?</span>
-    <span class="doccomment">///     If you poison us, do we not die?</span>
-    <span class="doccomment">///     And if you wrong us, shall we not revenge?</span>
-    <span class="doccomment">/// &quot;;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let addr = &quot;127.0.0.1:7878&quot;;</span>
-    <span class="doccomment">/// let sent = socket.send_to(THE_MERCHANT_OF_VENICE, &amp;addr).await?;</span>
-    <span class="doccomment">/// println!(&quot;Sent {} bytes to {}&quot;, sent, addr);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_to</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="../../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">addrs</span>: <span class="ident">A</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">addrs</span>.<span class="ident">to_socket_addrs</span>().<span class="kw">await</span><span class="question-mark">?</span>.<span class="ident">next</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">addr</span>) =&gt; <span class="ident">addr</span>,
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
-                    <span class="ident">io::ErrorKind::InvalidInput</span>,
+    <span class="doccomment">/// Sends data on the socket to the given address.
+    ///
+    /// On success, returns the number of bytes written.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// const THE_MERCHANT_OF_VENICE: &amp;[u8] = b&quot;
+    ///     If you prick us, do we not bleed?
+    ///     If you tickle us, do we not laugh?
+    ///     If you poison us, do we not die?
+    ///     And if you wrong us, shall we not revenge?
+    /// &quot;;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    ///
+    /// let addr = &quot;127.0.0.1:7878&quot;;
+    /// let sent = socket.send_to(THE_MERCHANT_OF_VENICE, &amp;addr).await?;
+    /// println!(&quot;Sent {} bytes to {}&quot;, sent, addr);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>send_to&lt;A: <a href="../../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], addrs: A) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">let </span>addr = <span class="kw">match </span>addrs.to_socket_addrs().<span class="kw">await</span><span class="question-mark">?</span>.next() {
+            <span class="prelude-val">Some</span>(addr) =&gt; addr,
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                    io::ErrorKind::InvalidInput,
                     <span class="string">&quot;no addresses to send data to&quot;</span>,
                 ));
             }
         };
 
-        <span class="self">self</span>.<span class="ident">watcher</span>
-            .<span class="ident">send_to</span>(<span class="ident">buf</span>, <span class="ident">addr</span>)
-            .<span class="kw">await</span>
-            .<span class="ident">context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;could not send packet to {}&quot;</span>, <span class="ident">addr</span>))
+        <span class="self">self</span>.watcher
+            .send_to(buf, addr)
+            .<span class="kw">await
+            </span>.context(|| <span class="macro">format!</span>(<span class="string">&quot;could not send packet to {}&quot;</span>, addr))
     }
 
-    <span class="doccomment">/// Receives data from the socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes read and the origin.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![0; 1024];</span>
-    <span class="doccomment">/// let (n, peer) = socket.recv_from(&amp;mut buf).await?;</span>
-    <span class="doccomment">/// println!(&quot;Received {} bytes from {}&quot;, n, peer);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">recv_from</span>(<span class="ident">buf</span>).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Receives data from the socket.
+    ///
+    /// On success, returns the number of bytes read and the origin.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    ///
+    /// let mut buf = vec![0; 1024];
+    /// let (n, peer) = socket.recv_from(&amp;mut buf).await?;
+    /// println!(&quot;Received {} bytes from {}&quot;, n, peer);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+        <span class="self">self</span>.watcher.recv_from(buf).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Receives data from socket without removing it from the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes peeked and the origin.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![0; 1024];</span>
-    <span class="doccomment">/// let (n, peer) = socket.peek_from(&amp;mut buf).await?;</span>
-    <span class="doccomment">/// println!(&quot;Peeked {} bytes from {}&quot;, n, peer);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok (()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">peek_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">peek_from</span>(<span class="ident">buf</span>).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Receives data from socket without removing it from the queue.
+    ///
+    /// On success, returns the number of bytes peeked and the origin.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    ///
+    /// let mut buf = vec![0; 1024];
+    /// let (n, peer) = socket.peek_from(&amp;mut buf).await?;
+    /// println!(&quot;Peeked {} bytes from {}&quot;, n, peer);
+    /// #
+    /// # Ok (()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../../async_std/net/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+        <span class="self">self</span>.watcher.peek_from(buf).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Connects the UDP socket to a remote address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When connected, methods [`send`] and [`recv`] will use the specified address for sending</span>
-    <span class="doccomment">/// and receiving messages. Additionally, a filter will be applied to [`recv_from`] so that it</span>
-    <span class="doccomment">/// only receives messages from that same address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`send`]: #method.send</span>
-    <span class="doccomment">/// [`recv`]: #method.recv</span>
-    <span class="doccomment">/// [`recv_from`]: #method.recv_from</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// socket.connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="../../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">addrs</span>: <span class="ident">A</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="ident">addrs</span>
-            .<span class="ident">to_socket_addrs</span>()
-            .<span class="kw">await</span>
-            .<span class="ident">context</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">String::from</span>(<span class="string">&quot;could not resolve addresses&quot;</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Connects the UDP socket to a remote address.
+    ///
+    /// When connected, methods [`send`] and [`recv`] will use the specified address for sending
+    /// and receiving messages. Additionally, a filter will be applied to [`recv_from`] so that it
+    /// only receives messages from that same address.
+    ///
+    /// [`send`]: #method.send
+    /// [`recv`]: #method.recv
+    /// [`recv_from`]: #method.recv_from
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// socket.connect(&quot;127.0.0.1:8080&quot;).await?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>connect&lt;A: <a href="../../../../src/async_std/net/addr.rs.html#45">ToSocketAddrs</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, addrs: A) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>last_err = <span class="prelude-val">None</span>;
+        <span class="kw">let </span>addrs = addrs
+            .to_socket_addrs()
+            .<span class="kw">await
+            </span>.context(|| String::from(<span class="string">&quot;could not resolve addresses&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <span class="ident">addr</span> <span class="kw">in</span> <span class="ident">addrs</span> {
-            <span class="comment">// TODO(stjepang): connect on the blocking pool</span>
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">connect</span>(<span class="ident">addr</span>) {
-                <span class="prelude-val">Ok</span>(()) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
+        <span class="kw">for </span>addr <span class="kw">in </span>addrs {
+            <span class="comment">// TODO(stjepang): connect on the blocking pool
+            </span><span class="kw">match </span><span class="self">self</span>.watcher.get_ref().connect(addr) {
+                <span class="prelude-val">Ok</span>(()) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+                <span class="prelude-val">Err</span>(err) =&gt; last_err = <span class="prelude-val">Some</span>(err),
             }
         }
 
-        <span class="prelude-val">Err</span>(<span class="ident">last_err</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidInput</span>,
+        <span class="prelude-val">Err</span>(last_err.unwrap_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
                 <span class="string">&quot;could not resolve to any addresses&quot;</span>,
             )
         }))
     }
 
-    <span class="doccomment">/// Sends data on the socket to the remote address to which it is connected.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`connect`] method will connect this socket to a remote address.</span>
-    <span class="doccomment">/// This method will fail if the socket is not connected.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`connect`]: #method.connect</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:34254&quot;).await?;</span>
-    <span class="doccomment">/// socket.connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">/// let bytes = socket.send(b&quot;Hi there!&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// println!(&quot;Sent {} bytes&quot;, bytes);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">send</span>(<span class="ident">buf</span>).<span class="kw">await</span>
+    <span class="doccomment">/// Sends data on the socket to the remote address to which it is connected.
+    ///
+    /// The [`connect`] method will connect this socket to a remote address.
+    /// This method will fail if the socket is not connected.
+    ///
+    /// [`connect`]: #method.connect
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:34254&quot;).await?;
+    /// socket.connect(&quot;127.0.0.1:8080&quot;).await?;
+    /// let bytes = socket.send(b&quot;Hi there!&quot;).await?;
+    ///
+    /// println!(&quot;Sent {} bytes&quot;, bytes);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="self">self</span>.watcher.send(buf).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Receives data from the socket.
+    ///
+    /// On success, returns the number of bytes read.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// socket.connect(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    /// let mut buf = vec![0; 1024];
+    /// let n = socket.recv(&amp;mut buf).await?;
+    /// println!(&quot;Received {} bytes&quot;, n);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="self">self</span>.watcher.recv(buf).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Receives data from the socket without removing it from the queue.
+    ///
+    /// On success, returns the number of bytes peeked.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// socket.connect(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    /// let mut buf = vec![0; 1024];
+    /// let n = socket.peek(&amp;mut buf).await?;
+    /// println!(&quot;Peeked {} bytes&quot;, n);
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="self">self</span>.watcher.peek(buf).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Gets the value of the `SO_BROADCAST` option for this socket.
+    ///
+    /// For more information about this option, see [`set_broadcast`].
+    ///
+    /// [`set_broadcast`]: #method.set_broadcast
+    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#354">self</a>.watcher.get_ref().broadcast()
     }
 
-    <span class="doccomment">/// Receives data from the socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes read.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// socket.connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![0; 1024];</span>
-    <span class="doccomment">/// let n = socket.recv(&amp;mut buf).await?;</span>
-    <span class="doccomment">/// println!(&quot;Received {} bytes&quot;, n);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">recv</span>(<span class="ident">buf</span>).<span class="kw">await</span>
+    <span class="doccomment">/// Sets the value of the `SO_BROADCAST` option for this socket.
+    ///
+    /// When enabled, this socket is allowed to send packets to a broadcast address.
+    </span><span class="kw">pub fn </span>set_broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#361">self</a>.watcher.get_ref().set_broadcast(<a href="../../../../src/async_std/net/udp/mod.rs.html#361">on</a>)
     }
 
-    <span class="doccomment">/// Receives data from the socket without removing it from the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes peeked.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// socket.connect(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![0; 1024];</span>
-    <span class="doccomment">/// let n = socket.peek(&amp;mut buf).await?;</span>
-    <span class="doccomment">/// println!(&quot;Peeked {} bytes&quot;, n);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">peek</span>(<span class="ident">buf</span>).<span class="kw">await</span>
+    <span class="doccomment">/// Gets the value of the `IP_MULTICAST_LOOP` option for this socket.
+    ///
+    /// For more information about this option, see [`set_multicast_loop_v4`].
+    ///
+    /// [`set_multicast_loop_v4`]: #method.set_multicast_loop_v4
+    </span><span class="kw">pub fn </span>multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#370">self</a>.watcher.get_ref().multicast_loop_v4()
     }
 
-    <span class="doccomment">/// Gets the value of the `SO_BROADCAST` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_broadcast`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_broadcast`]: #method.set_broadcast</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">broadcast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#354">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">broadcast</span>()
+    <span class="doccomment">/// Sets the value of the `IP_MULTICAST_LOOP` option for this socket.
+    ///
+    /// If enabled, multicast packets will be looped back to the local socket.
+    ///
+    /// # Note
+    ///
+    /// This may not have any affect on IPv6 sockets.
+    </span><span class="kw">pub fn </span>set_multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#381">self</a>.watcher.get_ref().set_multicast_loop_v4(<a href="../../../../src/async_std/net/udp/mod.rs.html#381">on</a>)
     }
 
-    <span class="doccomment">/// Sets the value of the `SO_BROADCAST` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When enabled, this socket is allowed to send packets to a broadcast address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_broadcast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#361">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">set_broadcast</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#361">on</a>)
+    <span class="doccomment">/// Gets the value of the `IP_MULTICAST_TTL` option for this socket.
+    ///
+    /// For more information about this option, see [`set_multicast_ttl_v4`].
+    ///
+    /// [`set_multicast_ttl_v4`]: #method.set_multicast_ttl_v4
+    </span><span class="kw">pub fn </span>multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#390">self</a>.watcher.get_ref().multicast_ttl_v4()
     }
 
-    <span class="doccomment">/// Gets the value of the `IP_MULTICAST_LOOP` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_multicast_loop_v4`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_multicast_loop_v4`]: #method.set_multicast_loop_v4</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_loop_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#370">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">multicast_loop_v4</span>()
+    <span class="doccomment">/// Sets the value of the `IP_MULTICAST_TTL` option for this socket.
+    ///
+    /// Indicates the time-to-live value of outgoing multicast packets for this socket. The default
+    /// value is 1 which means that multicast packets don&#39;t leave the local network unless
+    /// explicitly requested.
+    ///
+    /// # Note
+    ///
+    /// This may not have any affect on IPv6 sockets.
+    </span><span class="kw">pub fn </span>set_multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#403">self</a>.watcher.get_ref().set_multicast_ttl_v4(<a href="../../../../src/async_std/net/udp/mod.rs.html#403">ttl</a>)
     }
 
-    <span class="doccomment">/// Sets the value of the `IP_MULTICAST_LOOP` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If enabled, multicast packets will be looped back to the local socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may not have any affect on IPv6 sockets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_loop_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#381">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">set_multicast_loop_v4</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#381">on</a>)
+    <span class="doccomment">/// Gets the value of the `IPV6_MULTICAST_LOOP` option for this socket.
+    ///
+    /// For more information about this option, see [`set_multicast_loop_v6`].
+    ///
+    /// [`set_multicast_loop_v6`]: #method.set_multicast_loop_v6
+    </span><span class="kw">pub fn </span>multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#412">self</a>.watcher.get_ref().multicast_loop_v6()
     }
 
-    <span class="doccomment">/// Gets the value of the `IP_MULTICAST_TTL` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_multicast_ttl_v4`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_multicast_ttl_v4`]: #method.set_multicast_ttl_v4</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_ttl_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#390">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">multicast_ttl_v4</span>()
+    <span class="doccomment">/// Sets the value of the `IPV6_MULTICAST_LOOP` option for this socket.
+    ///
+    /// Controls whether this socket sees the multicast packets it sends itself.
+    ///
+    /// # Note
+    ///
+    /// This may not have any affect on IPv4 sockets.
+    </span><span class="kw">pub fn </span>set_multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#423">self</a>.watcher.get_ref().set_multicast_loop_v6(<a href="../../../../src/async_std/net/udp/mod.rs.html#423">on</a>)
     }
 
-    <span class="doccomment">/// Sets the value of the `IP_MULTICAST_TTL` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Indicates the time-to-live value of outgoing multicast packets for this socket. The default</span>
-    <span class="doccomment">/// value is 1 which means that multicast packets don&#39;t leave the local network unless</span>
-    <span class="doccomment">/// explicitly requested.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may not have any affect on IPv6 sockets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_ttl_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#403">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">set_multicast_ttl_v4</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#403">ttl</a>)
+    <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.
+    ///
+    /// For more information about this option, see [`set_ttl`].
+    ///
+    /// [`set_ttl`]: #method.set_ttl
+    </span><span class="kw">pub fn </span>ttl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#432">self</a>.watcher.get_ref().ttl()
     }
 
-    <span class="doccomment">/// Gets the value of the `IPV6_MULTICAST_LOOP` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_multicast_loop_v6`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_multicast_loop_v6`]: #method.set_multicast_loop_v6</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_loop_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#412">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">multicast_loop_v6</span>()
+    <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.
+    ///
+    /// This value sets the time-to-live field that is used in every packet sent
+    /// from this socket.
+    </span><span class="kw">pub fn </span>set_ttl(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#440">self</a>.watcher.get_ref().set_ttl(<a href="../../../../src/async_std/net/udp/mod.rs.html#440">ttl</a>)
     }
 
-    <span class="doccomment">/// Sets the value of the `IPV6_MULTICAST_LOOP` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Controls whether this socket sees the multicast packets it sends itself.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may not have any affect on IPv4 sockets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_loop_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#423">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">set_multicast_loop_v6</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#423">on</a>)
+    <span class="doccomment">/// Executes an operation of the `IP_ADD_MEMBERSHIP` type.
+    ///
+    /// This method specifies a new multicast group for this socket to join. The address must be
+    /// a valid multicast address, and `interface` is the address of the local interface with which
+    /// the system should join the multicast group. If it&#39;s equal to `INADDR_ANY` then an
+    /// appropriate interface is chosen by the system.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use std::net::Ipv4Addr;
+    ///
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let interface = Ipv4Addr::new(0, 0, 0, 0);
+    /// let mdns_addr = Ipv4Addr::new(224, 0, 0, 123);
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// socket.join_multicast_v4(mdns_addr, interface)?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>join_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <a href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <a href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#468">self</a>.watcher
+            .get_ref()
+            .join_multicast_v4(<span class="kw-2">&amp;</span><a href="../../../../src/async_std/net/udp/mod.rs.html#468">multiaddr</a>, <span class="kw-2">&amp;</span><a href="../../../../src/async_std/net/udp/mod.rs.html#468">interface</a>)
     }
 
-    <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_ttl`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_ttl`]: #method.set_ttl</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#432">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">ttl</span>()
+    <span class="doccomment">/// Executes an operation of the `IPV6_ADD_MEMBERSHIP` type.
+    ///
+    /// This method specifies a new multicast group for this socket to join. The address must be
+    /// a valid multicast address, and `interface` is the index of the interface to join/leave (or
+    /// 0 to indicate any interface).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use std::net::{Ipv6Addr, SocketAddr};
+    ///
+    /// use async_std::net::UdpSocket;
+    ///
+    /// let socket_addr = SocketAddr::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0).into(), 0);
+    /// let mdns_addr = Ipv6Addr::new(0xFF02, 0, 0, 0, 0, 0, 0, 0x0123);
+    /// let socket = UdpSocket::bind(&amp;socket_addr).await?;
+    ///
+    /// socket.join_multicast_v6(&amp;mdns_addr, 0)?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>join_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="../../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#497">self</a>.watcher
+            .get_ref()
+            .join_multicast_v6(<a href="../../../../src/async_std/net/udp/mod.rs.html#497">multiaddr</a>, <a href="../../../../src/async_std/net/udp/mod.rs.html#497">interface</a>)
     }
 
-    <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This value sets the time-to-live field that is used in every packet sent</span>
-    <span class="doccomment">/// from this socket.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#440">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">set_ttl</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#440">ttl</a>)
+    <span class="doccomment">/// Executes an operation of the `IP_DROP_MEMBERSHIP` type.
+    ///
+    /// For more information about this option, see [`join_multicast_v4`].
+    ///
+    /// [`join_multicast_v4`]: #method.join_multicast_v4
+    </span><span class="kw">pub fn </span>leave_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <a href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <a href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#508">self</a>.watcher
+            .get_ref()
+            .leave_multicast_v4(<span class="kw-2">&amp;</span><a href="../../../../src/async_std/net/udp/mod.rs.html#508">multiaddr</a>, <span class="kw-2">&amp;</span><a href="../../../../src/async_std/net/udp/mod.rs.html#508">interface</a>)
     }
 
-    <span class="doccomment">/// Executes an operation of the `IP_ADD_MEMBERSHIP` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method specifies a new multicast group for this socket to join. The address must be</span>
-    <span class="doccomment">/// a valid multicast address, and `interface` is the address of the local interface with which</span>
-    <span class="doccomment">/// the system should join the multicast group. If it&#39;s equal to `INADDR_ANY` then an</span>
-    <span class="doccomment">/// appropriate interface is chosen by the system.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use std::net::Ipv4Addr;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let interface = Ipv4Addr::new(0, 0, 0, 0);</span>
-    <span class="doccomment">/// let mdns_addr = Ipv4Addr::new(224, 0, 0, 123);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">/// socket.join_multicast_v4(mdns_addr, interface)?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_multicast_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <a class="ident" href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>, <span class="ident">interface</span>: <a class="ident" href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#468">self</a>.<span class="ident">watcher</span>
-            .<span class="ident">get_ref</span>()
-            .<span class="ident">join_multicast_v4</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#468">multiaddr</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#468">interface</a>)
-    }
-
-    <span class="doccomment">/// Executes an operation of the `IPV6_ADD_MEMBERSHIP` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method specifies a new multicast group for this socket to join. The address must be</span>
-    <span class="doccomment">/// a valid multicast address, and `interface` is the index of the interface to join/leave (or</span>
-    <span class="doccomment">/// 0 to indicate any interface).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use std::net::{Ipv6Addr, SocketAddr};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use async_std::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket_addr = SocketAddr::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0).into(), 0);</span>
-    <span class="doccomment">/// let mdns_addr = Ipv6Addr::new(0xFF02, 0, 0, 0, 0, 0, 0, 0x0123);</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&amp;socket_addr).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// socket.join_multicast_v6(&amp;mdns_addr, 0)?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_multicast_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>, <span class="ident">interface</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#497">self</a>.<span class="ident">watcher</span>
-            .<span class="ident">get_ref</span>()
-            .<span class="ident">join_multicast_v6</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#497">multiaddr</a>, <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#497">interface</a>)
-    }
-
-    <span class="doccomment">/// Executes an operation of the `IP_DROP_MEMBERSHIP` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`join_multicast_v4`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`join_multicast_v4`]: #method.join_multicast_v4</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_multicast_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <a class="ident" href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>, <span class="ident">interface</span>: <a class="ident" href="../../../../async_std/net/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#508">self</a>.<span class="ident">watcher</span>
-            .<span class="ident">get_ref</span>()
-            .<span class="ident">leave_multicast_v4</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#508">multiaddr</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#508">interface</a>)
-    }
-
-    <span class="doccomment">/// Executes an operation of the `IPV6_DROP_MEMBERSHIP` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`join_multicast_v6`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`join_multicast_v6`]: #method.join_multicast_v6</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_multicast_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>, <span class="ident">interface</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#519">self</a>.<span class="ident">watcher</span>
-            .<span class="ident">get_ref</span>()
-            .<span class="ident">leave_multicast_v6</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#519">multiaddr</a>, <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#519">interface</a>)
+    <span class="doccomment">/// Executes an operation of the `IPV6_DROP_MEMBERSHIP` type.
+    ///
+    /// For more information about this option, see [`join_multicast_v6`].
+    ///
+    /// [`join_multicast_v6`]: #method.join_multicast_v6
+    </span><span class="kw">pub fn </span>leave_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="../../../../async_std/net/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#519">self</a>.watcher
+            .get_ref()
+            .leave_multicast_v6(<a href="../../../../src/async_std/net/udp/mod.rs.html#519">multiaddr</a>, <a href="../../../../src/async_std/net/udp/mod.rs.html#519">interface</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
-    <span class="doccomment">/// Converts a `std::net::UdpSocket` into its asynchronous equivalent.</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">socket</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a>) -&gt; <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
-        <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
-            <span class="ident">watcher</span>: <span class="ident">Async::new</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#528">socket</a>).<span class="ident">expect</span>(<span class="string">&quot;UdpSocket is known to be good&quot;</span>),
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a>&gt; <span class="kw">for </span><a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
+    <span class="doccomment">/// Converts a `std::net::UdpSocket` into its asynchronous equivalent.
+    </span><span class="kw">fn </span>from(socket: <a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a>) -&gt; <a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
+        <a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
+            watcher: Async::new(<a href="../../../../src/async_std/net/udp/mod.rs.html#528">socket</a>).expect(<span class="string">&quot;UdpSocket is known to be good&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::convert::TryFrom</span><span class="op">&lt;</span><a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../async_std/io/struct.Error.html">io::Error</a>;
-    <span class="doccomment">/// Converts a `UdpSocket` into its synchronous equivalent.</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">listener</span>: <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">listener</span>.<span class="ident">watcher</span>.<span class="ident">into_inner</span>()<span class="question-mark">?</span>;
-        <span class="ident">inner</span>.<span class="ident">set_nonblocking</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#539">inner</a>)
+<span class="kw">impl </span>std::convert::TryFrom&lt;<a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a> {
+    <span class="kw">type </span>Error = <a href="../../../../async_std/io/struct.Error.html">io::Error</a>;
+    <span class="doccomment">/// Converts a `UdpSocket` into its synchronous equivalent.
+    </span><span class="kw">fn </span>try_from(listener: <a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a>&gt; {
+        <span class="kw">let </span>inner = listener.watcher.into_inner()<span class="question-mark">?</span>;
+        inner.set_nonblocking(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/async_std/net/udp/mod.rs.html#539">inner</a>)
     }
 }
 
-<span class="macro">cfg_unix!</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::os::unix::io</span>::{<a class="ident" href="../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a>, <a class="ident" href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a>, <a class="ident" href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
+<span class="macro">cfg_unix! </span>{
+    <span class="kw">use </span><span class="kw">crate</span>::os::unix::io::{<a href="../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a href="../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a>, <a href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a>, <a href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
 
-    <span class="kw">impl</span> <a class="ident" href="../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
-        <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
-            <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#549">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<a class="ident" href="../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="kw">impl </span><a href="../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
+        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
+            <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#549">self</a>.watcher.get_ref().<a href="../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>) -&gt; <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
-            <span class="ident">std::net::UdpSocket::from_raw_fd</span>(<a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#555">fd</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <span class="kw">impl </span><a href="../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
+        <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>) -&gt; <a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
+            std::net::UdpSocket::from_raw_fd(<a href="../../../../src/async_std/net/udp/mod.rs.html#555">fd</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
-        <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
-            <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#561">self</a>.<span class="ident">watcher</span>.<span class="ident">into_inner</span>().<span class="ident">unwrap</span>().<a class="ident" href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">into_raw_fd</a>()
+    <span class="kw">impl </span><a href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../../src/async_std/net/udp/mod.rs.html#47">UdpSocket</a> {
+        <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
+            <a class="self" href="../../../../src/async_std/net/udp/mod.rs.html#561">self</a>.watcher.into_inner().unwrap().<a href="../../../../async_std/os/unix/io/trait.IntoRawFd.html">into_raw_fd</a>()
         }
     }
 }
 
-<span class="macro">cfg_windows!</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::os::windows::io</span>::{
-        <span class="ident">RawSocket</span>, <span class="ident">AsRawSocket</span>, <span class="ident">IntoRawSocket</span>, <span class="ident">FromRawSocket</span>
+<span class="macro">cfg_windows! </span>{
+    <span class="kw">use </span><span class="kw">crate</span>::os::windows::io::{
+        RawSocket, AsRawSocket, IntoRawSocket, FromRawSocket
     };
 
-    <span class="kw">impl</span> <span class="ident">AsRawSocket</span> <span class="kw">for</span> <span class="ident">UdpSocket</span> {
-        <span class="kw">fn</span> <span class="ident">as_raw_socket</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-            <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">as_raw_socket</span>()
+    <span class="kw">impl </span>AsRawSocket <span class="kw">for </span>UdpSocket {
+        <span class="kw">fn </span>as_raw_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawSocket {
+            <span class="self">self</span>.watcher.get_ref().as_raw_socket()
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">FromRawSocket</span> <span class="kw">for</span> <span class="ident">UdpSocket</span> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_socket</span>(<span class="ident">handle</span>: <span class="ident">RawSocket</span>) -&gt; <span class="ident">UdpSocket</span> {
-            <span class="ident">std::net::UdpSocket::from_raw_socket</span>(<span class="ident">handle</span>).<span class="ident">into</span>()
+    <span class="kw">impl </span>FromRawSocket <span class="kw">for </span>UdpSocket {
+        <span class="kw">unsafe fn </span>from_raw_socket(handle: RawSocket) -&gt; UdpSocket {
+            std::net::UdpSocket::from_raw_socket(handle).into()
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">IntoRawSocket</span> <span class="kw">for</span> <span class="ident">UdpSocket</span> {
-        <span class="kw">fn</span> <span class="ident">into_raw_socket</span>(<span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-            <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">into_inner</span>().<span class="ident">unwrap</span>().<span class="ident">into_raw_socket</span>()
+    <span class="kw">impl </span>IntoRawSocket <span class="kw">for </span>UdpSocket {
+        <span class="kw">fn </span>into_raw_socket(<span class="self">self</span>) -&gt; RawSocket {
+            <span class="self">self</span>.watcher.into_inner().unwrap().into_raw_socket()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

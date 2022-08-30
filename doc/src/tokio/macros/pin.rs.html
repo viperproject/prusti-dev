@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/macros/pin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/macros/pin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -142,149 +142,149 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
-</pre><pre class="rust"><code><span class="doccomment">/// Pins a value on the stack.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Calls to `async fn` return anonymous [`Future`] values that are `!Unpin`.</span>
-<span class="doccomment">/// These values must be pinned before they can be polled. Calling `.await` will</span>
-<span class="doccomment">/// handle this, but consumes the future. If it is required to call `.await` on</span>
-<span class="doccomment">/// a `&amp;mut _` reference, the caller is responsible for pinning the future.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Pinning may be done by allocating with [`Box::pin`] or by using the stack</span>
-<span class="doccomment">/// with the `pin!` macro.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The following will **fail to compile**:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```compile_fail</span>
-<span class="doccomment">/// async fn my_async_fn() {</span>
-<span class="doccomment">///     // async logic here</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     let mut future = my_async_fn();</span>
-<span class="doccomment">///     (&amp;mut future).await;</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To make this work requires pinning:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use tokio::pin;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// async fn my_async_fn() {</span>
-<span class="doccomment">///     // async logic here</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     let future = my_async_fn();</span>
-<span class="doccomment">///     pin!(future);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     (&amp;mut future).await;</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Pinning is useful when using `select!` and stream operators that require `T:</span>
-<span class="doccomment">/// Stream + Unpin`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Future`]: trait@std::future::Future</span>
-<span class="doccomment">/// [`Box::pin`]: std::boxed::Box::pin</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Usage</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `pin!` macro takes **identifiers** as arguments. It does **not** work</span>
-<span class="doccomment">/// with expressions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The following does not compile as an expression is passed to `pin!`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```compile_fail</span>
-<span class="doccomment">/// async fn my_async_fn() {</span>
-<span class="doccomment">///     // async logic here</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     let mut future = pin!(my_async_fn());</span>
-<span class="doccomment">///     (&amp;mut future).await;</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Using with select:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use tokio::{pin, select};</span>
-<span class="doccomment">/// use tokio_stream::{self as stream, StreamExt};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// async fn my_async_fn() {</span>
-<span class="doccomment">///     // async logic here</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     let mut stream = stream::iter(vec![1, 2, 3, 4]);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     let future = my_async_fn();</span>
-<span class="doccomment">///     pin!(future);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     loop {</span>
-<span class="doccomment">///         select! {</span>
-<span class="doccomment">///             _ = &amp;mut future =&gt; {</span>
-<span class="doccomment">///                 // Stop looping `future` will be polled after completion</span>
-<span class="doccomment">///                 break;</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///             Some(val) = stream.next() =&gt; {</span>
-<span class="doccomment">///                 println!(&quot;got value = {}&quot;, val);</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Because assigning to a variable followed by pinning is common, there is also</span>
-<span class="doccomment">/// a variant of the macro that supports doing both in one go.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use tokio::{pin, select};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// async fn my_async_fn() {</span>
-<span class="doccomment">///     // async logic here</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     pin! {</span>
-<span class="doccomment">///         let future1 = my_async_fn();</span>
-<span class="doccomment">///         let future2 = my_async_fn();</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     select! {</span>
-<span class="doccomment">///         _ = &amp;mut future1 =&gt; {}</span>
-<span class="doccomment">///         _ = &amp;mut future2 =&gt; {}</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">pin</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) =&gt; { $(
-        <span class="comment">// Move the value to ensure that it is owned</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>;
-        <span class="comment">// Shadow the original binding so that it can&#39;t be directly accessed</span>
-        <span class="comment">// ever again.</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::macros::support::Pin::new_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>)
+</pre><pre class="rust"><code><span class="doccomment">/// Pins a value on the stack.
+///
+/// Calls to `async fn` return anonymous [`Future`] values that are `!Unpin`.
+/// These values must be pinned before they can be polled. Calling `.await` will
+/// handle this, but consumes the future. If it is required to call `.await` on
+/// a `&amp;mut _` reference, the caller is responsible for pinning the future.
+///
+/// Pinning may be done by allocating with [`Box::pin`] or by using the stack
+/// with the `pin!` macro.
+///
+/// The following will **fail to compile**:
+///
+/// ```compile_fail
+/// async fn my_async_fn() {
+///     // async logic here
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let mut future = my_async_fn();
+///     (&amp;mut future).await;
+/// }
+/// ```
+///
+/// To make this work requires pinning:
+///
+/// ```
+/// use tokio::pin;
+///
+/// async fn my_async_fn() {
+///     // async logic here
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let future = my_async_fn();
+///     pin!(future);
+///
+///     (&amp;mut future).await;
+/// }
+/// ```
+///
+/// Pinning is useful when using `select!` and stream operators that require `T:
+/// Stream + Unpin`.
+///
+/// [`Future`]: trait@std::future::Future
+/// [`Box::pin`]: std::boxed::Box::pin
+///
+/// # Usage
+///
+/// The `pin!` macro takes **identifiers** as arguments. It does **not** work
+/// with expressions.
+///
+/// The following does not compile as an expression is passed to `pin!`.
+///
+/// ```compile_fail
+/// async fn my_async_fn() {
+///     // async logic here
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let mut future = pin!(my_async_fn());
+///     (&amp;mut future).await;
+/// }
+/// ```
+///
+/// # Examples
+///
+/// Using with select:
+///
+/// ```
+/// use tokio::{pin, select};
+/// use tokio_stream::{self as stream, StreamExt};
+///
+/// async fn my_async_fn() {
+///     // async logic here
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let mut stream = stream::iter(vec![1, 2, 3, 4]);
+///
+///     let future = my_async_fn();
+///     pin!(future);
+///
+///     loop {
+///         select! {
+///             _ = &amp;mut future =&gt; {
+///                 // Stop looping `future` will be polled after completion
+///                 break;
+///             }
+///             Some(val) = stream.next() =&gt; {
+///                 println!(&quot;got value = {}&quot;, val);
+///             }
+///         }
+///     }
+/// }
+/// ```
+///
+/// Because assigning to a variable followed by pinning is common, there is also
+/// a variant of the macro that supports doing both in one go.
+///
+/// ```
+/// use tokio::{pin, select};
+///
+/// async fn my_async_fn() {
+///     // async logic here
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     pin! {
+///         let future1 = my_async_fn();
+///         let future2 = my_async_fn();
+///     }
+///
+///     select! {
+///         _ = &amp;mut future1 =&gt; {}
+///         _ = &amp;mut future2 =&gt; {}
+///     }
+/// }
+/// ```
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>pin {
+    ($(<span class="macro-nonterminal">$x</span>:ident),<span class="kw-2">*</span>) =&gt; { $(
+        <span class="comment">// Move the value to ensure that it is owned
+        </span><span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">$x </span>= <span class="macro-nonterminal">$x</span>;
+        <span class="comment">// Shadow the original binding so that it can&#39;t be directly accessed
+        // ever again.
+        </span><span class="attribute">#[allow(unused_mut)]
+        </span><span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">$x </span>= <span class="kw">unsafe </span>{
+            <span class="macro-nonterminal">$crate::macros::support::Pin::new_unchecked</span>(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$x</span>)
         };
-    )<span class="op">*</span> };
+    )* };
     ($(
-            <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">ident</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">init</span>:<span class="ident">expr</span>;
+            <span class="kw">let </span><span class="macro-nonterminal">$x</span>:ident = <span class="macro-nonterminal">$init</span>:expr;
     )<span class="kw-2">*</span>) =&gt; {
         $(
-            <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">init</span>;
-            <span class="macro-nonterminal">$</span><span class="macro">crate::pin!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>);
-        )<span class="op">*</span>
+            <span class="kw">let </span><span class="macro-nonterminal">$x </span>= <span class="macro-nonterminal">$init</span>;
+            <span class="macro-nonterminal">$</span><span class="macro">crate::pin!</span>(<span class="macro-nonterminal">$x</span>);
+        )*
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/fs/dir_entry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dir_entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/fs/dir_entry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dir_entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -175,180 +175,180 @@
 <span id="173">173</span>
 <span id="174">174</span>
 <span id="175">175</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="../../../async_std/sync/struct.Arc.html">std::sync::Arc</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="../../../async_std/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fs</span>::{<a class="ident" href="../../../async_std/fs/struct.FileType.html">FileType</a>, <a class="ident" href="../../../async_std/fs/struct.Metadata.html">Metadata</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/async_std/lib.rs.html#307"><span class="kw">crate</span>::io</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21"><span class="kw">crate</span>::path::PathBuf</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/async_std/task/spawn_blocking.rs.html#31-34"><span class="kw">crate</span>::task::spawn_blocking</a>;
+<span class="kw">use </span><span class="kw">crate</span>::fs::{<a href="../../../async_std/fs/struct.FileType.html">FileType</a>, <a href="../../../async_std/fs/struct.Metadata.html">Metadata</a>};
+<span class="kw">use </span><a href="../../../src/async_std/lib.rs.html#307"><span class="kw">crate</span>::io</a>;
+<span class="kw">use </span><a href="../../../src/async_std/path/pathbuf.rs.html#21"><span class="kw">crate</span>::path::PathBuf</a>;
+<span class="kw">use </span><a href="../../../src/async_std/task/spawn_blocking.rs.html#31-34"><span class="kw">crate</span>::task::spawn_blocking</a>;
 
-<span class="doccomment">/// An entry in a directory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A stream of entries in a directory is returned by [`read_dir`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is an async version of [`std::fs::DirEntry`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`read_dir`]: fn.read_dir.html</span>
-<span class="doccomment">/// [`std::fs::DirEntry`]: https://doc.rust-lang.org/std/fs/struct.DirEntry.html</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DirEntry</span>(<span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a><span class="op">&gt;</span>);
+<span class="doccomment">/// An entry in a directory.
+///
+/// A stream of entries in a directory is returned by [`read_dir`].
+///
+/// This type is an async version of [`std::fs::DirEntry`].
+///
+/// [`read_dir`]: fn.read_dir.html
+/// [`std::fs::DirEntry`]: https://doc.rust-lang.org/std/fs/struct.DirEntry.html
+</span><span class="kw">pub struct </span>DirEntry(Arc&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a>&gt;);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
-    <span class="doccomment">/// Creates an asynchronous `DirEntry` from a synchronous one.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a>) -&gt; <a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
-        <a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a>(<span class="ident">Arc::new</span>(<a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#22">inner</a>))
+<span class="kw">impl </span><a href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
+    <span class="doccomment">/// Creates an asynchronous `DirEntry` from a synchronous one.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: <a href="https://doc.rust-lang.org/nightly/std/fs/struct.DirEntry.html">std::fs::DirEntry</a>) -&gt; <a href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
+        <a href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a>(Arc::new(<a href="../../../src/async_std/fs/dir_entry.rs.html#22">inner</a>))
     }
 
-    <span class="doccomment">/// Returns the full path to this entry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The full path is created by joining the original path passed to [`read_dir`] with the name</span>
-    <span class="doccomment">/// of this entry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`read_dir`]: fn.read_dir.html</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::fs;</span>
-    <span class="doccomment">/// use async_std::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut dir = fs::read_dir(&quot;.&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(res) = dir.next().await {</span>
-    <span class="doccomment">///     let entry = res?;</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, entry.path());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
-        <a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#50">self</a>.<span class="number">0</span>.<span class="ident">path</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <span class="doccomment">/// Returns the full path to this entry.
+    ///
+    /// The full path is created by joining the original path passed to [`read_dir`] with the name
+    /// of this entry.
+    ///
+    /// [`read_dir`]: fn.read_dir.html
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::fs;
+    /// use async_std::prelude::*;
+    ///
+    /// let mut dir = fs::read_dir(&quot;.&quot;).await?;
+    ///
+    /// while let Some(res) = dir.next().await {
+    ///     let entry = res?;
+    ///     println!(&quot;{:?}&quot;, entry.path());
+    /// }
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/async_std/path/pathbuf.rs.html#21">PathBuf</a> {
+        <a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#50">self</a>.<span class="number">0</span>.path().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="doccomment">/// Reads the metadata for this entry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will traverse symbolic links to read the metadata.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you want to read metadata without following symbolic links, use [`symlink_metadata`]</span>
-    <span class="doccomment">/// instead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`symlink_metadata`]: fn.symlink_metadata.html</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An error will be returned in the following situations:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * This entry does not point to an existing file or directory anymore.</span>
-    <span class="doccomment">/// * The current process lacks permissions to read the metadata.</span>
-    <span class="doccomment">/// * Some other I/O error occurred.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::fs;</span>
-    <span class="doccomment">/// use async_std::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut dir = fs::read_dir(&quot;.&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(res) = dir.next().await {</span>
-    <span class="doccomment">///     let entry = res?;</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, entry.metadata().await?);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../async_std/fs/struct.Metadata.html">Metadata</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
-        <span class="ident">spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">metadata</span>()).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Reads the metadata for this entry.
+    ///
+    /// This function will traverse symbolic links to read the metadata.
+    ///
+    /// If you want to read metadata without following symbolic links, use [`symlink_metadata`]
+    /// instead.
+    ///
+    /// [`symlink_metadata`]: fn.symlink_metadata.html
+    ///
+    /// # Errors
+    ///
+    /// An error will be returned in the following situations:
+    ///
+    /// * This entry does not point to an existing file or directory anymore.
+    /// * The current process lacks permissions to read the metadata.
+    /// * Some other I/O error occurred.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::fs;
+    /// use async_std::prelude::*;
+    ///
+    /// let mut dir = fs::read_dir(&quot;.&quot;).await?;
+    ///
+    /// while let Some(res) = dir.next().await {
+    ///     let entry = res?;
+    ///     println!(&quot;{:?}&quot;, entry.metadata().await?);
+    /// }
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../async_std/fs/struct.Metadata.html">Metadata</a>&gt; {
+        <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.clone();
+        spawn_blocking(<span class="kw">move </span>|| inner.metadata()).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Reads the file type for this entry.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will not traverse symbolic links if this entry points at one.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you want to read metadata with following symbolic links, use [`metadata`] instead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`metadata`]: #method.metadata</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An error will be returned in the following situations:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * This entry does not point to an existing file or directory anymore.</span>
-    <span class="doccomment">/// * The current process lacks permissions to read this entry&#39;s metadata.</span>
-    <span class="doccomment">/// * Some other I/O error occurred.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::fs;</span>
-    <span class="doccomment">/// use async_std::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut dir = fs::read_dir(&quot;.&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(res) = dir.next().await {</span>
-    <span class="doccomment">///     let entry = res?;</span>
-    <span class="doccomment">///     println!(&quot;{:?}&quot;, entry.file_type().await?);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">file_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../async_std/fs/struct.FileType.html">FileType</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
-        <span class="ident">spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">file_type</span>()).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Reads the file type for this entry.
+    ///
+    /// This function will not traverse symbolic links if this entry points at one.
+    ///
+    /// If you want to read metadata with following symbolic links, use [`metadata`] instead.
+    ///
+    /// [`metadata`]: #method.metadata
+    ///
+    /// # Errors
+    ///
+    /// An error will be returned in the following situations:
+    ///
+    /// * This entry does not point to an existing file or directory anymore.
+    /// * The current process lacks permissions to read this entry&#39;s metadata.
+    /// * Some other I/O error occurred.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::fs;
+    /// use async_std::prelude::*;
+    ///
+    /// let mut dir = fs::read_dir(&quot;.&quot;).await?;
+    ///
+    /// while let Some(res) = dir.next().await {
+    ///     let entry = res?;
+    ///     println!(&quot;{:?}&quot;, entry.file_type().await?);
+    /// }
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>file_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../async_std/fs/struct.FileType.html">FileType</a>&gt; {
+        <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.clone();
+        spawn_blocking(<span class="kw">move </span>|| inner.file_type()).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Returns the bare name of this entry without the leading path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::fs;</span>
-    <span class="doccomment">/// use async_std::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut dir = fs::read_dir(&quot;.&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(res) = dir.next().await {</span>
-    <span class="doccomment">///     let entry = res?;</span>
-    <span class="doccomment">///     println!(&quot;{}&quot;, entry.file_name().to_string_lossy());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
-        <a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#150">self</a>.<span class="number">0</span>.<span class="ident">file_name</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#156">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;DirEntry&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#156">self</a>.<a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#50">path</a>()).<span class="ident">finish</span>()
+    <span class="doccomment">/// Returns the bare name of this entry without the leading path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::fs;
+    /// use async_std::prelude::*;
+    ///
+    /// let mut dir = fs::read_dir(&quot;.&quot;).await?;
+    ///
+    /// while let Some(res) = dir.next().await {
+    ///     let entry = res?;
+    ///     println!(&quot;{}&quot;, entry.file_name().to_string_lossy());
+    /// }
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
+        <a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#150">self</a>.<span class="number">0</span>.file_name()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a>(<a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#162">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/async_std/fs/dir_entry.rs.html#156">f</a>.debug_tuple(<span class="string">&quot;DirEntry&quot;</span>).field(<span class="kw-2">&amp;</span><a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#156">self</a>.<a href="../../../src/async_std/fs/dir_entry.rs.html#50">path</a>()).finish()
     }
 }
 
-<span class="macro">cfg_unix!</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../async_std/os/unix/fs/trait.DirEntryExt.html"><span class="kw">crate</span>::os::unix::fs::DirEntryExt</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span><a href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a>(<a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#162">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    }
+}
 
-    <span class="kw">impl</span> <a class="ident" href="../../../async_std/os/unix/fs/trait.DirEntryExt.html">DirEntryExt</a> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
-        <span class="kw">fn</span> <span class="ident">ino</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-            <a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#171">self</a>.<span class="number">0</span>.<a class="ident" href="../../../async_std/os/unix/fs/trait.DirEntryExt.html">ino</a>()
+<span class="macro">cfg_unix! </span>{
+    <span class="kw">use </span><a href="../../../async_std/os/unix/fs/trait.DirEntryExt.html"><span class="kw">crate</span>::os::unix::fs::DirEntryExt</a>;
+
+    <span class="kw">impl </span><a href="../../../async_std/os/unix/fs/trait.DirEntryExt.html">DirEntryExt</a> <span class="kw">for </span><a href="../../../src/async_std/fs/dir_entry.rs.html#18">DirEntry</a> {
+        <span class="kw">fn </span>ino(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+            <a class="self" href="../../../src/async_std/fs/dir_entry.rs.html#171">self</a>.<span class="number">0</span>.<a href="../../../async_std/os/unix/fs/trait.DirEntryExt.html">ino</a>()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/ast/typaram.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>typaram.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/legacy/ast/typaram.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>typaram.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -182,189 +182,189 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <a class="ident" href="../../../../log/macro.trace.html">log::trace</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../regex/re_unicode/struct.Regex.html">regex::Regex</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
+</span><span class="kw">use </span><a href="../../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use </span><a href="../../../../regex/re_unicode/struct.Regex.html">regex::Regex</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Substs</span> {
-    <span class="ident">regex</span>: <a class="ident" href="../../../../regex/re_unicode/struct.Regex.html">Regex</a>,
-    <span class="ident">repls</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>Substs {
+    regex: <a href="../../../../regex/re_unicode/struct.Regex.html">Regex</a>,
+    repls: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#11">Substs</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#17">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Substs&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;repls&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/legacy/ast/typaram.rs.html#17">self</a>.<span class="ident">repls</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span><a href="../../../../src/vir/legacy/ast/typaram.rs.html#11">Substs</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <a href="../../../../src/vir/legacy/ast/typaram.rs.html#17">f</a>.debug_struct(<span class="string">&quot;Substs&quot;</span>)
+            .field(<span class="string">&quot;repls&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/legacy/ast/typaram.rs.html#17">self</a>.repls)
+            .finish()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">escape_dollars</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#24">s</a>.<span class="ident">replace</span>(<span class="string">&#39;$&#39;</span>, <span class="string">&quot;\\$&quot;</span>)
+<span class="kw">fn </span>escape_dollars(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <a href="../../../../src/vir/legacy/ast/typaram.rs.html#24">s</a>.replace(<span class="string">&#39;$&#39;</span>, <span class="string">&quot;\\$&quot;</span>)
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#11">Substs</a> {
-    <span class="doccomment">/// Takes the string representation of two types: `from` is the generic one; `to` is the more</span>
-    <span class="doccomment">/// concrete one.</span>
-    <span class="doccomment">/// This function will compute what is the type substitution needed to go from `from` to `to`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">learn</span>(<span class="ident">from</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">to</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
-        <a class="macro" href="../../../../lazy_static/lazy_static/macro.lazy_static.html">lazy_static::lazy_static!</a> {
-            <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">TYPARAM_RE</span>: <a class="ident" href="../../../../regex/re_unicode/struct.Regex.html">Regex</a> <span class="op">=</span> <span class="ident">Regex::new</span>(<span class="string">&quot;(__TYPARAM__\\$(.*?)\\$__)&quot;</span>).<span class="ident">unwrap</span>();
+<span class="kw">impl </span><a href="../../../../src/vir/legacy/ast/typaram.rs.html#11">Substs</a> {
+    <span class="doccomment">/// Takes the string representation of two types: `from` is the generic one; `to` is the more
+    /// concrete one.
+    /// This function will compute what is the type substitution needed to go from `from` to `to`.
+    </span><span class="kw">pub fn </span>learn(from: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, to: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
+        <a class="macro" href="../../../../lazy_static/lazy_static/macro.lazy_static.html">lazy_static::lazy_static! </a>{
+            <span class="kw">static </span><span class="kw-2">ref </span>TYPARAM_RE: <a href="../../../../regex/re_unicode/struct.Regex.html">Regex</a> = Regex::new(<span class="string">&quot;(__TYPARAM__\\$(.*?)\\$__)&quot;</span>).unwrap();
         }
 
-        <span class="comment">// Start with an empty `repls_regex`</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">repls_regex_str</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#38">repls_regex_str</a>.<span class="ident">push</span>(<span class="string">&#39;^&#39;</span>);
+        <span class="comment">// Start with an empty `repls_regex`
+        </span><span class="kw">let </span><span class="kw-2">mut </span>repls_regex_str = String::new();
+        <a href="../../../../src/vir/legacy/ast/typaram.rs.html#38">repls_regex_str</a>.push(<span class="string">&#39;^&#39;</span>);
 
-        <span class="comment">// Extract the name of type parameters from the `from` string</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found_typarams</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">for</span> <span class="ident">matched_item</span> <span class="kw">in</span> <span class="ident">TYPARAM_RE</span>.<span class="ident">find_iter</span>(<span class="ident">from</span>) {
-            <span class="ident">repls_regex_str</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">escape_dollars</span>(<span class="kw-2">&amp;</span><span class="ident">from</span>[<span class="ident">last</span>..<span class="ident">matched_item</span>.<span class="ident">start</span>()]));
-            <span class="ident">repls_regex_str</span>.<span class="ident">push_str</span>(<span class="string">&quot;(.*?)&quot;</span>);
-            <span class="ident">found_typarams</span>.<span class="ident">push</span>(<span class="ident">matched_item</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>());
-            <span class="ident">last</span> <span class="op">=</span> <span class="ident">matched_item</span>.<span class="ident">end</span>();
+        <span class="comment">// Extract the name of type parameters from the `from` string
+        </span><span class="kw">let </span><span class="kw-2">mut </span>found_typarams = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>last = <span class="number">0</span>;
+        <span class="kw">for </span>matched_item <span class="kw">in </span>TYPARAM_RE.find_iter(from) {
+            repls_regex_str.push_str(<span class="kw-2">&amp;</span>escape_dollars(<span class="kw-2">&amp;</span>from[last..matched_item.start()]));
+            repls_regex_str.push_str(<span class="string">&quot;(.*?)&quot;</span>);
+            found_typarams.push(matched_item.as_str().to_string());
+            last = matched_item.end();
         }
 
-        <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#38">repls_regex_str</a>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#24">escape_dollars</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#32">from</a>[<a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#43">last</a>..]));
-        <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#38">repls_regex_str</a>.<span class="ident">push</span>(<span class="string">&#39;$&#39;</span>);
-        <span class="kw">let</span> <span class="ident">repls_regex</span> <span class="op">=</span> <span class="ident">Regex::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#38">repls_regex_str</a>).<span class="ident">unwrap</span>();
+        <a href="../../../../src/vir/legacy/ast/typaram.rs.html#38">repls_regex_str</a>.push_str(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/typaram.rs.html#24">escape_dollars</a>(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/typaram.rs.html#32">from</a>[<a href="../../../../src/vir/legacy/ast/typaram.rs.html#43">last</a>..]));
+        <a href="../../../../src/vir/legacy/ast/typaram.rs.html#38">repls_regex_str</a>.push(<span class="string">&#39;$&#39;</span>);
+        <span class="kw">let </span>repls_regex = Regex::new(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/typaram.rs.html#38">repls_regex_str</a>).unwrap();
 
-        <span class="comment">// Early return for simple case</span>
-        <span class="kw">if</span> <span class="ident">from</span> <span class="op">==</span> <span class="ident">to</span> {
-            <span class="kw">return</span> <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#11">Substs</a> {
-                <span class="ident">regex</span>: <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#33-35">TYPARAM_RE</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">repls</span>: <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#42">found_typarams</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#59">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#59">x</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+        <span class="comment">// Early return for simple case
+        </span><span class="kw">if </span>from == to {
+            <span class="kw">return </span><a href="../../../../src/vir/legacy/ast/typaram.rs.html#11">Substs</a> {
+                regex: <a href="../../../../src/vir/legacy/ast/typaram.rs.html#33-35">TYPARAM_RE</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                repls: <a href="../../../../src/vir/legacy/ast/typaram.rs.html#42">found_typarams</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| (<a href="../../../../src/vir/legacy/ast/typaram.rs.html#59">x</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../src/vir/legacy/ast/typaram.rs.html#59">x</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             };
         }
 
-        <span class="comment">// Use `repls_regex` to find typaram replacements</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">repls</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;regex {:?} from {:?} to {:?}&quot;</span>, <span class="ident">repls_regex</span>, <span class="ident">from</span>, <span class="ident">to</span>);
-        <span class="kw">let</span> <span class="ident">captures</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#53">repls_regex</a>.<span class="ident">captures</span>(<a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#32">to</a>).<span class="ident">unwrap</span>();
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">captures</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">from_typaram</span> <span class="op">=</span> <span class="ident">found_typarams</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">to_string</span>();
-            <span class="kw">let</span> <span class="ident">to_typaram</span> <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>();
-            <span class="kw">let</span> <span class="ident">old_entry</span> <span class="op">=</span> <span class="ident">repls</span>.<span class="ident">insert</span>(<span class="ident">from_typaram</span>.<span class="ident">clone</span>(), <span class="ident">to_typaram</span>.<span class="ident">to_string</span>());
-            <span class="comment">// What if there was something in `repls`? Check that we didn&#39;t change it.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">old_entry</span> {
+        <span class="comment">// Use `repls_regex` to find typaram replacements
+        </span><span class="kw">let </span><span class="kw-2">mut </span>repls = HashMap::new();
+        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;regex {:?} from {:?} to {:?}&quot;</span>, repls_regex, from, to);
+        <span class="kw">let </span>captures = <a href="../../../../src/vir/legacy/ast/typaram.rs.html#53">repls_regex</a>.captures(<a href="../../../../src/vir/legacy/ast/typaram.rs.html#32">to</a>).unwrap();
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..captures.len() {
+            <span class="kw">let </span>from_typaram = found_typarams[i - <span class="number">1</span>].to_string();
+            <span class="kw">let </span>to_typaram = captures.get(i).unwrap().as_str();
+            <span class="kw">let </span>old_entry = repls.insert(from_typaram.clone(), to_typaram.to_string());
+            <span class="comment">// What if there was something in `repls`? Check that we didn&#39;t change it.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = old_entry {
                 <span class="macro">assert!</span>(
-                    <span class="ident">to</span> <span class="op">==</span> <span class="ident">x</span>,
+                    to == x,
                     <span class="string">&quot;Error in learn({:?}, {:?}). from_typaram: {:?}, to_typaram: {:?}, old_entry: {:?}, repls_regex_str: {:?}&quot;</span>,
-                    <span class="ident">from</span>,
-                    <span class="ident">to</span>,
-                    <span class="ident">from_typaram</span>,
-                    <span class="ident">to_typaram</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">x</span>),
-                    <span class="ident">repls_regex_str</span>
+                    from,
+                    to,
+                    from_typaram,
+                    to_typaram,
+                    <span class="prelude-val">Some</span>(x),
+                    repls_regex_str
                 );
             }
         }
-        <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#11">Substs</a> {
-            <span class="ident">regex</span>: <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#33-35">TYPARAM_RE</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#64">repls</a>,
+        <a href="../../../../src/vir/legacy/ast/typaram.rs.html#11">Substs</a> {
+            regex: <a href="../../../../src/vir/legacy/ast/typaram.rs.html#33-35">TYPARAM_RE</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="../../../../src/vir/legacy/ast/typaram.rs.html#64">repls</a>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">inner1</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">newstr</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">for</span> <span class="ident">matsh</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">regex</span>.<span class="ident">find_iter</span>(<span class="ident">inner1</span>) {
-            <span class="ident">newstr</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">inner1</span>[<span class="ident">last</span>..<span class="ident">matsh</span>.<span class="ident">start</span>()]);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rep</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">repls</span>.<span class="ident">get</span>(<span class="ident">matsh</span>.<span class="ident">as_str</span>()) {
-                <span class="ident">newstr</span>.<span class="ident">push_str</span>(<span class="ident">rep</span>);
-            } <span class="kw">else</span> {
-                <span class="ident">newstr</span>.<span class="ident">push_str</span>(<span class="ident">matsh</span>.<span class="ident">as_str</span>());
+    <span class="kw">pub fn </span>apply(<span class="kw-2">&amp;</span><span class="self">self</span>, inner1: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>newstr = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>last = <span class="number">0</span>;
+        <span class="kw">for </span>matsh <span class="kw">in </span><span class="self">self</span>.regex.find_iter(inner1) {
+            newstr.push_str(<span class="kw-2">&amp;</span>inner1[last..matsh.start()]);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(rep) = <span class="self">self</span>.repls.get(matsh.as_str()) {
+                newstr.push_str(rep);
+            } <span class="kw">else </span>{
+                newstr.push_str(matsh.as_str());
             }
-            <span class="ident">last</span> <span class="op">=</span> <span class="ident">matsh</span>.<span class="ident">end</span>();
+            last = matsh.end();
         }
-        <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#92">newstr</a>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#91">inner1</a>[<a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#93">last</a>..]);
-        <a class="ident" href="../../../../src/vir/legacy/ast/typaram.rs.html#92">newstr</a>
+        <a href="../../../../src/vir/legacy/ast/typaram.rs.html#92">newstr</a>.push_str(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/typaram.rs.html#91">inner1</a>[<a href="../../../../src/vir/legacy/ast/typaram.rs.html#93">last</a>..]);
+        <a href="../../../../src/vir/legacy/ast/typaram.rs.html#92">newstr</a>
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">outer1</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">outer2</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">inner1</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">inner2</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-        <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <span class="ident">Substs::learn</span>(<span class="ident">outer1</span>, <span class="ident">outer2</span>);
-        <span class="kw">let</span> <span class="ident">inner2_gen</span> <span class="op">=</span> <span class="ident">substs</span>.<span class="ident">apply</span>(<span class="ident">inner1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">inner2_gen</span>, <span class="ident">inner2</span>);
+    <span class="kw">fn </span>test(outer1: <span class="kw-2">&amp;</span>str, outer2: <span class="kw-2">&amp;</span>str, inner1: <span class="kw-2">&amp;</span>str, inner2: <span class="kw-2">&amp;</span>str) {
+        <span class="kw">let </span>substs = Substs::learn(outer1, outer2);
+        <span class="kw">let </span>inner2_gen = substs.apply(inner1);
+        <span class="macro">assert_eq!</span>(inner2_gen, inner2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test1</span>() {
-        <span class="kw">let</span> <span class="ident">outer1</span> <span class="op">=</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">pub fn </span>test1() {
+        <span class="kw">let </span>outer1 =
             <span class="string">&quot;ref$m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Y$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">outer2</span> <span class="op">=</span>
+        <span class="kw">let </span>outer2 =
             <span class="string">&quot;ref$m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Z$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner1</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Y$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner2</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Z$__$_end_&quot;</span>;
-        <span class="ident">test</span>(<span class="ident">outer1</span>, <span class="ident">outer2</span>, <span class="ident">inner1</span>, <span class="ident">inner2</span>);
+        <span class="kw">let </span>inner1 = <span class="string">&quot;m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Y$__$_end_&quot;</span>;
+        <span class="kw">let </span>inner2 = <span class="string">&quot;m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Z$__$_end_&quot;</span>;
+        test(outer1, outer2, inner1, inner2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test2</span>() {
-        <span class="kw">let</span> <span class="ident">outer1</span> <span class="op">=</span> <span class="string">&quot;ref$m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">outer2</span> <span class="op">=</span> <span class="string">&quot;ref$m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$__TYPARAM__$A$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner1</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner2</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$__TYPARAM__$A$__$_end_&quot;</span>;
-        <span class="ident">test</span>(<span class="ident">outer1</span>, <span class="ident">outer2</span>, <span class="ident">inner1</span>, <span class="ident">inner2</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test2() {
+        <span class="kw">let </span>outer1 = <span class="string">&quot;ref$m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_&quot;</span>;
+        <span class="kw">let </span>outer2 = <span class="string">&quot;ref$m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$__TYPARAM__$A$__$_end_&quot;</span>;
+        <span class="kw">let </span>inner1 = <span class="string">&quot;m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_&quot;</span>;
+        <span class="kw">let </span>inner2 = <span class="string">&quot;m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$__TYPARAM__$A$__$_end_&quot;</span>;
+        test(outer1, outer2, inner1, inner2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test3</span>() {
-        <span class="kw">let</span> <span class="ident">outer1</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_6$$Foo$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">outer2</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_6$$Foo$opensqu$0$closesqu$$_beg_$u128$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner1</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_6$$BarBaz$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner2</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_6$$BarBaz$opensqu$0$closesqu$$_beg_$u128$_end_&quot;</span>;
-        <span class="ident">test</span>(<span class="ident">outer1</span>, <span class="ident">outer2</span>, <span class="ident">inner1</span>, <span class="ident">inner2</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test3() {
+        <span class="kw">let </span>outer1 = <span class="string">&quot;m_generics_basic_6$$Foo$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_end_&quot;</span>;
+        <span class="kw">let </span>outer2 = <span class="string">&quot;m_generics_basic_6$$Foo$opensqu$0$closesqu$$_beg_$u128$_end_&quot;</span>;
+        <span class="kw">let </span>inner1 = <span class="string">&quot;m_generics_basic_6$$BarBaz$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_end_&quot;</span>;
+        <span class="kw">let </span>inner2 = <span class="string">&quot;m_generics_basic_6$$BarBaz$opensqu$0$closesqu$$_beg_$u128$_end_&quot;</span>;
+        test(outer1, outer2, inner1, inner2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test4</span>() {
-        <span class="kw">let</span> <span class="ident">outer1</span> <span class="op">=</span> <span class="string">&quot;ref$m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">outer2</span> <span class="op">=</span> <span class="string">&quot;ref$m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_sep_$i16$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner1</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner2</span> <span class="op">=</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test4() {
+        <span class="kw">let </span>outer1 = <span class="string">&quot;ref$m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_&quot;</span>;
+        <span class="kw">let </span>outer2 = <span class="string">&quot;ref$m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_sep_$i16$_end_&quot;</span>;
+        <span class="kw">let </span>inner1 = <span class="string">&quot;m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_&quot;</span>;
+        <span class="kw">let </span>inner2 =
             <span class="string">&quot;m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_sep_$i16$_end_&quot;</span>;
-        <span class="ident">test</span>(<span class="ident">outer1</span>, <span class="ident">outer2</span>, <span class="ident">inner1</span>, <span class="ident">inner2</span>);
+        test(outer1, outer2, inner1, inner2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test5</span>() {
-        <span class="kw">let</span> <span class="ident">outer1</span> <span class="op">=</span> <span class="string">&quot;ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">outer2</span> <span class="op">=</span> <span class="string">&quot;ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner1</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner2</span> <span class="op">=</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test5() {
+        <span class="kw">let </span>outer1 = <span class="string">&quot;ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_&quot;</span>;
+        <span class="kw">let </span>outer2 = <span class="string">&quot;ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_&quot;</span>;
+        <span class="kw">let </span>inner1 = <span class="string">&quot;m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_&quot;</span>;
+        <span class="kw">let </span>inner2 =
             <span class="string">&quot;m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_&quot;</span>;
-        <span class="ident">test</span>(<span class="ident">outer1</span>, <span class="ident">outer2</span>, <span class="ident">inner1</span>, <span class="ident">inner2</span>);
+        test(outer1, outer2, inner1, inner2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test6</span>() {
-        <span class="kw">let</span> <span class="ident">outer1</span> <span class="op">=</span> <span class="string">&quot;ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">outer2</span> <span class="op">=</span> <span class="string">&quot;ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner1</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner2</span> <span class="op">=</span> <span class="string">&quot;m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_&quot;</span>;
-        <span class="ident">test</span>(<span class="ident">outer1</span>, <span class="ident">outer2</span>, <span class="ident">inner1</span>, <span class="ident">inner2</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test6() {
+        <span class="kw">let </span>outer1 = <span class="string">&quot;ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_&quot;</span>;
+        <span class="kw">let </span>outer2 = <span class="string">&quot;ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_&quot;</span>;
+        <span class="kw">let </span>inner1 = <span class="string">&quot;m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_&quot;</span>;
+        <span class="kw">let </span>inner2 = <span class="string">&quot;m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_&quot;</span>;
+        test(outer1, outer2, inner1, inner2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test7</span>() {
-        <span class="kw">let</span> <span class="ident">outer1</span> <span class="op">=</span> <span class="string">&quot;tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__&quot;</span>;
-        <span class="kw">let</span> <span class="ident">outer2</span> <span class="op">=</span> <span class="string">&quot;tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner1</span> <span class="op">=</span> <span class="string">&quot;tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__&quot;</span>;
-        <span class="kw">let</span> <span class="ident">inner2</span> <span class="op">=</span> <span class="string">&quot;tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__&quot;</span>;
-        <span class="ident">test</span>(<span class="ident">outer1</span>, <span class="ident">outer2</span>, <span class="ident">inner1</span>, <span class="ident">inner2</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">pub fn </span>test7() {
+        <span class="kw">let </span>outer1 = <span class="string">&quot;tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__&quot;</span>;
+        <span class="kw">let </span>outer2 = <span class="string">&quot;tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__&quot;</span>;
+        <span class="kw">let </span>inner1 = <span class="string">&quot;tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__&quot;</span>;
+        <span class="kw">let </span>inner2 = <span class="string">&quot;tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__&quot;</span>;
+        test(outer1, outer2, inner1, inner2);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

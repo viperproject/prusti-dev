@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.36/src/instrument.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>instrument.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.36/src/instrument.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>instrument.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing/index.html">
                         <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -370,375 +370,375 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html"><span class="kw">crate</span>::stdlib::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">future::Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">marker::Sized</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">dispatcher</span>::{<a class="self" href="../../src/tracing/lib.rs.html#958">self</a>, <a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a>},
-    <a class="ident" href="../../src/tracing/span.rs.html#348">span::Span</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html"><span class="kw">crate</span>::stdlib::pin::Pin</a>;
+<span class="kw">use </span><span class="kw">crate</span>::stdlib::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><span class="kw">crate</span>::stdlib::{<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">future::Future</a>, <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">marker::Sized</a>};
+<span class="kw">use crate</span>::{
+    dispatcher::{<a class="self" href="../../src/tracing/lib.rs.html#958">self</a>, <a href="../../tracing/struct.Dispatch.html">Dispatch</a>},
+    <a href="../../src/tracing/span.rs.html#348">span::Span</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="doccomment">/// Attaches spans to a [`std::future::Future`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Extension trait allowing futures to be</span>
-<span class="doccomment">/// instrumented with a `tracing` [span].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [span]: super::Span</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Instrument</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="doccomment">/// Instruments this type with the provided [`Span`], returning an</span>
-    <span class="doccomment">/// `Instrumented` wrapper.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The attached [`Span`] will be [entered] every time the instrumented</span>
-    <span class="doccomment">/// [`Future`] is polled.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Instrumenting a future:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use tracing::Instrument;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn doc() {</span>
-    <span class="doccomment">/// let my_future = async {</span>
-    <span class="doccomment">///     // ...</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// my_future</span>
-    <span class="doccomment">///     .instrument(tracing::info_span!(&quot;my_future&quot;))</span>
-    <span class="doccomment">///     .await</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`Span::or_current`] combinator can be used in combination with</span>
-    <span class="doccomment">/// `instrument` to ensure that the [current span] is attached to the</span>
-    <span class="doccomment">/// future if the span passed to `instrument` is [disabled]:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tracing::Instrument;</span>
-    <span class="doccomment">/// # mod tokio {</span>
-    <span class="doccomment">/// #     pub(super) fn spawn(_: impl std::future::Future) {}</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let my_future = async {</span>
-    <span class="doccomment">///     // ...</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let outer_span = tracing::info_span!(&quot;outer&quot;).entered();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // If the &quot;my_future&quot; span is enabled, then the spawned task will</span>
-    <span class="doccomment">/// // be within both &quot;my_future&quot; *and* &quot;outer&quot;, since &quot;outer&quot; is</span>
-    <span class="doccomment">/// // &quot;my_future&quot;&#39;s parent. However, if &quot;my_future&quot; is disabled,</span>
-    <span class="doccomment">/// // the spawned task will *not* be in any span.</span>
-    <span class="doccomment">/// tokio::spawn(</span>
-    <span class="doccomment">///     my_future</span>
-    <span class="doccomment">///         .instrument(tracing::debug_span!(&quot;my_future&quot;))</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Using `Span::or_current` ensures the spawned task is instrumented</span>
-    <span class="doccomment">/// // with the current span, if the new span passed to `instrument` is</span>
-    <span class="doccomment">/// // not enabled. This means that if the &quot;my_future&quot;  span is disabled,</span>
-    <span class="doccomment">/// // the spawned task will still be instrumented with the &quot;outer&quot; span:</span>
-    <span class="doccomment">/// # let my_future = async {};</span>
-    <span class="doccomment">/// tokio::spawn(</span>
-    <span class="doccomment">///    my_future</span>
-    <span class="doccomment">///         .instrument(tracing::debug_span!(&quot;my_future&quot;).or_current())</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [entered]: super::Span::enter()</span>
-    <span class="doccomment">/// [`Span::or_current`]: super::Span::or_current()</span>
-    <span class="doccomment">/// [current span]: super::Span::current()</span>
-    <span class="doccomment">/// [disabled]: super::Span::is_disabled()</span>
-    <span class="doccomment">/// [`Future`]: std::future::Future</span>
-    <span class="kw">fn</span> <span class="ident">instrument</span>(<span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../src/tracing/span.rs.html#348">Span</a>) -&gt; <span class="ident">Instrumented</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/tracing/instrument.rs.html#247-262">Instrumented</a> { <span class="ident">inner</span>: <a class="self" href="../../src/tracing/instrument.rs.html#82">self</a>, <a class="ident" href="../../src/tracing/instrument.rs.html#82">span</a> }
+<span class="doccomment">/// Attaches spans to a [`std::future::Future`].
+///
+/// Extension trait allowing futures to be
+/// instrumented with a `tracing` [span].
+///
+/// [span]: super::Span
+</span><span class="kw">pub trait </span>Instrument: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+    <span class="doccomment">/// Instruments this type with the provided [`Span`], returning an
+    /// `Instrumented` wrapper.
+    ///
+    /// The attached [`Span`] will be [entered] every time the instrumented
+    /// [`Future`] is polled.
+    ///
+    /// # Examples
+    ///
+    /// Instrumenting a future:
+    ///
+    /// ```rust
+    /// use tracing::Instrument;
+    ///
+    /// # async fn doc() {
+    /// let my_future = async {
+    ///     // ...
+    /// };
+    ///
+    /// my_future
+    ///     .instrument(tracing::info_span!(&quot;my_future&quot;))
+    ///     .await
+    /// # }
+    /// ```
+    ///
+    /// The [`Span::or_current`] combinator can be used in combination with
+    /// `instrument` to ensure that the [current span] is attached to the
+    /// future if the span passed to `instrument` is [disabled]:
+    ///
+    /// ```
+    /// use tracing::Instrument;
+    /// # mod tokio {
+    /// #     pub(super) fn spawn(_: impl std::future::Future) {}
+    /// # }
+    ///
+    /// let my_future = async {
+    ///     // ...
+    /// };
+    ///
+    /// let outer_span = tracing::info_span!(&quot;outer&quot;).entered();
+    ///
+    /// // If the &quot;my_future&quot; span is enabled, then the spawned task will
+    /// // be within both &quot;my_future&quot; *and* &quot;outer&quot;, since &quot;outer&quot; is
+    /// // &quot;my_future&quot;&#39;s parent. However, if &quot;my_future&quot; is disabled,
+    /// // the spawned task will *not* be in any span.
+    /// tokio::spawn(
+    ///     my_future
+    ///         .instrument(tracing::debug_span!(&quot;my_future&quot;))
+    /// );
+    ///
+    /// // Using `Span::or_current` ensures the spawned task is instrumented
+    /// // with the current span, if the new span passed to `instrument` is
+    /// // not enabled. This means that if the &quot;my_future&quot;  span is disabled,
+    /// // the spawned task will still be instrumented with the &quot;outer&quot; span:
+    /// # let my_future = async {};
+    /// tokio::spawn(
+    ///    my_future
+    ///         .instrument(tracing::debug_span!(&quot;my_future&quot;).or_current())
+    /// );
+    /// ```
+    ///
+    /// [entered]: super::Span::enter()
+    /// [`Span::or_current`]: super::Span::or_current()
+    /// [current span]: super::Span::current()
+    /// [disabled]: super::Span::is_disabled()
+    /// [`Future`]: std::future::Future
+    </span><span class="kw">fn </span>instrument(<span class="self">self</span>, span: <a href="../../src/tracing/span.rs.html#348">Span</a>) -&gt; Instrumented&lt;<span class="self">Self</span>&gt; {
+        <a href="../../src/tracing/instrument.rs.html#247-262">Instrumented</a> { inner: <a class="self" href="../../src/tracing/instrument.rs.html#82">self</a>, <a href="../../src/tracing/instrument.rs.html#82">span</a> }
     }
 
-    <span class="doccomment">/// Instruments this type with the [current] [`Span`], returning an</span>
-    <span class="doccomment">/// `Instrumented` wrapper.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The attached [`Span`] will be [entered] every time the instrumented</span>
-    <span class="doccomment">/// [`Future`] is polled.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be used to propagate the current span when spawning a new future.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use tracing::Instrument;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # mod tokio {</span>
-    <span class="doccomment">/// #     pub(super) fn spawn(_: impl std::future::Future) {}</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # async fn doc() {</span>
-    <span class="doccomment">/// let span = tracing::info_span!(&quot;my_span&quot;);</span>
-    <span class="doccomment">/// let _enter = span.enter();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // ...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let future = async {</span>
-    <span class="doccomment">///     tracing::debug!(&quot;this event will occur inside `my_span`&quot;);</span>
-    <span class="doccomment">///     // ...</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">/// tokio::spawn(future.in_current_span());</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [current]: super::Span::current()</span>
-    <span class="doccomment">/// [entered]: super::Span::enter()</span>
-    <span class="doccomment">/// [`Span`]: crate::Span</span>
-    <span class="doccomment">/// [`Future`]: std::future::Future</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">in_current_span</span>(<span class="self">self</span>) -&gt; <span class="ident">Instrumented</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/instrument.rs.html#121">self</a>.<a class="ident" href="../../src/tracing/instrument.rs.html#82">instrument</a>(<span class="ident">Span::current</span>())
+    <span class="doccomment">/// Instruments this type with the [current] [`Span`], returning an
+    /// `Instrumented` wrapper.
+    ///
+    /// The attached [`Span`] will be [entered] every time the instrumented
+    /// [`Future`] is polled.
+    ///
+    /// This can be used to propagate the current span when spawning a new future.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use tracing::Instrument;
+    ///
+    /// # mod tokio {
+    /// #     pub(super) fn spawn(_: impl std::future::Future) {}
+    /// # }
+    /// # async fn doc() {
+    /// let span = tracing::info_span!(&quot;my_span&quot;);
+    /// let _enter = span.enter();
+    ///
+    /// // ...
+    ///
+    /// let future = async {
+    ///     tracing::debug!(&quot;this event will occur inside `my_span`&quot;);
+    ///     // ...
+    /// };
+    /// tokio::spawn(future.in_current_span());
+    /// # }
+    /// ```
+    ///
+    /// [current]: super::Span::current()
+    /// [entered]: super::Span::enter()
+    /// [`Span`]: crate::Span
+    /// [`Future`]: std::future::Future
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>in_current_span(<span class="self">self</span>) -&gt; Instrumented&lt;<span class="self">Self</span>&gt; {
+        <a class="self" href="../../src/tracing/instrument.rs.html#121">self</a>.<a href="../../src/tracing/instrument.rs.html#82">instrument</a>(Span::current())
     }
 }
 
-<span class="doccomment">/// Extension trait allowing futures to be instrumented with</span>
-<span class="doccomment">/// a `tracing` [`Subscriber`](crate::Subscriber).</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WithSubscriber</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="doccomment">/// Attaches the provided [`Subscriber`] to this type, returning a</span>
-    <span class="doccomment">/// [`WithDispatch`] wrapper.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The attached [`Subscriber`] will be set as the [default] when the returned</span>
-    <span class="doccomment">/// [`Future`] is polled.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tracing::subscriber::NoSubscriber as MySubscriber;</span>
-    <span class="doccomment">/// # use tracing::subscriber::NoSubscriber as MyOtherSubscriber;</span>
-    <span class="doccomment">/// # async fn docs() {</span>
-    <span class="doccomment">/// use tracing::instrument::WithSubscriber;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Set the default `Subscriber`</span>
-    <span class="doccomment">/// let _default = tracing::subscriber::set_default(MySubscriber::default());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// tracing::info!(&quot;this event will be recorded by the default `Subscriber`&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Create a different `Subscriber` and attach it to a future.</span>
-    <span class="doccomment">/// let other_subscriber = MyOtherSubscriber::default();</span>
-    <span class="doccomment">/// let future = async {</span>
-    <span class="doccomment">///     tracing::info!(&quot;this event will be recorded by the other `Subscriber`&quot;);</span>
-    <span class="doccomment">///     // ...</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// future</span>
-    <span class="doccomment">///     // Attach the other `Subscriber` to the future before awaiting it</span>
-    <span class="doccomment">///     .with_subscriber(other_subscriber)</span>
-    <span class="doccomment">///     .await;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Once the future has completed, we return to the default `Subscriber`.</span>
-    <span class="doccomment">/// tracing::info!(&quot;this event will be recorded by the default `Subscriber`&quot;);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Subscriber`]: super::Subscriber</span>
-    <span class="doccomment">/// [default]: crate::dispatcher#setting-the-default-subscriber</span>
-    <span class="doccomment">/// [`Future`]: std::future::Future</span>
-    <span class="kw">fn</span> <span class="ident">with_subscriber</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">subscriber</span>: <span class="ident">S</span>) -&gt; <span class="ident">WithDispatch</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Extension trait allowing futures to be instrumented with
+/// a `tracing` [`Subscriber`](crate::Subscriber).
+</span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">pub trait </span>WithSubscriber: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+    <span class="doccomment">/// Attaches the provided [`Subscriber`] to this type, returning a
+    /// [`WithDispatch`] wrapper.
+    ///
+    /// The attached [`Subscriber`] will be set as the [default] when the returned
+    /// [`Future`] is polled.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tracing::subscriber::NoSubscriber as MySubscriber;
+    /// # use tracing::subscriber::NoSubscriber as MyOtherSubscriber;
+    /// # async fn docs() {
+    /// use tracing::instrument::WithSubscriber;
+    ///
+    /// // Set the default `Subscriber`
+    /// let _default = tracing::subscriber::set_default(MySubscriber::default());
+    ///
+    /// tracing::info!(&quot;this event will be recorded by the default `Subscriber`&quot;);
+    ///
+    /// // Create a different `Subscriber` and attach it to a future.
+    /// let other_subscriber = MyOtherSubscriber::default();
+    /// let future = async {
+    ///     tracing::info!(&quot;this event will be recorded by the other `Subscriber`&quot;);
+    ///     // ...
+    /// };
+    ///
+    /// future
+    ///     // Attach the other `Subscriber` to the future before awaiting it
+    ///     .with_subscriber(other_subscriber)
+    ///     .await;
+    ///
+    /// // Once the future has completed, we return to the default `Subscriber`.
+    /// tracing::info!(&quot;this event will be recorded by the default `Subscriber`&quot;);
+    /// # }
+    /// ```
+    ///
+    /// [`Subscriber`]: super::Subscriber
+    /// [default]: crate::dispatcher#setting-the-default-subscriber
+    /// [`Future`]: std::future::Future
+    </span><span class="kw">fn </span>with_subscriber&lt;S&gt;(<span class="self">self</span>, subscriber: S) -&gt; WithDispatch&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>S: Into&lt;<a href="../../tracing/struct.Dispatch.html">Dispatch</a>&gt;,
     {
-        <a class="ident" href="../../src/tracing/instrument.rs.html#229-245">WithDispatch</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../src/tracing/instrument.rs.html#169">self</a>,
-            <span class="ident">dispatcher</span>: <a class="ident" href="../../src/tracing/instrument.rs.html#169">subscriber</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        <a href="../../src/tracing/instrument.rs.html#229-245">WithDispatch</a> {
+            inner: <a class="self" href="../../src/tracing/instrument.rs.html#169">self</a>,
+            dispatcher: <a href="../../src/tracing/instrument.rs.html#169">subscriber</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         }
     }
 
-    <span class="doccomment">/// Attaches the current [default] [`Subscriber`] to this type, returning a</span>
-    <span class="doccomment">/// [`WithDispatch`] wrapper.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The attached `Subscriber` will be set as the [default] when the returned</span>
-    <span class="doccomment">/// [`Future`] is polled.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be used to propagate the current dispatcher context when</span>
-    <span class="doccomment">/// spawning a new future that may run on a different thread.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # mod tokio {</span>
-    <span class="doccomment">/// #     pub(super) fn spawn(_: impl std::future::Future) {}</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # use tracing::subscriber::NoSubscriber as MySubscriber;</span>
-    <span class="doccomment">/// # async fn docs() {</span>
-    <span class="doccomment">/// use tracing::instrument::WithSubscriber;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Using `set_default` (rather than `set_global_default`) sets the</span>
-    <span class="doccomment">/// // default `Subscriber` for *this* thread only.</span>
-    <span class="doccomment">/// let _default = tracing::subscriber::set_default(MySubscriber::default());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let future = async {</span>
-    <span class="doccomment">///     // ...</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // If a multi-threaded async runtime is in use, this spawned task may</span>
-    <span class="doccomment">/// // run on a different thread, in a different default `Subscriber`&#39;s context.</span>
-    <span class="doccomment">/// tokio::spawn(future);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // However, calling `with_current_subscriber` on the future before</span>
-    <span class="doccomment">/// // spawning it, ensures that the current thread&#39;s default `Subscriber` is</span>
-    <span class="doccomment">/// // propagated to the spawned task, regardless of where it executes:</span>
-    <span class="doccomment">/// # let future = async { };</span>
-    <span class="doccomment">/// tokio::spawn(future.with_current_subscriber());</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// [`Subscriber`]: super::Subscriber</span>
-    <span class="doccomment">/// [default]: crate::dispatcher#setting-the-default-subscriber</span>
-    <span class="doccomment">/// [`Future`]: std::future::Future</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_current_subscriber</span>(<span class="self">self</span>) -&gt; <span class="ident">WithDispatch</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/tracing/instrument.rs.html#229-245">WithDispatch</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../src/tracing/instrument.rs.html#221">self</a>,
-            <span class="ident">dispatcher</span>: <a class="ident" href="../../tracing/dispatcher/fn.get_default.html"><span class="kw">crate</span>::dispatcher::get_default</a>(<span class="op">|</span><span class="ident">default</span><span class="op">|</span> <a class="ident" href="../../src/tracing/instrument.rs.html#224">default</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    <span class="doccomment">/// Attaches the current [default] [`Subscriber`] to this type, returning a
+    /// [`WithDispatch`] wrapper.
+    ///
+    /// The attached `Subscriber` will be set as the [default] when the returned
+    /// [`Future`] is polled.
+    ///
+    /// This can be used to propagate the current dispatcher context when
+    /// spawning a new future that may run on a different thread.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # mod tokio {
+    /// #     pub(super) fn spawn(_: impl std::future::Future) {}
+    /// # }
+    /// # use tracing::subscriber::NoSubscriber as MySubscriber;
+    /// # async fn docs() {
+    /// use tracing::instrument::WithSubscriber;
+    ///
+    /// // Using `set_default` (rather than `set_global_default`) sets the
+    /// // default `Subscriber` for *this* thread only.
+    /// let _default = tracing::subscriber::set_default(MySubscriber::default());
+    ///
+    /// let future = async {
+    ///     // ...
+    /// };
+    ///
+    /// // If a multi-threaded async runtime is in use, this spawned task may
+    /// // run on a different thread, in a different default `Subscriber`&#39;s context.
+    /// tokio::spawn(future);
+    ///
+    /// // However, calling `with_current_subscriber` on the future before
+    /// // spawning it, ensures that the current thread&#39;s default `Subscriber` is
+    /// // propagated to the spawned task, regardless of where it executes:
+    /// # let future = async { };
+    /// tokio::spawn(future.with_current_subscriber());
+    /// # }
+    /// ```
+    /// [`Subscriber`]: super::Subscriber
+    /// [default]: crate::dispatcher#setting-the-default-subscriber
+    /// [`Future`]: std::future::Future
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>with_current_subscriber(<span class="self">self</span>) -&gt; WithDispatch&lt;<span class="self">Self</span>&gt; {
+        <a href="../../src/tracing/instrument.rs.html#229-245">WithDispatch</a> {
+            inner: <a class="self" href="../../src/tracing/instrument.rs.html#221">self</a>,
+            dispatcher: <a href="../../tracing/dispatcher/fn.get_default.html"><span class="kw">crate</span>::dispatcher::get_default</a>(|default| <a href="../../src/tracing/instrument.rs.html#224">default</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
         }
     }
 }
 
-<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// A [`Future`] that has been instrumented with a `tracing` [`Subscriber`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This type is returned by the [`WithSubscriber`] extension trait. See that</span>
-    <span class="doccomment">/// trait&#39;s documentation for details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Future`]: std::future::Future</span>
-    <span class="doccomment">/// [`Subscriber`]: crate::Subscriber</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithDispatch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">inner</span>: <span class="ident">T</span>,
-        <span class="ident">dispatcher</span>: <a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a>,
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// A [`Future`] that has been instrumented with a `tracing` [`Subscriber`].
+    ///
+    /// This type is returned by the [`WithSubscriber`] extension trait. See that
+    /// trait&#39;s documentation for details.
+    ///
+    /// [`Future`]: std::future::Future
+    /// [`Subscriber`]: crate::Subscriber
+    </span><span class="attribute">#[derive(Clone, Debug)]
+    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+    </span><span class="kw">pub struct </span>WithDispatch&lt;T&gt; {
+        <span class="attribute">#[pin]
+        </span>inner: T,
+        dispatcher: <a href="../../tracing/struct.Dispatch.html">Dispatch</a>,
     }
 }
 
-<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// A [`Future`] that has been instrumented with a `tracing` [`Span`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This type is returned by the [`Instrument`] extension trait. See that</span>
-    <span class="doccomment">/// trait&#39;s documentation for details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Future`]: std::future::Future</span>
-    <span class="doccomment">/// [`Span`]: crate::Span</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Instrumented</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">inner</span>: <span class="ident">T</span>,
-        <span class="ident">span</span>: <a class="ident" href="../../src/tracing/span.rs.html#348">Span</a>,
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// A [`Future`] that has been instrumented with a `tracing` [`Span`].
+    ///
+    /// This type is returned by the [`Instrument`] extension trait. See that
+    /// trait&#39;s documentation for details.
+    ///
+    /// [`Future`]: std::future::Future
+    /// [`Span`]: crate::Span
+    </span><span class="attribute">#[derive(Debug, Clone)]
+    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="kw">pub struct </span>Instrumented&lt;T&gt; {
+        <span class="attribute">#[pin]
+        </span>inner: T,
+        span: <a href="../../src/tracing/span.rs.html#348">Span</a>,
     }
 }
 
-<span class="comment">// === impl Instrumented ===</span>
+<span class="comment">// === impl Instrumented ===
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Instrumented</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T::Output</span>;
+</span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Instrumented&lt;T&gt; {
+    <span class="kw">type </span>Output = T::Output;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/tracing/instrument.rs.html#269">self</a>.<a class="ident" href="../../src/tracing/instrument.rs.html#247-262">project</a>();
-        <span class="kw">let</span> <span class="ident">_enter</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/instrument.rs.html#270">this</a>.<span class="ident">span</span>.<a class="ident" href="../../src/tracing/span.rs.html#785">enter</a>();
-        <a class="ident" href="../../src/tracing/instrument.rs.html#270">this</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/tracing/instrument.rs.html#269">cx</a>)
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <a class="self" href="../../src/tracing/instrument.rs.html#269">self</a>.<a href="../../src/tracing/instrument.rs.html#247-262">project</a>();
+        <span class="kw">let </span>_enter = <a href="../../src/tracing/instrument.rs.html#270">this</a>.span.<a href="../../src/tracing/span.rs.html#785">enter</a>();
+        <a href="../../src/tracing/instrument.rs.html#270">this</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/tracing/instrument.rs.html#269">cx</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing/instrument.rs.html#16">Instrument</a> <span class="kw">for</span> <span class="ident">T</span> {}
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../src/tracing/instrument.rs.html#16">Instrument</a> <span class="kw">for </span>T {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Instrumented</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Borrows the `Span` that this type is instrumented by.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#348">Span</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/instrument.rs.html#280">self</a>.<span class="ident">span</span>
+<span class="kw">impl</span>&lt;T&gt; Instrumented&lt;T&gt; {
+    <span class="doccomment">/// Borrows the `Span` that this type is instrumented by.
+    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/tracing/span.rs.html#348">Span</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/instrument.rs.html#280">self</a>.span
     }
 
-    <span class="doccomment">/// Mutably borrows the `Span` that this type is instrumented by.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tracing/span.rs.html#348">Span</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/tracing/instrument.rs.html#285">self</a>.<span class="ident">span</span>
+    <span class="doccomment">/// Mutably borrows the `Span` that this type is instrumented by.
+    </span><span class="kw">pub fn </span>span_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/tracing/span.rs.html#348">Span</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/tracing/instrument.rs.html#285">self</a>.span
     }
 
-    <span class="doccomment">/// Borrows the wrapped type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/instrument.rs.html#290">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Borrows the wrapped type.
+    </span><span class="kw">pub fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/instrument.rs.html#290">self</a>.inner
     }
 
-    <span class="doccomment">/// Mutably borrows the wrapped type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/tracing/instrument.rs.html#295">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Mutably borrows the wrapped type.
+    </span><span class="kw">pub fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/tracing/instrument.rs.html#295">self</a>.inner
     }
 
-    <span class="doccomment">/// Get a pinned reference to the wrapped type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner_pin_ref</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/instrument.rs.html#300">self</a>.<a class="ident" href="../../src/tracing/instrument.rs.html#247-262">project_ref</a>().<span class="ident">inner</span>
+    <span class="doccomment">/// Get a pinned reference to the wrapped type.
+    </span><span class="kw">pub fn </span>inner_pin_ref(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <a class="self" href="../../src/tracing/instrument.rs.html#300">self</a>.<a href="../../src/tracing/instrument.rs.html#247-262">project_ref</a>().inner
     }
 
-    <span class="doccomment">/// Get a pinned mutable reference to the wrapped type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner_pin_mut</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/instrument.rs.html#305">self</a>.<a class="ident" href="../../src/tracing/instrument.rs.html#247-262">project</a>().<span class="ident">inner</span>
+    <span class="doccomment">/// Get a pinned mutable reference to the wrapped type.
+    </span><span class="kw">pub fn </span>inner_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>T&gt; {
+        <a class="self" href="../../src/tracing/instrument.rs.html#305">self</a>.<a href="../../src/tracing/instrument.rs.html#247-262">project</a>().inner
     }
 
-    <span class="doccomment">/// Consumes the `Instrumented`, returning the wrapped type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this drops the span.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../src/tracing/instrument.rs.html#312">self</a>.<span class="ident">inner</span>
-    }
-}
-
-<span class="comment">// === impl WithDispatch ===</span>
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">WithDispatch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T::Output</span>;
-
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/tracing/instrument.rs.html#324">self</a>.<a class="ident" href="../../src/tracing/instrument.rs.html#229-245">project</a>();
-        <span class="kw">let</span> <span class="ident">dispatcher</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/instrument.rs.html#325">this</a>.<span class="ident">dispatcher</span>;
-        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/instrument.rs.html#325">this</a>.<span class="ident">inner</span>;
-        <span class="kw">let</span> <span class="ident">_default</span> <span class="op">=</span> <a class="ident" href="../../tracing/dispatcher/fn.set_default.html">dispatcher::set_default</a>(<a class="ident" href="../../src/tracing/instrument.rs.html#326">dispatcher</a>);
-        <a class="ident" href="../../src/tracing/instrument.rs.html#327">future</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/tracing/instrument.rs.html#324">cx</a>)
+    <span class="doccomment">/// Consumes the `Instrumented`, returning the wrapped type.
+    ///
+    /// Note that this drops the span.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../src/tracing/instrument.rs.html#312">self</a>.inner
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/tracing/instrument.rs.html#129">WithSubscriber</a> <span class="kw">for</span> <span class="ident">T</span> {}
+<span class="comment">// === impl WithDispatch ===
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">WithDispatch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Borrows the [`Dispatch`] that is entered when this type is polled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dispatcher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/instrument.rs.html#340">self</a>.<span class="ident">dispatcher</span>
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>WithDispatch&lt;T&gt; {
+    <span class="kw">type </span>Output = T::Output;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <a class="self" href="../../src/tracing/instrument.rs.html#324">self</a>.<a href="../../src/tracing/instrument.rs.html#229-245">project</a>();
+        <span class="kw">let </span>dispatcher = <a href="../../src/tracing/instrument.rs.html#325">this</a>.dispatcher;
+        <span class="kw">let </span>future = <a href="../../src/tracing/instrument.rs.html#325">this</a>.inner;
+        <span class="kw">let </span>_default = <a href="../../tracing/dispatcher/fn.set_default.html">dispatcher::set_default</a>(<a href="../../src/tracing/instrument.rs.html#326">dispatcher</a>);
+        <a href="../../src/tracing/instrument.rs.html#327">future</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/tracing/instrument.rs.html#324">cx</a>)
+    }
+}
+
+<span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../src/tracing/instrument.rs.html#129">WithSubscriber</a> <span class="kw">for </span>T {}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">impl</span>&lt;T&gt; WithDispatch&lt;T&gt; {
+    <span class="doccomment">/// Borrows the [`Dispatch`] that is entered when this type is polled.
+    </span><span class="kw">pub fn </span>dispatcher(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../tracing/struct.Dispatch.html">Dispatch</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/instrument.rs.html#340">self</a>.dispatcher
     }
 
-    <span class="doccomment">/// Borrows the wrapped type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/instrument.rs.html#345">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Borrows the wrapped type.
+    </span><span class="kw">pub fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/instrument.rs.html#345">self</a>.inner
     }
 
-    <span class="doccomment">/// Mutably borrows the wrapped type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/tracing/instrument.rs.html#350">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Mutably borrows the wrapped type.
+    </span><span class="kw">pub fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../src/tracing/instrument.rs.html#350">self</a>.inner
     }
 
-    <span class="doccomment">/// Get a pinned reference to the wrapped type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner_pin_ref</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/instrument.rs.html#355">self</a>.<a class="ident" href="../../src/tracing/instrument.rs.html#229-245">project_ref</a>().<span class="ident">inner</span>
+    <span class="doccomment">/// Get a pinned reference to the wrapped type.
+    </span><span class="kw">pub fn </span>inner_pin_ref(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <a class="self" href="../../src/tracing/instrument.rs.html#355">self</a>.<a href="../../src/tracing/instrument.rs.html#229-245">project_ref</a>().inner
     }
 
-    <span class="doccomment">/// Get a pinned mutable reference to the wrapped type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner_pin_mut</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/instrument.rs.html#360">self</a>.<a class="ident" href="../../src/tracing/instrument.rs.html#229-245">project</a>().<span class="ident">inner</span>
+    <span class="doccomment">/// Get a pinned mutable reference to the wrapped type.
+    </span><span class="kw">pub fn </span>inner_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>T&gt; {
+        <a class="self" href="../../src/tracing/instrument.rs.html#360">self</a>.<a href="../../src/tracing/instrument.rs.html#229-245">project</a>().inner
     }
 
-    <span class="doccomment">/// Consumes the `Instrumented`, returning the wrapped type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this drops the span.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../src/tracing/instrument.rs.html#367">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Consumes the `Instrumented`, returning the wrapped type.
+    ///
+    /// Note that this drops the span.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../src/tracing/instrument.rs.html#367">self</a>.inner
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/iter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>iter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/iter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>iter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -130,137 +130,137 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76"><span class="kw">crate</span>::Buf</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/bytes/buf/buf_impl.rs.html#76"><span class="kw">crate</span>::Buf</a>;
 
-<span class="doccomment">/// Iterator over the bytes contained by the buffer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct is created by the [`iter`] method on [`Buf`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Basic usage:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use bytes::Bytes;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let buf = Bytes::from(&amp;b&quot;abc&quot;[..]);</span>
-<span class="doccomment">/// let mut iter = buf.into_iter();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;a&#39;));</span>
-<span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;b&#39;));</span>
-<span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;c&#39;));</span>
-<span class="doccomment">/// assert_eq!(iter.next(), None);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`iter`]: trait.Buf.html#method.iter</span>
-<span class="doccomment">/// [`Buf`]: trait.Buf.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">T</span>,
+<span class="doccomment">/// Iterator over the bytes contained by the buffer.
+///
+/// This struct is created by the [`iter`] method on [`Buf`].
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```
+/// use bytes::Bytes;
+///
+/// let buf = Bytes::from(&amp;b&quot;abc&quot;[..]);
+/// let mut iter = buf.into_iter();
+///
+/// assert_eq!(iter.next(), Some(b&#39;a&#39;));
+/// assert_eq!(iter.next(), Some(b&#39;b&#39;));
+/// assert_eq!(iter.next(), Some(b&#39;c&#39;));
+/// assert_eq!(iter.next(), None);
+/// ```
+///
+/// [`iter`]: trait.Buf.html#method.iter
+/// [`Buf`]: trait.Buf.html
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>IntoIter&lt;T&gt; {
+    inner: T,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates an iterator over the bytes contained by the buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::Bytes;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = Bytes::from_static(b&quot;abc&quot;);</span>
-    <span class="doccomment">/// let mut iter = buf.into_iter();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;a&#39;));</span>
-    <span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;b&#39;));</span>
-    <span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;c&#39;));</span>
-    <span class="doccomment">/// assert_eq!(iter.next(), None);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">T</span>) -&gt; <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/bytes/buf/iter.rs.html#26">IntoIter</a> { <a class="ident" href="../../../src/bytes/buf/iter.rs.html#46">inner</a> }
+<span class="kw">impl</span>&lt;T&gt; IntoIter&lt;T&gt; {
+    <span class="doccomment">/// Creates an iterator over the bytes contained by the buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Bytes;
+    ///
+    /// let buf = Bytes::from_static(b&quot;abc&quot;);
+    /// let mut iter = buf.into_iter();
+    ///
+    /// assert_eq!(iter.next(), Some(b&#39;a&#39;));
+    /// assert_eq!(iter.next(), Some(b&#39;b&#39;));
+    /// assert_eq!(iter.next(), Some(b&#39;c&#39;));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: T) -&gt; IntoIter&lt;T&gt; {
+        <a href="../../../src/bytes/buf/iter.rs.html#26">IntoIter</a> { <a href="../../../src/bytes/buf/iter.rs.html#46">inner</a> }
     }
 
-    <span class="doccomment">/// Consumes this `IntoIter`, returning the underlying value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use bytes::{Buf, Bytes};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = Bytes::from(&amp;b&quot;abc&quot;[..]);</span>
-    <span class="doccomment">/// let mut iter = buf.into_iter();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;a&#39;));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = iter.into_inner();</span>
-    <span class="doccomment">/// assert_eq!(2, buf.remaining());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../../src/bytes/buf/iter.rs.html#65">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Consumes this `IntoIter`, returning the underlying value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use bytes::{Buf, Bytes};
+    ///
+    /// let buf = Bytes::from(&amp;b&quot;abc&quot;[..]);
+    /// let mut iter = buf.into_iter();
+    ///
+    /// assert_eq!(iter.next(), Some(b&#39;a&#39;));
+    ///
+    /// let buf = iter.into_inner();
+    /// assert_eq!(2, buf.remaining());
+    /// ```
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../../src/bytes/buf/iter.rs.html#65">self</a>.inner
     }
 
-    <span class="doccomment">/// Gets a reference to the underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is inadvisable to directly read from the underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use bytes::{Buf, Bytes};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = Bytes::from(&amp;b&quot;abc&quot;[..]);</span>
-    <span class="doccomment">/// let mut iter = buf.into_iter();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;a&#39;));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(2, iter.get_ref().remaining());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/iter.rs.html#85">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Gets a reference to the underlying `Buf`.
+    ///
+    /// It is inadvisable to directly read from the underlying `Buf`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use bytes::{Buf, Bytes};
+    ///
+    /// let buf = Bytes::from(&amp;b&quot;abc&quot;[..]);
+    /// let mut iter = buf.into_iter();
+    ///
+    /// assert_eq!(iter.next(), Some(b&#39;a&#39;));
+    ///
+    /// assert_eq!(2, iter.get_ref().remaining());
+    /// ```
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/iter.rs.html#85">self</a>.inner
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is inadvisable to directly read from the underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use bytes::{Buf, BytesMut};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = BytesMut::from(&amp;b&quot;abc&quot;[..]);</span>
-    <span class="doccomment">/// let mut iter = buf.into_iter();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;a&#39;));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// iter.get_mut().advance(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(iter.next(), Some(b&#39;c&#39;));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/bytes/buf/iter.rs.html#107">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Gets a mutable reference to the underlying `Buf`.
+    ///
+    /// It is inadvisable to directly read from the underlying `Buf`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use bytes::{Buf, BytesMut};
+    ///
+    /// let buf = BytesMut::from(&amp;b&quot;abc&quot;[..]);
+    /// let mut iter = buf.into_iter();
+    ///
+    /// assert_eq!(iter.next(), Some(b&#39;a&#39;));
+    ///
+    /// iter.get_mut().advance(1);
+    ///
+    /// assert_eq!(iter.next(), Some(b&#39;c&#39;));
+    /// ```
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/bytes/buf/iter.rs.html#107">self</a>.inner
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+<span class="kw">impl</span>&lt;T: <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {
+    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">has_remaining</span>() {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.inner.has_remaining() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/iter.rs.html#115">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>()[<span class="number">0</span>];
-        <a class="self" href="../../../src/bytes/buf/iter.rs.html#115">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<span class="number">1</span>);
+        <span class="kw">let </span>b = <a class="self" href="../../../src/bytes/buf/iter.rs.html#115">self</a>.inner.<a href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>()[<span class="number">0</span>];
+        <a class="self" href="../../../src/bytes/buf/iter.rs.html#115">self</a>.inner.<a href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<span class="number">1</span>);
 
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/bytes/buf/iter.rs.html#120">b</a>)
+        <span class="prelude-val">Some</span>(<a href="../../../src/bytes/buf/iter.rs.html#120">b</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">rem</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/iter.rs.html#126">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>();
-        (<a class="ident" href="../../../src/bytes/buf/iter.rs.html#127">rem</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/bytes/buf/iter.rs.html#127">rem</a>))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <span class="kw">let </span>rem = <a class="self" href="../../../src/bytes/buf/iter.rs.html#126">self</a>.inner.<a href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>();
+        (<a href="../../../src/bytes/buf/iter.rs.html#127">rem</a>, <span class="prelude-val">Some</span>(<a href="../../../src/bytes/buf/iter.rs.html#127">rem</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T: <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IntoIter&lt;T&gt; {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

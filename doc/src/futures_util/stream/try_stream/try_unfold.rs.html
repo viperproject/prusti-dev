@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/try_stream/try_unfold.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_unfold.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/try_stream/try_unfold.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_unfold.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -120,127 +120,127 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/futures_util/stream/mod.rs.html#138-140"><span class="kw">super</span>::assert_stream</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/future/trait.TryFuture.html">futures_core::future::TryFuture</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">futures_core::stream::Stream</a>;
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/futures_util/stream/mod.rs.html#138-140"><span class="kw">super</span>::assert_stream</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span><a href="../../../../futures_util/future/trait.TryFuture.html">futures_core::future::TryFuture</a>;
+<span class="kw">use </span><a href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span><a href="../../../../futures_util/stream/trait.Stream.html">futures_core::stream::Stream</a>;
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="doccomment">/// Creates a `TryStream` from a seed and a closure returning a `TryFuture`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is the dual for the `TryStream::try_fold()` adapter: while</span>
-<span class="doccomment">/// `TryStream::try_fold()` reduces a `TryStream` to one single value,</span>
-<span class="doccomment">/// `try_unfold()` creates a `TryStream` from a seed value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `try_unfold()` will call the provided closure with the provided seed, then</span>
-<span class="doccomment">/// wait for the returned `TryFuture` to complete with `(a, b)`. It will then</span>
-<span class="doccomment">/// yield the value `a`, and use `b` as the next internal state.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the closure returns `None` instead of `Some(TryFuture)`, then the</span>
-<span class="doccomment">/// `try_unfold()` will stop producing items and return `Poll::Ready(None)` in</span>
-<span class="doccomment">/// future calls to `poll()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In case of error generated by the returned `TryFuture`, the error will be</span>
-<span class="doccomment">/// returned by the `TryStream`. The `TryStream` will then yield</span>
-<span class="doccomment">/// `Poll::Ready(None)` in future calls to `poll()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function can typically be used when wanting to go from the &quot;world of</span>
-<span class="doccomment">/// futures&quot; to the &quot;world of streams&quot;: the provided closure can build a</span>
-<span class="doccomment">/// `TryFuture` using other library functions working on futures, and</span>
-<span class="doccomment">/// `try_unfold()` will turn it into a `TryStream` by repeating the operation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # #[derive(Debug, PartialEq)]</span>
-<span class="doccomment">/// # struct SomeError;</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::stream::{self, TryStreamExt};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let stream = stream::try_unfold(0, |state| async move {</span>
-<span class="doccomment">///     if state &lt; 0 {</span>
-<span class="doccomment">///         return Err(SomeError);</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     if state &lt;= 2 {</span>
-<span class="doccomment">///         let next_state = state + 1;</span>
-<span class="doccomment">///         let yielded = state * 2;</span>
-<span class="doccomment">///         Ok(Some((yielded, next_state)))</span>
-<span class="doccomment">///     } else {</span>
-<span class="doccomment">///         Ok(None)</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let result: Result&lt;Vec&lt;i32&gt;, _&gt; = stream.try_collect().await;</span>
-<span class="doccomment">/// assert_eq!(result, Ok(vec![0, 2, 4]));</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_unfold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">Fut</span>, <span class="ident">Item</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">TryUnfold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>) -&gt; <span class="ident">Fut</span>,
-    <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Item</span>, <span class="ident">T</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Creates a `TryStream` from a seed and a closure returning a `TryFuture`.
+///
+/// This function is the dual for the `TryStream::try_fold()` adapter: while
+/// `TryStream::try_fold()` reduces a `TryStream` to one single value,
+/// `try_unfold()` creates a `TryStream` from a seed value.
+///
+/// `try_unfold()` will call the provided closure with the provided seed, then
+/// wait for the returned `TryFuture` to complete with `(a, b)`. It will then
+/// yield the value `a`, and use `b` as the next internal state.
+///
+/// If the closure returns `None` instead of `Some(TryFuture)`, then the
+/// `try_unfold()` will stop producing items and return `Poll::Ready(None)` in
+/// future calls to `poll()`.
+///
+/// In case of error generated by the returned `TryFuture`, the error will be
+/// returned by the `TryStream`. The `TryStream` will then yield
+/// `Poll::Ready(None)` in future calls to `poll()`.
+///
+/// This function can typically be used when wanting to go from the &quot;world of
+/// futures&quot; to the &quot;world of streams&quot;: the provided closure can build a
+/// `TryFuture` using other library functions working on futures, and
+/// `try_unfold()` will turn it into a `TryStream` by repeating the operation.
+///
+/// # Example
+///
+/// ```
+/// # #[derive(Debug, PartialEq)]
+/// # struct SomeError;
+/// # futures::executor::block_on(async {
+/// use futures::stream::{self, TryStreamExt};
+///
+/// let stream = stream::try_unfold(0, |state| async move {
+///     if state &lt; 0 {
+///         return Err(SomeError);
+///     }
+///
+///     if state &lt;= 2 {
+///         let next_state = state + 1;
+///         let yielded = state * 2;
+///         Ok(Some((yielded, next_state)))
+///     } else {
+///         Ok(None)
+///     }
+/// });
+///
+/// let result: Result&lt;Vec&lt;i32&gt;, _&gt; = stream.try_collect().await;
+/// assert_eq!(result, Ok(vec![0, 2, 4]));
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>try_unfold&lt;T, F, Fut, Item&gt;(init: T, f: F) -&gt; TryUnfold&lt;T, F, Fut&gt;
+<span class="kw">where
+    </span>F: FnMut(T) -&gt; Fut,
+    Fut: TryFuture&lt;<span class="prelude-val">Ok </span>= <span class="prelude-ty">Option</span>&lt;(Item, T)&gt;&gt;,
 {
-    <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Fut::Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#67-76">TryUnfold</a> { <a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#59">f</a>, <span class="ident">state</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#59">init</a>), <span class="ident">fut</span>: <span class="prelude-val">None</span> })
+    assert_stream::&lt;<span class="prelude-ty">Result</span>&lt;Item, Fut::Error&gt;, <span class="kw">_</span>&gt;(<a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#67-76">TryUnfold</a> { <a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#59">f</a>, state: <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#59">init</a>), fut: <span class="prelude-val">None </span>})
 }
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Stream for the [`try_unfold`] function.</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TryUnfold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">Fut</span><span class="op">&gt;</span> {
-        <span class="ident">f</span>: <span class="ident">F</span>,
-        <span class="ident">state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">fut</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>,
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Stream for the [`try_unfold`] function.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>TryUnfold&lt;T, F, Fut&gt; {
+        f: F,
+        state: <span class="prelude-ty">Option</span>&lt;T&gt;,
+        <span class="attribute">#[pin]
+        </span>fut: <span class="prelude-ty">Option</span>&lt;Fut&gt;,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">Fut</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">TryUnfold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;T, F, Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>TryUnfold&lt;T, F, Fut&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    Fut: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#83">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;TryUnfold&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#83">self</a>.<span class="ident">state</span>).<span class="ident">field</span>(<span class="string">&quot;fut&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#83">self</a>.<span class="ident">fut</span>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#83">f</a>.debug_struct(<span class="string">&quot;TryUnfold&quot;</span>).field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#83">self</a>.state).field(<span class="string">&quot;fut&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#83">self</a>.fut).finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">Fut</span>, <span class="ident">Item</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">TryUnfold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>, <span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>) -&gt; <span class="ident">Fut</span>,
-    <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Item</span>, <span class="ident">T</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T, F, Fut, Item&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>TryUnfold&lt;T, F, Fut&gt;
+<span class="kw">where
+    </span>F: FnMut(T) -&gt; Fut,
+    Fut: TryFuture&lt;<span class="prelude-val">Ok </span>= <span class="prelude-ty">Option</span>&lt;(Item, T)&gt;&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Fut::Error</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Item, Fut::Error&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#95">self</a>.<a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#67-76">project</a>();
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#95">self</a>.<a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#67-76">project</a>();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.<span class="ident">state</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.<span class="ident">fut</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.<span class="ident">f</span>)(<a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#98">state</a>)));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.state.take() {
+            <a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.fut.set(<span class="prelude-val">Some</span>((<a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.f)(<a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#98">state</a>)));
         }
 
-        <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.<span class="ident">fut</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="comment">// The future previously errored</span>
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
+        <span class="kw">match </span><a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.fut.as_mut().as_pin_mut() {
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// The future previously errored
+                </span>Poll::Ready(<span class="prelude-val">None</span>)
             }
-            <span class="prelude-val">Some</span>(<span class="ident">future</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">step</span> <span class="op">=</span> <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">future</span>.<span class="ident">try_poll</span>(<span class="ident">cx</span>));
-                <a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.<span class="ident">fut</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
+            <span class="prelude-val">Some</span>(future) =&gt; {
+                <span class="kw">let </span>step = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(future.try_poll(cx));
+                <a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.fut.set(<span class="prelude-val">None</span>);
 
-                <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#108">step</a> {
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="ident">item</span>, <span class="ident">next_state</span>))) =&gt; {
-                        <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.<span class="ident">state</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#112">next_state</a>);
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#112">item</a>)))
+                <span class="kw">match </span><a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#108">step</a> {
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((item, next_state))) =&gt; {
+                        <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#96">this</a>.state = <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#112">next_state</a>);
+                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#112">item</a>)))
                     }
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#117">e</a>))),
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
+                    <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../../../src/futures_util/stream/try_stream/try_unfold.rs.html#117">e</a>))),
                 }
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/interest.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interest.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/interest.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interest.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -177,184 +177,184 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU8.html">std::num::NonZeroU8</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU8.html">std::num::NonZeroU8</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>};
 
-<span class="doccomment">/// Interest used in registering.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Interest are used in [registering] [`event::Source`]s with [`Poll`], they</span>
-<span class="doccomment">/// indicate what readiness should be monitored for. For example if a socket is</span>
-<span class="doccomment">/// registered with [readable] interests and the socket becomes writable, no</span>
-<span class="doccomment">/// event will be returned from a call to [`poll`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [registering]: struct.Registry.html#method.register</span>
-<span class="doccomment">/// [`event::Source`]: ./event/trait.Source.html</span>
-<span class="doccomment">/// [`Poll`]: struct.Poll.html</span>
-<span class="doccomment">/// [readable]: struct.Interest.html#associatedconstant.READABLE</span>
-<span class="doccomment">/// [`poll`]: struct.Poll.html#method.poll</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interest</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU8.html">NonZeroU8</a>);
+<span class="doccomment">/// Interest used in registering.
+///
+/// Interest are used in [registering] [`event::Source`]s with [`Poll`], they
+/// indicate what readiness should be monitored for. For example if a socket is
+/// registered with [readable] interests and the socket becomes writable, no
+/// event will be returned from a call to [`poll`].
+///
+/// [registering]: struct.Registry.html#method.register
+/// [`event::Source`]: ./event/trait.Source.html
+/// [`Poll`]: struct.Poll.html
+/// [readable]: struct.Interest.html#associatedconstant.READABLE
+/// [`poll`]: struct.Poll.html#method.poll
+</span><span class="attribute">#[derive(Copy, PartialEq, Eq, Clone, PartialOrd, Ord)]
+</span><span class="kw">pub struct </span>Interest(<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU8.html">NonZeroU8</a>);
 
-<span class="comment">// These must be unique.</span>
-<span class="kw">const</span> <span class="ident">READABLE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b0001</span>;
-<span class="kw">const</span> <span class="ident">WRITABLE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b0010</span>;
-<span class="comment">// The following are not available on all platforms.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">not</span>(<span class="ident">any</span>(
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>
-    )),
-    <span class="ident">allow</span>(<span class="ident">dead_code</span>)
-)]</span>
-<span class="kw">const</span> <span class="ident">AIO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b0100</span>;
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
-<span class="kw">const</span> <span class="ident">LIO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b1000</span>;
+<span class="comment">// These must be unique.
+</span><span class="kw">const </span>READABLE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0001</span>;
+<span class="kw">const </span>WRITABLE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0010</span>;
+<span class="comment">// The following are not available on all platforms.
+</span><span class="attribute">#[cfg_attr(
+    not(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;
+    </span>)),
+    allow(dead_code)
+)]
+</span><span class="kw">const </span>AIO: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0100</span>;
+<span class="attribute">#[cfg_attr(not(target_os = <span class="string">&quot;freebsd&quot;</span>), allow(dead_code))]
+</span><span class="kw">const </span>LIO: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1000</span>;
 
-<span class="kw">impl</span> <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a> {
-    <span class="doccomment">/// Returns a `Interest` set representing readable interests.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">READABLE</span>: <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a> <span class="op">=</span> <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>(<span class="kw">unsafe</span> { <span class="ident">NonZeroU8::new_unchecked</span>(<a class="ident" href="../../src/mio/interest.rs.html#20">READABLE</a>) });
+<span class="kw">impl </span><a href="../../src/mio/interest.rs.html#17">Interest</a> {
+    <span class="doccomment">/// Returns a `Interest` set representing readable interests.
+    </span><span class="kw">pub const </span>READABLE: <a href="../../src/mio/interest.rs.html#17">Interest</a> = <a href="../../src/mio/interest.rs.html#17">Interest</a>(<span class="kw">unsafe </span>{ NonZeroU8::new_unchecked(<a href="../../src/mio/interest.rs.html#20">READABLE</a>) });
 
-    <span class="doccomment">/// Returns a `Interest` set representing writable interests.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WRITABLE</span>: <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a> <span class="op">=</span> <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>(<span class="kw">unsafe</span> { <span class="ident">NonZeroU8::new_unchecked</span>(<a class="ident" href="../../src/mio/interest.rs.html#21">WRITABLE</a>) });
+    <span class="doccomment">/// Returns a `Interest` set representing writable interests.
+    </span><span class="kw">pub const </span>WRITABLE: <a href="../../src/mio/interest.rs.html#17">Interest</a> = <a href="../../src/mio/interest.rs.html#17">Interest</a>(<span class="kw">unsafe </span>{ NonZeroU8::new_unchecked(<a href="../../src/mio/interest.rs.html#21">WRITABLE</a>) });
 
-    <span class="doccomment">/// Returns a `Interest` set representing AIO completion interests.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>
-    ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AIO</span>: <span class="ident">Interest</span> <span class="op">=</span> <span class="ident">Interest</span>(<span class="kw">unsafe</span> { <span class="ident">NonZeroU8::new_unchecked</span>(<span class="ident">AIO</span>) });
+    <span class="doccomment">/// Returns a `Interest` set representing AIO completion interests.
+    </span><span class="attribute">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;
+    </span>))]
+    </span><span class="kw">pub const </span>AIO: Interest = Interest(<span class="kw">unsafe </span>{ NonZeroU8::new_unchecked(AIO) });
 
-    <span class="doccomment">/// Returns a `Interest` set representing LIO completion interests.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LIO</span>: <span class="ident">Interest</span> <span class="op">=</span> <span class="ident">Interest</span>(<span class="kw">unsafe</span> { <span class="ident">NonZeroU8::new_unchecked</span>(<span class="ident">LIO</span>) });
+    <span class="doccomment">/// Returns a `Interest` set representing LIO completion interests.
+    </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+    </span><span class="kw">pub const </span>LIO: Interest = Interest(<span class="kw">unsafe </span>{ NonZeroU8::new_unchecked(LIO) });
 
-    <span class="doccomment">/// Add together two `Interest`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This does the same thing as the `BitOr` implementation, but is a</span>
-    <span class="doccomment">/// constant function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use mio::Interest;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// const INTERESTS: Interest = Interest::READABLE.add(Interest::WRITABLE);</span>
-    <span class="doccomment">/// # fn silent_dead_code_warning(_: Interest) { }</span>
-    <span class="doccomment">/// # silent_dead_code_warning(INTERESTS)</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::should_implement_trait</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">other</span>: <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>) -&gt; <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a> {
-        <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>(<span class="kw">unsafe</span> { <span class="ident">NonZeroU8::new_unchecked</span>(<a class="self" href="../../src/mio/interest.rs.html#69">self</a>.<span class="number">0</span>.<span class="ident">get</span>() <span class="op">|</span> <a class="ident" href="../../src/mio/interest.rs.html#69">other</a>.<span class="number">0</span>.<span class="ident">get</span>()) })
+    <span class="doccomment">/// Add together two `Interest`.
+    ///
+    /// This does the same thing as the `BitOr` implementation, but is a
+    /// constant function.
+    ///
+    /// ```
+    /// use mio::Interest;
+    ///
+    /// const INTERESTS: Interest = Interest::READABLE.add(Interest::WRITABLE);
+    /// # fn silent_dead_code_warning(_: Interest) { }
+    /// # silent_dead_code_warning(INTERESTS)
+    /// ```
+    </span><span class="attribute">#[allow(clippy::should_implement_trait)]
+    </span><span class="kw">pub const fn </span>add(<span class="self">self</span>, other: <a href="../../src/mio/interest.rs.html#17">Interest</a>) -&gt; <a href="../../src/mio/interest.rs.html#17">Interest</a> {
+        <a href="../../src/mio/interest.rs.html#17">Interest</a>(<span class="kw">unsafe </span>{ NonZeroU8::new_unchecked(<a class="self" href="../../src/mio/interest.rs.html#69">self</a>.<span class="number">0</span>.get() | <a href="../../src/mio/interest.rs.html#69">other</a>.<span class="number">0</span>.get()) })
     }
 
-    <span class="doccomment">/// Removes `other` `Interest` from `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the set would be empty after removing `other`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use mio::Interest;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// const RW_INTERESTS: Interest = Interest::READABLE.add(Interest::WRITABLE);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // As long a one interest remain this will return `Some`.</span>
-    <span class="doccomment">/// let w_interest = RW_INTERESTS.remove(Interest::READABLE).unwrap();</span>
-    <span class="doccomment">/// assert!(!w_interest.is_readable());</span>
-    <span class="doccomment">/// assert!(w_interest.is_writable());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Removing all interests from the set will return `None`.</span>
-    <span class="doccomment">/// assert_eq!(w_interest.remove(Interest::WRITABLE), None);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Its also possible to remove multiple interests at once.</span>
-    <span class="doccomment">/// assert_eq!(RW_INTERESTS.remove(RW_INTERESTS), None);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="self">self</span>, <span class="ident">other</span>: <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a><span class="op">&gt;</span> {
-        <span class="ident">NonZeroU8::new</span>(<a class="self" href="../../src/mio/interest.rs.html#93">self</a>.<span class="number">0</span>.<span class="ident">get</span>() <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/mio/interest.rs.html#93">other</a>.<span class="number">0</span>.<span class="ident">get</span>()).<span class="ident">map</span>(<a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>)
+    <span class="doccomment">/// Removes `other` `Interest` from `self`.
+    ///
+    /// Returns `None` if the set would be empty after removing `other`.
+    ///
+    /// ```
+    /// use mio::Interest;
+    ///
+    /// const RW_INTERESTS: Interest = Interest::READABLE.add(Interest::WRITABLE);
+    ///
+    /// // As long a one interest remain this will return `Some`.
+    /// let w_interest = RW_INTERESTS.remove(Interest::READABLE).unwrap();
+    /// assert!(!w_interest.is_readable());
+    /// assert!(w_interest.is_writable());
+    ///
+    /// // Removing all interests from the set will return `None`.
+    /// assert_eq!(w_interest.remove(Interest::WRITABLE), None);
+    ///
+    /// // Its also possible to remove multiple interests at once.
+    /// assert_eq!(RW_INTERESTS.remove(RW_INTERESTS), None);
+    /// ```
+    </span><span class="kw">pub fn </span>remove(<span class="self">self</span>, other: <a href="../../src/mio/interest.rs.html#17">Interest</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/mio/interest.rs.html#17">Interest</a>&gt; {
+        NonZeroU8::new(<a class="self" href="../../src/mio/interest.rs.html#93">self</a>.<span class="number">0</span>.get() &amp; !<a href="../../src/mio/interest.rs.html#93">other</a>.<span class="number">0</span>.get()).map(<a href="../../src/mio/interest.rs.html#17">Interest</a>)
     }
 
-    <span class="doccomment">/// Returns true if the value includes readable readiness.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_readable</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a class="self" href="../../src/mio/interest.rs.html#98">self</a>.<span class="number">0</span>.<span class="ident">get</span>() <span class="op">&amp;</span> <a class="ident" href="../../src/mio/interest.rs.html#20">READABLE</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns true if the value includes readable readiness.
+    </span><span class="kw">pub const fn </span>is_readable(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a class="self" href="../../src/mio/interest.rs.html#98">self</a>.<span class="number">0</span>.get() &amp; <a href="../../src/mio/interest.rs.html#20">READABLE</a>) != <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns true if the value includes writable readiness.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_writable</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a class="self" href="../../src/mio/interest.rs.html#103">self</a>.<span class="number">0</span>.<span class="ident">get</span>() <span class="op">&amp;</span> <a class="ident" href="../../src/mio/interest.rs.html#21">WRITABLE</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns true if the value includes writable readiness.
+    </span><span class="kw">pub const fn </span>is_writable(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a class="self" href="../../src/mio/interest.rs.html#103">self</a>.<span class="number">0</span>.get() &amp; <a href="../../src/mio/interest.rs.html#21">WRITABLE</a>) != <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns true if `Interest` contains AIO readiness</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_aio</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a class="self" href="../../src/mio/interest.rs.html#108">self</a>.<span class="number">0</span>.<span class="ident">get</span>() <span class="op">&amp;</span> <a class="ident" href="../../src/mio/interest.rs.html#32">AIO</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns true if `Interest` contains AIO readiness
+    </span><span class="kw">pub const fn </span>is_aio(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a class="self" href="../../src/mio/interest.rs.html#108">self</a>.<span class="number">0</span>.get() &amp; <a href="../../src/mio/interest.rs.html#32">AIO</a>) != <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns true if `Interest` contains LIO readiness</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_lio</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a class="self" href="../../src/mio/interest.rs.html#113">self</a>.<span class="number">0</span>.<span class="ident">get</span>() <span class="op">&amp;</span> <a class="ident" href="../../src/mio/interest.rs.html#34">LIO</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    <span class="doccomment">/// Returns true if `Interest` contains LIO readiness
+    </span><span class="kw">pub const fn </span>is_lio(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a class="self" href="../../src/mio/interest.rs.html#113">self</a>.<span class="number">0</span>.get() &amp; <a href="../../src/mio/interest.rs.html#34">LIO</a>) != <span class="number">0
+    </span>}
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">ops::BitOr</a> <span class="kw">for </span><a href="../../src/mio/interest.rs.html#17">Interest</a> {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>bitor(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/mio/interest.rs.html#122">self</a>.<a href="../../src/mio/interest.rs.html#69">add</a>(<a href="../../src/mio/interest.rs.html#122">other</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html">ops::BitOr</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/mio/interest.rs.html#122">self</a>.<a class="ident" href="../../src/mio/interest.rs.html#69">add</a>(<a class="ident" href="../../src/mio/interest.rs.html#122">other</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOrAssign.html">ops::BitOrAssign</a> <span class="kw">for </span><a href="../../src/mio/interest.rs.html#17">Interest</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>bitor_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="self">Self</span>) {
+        <a class="self" href="../../src/mio/interest.rs.html#129">self</a>.<span class="number">0 </span>= (<span class="kw-2">*</span><span class="self"><a href="../../src/mio/interest.rs.html#129">self</a> </span>| <a href="../../src/mio/interest.rs.html#129">other</a>).<span class="number">0</span>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOrAssign.html">ops::BitOrAssign</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">bitor_assign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) {
-        <a class="self" href="../../src/mio/interest.rs.html#129">self</a>.<span class="number">0</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="self" href="../../src/mio/interest.rs.html#129">self</a> <span class="op">|</span> <a class="ident" href="../../src/mio/interest.rs.html#129">other</a>).<span class="number">0</span>;
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">one</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_readable</span>() {
-            <span class="kw">if</span> <span class="ident">one</span> {
-                <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>
-            }
-            <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;READABLE&quot;</span>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/mio/interest.rs.html#136">one</a> <span class="op">=</span> <span class="bool-val">true</span>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/mio/interest.rs.html#17">Interest</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>one = <span class="bool-val">false</span>;
+        <span class="kw">if </span><span class="self">self</span>.is_readable() {
+            <span class="kw">if </span>one {
+                <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?
+            </span>}
+            <span class="macro">write!</span>(fmt, <span class="string">&quot;READABLE&quot;</span>)<span class="question-mark">?</span>;
+            <a href="../../src/mio/interest.rs.html#136">one</a> = <span class="bool-val">true
+        </span>}
+        <span class="kw">if </span><span class="self">self</span>.is_writable() {
+            <span class="kw">if </span>one {
+                <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?
+            </span>}
+            <span class="macro">write!</span>(fmt, <span class="string">&quot;WRITABLE&quot;</span>)<span class="question-mark">?</span>;
+            <a href="../../src/mio/interest.rs.html#136">one</a> = <span class="bool-val">true
+        </span>}
+        <span class="attribute">#[cfg(any(
+            target_os = <span class="string">&quot;dragonfly&quot;</span>,
+            target_os = <span class="string">&quot;freebsd&quot;</span>,
+            target_os = <span class="string">&quot;ios&quot;</span>,
+            target_os = <span class="string">&quot;macos&quot;
+        </span>))]
+        </span>{
+            <span class="kw">if </span><span class="self">self</span>.is_aio() {
+                <span class="kw">if </span>one {
+                    <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?
+                </span>}
+                <span class="macro">write!</span>(fmt, <span class="string">&quot;AIO&quot;</span>)<span class="question-mark">?</span>;
+                one = <span class="bool-val">true
+            </span>}
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_writable</span>() {
-            <span class="kw">if</span> <span class="ident">one</span> {
-                <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>
-            }
-            <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;WRITABLE&quot;</span>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/mio/interest.rs.html#136">one</a> <span class="op">=</span> <span class="bool-val">true</span>
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>))]
+        </span>{
+            <span class="kw">if </span><span class="self">self</span>.is_lio() {
+                <span class="kw">if </span>one {
+                    <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?
+                </span>}
+                <span class="macro">write!</span>(fmt, <span class="string">&quot;LIO&quot;</span>)<span class="question-mark">?</span>;
+                one = <span class="bool-val">true
+            </span>}
         }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>
-        ))]</span>
-        {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_aio</span>() {
-                <span class="kw">if</span> <span class="ident">one</span> {
-                    <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>
-                }
-                <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;AIO&quot;</span>)<span class="question-mark">?</span>;
-                <span class="ident">one</span> <span class="op">=</span> <span class="bool-val">true</span>
-            }
-        }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
-        {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_lio</span>() {
-                <span class="kw">if</span> <span class="ident">one</span> {
-                    <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>
-                }
-                <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;LIO&quot;</span>)<span class="question-mark">?</span>;
-                <span class="ident">one</span> <span class="op">=</span> <span class="bool-val">true</span>
-            }
-        }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">one</span>, <span class="string">&quot;printing empty interests&quot;</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(one, <span class="string">&quot;printing empty interests&quot;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

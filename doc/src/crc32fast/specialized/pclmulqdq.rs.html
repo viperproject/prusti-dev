@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crc32fast-1.3.2/src/specialized/pclmulqdq.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pclmulqdq.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../crc32fast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../crc32fast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../crc32fast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crc32fast-1.3.2/src/specialized/pclmulqdq.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pclmulqdq.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../crc32fast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../crc32fast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../crc32fast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -223,230 +223,230 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">core::arch::x86</span> <span class="kw">as</span> <span class="ident">arch</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/arch/x86_64/index.html">core::arch::x86_64</a> <span class="kw">as</span> <span class="ident">arch</span>;
+</pre><pre class="rust"><code><span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+</span><span class="kw">use </span>core::arch::x86 <span class="kw">as </span>arch;
+<span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/arch/x86_64/index.html">core::arch::x86_64</a> <span class="kw">as </span>arch;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span> {
-    <span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>State {
+    state: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#7">State</a> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">state</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;pclmulqdq&quot;</span>)
-            <span class="op">&amp;&amp;</span> <span class="macro">cfg!</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;sse2&quot;</span>)
-            <span class="op">&amp;&amp;</span> <span class="macro">cfg!</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;sse4.1&quot;</span>)
+<span class="kw">impl </span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#7">State</a> {
+    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+    </span><span class="kw">pub fn </span>new(state: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span><span class="macro">cfg!</span>(target_feature = <span class="string">&quot;pclmulqdq&quot;</span>)
+            &amp;&amp; <span class="macro">cfg!</span>(target_feature = <span class="string">&quot;sse2&quot;</span>)
+            &amp;&amp; <span class="macro">cfg!</span>(target_feature = <span class="string">&quot;sse4.1&quot;</span>)
         {
-            <span class="comment">// SAFETY: The conditions above ensure that all</span>
-            <span class="comment">//         required instructions are supported by the CPU.</span>
-            <span class="prelude-val">Some</span>(<span class="self">Self</span> { <span class="ident">state</span> })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+            <span class="comment">// SAFETY: The conditions above ensure that all
+            //         required instructions are supported by the CPU.
+            </span><span class="prelude-val">Some</span>(<span class="self">Self </span>{ state })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;pclmulqdq&quot;</span>)
-            <span class="op">&amp;&amp;</span> <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;sse2&quot;</span>)
-            <span class="op">&amp;&amp;</span> <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;sse4.1&quot;</span>)
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">pub fn </span>new(state: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span><span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;pclmulqdq&quot;</span>)
+            &amp;&amp; <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;sse2&quot;</span>)
+            &amp;&amp; <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;sse4.1&quot;</span>)
         {
-            <span class="comment">// SAFETY: The conditions above ensure that all</span>
-            <span class="comment">//         required instructions are supported by the CPU.</span>
-            <span class="prelude-val">Some</span>(<span class="self">Self</span> { <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#27">state</a> })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+            <span class="comment">// SAFETY: The conditions above ensure that all
+            //         required instructions are supported by the CPU.
+            </span><span class="prelude-val">Some</span>(<span class="self">Self </span>{ <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#27">state</a> })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <span class="comment">// SAFETY: The `State::new` constructor ensures that all</span>
-        <span class="comment">//         required instructions are supported by the CPU.</span>
-        <a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#40">self</a>.<span class="ident">state</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">calculate</a>(<a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#40">self</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#40">buf</a>) }
+    <span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+        <span class="comment">// SAFETY: The `State::new` constructor ensures that all
+        //         required instructions are supported by the CPU.
+        </span><a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#40">self</a>.state = <span class="kw">unsafe </span>{ <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">calculate</a>(<a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#40">self</a>.state, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#40">buf</a>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#46">self</a>.<span class="ident">state</span>
+    <span class="kw">pub fn </span>finalize(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#46">self</a>.state
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#50">self</a>.<span class="ident">state</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#50">self</a>.state = <span class="number">0</span>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">combine</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">amount</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#54">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/combine.rs.html#22">::combine::combine</a>(<a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#54">self</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#54">other</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#54">amount</a>);
+    <span class="kw">pub fn </span>combine(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, amount: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#54">self</a>.state = <a href="../../../src/crc32fast/combine.rs.html#22">::combine::combine</a>(<a class="self" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#54">self</a>.state, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#54">other</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#54">amount</a>);
     }
 }
 
-<span class="kw">const</span> <span class="ident">K1</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">0x154442bd4</span>;
-<span class="kw">const</span> <span class="ident">K2</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">0x1c6e41596</span>;
-<span class="kw">const</span> <span class="ident">K3</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">0x1751997d0</span>;
-<span class="kw">const</span> <span class="ident">K4</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">0x0ccaa009e</span>;
-<span class="kw">const</span> <span class="ident">K5</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">0x163cd6124</span>;
-<span class="kw">const</span> <span class="ident">K6</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">0x1db710640</span>;
+<span class="kw">const </span>K1: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x154442bd4</span>;
+<span class="kw">const </span>K2: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1c6e41596</span>;
+<span class="kw">const </span>K3: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1751997d0</span>;
+<span class="kw">const </span>K4: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x0ccaa009e</span>;
+<span class="kw">const </span>K5: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x163cd6124</span>;
+<span class="kw">const </span>K6: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1db710640</span>;
 
-<span class="kw">const</span> <span class="ident">P_X</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">0x1DB710641</span>;
-<span class="kw">const</span> <span class="ident">U_PRIME</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> <span class="op">=</span> <span class="number">0x1F7011641</span>;
+<span class="kw">const </span>P_X: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1DB710641</span>;
+<span class="kw">const </span>U_PRIME: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a> = <span class="number">0x1F7011641</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">debug</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">a</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
-    <span class="kw">if</span> <span class="bool-val">false</span> {
-        <span class="kw">union</span> <span class="ident">A</span> {
-            <span class="ident">a</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>,
-            <span class="ident">b</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>],
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">unsafe fn </span>debug(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, a: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
+    <span class="kw">if </span><span class="bool-val">false </span>{
+        <span class="kw">union </span>A {
+            a: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>,
+            b: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>],
         }
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#72">A</a> { <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#70">a</a> }.<span class="ident">b</span>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.print.html">print!</a>(<span class="string">&quot; {:20} | &quot;</span>, <span class="ident">s</span>);
-        <span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="ident">x</span>.<span class="ident">iter</span>() {
-            <span class="macro">print!</span>(<span class="string">&quot;{:02x} &quot;</span>, <span class="ident">x</span>);
+        <span class="kw">let </span>x = <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#72">A</a> { <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#70">a</a> }.b;
+        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.print.html">print!</a>(<span class="string">&quot; {:20} | &quot;</span>, s);
+        <span class="kw">for </span>x <span class="kw">in </span>x.iter() {
+            <span class="macro">print!</span>(<span class="string">&quot;{:02x} &quot;</span>, x);
         }
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>();
     }
-    <span class="kw">return</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#70">a</a>;
+    <span class="kw">return </span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#70">a</a>;
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">debug</span>(<span class="ident">_s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">a</span>: <span class="ident">arch::__m128i</span>) -&gt; <span class="ident">arch::__m128i</span> {
-    <span class="ident">a</span>
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="kw">unsafe fn </span>debug(_s: <span class="kw-2">&amp;</span>str, a: arch::__m128i) -&gt; arch::__m128i {
+    a
 }
 
-<span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;pclmulqdq&quot;</span>, <span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;sse2&quot;</span>, <span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;sse4.1&quot;</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">calculate</span>(<span class="ident">crc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="comment">// In theory we can accelerate smaller chunks too, but for now just rely on</span>
-    <span class="comment">// the fallback implementation as it&#39;s too much hassle and doesn&#39;t seem too</span>
-    <span class="comment">// beneficial.</span>
-    <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">128</span> {
-        <span class="kw">return</span> <a class="ident" href="../../../src/crc32fast/baseline.rs.html#30">::baseline::update_fast_16</a>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">crc</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
+<span class="attribute">#[target_feature(enable = <span class="string">&quot;pclmulqdq&quot;</span>, enable = <span class="string">&quot;sse2&quot;</span>, enable = <span class="string">&quot;sse4.1&quot;</span>)]
+</span><span class="kw">unsafe fn </span>calculate(crc: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="kw-2">mut </span>data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+    <span class="comment">// In theory we can accelerate smaller chunks too, but for now just rely on
+    // the fallback implementation as it&#39;s too much hassle and doesn&#39;t seem too
+    // beneficial.
+    </span><span class="kw">if </span>data.len() &lt; <span class="number">128 </span>{
+        <span class="kw">return </span><a href="../../../src/crc32fast/baseline.rs.html#30">::baseline::update_fast_16</a>(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">crc</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
     }
 
-    <span class="comment">// Step 1: fold by 4 loop</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x3</span> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">get</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x2</span> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">get</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x1</span> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">get</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x0</span> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">get</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
+    <span class="comment">// Step 1: fold by 4 loop
+    </span><span class="kw">let </span><span class="kw-2">mut </span>x3 = <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">get</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>x2 = <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">get</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>x1 = <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">get</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>x0 = <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">get</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>);
 
-    <span class="comment">// fold in our initial value, part of the incremental crc checksum</span>
-    <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#101">x3</a> <span class="op">=</span> <span class="ident">arch::_mm_xor_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#101">x3</a>, <span class="ident">arch::_mm_cvtsi32_si128</span>(<span class="op">!</span><a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">crc</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>));
+    <span class="comment">// fold in our initial value, part of the incremental crc checksum
+    </span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#101">x3</a> = arch::_mm_xor_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#101">x3</a>, arch::_mm_cvtsi32_si128(!<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">crc</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>));
 
-    <span class="kw">let</span> <span class="ident">k1k2</span> <span class="op">=</span> <span class="ident">arch::_mm_set_epi64x</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#60">K2</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#59">K1</a>);
-    <span class="kw">while</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">64</span> {
-        <span class="ident">x3</span> <span class="op">=</span> <span class="ident">reduce128</span>(<span class="ident">x3</span>, <span class="ident">get</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>), <span class="ident">k1k2</span>);
-        <span class="ident">x2</span> <span class="op">=</span> <span class="ident">reduce128</span>(<span class="ident">x2</span>, <span class="ident">get</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>), <span class="ident">k1k2</span>);
-        <span class="ident">x1</span> <span class="op">=</span> <span class="ident">reduce128</span>(<span class="ident">x1</span>, <span class="ident">get</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>), <span class="ident">k1k2</span>);
-        <span class="ident">x0</span> <span class="op">=</span> <span class="ident">reduce128</span>(<span class="ident">x0</span>, <span class="ident">get</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>), <span class="ident">k1k2</span>);
+    <span class="kw">let </span>k1k2 = arch::_mm_set_epi64x(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#60">K2</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#59">K1</a>);
+    <span class="kw">while </span>data.len() &gt;= <span class="number">64 </span>{
+        x3 = reduce128(x3, get(<span class="kw-2">&amp;mut </span>data), k1k2);
+        x2 = reduce128(x2, get(<span class="kw-2">&amp;mut </span>data), k1k2);
+        x1 = reduce128(x1, get(<span class="kw-2">&amp;mut </span>data), k1k2);
+        x0 = reduce128(x0, get(<span class="kw-2">&amp;mut </span>data), k1k2);
     }
 
-    <span class="kw">let</span> <span class="ident">k3k4</span> <span class="op">=</span> <span class="ident">arch::_mm_set_epi64x</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#62">K4</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#61">K3</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">reduce128</a>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#101">x3</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#102">x2</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#117">k3k4</a>);
-    <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">reduce128</a>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#103">x1</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#117">k3k4</a>);
-    <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a> <span class="op">=</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">reduce128</a>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#104">x0</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#117">k3k4</a>);
+    <span class="kw">let </span>k3k4 = arch::_mm_set_epi64x(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#62">K4</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#61">K3</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>x = <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">reduce128</a>(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#101">x3</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#102">x2</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#117">k3k4</a>);
+    <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a> = <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">reduce128</a>(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#103">x1</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#117">k3k4</a>);
+    <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a> = <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">reduce128</a>(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#104">x0</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#117">k3k4</a>);
 
-    <span class="comment">// Step 2: fold by 1 loop</span>
-    <span class="kw">while</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">16</span> {
-        <span class="ident">x</span> <span class="op">=</span> <span class="ident">reduce128</span>(<span class="ident">x</span>, <span class="ident">get</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>), <span class="ident">k3k4</span>);
+    <span class="comment">// Step 2: fold by 1 loop
+    </span><span class="kw">while </span>data.len() &gt;= <span class="number">16 </span>{
+        x = reduce128(x, get(<span class="kw-2">&amp;mut </span>data), k3k4);
     }
 
-    <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#70">debug</a>(<span class="string">&quot;128 &gt; 64 init&quot;</span>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>);
+    <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#70">debug</a>(<span class="string">&quot;128 &gt; 64 init&quot;</span>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>);
 
-    <span class="comment">// Perform step 3, reduction from 128 bits to 64 bits. This is</span>
-    <span class="comment">// significantly different from the paper and basically doesn&#39;t follow it</span>
-    <span class="comment">// at all. It&#39;s not really clear why, but implementations of this algorithm</span>
-    <span class="comment">// in Chrome/Linux diverge in the same way. It is beyond me why this is</span>
-    <span class="comment">// different than the paper, maybe the paper has like errata or something?</span>
-    <span class="comment">// Unclear.</span>
-    <span class="comment">//</span>
-    <span class="comment">// It&#39;s also not clear to me what&#39;s actually happening here and/or why, but</span>
-    <span class="comment">// algebraically what&#39;s happening is:</span>
-    <span class="comment">//</span>
-    <span class="comment">// x = (x[0:63] • K4) ^ x[64:127]           // 96 bit result</span>
-    <span class="comment">// x = ((x[0:31] as u64) • K5) ^ x[32:95]   // 64 bit result</span>
-    <span class="comment">//</span>
-    <span class="comment">// It&#39;s... not clear to me what&#39;s going on here. The paper itself is pretty</span>
-    <span class="comment">// vague on this part but definitely uses different constants at least.</span>
-    <span class="comment">// It&#39;s not clear to me, reading the paper, where the xor operations are</span>
-    <span class="comment">// happening or why things are shifting around. This implementation...</span>
-    <span class="comment">// appears to work though!</span>
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#64">K6</a>);
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">arch::_mm_xor_si128</span>(
-        <span class="ident">arch::_mm_clmulepi64_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#117">k3k4</a>, <span class="number">0x10</span>),
-        <span class="ident">arch::_mm_srli_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>, <span class="number">8</span>),
+    <span class="comment">// Perform step 3, reduction from 128 bits to 64 bits. This is
+    // significantly different from the paper and basically doesn&#39;t follow it
+    // at all. It&#39;s not really clear why, but implementations of this algorithm
+    // in Chrome/Linux diverge in the same way. It is beyond me why this is
+    // different than the paper, maybe the paper has like errata or something?
+    // Unclear.
+    //
+    // It&#39;s also not clear to me what&#39;s actually happening here and/or why, but
+    // algebraically what&#39;s happening is:
+    //
+    // x = (x[0:63] • K4) ^ x[64:127]           // 96 bit result
+    // x = ((x[0:31] as u64) • K5) ^ x[32:95]   // 64 bit result
+    //
+    // It&#39;s... not clear to me what&#39;s going on here. The paper itself is pretty
+    // vague on this part but definitely uses different constants at least.
+    // It&#39;s not clear to me, reading the paper, where the xor operations are
+    // happening or why things are shifting around. This implementation...
+    // appears to work though!
+    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#64">K6</a>);
+    <span class="kw">let </span>x = arch::_mm_xor_si128(
+        arch::_mm_clmulepi64_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#117">k3k4</a>, <span class="number">0x10</span>),
+        arch::_mm_srli_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#118">x</a>, <span class="number">8</span>),
     );
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">arch::_mm_xor_si128</span>(
-        <span class="ident">arch::_mm_clmulepi64_si128</span>(
-            <span class="ident">arch::_mm_and_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#148">x</a>, <span class="ident">arch::_mm_set_epi32</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="op">!</span><span class="number">0</span>)),
-            <span class="ident">arch::_mm_set_epi64x</span>(<span class="number">0</span>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#63">K5</a>),
+    <span class="kw">let </span>x = arch::_mm_xor_si128(
+        arch::_mm_clmulepi64_si128(
+            arch::_mm_and_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#148">x</a>, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
+            arch::_mm_set_epi64x(<span class="number">0</span>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#63">K5</a>),
             <span class="number">0x00</span>,
         ),
-        <span class="ident">arch::_mm_srli_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#148">x</a>, <span class="number">4</span>),
+        arch::_mm_srli_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#148">x</a>, <span class="number">4</span>),
     );
-    <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#70">debug</a>(<span class="string">&quot;128 &gt; 64 xx&quot;</span>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#152">x</a>);
+    <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#70">debug</a>(<span class="string">&quot;128 &gt; 64 xx&quot;</span>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#152">x</a>);
 
-    <span class="comment">// Perform a Barrett reduction from our now 64 bits to 32 bits. The</span>
-    <span class="comment">// algorithm for this is described at the end of the paper, and note that</span>
-    <span class="comment">// this also implements the &quot;bit reflected input&quot; variant.</span>
-    <span class="kw">let</span> <span class="ident">pu</span> <span class="op">=</span> <span class="ident">arch::_mm_set_epi64x</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#67">U_PRIME</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#66">P_X</a>);
+    <span class="comment">// Perform a Barrett reduction from our now 64 bits to 32 bits. The
+    // algorithm for this is described at the end of the paper, and note that
+    // this also implements the &quot;bit reflected input&quot; variant.
+    </span><span class="kw">let </span>pu = arch::_mm_set_epi64x(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#67">U_PRIME</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#66">P_X</a>);
 
-    <span class="comment">// T1(x) = ⌊(R(x) % x^32)⌋ • μ</span>
-    <span class="kw">let</span> <span class="ident">t1</span> <span class="op">=</span> <span class="ident">arch::_mm_clmulepi64_si128</span>(
-        <span class="ident">arch::_mm_and_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#152">x</a>, <span class="ident">arch::_mm_set_epi32</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="op">!</span><span class="number">0</span>)),
-        <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#165">pu</a>,
+    <span class="comment">// T1(x) = ⌊(R(x) % x^32)⌋ • μ
+    </span><span class="kw">let </span>t1 = arch::_mm_clmulepi64_si128(
+        arch::_mm_and_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#152">x</a>, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
+        <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#165">pu</a>,
         <span class="number">0x10</span>,
     );
-    <span class="comment">// T2(x) = ⌊(T1(x) % x^32)⌋ • P(x)</span>
-    <span class="kw">let</span> <span class="ident">t2</span> <span class="op">=</span> <span class="ident">arch::_mm_clmulepi64_si128</span>(
-        <span class="ident">arch::_mm_and_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#168">t1</a>, <span class="ident">arch::_mm_set_epi32</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="op">!</span><span class="number">0</span>)),
-        <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#165">pu</a>,
+    <span class="comment">// T2(x) = ⌊(T1(x) % x^32)⌋ • P(x)
+    </span><span class="kw">let </span>t2 = arch::_mm_clmulepi64_si128(
+        arch::_mm_and_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#168">t1</a>, arch::_mm_set_epi32(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, !<span class="number">0</span>)),
+        <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#165">pu</a>,
         <span class="number">0x00</span>,
     );
-    <span class="comment">// We&#39;re doing the bit-reflected variant, so get the upper 32-bits of the</span>
-    <span class="comment">// 64-bit result instead of the lower 32-bits.</span>
-    <span class="comment">//</span>
-    <span class="comment">// C(x) = R(x) ^ T2(x) / x^32</span>
-    <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">arch::_mm_extract_epi32</span>(<span class="ident">arch::_mm_xor_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#152">x</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#174">t2</a>), <span class="number">1</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="comment">// We&#39;re doing the bit-reflected variant, so get the upper 32-bits of the
+    // 64-bit result instead of the lower 32-bits.
+    //
+    // C(x) = R(x) ^ T2(x) / x^32
+    </span><span class="kw">let </span>c = arch::_mm_extract_epi32(arch::_mm_xor_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#152">x</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#174">t2</a>), <span class="number">1</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">data</span>.<span class="ident">is_empty</span>() {
-        <a class="ident" href="../../../src/crc32fast/baseline.rs.html#30">::baseline::update_fast_16</a>(<span class="op">!</span><a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#183">c</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>)
-    } <span class="kw">else</span> {
-        <span class="op">!</span><a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#183">c</a>
+    <span class="kw">if </span>!data.is_empty() {
+        <a href="../../../src/crc32fast/baseline.rs.html#30">::baseline::update_fast_16</a>(!<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#183">c</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#92">data</a>)
+    } <span class="kw">else </span>{
+        !<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#183">c</a>
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">reduce128</span>(<span class="ident">a</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>, <span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>, <span class="ident">keys</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
-    <span class="kw">let</span> <span class="ident">t1</span> <span class="op">=</span> <span class="ident">arch::_mm_clmulepi64_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">a</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">keys</a>, <span class="number">0x00</span>);
-    <span class="kw">let</span> <span class="ident">t2</span> <span class="op">=</span> <span class="ident">arch::_mm_clmulepi64_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">a</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">keys</a>, <span class="number">0x11</span>);
-    <span class="ident">arch::_mm_xor_si128</span>(<span class="ident">arch::_mm_xor_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">b</a>, <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#193">t1</a>), <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#194">t2</a>)
+<span class="kw">unsafe fn </span>reduce128(a: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>, b: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>, keys: <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
+    <span class="kw">let </span>t1 = arch::_mm_clmulepi64_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">a</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">keys</a>, <span class="number">0x00</span>);
+    <span class="kw">let </span>t2 = arch::_mm_clmulepi64_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">a</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">keys</a>, <span class="number">0x11</span>);
+    arch::_mm_xor_si128(arch::_mm_xor_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#192">b</a>, <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#193">t1</a>), <a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#194">t2</a>)
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">a</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">a</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">16</span>);
-    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">arch::_mm_loadu_si128</span>(<a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">a</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>);
-    <span class="kw-2">*</span><a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">a</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">a</a>[<span class="number">16</span>..];
-    <span class="kw">return</span> <a class="ident" href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#200">r</a>;
+<span class="kw">unsafe fn </span>get(a: <span class="kw-2">&amp;mut &amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a> {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(a.len() &gt;= <span class="number">16</span>);
+    <span class="kw">let </span>r = arch::_mm_loadu_si128(<a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">a</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/core_arch/x86/struct.__m128i.html">arch::__m128i</a>);
+    <span class="kw-2">*</span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">a</a> = <span class="kw-2">&amp;</span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#198">a</a>[<span class="number">16</span>..];
+    <span class="kw">return </span><a href="../../../src/crc32fast/specialized/pclmulqdq.rs.html#200">r</a>;
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="macro">quickcheck!</span> {
-        <span class="kw">fn</span> <span class="ident">check_against_baseline</span>(<span class="ident">init</span>: <span class="ident">u32</span>, <span class="ident">chunks</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">baseline</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::baseline::State::new</span>(<span class="ident">init</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pclmulqdq</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::State::new</span>(<span class="ident">init</span>).<span class="ident">expect</span>(<span class="string">&quot;not supported&quot;</span>);
-            <span class="kw">for</span> (<span class="ident">chunk</span>, <span class="kw-2">mut</span> <span class="ident">offset</span>) <span class="kw">in</span> <span class="ident">chunks</span> {
-                <span class="comment">// simulate random alignments by offsetting the slice by up to 15 bytes</span>
-                <span class="ident">offset</span> <span class="op">&amp;=</span> <span class="number">0xF</span>;
-                <span class="kw">if</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">offset</span> {
-                    <span class="ident">baseline</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>);
-                    <span class="ident">pclmulqdq</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>);
-                } <span class="kw">else</span> {
-                    <span class="ident">baseline</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>[<span class="ident">offset</span>..]);
-                    <span class="ident">pclmulqdq</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>[<span class="ident">offset</span>..]);
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="macro">quickcheck! </span>{
+        <span class="kw">fn </span>check_against_baseline(init: u32, chunks: Vec&lt;(Vec&lt;u8&gt;, usize)&gt;) -&gt; bool {
+            <span class="kw">let </span><span class="kw-2">mut </span>baseline = <span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::baseline::State::new(init);
+            <span class="kw">let </span><span class="kw-2">mut </span>pclmulqdq = <span class="kw">super</span>::State::new(init).expect(<span class="string">&quot;not supported&quot;</span>);
+            <span class="kw">for </span>(chunk, <span class="kw-2">mut </span>offset) <span class="kw">in </span>chunks {
+                <span class="comment">// simulate random alignments by offsetting the slice by up to 15 bytes
+                </span>offset &amp;= <span class="number">0xF</span>;
+                <span class="kw">if </span>chunk.len() &lt;= offset {
+                    baseline.update(<span class="kw-2">&amp;</span>chunk);
+                    pclmulqdq.update(<span class="kw-2">&amp;</span>chunk);
+                } <span class="kw">else </span>{
+                    baseline.update(<span class="kw-2">&amp;</span>chunk[offset..]);
+                    pclmulqdq.update(<span class="kw-2">&amp;</span>chunk[offset..]);
                 }
             }
-            <span class="ident">pclmulqdq</span>.<span class="ident">finalize</span>() <span class="op">==</span> <span class="ident">baseline</span>.<span class="ident">finalize</span>()
+            pclmulqdq.finalize() == baseline.finalize()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crc32fast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crc32fast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

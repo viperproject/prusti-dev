@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/patch/compiler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compiler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/patch/compiler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compiler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -200,207 +200,207 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
-</pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:</span>
-<span class="comment">// https://github.com/rust-lang/rust/blob/45e2c2881d11324d610815bfff097e25c412199e/compiler/rustc_middle/src/mir/patch.rs</span>
-<span class="comment">// This file is licensed under Apache 2.0</span>
-<span class="comment">// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-APACHE)</span>
-<span class="comment">// and MIT</span>
-<span class="comment">// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-MIT).</span>
+</pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:
+// https://github.com/rust-lang/rust/blob/45e2c2881d11324d610815bfff097e25c412199e/compiler/rustc_middle/src/mir/patch.rs
+// This file is licensed under Apache 2.0
+// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-APACHE)
+// and MIT
+// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-MIT).
 
-<span class="comment">// Changes:</span>
-<span class="comment">// 1. Made fields of MirPatch public (main reason for copying).</span>
-<span class="comment">// 2. Fixed compilation errors.</span>
-<span class="comment">// 3. Implement Clone for MirPatch.</span>
+// Changes:
+// 1. Made fields of MirPatch public (main reason for copying).
+// 2. Fixed compilation errors.
+// 3. Implement Clone for MirPatch.
 
-<span class="kw">use</span> <a class="ident" href="../../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{
-    <span class="ident">index::vec</span>::{<span class="ident">Idx</span>, <span class="ident">IndexVec</span>},
-    <span class="ident">middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>::<span class="kw-2">*</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">ty::Ty</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">span::Span</a>,
+</span><span class="kw">use </span><a href="../../../../../log/macro.debug.html">log::debug</a>;
+<span class="kw">use </span>prusti_rustc_interface::{
+    index::vec::{Idx, IndexVec},
+    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>::<span class="kw-2">*</span>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">ty::Ty</a>},
+    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">span::Span</a>,
 };
 
-<span class="doccomment">/// This struct represents a patch to MIR, which can add</span>
-<span class="doccomment">/// new statements and basic blocks and patch over block</span>
-<span class="doccomment">/// terminators.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirPatch</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">patch_map</span>: <span class="ident">IndexVec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TerminatorKind</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">new_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicBlockData</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">new_statements</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>, <span class="ident">StatementKind</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">new_locals</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LocalDecl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">resume_block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>,
-    <span class="kw">pub</span> <span class="ident">next_local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// This struct represents a patch to MIR, which can add
+/// new statements and basic blocks and patch over block
+/// terminators.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub </span>patch_map: IndexVec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <span class="prelude-ty">Option</span>&lt;TerminatorKind&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
+    <span class="kw">pub </span>new_blocks: Vec&lt;BasicBlockData&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+    <span class="kw">pub </span>new_statements: Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>, StatementKind&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt;,
+    <span class="kw">pub </span>new_locals: Vec&lt;LocalDecl&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+    <span class="kw">pub </span>resume_block: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>,
+    <span class="kw">pub </span>next_local: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">MirPatch</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#24">MirPatch</a> {
-            <span class="ident">patch_map</span>: <span class="ident">IndexVec::from_elem</span>(<span class="prelude-val">None</span>, <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#34">body</a>.<span class="ident">basic_blocks</span>()),
-            <span class="ident">new_blocks</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            <span class="ident">new_statements</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            <span class="ident">new_locals</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            <span class="ident">next_local</span>: <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#34">body</a>.<span class="ident">local_decls</span>.<span class="ident">len</span>(),
-            <span class="ident">resume_block</span>: <span class="ident">START_BLOCK</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub fn </span>new(body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#24">MirPatch</a> {
+            patch_map: IndexVec::from_elem(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#34">body</a>.basic_blocks),
+            new_blocks: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            new_statements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            new_locals: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            next_local: <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#34">body</a>.local_decls.len(),
+            resume_block: START_BLOCK,
         };
 
-        <span class="comment">// make sure the MIR we create has a resume block. It is</span>
-        <span class="comment">// completely legal to convert jumps to the resume block</span>
-        <span class="comment">// to jumps to None, but we occasionally have to add</span>
-        <span class="comment">// instructions just before that.</span>
+        <span class="comment">// make sure the MIR we create has a resume block. It is
+        // completely legal to convert jumps to the resume block
+        // to jumps to None, but we occasionally have to add
+        // instructions just before that.
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resume_block</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resume_stmt_block</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">for</span> (<span class="ident">bb</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TerminatorKind::Resume</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">terminator</span>().<span class="ident">kind</span> {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">is_empty</span>() {
-                    <span class="macro">assert!</span>(<span class="ident">resume_stmt_block</span>.<span class="ident">is_none</span>());
-                    <span class="ident">resume_stmt_block</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">bb</span>);
-                } <span class="kw">else</span> {
-                    <span class="ident">resume_block</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">bb</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>resume_block = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>resume_stmt_block = <span class="prelude-val">None</span>;
+        <span class="kw">for </span>(bb, block) <span class="kw">in </span>body.basic_blocks.iter_enumerated() {
+            <span class="kw">if let </span>TerminatorKind::Resume = block.terminator().kind {
+                <span class="kw">if </span>!block.statements.is_empty() {
+                    <span class="macro">assert!</span>(resume_stmt_block.is_none());
+                    resume_stmt_block = <span class="prelude-val">Some</span>(bb);
+                } <span class="kw">else </span>{
+                    resume_block = <span class="prelude-val">Some</span>(bb);
                 }
                 <span class="kw">break</span>;
             }
         }
-        <span class="kw">let</span> <span class="ident">resume_block</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#49">resume_block</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#35">result</a>.<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">new_block</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
-                <span class="ident">statements</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                <span class="ident">terminator</span>: <span class="prelude-val">Some</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/struct.Terminator.html">Terminator</a> {
-                    <span class="ident">source_info</span>: <span class="ident">SourceInfo::outermost</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#34">body</a>.<span class="ident">span</span>),
-                    <span class="ident">kind</span>: <span class="ident">TerminatorKind::Resume</span>,
+        <span class="kw">let </span>resume_block = <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#49">resume_block</a>.unwrap_or_else(|| {
+            <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#35">result</a>.<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">new_block</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
+                statements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+                terminator: <span class="prelude-val">Some</span>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/struct.Terminator.html">Terminator</a> {
+                    source_info: SourceInfo::outermost(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#34">body</a>.span),
+                    kind: TerminatorKind::Resume,
                 }),
-                <span class="ident">is_cleanup</span>: <span class="bool-val">true</span>,
+                is_cleanup: <span class="bool-val">true</span>,
             })
         });
-        <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#35">result</a>.<span class="ident">resume_block</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#62">resume_block</a>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">resume_stmt_block</span>) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#50">resume_stmt_block</a> {
-            <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#35">result</a>.<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#125">patch_terminator</a>(
-                <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#73">resume_stmt_block</a>,
-                <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> {
-                    <span class="ident">target</span>: <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#62">resume_block</a>,
+        <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#35">result</a>.resume_block = <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#62">resume_block</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(resume_stmt_block) = <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#50">resume_stmt_block</a> {
+            <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#35">result</a>.<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#125">patch_terminator</a>(
+                <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#73">resume_stmt_block</a>,
+                <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> {
+                    target: <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#62">resume_block</a>,
                 },
             );
         }
-        <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#35">result</a>
+        <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#35">result</a>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resume_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#84">self</a>.<span class="ident">resume_block</span>
+    <span class="kw">pub fn </span>resume_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#84">self</a>.resume_block
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_patched</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#88">self</a>.<span class="ident">patch_map</span>[<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#88">bb</a>].<span class="ident">is_some</span>()
+    <span class="kw">pub fn </span>is_patched(<span class="kw-2">&amp;</span><span class="self">self</span>, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#88">self</a>.patch_map[<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#88">bb</a>].is_some()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">terminator_loc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a> {
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">bb</a>.<span class="ident">index</span>().<span class="ident">checked_sub</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">body</a>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>()) {
-            <span class="prelude-val">Some</span>(<span class="ident">index</span>) =&gt; <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">self</a>.<span class="ident">new_blocks</span>[<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#94">index</a>].<span class="ident">statements</span>.<span class="ident">len</span>(),
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">body</a>[<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">bb</a>].<span class="ident">statements</span>.<span class="ident">len</span>(),
+    <span class="kw">pub fn </span>terminator_loc(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a> {
+        <span class="kw">let </span>offset = <span class="kw">match </span><a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">bb</a>.index().checked_sub(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">body</a>.basic_blocks.len()) {
+            <span class="prelude-val">Some</span>(index) =&gt; <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">self</a>.new_blocks[<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#94">index</a>].statements.len(),
+            <span class="prelude-val">None </span>=&gt; <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">body</a>[<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">bb</a>].statements.len(),
         };
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">bb</a>,
-            <span class="ident">statement_index</span>: <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#93">offset</a>,
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a> {
+            block: <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#92">bb</a>,
+            statement_index: <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#93">offset</a>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_temp</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">span</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">Local</a> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">self</a>.<span class="ident">next_local</span>;
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">self</a>.<span class="ident">next_local</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">self</a>.<span class="ident">new_locals</span>.<span class="ident">push</span>(<span class="ident">LocalDecl::new</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">ty</a>, <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">span</a>));
-        <span class="ident">Local::new</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#104">index</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    <span class="kw">pub fn </span>new_temp(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">Local</a> {
+        <span class="kw">let </span>index = <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">self</a>.next_local;
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">self</a>.next_local += <span class="number">1</span>;
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">self</a>.new_locals.push(LocalDecl::new(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">ty</a>, <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#103">span</a>));
+        Local::new(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#104">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_internal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">span</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">Local</a> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">self</a>.<span class="ident">next_local</span>;
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">self</a>.<span class="ident">next_local</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">self</a>.<span class="ident">new_locals</span>.<span class="ident">push</span>(<span class="ident">LocalDecl::new</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">ty</a>, <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">span</a>).<span class="ident">internal</span>());
-        <span class="ident">Local::new</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#111">index</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    <span class="kw">pub fn </span>new_internal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">Local</a> {
+        <span class="kw">let </span>index = <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">self</a>.next_local;
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">self</a>.next_local += <span class="number">1</span>;
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">self</a>.new_locals.push(LocalDecl::new(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">ty</a>, <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#110">span</a>).internal());
+        Local::new(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#111">index</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_block</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="ident">BasicBlockData</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">BasicBlock::new</span>(<a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">self</a>.<span class="ident">patch_map</span>.<span class="ident">len</span>());
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;MirPatch: new_block: {:?}: {:?}&quot;</span>, <span class="ident">block</span>, <span class="ident">data</span>);
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">self</a>.<span class="ident">new_blocks</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">data</a>);
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">self</a>.<span class="ident">patch_map</span>.<span class="ident">push</span>(<span class="prelude-val">None</span>);
-        <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#118">block</a>
+    <span class="kw">pub fn </span>new_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: BasicBlockData&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
+        <span class="kw">let </span>block = BasicBlock::new(<a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">self</a>.patch_map.len());
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;MirPatch: new_block: {:?}: {:?}&quot;</span>, block, data);
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">self</a>.new_blocks.push(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">data</a>);
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#117">self</a>.patch_map.push(<span class="prelude-val">None</span>);
+        <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#118">block</a>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">patch_terminator</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <span class="ident">new</span>: <span class="ident">TerminatorKind</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">patch_map</span>[<span class="ident">block</span>].<span class="ident">is_none</span>());
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;MirPatch: patch_terminator({:?}, {:?})&quot;</span>, <span class="ident">block</span>, <span class="ident">new</span>);
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#125">self</a>.<span class="ident">patch_map</span>[<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#125">block</a>] <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#125">new</a>);
+    <span class="kw">pub fn </span>patch_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, new: TerminatorKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.patch_map[block].is_none());
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;MirPatch: patch_terminator({:?}, {:?})&quot;</span>, block, new);
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#125">self</a>.patch_map[<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#125">block</a>] = <span class="prelude-val">Some</span>(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#125">new</a>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_statement</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">loc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>, <span class="ident">stmt</span>: <span class="ident">StatementKind</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;MirPatch: add_statement({:?}, {:?})&quot;</span>, <span class="ident">loc</span>, <span class="ident">stmt</span>);
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#131">self</a>.<span class="ident">new_statements</span>.<span class="ident">push</span>((<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#131">loc</a>, <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#131">stmt</a>));
+    <span class="kw">pub fn </span>add_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loc: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>, stmt: StatementKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;MirPatch: add_statement({:?}, {:?})&quot;</span>, loc, stmt);
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#131">self</a>.new_statements.push((<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#131">loc</a>, <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#131">stmt</a>));
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_assign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">loc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>, <span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">rv</span>: <span class="ident">Rvalue</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#136">self</a>.<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#131">add_statement</a>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#136">loc</a>, <span class="ident">StatementKind::Assign</span>(<span class="ident">Box::new</span>((<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#136">place</a>, <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#136">rv</a>))));
+    <span class="kw">pub fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loc: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, rv: Rvalue&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#136">self</a>.<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#131">add_statement</a>(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#136">loc</a>, StatementKind::Assign(Box::new((<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#136">place</a>, <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#136">rv</a>))));
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply</span>(<span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
+    <span class="kw">pub fn </span>apply(<span class="self">self</span>, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(
             <span class="string">&quot;MirPatch: {:?} new temps, starting from index {}: {:?}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">new_locals</span>.<span class="ident">len</span>(),
-            <span class="ident">body</span>.<span class="ident">local_decls</span>.<span class="ident">len</span>(),
-            <span class="self">self</span>.<span class="ident">new_locals</span>
+            <span class="self">self</span>.new_locals.len(),
+            body.local_decls.len(),
+            <span class="self">self</span>.new_locals
         );
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(
             <span class="string">&quot;MirPatch: {} new blocks, starting from index {}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">new_blocks</span>.<span class="ident">len</span>(),
-            <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>()
+            <span class="self">self</span>.new_blocks.len(),
+            body.basic_blocks.len()
         );
-        <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">body</a>.<span class="ident">basic_blocks_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">self</a>.<span class="ident">new_blocks</span>);
-        <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">body</a>.<span class="ident">local_decls</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">self</a>.<span class="ident">new_locals</span>);
-        <span class="kw">for</span> (<span class="ident">src</span>, <span class="ident">patch</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">patch_map</span>.<span class="ident">into_iter_enumerated</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">patch</span>) <span class="op">=</span> <span class="ident">patch</span> {
-                <span class="macro">debug!</span>(<span class="string">&quot;MirPatch: patching block {:?}&quot;</span>, <span class="ident">src</span>);
-                <span class="ident">body</span>[<span class="ident">src</span>].<span class="ident">terminator_mut</span>().<span class="ident">kind</span> <span class="op">=</span> <span class="ident">patch</span>;
+        <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">body</a>.basic_blocks_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">self</a>.new_blocks);
+        <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">body</a>.local_decls.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">self</a>.new_locals);
+        <span class="kw">for </span>(src, patch) <span class="kw">in </span><span class="self">self</span>.patch_map.into_iter_enumerated() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(patch) = patch {
+                <span class="macro">debug!</span>(<span class="string">&quot;MirPatch: patching block {:?}&quot;</span>, src);
+                body[src].terminator_mut().kind = patch;
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_statements</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">self</a>.<span class="ident">new_statements</span>;
-        <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#161">new_statements</a>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#162">s</a>.<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>new_statements = <a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#140">self</a>.new_statements;
+        <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#161">new_statements</a>.sort_by_key(|s| <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#162">s</a>.<span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delta</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_bb</span> <span class="op">=</span> <span class="ident">START_BLOCK</span>;
-        <span class="kw">for</span> (<span class="kw-2">mut</span> <span class="ident">loc</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <span class="ident">new_statements</span> {
-            <span class="kw">if</span> <span class="ident">loc</span>.<span class="ident">block</span> <span class="op">!</span><span class="op">=</span> <span class="ident">last_bb</span> {
-                <span class="ident">delta</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="ident">last_bb</span> <span class="op">=</span> <span class="ident">loc</span>.<span class="ident">block</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>delta = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_bb = START_BLOCK;
+        <span class="kw">for </span>(<span class="kw-2">mut </span>loc, stmt) <span class="kw">in </span>new_statements {
+            <span class="kw">if </span>loc.block != last_bb {
+                delta = <span class="number">0</span>;
+                last_bb = loc.block;
             }
             <span class="macro">debug!</span>(
                 <span class="string">&quot;MirPatch: adding statement {:?} at loc {:?}+{}&quot;</span>,
-                <span class="ident">stmt</span>, <span class="ident">loc</span>, <span class="ident">delta</span>
+                stmt, loc, delta
             );
-            <span class="ident">loc</span>.<span class="ident">statement_index</span> <span class="op">+</span><span class="op">=</span> <span class="ident">delta</span>;
-            <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::source_info_for_index</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>[<span class="ident">loc</span>.<span class="ident">block</span>], <span class="ident">loc</span>);
-            <span class="ident">body</span>[<span class="ident">loc</span>.<span class="ident">block</span>].<span class="ident">statements</span>.<span class="ident">insert</span>(
-                <span class="ident">loc</span>.<span class="ident">statement_index</span>,
-                <span class="ident">Statement</span> {
-                    <span class="ident">source_info</span>,
-                    <span class="ident">kind</span>: <span class="ident">stmt</span>,
+            loc.statement_index += delta;
+            <span class="kw">let </span>source_info = <span class="self">Self</span>::source_info_for_index(<span class="kw-2">&amp;</span>body[loc.block], loc);
+            body[loc.block].statements.insert(
+                loc.statement_index,
+                Statement {
+                    source_info,
+                    kind: stmt,
                 },
             );
-            <span class="ident">delta</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            delta += <span class="number">1</span>;
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_info_for_index</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">BasicBlockData</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">loc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.SourceInfo.html">SourceInfo</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#188">data</a>.<span class="ident">statements</span>.<span class="ident">get</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#188">loc</a>.<span class="ident">statement_index</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">stmt</span>) =&gt; <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#190">stmt</a>.<span class="ident">source_info</span>,
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#188">data</a>.<span class="ident">terminator</span>().<span class="ident">source_info</span>,
+    <span class="kw">pub fn </span>source_info_for_index(data: <span class="kw-2">&amp;</span>BasicBlockData&lt;<span class="lifetime">&#39;_</span>&gt;, loc: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.SourceInfo.html">SourceInfo</a> {
+        <span class="kw">match </span><a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#188">data</a>.statements.get(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#188">loc</a>.statement_index) {
+            <span class="prelude-val">Some</span>(stmt) =&gt; <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#190">stmt</a>.source_info,
+            <span class="prelude-val">None </span>=&gt; <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#188">data</a>.terminator().source_info,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_info_for_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">loc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.SourceInfo.html">SourceInfo</a> {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">loc</a>.<span class="ident">block</span>.<span class="ident">index</span>().<span class="ident">checked_sub</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">body</a>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>()) {
-            <span class="prelude-val">Some</span>(<span class="ident">new</span>) =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">self</a>.<span class="ident">new_blocks</span>[<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#197">new</a>],
-            <span class="prelude-val">None</span> =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">body</a>[<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">loc</a>.<span class="ident">block</span>],
+    <span class="kw">pub fn </span>source_info_for_location(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, loc: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.SourceInfo.html">SourceInfo</a> {
+        <span class="kw">let </span>data = <span class="kw">match </span><a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">loc</a>.block.index().checked_sub(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">body</a>.basic_blocks.len()) {
+            <span class="prelude-val">Some</span>(new) =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">self</a>.new_blocks[<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#197">new</a>],
+            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">body</a>[<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">loc</a>.block],
         };
-        <span class="ident"><span class="self">Self</span>::source_info_for_index</span>(<a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#196">data</a>, <a class="ident" href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">loc</a>)
+        <span class="self">Self</span>::source_info_for_index(<a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#196">data</a>, <a href="../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#195">loc</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

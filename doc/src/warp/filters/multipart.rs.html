@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -188,195 +188,195 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Multipart body filters</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Filters that extract a multipart body for a route.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Multipart body filters
+//!
+//! Filters that extract a multipart body for a route.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>};
-<span class="kw">use</span> <span class="ident">futures_util</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use</span> <a class="ident" href="../../../headers/common/content_type/struct.ContentType.html">headers::ContentType</a>;
-<span class="kw">use</span> <a class="ident" href="../../../mime/struct.Mime.html">mime::Mime</a>;
-<span class="kw">use</span> <a class="ident" href="../../../multipart/server/struct.Multipart.html">multipart::server::Multipart</a>;
+<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>};
+<span class="kw">use </span>futures_util::{<a href="../../../futures_util/future/index.html">future</a>, <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>};
+<span class="kw">use </span><a href="../../../headers/common/content_type/struct.ContentType.html">headers::ContentType</a>;
+<span class="kw">use </span><a href="../../../mime/struct.Mime.html">mime::Mime</a>;
+<span class="kw">use </span><a href="../../../multipart/server/struct.Multipart.html">multipart::server::Multipart</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::filter</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reject</span>::{<a class="self" href="../../../src/warp/lib.rs.html#95">self</a>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a>};
+<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../../../src/warp/lib.rs.html#95">self</a>, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>};
 
-<span class="comment">// If not otherwise configured, default to 2MB.</span>
-<span class="kw">const</span> <span class="ident">DEFAULT_FORM_DATA_MAX_LENGTH</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">=</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">2</span>;
+<span class="comment">// If not otherwise configured, default to 2MB.
+</span><span class="kw">const </span>DEFAULT_FORM_DATA_MAX_LENGTH: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <span class="number">1024 </span>* <span class="number">1024 </span>* <span class="number">2</span>;
 
-<span class="doccomment">/// A `Filter` to extract a `multipart/form-data` body from a request.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Create with the `warp::multipart::form()` function.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormOptions</span> {
-    <span class="ident">max_length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+<span class="doccomment">/// A `Filter` to extract a `multipart/form-data` body from a request.
+///
+/// Create with the `warp::multipart::form()` function.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>FormOptions {
+    max_length: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
 }
 
-<span class="doccomment">/// A `Stream` of multipart/form-data `Part`s.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Extracted with a `warp::multipart::form` filter.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormData</span> {
-    <span class="ident">inner</span>: <span class="ident">Multipart</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">::bytes::Bytes</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A `Stream` of multipart/form-data `Part`s.
+///
+/// Extracted with a `warp::multipart::form` filter.
+</span><span class="kw">pub struct </span>FormData {
+    inner: Multipart&lt;Cursor&lt;<a href="../../../bytes/bytes/struct.Bytes.html">::bytes::Bytes</a>&gt;&gt;,
 }
 
-<span class="doccomment">/// A single &quot;part&quot; of a multipart/form-data body.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Yielded from the `FormData` stream.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Part</span> {
-    <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">filename</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    <span class="ident">content_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A single &quot;part&quot; of a multipart/form-data body.
+///
+/// Yielded from the `FormData` stream.
+</span><span class="kw">pub struct </span>Part {
+    name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    filename: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    content_type: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    data: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
 }
 
-<span class="doccomment">/// Create a `Filter` to extract a `multipart/form-data` body from a request.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The extracted `FormData` type is a `Stream` of `Part`s, and each `Part`</span>
-<span class="doccomment">/// in turn is a `Stream` of bytes.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">form</span>() -&gt; <a class="ident" href="../../../src/warp/filters/multipart.rs.html#27">FormOptions</a> {
-    <a class="ident" href="../../../src/warp/filters/multipart.rs.html#27">FormOptions</a> {
-        <span class="ident">max_length</span>: <a class="ident" href="../../../src/warp/filters/multipart.rs.html#21">DEFAULT_FORM_DATA_MAX_LENGTH</a>,
+<span class="doccomment">/// Create a `Filter` to extract a `multipart/form-data` body from a request.
+///
+/// The extracted `FormData` type is a `Stream` of `Part`s, and each `Part`
+/// in turn is a `Stream` of bytes.
+</span><span class="kw">pub fn </span>form() -&gt; <a href="../../../src/warp/filters/multipart.rs.html#27">FormOptions</a> {
+    <a href="../../../src/warp/filters/multipart.rs.html#27">FormOptions</a> {
+        max_length: <a href="../../../src/warp/filters/multipart.rs.html#21">DEFAULT_FORM_DATA_MAX_LENGTH</a>,
     }
 }
 
-<span class="comment">// ===== impl Form =====</span>
+<span class="comment">// ===== impl Form =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#27">FormOptions</a> {
-    <span class="doccomment">/// Set the maximum byte length allowed for this body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to 2MB.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_length</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/multipart.rs.html#64">self</a>.<span class="ident">max_length</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#64">max</a>;
-        <a class="self" href="../../../src/warp/filters/multipart.rs.html#64">self</a>
-    }
+</span><span class="kw">impl </span><a href="../../../src/warp/filters/multipart.rs.html#27">FormOptions</a> {
+    <span class="doccomment">/// Set the maximum byte length allowed for this body.
+    ///
+    /// Defaults to 2MB.
+    </span><span class="kw">pub fn </span>max_length(<span class="kw-2">mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/warp/filters/multipart.rs.html#64">self</a>.max_length = <a href="../../../src/warp/filters/multipart.rs.html#64">max</a>;
+        <span class="self"><a href="../../../src/warp/filters/multipart.rs.html#64">self</a>
+    </span>}
 }
 
-<span class="kw">type</span> <span class="ident">FormFut</span> <span class="op">=</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#34">FormData</a>,), <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">type </span>FormFut = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(<a href="../../../src/warp/filters/multipart.rs.html#34">FormData</a>,), <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#27">FormOptions</a> {
-    <span class="kw">type</span> <span class="ident">Extract</span> <span class="op">=</span> (<a class="ident" href="../../../src/warp/filters/multipart.rs.html#34">FormData</a>,);
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a>;
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#70">FormFut</a>;
+<span class="kw">impl </span><a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span><a href="../../../src/warp/filters/multipart.rs.html#27">FormOptions</a> {
+    <span class="kw">type </span>Extract = (<a href="../../../src/warp/filters/multipart.rs.html#34">FormData</a>,);
+    <span class="kw">type </span>Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>;
+    <span class="kw">type </span>Future = <a href="../../../src/warp/filters/multipart.rs.html#70">FormFut</a>;
 
-    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <span class="kw">let</span> <span class="ident">boundary</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::header::header2</span>::<span class="op">&lt;</span><a class="ident" href="../../../headers/common/content_type/struct.ContentType.html">ContentType</a><span class="op">&gt;</span>().<a class="ident" href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="op">|</span><span class="ident">ct</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">mime</span> <span class="op">=</span> <span class="ident">Mime::from</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#78">ct</a>);
-            <span class="kw">let</span> <span class="ident">mime</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#79">mime</a>
-                .<span class="ident">get_param</span>(<span class="string">&quot;boundary&quot;</span>)
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#82">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/warp/reject.rs.html#106">reject::invalid_header</a>(<span class="string">&quot;content-type&quot;</span>));
-            <span class="ident">future::ready</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#80">mime</a>)
+    <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
+        <span class="kw">let </span>boundary = <span class="kw">super</span>::header::header2::&lt;<a href="../../../headers/common/content_type/struct.ContentType.html">ContentType</a>&gt;().<a href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(|ct| {
+            <span class="kw">let </span>mime = Mime::from(<a href="../../../src/warp/filters/multipart.rs.html#78">ct</a>);
+            <span class="kw">let </span>mime = <a href="../../../src/warp/filters/multipart.rs.html#79">mime</a>
+                .get_param(<span class="string">&quot;boundary&quot;</span>)
+                .map(|v| <a href="../../../src/warp/filters/multipart.rs.html#82">v</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                .ok_or_else(|| <a href="../../../src/warp/reject.rs.html#106">reject::invalid_header</a>(<span class="string">&quot;content-type&quot;</span>));
+            future::ready(<a href="../../../src/warp/filters/multipart.rs.html#80">mime</a>)
         });
 
-        <span class="kw">let</span> <span class="ident">filt</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#51"><span class="kw">super</span>::body::content_length_limit</a>(<a class="self" href="../../../src/warp/filters/multipart.rs.html#77">self</a>.<span class="ident">max_length</span>)
-            .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#78">boundary</a>)
-            .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#106"><span class="kw">super</span>::body::bytes</a>())
-            .<a class="ident" href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<span class="op">|</span><span class="ident">boundary</span>, <span class="ident">body</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#34">FormData</a> {
-                <span class="ident">inner</span>: <span class="ident">Multipart::with_body</span>(<span class="ident">Cursor::new</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#90">body</a>), <a class="ident" href="../../../src/warp/filters/multipart.rs.html#90">boundary</a>),
+        <span class="kw">let </span>filt = <a href="../../../src/warp/filters/body.rs.html#51"><span class="kw">super</span>::body::content_length_limit</a>(<a class="self" href="../../../src/warp/filters/multipart.rs.html#77">self</a>.max_length)
+            .<a href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a href="../../../src/warp/filters/multipart.rs.html#78">boundary</a>)
+            .<a href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a href="../../../src/warp/filters/body.rs.html#106"><span class="kw">super</span>::body::bytes</a>())
+            .<a href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(|boundary, body| <a href="../../../src/warp/filters/multipart.rs.html#34">FormData</a> {
+                inner: Multipart::with_body(Cursor::new(<a href="../../../src/warp/filters/multipart.rs.html#90">body</a>), <a href="../../../src/warp/filters/multipart.rs.html#90">boundary</a>),
             });
 
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#87">filt</a>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>);
+        <span class="kw">let </span>fut = <a href="../../../src/warp/filters/multipart.rs.html#87">filt</a>.<a href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>);
 
-        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#94">fut</a>)
+        Box::pin(<a href="../../../src/warp/filters/multipart.rs.html#94">fut</a>)
     }
 }
 
-<span class="comment">// ===== impl FormData =====</span>
+<span class="comment">// ===== impl FormData =====
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#34">FormData</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/warp/filters/multipart.rs.html#103">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;FormData&quot;</span>).<span class="ident">finish</span>()
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/warp/filters/multipart.rs.html#34">FormData</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/warp/filters/multipart.rs.html#103">f</a>.debug_struct(<span class="string">&quot;FormData&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#34">FormData</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/multipart.rs.html#41">Part</a>, <a class="ident" href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>;
+<span class="kw">impl </span><a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span><a href="../../../src/warp/filters/multipart.rs.html#34">FormData</a> {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../src/warp/filters/multipart.rs.html#41">Part</a>, <a href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">*</span><a class="self" href="../../../src/warp/filters/multipart.rs.html#111">self</a>).<span class="ident">inner</span>.<span class="ident">read_entry</span>() {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">field</span>)) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="ident">field</span>
-                    .<span class="ident">data</span>
-                    .<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>)
-                    .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>)<span class="question-mark">?</span>;
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#41">Part</a> {
-                    <span class="ident">name</span>: <a class="ident" href="../../../src/warp/filters/multipart.rs.html#113">field</a>.<span class="ident">headers</span>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <span class="ident">filename</span>: <a class="ident" href="../../../src/warp/filters/multipart.rs.html#113">field</a>.<span class="ident">headers</span>.<span class="ident">filename</span>,
-                    <span class="ident">content_type</span>: <a class="ident" href="../../../src/warp/filters/multipart.rs.html#113">field</a>.<span class="ident">headers</span>.<span class="ident">content_type</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#122">m</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
-                    <span class="ident">data</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#114">data</a>),
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">match </span>(<span class="kw-2">*</span><a class="self" href="../../../src/warp/filters/multipart.rs.html#111">self</a>).inner.read_entry() {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>field)) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
+                field
+                    .data
+                    .read_to_end(<span class="kw-2">&amp;mut </span>data)
+                    .map_err(<span class="kw">crate</span>::Error::new)<span class="question-mark">?</span>;
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/multipart.rs.html#41">Part</a> {
+                    name: <a href="../../../src/warp/filters/multipart.rs.html#113">field</a>.headers.name.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    filename: <a href="../../../src/warp/filters/multipart.rs.html#113">field</a>.headers.filename,
+                    content_type: <a href="../../../src/warp/filters/multipart.rs.html#113">field</a>.headers.content_type.map(|m| <a href="../../../src/warp/filters/multipart.rs.html#122">m</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+                    data: <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/multipart.rs.html#114">data</a>),
                 })))
             }
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#127">e</a>)))),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
+            <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new(<a href="../../../src/warp/filters/multipart.rs.html#127">e</a>)))),
         }
     }
 }
 
-<span class="comment">// ===== impl Part =====</span>
+<span class="comment">// ===== impl Part =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#41">Part</a> {
-    <span class="doccomment">/// Get the name of this part.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/multipart.rs.html#136">self</a>.<span class="ident">name</span>
+</span><span class="kw">impl </span><a href="../../../src/warp/filters/multipart.rs.html#41">Part</a> {
+    <span class="doccomment">/// Get the name of this part.
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/multipart.rs.html#136">self</a>.name
     }
 
-    <span class="doccomment">/// Get the filename of this part, if present.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filename</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/warp/filters/multipart.rs.html#141">self</a>.<span class="ident">filename</span>.<span class="ident">as_deref</span>()
+    <span class="doccomment">/// Get the filename of this part, if present.
+    </span><span class="kw">pub fn </span>filename(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a class="self" href="../../../src/warp/filters/multipart.rs.html#141">self</a>.filename.as_deref()
     }
 
-    <span class="doccomment">/// Get the content-type of this part, if present.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">content_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/warp/filters/multipart.rs.html#146">self</a>.<span class="ident">content_type</span>.<span class="ident">as_deref</span>()
+    <span class="doccomment">/// Get the content-type of this part, if present.
+    </span><span class="kw">pub fn </span>content_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a class="self" href="../../../src/warp/filters/multipart.rs.html#146">self</a>.content_type.as_deref()
     }
 
-    <span class="doccomment">/// Asynchronously get some of the data for this `Part`.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">data</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">impl</span> <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">take_data</span>()
+    <span class="doccomment">/// Asynchronously get some of the data for this `Part`.
+    </span><span class="kw">pub async fn </span>data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+        <span class="self">self</span>.take_data()
     }
 
-    <span class="doccomment">/// Convert this `Part` into a `Stream` of `Buf`s.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span>(<span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">impl</span> <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/warp/filters/multipart.rs.html#182">PartStream</a>(<a class="self" href="../../../src/warp/filters/multipart.rs.html#156">self</a>)
+    <span class="doccomment">/// Convert this `Part` into a `Stream` of `Buf`s.
+    </span><span class="kw">pub fn </span>stream(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+        <a href="../../../src/warp/filters/multipart.rs.html#182">PartStream</a>(<a class="self" href="../../../src/warp/filters/multipart.rs.html#156">self</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">take_data</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/warp/filters/multipart.rs.html#160">self</a>.<span class="ident">data</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">vec</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#161">vec</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#41">Part</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#166">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Part&quot;</span>);
-        <a class="ident" href="../../../src/warp/filters/multipart.rs.html#167">builder</a>.<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/multipart.rs.html#166">self</a>.<span class="ident">name</span>);
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">filename</span>) <span class="op">=</span> <a class="self" href="../../../src/warp/filters/multipart.rs.html#166">self</a>.<span class="ident">filename</span> {
-            <a class="ident" href="../../../src/warp/filters/multipart.rs.html#167">builder</a>.<span class="ident">field</span>(<span class="string">&quot;filename&quot;</span>, <a class="ident" href="../../../src/warp/filters/multipart.rs.html#170">filename</a>);
-        }
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">mime</span>) <span class="op">=</span> <a class="self" href="../../../src/warp/filters/multipart.rs.html#166">self</a>.<span class="ident">content_type</span> {
-            <a class="ident" href="../../../src/warp/filters/multipart.rs.html#167">builder</a>.<span class="ident">field</span>(<span class="string">&quot;content_type&quot;</span>, <a class="ident" href="../../../src/warp/filters/multipart.rs.html#174">mime</a>);
-        }
-
-        <a class="ident" href="../../../src/warp/filters/multipart.rs.html#167">builder</a>.<span class="ident">finish</span>()
+    <span class="kw">fn </span>take_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+        <a class="self" href="../../../src/warp/filters/multipart.rs.html#160">self</a>.data.take().map(|vec| <span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/multipart.rs.html#161">vec</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
     }
 }
 
-<span class="kw">struct</span> <span class="ident">PartStream</span>(<a class="ident" href="../../../src/warp/filters/multipart.rs.html#41">Part</a>);
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/warp/filters/multipart.rs.html#41">Part</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="../../../src/warp/filters/multipart.rs.html#166">f</a>.debug_struct(<span class="string">&quot;Part&quot;</span>);
+        <a href="../../../src/warp/filters/multipart.rs.html#167">builder</a>.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/multipart.rs.html#166">self</a>.name);
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/multipart.rs.html#182">PartStream</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>filename) = <a class="self" href="../../../src/warp/filters/multipart.rs.html#166">self</a>.filename {
+            <a href="../../../src/warp/filters/multipart.rs.html#167">builder</a>.field(<span class="string">&quot;filename&quot;</span>, <a href="../../../src/warp/filters/multipart.rs.html#170">filename</a>);
+        }
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<a class="self" href="../../../src/warp/filters/multipart.rs.html#187">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/warp/filters/multipart.rs.html#160">take_data</a>())
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>mime) = <a class="self" href="../../../src/warp/filters/multipart.rs.html#166">self</a>.content_type {
+            <a href="../../../src/warp/filters/multipart.rs.html#167">builder</a>.field(<span class="string">&quot;content_type&quot;</span>, <a href="../../../src/warp/filters/multipart.rs.html#174">mime</a>);
+        }
+
+        <a href="../../../src/warp/filters/multipart.rs.html#167">builder</a>.finish()
+    }
+}
+
+<span class="kw">struct </span>PartStream(<a href="../../../src/warp/filters/multipart.rs.html#41">Part</a>);
+
+<span class="kw">impl </span><a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span><a href="../../../src/warp/filters/multipart.rs.html#182">PartStream</a> {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;;
+
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        Poll::Ready(<a class="self" href="../../../src/warp/filters/multipart.rs.html#187">self</a>.<span class="number">0</span>.<a href="../../../src/warp/filters/multipart.rs.html#160">take_data</a>())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

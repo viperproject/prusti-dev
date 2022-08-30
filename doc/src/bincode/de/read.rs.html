@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bincode-1.3.3/src/de/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bincode/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bincode/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bincode/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bincode-1.3.3/src/de/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bincode/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bincode/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bincode/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -200,207 +200,207 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/bincode/error.rs.html#9">error::Result</a>;
-<span class="kw">use</span> <a class="ident" href="../../../serde/index.html">serde</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/bincode/error.rs.html#9">error::Result</a>;
+<span class="kw">use </span><a href="../../../serde/index.html">serde</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 
-<span class="doccomment">/// An optional Read trait for advanced Bincode usage.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It is highly recommended to use bincode with `io::Read` or `&amp;[u8]` before</span>
-<span class="doccomment">/// implementing a custom `BincodeRead`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The forward_read_* methods are necessary because some byte sources want</span>
-<span class="doccomment">/// to pass a long-lived borrow to the visitor and others want to pass a</span>
-<span class="doccomment">/// transient slice.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BincodeRead</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> {
-    <span class="doccomment">/// Check that the next `length` bytes are a valid string and pass</span>
-    <span class="doccomment">/// it on to the serde reader.</span>
-    <span class="kw">fn</span> <span class="ident">forward_read_str</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">serde::de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An optional Read trait for advanced Bincode usage.
+///
+/// It is highly recommended to use bincode with `io::Read` or `&amp;[u8]` before
+/// implementing a custom `BincodeRead`.
+///
+/// The forward_read_* methods are necessary because some byte sources want
+/// to pass a long-lived borrow to the visitor and others want to pass a
+/// transient slice.
+</span><span class="kw">pub trait </span>BincodeRead&lt;<span class="lifetime">&#39;storage</span>&gt;: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> {
+    <span class="doccomment">/// Check that the next `length` bytes are a valid string and pass
+    /// it on to the serde reader.
+    </span><span class="kw">fn </span>forward_read_str&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;storage</span>&gt;;
 
-    <span class="doccomment">/// Transfer ownership of the next `length` bytes to the caller.</span>
-    <span class="kw">fn</span> <span class="ident">get_byte_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Transfer ownership of the next `length` bytes to the caller.
+    </span><span class="kw">fn </span>get_byte_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;;
 
-    <span class="doccomment">/// Pass a slice of the next `length` bytes on to the serde reader.</span>
-    <span class="kw">fn</span> <span class="ident">forward_read_bytes</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">serde::de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Pass a slice of the next `length` bytes on to the serde reader.
+    </span><span class="kw">fn </span>forward_read_bytes&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;storage</span>&gt;;
 }
 
-<span class="doccomment">/// A BincodeRead implementation for byte slices</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SliceReader</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> {
-    <span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;storage</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+<span class="doccomment">/// A BincodeRead implementation for byte slices
+</span><span class="kw">pub struct </span>SliceReader&lt;<span class="lifetime">&#39;storage</span>&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;storage </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 }
 
-<span class="doccomment">/// A BincodeRead implementation for `io::Read`ers</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IoReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">reader</span>: <span class="ident">R</span>,
-    <span class="ident">temp_buffer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A BincodeRead implementation for `io::Read`ers
+</span><span class="kw">pub struct </span>IoReader&lt;R&gt; {
+    reader: R,
+    temp_buffer: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> <span class="ident">SliceReader</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs a slice reader</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;storage</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">SliceReader</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/bincode/de/read.rs.html#30">SliceReader</a> { <span class="ident">slice</span>: <a class="ident" href="../../../src/bincode/de/read.rs.html#42">bytes</a> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;storage</span>&gt; SliceReader&lt;<span class="lifetime">&#39;storage</span>&gt; {
+    <span class="doccomment">/// Constructs a slice reader
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;storage </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; SliceReader&lt;<span class="lifetime">&#39;storage</span>&gt; {
+        <a href="../../../src/bincode/de/read.rs.html#30">SliceReader</a> { slice: <a href="../../../src/bincode/de/read.rs.html#42">bytes</a> }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">get_byte_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;storage</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SliceReader::unexpected_eof</span>());
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>get_byte_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;storage </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">if </span>length &gt; <span class="self">self</span>.slice.len() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(SliceReader::unexpected_eof());
         }
-        <span class="kw">let</span> (<span class="ident">read_slice</span>, <span class="ident">remaining</span>) <span class="op">=</span> <a class="self" href="../../../src/bincode/de/read.rs.html#47">self</a>.<span class="ident">slice</span>.<span class="ident">split_at</span>(<a class="ident" href="../../../src/bincode/de/read.rs.html#47">length</a>);
-        <a class="self" href="../../../src/bincode/de/read.rs.html#47">self</a>.<span class="ident">slice</span> <span class="op">=</span> <a class="ident" href="../../../src/bincode/de/read.rs.html#51">remaining</a>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/bincode/de/read.rs.html#51">read_slice</a>)
+        <span class="kw">let </span>(read_slice, remaining) = <a class="self" href="../../../src/bincode/de/read.rs.html#47">self</a>.slice.split_at(<a href="../../../src/bincode/de/read.rs.html#47">length</a>);
+        <a class="self" href="../../../src/bincode/de/read.rs.html#47">self</a>.slice = <a href="../../../src/bincode/de/read.rs.html#51">remaining</a>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/bincode/de/read.rs.html#51">read_slice</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_finished</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/bincode/de/read.rs.html#56">self</a>.<span class="ident">slice</span>.<span class="ident">is_empty</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_finished(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/bincode/de/read.rs.html#56">self</a>.slice.is_empty()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IoReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs an IoReadReader</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>) -&gt; <span class="ident">IoReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/bincode/de/read.rs.html#35">IoReader</a> {
-            <span class="ident">reader</span>: <a class="ident" href="../../../src/bincode/de/read.rs.html#63">r</a>,
-            <span class="ident">temp_buffer</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+<span class="kw">impl</span>&lt;R&gt; IoReader&lt;R&gt; {
+    <span class="doccomment">/// Constructs an IoReadReader
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(r: R) -&gt; IoReader&lt;R&gt; {
+        <a href="../../../src/bincode/de/read.rs.html#35">IoReader</a> {
+            reader: <a href="../../../src/bincode/de/read.rs.html#63">r</a>,
+            temp_buffer: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for</span> <span class="ident">SliceReader</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">out</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;storage</span>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for </span>SliceReader&lt;<span class="lifetime">&#39;storage</span>&gt; {
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">if </span>out.len() &gt; <span class="self">self</span>.slice.len() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(io::ErrorKind::UnexpectedEof.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
-        <span class="kw">let</span> (<span class="ident">read_slice</span>, <span class="ident">remaining</span>) <span class="op">=</span> <a class="self" href="../../../src/bincode/de/read.rs.html#73">self</a>.<span class="ident">slice</span>.<span class="ident">split_at</span>(<a class="ident" href="../../../src/bincode/de/read.rs.html#73">out</a>.<span class="ident">len</span>());
-        <a class="ident" href="../../../src/bincode/de/read.rs.html#73">out</a>.<span class="ident">copy_from_slice</span>(<a class="ident" href="../../../src/bincode/de/read.rs.html#77">read_slice</a>);
-        <a class="self" href="../../../src/bincode/de/read.rs.html#73">self</a>.<span class="ident">slice</span> <span class="op">=</span> <a class="ident" href="../../../src/bincode/de/read.rs.html#77">remaining</a>;
+        <span class="kw">let </span>(read_slice, remaining) = <a class="self" href="../../../src/bincode/de/read.rs.html#73">self</a>.slice.split_at(<a href="../../../src/bincode/de/read.rs.html#73">out</a>.len());
+        <a href="../../../src/bincode/de/read.rs.html#73">out</a>.copy_from_slice(<a href="../../../src/bincode/de/read.rs.html#77">read_slice</a>);
+        <a class="self" href="../../../src/bincode/de/read.rs.html#73">self</a>.slice = <a href="../../../src/bincode/de/read.rs.html#77">remaining</a>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/bincode/de/read.rs.html#73">out</a>.<span class="ident">len</span>())
+        <span class="prelude-val">Ok</span>(<a href="../../../src/bincode/de/read.rs.html#73">out</a>.len())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/bincode/de/read.rs.html#85">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/bincode/de/read.rs.html#85">out</a>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for</span> <span class="ident">IoReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/bincode/de/read.rs.html#92">self</a>.<span class="ident">reader</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/bincode/de/read.rs.html#92">out</a>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/bincode/de/read.rs.html#96">self</a>.<span class="ident">reader</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_exact</a>(<a class="ident" href="../../../src/bincode/de/read.rs.html#96">out</a>)
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>read_exact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/bincode/de/read.rs.html#85">self</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/bincode/de/read.rs.html#85">out</a>).map(|<span class="kw">_</span>| ())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> <span class="ident">SliceReader</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">unexpected_eof</span>() -&gt; <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/bincode/error.rs.html#16">::ErrorKind</a><span class="op">&gt;</span> {
-        <span class="ident">Box::new</span>(<a class="ident" href="../../../src/bincode/error.rs.html#19">::ErrorKind::Io</a>(<span class="ident">io::Error::new</span>(
-            <span class="ident">io::ErrorKind::UnexpectedEof</span>,
+<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for </span>IoReader&lt;R&gt; {
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/bincode/de/read.rs.html#92">self</a>.reader.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/bincode/de/read.rs.html#92">out</a>)
+    }
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>read_exact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/bincode/de/read.rs.html#96">self</a>.reader.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_exact</a>(<a href="../../../src/bincode/de/read.rs.html#96">out</a>)
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;storage</span>&gt; SliceReader&lt;<span class="lifetime">&#39;storage</span>&gt; {
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>unexpected_eof() -&gt; Box&lt;<a href="../../../src/bincode/error.rs.html#16">::ErrorKind</a>&gt; {
+        Box::new(<a href="../../../src/bincode/error.rs.html#19">::ErrorKind::Io</a>(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
             <span class="string">&quot;&quot;</span>,
         )))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> <span class="ident">BincodeRead</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SliceReader</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">forward_read_str</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">serde::de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;storage</span>&gt; BincodeRead&lt;<span class="lifetime">&#39;storage</span>&gt; <span class="kw">for </span>SliceReader&lt;<span class="lifetime">&#39;storage</span>&gt; {
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>forward_read_str&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;storage</span>&gt;,
     {
-        <span class="kw">use</span> <a class="ident" href="../../../src/bincode/error.rs.html#16">ErrorKind</a>;
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">::std::str::from_utf8</a>(<span class="self">self</span>.<span class="ident">get_byte_slice</span>(<span class="ident">length</span>)<span class="question-mark">?</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../../src/bincode/de/read.rs.html#119">s</a>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/bincode/error.rs.html#21">ErrorKind::InvalidUtf8Encoding</a>(<a class="ident" href="../../../src/bincode/de/read.rs.html#120">e</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">use </span><a href="../../../src/bincode/error.rs.html#16">ErrorKind</a>;
+        <span class="kw">let </span>string = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">::std::str::from_utf8</a>(<span class="self">self</span>.get_byte_slice(length)<span class="question-mark">?</span>) {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="../../../src/bincode/de/read.rs.html#119">s</a>,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/bincode/error.rs.html#21">ErrorKind::InvalidUtf8Encoding</a>(<a href="../../../src/bincode/de/read.rs.html#120">e</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         };
-        <a class="ident" href="../../../src/bincode/de/read.rs.html#113">visitor</a>.<a class="ident" href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a class="ident" href="../../../src/bincode/de/read.rs.html#118">string</a>)
+        <a href="../../../src/bincode/de/read.rs.html#113">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="../../../src/bincode/de/read.rs.html#118">string</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">get_byte_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/bincode/de/read.rs.html#126">self</a>.<a class="ident" href="../../../src/bincode/de/read.rs.html#47">get_byte_slice</a>(<a class="ident" href="../../../src/bincode/de/read.rs.html#126">length</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../src/bincode/de/read.rs.html#127">x</a>.<span class="ident">to_vec</span>())
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>get_byte_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
+        <a class="self" href="../../../src/bincode/de/read.rs.html#126">self</a>.<a href="../../../src/bincode/de/read.rs.html#47">get_byte_slice</a>(<a href="../../../src/bincode/de/read.rs.html#126">length</a>).map(|x| <a href="../../../src/bincode/de/read.rs.html#127">x</a>.to_vec())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">forward_read_bytes</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">serde::de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;storage</span><span class="op">&gt;</span>,
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>forward_read_bytes&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;storage</span>&gt;,
     {
-        <a class="ident" href="../../../src/bincode/de/read.rs.html#131">visitor</a>.<a class="ident" href="../../../serde/de/trait.Visitor.html">visit_borrowed_bytes</a>(<span class="self">self</span>.<span class="ident">get_byte_slice</span>(<span class="ident">length</span>)<span class="question-mark">?</span>)
+        <a href="../../../src/bincode/de/read.rs.html#131">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_bytes</a>(<span class="self">self</span>.get_byte_slice(length)<span class="question-mark">?</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IoReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>,
+<span class="kw">impl</span>&lt;R&gt; IoReader&lt;R&gt;
+<span class="kw">where
+    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fill_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/bincode/de/read.rs.html#143">self</a>.<span class="ident">temp_buffer</span>.<span class="ident">resize</span>(<a class="ident" href="../../../src/bincode/de/read.rs.html#143">length</a>, <span class="number">0</span>);
+    <span class="kw">fn </span>fill_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <a class="self" href="../../../src/bincode/de/read.rs.html#143">self</a>.temp_buffer.resize(<a href="../../../src/bincode/de/read.rs.html#143">length</a>, <span class="number">0</span>);
 
-        <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">temp_buffer</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.reader.read_exact(<span class="kw-2">&amp;mut </span><span class="self">self</span>.temp_buffer)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">BincodeRead</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IoReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R&gt; BincodeRead&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>IoReader&lt;R&gt;
+<span class="kw">where
+    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>,
 {
-    <span class="kw">fn</span> <span class="ident">forward_read_str</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">serde::de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>forward_read_str&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="self">self</span>.<span class="ident">fill_buffer</span>(<span class="ident">length</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.fill_buffer(length)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">::std::str::from_utf8</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/bincode/de/read.rs.html#156">self</a>.<span class="ident">temp_buffer</span>[..]) {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../../src/bincode/de/read.rs.html#163">s</a>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/bincode/error.rs.html#21">::ErrorKind::InvalidUtf8Encoding</a>(<a class="ident" href="../../../src/bincode/de/read.rs.html#164">e</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">let </span>string = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">::std::str::from_utf8</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/bincode/de/read.rs.html#156">self</a>.temp_buffer[..]) {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="../../../src/bincode/de/read.rs.html#163">s</a>,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/bincode/error.rs.html#21">::ErrorKind::InvalidUtf8Encoding</a>(<a href="../../../src/bincode/de/read.rs.html#164">e</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         };
 
-        <a class="ident" href="../../../src/bincode/de/read.rs.html#156">visitor</a>.<a class="ident" href="../../../serde/de/trait.Visitor.html">visit_str</a>(<a class="ident" href="../../../src/bincode/de/read.rs.html#162">string</a>)
+        <a href="../../../src/bincode/de/read.rs.html#156">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_str</a>(<a href="../../../src/bincode/de/read.rs.html#162">string</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_byte_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">fill_buffer</span>(<span class="ident">length</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">::std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/bincode/de/read.rs.html#170">self</a>.<span class="ident">temp_buffer</span>, <span class="ident">Vec::new</span>()))
+    <span class="kw">fn </span>get_byte_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
+        <span class="self">self</span>.fill_buffer(length)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(::std::mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/bincode/de/read.rs.html#170">self</a>.temp_buffer, Vec::new()))
     }
 
-    <span class="kw">fn</span> <span class="ident">forward_read_bytes</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">serde::de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>forward_read_bytes&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: serde::de::Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="self">self</span>.<span class="ident">fill_buffer</span>(<span class="ident">length</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/bincode/de/read.rs.html#175">visitor</a>.<a class="ident" href="../../../serde/de/trait.Visitor.html">visit_bytes</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/bincode/de/read.rs.html#175">self</a>.<span class="ident">temp_buffer</span>[..])
+        <span class="self">self</span>.fill_buffer(length)<span class="question-mark">?</span>;
+        <a href="../../../src/bincode/de/read.rs.html#175">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bytes</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/bincode/de/read.rs.html#175">self</a>.temp_buffer[..])
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::IoReader</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use </span><span class="kw">super</span>::IoReader;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_fill_buffer</span>() {
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="number">64</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">IoReader::new</span>(<span class="ident">buffer</span>.<span class="ident">as_slice</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_fill_buffer() {
+        <span class="kw">let </span>buffer = <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="number">64</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = IoReader::new(buffer.as_slice());
 
-        <span class="ident">reader</span>.<span class="ident">fill_buffer</span>(<span class="number">20</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="number">20</span>, <span class="ident">reader</span>.<span class="ident">temp_buffer</span>.<span class="ident">len</span>());
+        reader.fill_buffer(<span class="number">20</span>).unwrap();
+        <span class="macro">assert_eq!</span>(<span class="number">20</span>, reader.temp_buffer.len());
 
-        <span class="ident">reader</span>.<span class="ident">fill_buffer</span>(<span class="number">30</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="number">30</span>, <span class="ident">reader</span>.<span class="ident">temp_buffer</span>.<span class="ident">len</span>());
+        reader.fill_buffer(<span class="number">30</span>).unwrap();
+        <span class="macro">assert_eq!</span>(<span class="number">30</span>, reader.temp_buffer.len());
 
-        <span class="ident">reader</span>.<span class="ident">fill_buffer</span>(<span class="number">5</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="number">5</span>, <span class="ident">reader</span>.<span class="ident">temp_buffer</span>.<span class="ident">len</span>());
+        reader.fill_buffer(<span class="number">5</span>).unwrap();
+        <span class="macro">assert_eq!</span>(<span class="number">5</span>, reader.temp_buffer.len());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bincode" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bincode" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

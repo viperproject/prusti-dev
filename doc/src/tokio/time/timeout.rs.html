@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/timeout.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>timeout.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/time/timeout.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>timeout.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -200,207 +200,207 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Allows a future to execute for a maximum amount of time.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! See [`Timeout`] documentation for more details.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Timeout`]: struct@Timeout</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Allows a future to execute for a maximum amount of time.
+//!
+//! See [`Timeout`] documentation for more details.
+//!
+//! [`Timeout`]: struct@Timeout
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../../src/tokio/lib.rs.html#427">coop</a>,
-    <span class="ident">time</span>::{<a class="ident" href="../../../src/tokio/time/error.rs.html#45">error::Elapsed</a>, <a class="ident" href="../../../src/tokio/time/driver/sleep.rs.html#64">sleep_until</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, <a class="ident" href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>},
-    <a class="ident" href="../../../src/tokio/util/mod.rs.html#70">util::trace</a>,
+</span><span class="kw">use crate</span>::{
+    <a href="../../../src/tokio/lib.rs.html#427">coop</a>,
+    time::{<a href="../../../src/tokio/time/error.rs.html#45">error::Elapsed</a>, <a href="../../../src/tokio/time/driver/sleep.rs.html#64">sleep_until</a>, <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, <a href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>},
+    <a href="../../../src/tokio/util/mod.rs.html#70">util::trace</a>,
 };
 
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// Requires a `Future` to complete before the specified duration has elapsed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the future completes before the duration has elapsed, then the completed</span>
-<span class="doccomment">/// value is returned. Otherwise, an error is returned and the future is</span>
-<span class="doccomment">/// canceled.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Cancellation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Cancelling a timeout is done by dropping the future. No additional cleanup</span>
-<span class="doccomment">/// or other work is required.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The original future may be obtained by calling [`Timeout::into_inner`]. This</span>
-<span class="doccomment">/// consumes the `Timeout`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Create a new `Timeout` set to expire in 10 milliseconds.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use tokio::time::timeout;</span>
-<span class="doccomment">/// use tokio::sync::oneshot;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// use std::time::Duration;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # async fn dox() {</span>
-<span class="doccomment">/// let (tx, rx) = oneshot::channel();</span>
-<span class="doccomment">/// # tx.send(()).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Wrap the future with a `Timeout` set to expire in 10 milliseconds.</span>
-<span class="doccomment">/// if let Err(_) = timeout(Duration::from_millis(10), rx).await {</span>
-<span class="doccomment">///     println!(&quot;did not receive value within 10 ms&quot;);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function panics if there is no current timer set.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can be triggered when [`Builder::enable_time`] or</span>
-<span class="doccomment">/// [`Builder::enable_all`] are not included in the builder.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can also panic whenever a timer is created outside of a</span>
-<span class="doccomment">/// Tokio runtime. That is why `rt.block_on(sleep(...))` will panic,</span>
-<span class="doccomment">/// since the function is executed outside of the runtime.</span>
-<span class="doccomment">/// Whereas `rt.block_on(async {sleep(...).await})` doesn&#39;t panic.</span>
-<span class="doccomment">/// And this is because wrapping the function on an async makes it lazy,</span>
-<span class="doccomment">/// and so gets executed inside the runtime successfully without</span>
-<span class="doccomment">/// panicking.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Builder::enable_time`]: crate::runtime::Builder::enable_time</span>
-<span class="doccomment">/// [`Builder::enable_all`]: crate::runtime::Builder::enable_all</span>
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timeout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <span class="ident">future</span>: <span class="ident">T</span>) -&gt; <span class="ident">Timeout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="doccomment">/// Requires a `Future` to complete before the specified duration has elapsed.
+///
+/// If the future completes before the duration has elapsed, then the completed
+/// value is returned. Otherwise, an error is returned and the future is
+/// canceled.
+///
+/// # Cancellation
+///
+/// Cancelling a timeout is done by dropping the future. No additional cleanup
+/// or other work is required.
+///
+/// The original future may be obtained by calling [`Timeout::into_inner`]. This
+/// consumes the `Timeout`.
+///
+/// # Examples
+///
+/// Create a new `Timeout` set to expire in 10 milliseconds.
+///
+/// ```rust
+/// use tokio::time::timeout;
+/// use tokio::sync::oneshot;
+///
+/// use std::time::Duration;
+///
+/// # async fn dox() {
+/// let (tx, rx) = oneshot::channel();
+/// # tx.send(()).unwrap();
+///
+/// // Wrap the future with a `Timeout` set to expire in 10 milliseconds.
+/// if let Err(_) = timeout(Duration::from_millis(10), rx).await {
+///     println!(&quot;did not receive value within 10 ms&quot;);
+/// }
+/// # }
+/// ```
+///
+/// # Panics
+///
+/// This function panics if there is no current timer set.
+///
+/// It can be triggered when [`Builder::enable_time`] or
+/// [`Builder::enable_all`] are not included in the builder.
+///
+/// It can also panic whenever a timer is created outside of a
+/// Tokio runtime. That is why `rt.block_on(sleep(...))` will panic,
+/// since the function is executed outside of the runtime.
+/// Whereas `rt.block_on(async {sleep(...).await})` doesn&#39;t panic.
+/// And this is because wrapping the function on an async makes it lazy,
+/// and so gets executed inside the runtime successfully without
+/// panicking.
+///
+/// [`Builder::enable_time`]: crate::runtime::Builder::enable_time
+/// [`Builder::enable_all`]: crate::runtime::Builder::enable_all
+</span><span class="attribute">#[track_caller]
+</span><span class="kw">pub fn </span>timeout&lt;T&gt;(duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, future: T) -&gt; Timeout&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>();
+    <span class="kw">let </span>location = <a href="../../../src/tokio/util/trace.rs.html#84">trace::caller_location</a>();
 
-    <span class="kw">let</span> <span class="ident">deadline</span> <span class="op">=</span> <span class="ident">Instant::now</span>().<a class="ident" href="../../../src/tokio/time/instant.rs.html#141">checked_add</a>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#71">duration</a>);
-    <span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/time/timeout.rs.html#77">deadline</a> {
-        <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) =&gt; <span class="ident">Sleep::new_timeout</span>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#79">deadline</a>, <a class="ident" href="../../../src/tokio/time/timeout.rs.html#75">location</a>),
-        <span class="prelude-val">None</span> =&gt; <span class="ident">Sleep::far_future</span>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#75">location</a>),
+    <span class="kw">let </span>deadline = Instant::now().<a href="../../../src/tokio/time/instant.rs.html#141">checked_add</a>(<a href="../../../src/tokio/time/timeout.rs.html#71">duration</a>);
+    <span class="kw">let </span>delay = <span class="kw">match </span><a href="../../../src/tokio/time/timeout.rs.html#77">deadline</a> {
+        <span class="prelude-val">Some</span>(deadline) =&gt; Sleep::new_timeout(<a href="../../../src/tokio/time/timeout.rs.html#79">deadline</a>, <a href="../../../src/tokio/time/timeout.rs.html#75">location</a>),
+        <span class="prelude-val">None </span>=&gt; Sleep::far_future(<a href="../../../src/tokio/time/timeout.rs.html#75">location</a>),
     };
-    <span class="ident">Timeout::new_with_delay</span>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#71">future</a>, <a class="ident" href="../../../src/tokio/time/timeout.rs.html#78">delay</a>)
+    Timeout::new_with_delay(<a href="../../../src/tokio/time/timeout.rs.html#71">future</a>, <a href="../../../src/tokio/time/timeout.rs.html#78">delay</a>)
 }
 
-<span class="doccomment">/// Requires a `Future` to complete before the specified instant in time.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the future completes before the instant is reached, then the completed</span>
-<span class="doccomment">/// value is returned. Otherwise, an error is returned.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Cancellation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Cancelling a timeout is done by dropping the future. No additional cleanup</span>
-<span class="doccomment">/// or other work is required.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The original future may be obtained by calling [`Timeout::into_inner`]. This</span>
-<span class="doccomment">/// consumes the `Timeout`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Create a new `Timeout` set to expire in 10 milliseconds.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use tokio::time::{Instant, timeout_at};</span>
-<span class="doccomment">/// use tokio::sync::oneshot;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// use std::time::Duration;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # async fn dox() {</span>
-<span class="doccomment">/// let (tx, rx) = oneshot::channel();</span>
-<span class="doccomment">/// # tx.send(()).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Wrap the future with a `Timeout` set to expire 10 milliseconds into the</span>
-<span class="doccomment">/// // future.</span>
-<span class="doccomment">/// if let Err(_) = timeout_at(Instant::now() + Duration::from_millis(10), rx).await {</span>
-<span class="doccomment">///     println!(&quot;did not receive value within 10 ms&quot;);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timeout_at</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">deadline</span>: <a class="ident" href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, <span class="ident">future</span>: <span class="ident">T</span>) -&gt; <span class="ident">Timeout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="doccomment">/// Requires a `Future` to complete before the specified instant in time.
+///
+/// If the future completes before the instant is reached, then the completed
+/// value is returned. Otherwise, an error is returned.
+///
+/// # Cancellation
+///
+/// Cancelling a timeout is done by dropping the future. No additional cleanup
+/// or other work is required.
+///
+/// The original future may be obtained by calling [`Timeout::into_inner`]. This
+/// consumes the `Timeout`.
+///
+/// # Examples
+///
+/// Create a new `Timeout` set to expire in 10 milliseconds.
+///
+/// ```rust
+/// use tokio::time::{Instant, timeout_at};
+/// use tokio::sync::oneshot;
+///
+/// use std::time::Duration;
+///
+/// # async fn dox() {
+/// let (tx, rx) = oneshot::channel();
+/// # tx.send(()).unwrap();
+///
+/// // Wrap the future with a `Timeout` set to expire 10 milliseconds into the
+/// // future.
+/// if let Err(_) = timeout_at(Instant::now() + Duration::from_millis(10), rx).await {
+///     println!(&quot;did not receive value within 10 ms&quot;);
+/// }
+/// # }
+/// ```
+</span><span class="kw">pub fn </span>timeout_at&lt;T&gt;(deadline: <a href="../../../src/tokio/time/instant.rs.html#34">Instant</a>, future: T) -&gt; Timeout&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/time/driver/sleep.rs.html#64">sleep_until</a>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#119">deadline</a>);
+    <span class="kw">let </span>delay = <a href="../../../src/tokio/time/driver/sleep.rs.html#64">sleep_until</a>(<a href="../../../src/tokio/time/timeout.rs.html#119">deadline</a>);
 
-    <a class="ident" href="../../../src/tokio/time/timeout.rs.html#131-141">Timeout</a> {
-        <span class="ident">value</span>: <a class="ident" href="../../../src/tokio/time/timeout.rs.html#119">future</a>,
-        <a class="ident" href="../../../src/tokio/time/timeout.rs.html#123">delay</a>,
+    <a href="../../../src/tokio/time/timeout.rs.html#131-141">Timeout</a> {
+        value: <a href="../../../src/tokio/time/timeout.rs.html#119">future</a>,
+        <a href="../../../src/tokio/time/timeout.rs.html#123">delay</a>,
     }
 }
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Future returned by [`timeout`](timeout) and [`timeout_at`](timeout_at).</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Timeout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">value</span>: <span class="ident">T</span>,
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">delay</span>: <a class="ident" href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Future returned by [`timeout`](timeout) and [`timeout_at`](timeout_at).
+    </span><span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[derive(Debug)]
+    </span><span class="kw">pub struct </span>Timeout&lt;T&gt; {
+        <span class="attribute">#[pin]
+        </span>value: T,
+        <span class="attribute">#[pin]
+        </span>delay: <a href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Timeout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_with_delay</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">delay</span>: <a class="ident" href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>) -&gt; <span class="ident">Timeout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/time/timeout.rs.html#131-141">Timeout</a> { <a class="ident" href="../../../src/tokio/time/timeout.rs.html#144">value</a>, <a class="ident" href="../../../src/tokio/time/timeout.rs.html#144">delay</a> }
+<span class="kw">impl</span>&lt;T&gt; Timeout&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_delay(value: T, delay: <a href="../../../src/tokio/time/driver/sleep.rs.html#136-235">Sleep</a>) -&gt; Timeout&lt;T&gt; {
+        <a href="../../../src/tokio/time/timeout.rs.html#131-141">Timeout</a> { <a href="../../../src/tokio/time/timeout.rs.html#144">value</a>, <a href="../../../src/tokio/time/timeout.rs.html#144">delay</a> }
     }
 
-    <span class="doccomment">/// Gets a reference to the underlying value in this timeout.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/time/timeout.rs.html#149">self</a>.<span class="ident">value</span>
+    <span class="doccomment">/// Gets a reference to the underlying value in this timeout.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/time/timeout.rs.html#149">self</a>.value
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the underlying value in this timeout.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/time/timeout.rs.html#154">self</a>.<span class="ident">value</span>
+    <span class="doccomment">/// Gets a mutable reference to the underlying value in this timeout.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio/time/timeout.rs.html#154">self</a>.value
     }
 
-    <span class="doccomment">/// Consumes this timeout, returning the underlying value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../../src/tokio/time/timeout.rs.html#159">self</a>.<span class="ident">value</span>
+    <span class="doccomment">/// Consumes this timeout, returning the underlying value.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../../src/tokio/time/timeout.rs.html#159">self</a>.value
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Timeout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Timeout&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T::Output</span>, <a class="ident" href="../../../src/tokio/time/error.rs.html#45">Elapsed</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T::Output, <a href="../../../src/tokio/time/error.rs.html#45">Elapsed</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/time/timeout.rs.html#170">self</a>.<a class="ident" href="../../../src/tokio/time/timeout.rs.html#131-141">project</a>();
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>me = <a class="self" href="../../../src/tokio/time/timeout.rs.html#170">self</a>.<a href="../../../src/tokio/time/timeout.rs.html#131-141">project</a>();
 
-        <span class="kw">let</span> <span class="ident">had_budget_before</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/coop.rs.html#107">coop::has_budget_remaining</a>();
+        <span class="kw">let </span>had_budget_before = <a href="../../../src/tokio/coop.rs.html#107">coop::has_budget_remaining</a>();
 
-        <span class="comment">// First, try polling the future</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">v</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/time/timeout.rs.html#171">me</a>.<span class="ident">value</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#170">cx</a>) {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#176">v</a>));
+        <span class="comment">// First, try polling the future
+        </span><span class="kw">if let </span>Poll::Ready(v) = <a href="../../../src/tokio/time/timeout.rs.html#171">me</a>.value.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/time/timeout.rs.html#170">cx</a>) {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/tokio/time/timeout.rs.html#176">v</a>));
         }
 
-        <span class="kw">let</span> <span class="ident">has_budget_now</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/coop.rs.html#107">coop::has_budget_remaining</a>();
+        <span class="kw">let </span>has_budget_now = <a href="../../../src/tokio/coop.rs.html#107">coop::has_budget_remaining</a>();
 
-        <span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/time/timeout.rs.html#171">me</a>.<span class="ident">delay</span>;
+        <span class="kw">let </span>delay = <a href="../../../src/tokio/time/timeout.rs.html#171">me</a>.delay;
 
-        <span class="kw">let</span> <span class="ident">poll_delay</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../src/tokio/time/timeout.rs.html#182">delay</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#170">cx</a>) {
-                <span class="ident">Poll::Ready</span>(()) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">Elapsed::new</span>())),
-                <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
+        <span class="kw">let </span>poll_delay = || -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+            <span class="kw">match </span><a href="../../../src/tokio/time/timeout.rs.html#182">delay</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/time/timeout.rs.html#170">cx</a>) {
+                Poll::Ready(()) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(Elapsed::new())),
+                Poll::Pending =&gt; Poll::Pending,
             }
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span> (<a class="ident" href="../../../src/tokio/time/timeout.rs.html#173">had_budget_before</a>, <a class="ident" href="../../../src/tokio/time/timeout.rs.html#180">has_budget_now</a>) {
-            <span class="comment">// if it is the underlying future that exhausted the budget, we poll</span>
-            <span class="comment">// the `delay` with an unconstrained one. This prevents pathological</span>
-            <span class="comment">// cases where the underlying future always exhausts the budget and</span>
-            <span class="comment">// we never get a chance to evaluate whether the timeout was hit or</span>
-            <span class="comment">// not.</span>
-            <a class="ident" href="../../../src/tokio/coop.rs.html#78">coop::with_unconstrained</a>(<a class="ident" href="../../../src/tokio/time/timeout.rs.html#184">poll_delay</a>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/tokio/time/timeout.rs.html#184">poll_delay</a>()
+        <span class="kw">if let </span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>) = (<a href="../../../src/tokio/time/timeout.rs.html#173">had_budget_before</a>, <a href="../../../src/tokio/time/timeout.rs.html#180">has_budget_now</a>) {
+            <span class="comment">// if it is the underlying future that exhausted the budget, we poll
+            // the `delay` with an unconstrained one. This prevents pathological
+            // cases where the underlying future always exhausts the budget and
+            // we never get a chance to evaluate whether the timeout was hit or
+            // not.
+            </span><a href="../../../src/tokio/coop.rs.html#78">coop::with_unconstrained</a>(<a href="../../../src/tokio/time/timeout.rs.html#184">poll_delay</a>)
+        } <span class="kw">else </span>{
+            <a href="../../../src/tokio/time/timeout.rs.html#184">poll_delay</a>()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

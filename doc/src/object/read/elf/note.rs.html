@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/note.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>note.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/note.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>note.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -183,190 +183,190 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#90"><span class="kw">crate</span>::endian</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#17"><span class="kw">crate</span>::read::util</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/read/util.rs.html#16">Bytes</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>};
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#90"><span class="kw">crate</span>::endian</a>;
+<span class="kw">use </span><a href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
+<span class="kw">use </span><a href="../../../../src/object/read/mod.rs.html#17"><span class="kw">crate</span>::read::util</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>, <a href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437"><span class="kw">super</span>::FileHeader</a>;
+<span class="kw">use </span><a href="../../../../src/object/read/elf/file.rs.html#437"><span class="kw">super</span>::FileHeader</a>;
 
-<span class="doccomment">/// An iterator over the notes in an ELF section or segment.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoteIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+<span class="doccomment">/// An iterator over the notes in an ELF section or segment.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>NoteIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
 {
-    <span class="ident">endian</span>: <span class="ident">Elf::Endian</span>,
-    <span class="ident">align</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">data</span>: <span class="ident">Bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+    endian: Elf::Endian,
+    align: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    data: Bytes&lt;<span class="lifetime">&#39;data</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span> <span class="ident">NoteIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf&gt; NoteIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
 {
-    <span class="doccomment">/// Returns `Err` if `align` is invalid.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">endian</span>: <span class="ident">Elf::Endian</span>,
-        <span class="ident">align</span>: <span class="ident">Elf::Word</span>,
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">read::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#30">align</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
-            <span class="number">0u64</span>..<span class="op">=</span><span class="number">4</span> =&gt; <span class="number">4</span>,
-            <span class="number">8</span> =&gt; <span class="number">8</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid ELF note alignment&quot;</span>)),
+    <span class="doccomment">/// Returns `Err` if `align` is invalid.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
+        endian: Elf::Endian,
+        align: Elf::Word,
+        data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; read::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>align = <span class="kw">match </span><a href="../../../../src/object/read/elf/note.rs.html#30">align</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+            <span class="number">0u64</span>..=<span class="number">4 </span>=&gt; <span class="number">4</span>,
+            <span class="number">8 </span>=&gt; <span class="number">8</span>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Invalid ELF note alignment&quot;</span>)),
         };
-        <span class="comment">// TODO: check data alignment?</span>
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#14">NoteIterator</a> {
-            <a class="ident" href="../../../../src/object/read/elf/note.rs.html#29">endian</a>,
-            <a class="ident" href="../../../../src/object/read/elf/note.rs.html#33">align</a>,
-            <span class="ident">data</span>: <a class="ident" href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#31">data</a>),
+        <span class="comment">// TODO: check data alignment?
+        </span><span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/elf/note.rs.html#14">NoteIterator</a> {
+            <a href="../../../../src/object/read/elf/note.rs.html#29">endian</a>,
+            <a href="../../../../src/object/read/elf/note.rs.html#33">align</a>,
+            data: <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a href="../../../../src/object/read/elf/note.rs.html#31">data</a>),
         })
     }
 
-    <span class="doccomment">/// Returns the next note.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">read::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Note</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.<span class="ident">data</span>;
-        <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+    <span class="doccomment">/// Returns the next note.
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; read::Result&lt;<span class="prelude-ty">Option</span>&lt;Note&lt;<span class="lifetime">&#39;data</span>, Elf&gt;&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.data;
+        <span class="kw">if </span>data.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">read_at</span>::<span class="op">&lt;</span><span class="ident">Elf::NoteHeader</span><span class="op">&gt;</span>(<span class="number">0</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;ELF note is too short&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>header = data
+            .read_at::&lt;Elf::NoteHeader&gt;(<span class="number">0</span>)
+            .read_error(<span class="string">&quot;ELF note is too short&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// The name has no alignment requirement.</span>
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Elf::NoteHeader</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">namesz</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#53">header</a>.<a class="ident" href="../../../../src/object/read/elf/note.rs.html#144">n_namesz</a>(<a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.<span class="ident">endian</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">read_bytes_at</span>(<span class="ident">offset</span>, <span class="ident">namesz</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid ELF note namesz&quot;</span>)<span class="question-mark">?</span>
-            .<span class="number">0</span>;
+        <span class="comment">// The name has no alignment requirement.
+        </span><span class="kw">let </span>offset = mem::size_of::&lt;Elf::NoteHeader&gt;();
+        <span class="kw">let </span>namesz = <a href="../../../../src/object/read/elf/note.rs.html#53">header</a>.<a href="../../../../src/object/read/elf/note.rs.html#144">n_namesz</a>(<a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>name = data
+            .read_bytes_at(offset, namesz)
+            .read_error(<span class="string">&quot;Invalid ELF note namesz&quot;</span>)<span class="question-mark">?
+            </span>.<span class="number">0</span>;
 
-        <span class="comment">// The descriptor must be aligned.</span>
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/util.rs.html#212">util::align</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#58">offset</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#59">namesz</a>, <a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.<span class="ident">align</span>);
-        <span class="kw">let</span> <span class="ident">descsz</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#53">header</a>.<a class="ident" href="../../../../src/object/read/elf/note.rs.html#145">n_descsz</a>(<a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.<span class="ident">endian</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">read_bytes_at</span>(<span class="ident">offset</span>, <span class="ident">descsz</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid ELF note descsz&quot;</span>)<span class="question-mark">?</span>
-            .<span class="number">0</span>;
+        <span class="comment">// The descriptor must be aligned.
+        </span><span class="kw">let </span>offset = <a href="../../../../src/object/read/util.rs.html#212">util::align</a>(<a href="../../../../src/object/read/elf/note.rs.html#58">offset</a> + <a href="../../../../src/object/read/elf/note.rs.html#59">namesz</a>, <a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.align);
+        <span class="kw">let </span>descsz = <a href="../../../../src/object/read/elf/note.rs.html#53">header</a>.<a href="../../../../src/object/read/elf/note.rs.html#145">n_descsz</a>(<a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>desc = data
+            .read_bytes_at(offset, descsz)
+            .read_error(<span class="string">&quot;Invalid ELF note descsz&quot;</span>)<span class="question-mark">?
+            </span>.<span class="number">0</span>;
 
-        <span class="comment">// The next note (if any) must be aligned.</span>
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/util.rs.html#212">util::align</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#66">offset</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#67">descsz</a>, <a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.<span class="ident">align</span>);
-        <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">skip</span>(<span class="ident">offset</span>).<span class="ident">is_err</span>() {
-            <a class="ident" href="../../../../src/object/read/elf/note.rs.html#48">data</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<span class="kw-2">&amp;</span>[]);
+        <span class="comment">// The next note (if any) must be aligned.
+        </span><span class="kw">let </span>offset = <a href="../../../../src/object/read/util.rs.html#212">util::align</a>(<a href="../../../../src/object/read/elf/note.rs.html#66">offset</a> + <a href="../../../../src/object/read/elf/note.rs.html#67">descsz</a>, <a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.align);
+        <span class="kw">if </span>data.skip(offset).is_err() {
+            <a href="../../../../src/object/read/elf/note.rs.html#48">data</a> = <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<span class="kw-2">&amp;</span>[]);
         }
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.<span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#48">data</a>;
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#47">self</a>.data = <a href="../../../../src/object/read/elf/note.rs.html#48">data</a>;
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#86">Note</a> { <a class="ident" href="../../../../src/object/read/elf/note.rs.html#53">header</a>, <a class="ident" href="../../../../src/object/read/elf/note.rs.html#60">name</a>, <a class="ident" href="../../../../src/object/read/elf/note.rs.html#68">desc</a> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../../src/object/read/elf/note.rs.html#86">Note</a> { <a href="../../../../src/object/read/elf/note.rs.html#53">header</a>, <a href="../../../../src/object/read/elf/note.rs.html#60">name</a>, <a href="../../../../src/object/read/elf/note.rs.html#68">desc</a> }))
     }
 }
 
-<span class="doccomment">/// A parsed `NoteHeader`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Note</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+<span class="doccomment">/// A parsed `NoteHeader`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Note&lt;<span class="lifetime">&#39;data</span>, Elf&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
 {
-    <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">Elf::NoteHeader</span>,
-    <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="ident">desc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Elf::NoteHeader,
+    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    desc: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a><span class="op">&gt;</span> <span class="ident">Note</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Return the `n_type` field of the `NoteHeader`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The meaning of this field is determined by `name`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">n_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">Elf::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#99">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/elf/note.rs.html#146">n_type</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#99">endian</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; Note&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+    <span class="doccomment">/// Return the `n_type` field of the `NoteHeader`.
+    ///
+    /// The meaning of this field is determined by `name`.
+    </span><span class="kw">pub fn </span>n_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: Elf::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#99">self</a>.header.<a href="../../../../src/object/read/elf/note.rs.html#146">n_type</a>(<a href="../../../../src/object/read/elf/note.rs.html#99">endian</a>)
     }
 
-    <span class="doccomment">/// Return the `n_namesz` field of the `NoteHeader`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">n_namesz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">Elf::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#104">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/elf/note.rs.html#144">n_namesz</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#104">endian</a>)
+    <span class="doccomment">/// Return the `n_namesz` field of the `NoteHeader`.
+    </span><span class="kw">pub fn </span>n_namesz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: Elf::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#104">self</a>.header.<a href="../../../../src/object/read/elf/note.rs.html#144">n_namesz</a>(<a href="../../../../src/object/read/elf/note.rs.html#104">endian</a>)
     }
 
-    <span class="doccomment">/// Return the `n_descsz` field of the `NoteHeader`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">n_descsz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">Elf::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#109">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/elf/note.rs.html#145">n_descsz</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#109">endian</a>)
+    <span class="doccomment">/// Return the `n_descsz` field of the `NoteHeader`.
+    </span><span class="kw">pub fn </span>n_descsz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: Elf::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#109">self</a>.header.<a href="../../../../src/object/read/elf/note.rs.html#145">n_descsz</a>(<a href="../../../../src/object/read/elf/note.rs.html#109">endian</a>)
     }
 
-    <span class="doccomment">/// Return the bytes for the name field following the `NoteHeader`,</span>
-    <span class="doccomment">/// excluding any null terminator.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This field is usually a string including a null terminator</span>
-    <span class="doccomment">/// (but it is not required to be).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The length of this field (including any null terminator) is given by</span>
-    <span class="doccomment">/// `n_namesz`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">last</span>, <span class="ident">name</span>)) <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/note.rs.html#121">self</a>.<span class="ident">name</span>.<span class="ident">split_last</span>() {
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">last</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">return</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#122">name</a>;
+    <span class="doccomment">/// Return the bytes for the name field following the `NoteHeader`,
+    /// excluding any null terminator.
+    ///
+    /// This field is usually a string including a null terminator
+    /// (but it is not required to be).
+    ///
+    /// The length of this field (including any null terminator) is given by
+    /// `n_namesz`.
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, name)) = <a class="self" href="../../../../src/object/read/elf/note.rs.html#121">self</a>.name.split_last() {
+            <span class="kw">if </span><span class="kw-2">*</span>last == <span class="number">0 </span>{
+                <span class="kw">return </span><a href="../../../../src/object/read/elf/note.rs.html#122">name</a>;
             }
         }
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#121">self</a>.<span class="ident">name</span>
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#121">self</a>.name
     }
 
-    <span class="doccomment">/// Return the bytes for the desc field following the `NoteHeader`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The length of this field is given by `n_descsz`. The meaning</span>
-    <span class="doccomment">/// of this field is determined by `name` and `n_type`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">desc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#134">self</a>.<span class="ident">desc</span>
-    }
-}
-
-<span class="doccomment">/// A trait for generic access to `NoteHeader32` and `NoteHeader64`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NoteHeader</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a> {
-    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
-
-    <span class="kw">fn</span> <span class="ident">n_namesz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">n_descsz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">n_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#141">NoteHeader</a> <span class="kw">for</span> <span class="ident">elf::NoteHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">n_namesz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#153">self</a>.<span class="ident">n_namesz</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#153">endian</a>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">n_descsz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#158">self</a>.<span class="ident">n_descsz</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#158">endian</a>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">n_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#163">self</a>.<span class="ident">n_type</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#163">endian</a>)
+    <span class="doccomment">/// Return the bytes for the desc field following the `NoteHeader`.
+    ///
+    /// The length of this field is given by `n_descsz`. The meaning
+    /// of this field is determined by `name` and `n_type`.
+    </span><span class="kw">pub fn </span>desc(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#134">self</a>.desc
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/elf/note.rs.html#141">NoteHeader</a> <span class="kw">for</span> <span class="ident">elf::NoteHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
+<span class="doccomment">/// A trait for generic access to `NoteHeader32` and `NoteHeader64`.
+</span><span class="attribute">#[allow(missing_docs)]
+</span><span class="kw">pub trait </span>NoteHeader: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../../../src/object/pod.rs.html#21">Pod</a> {
+    <span class="kw">type </span>Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">n_namesz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#172">self</a>.<span class="ident">n_namesz</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#172">endian</a>)
+    <span class="kw">fn </span>n_namesz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>n_descsz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>n_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+}
+
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/elf/note.rs.html#141">NoteHeader</a> <span class="kw">for </span>elf::NoteHeader32&lt;Endian&gt; {
+    <span class="kw">type </span>Endian = Endian;
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>n_namesz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#153">self</a>.n_namesz.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/note.rs.html#153">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">n_descsz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#177">self</a>.<span class="ident">n_descsz</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#177">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>n_descsz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#158">self</a>.n_descsz.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/note.rs.html#158">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">n_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/note.rs.html#182">self</a>.<span class="ident">n_type</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/note.rs.html#182">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>n_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#163">self</a>.n_type.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/note.rs.html#163">endian</a>)
+    }
+}
+
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/elf/note.rs.html#141">NoteHeader</a> <span class="kw">for </span>elf::NoteHeader64&lt;Endian&gt; {
+    <span class="kw">type </span>Endian = Endian;
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>n_namesz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#172">self</a>.n_namesz.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/note.rs.html#172">endian</a>)
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>n_descsz(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#177">self</a>.n_descsz.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/note.rs.html#177">endian</a>)
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>n_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/note.rs.html#182">self</a>.n_type.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/note.rs.html#182">endian</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

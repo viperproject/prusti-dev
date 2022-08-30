@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/signal-hook-0.3.14/src/low_level/pipe.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pipe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../signal_hook/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../signal_hook/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../signal_hook/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/signal-hook-0.3.14/src/low_level/pipe.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pipe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../signal_hook/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../signal_hook/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../signal_hook/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -258,265 +258,265 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Module with the self-pipe pattern.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! One of the common patterns around signals is to have a pipe with both ends in the same program.</span>
-<span class="doccomment">//! Whenever there&#39;s a signal, the signal handler writes one byte of garbage data to the write end,</span>
-<span class="doccomment">//! unless the pipe&#39;s already full. The application then can handle the read end.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This has two advantages. First, the real signal action moves outside of the signal handler</span>
-<span class="doccomment">//! where there are a lot less restrictions. Second, it fits nicely in all kinds of asynchronous</span>
-<span class="doccomment">//! loops and has less chance of race conditions.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module offers premade functions for the write end (and doesn&#39;t insist that it must be a</span>
-<span class="doccomment">//! pipe ‒ anything that can be written to is fine ‒ sockets too, therefore `UnixStream::pair` is a</span>
-<span class="doccomment">//! good candidate).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! If you want to integrate with some asynchronous library, plugging streams from `mio-uds` or</span>
-<span class="doccomment">//! `tokio-uds` libraries should work.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! If it looks too low-level for your needs, the [`iterator`][crate::iterator] module contains some</span>
-<span class="doccomment">//! higher-lever interface that also uses a self-pipe pattern under the hood.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Correct order of handling</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A care needs to be taken to avoid race conditions, especially when handling the same signal in</span>
-<span class="doccomment">//! a loop. Specifically, another signal might come when the action for the previous signal is</span>
-<span class="doccomment">//! being taken. The correct order is first to clear the content of the pipe (read some/all data</span>
-<span class="doccomment">//! from it) and then take the action. This way a spurious wakeup can happen (the pipe could wake</span>
-<span class="doccomment">//! up even when no signal came after the signal was taken, because ‒ it arrived between cleaning</span>
-<span class="doccomment">//! the pipe and taking the action). Note that some OS primitives (eg. `select`) suffer from</span>
-<span class="doccomment">//! spurious wakeups themselves (they can claim a FD is readable when it is not true) and blocking</span>
-<span class="doccomment">//! `read` might return prematurely (with eg. `EINTR`).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The reverse order of first taking the action and then clearing the pipe might lose signals,</span>
-<span class="doccomment">//! which is usually worse.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This is not a problem with blocking on reading from the pipe (because both the blocking and</span>
-<span class="doccomment">//! cleaning is the same action), but in case of asynchronous handling it matters.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! If you want to combine setting some flags with a self-pipe pattern, the flag needs to be set</span>
-<span class="doccomment">//! first, then the pipe written. On the read end, first the pipe needs to be cleaned, then the</span>
-<span class="doccomment">//! flag and then the action taken. This is what the [`SignalsInfo`][crate::iterator::SignalsInfo]</span>
-<span class="doccomment">//! structure does internally.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Write collating</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! While unlikely if handled correctly, it is possible the write end is full when a signal comes.</span>
-<span class="doccomment">//! In such case the signal handler simply does nothing. If the write end is full, the read end is</span>
-<span class="doccomment">//! readable and therefore will wake up. On the other hand, blocking in the signal handler would</span>
-<span class="doccomment">//! definitely be a bad idea.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! However, this also means the number of bytes read from the end might be lower than the number</span>
-<span class="doccomment">//! of signals that arrived. This should not generally be a problem, since the OS already collates</span>
-<span class="doccomment">//! signals of the same kind together.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This example waits for at last one `SIGUSR1` signal to come before continuing (and</span>
-<span class="doccomment">//! terminating). It sends the signal to itself, so it correctly terminates.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use std::io::{Error, Read};</span>
-<span class="doccomment">//! use std::os::unix::net::UnixStream;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! use signal_hook::consts::SIGUSR1;</span>
-<span class="doccomment">//! use signal_hook::low_level::{pipe, raise};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! fn main() -&gt; Result&lt;(), Error&gt; {</span>
-<span class="doccomment">//!     let (mut read, write) = UnixStream::pair()?;</span>
-<span class="doccomment">//!     pipe::register(SIGUSR1, write)?;</span>
-<span class="doccomment">//!     // This will write into the pipe write end through the signal handler</span>
-<span class="doccomment">//!     raise(SIGUSR1).unwrap();</span>
-<span class="doccomment">//!     let mut buff = [0];</span>
-<span class="doccomment">//!     read.read_exact(&amp;mut buff)?;</span>
-<span class="doccomment">//!     println!(&quot;Happily terminating&quot;);</span>
-<span class="doccomment">//!     Ok(())</span>
-<span class="doccomment">//! }</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Module with the self-pipe pattern.
+//!
+//! One of the common patterns around signals is to have a pipe with both ends in the same program.
+//! Whenever there&#39;s a signal, the signal handler writes one byte of garbage data to the write end,
+//! unless the pipe&#39;s already full. The application then can handle the read end.
+//!
+//! This has two advantages. First, the real signal action moves outside of the signal handler
+//! where there are a lot less restrictions. Second, it fits nicely in all kinds of asynchronous
+//! loops and has less chance of race conditions.
+//!
+//! This module offers premade functions for the write end (and doesn&#39;t insist that it must be a
+//! pipe ‒ anything that can be written to is fine ‒ sockets too, therefore `UnixStream::pair` is a
+//! good candidate).
+//!
+//! If you want to integrate with some asynchronous library, plugging streams from `mio-uds` or
+//! `tokio-uds` libraries should work.
+//!
+//! If it looks too low-level for your needs, the [`iterator`][crate::iterator] module contains some
+//! higher-lever interface that also uses a self-pipe pattern under the hood.
+//!
+//! # Correct order of handling
+//!
+//! A care needs to be taken to avoid race conditions, especially when handling the same signal in
+//! a loop. Specifically, another signal might come when the action for the previous signal is
+//! being taken. The correct order is first to clear the content of the pipe (read some/all data
+//! from it) and then take the action. This way a spurious wakeup can happen (the pipe could wake
+//! up even when no signal came after the signal was taken, because ‒ it arrived between cleaning
+//! the pipe and taking the action). Note that some OS primitives (eg. `select`) suffer from
+//! spurious wakeups themselves (they can claim a FD is readable when it is not true) and blocking
+//! `read` might return prematurely (with eg. `EINTR`).
+//!
+//! The reverse order of first taking the action and then clearing the pipe might lose signals,
+//! which is usually worse.
+//!
+//! This is not a problem with blocking on reading from the pipe (because both the blocking and
+//! cleaning is the same action), but in case of asynchronous handling it matters.
+//!
+//! If you want to combine setting some flags with a self-pipe pattern, the flag needs to be set
+//! first, then the pipe written. On the read end, first the pipe needs to be cleaned, then the
+//! flag and then the action taken. This is what the [`SignalsInfo`][crate::iterator::SignalsInfo]
+//! structure does internally.
+//!
+//! # Write collating
+//!
+//! While unlikely if handled correctly, it is possible the write end is full when a signal comes.
+//! In such case the signal handler simply does nothing. If the write end is full, the read end is
+//! readable and therefore will wake up. On the other hand, blocking in the signal handler would
+//! definitely be a bad idea.
+//!
+//! However, this also means the number of bytes read from the end might be lower than the number
+//! of signals that arrived. This should not generally be a problem, since the OS already collates
+//! signals of the same kind together.
+//!
+//! # Examples
+//!
+//! This example waits for at last one `SIGUSR1` signal to come before continuing (and
+//! terminating). It sends the signal to itself, so it correctly terminates.
+//!
+//! ```rust
+//! use std::io::{Error, Read};
+//! use std::os::unix::net::UnixStream;
+//!
+//! use signal_hook::consts::SIGUSR1;
+//! use signal_hook::low_level::{pipe, raise};
+//!
+//! fn main() -&gt; Result&lt;(), Error&gt; {
+//!     let (mut read, write) = UnixStream::pair()?;
+//!     pipe::register(SIGUSR1, write)?;
+//!     // This will write into the pipe write end through the signal handler
+//!     raise(SIGUSR1).unwrap();
+//!     let mut buff = [0];
+//!     read.read_exact(&amp;mut buff)?;
+//!     println!(&quot;Happily terminating&quot;);
+//!     Ok(())
+//! }
 
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>};
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+</span><span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>};
+<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
 
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="self" href="../../../libc/index.html">self</a>, <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>};
+<span class="kw">use </span>libc::{<a class="self" href="../../../libc/index.html">self</a>, <a href="../../../libc/unix/type.c_int.html">c_int</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../signal_hook/struct.SigId.html"><span class="kw">crate</span>::SigId</a>;
+<span class="kw">use </span><a href="../../../signal_hook/struct.SigId.html"><span class="kw">crate</span>::SigId</a>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">WakeMethod</span> {
-    <span class="ident">Send</span>,
-    <span class="ident">Write</span>,
+<span class="attribute">#[derive(Copy, Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>WakeMethod {
+    Send,
+    Write,
 }
 
-<span class="kw">struct</span> <span class="ident">WakeFd</span> {
-    <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    <span class="ident">method</span>: <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#85">WakeMethod</a>,
+<span class="kw">struct </span>WakeFd {
+    fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
+    method: <a href="../../../src/signal_hook/low_level/pipe.rs.html#85">WakeMethod</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
-    <span class="doccomment">/// Sets close on exec and nonblock on the inner file descriptor.</span>
-    <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">libc::fcntl</span>(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#97">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <span class="ident">libc::F_GETFL</span>, <span class="number">0</span>);
-            <span class="kw">if</span> <span class="ident">flags</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>());
+<span class="kw">impl </span><a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
+    <span class="doccomment">/// Sets close on exec and nonblock on the inner file descriptor.
+    </span><span class="kw">fn </span>set_flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>flags = libc::fcntl(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#97">self</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), libc::F_GETFL, <span class="number">0</span>);
+            <span class="kw">if </span>flags == -<span class="number">1 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error());
             }
-            <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#99">flags</a> <span class="op">|</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/constant.O_NONBLOCK.html">libc::O_NONBLOCK</a> <span class="op">|</span> <span class="ident">libc::O_CLOEXEC</span>;
-            <span class="kw">if</span> <span class="ident">libc::fcntl</span>(<span class="self">self</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">libc::F_SETFL</span>, <span class="ident">flags</span>) <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>());
+            <span class="kw">let </span>flags = <a href="../../../src/signal_hook/low_level/pipe.rs.html#99">flags</a> | <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/constant.O_NONBLOCK.html">libc::O_NONBLOCK</a> | libc::O_CLOEXEC;
+            <span class="kw">if </span>libc::fcntl(<span class="self">self</span>.as_raw_fd(), libc::F_SETFL, flags) == -<span class="number">1 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error());
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
-    <span class="kw">fn</span> <span class="ident">wake</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#129">wake</a>(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#110">self</a>.<span class="ident">fd</span>, <a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#110">self</a>.<span class="ident">method</span>);
+    <span class="kw">fn </span>wake(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a href="../../../src/signal_hook/low_level/pipe.rs.html#129">wake</a>(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#110">self</a>.fd, <a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#110">self</a>.method);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#116">self</a>.<span class="ident">fd</span>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#116">self</a>.fd
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">libc::close</span>(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#122">self</a>.<span class="ident">fd</span>);
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            libc::close(<a class="self" href="../../../src/signal_hook/low_level/pipe.rs.html#122">self</a>.fd);
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">wake</span>(<span class="ident">pipe</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">method</span>: <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#85">WakeMethod</a>) {
-    <span class="kw">unsafe</span> {
-        <span class="comment">// This writes some data into the pipe.</span>
-        <span class="comment">//</span>
-        <span class="comment">// There are two tricks:</span>
-        <span class="comment">// * First, the crazy cast. The first part turns reference into pointer. The second part</span>
-        <span class="comment">//   turns pointer to u8 into a pointer to void, which is what write requires.</span>
-        <span class="comment">// * Second, we ignore errors, on purpose. We don&#39;t have any means to handling them. The</span>
-        <span class="comment">//   two conceivable errors are EBADFD, if someone passes a non-existent file descriptor or</span>
-        <span class="comment">//   if it is closed. The second is EAGAIN, in which case the pipe is full ‒ there were</span>
-        <span class="comment">//   many signals, but the reader didn&#39;t have time to read the data yet. It&#39;ll still get</span>
-        <span class="comment">//   woken up, so not fitting another letter in it is fine.</span>
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">b&quot;X&quot;</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>;
-        <span class="kw">match</span> <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#129">method</a> {
-            <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#87">WakeMethod::Write</a> =&gt; <a class="ident" href="../../../libc/unix/fn.write.html">libc::write</a>(<a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#129">pipe</a>, <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#141">data</a>, <span class="number">1</span>),
-            <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#86">WakeMethod::Send</a> =&gt; <a class="ident" href="../../../libc/unix/fn.send.html">libc::send</a>(<a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#129">pipe</a>, <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#141">data</a>, <span class="number">1</span>, <a class="ident" href="../../../libc/unix/linux_like/constant.MSG_DONTWAIT.html">libc::MSG_DONTWAIT</a>),
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wake(pipe: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, method: <a href="../../../src/signal_hook/low_level/pipe.rs.html#85">WakeMethod</a>) {
+    <span class="kw">unsafe </span>{
+        <span class="comment">// This writes some data into the pipe.
+        //
+        // There are two tricks:
+        // * First, the crazy cast. The first part turns reference into pointer. The second part
+        //   turns pointer to u8 into a pointer to void, which is what write requires.
+        // * Second, we ignore errors, on purpose. We don&#39;t have any means to handling them. The
+        //   two conceivable errors are EBADFD, if someone passes a non-existent file descriptor or
+        //   if it is closed. The second is EAGAIN, in which case the pipe is full ‒ there were
+        //   many signals, but the reader didn&#39;t have time to read the data yet. It&#39;ll still get
+        //   woken up, so not fitting another letter in it is fine.
+        </span><span class="kw">let </span>data = <span class="string">b&quot;X&quot; </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span><span class="kw">_</span>;
+        <span class="kw">match </span><a href="../../../src/signal_hook/low_level/pipe.rs.html#129">method</a> {
+            <a href="../../../src/signal_hook/low_level/pipe.rs.html#87">WakeMethod::Write</a> =&gt; <a href="../../../libc/unix/fn.write.html">libc::write</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#129">pipe</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#141">data</a>, <span class="number">1</span>),
+            <a href="../../../src/signal_hook/low_level/pipe.rs.html#86">WakeMethod::Send</a> =&gt; <a href="../../../libc/unix/fn.send.html">libc::send</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#129">pipe</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#141">data</a>, <span class="number">1</span>, <a href="../../../libc/unix/linux_like/constant.MSG_DONTWAIT.html">libc::MSG_DONTWAIT</a>),
         };
     }
 }
 
-<span class="doccomment">/// Registers a write to a self-pipe whenever there&#39;s the signal.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In this case, the pipe is taken as the `RawFd`. It&#39;ll be closed on deregistration. Effectively,</span>
-<span class="doccomment">/// the function takes ownership of the file descriptor. This includes feeling free to set arbitrary</span>
-<span class="doccomment">/// flags on it, including file status flags (that are shared across file descriptors created by</span>
-<span class="doccomment">/// `dup`).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that passing the wrong file descriptor won&#39;t cause UB, but can still lead to severe bugs ‒</span>
-<span class="doccomment">/// like data corruptions in files. Prefer using [`register`] if possible.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Also, it is perfectly legal for multiple writes to be collated together (if not consumed) and</span>
-<span class="doccomment">/// to generate spurious wakeups (but will not generate spurious *bytes* in the pipe).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Internal details</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Internally, it *currently* does following. Note that this is *not* part of the stability</span>
-<span class="doccomment">/// guarantees and may change if necessary.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * If the file descriptor can be used with [`send`][libc::send], it&#39;ll be used together with</span>
-<span class="doccomment">///   [`MSG_DONTWAIT`][libc::MSG_DONTWAIT]. This is tested by sending `0` bytes of data (depending</span>
-<span class="doccomment">///   on the socket type, this might wake the read end with an empty message).</span>
-<span class="doccomment">/// * If it is not possible, the [`O_NONBLOCK`][libc::O_NONBLOCK] will be set on the file</span>
-<span class="doccomment">///   descriptor and [`write`][libc::write] will be used instead.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_raw</span>(<span class="ident">signal</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">pipe</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../signal_hook/struct.SigId.html">SigId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../libc/unix/fn.send.html">libc::send</a>(<a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>, <span class="kw-2">&amp;</span>[] <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <span class="number">0</span>, <a class="ident" href="../../../libc/unix/linux_like/constant.MSG_DONTWAIT.html">libc::MSG_DONTWAIT</a>) };
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#173">res</a>, <span class="ident">Error::last_os_error</span>().<span class="ident">kind</span>()) {
-        (<span class="number">0</span>, <span class="kw">_</span>) <span class="op">|</span> (<span class="op">-</span><span class="number">1</span>, <span class="ident">ErrorKind::WouldBlock</span>) =&gt; <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
-            <span class="ident">fd</span>: <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>,
-            <span class="ident">method</span>: <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#86">WakeMethod::Send</a>,
+<span class="doccomment">/// Registers a write to a self-pipe whenever there&#39;s the signal.
+///
+/// In this case, the pipe is taken as the `RawFd`. It&#39;ll be closed on deregistration. Effectively,
+/// the function takes ownership of the file descriptor. This includes feeling free to set arbitrary
+/// flags on it, including file status flags (that are shared across file descriptors created by
+/// `dup`).
+///
+/// Note that passing the wrong file descriptor won&#39;t cause UB, but can still lead to severe bugs ‒
+/// like data corruptions in files. Prefer using [`register`] if possible.
+///
+/// Also, it is perfectly legal for multiple writes to be collated together (if not consumed) and
+/// to generate spurious wakeups (but will not generate spurious *bytes* in the pipe).
+///
+/// # Internal details
+///
+/// Internally, it *currently* does following. Note that this is *not* part of the stability
+/// guarantees and may change if necessary.
+///
+/// * If the file descriptor can be used with [`send`][libc::send], it&#39;ll be used together with
+///   [`MSG_DONTWAIT`][libc::MSG_DONTWAIT]. This is tested by sending `0` bytes of data (depending
+///   on the socket type, this might wake the read end with an empty message).
+/// * If it is not possible, the [`O_NONBLOCK`][libc::O_NONBLOCK] will be set on the file
+///   descriptor and [`write`][libc::write] will be used instead.
+</span><span class="kw">pub fn </span>register_raw(signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>, pipe: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../signal_hook/struct.SigId.html">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ <a href="../../../libc/unix/fn.send.html">libc::send</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>, <span class="kw-2">&amp;</span>[] <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <span class="number">0</span>, <a href="../../../libc/unix/linux_like/constant.MSG_DONTWAIT.html">libc::MSG_DONTWAIT</a>) };
+    <span class="kw">let </span>fd = <span class="kw">match </span>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#173">res</a>, Error::last_os_error().kind()) {
+        (<span class="number">0</span>, <span class="kw">_</span>) | (-<span class="number">1</span>, ErrorKind::WouldBlock) =&gt; <a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
+            fd: <a href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>,
+            method: <a href="../../../src/signal_hook/low_level/pipe.rs.html#86">WakeMethod::Send</a>,
         },
-        <span class="kw">_</span> =&gt; {
-            <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
-                <span class="ident">fd</span>: <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>,
-                <span class="ident">method</span>: <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#87">WakeMethod::Write</a>,
+        <span class="kw">_ </span>=&gt; {
+            <span class="kw">let </span>fd = <a href="../../../src/signal_hook/low_level/pipe.rs.html#90">WakeFd</a> {
+                fd: <a href="../../../src/signal_hook/low_level/pipe.rs.html#172">pipe</a>,
+                method: <a href="../../../src/signal_hook/low_level/pipe.rs.html#87">WakeMethod::Write</a>,
             };
-            <span class="ident">fd</span>.<span class="ident">set_flags</span>()<span class="question-mark">?</span>;
-            <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#180">fd</a>
+            fd.set_flags()<span class="question-mark">?</span>;
+            <a href="../../../src/signal_hook/low_level/pipe.rs.html#180">fd</a>
         }
     };
-    <span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#174">fd</a>.<a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#110">wake</a>();
-    <span class="kw">unsafe</span> { <a class="ident" href="../../../signal_hook/low_level/fn.register.html"><span class="kw">super</span>::register</a>(<a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#172">signal</a>, <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#188">action</a>) }
+    <span class="kw">let </span>action = <span class="kw">move </span>|| <a href="../../../src/signal_hook/low_level/pipe.rs.html#174">fd</a>.<a href="../../../src/signal_hook/low_level/pipe.rs.html#110">wake</a>();
+    <span class="kw">unsafe </span>{ <a href="../../../signal_hook/low_level/fn.register.html"><span class="kw">super</span>::register</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#172">signal</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#188">action</a>) }
 }
 
-<span class="doccomment">/// Registers a write to a self-pipe whenever there&#39;s the signal.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The ownership of pipe is taken and will be closed whenever the created action is unregistered.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that if you want to register the same pipe for multiple signals, there&#39;s `try_clone`</span>
-<span class="doccomment">/// method on many unix socket primitives.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`register_raw`] for further details.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">signal</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">pipe</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../signal_hook/struct.SigId.html">SigId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Registers a write to a self-pipe whenever there&#39;s the signal.
+///
+/// The ownership of pipe is taken and will be closed whenever the created action is unregistered.
+///
+/// Note that if you want to register the same pipe for multiple signals, there&#39;s `try_clone`
+/// method on many unix socket primitives.
+///
+/// See [`register_raw`] for further details.
+</span><span class="kw">pub fn </span>register&lt;P&gt;(signal: <a href="../../../libc/unix/type.c_int.html">c_int</a>, pipe: P) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../signal_hook/struct.SigId.html">SigId</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;
+<span class="kw">where
+    </span>P: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#172">register_raw</a>(<a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#200">signal</a>, <a class="ident" href="../../../src/signal_hook/low_level/pipe.rs.html#200">pipe</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
+    <a href="../../../src/signal_hook/low_level/pipe.rs.html#172">register_raw</a>(<a href="../../../src/signal_hook/low_level/pipe.rs.html#200">signal</a>, <a href="../../../src/signal_hook/low_level/pipe.rs.html#200">pipe</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::io::Read</span>;
-    <span class="kw">use</span> <span class="ident">std::os::unix::net</span>::{<span class="ident">UnixDatagram</span>, <span class="ident">UnixStream</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::io::Read;
+    <span class="kw">use </span>std::os::unix::net::{UnixDatagram, UnixStream};
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="comment">// Note: multiple tests share the SIGUSR1 signal. This is fine, we only need to know the signal</span>
-    <span class="comment">// arrives. It&#39;s OK to arrive multiple times, from multiple tests.</span>
-    <span class="kw">fn</span> <span class="ident">wakeup</span>() {
-        <span class="ident"><span class="kw">crate</span>::low_level::raise</span>(<span class="ident">libc::SIGUSR1</span>).<span class="ident">unwrap</span>();
+    <span class="comment">// Note: multiple tests share the SIGUSR1 signal. This is fine, we only need to know the signal
+    // arrives. It&#39;s OK to arrive multiple times, from multiple tests.
+    </span><span class="kw">fn </span>wakeup() {
+        <span class="kw">crate</span>::low_level::raise(libc::SIGUSR1).unwrap();
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">register_with_socket</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">read</span>, <span class="ident">write</span>) <span class="op">=</span> <span class="ident">UnixStream::pair</span>()<span class="question-mark">?</span>;
-        <span class="ident">register</span>(<span class="ident">libc::SIGUSR1</span>, <span class="ident">write</span>)<span class="question-mark">?</span>;
-        <span class="ident">wakeup</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buff</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span>];
-        <span class="ident">read</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buff</span>)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq!</span>(<span class="string">b&quot;X&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">buff</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>register_with_socket() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>read, write) = UnixStream::pair()<span class="question-mark">?</span>;
+        register(libc::SIGUSR1, write)<span class="question-mark">?</span>;
+        wakeup();
+        <span class="kw">let </span><span class="kw-2">mut </span>buff = [<span class="number">0</span>; <span class="number">1</span>];
+        read.read_exact(<span class="kw-2">&amp;mut </span>buff)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq!</span>(<span class="string">b&quot;X&quot;</span>, <span class="kw-2">&amp;</span>buff);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">register_dgram_socket</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">write</span>) <span class="op">=</span> <span class="ident">UnixDatagram::pair</span>()<span class="question-mark">?</span>;
-        <span class="ident">register</span>(<span class="ident">libc::SIGUSR1</span>, <span class="ident">write</span>)<span class="question-mark">?</span>;
-        <span class="ident">wakeup</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buff</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span>];
-        <span class="comment">// The attempt to detect if it is socket can generate an empty message. Therefore, do a few</span>
-        <span class="comment">// retries.</span>
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">read</span>.<span class="ident">recv</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buff</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">buff</span> <span class="op">==</span> <span class="string">b&quot;X&quot;</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="attribute">#[test]
+    #[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
+    </span><span class="kw">fn </span>register_dgram_socket() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>(read, write) = UnixDatagram::pair()<span class="question-mark">?</span>;
+        register(libc::SIGUSR1, write)<span class="question-mark">?</span>;
+        wakeup();
+        <span class="kw">let </span><span class="kw-2">mut </span>buff = [<span class="number">0</span>; <span class="number">1</span>];
+        <span class="comment">// The attempt to detect if it is socket can generate an empty message. Therefore, do a few
+        // retries.
+        </span><span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
+            <span class="kw">let </span>len = read.recv(<span class="kw-2">&amp;mut </span>buff)<span class="question-mark">?</span>;
+            <span class="kw">if </span>len == <span class="number">1 </span>&amp;&amp; <span class="kw-2">&amp;</span>buff == <span class="string">b&quot;X&quot; </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
         }
         <span class="macro">panic!</span>(<span class="string">&quot;Haven&#39;t received the right data&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">register_with_pipe</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fds</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
-        <span class="kw">unsafe</span> { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">libc::pipe</span>(<span class="ident">fds</span>.<span class="ident">as_mut_ptr</span>())) };
-        <span class="ident">register_raw</span>(<span class="ident">libc::SIGUSR1</span>, <span class="ident">fds</span>[<span class="number">1</span>])<span class="question-mark">?</span>;
-        <span class="ident">wakeup</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buff</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span>];
-        <span class="kw">unsafe</span> { <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">libc::read</span>(<span class="ident">fds</span>[<span class="number">0</span>], <span class="ident">buff</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="number">1</span>)) }
-        <span class="macro">assert_eq!</span>(<span class="string">b&quot;X&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">buff</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>register_with_pipe() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>fds = [<span class="number">0</span>; <span class="number">2</span>];
+        <span class="kw">unsafe </span>{ <span class="macro">assert_eq!</span>(<span class="number">0</span>, libc::pipe(fds.as_mut_ptr())) };
+        register_raw(libc::SIGUSR1, fds[<span class="number">1</span>])<span class="question-mark">?</span>;
+        wakeup();
+        <span class="kw">let </span><span class="kw-2">mut </span>buff = [<span class="number">0</span>; <span class="number">1</span>];
+        <span class="kw">unsafe </span>{ <span class="macro">assert_eq!</span>(<span class="number">1</span>, libc::read(fds[<span class="number">0</span>], buff.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="number">1</span>)) }
+        <span class="macro">assert_eq!</span>(<span class="string">b&quot;X&quot;</span>, <span class="kw-2">&amp;</span>buff);
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

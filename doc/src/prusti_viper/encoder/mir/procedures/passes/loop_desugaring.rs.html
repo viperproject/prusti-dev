@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/passes/loop_desugaring.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loop_desugaring.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/passes/loop_desugaring.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loop_desugaring.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -212,219 +212,219 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
-    <span class="ident">errors</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
-    <a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#65">Encoder</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
+    errors::{<a href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>, <a href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
+    <a href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
+    <a href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#65">Encoder</a>,
 };
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
-<span class="kw">use</span> <span class="ident">vir_crate</span>::{
-    <a class="ident" href="../../../../../../vir/common/cfg/trait.Cfg.html">common::cfg::Cfg</a>,
-    <span class="ident">high</span>::{
-        <a class="self" href="../../../../../../vir/high/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_high</span>,
-        <span class="ident">ast</span>::{<a class="ident" href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">expression::visitors::ExpressionFolder</a>, <a class="ident" href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">statement::visitors::StatementFolder</a>},
+<span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
+<span class="kw">use </span>vir_crate::{
+    <a href="../../../../../../vir/common/cfg/trait.Cfg.html">common::cfg::Cfg</a>,
+    high::{
+        <span class="self"><a href="../../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir_high,
+        ast::{<a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">expression::visitors::ExpressionFolder</a>, <a href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">statement::visitors::StatementFolder</a>},
     },
 };
 
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">desugar_loops</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span>(
-    <span class="ident">encoder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="kw-2">mut</span> <span class="ident">procedure</span>: <a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a>,
-) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">invariant_block_id</span>, <span class="ident">loop_invariant</span>)) <span class="op">=</span> <span class="ident">find_loop_invariant</span>(<span class="kw-2">&amp;</span><span class="ident">procedure</span>) {
-        <span class="kw">let</span> <span class="ident">loop_head</span> <span class="op">=</span> <span class="ident">loop_invariant</span>.<span class="ident">loop_head</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">back_edges</span> <span class="op">=</span> <span class="ident">loop_invariant</span>.<span class="ident">back_edges</span>.<span class="ident">clone</span>();
+<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>desugar_loops&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(
+    encoder: <span class="kw-2">&amp;mut </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+    <span class="kw-2">mut </span>procedure: <a href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a>,
+) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>is_first = <span class="bool-val">true</span>;
+    <span class="kw">while let </span><span class="prelude-val">Some</span>((invariant_block_id, loop_invariant)) = find_loop_invariant(<span class="kw-2">&amp;</span>procedure) {
+        <span class="kw">let </span>loop_head = loop_invariant.loop_head.clone();
+        <span class="kw">let </span>back_edges = loop_invariant.back_edges.clone();
 
-        <span class="kw">if</span> <span class="ident">is_first</span> {
-            <span class="ident">is_first</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">let</span> <span class="ident">leak</span> <span class="op">=</span> <span class="ident">vir_high::BasicBlock</span> {
-                <span class="ident">statements</span>: <span class="macro">vec!</span>[<span class="ident">vir_high::Statement::leak_all</span>()],
-                <span class="ident">successor</span>: <span class="ident">vir_high::Successor::Goto</span>(<span class="ident">procedure</span>.<span class="ident">exit</span>.<span class="ident">clone</span>()),
+        <span class="kw">if </span>is_first {
+            is_first = <span class="bool-val">false</span>;
+            <span class="kw">let </span>leak = vir_high::BasicBlock {
+                statements: <span class="macro">vec!</span>[vir_high::Statement::leak_all()],
+                successor: vir_high::Successor::Goto(procedure.exit.clone()),
             };
-            <span class="macro">assert!</span>(<span class="ident">procedure</span>
-                .<span class="ident">basic_blocks</span>
-                .<span class="ident">insert</span>(<span class="ident">construct_magic_label</span>(), <span class="ident">leak</span>)
-                .<span class="ident">is_none</span>());
+            <span class="macro">assert!</span>(procedure
+                .basic_blocks
+                .insert(construct_magic_label(), leak)
+                .is_none());
         }
 
-        <span class="kw">let</span> <span class="ident">duplicated_loop_head</span> <span class="op">=</span>
-            <span class="ident">duplicate_blocks</span>(<span class="ident">encoder</span>, <span class="kw-2">&amp;mut</span> <span class="ident">procedure</span>, <span class="kw-2">&amp;</span><span class="ident">invariant_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">loop_head</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>duplicated_loop_head =
+            duplicate_blocks(encoder, <span class="kw-2">&amp;mut </span>procedure, <span class="kw-2">&amp;</span>invariant_block_id, <span class="kw-2">&amp;</span>loop_head)<span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <span class="ident">back_edge</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">back_edges</span> {
-            <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">procedure</span>.<span class="ident">basic_blocks</span>.<span class="ident">get_mut</span>(<span class="ident">back_edge</span>).<span class="ident">unwrap</span>();
-            <span class="ident">block</span>.<span class="ident">successor</span>.<span class="ident">map_basic_block_ids</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="ident">bb</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">loop_head</span> {
-                    <span class="kw-2">*</span><span class="ident">bb</span> <span class="op">=</span> <span class="ident">duplicated_loop_head</span>.<span class="ident">clone</span>()
+        <span class="kw">for </span>back_edge <span class="kw">in </span><span class="kw-2">&amp;</span>back_edges {
+            <span class="kw">let </span>block = procedure.basic_blocks.get_mut(back_edge).unwrap();
+            block.successor.map_basic_block_ids(|bb| {
+                <span class="kw">if </span>bb == <span class="kw-2">&amp;</span>loop_head {
+                    <span class="kw-2">*</span>bb = duplicated_loop_head.clone()
                 }
             });
         }
 
-        <span class="kw">let</span> <span class="ident">invariant_block</span> <span class="op">=</span> <span class="ident">procedure</span>.<span class="ident">basic_blocks</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">invariant_block_id</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">loop_invariant</span> <span class="op">=</span> <span class="ident">invariant_block</span>
-            .<span class="ident">statements</span>
-            .<span class="ident">pop</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">unwrap_loop_invariant</span>();
+        <span class="kw">let </span>invariant_block = procedure.basic_blocks.get_mut(<span class="kw-2">&amp;</span>invariant_block_id).unwrap();
+        <span class="kw">let </span>loop_invariant = invariant_block
+            .statements
+            .pop()
+            .unwrap()
+            .unwrap_loop_invariant();
 
-        <span class="ident">invariant_block</span>
-            .<span class="ident">statements</span>
-            .<span class="ident">push</span>(<span class="ident">vir_high::Statement::comment</span>(
-                <span class="string">&quot;Loop Invariant Functional Specifications&quot;</span>.<span class="ident">to_string</span>(),
+        invariant_block
+            .statements
+            .push(vir_high::Statement::comment(
+                <span class="string">&quot;Loop Invariant Functional Specifications&quot;</span>.to_string(),
             ));
-        <span class="kw">for</span> <span class="ident">assertion</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">loop_invariant</span>.<span class="ident">functional_specifications</span> {
-            <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">set_surrounding_error_context_for_statement</span>(
-                <span class="ident">vir_high::Statement::assert_no_pos</span>(<span class="ident">assertion</span>.<span class="ident">clone</span>()),
-                <span class="ident">loop_invariant</span>.<span class="ident">position</span>,
-                <span class="ident">ErrorCtxt::AssertLoopInvariantOnEntry</span>,
+        <span class="kw">for </span>assertion <span class="kw">in </span><span class="kw-2">&amp;</span>loop_invariant.functional_specifications {
+            <span class="kw">let </span>statement = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::assert_no_pos(assertion.clone()),
+                loop_invariant.position,
+                ErrorCtxt::AssertLoopInvariantOnEntry,
             )<span class="question-mark">?</span>;
-            <span class="ident">invariant_block</span>.<span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">statement</span>);
+            invariant_block.statements.push(statement);
         }
 
-        <span class="comment">// Note: It is important for soundness that we havoc here everything</span>
-        <span class="comment">// that could potentially be mutated in the loop body. This means that</span>
-        <span class="comment">// we should always fully havoc all aliased memory.</span>
+        <span class="comment">// Note: It is important for soundness that we havoc here everything
+        // that could potentially be mutated in the loop body. This means that
+        // we should always fully havoc all aliased memory.
 
-        <span class="ident">invariant_block</span>
-            .<span class="ident">statements</span>
-            .<span class="ident">push</span>(<span class="ident">vir_high::Statement::comment</span>(
-                <span class="string">&quot;Loop Invariant Maybe Modified Places&quot;</span>.<span class="ident">to_string</span>(),
+        </span>invariant_block
+            .statements
+            .push(vir_high::Statement::comment(
+                <span class="string">&quot;Loop Invariant Maybe Modified Places&quot;</span>.to_string(),
             ));
-        <span class="kw">for</span> <span class="ident">predicate</span> <span class="kw">in</span> <span class="ident">loop_invariant</span>.<span class="ident">maybe_modified_places</span> {
-            <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">set_surrounding_error_context_for_statement</span>(
-                <span class="ident">vir_high::Statement::havoc_no_pos</span>(<span class="ident">predicate</span>),
-                <span class="ident">loop_invariant</span>.<span class="ident">position</span>,
-                <span class="ident">ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry</span>,
+        <span class="kw">for </span>predicate <span class="kw">in </span>loop_invariant.maybe_modified_places {
+            <span class="kw">let </span>statement = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::havoc_no_pos(predicate),
+                loop_invariant.position,
+                ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry,
             )<span class="question-mark">?</span>;
-            <span class="ident">invariant_block</span>.<span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">statement</span>);
+            invariant_block.statements.push(statement);
         }
 
-        <span class="kw">for</span> <span class="ident">assertion</span> <span class="kw">in</span> <span class="ident">loop_invariant</span>.<span class="ident">functional_specifications</span> {
-            <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">set_surrounding_error_context_for_statement</span>(
-                <span class="ident">vir_high::Statement::assume_no_pos</span>(<span class="ident">assertion</span>),
-                <span class="ident">loop_invariant</span>.<span class="ident">position</span>,
-                <span class="ident">ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry</span>,
+        <span class="kw">for </span>assertion <span class="kw">in </span>loop_invariant.functional_specifications {
+            <span class="kw">let </span>statement = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::assume_no_pos(assertion),
+                loop_invariant.position,
+                ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry,
             )<span class="question-mark">?</span>;
-            <span class="ident">invariant_block</span>.<span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">statement</span>);
+            invariant_block.statements.push(statement);
         }
     }
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#17">procedure</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#17">procedure</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">find_loop_invariant</span>(
-    <span class="ident">procedure</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/statement/struct.LoopInvariant.html">vir_high::LoopInvariant</a>)<span class="op">&gt;</span> {
-    <span class="kw">for</span> (<span class="ident">bb</span>, <span class="kw">_</span>, <span class="ident">statement</span>) <span class="kw">in</span> <span class="ident">procedure</span>.<span class="ident">iter_statements</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir_high::Statement::LoopInvariant</span>(<span class="ident">loop_invariant</span>) <span class="op">=</span> <span class="ident">statement</span> {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">bb</span>.<span class="ident">clone</span>(), <span class="ident">loop_invariant</span>));
+<span class="kw">fn </span>find_loop_invariant(
+    procedure: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a>,
+) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>, <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/ast/statement/struct.LoopInvariant.html">vir_high::LoopInvariant</a>)&gt; {
+    <span class="kw">for </span>(bb, <span class="kw">_</span>, statement) <span class="kw">in </span>procedure.iter_statements() {
+        <span class="kw">if let </span>vir_high::Statement::LoopInvariant(loop_invariant) = statement {
+            <span class="kw">return </span><span class="prelude-val">Some</span>((bb.clone(), loop_invariant));
         }
     }
-    <span class="prelude-val">None</span>
-}
+    <span class="prelude-val">None
+</span>}
 
-<span class="kw">fn</span> <span class="ident">duplicate_blocks</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span>(
-    <span class="ident">encoder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">procedure</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a>,
-    <span class="ident">invariant_block</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>,
-    <span class="ident">loop_head</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>,
-) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">blocks_to_duplicate</span>, <span class="ident">old_labels_remap</span>) <span class="op">=</span> {
-        <span class="kw">let</span> <span class="ident">predecessors</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#112">procedure</a>.<a class="ident" href="../../../../../../vir/common/cfg/trait.Cfg.html">predecessors</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_labels_remap</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocks_to_duplicate</span> <span class="op">=</span> <span class="ident">BTreeSet::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_queue</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">invariant_block</span>];
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <span class="ident">work_queue</span>.<span class="ident">pop</span>() {
-            <span class="ident">blocks_to_duplicate</span>.<span class="ident">insert</span>(<span class="ident">block</span>.<span class="ident">clone</span>());
-            <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">procedure</span>.<span class="ident">basic_blocks</span>[<span class="ident">block</span>].<span class="ident">statements</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir_high::Statement::OldLabel</span>(<span class="ident">label</span>) <span class="op">=</span> <span class="ident">statement</span> {
-                    <span class="macro">assert!</span>(<span class="ident">old_labels_remap</span>
-                        .<span class="ident">insert</span>(
-                            <span class="ident">label</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
-                            <span class="macro">format!</span>(<span class="string">&quot;loop__{}__{}&quot;</span>, <span class="ident">loop_head</span>, <span class="ident">label</span>.<span class="ident">name</span>)
+<span class="kw">fn </span>duplicate_blocks&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(
+    encoder: <span class="kw-2">&amp;mut </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+    procedure: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a>,
+    invariant_block: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>,
+    loop_head: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>,
+) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>&gt; {
+    <span class="kw">let </span>(blocks_to_duplicate, old_labels_remap) = {
+        <span class="kw">let </span>predecessors = <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#112">procedure</a>.<a href="../../../../../../vir/common/cfg/trait.Cfg.html">predecessors</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>old_labels_remap = BTreeMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>blocks_to_duplicate = BTreeSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>work_queue = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[invariant_block];
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(block) = work_queue.pop() {
+            blocks_to_duplicate.insert(block.clone());
+            <span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;</span>procedure.basic_blocks[block].statements {
+                <span class="kw">if let </span>vir_high::Statement::OldLabel(label) = statement {
+                    <span class="macro">assert!</span>(old_labels_remap
+                        .insert(
+                            label.name.clone(),
+                            <span class="macro">format!</span>(<span class="string">&quot;loop__{}__{}&quot;</span>, loop_head, label.name)
                         )
-                        .<span class="ident">is_none</span>());
+                        .is_none());
                 }
             }
-            <span class="kw">if</span> <span class="ident">block</span> <span class="op">!</span><span class="op">=</span> <span class="ident">loop_head</span> {
-                <span class="ident">work_queue</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">predecessors</span>[<span class="ident">block</span>]);
+            <span class="kw">if </span>block != loop_head {
+                work_queue.extend(<span class="kw-2">&amp;</span>predecessors[block]);
             }
         }
-        (<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#119">blocks_to_duplicate</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#118">old_labels_remap</a>)
+        (<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#119">blocks_to_duplicate</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#118">old_labels_remap</a>)
     };
-    <span class="kw">let</span> <span class="ident">new_label</span> <span class="op">=</span> <span class="op">|</span><span class="ident">bb</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a><span class="op">|</span> {
-        <span class="kw">if</span> <span class="ident">blocks_to_duplicate</span>.<span class="ident">contains</span>(<span class="ident">bb</span>) {
-            <span class="ident">vir_high::BasicBlockId::new</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;loop__{}__{}&quot;</span>, <span class="ident">loop_head</span>, <span class="ident">bb</span>))
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#139">bb</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    <span class="kw">let </span>new_label = |bb: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>| {
+        <span class="kw">if </span>blocks_to_duplicate.contains(bb) {
+            vir_high::BasicBlockId::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;loop__{}__{}&quot;</span>, loop_head, bb))
+        } <span class="kw">else </span>{
+            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#139">bb</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }
     };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">updater</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> { <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#116">old_labels_remap</a> };
-    <span class="kw">for</span> <span class="ident">bb</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">blocks_to_duplicate</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">procedure</span>.<span class="ident">basic_blocks</span>[<span class="ident">bb</span>].<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="ident">bb</span> <span class="op">==</span> <span class="ident">invariant_block</span> {
-            <span class="kw">let</span> <span class="ident">loop_invariant</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_loop_invariant</span>();
-            <span class="kw">for</span> <span class="ident">assertion</span> <span class="kw">in</span> <span class="ident">loop_invariant</span>.<span class="ident">functional_specifications</span> {
-                <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">set_surrounding_error_context_for_statement</span>(
-                    <span class="ident">vir_high::Statement::assert_no_pos</span>(<span class="ident">assertion</span>),
-                    <span class="ident">loop_invariant</span>.<span class="ident">position</span>,
-                    <span class="ident">ErrorCtxt::AssertLoopInvariantAfterIteration</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>updater = <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> { <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#116">old_labels_remap</a> };
+    <span class="kw">for </span>bb <span class="kw">in </span><span class="kw-2">&amp;</span>blocks_to_duplicate {
+        <span class="kw">let </span><span class="kw-2">mut </span>block = procedure.basic_blocks[bb].clone();
+        <span class="kw">if </span>bb == invariant_block {
+            <span class="kw">let </span>loop_invariant = block.statements.pop().unwrap().unwrap_loop_invariant();
+            <span class="kw">for </span>assertion <span class="kw">in </span>loop_invariant.functional_specifications {
+                <span class="kw">let </span>statement = encoder.set_surrounding_error_context_for_statement(
+                    vir_high::Statement::assert_no_pos(assertion),
+                    loop_invariant.position,
+                    ErrorCtxt::AssertLoopInvariantAfterIteration,
                 )<span class="question-mark">?</span>;
-                <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">statement</span>);
+                block.statements.push(statement);
             }
-            <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">encoder</span>.<span class="ident">set_surrounding_error_context_for_statement</span>(
-                <span class="ident">vir_high::Statement::assume_no_pos</span>(<span class="bool-val">false</span>.<span class="ident">into</span>()),
-                <span class="ident">loop_invariant</span>.<span class="ident">position</span>,
-                <span class="ident">ErrorCtxt::AssertLoopInvariantAfterIteration</span>,
+            <span class="kw">let </span>statement = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::assume_no_pos(<span class="bool-val">false</span>.into()),
+                loop_invariant.position,
+                ErrorCtxt::AssertLoopInvariantAfterIteration,
             )<span class="question-mark">?</span>;
-            <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">statement</span>);
-            <span class="ident">block</span>.<span class="ident">successor</span> <span class="op">=</span> <span class="ident">vir_high::Successor::Goto</span>(<span class="ident">construct_magic_label</span>());
-        } <span class="kw">else</span> {
-            <span class="ident">block</span>
-                .<span class="ident">successor</span>
-                .<span class="ident">map_basic_block_ids</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">bb</span> <span class="op">=</span> <span class="ident">new_label</span>(<span class="ident">bb</span>));
+            block.statements.push(statement);
+            block.successor = vir_high::Successor::Goto(construct_magic_label());
+        } <span class="kw">else </span>{
+            block
+                .successor
+                .map_basic_block_ids(|bb| <span class="kw-2">*</span>bb = new_label(bb));
         }
-        <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">block</span>.<span class="ident">statements</span>) {
-            <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">updater</span>.<span class="ident">fold_statement</span>(<span class="ident">statement</span>));
+        <span class="kw">for </span>statement <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>block.statements) {
+            block.statements.push(updater.fold_statement(statement));
         }
-        <span class="macro">assert!</span>(<span class="ident">procedure</span>
-            .<span class="ident">basic_blocks</span>
-            .<span class="ident">insert</span>(<span class="ident">new_label</span>(<span class="ident">bb</span>), <span class="ident">block</span>)
-            .<span class="ident">is_none</span>())
+        <span class="macro">assert!</span>(procedure
+            .basic_blocks
+            .insert(new_label(bb), block)
+            .is_none())
     }
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#139">new_label</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#114">loop_head</a>))
+    <span class="prelude-val">Ok</span>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#139">new_label</a>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#114">loop_head</a>))
 }
 
-<span class="kw">fn</span> <span class="ident">construct_magic_label</span>() -&gt; <a class="ident" href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a> {
-    <span class="ident">vir_high::BasicBlockId::new</span>(<span class="string">&quot;magic_label&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+<span class="kw">fn </span>construct_magic_label() -&gt; <a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a> {
+    vir_high::BasicBlockId::new(<span class="string">&quot;magic_label&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
 }
 
-<span class="kw">struct</span> <span class="ident">OldLabelUpdater</span> {
-    <span class="ident">old_labels_remap</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+<span class="kw">struct </span>OldLabelUpdater {
+    old_labels_remap: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">StatementFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> {
-    <span class="kw">fn</span> <span class="ident">fold_expression</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expression</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a> {
-        <a class="ident" href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder::fold_expression</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#191">self</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#191">expression</a>)
+<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">StatementFolder</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> {
+    <span class="kw">fn </span>fold_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a> {
+        <a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder::fold_expression</a>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#191">self</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#191">expression</a>)
     }
-    <span class="kw">fn</span> <span class="ident">fold_old_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_label</span>) <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">self</a>.<span class="ident">old_labels_remap</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>.<span class="ident">name</span>) {
-            <a class="ident" href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a> {
-                <span class="ident">name</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#195">new_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                ..<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>
+    <span class="kw">fn </span>fold_old_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>.name) {
+            <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a> {
+                name: <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#195">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                ..<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>
             }
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>
+        } <span class="kw">else </span>{
+            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#194">statement</a>
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> {
-    <span class="kw">fn</span> <span class="ident">fold_labelled_old</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expression</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/struct.LabelledOld.html">vir_high::LabelledOld</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/high/ast/expression/struct.LabelledOld.html">vir_high::LabelledOld</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">vir_high::visitors::default_fold_labelled_old</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">self</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">expression</a>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_label</span>) <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">self</a>.<span class="ident">old_labels_remap</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>.<span class="ident">label</span>) {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>.<span class="ident">label</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#209">new_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#186">OldLabelUpdater</a> {
+    <span class="kw">fn </span>fold_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <a href="../../../../../../vir/gen/high/ast/expression/struct.LabelledOld.html">vir_high::LabelledOld</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/expression/struct.LabelledOld.html">vir_high::LabelledOld</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>expression = vir_high::visitors::default_fold_labelled_old(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">self</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">expression</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#207">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>.label) {
+            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>.label = <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#209">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         }
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>
+        <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/passes/loop_desugaring.rs.html#208">expression</a>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

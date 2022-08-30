@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/abortable.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>abortable.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_util/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/abortable.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>abortable.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_util/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -183,190 +183,190 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../futures_util/task/struct.AtomicWaker.html"><span class="kw">crate</span>::task::AtomicWaker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">core::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../futures_util/stream/trait.Stream.html">futures_core::Stream</a>;
-<span class="kw">use</span> <a class="ident" href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../futures_util/task/struct.AtomicWaker.html"><span class="kw">crate</span>::task::AtomicWaker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../futures_util/stream/trait.Stream.html">futures_core::Stream</a>;
+<span class="kw">use </span><a href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// A future/stream which can be remotely short-circuited using an `AbortHandle`.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures/streams do nothing unless you poll them&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Abortable</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">task</span>: <span class="ident">T</span>,
-        <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/futures_util/abortable.rs.html#103">AbortInner</a><span class="op">&gt;</span>,
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// A future/stream which can be remotely short-circuited using an `AbortHandle`.
+    </span><span class="attribute">#[derive(Debug, Clone)]
+    #[must_use = <span class="string">&quot;futures/streams do nothing unless you poll them&quot;</span>]
+    </span><span class="kw">pub struct </span>Abortable&lt;T&gt; {
+        <span class="attribute">#[pin]
+        </span>task: T,
+        inner: Arc&lt;<a href="../../src/futures_util/abortable.rs.html#103">AbortInner</a>&gt;,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Abortable</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `Abortable` future/stream using an existing `AbortRegistration`.</span>
-    <span class="doccomment">/// `AbortRegistration`s can be acquired through `AbortHandle::new`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When `abort` is called on the handle tied to `reg` or if `abort` has</span>
-    <span class="doccomment">/// already been called, the future/stream will complete immediately without making</span>
-    <span class="doccomment">/// any further progress.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Usage with futures:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # futures::executor::block_on(async {</span>
-    <span class="doccomment">/// use futures::future::{Abortable, AbortHandle, Aborted};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let (abort_handle, abort_registration) = AbortHandle::new_pair();</span>
-    <span class="doccomment">/// let future = Abortable::new(async { 2 }, abort_registration);</span>
-    <span class="doccomment">/// abort_handle.abort();</span>
-    <span class="doccomment">/// assert_eq!(future.await, Err(Aborted));</span>
-    <span class="doccomment">/// # });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Usage with streams:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # futures::executor::block_on(async {</span>
-    <span class="doccomment">/// # use futures::future::{Abortable, AbortHandle};</span>
-    <span class="doccomment">/// # use futures::stream::{self, StreamExt};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let (abort_handle, abort_registration) = AbortHandle::new_pair();</span>
-    <span class="doccomment">/// let mut stream = Abortable::new(stream::iter(vec![1, 2, 3]), abort_registration);</span>
-    <span class="doccomment">/// abort_handle.abort();</span>
-    <span class="doccomment">/// assert_eq!(stream.next().await, None);</span>
-    <span class="doccomment">/// # });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">task</span>: <span class="ident">T</span>, <span class="ident">reg</span>: <a class="ident" href="../../src/futures_util/abortable.rs.html#77">AbortRegistration</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../src/futures_util/abortable.rs.html#58">task</a>, <span class="ident">inner</span>: <a class="ident" href="../../src/futures_util/abortable.rs.html#58">reg</a>.<span class="ident">inner</span> }
+<span class="kw">impl</span>&lt;T&gt; Abortable&lt;T&gt; {
+    <span class="doccomment">/// Creates a new `Abortable` future/stream using an existing `AbortRegistration`.
+    /// `AbortRegistration`s can be acquired through `AbortHandle::new`.
+    ///
+    /// When `abort` is called on the handle tied to `reg` or if `abort` has
+    /// already been called, the future/stream will complete immediately without making
+    /// any further progress.
+    ///
+    /// # Examples:
+    ///
+    /// Usage with futures:
+    ///
+    /// ```
+    /// # futures::executor::block_on(async {
+    /// use futures::future::{Abortable, AbortHandle, Aborted};
+    ///
+    /// let (abort_handle, abort_registration) = AbortHandle::new_pair();
+    /// let future = Abortable::new(async { 2 }, abort_registration);
+    /// abort_handle.abort();
+    /// assert_eq!(future.await, Err(Aborted));
+    /// # });
+    /// ```
+    ///
+    /// Usage with streams:
+    ///
+    /// ```
+    /// # futures::executor::block_on(async {
+    /// # use futures::future::{Abortable, AbortHandle};
+    /// # use futures::stream::{self, StreamExt};
+    ///
+    /// let (abort_handle, abort_registration) = AbortHandle::new_pair();
+    /// let mut stream = Abortable::new(stream::iter(vec![1, 2, 3]), abort_registration);
+    /// abort_handle.abort();
+    /// assert_eq!(stream.next().await, None);
+    /// # });
+    /// ```
+    </span><span class="kw">pub fn </span>new(task: T, reg: <a href="../../src/futures_util/abortable.rs.html#77">AbortRegistration</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../src/futures_util/abortable.rs.html#58">task</a>, inner: <a href="../../src/futures_util/abortable.rs.html#58">reg</a>.inner }
     }
 
-    <span class="doccomment">/// Checks whether the task has been aborted. Note that all this</span>
-    <span class="doccomment">/// method indicates is whether [`AbortHandle::abort`] was *called*.</span>
-    <span class="doccomment">/// This means that it will return `true` even if:</span>
-    <span class="doccomment">/// * `abort` was called after the task had completed.</span>
-    <span class="doccomment">/// * `abort` was called while the task was being polled - the task may still be running and</span>
-    <span class="doccomment">/// will not be stopped until `poll` returns.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_aborted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/futures_util/abortable.rs.html#68">self</a>.<span class="ident">inner</span>.<span class="ident">aborted</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>)
-    }
-}
-
-<span class="doccomment">/// A registration handle for an `Abortable` task.</span>
-<span class="doccomment">/// Values of this type can be acquired from `AbortHandle::new` and are used</span>
-<span class="doccomment">/// in calls to `Abortable::new`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AbortRegistration</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/futures_util/abortable.rs.html#103">AbortInner</a><span class="op">&gt;</span>,
-}
-
-<span class="doccomment">/// A handle to an `Abortable` task.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AbortHandle</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/futures_util/abortable.rs.html#103">AbortInner</a><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#83">AbortHandle</a> {
-    <span class="doccomment">/// Creates an (`AbortHandle`, `AbortRegistration`) pair which can be used</span>
-    <span class="doccomment">/// to abort a running future or stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is usually paired with a call to [`Abortable::new`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_pair</span>() -&gt; (<span class="self">Self</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#77">AbortRegistration</a>) {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span>
-            <span class="ident">Arc::new</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#103">AbortInner</a> { <span class="ident">waker</span>: <span class="ident">AtomicWaker::new</span>(), <span class="ident">aborted</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>) });
-
-        (<span class="self">Self</span> { <span class="ident">inner</span>: <a class="ident" href="../../src/futures_util/abortable.rs.html#93">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() }, <a class="ident" href="../../src/futures_util/abortable.rs.html#77">AbortRegistration</a> { <a class="ident" href="../../src/futures_util/abortable.rs.html#93">inner</a> })
+    <span class="doccomment">/// Checks whether the task has been aborted. Note that all this
+    /// method indicates is whether [`AbortHandle::abort`] was *called*.
+    /// This means that it will return `true` even if:
+    /// * `abort` was called after the task had completed.
+    /// * `abort` was called while the task was being polled - the task may still be running and
+    /// will not be stopped until `poll` returns.
+    </span><span class="kw">pub fn </span>is_aborted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/futures_util/abortable.rs.html#68">self</a>.inner.aborted.load(Ordering::Relaxed)
     }
 }
 
-<span class="comment">// Inner type storing the waker to awaken and a bool indicating that it</span>
-<span class="comment">// should be aborted.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AbortInner</span> {
-    <span class="ident">waker</span>: <a class="ident" href="../../futures_util/task/struct.AtomicWaker.html">AtomicWaker</a>,
-    <span class="ident">aborted</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+<span class="doccomment">/// A registration handle for an `Abortable` task.
+/// Values of this type can be acquired from `AbortHandle::new` and are used
+/// in calls to `Abortable::new`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>AbortRegistration {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: Arc&lt;<a href="../../src/futures_util/abortable.rs.html#103">AbortInner</a>&gt;,
 }
 
-<span class="doccomment">/// Indicator that the `Abortable` task was aborted.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Aborted</span>;
+<span class="doccomment">/// A handle to an `Abortable` task.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>AbortHandle {
+    inner: Arc&lt;<a href="../../src/futures_util/abortable.rs.html#103">AbortInner</a>&gt;,
+}
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/futures_util/abortable.rs.html#113">f</a>, <span class="string">&quot;`Abortable` future has been aborted&quot;</span>)
+<span class="kw">impl </span><a href="../../src/futures_util/abortable.rs.html#83">AbortHandle</a> {
+    <span class="doccomment">/// Creates an (`AbortHandle`, `AbortRegistration`) pair which can be used
+    /// to abort a running future or stream.
+    ///
+    /// This function is usually paired with a call to [`Abortable::new`].
+    </span><span class="kw">pub fn </span>new_pair() -&gt; (<span class="self">Self</span>, <a href="../../src/futures_util/abortable.rs.html#77">AbortRegistration</a>) {
+        <span class="kw">let </span>inner =
+            Arc::new(<a href="../../src/futures_util/abortable.rs.html#103">AbortInner</a> { waker: AtomicWaker::new(), aborted: AtomicBool::new(<span class="bool-val">false</span>) });
+
+        (<span class="self">Self </span>{ inner: <a href="../../src/futures_util/abortable.rs.html#93">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() }, <a href="../../src/futures_util/abortable.rs.html#77">AbortRegistration</a> { <a href="../../src/futures_util/abortable.rs.html#93">inner</a> })
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a> {}
+<span class="comment">// Inner type storing the waker to awaken and a bool indicating that it
+// should be aborted.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AbortInner {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) waker: <a href="../../futures_util/task/struct.AtomicWaker.html">AtomicWaker</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) aborted: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Abortable</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">try_poll</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">poll</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">I</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Check if the task has been aborted</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_aborted</span>() {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a>));
+<span class="doccomment">/// Indicator that the `Abortable` task was aborted.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>Aborted;
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/futures_util/abortable.rs.html#110">Aborted</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/futures_util/abortable.rs.html#113">f</a>, <span class="string">&quot;`Abortable` future has been aborted&quot;</span>)
+    }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../src/futures_util/abortable.rs.html#110">Aborted</a> {}
+
+<span class="kw">impl</span>&lt;T&gt; Abortable&lt;T&gt; {
+    <span class="kw">fn </span>try_poll&lt;I&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        poll: <span class="kw">impl </span>Fn(Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;I&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;I, <a href="../../src/futures_util/abortable.rs.html#110">Aborted</a>&gt;&gt; {
+        <span class="comment">// Check if the task has been aborted
+        </span><span class="kw">if </span><span class="self">self</span>.is_aborted() {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/futures_util/abortable.rs.html#110">Aborted</a>));
         }
 
-        <span class="comment">// attempt to complete the task</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">x</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#125">poll</a>(<a class="self" href="../../src/futures_util/abortable.rs.html#123">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../src/futures_util/abortable.rs.html#11-20">project</a>().<span class="ident">task</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#124">cx</a>) {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#133">x</a>));
+        <span class="comment">// attempt to complete the task
+        </span><span class="kw">if let </span>Poll::Ready(x) = <a href="../../src/futures_util/abortable.rs.html#125">poll</a>(<a class="self" href="../../src/futures_util/abortable.rs.html#123">self</a>.as_mut().<a href="../../src/futures_util/abortable.rs.html#11-20">project</a>().task, <a href="../../src/futures_util/abortable.rs.html#124">cx</a>) {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../src/futures_util/abortable.rs.html#133">x</a>));
         }
 
-        <span class="comment">// Register to receive a wakeup if the task is aborted in the future</span>
-        <a class="self" href="../../src/futures_util/abortable.rs.html#123">self</a>.<span class="ident">inner</span>.<span class="ident">waker</span>.<span class="ident">register</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#124">cx</a>.<span class="ident">waker</span>());
+        <span class="comment">// Register to receive a wakeup if the task is aborted in the future
+        </span><a class="self" href="../../src/futures_util/abortable.rs.html#123">self</a>.inner.waker.register(<a href="../../src/futures_util/abortable.rs.html#124">cx</a>.waker());
 
-        <span class="comment">// Check to see if the task was aborted between the first check and</span>
-        <span class="comment">// registration.</span>
-        <span class="comment">// Checking with `is_aborted` which uses `Relaxed` is sufficient because</span>
-        <span class="comment">// `register` introduces an `AcqRel` barrier.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_aborted</span>() {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a>));
+        <span class="comment">// Check to see if the task was aborted between the first check and
+        // registration.
+        // Checking with `is_aborted` which uses `Relaxed` is sufficient because
+        // `register` introduces an `AcqRel` barrier.
+        </span><span class="kw">if </span><span class="self">self</span>.is_aborted() {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../src/futures_util/abortable.rs.html#110">Aborted</a>));
         }
 
-        <span class="ident">Poll::Pending</span>
+        Poll::Pending
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Abortable</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="kw">impl</span>&lt;Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Abortable&lt;Fut&gt;
+<span class="kw">where
+    </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Fut::Output</span>, <a class="ident" href="../../src/futures_util/abortable.rs.html#110">Aborted</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Fut::Output, <a href="../../src/futures_util/abortable.rs.html#110">Aborted</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_util/abortable.rs.html#158">self</a>.<a class="ident" href="../../src/futures_util/abortable.rs.html#122-126">try_poll</a>(<a class="ident" href="../../src/futures_util/abortable.rs.html#158">cx</a>, <span class="op">|</span><span class="ident">fut</span>, <span class="ident">cx</span><span class="op">|</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#159">fut</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_util/abortable.rs.html#159">cx</a>))
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <a class="self" href="../../src/futures_util/abortable.rs.html#158">self</a>.<a href="../../src/futures_util/abortable.rs.html#122-126">try_poll</a>(<a href="../../src/futures_util/abortable.rs.html#158">cx</a>, |fut, cx| <a href="../../src/futures_util/abortable.rs.html#159">fut</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../src/futures_util/abortable.rs.html#159">cx</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">Abortable</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../futures_util/stream/trait.Stream.html">Stream</a>,
+<span class="kw">impl</span>&lt;St&gt; <a href="../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Abortable&lt;St&gt;
+<span class="kw">where
+    </span>St: <a href="../../futures_util/stream/trait.Stream.html">Stream</a>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">St::Item</span>;
+    <span class="kw">type </span>Item = St::Item;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_util/abortable.rs.html#169">self</a>.<a class="ident" href="../../src/futures_util/abortable.rs.html#122-126">try_poll</a>(<a class="ident" href="../../src/futures_util/abortable.rs.html#169">cx</a>, <span class="op">|</span><span class="ident">stream</span>, <span class="ident">cx</span><span class="op">|</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#170">stream</a>.<a class="ident" href="../../futures_util/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_util/abortable.rs.html#170">cx</a>)).<span class="ident">map</span>(<span class="ident">Result::ok</span>).<span class="ident">map</span>(<span class="ident">Option::flatten</span>)
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <a class="self" href="../../src/futures_util/abortable.rs.html#169">self</a>.<a href="../../src/futures_util/abortable.rs.html#122-126">try_poll</a>(<a href="../../src/futures_util/abortable.rs.html#169">cx</a>, |stream, cx| <a href="../../src/futures_util/abortable.rs.html#170">stream</a>.<a href="../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../src/futures_util/abortable.rs.html#170">cx</a>)).map(Result::ok).map(Option::flatten)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/futures_util/abortable.rs.html#83">AbortHandle</a> {
-    <span class="doccomment">/// Abort the `Abortable` stream/future associated with this handle.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Notifies the Abortable task associated with this handle that it</span>
-    <span class="doccomment">/// should abort. Note that if the task is currently being polled on</span>
-    <span class="doccomment">/// another thread, it will not immediately stop running. Instead, it will</span>
-    <span class="doccomment">/// continue to run until its poll method returns.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abort</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../src/futures_util/abortable.rs.html#181">self</a>.<span class="ident">inner</span>.<span class="ident">aborted</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
-        <a class="self" href="../../src/futures_util/abortable.rs.html#181">self</a>.<span class="ident">inner</span>.<span class="ident">waker</span>.<span class="ident">wake</span>();
+<span class="kw">impl </span><a href="../../src/futures_util/abortable.rs.html#83">AbortHandle</a> {
+    <span class="doccomment">/// Abort the `Abortable` stream/future associated with this handle.
+    ///
+    /// Notifies the Abortable task associated with this handle that it
+    /// should abort. Note that if the task is currently being polled on
+    /// another thread, it will not immediately stop running. Instead, it will
+    /// continue to run until its poll method returns.
+    </span><span class="kw">pub fn </span>abort(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="self" href="../../src/futures_util/abortable.rs.html#181">self</a>.inner.aborted.store(<span class="bool-val">true</span>, Ordering::Relaxed);
+        <a class="self" href="../../src/futures_util/abortable.rs.html#181">self</a>.inner.waker.wake();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

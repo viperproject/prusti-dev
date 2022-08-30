@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -711,718 +711,718 @@
 <span id="711">711</span>
 <span id="712">712</span>
 <span id="713">713</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">std::mem::size_of</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">std::mem::size_of</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2046"><span class="kw">crate</span>::ahocorasick::MatchKind</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/aho_corasick/automaton.rs.html#80"><span class="kw">crate</span>::automaton::Automaton</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/aho_corasick/classes.rs.html#9"><span class="kw">crate</span>::classes::ByteClasses</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/aho_corasick/error.rs.html#5"><span class="kw">crate</span>::error::Result</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::nfa</span>::{<a class="ident" href="../../src/aho_corasick/nfa.rs.html#17">PatternID</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#20">PatternLength</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#47">NFA</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::prefilter</span>::{<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>, <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a>, <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::state_id</span>::{<a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>, <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>, <a class="ident" href="../../src/aho_corasick/state_id.rs.html#12-15">premultiply_overflow_error</a>, <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/aho_corasick/lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
+<span class="kw">use </span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046"><span class="kw">crate</span>::ahocorasick::MatchKind</a>;
+<span class="kw">use </span><a href="../../src/aho_corasick/automaton.rs.html#80"><span class="kw">crate</span>::automaton::Automaton</a>;
+<span class="kw">use </span><a href="../../src/aho_corasick/classes.rs.html#9"><span class="kw">crate</span>::classes::ByteClasses</a>;
+<span class="kw">use </span><a href="../../src/aho_corasick/error.rs.html#5"><span class="kw">crate</span>::error::Result</a>;
+<span class="kw">use </span><span class="kw">crate</span>::nfa::{<a href="../../src/aho_corasick/nfa.rs.html#17">PatternID</a>, <a href="../../src/aho_corasick/nfa.rs.html#20">PatternLength</a>, <a href="../../src/aho_corasick/nfa.rs.html#47">NFA</a>};
+<span class="kw">use </span><span class="kw">crate</span>::prefilter::{<a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>, <a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a>, <a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>};
+<span class="kw">use </span><span class="kw">crate</span>::state_id::{<a href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>, <a href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>, <a href="../../src/aho_corasick/state_id.rs.html#12-15">premultiply_overflow_error</a>, <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>};
+<span class="kw">use </span><a href="../../src/aho_corasick/lib.rs.html#239"><span class="kw">crate</span>::Match</a>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">Standard</span>(<span class="ident">Standard</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>),
-    <span class="ident">ByteClass</span>(<span class="ident">ByteClass</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>),
-    <span class="ident">Premultiplied</span>(<span class="ident">Premultiplied</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>),
-    <span class="ident">PremultipliedByteClass</span>(<span class="ident">PremultipliedByteClass</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub enum </span>DFA&lt;S&gt; {
+    Standard(Standard&lt;S&gt;),
+    ByteClass(ByteClass&lt;S&gt;),
+    Premultiplied(Premultiplied&lt;S&gt;),
+    PremultipliedByteClass(PremultipliedByteClass&lt;S&gt;),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <span class="ident">DFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">repr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#21">self</a> {
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#23">dfa</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>(),
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#24">dfa</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>(),
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#25">dfa</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>(),
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#26">dfa</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>(),
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; DFA&lt;S&gt; {
+    <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/aho_corasick/dfa.rs.html#21">self</a> </span>{
+            <a href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="../../src/aho_corasick/dfa.rs.html#23">dfa</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>(),
+            <a href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="../../src/aho_corasick/dfa.rs.html#24">dfa</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>(),
+            <a href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="../../src/aho_corasick/dfa.rs.html#25">dfa</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>(),
+            <a href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="../../src/aho_corasick/dfa.rs.html#26">dfa</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#30">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().<span class="ident">match_kind</span>
+    <span class="kw">pub fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#30">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().match_kind
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#34">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().<span class="ident">heap_bytes</span>
+    <span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#34">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().heap_bytes
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_pattern_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#38">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().<span class="ident">max_pattern_len</span>
+    <span class="kw">pub fn </span>max_pattern_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#38">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().max_pattern_len
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#42">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().<span class="ident">pattern_count</span>
+    <span class="kw">pub fn </span>pattern_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#42">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().pattern_count
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#46">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().<span class="ident">prefilter</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#47">p</a>.<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">pub fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#46">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().prefilter.as_ref().map(|p| <a href="../../src/aho_corasick/dfa.rs.html#47">p</a>.<a href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#50">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().<span class="ident">start_id</span>
+    <span class="kw">pub fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#50">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#21">repr</a>().start_id
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overlapping_find_at</span>(
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">pub fn </span>overlapping_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident">S</span>,
-        <span class="ident">match_index</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#56">self</a> {
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#64">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#475-482">overlapping_find_at</a>(
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#57">prestate</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#58">haystack</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#59">at</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#60">state_id</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#61">match_index</a>,
+        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        state_id: <span class="kw-2">&amp;mut </span>S,
+        match_index: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/aho_corasick/dfa.rs.html#56">self</a> </span>{
+            <a href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="../../src/aho_corasick/dfa.rs.html#64">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#475-482">overlapping_find_at</a>(
+                <a href="../../src/aho_corasick/dfa.rs.html#57">prestate</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#58">haystack</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#59">at</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#60">state_id</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#61">match_index</a>,
             ),
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#71">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#475-482">overlapping_find_at</a>(
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#57">prestate</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#58">haystack</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#59">at</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#60">state_id</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#61">match_index</a>,
+            <a href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="../../src/aho_corasick/dfa.rs.html#71">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#475-482">overlapping_find_at</a>(
+                <a href="../../src/aho_corasick/dfa.rs.html#57">prestate</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#58">haystack</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#59">at</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#60">state_id</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#61">match_index</a>,
             ),
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#78">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#475-482">overlapping_find_at</a>(
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#57">prestate</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#58">haystack</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#59">at</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#60">state_id</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#61">match_index</a>,
+            <a href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="../../src/aho_corasick/dfa.rs.html#78">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#475-482">overlapping_find_at</a>(
+                <a href="../../src/aho_corasick/dfa.rs.html#57">prestate</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#58">haystack</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#59">at</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#60">state_id</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#61">match_index</a>,
             ),
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#85">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#475-482">overlapping_find_at</a>(
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#57">prestate</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#58">haystack</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#59">at</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#60">state_id</a>,
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#61">match_index</a>,
+            <a href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; <a href="../../src/aho_corasick/dfa.rs.html#85">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#475-482">overlapping_find_at</a>(
+                <a href="../../src/aho_corasick/dfa.rs.html#57">prestate</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#58">haystack</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#59">at</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#60">state_id</a>,
+                <a href="../../src/aho_corasick/dfa.rs.html#61">match_index</a>,
             ),
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">earliest_find_at</span>(
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">pub fn </span>earliest_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident">S</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#97">self</a> {
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#104">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#98">prestate</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#99">haystack</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#100">at</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#101">state_id</a>)
+        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        state_id: <span class="kw-2">&amp;mut </span>S,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/aho_corasick/dfa.rs.html#97">self</a> </span>{
+            <a href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<span class="kw-2">ref </span>dfa) =&gt; {
+                <a href="../../src/aho_corasick/dfa.rs.html#104">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a href="../../src/aho_corasick/dfa.rs.html#98">prestate</a>, <a href="../../src/aho_corasick/dfa.rs.html#99">haystack</a>, <a href="../../src/aho_corasick/dfa.rs.html#100">at</a>, <a href="../../src/aho_corasick/dfa.rs.html#101">state_id</a>)
             }
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#107">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#98">prestate</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#99">haystack</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#100">at</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#101">state_id</a>)
+            <a href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; {
+                <a href="../../src/aho_corasick/dfa.rs.html#107">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a href="../../src/aho_corasick/dfa.rs.html#98">prestate</a>, <a href="../../src/aho_corasick/dfa.rs.html#99">haystack</a>, <a href="../../src/aho_corasick/dfa.rs.html#100">at</a>, <a href="../../src/aho_corasick/dfa.rs.html#101">state_id</a>)
             }
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#110">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#98">prestate</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#99">haystack</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#100">at</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#101">state_id</a>)
+            <a href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<span class="kw-2">ref </span>dfa) =&gt; {
+                <a href="../../src/aho_corasick/dfa.rs.html#110">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a href="../../src/aho_corasick/dfa.rs.html#98">prestate</a>, <a href="../../src/aho_corasick/dfa.rs.html#99">haystack</a>, <a href="../../src/aho_corasick/dfa.rs.html#100">at</a>, <a href="../../src/aho_corasick/dfa.rs.html#101">state_id</a>)
             }
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#113">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#98">prestate</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#99">haystack</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#100">at</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#101">state_id</a>)
+            <a href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; {
+                <a href="../../src/aho_corasick/dfa.rs.html#113">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#512-518">earliest_find_at</a>(<a href="../../src/aho_corasick/dfa.rs.html#98">prestate</a>, <a href="../../src/aho_corasick/dfa.rs.html#99">haystack</a>, <a href="../../src/aho_corasick/dfa.rs.html#100">at</a>, <a href="../../src/aho_corasick/dfa.rs.html#101">state_id</a>)
             }
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_at_no_state</span>(
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">pub fn </span>find_at_no_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">at</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#121">self</a> {
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#127">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#556-561">find_at_no_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#122">prestate</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#123">haystack</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#124">at</a>)
+        prestate: <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/prefilter.rs.html#151">PrefilterState</a>,
+        haystack: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        at: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/aho_corasick/dfa.rs.html#121">self</a> </span>{
+            <a href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<span class="kw-2">ref </span>dfa) =&gt; {
+                <a href="../../src/aho_corasick/dfa.rs.html#127">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#556-561">find_at_no_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#122">prestate</a>, <a href="../../src/aho_corasick/dfa.rs.html#123">haystack</a>, <a href="../../src/aho_corasick/dfa.rs.html#124">at</a>)
             }
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#130">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#556-561">find_at_no_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#122">prestate</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#123">haystack</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#124">at</a>)
+            <a href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; {
+                <a href="../../src/aho_corasick/dfa.rs.html#130">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#556-561">find_at_no_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#122">prestate</a>, <a href="../../src/aho_corasick/dfa.rs.html#123">haystack</a>, <a href="../../src/aho_corasick/dfa.rs.html#124">at</a>)
             }
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#133">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#556-561">find_at_no_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#122">prestate</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#123">haystack</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#124">at</a>)
+            <a href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<span class="kw-2">ref </span>dfa) =&gt; {
+                <a href="../../src/aho_corasick/dfa.rs.html#133">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#556-561">find_at_no_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#122">prestate</a>, <a href="../../src/aho_corasick/dfa.rs.html#123">haystack</a>, <a href="../../src/aho_corasick/dfa.rs.html#124">at</a>)
             }
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
-                <a class="ident" href="../../src/aho_corasick/dfa.rs.html#136">dfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#556-561">find_at_no_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#122">prestate</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#123">haystack</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#124">at</a>)
+            <a href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<span class="kw-2">ref </span>dfa) =&gt; {
+                <a href="../../src/aho_corasick/dfa.rs.html#136">dfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#556-561">find_at_no_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#122">prestate</a>, <a href="../../src/aho_corasick/dfa.rs.html#123">haystack</a>, <a href="../../src/aho_corasick/dfa.rs.html#124">at</a>)
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Standard</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Standard&lt;S&gt;(Repr&lt;S&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <span class="ident">Standard</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">repr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#147">self</a>.<span class="number">0</span>
-    }
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; Standard&lt;S&gt; {
+    <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#147">self</a>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <a class="ident" href="../../src/aho_corasick/automaton.rs.html#80">Automaton</a> <span class="kw">for</span> <span class="ident">Standard</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">S</span>;
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; <a href="../../src/aho_corasick/automaton.rs.html#80">Automaton</a> <span class="kw">for </span>Standard&lt;S&gt; {
+    <span class="kw">type </span>ID = S;
 
-    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#155">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<span class="ident">match_kind</span>
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#155">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().match_kind
     }
 
-    <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#159">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<span class="ident">anchored</span>
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#159">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().anchored
     }
 
-    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#163">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<span class="ident">prefilter</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#164">p</a>.<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#163">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().prefilter.as_ref().map(|p| <a href="../../src/aho_corasick/dfa.rs.html#164">p</a>.<a href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
     }
 
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#167">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<span class="ident">start_id</span>
+    <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#167">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().start_id
     }
 
-    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#171">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">&lt;</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#171">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<span class="ident">state_count</span>
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../src/aho_corasick/dfa.rs.html#171">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() &lt; <a class="self" href="../../src/aho_corasick/dfa.rs.html#171">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().state_count
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#175">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#432">is_match_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#175">id</a>)
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#175">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#432">is_match_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#175">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#179">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#438">is_match_or_dead_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#179">id</a>)
+    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#179">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#438">is_match_or_dead_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#179">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_match</span>(
+    <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident">S</span>,
-        <span class="ident">match_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">end</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#184">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#450-455">get_match</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#185">id</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#186">match_index</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#187">end</a>)
+        id: S,
+        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#184">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#450-455">get_match</a>(<a href="../../src/aho_corasick/dfa.rs.html#185">id</a>, <a href="../../src/aho_corasick/dfa.rs.html#186">match_index</a>, <a href="../../src/aho_corasick/dfa.rs.html#187">end</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">match_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#192">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#471">match_count</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#192">id</a>)
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#192">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#471">match_count</a>(<a href="../../src/aho_corasick/dfa.rs.html#192">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#196">current</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">*</span> <span class="number">256</span> <span class="op">+</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#196">input</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#196">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().<span class="ident">trans</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#197">o</a>]
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ByteClass</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <span class="ident">ByteClass</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">repr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#206">self</a>.<span class="number">0</span>
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
+        <span class="kw">let </span>o = <a href="../../src/aho_corasick/dfa.rs.html#196">current</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() * <span class="number">256 </span>+ <a href="../../src/aho_corasick/dfa.rs.html#196">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#196">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#147">repr</a>().trans[<a href="../../src/aho_corasick/dfa.rs.html#197">o</a>]
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <a class="ident" href="../../src/aho_corasick/automaton.rs.html#80">Automaton</a> <span class="kw">for</span> <span class="ident">ByteClass</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">S</span>;
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>ByteClass&lt;S&gt;(Repr&lt;S&gt;);
 
-    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#214">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<span class="ident">match_kind</span>
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; ByteClass&lt;S&gt; {
+    <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#206">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; <a href="../../src/aho_corasick/automaton.rs.html#80">Automaton</a> <span class="kw">for </span>ByteClass&lt;S&gt; {
+    <span class="kw">type </span>ID = S;
+
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#214">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().match_kind
     }
 
-    <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#218">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<span class="ident">anchored</span>
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#218">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().anchored
     }
 
-    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#222">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<span class="ident">prefilter</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#223">p</a>.<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#222">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().prefilter.as_ref().map(|p| <a href="../../src/aho_corasick/dfa.rs.html#223">p</a>.<a href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
     }
 
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#226">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<span class="ident">start_id</span>
+    <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#226">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().start_id
     }
 
-    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#230">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">&lt;</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#230">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<span class="ident">state_count</span>
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../src/aho_corasick/dfa.rs.html#230">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() &lt; <a class="self" href="../../src/aho_corasick/dfa.rs.html#230">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().state_count
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#234">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#432">is_match_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#234">id</a>)
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#234">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#432">is_match_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#234">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#238">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#438">is_match_or_dead_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#238">id</a>)
+    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#238">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#438">is_match_or_dead_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#238">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_match</span>(
+    <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident">S</span>,
-        <span class="ident">match_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">end</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#243">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#450-455">get_match</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#244">id</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#245">match_index</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#246">end</a>)
+        id: S,
+        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#243">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#450-455">get_match</a>(<a href="../../src/aho_corasick/dfa.rs.html#244">id</a>, <a href="../../src/aho_corasick/dfa.rs.html#245">match_index</a>, <a href="../../src/aho_corasick/dfa.rs.html#246">end</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">match_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#251">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#471">match_count</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#251">id</a>)
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#251">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#471">match_count</a>(<a href="../../src/aho_corasick/dfa.rs.html#251">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
-        <span class="kw">let</span> <span class="ident">alphabet_len</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#255">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#46">alphabet_len</a>();
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#255">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#255">input</a>);
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#255">current</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">*</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#256">alphabet_len</a> <span class="op">+</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#257">input</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#255">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().<span class="ident">trans</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#258">o</a>]
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Premultiplied</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <span class="ident">Premultiplied</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">repr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#267">self</a>.<span class="number">0</span>
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
+        <span class="kw">let </span>alphabet_len = <a class="self" href="../../src/aho_corasick/dfa.rs.html#255">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().byte_classes.<a href="../../src/aho_corasick/classes.rs.html#46">alphabet_len</a>();
+        <span class="kw">let </span>input = <a class="self" href="../../src/aho_corasick/dfa.rs.html#255">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().byte_classes.<a href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a href="../../src/aho_corasick/dfa.rs.html#255">input</a>);
+        <span class="kw">let </span>o = <a href="../../src/aho_corasick/dfa.rs.html#255">current</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() * <a href="../../src/aho_corasick/dfa.rs.html#256">alphabet_len</a> + <a href="../../src/aho_corasick/dfa.rs.html#257">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#255">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#206">repr</a>().trans[<a href="../../src/aho_corasick/dfa.rs.html#258">o</a>]
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <a class="ident" href="../../src/aho_corasick/automaton.rs.html#80">Automaton</a> <span class="kw">for</span> <span class="ident">Premultiplied</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">S</span>;
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Premultiplied&lt;S&gt;(Repr&lt;S&gt;);
 
-    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#275">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<span class="ident">match_kind</span>
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; Premultiplied&lt;S&gt; {
+    <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#267">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; <a href="../../src/aho_corasick/automaton.rs.html#80">Automaton</a> <span class="kw">for </span>Premultiplied&lt;S&gt; {
+    <span class="kw">type </span>ID = S;
+
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#275">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().match_kind
     }
 
-    <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#279">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<span class="ident">anchored</span>
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#279">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().anchored
     }
 
-    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#283">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<span class="ident">prefilter</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#284">p</a>.<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#283">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().prefilter.as_ref().map(|p| <a href="../../src/aho_corasick/dfa.rs.html#284">p</a>.<a href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
     }
 
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#287">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<span class="ident">start_id</span>
+    <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#287">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().start_id
     }
 
-    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a class="ident" href="../../src/aho_corasick/dfa.rs.html#291">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">/</span> <span class="number">256</span>) <span class="op">&lt;</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#291">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<span class="ident">state_count</span>
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a href="../../src/aho_corasick/dfa.rs.html#291">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() / <span class="number">256</span>) &lt; <a class="self" href="../../src/aho_corasick/dfa.rs.html#291">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().state_count
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#295">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#432">is_match_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#295">id</a>)
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#295">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#432">is_match_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#295">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#299">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#438">is_match_or_dead_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#299">id</a>)
+    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#299">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#438">is_match_or_dead_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#299">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_match</span>(
+    <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident">S</span>,
-        <span class="ident">match_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">end</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">id</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">repr</span>().<span class="ident">max_match</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        id: S,
+        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">if </span>id &gt; <span class="self">self</span>.repr().max_match {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#304">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>()
-            .<span class="ident">matches</span>
-            .<span class="ident">get</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#305">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">/</span> <span class="number">256</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#315">m</a>.<span class="ident">get</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#306">match_index</a>))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">id</span>, <span class="ident">len</span>)<span class="op">|</span> <a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a> { <span class="ident">pattern</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#316">id</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#316">len</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#307">end</a> })
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#304">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>()
+            .matches
+            .get(<a href="../../src/aho_corasick/dfa.rs.html#305">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() / <span class="number">256</span>)
+            .and_then(|m| <a href="../../src/aho_corasick/dfa.rs.html#315">m</a>.get(<a href="../../src/aho_corasick/dfa.rs.html#306">match_index</a>))
+            .map(|<span class="kw-2">&amp;</span>(id, len)| <a href="../../src/aho_corasick/lib.rs.html#239">Match</a> { pattern: <a href="../../src/aho_corasick/dfa.rs.html#316">id</a>, <a href="../../src/aho_corasick/dfa.rs.html#316">len</a>, <a href="../../src/aho_corasick/dfa.rs.html#307">end</a> })
     }
 
-    <span class="kw">fn</span> <span class="ident">match_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#319">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">/</span> <span class="number">256</span>;
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#319">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<span class="ident">matches</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#320">o</a>].<span class="ident">len</span>()
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">let </span>o = <a href="../../src/aho_corasick/dfa.rs.html#319">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() / <span class="number">256</span>;
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#319">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().matches[<a href="../../src/aho_corasick/dfa.rs.html#320">o</a>].len()
     }
 
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#324">current</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">+</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#324">input</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#324">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().<span class="ident">trans</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#325">o</a>]
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PremultipliedByteClass</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <span class="ident">PremultipliedByteClass</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">repr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#334">self</a>.<span class="number">0</span>
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
+        <span class="kw">let </span>o = <a href="../../src/aho_corasick/dfa.rs.html#324">current</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() + <a href="../../src/aho_corasick/dfa.rs.html#324">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#324">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#267">repr</a>().trans[<a href="../../src/aho_corasick/dfa.rs.html#325">o</a>]
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <a class="ident" href="../../src/aho_corasick/automaton.rs.html#80">Automaton</a> <span class="kw">for</span> <span class="ident">PremultipliedByteClass</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">S</span>;
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>PremultipliedByteClass&lt;S&gt;(Repr&lt;S&gt;);
 
-    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#342">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<span class="ident">match_kind</span>
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; PremultipliedByteClass&lt;S&gt; {
+    <span class="kw">fn </span>repr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Repr&lt;S&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#334">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; <a href="../../src/aho_corasick/automaton.rs.html#80">Automaton</a> <span class="kw">for </span>PremultipliedByteClass&lt;S&gt; {
+    <span class="kw">type </span>ID = S;
+
+    <span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/dfa.rs.html#342">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().match_kind
     }
 
-    <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#346">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<span class="ident">anchored</span>
+    <span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#346">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().anchored
     }
 
-    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#350">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<span class="ident">prefilter</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#351">p</a>.<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
+    <span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/aho_corasick/prefilter.rs.html#50-51">Prefilter</a>&gt; {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#350">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().prefilter.as_ref().map(|p| <a href="../../src/aho_corasick/dfa.rs.html#351">p</a>.<a href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>())
     }
 
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#354">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<span class="ident">start_id</span>
+    <span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; S {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#354">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().start_id
     }
 
-    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a class="ident" href="../../src/aho_corasick/dfa.rs.html#358">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">/</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#358">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>()) <span class="op">&lt;</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#358">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<span class="ident">state_count</span>
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a href="../../src/aho_corasick/dfa.rs.html#358">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() / <a class="self" href="../../src/aho_corasick/dfa.rs.html#358">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>()) &lt; <a class="self" href="../../src/aho_corasick/dfa.rs.html#358">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().state_count
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#362">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#432">is_match_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#362">id</a>)
+    <span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#362">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#432">is_match_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#362">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#366">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#438">is_match_or_dead_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#366">id</a>)
+    <span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#366">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#438">is_match_or_dead_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#366">id</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_match</span>(
+    <span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident">S</span>,
-        <span class="ident">match_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">end</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">id</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">repr</span>().<span class="ident">max_match</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        id: S,
+        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">if </span>id &gt; <span class="self">self</span>.repr().max_match {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#371">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>()
-            .<span class="ident">matches</span>
-            .<span class="ident">get</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#372">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">/</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#371">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>())
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#382">m</a>.<span class="ident">get</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#373">match_index</a>))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">id</span>, <span class="ident">len</span>)<span class="op">|</span> <a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a> { <span class="ident">pattern</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#383">id</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#383">len</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#374">end</a> })
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#371">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>()
+            .matches
+            .get(<a href="../../src/aho_corasick/dfa.rs.html#372">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() / <a class="self" href="../../src/aho_corasick/dfa.rs.html#371">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>())
+            .and_then(|m| <a href="../../src/aho_corasick/dfa.rs.html#382">m</a>.get(<a href="../../src/aho_corasick/dfa.rs.html#373">match_index</a>))
+            .map(|<span class="kw-2">&amp;</span>(id, len)| <a href="../../src/aho_corasick/lib.rs.html#239">Match</a> { pattern: <a href="../../src/aho_corasick/dfa.rs.html#383">id</a>, <a href="../../src/aho_corasick/dfa.rs.html#383">len</a>, <a href="../../src/aho_corasick/dfa.rs.html#374">end</a> })
     }
 
-    <span class="kw">fn</span> <span class="ident">match_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#386">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">/</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#386">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a class="ident" href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#386">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<span class="ident">matches</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#387">o</a>].<span class="ident">len</span>()
+    <span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">let </span>o = <a href="../../src/aho_corasick/dfa.rs.html#386">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() / <a class="self" href="../../src/aho_corasick/dfa.rs.html#386">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<a href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#386">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().matches[<a href="../../src/aho_corasick/dfa.rs.html#387">o</a>].len()
     }
 
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#391">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#391">input</a>);
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#391">current</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">+</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#392">input</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#391">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().<span class="ident">trans</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#393">o</a>]
+    <span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: S, input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
+        <span class="kw">let </span>input = <a class="self" href="../../src/aho_corasick/dfa.rs.html#391">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().byte_classes.<a href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a href="../../src/aho_corasick/dfa.rs.html#391">input</a>);
+        <span class="kw">let </span>o = <a href="../../src/aho_corasick/dfa.rs.html#391">current</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() + <a href="../../src/aho_corasick/dfa.rs.html#392">input</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#391">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#334">repr</a>().trans[<a href="../../src/aho_corasick/dfa.rs.html#393">o</a>]
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">match_kind</span>: <a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a>,
-    <span class="ident">anchored</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">premultiplied</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">start_id</span>: <span class="ident">S</span>,
-    <span class="doccomment">/// The length, in bytes, of the longest pattern in this automaton. This</span>
-    <span class="doccomment">/// information is useful for keeping correct buffer sizes when searching</span>
-    <span class="doccomment">/// on streams.</span>
-    <span class="ident">max_pattern_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="doccomment">/// The total number of patterns added to this automaton. This includes</span>
-    <span class="doccomment">/// patterns that may never match.</span>
-    <span class="ident">pattern_count</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">state_count</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">max_match</span>: <span class="ident">S</span>,
-    <span class="doccomment">/// The number of bytes of heap used by this NFA&#39;s transition table.</span>
-    <span class="ident">heap_bytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="doccomment">/// A prefilter for quickly detecting candidate matchs, if pertinent.</span>
-    <span class="ident">prefilter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a><span class="op">&gt;</span>,
-    <span class="ident">byte_classes</span>: <a class="ident" href="../../src/aho_corasick/classes.rs.html#9">ByteClasses</a>,
-    <span class="ident">trans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">matches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#17">PatternID</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#20">PatternLength</a>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Repr&lt;S&gt; {
+    match_kind: <a href="../../src/aho_corasick/ahocorasick.rs.html#2046">MatchKind</a>,
+    anchored: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    premultiplied: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    start_id: S,
+    <span class="doccomment">/// The length, in bytes, of the longest pattern in this automaton. This
+    /// information is useful for keeping correct buffer sizes when searching
+    /// on streams.
+    </span>max_pattern_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// The total number of patterns added to this automaton. This includes
+    /// patterns that may never match.
+    </span>pattern_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    state_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    max_match: S,
+    <span class="doccomment">/// The number of bytes of heap used by this NFA&#39;s transition table.
+    </span>heap_bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// A prefilter for quickly detecting candidate matchs, if pertinent.
+    </span>prefilter: <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/prefilter.rs.html#123">PrefilterObj</a>&gt;,
+    byte_classes: <a href="../../src/aho_corasick/classes.rs.html#9">ByteClasses</a>,
+    trans: Vec&lt;S&gt;,
+    matches: Vec&lt;Vec&lt;(<a href="../../src/aho_corasick/nfa.rs.html#17">PatternID</a>, <a href="../../src/aho_corasick/nfa.rs.html#20">PatternLength</a>)&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span> <span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Returns the total alphabet size for this DFA.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If byte classes are enabled, then this corresponds to the number of</span>
-    <span class="doccomment">/// equivalence classes. If they are disabled, then this is always 256.</span>
-    <span class="kw">fn</span> <span class="ident">alphabet_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#427">self</a>.<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#46">alphabet_len</a>()
+<span class="kw">impl</span>&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt; Repr&lt;S&gt; {
+    <span class="doccomment">/// Returns the total alphabet size for this DFA.
+    ///
+    /// If byte classes are enabled, then this corresponds to the number of
+    /// equivalence classes. If they are disabled, then this is always 256.
+    </span><span class="kw">fn </span>alphabet_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#427">self</a>.byte_classes.<a href="../../src/aho_corasick/classes.rs.html#46">alphabet_len</a>()
     }
 
-    <span class="doccomment">/// Returns true only if the given state is a match state.</span>
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#432">id</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#432">self</a>.<span class="ident">max_match</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#432">id</a> <span class="op">&gt;</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>()
+    <span class="doccomment">/// Returns true only if the given state is a match state.
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../src/aho_corasick/dfa.rs.html#432">id</a> &lt;= <a class="self" href="../../src/aho_corasick/dfa.rs.html#432">self</a>.max_match &amp;&amp; <a href="../../src/aho_corasick/dfa.rs.html#432">id</a> &gt; <a href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>()
     }
 
-    <span class="doccomment">/// Returns true only if the given state is either a dead state or a match</span>
-    <span class="doccomment">/// state.</span>
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#438">id</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#438">self</a>.<span class="ident">max_match</span>
+    <span class="doccomment">/// Returns true only if the given state is either a dead state or a match
+    /// state.
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../src/aho_corasick/dfa.rs.html#438">id</a> &lt;= <a class="self" href="../../src/aho_corasick/dfa.rs.html#438">self</a>.max_match
     }
 
-    <span class="doccomment">/// Get the ith match for the given state, where the end position of a</span>
-    <span class="doccomment">/// match was found at `end`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must ensure that the given state identifier is valid,</span>
-    <span class="doccomment">/// otherwise this may panic. The `match_index` need not be valid. That is,</span>
-    <span class="doccomment">/// if the given state has no matches then this returns `None`.</span>
-    <span class="kw">fn</span> <span class="ident">get_match</span>(
+    <span class="doccomment">/// Get the ith match for the given state, where the end position of a
+    /// match was found at `end`.
+    ///
+    /// # Panics
+    ///
+    /// The caller must ensure that the given state identifier is valid,
+    /// otherwise this may panic. The `match_index` need not be valid. That is,
+    /// if the given state has no matches then this returns `None`.
+    </span><span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident">S</span>,
-        <span class="ident">match_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">end</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">id</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">max_match</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        id: S,
+        match_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/aho_corasick/lib.rs.html#239">Match</a>&gt; {
+        <span class="kw">if </span>id &gt; <span class="self">self</span>.max_match {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#451">self</a>.<span class="ident">matches</span>
-            .<span class="ident">get</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#452">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>())
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#461">m</a>.<span class="ident">get</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#453">match_index</a>))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">id</span>, <span class="ident">len</span>)<span class="op">|</span> <a class="ident" href="../../src/aho_corasick/lib.rs.html#239">Match</a> { <span class="ident">pattern</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#462">id</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#462">len</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#454">end</a> })
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#451">self</a>.matches
+            .get(<a href="../../src/aho_corasick/dfa.rs.html#452">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>())
+            .and_then(|m| <a href="../../src/aho_corasick/dfa.rs.html#461">m</a>.get(<a href="../../src/aho_corasick/dfa.rs.html#453">match_index</a>))
+            .map(|<span class="kw-2">&amp;</span>(id, len)| <a href="../../src/aho_corasick/lib.rs.html#239">Match</a> { pattern: <a href="../../src/aho_corasick/dfa.rs.html#462">id</a>, <a href="../../src/aho_corasick/dfa.rs.html#462">len</a>, <a href="../../src/aho_corasick/dfa.rs.html#454">end</a> })
     }
 
-    <span class="doccomment">/// Return the total number of matches for the given state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must ensure that the given identifier is valid, or else</span>
-    <span class="doccomment">/// this panics.</span>
-    <span class="kw">fn</span> <span class="ident">match_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#471">self</a>.<span class="ident">matches</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#471">id</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>()].<span class="ident">len</span>()
+    <span class="doccomment">/// Return the total number of matches for the given state.
+    ///
+    /// # Panics
+    ///
+    /// The caller must ensure that the given identifier is valid, or else
+    /// this panics.
+    </span><span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: S) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#471">self</a>.matches[<a href="../../src/aho_corasick/dfa.rs.html#471">id</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>()].len()
     }
 
-    <span class="doccomment">/// Get the next state given `from` as the current state and `byte` as the</span>
-    <span class="doccomment">/// current input byte.</span>
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="ident">S</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
-        <span class="kw">let</span> <span class="ident">alphabet_len</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#477">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#477">self</a>.<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#477">byte</a>);
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#477">self</a>.<span class="ident">trans</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#477">from</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">*</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#478">alphabet_len</a> <span class="op">+</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#479">byte</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+    <span class="doccomment">/// Get the next state given `from` as the current state and `byte` as the
+    /// current input byte.
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, from: S, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; S {
+        <span class="kw">let </span>alphabet_len = <a class="self" href="../../src/aho_corasick/dfa.rs.html#477">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
+        <span class="kw">let </span>byte = <a class="self" href="../../src/aho_corasick/dfa.rs.html#477">self</a>.byte_classes.<a href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a href="../../src/aho_corasick/dfa.rs.html#477">byte</a>);
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#477">self</a>.trans[<a href="../../src/aho_corasick/dfa.rs.html#477">from</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() * <a href="../../src/aho_corasick/dfa.rs.html#478">alphabet_len</a> + <a href="../../src/aho_corasick/dfa.rs.html#479">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
     }
 
-    <span class="doccomment">/// Set the `byte` transition for the `from` state to point to `to`.</span>
-    <span class="kw">fn</span> <span class="ident">set_next_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">from</span>: <span class="ident">S</span>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">to</span>: <span class="ident">S</span>) {
-        <span class="kw">let</span> <span class="ident">alphabet_len</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#484">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#484">self</a>.<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#484">byte</a>);
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#484">self</a>.<span class="ident">trans</span>[<a class="ident" href="../../src/aho_corasick/dfa.rs.html#484">from</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">*</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#485">alphabet_len</a> <span class="op">+</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#486">byte</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#484">to</a>;
+    <span class="doccomment">/// Set the `byte` transition for the `from` state to point to `to`.
+    </span><span class="kw">fn </span>set_next_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: S, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, to: S) {
+        <span class="kw">let </span>alphabet_len = <a class="self" href="../../src/aho_corasick/dfa.rs.html#484">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
+        <span class="kw">let </span>byte = <a class="self" href="../../src/aho_corasick/dfa.rs.html#484">self</a>.byte_classes.<a href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a href="../../src/aho_corasick/dfa.rs.html#484">byte</a>);
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#484">self</a>.trans[<a href="../../src/aho_corasick/dfa.rs.html#484">from</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() * <a href="../../src/aho_corasick/dfa.rs.html#485">alphabet_len</a> + <a href="../../src/aho_corasick/dfa.rs.html#486">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>] = <a href="../../src/aho_corasick/dfa.rs.html#484">to</a>;
     }
 
-    <span class="doccomment">/// Swap the given states in place.</span>
-    <span class="kw">fn</span> <span class="ident">swap_states</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id1</span>: <span class="ident">S</span>, <span class="ident">id2</span>: <span class="ident">S</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">premultiplied</span>, <span class="string">&quot;can&#39;t swap states in premultiplied DFA&quot;</span>);
+    <span class="doccomment">/// Swap the given states in place.
+    </span><span class="kw">fn </span>swap_states(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id1: S, id2: S) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.premultiplied, <span class="string">&quot;can&#39;t swap states in premultiplied DFA&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">o1</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#491">id1</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">*</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#491">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
-        <span class="kw">let</span> <span class="ident">o2</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#491">id2</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">*</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#491">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
-        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">alphabet_len</span>() {
-            <span class="self">self</span>.<span class="ident">trans</span>.<span class="ident">swap</span>(<span class="ident">o1</span> <span class="op">+</span> <span class="ident">b</span>, <span class="ident">o2</span> <span class="op">+</span> <span class="ident">b</span>);
+        <span class="kw">let </span>o1 = <a href="../../src/aho_corasick/dfa.rs.html#491">id1</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() * <a class="self" href="../../src/aho_corasick/dfa.rs.html#491">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
+        <span class="kw">let </span>o2 = <a href="../../src/aho_corasick/dfa.rs.html#491">id2</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() * <a class="self" href="../../src/aho_corasick/dfa.rs.html#491">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
+        <span class="kw">for </span>b <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.alphabet_len() {
+            <span class="self">self</span>.trans.swap(o1 + b, o2 + b);
         }
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#491">self</a>.<span class="ident">matches</span>.<span class="ident">swap</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#491">id1</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>(), <a class="ident" href="../../src/aho_corasick/dfa.rs.html#491">id2</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>());
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#491">self</a>.matches.swap(<a href="../../src/aho_corasick/dfa.rs.html#491">id1</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>(), <a href="../../src/aho_corasick/dfa.rs.html#491">id2</a>.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>());
     }
 
-    <span class="doccomment">/// This routine shuffles all match states in this DFA to the beginning</span>
-    <span class="doccomment">/// of the DFA such that every non-match state appears after every match</span>
-    <span class="doccomment">/// state. (With one exception: the special fail and dead states remain as</span>
-    <span class="doccomment">/// the first two states.)</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The purpose of doing this shuffling is to avoid an extra conditional</span>
-    <span class="doccomment">/// in the search loop, and in particular, detecting whether a state is a</span>
-    <span class="doccomment">/// match or not does not need to access any memory.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This updates `self.max_match` to point to the last matching state as</span>
-    <span class="doccomment">/// well as `self.start` if the starting state was moved.</span>
-    <span class="kw">fn</span> <span class="ident">shuffle_match_states</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+    <span class="doccomment">/// This routine shuffles all match states in this DFA to the beginning
+    /// of the DFA such that every non-match state appears after every match
+    /// state. (With one exception: the special fail and dead states remain as
+    /// the first two states.)
+    ///
+    /// The purpose of doing this shuffling is to avoid an extra conditional
+    /// in the search loop, and in particular, detecting whether a state is a
+    /// match or not does not need to access any memory.
+    ///
+    /// This updates `self.max_match` to point to the last matching state as
+    /// well as `self.start` if the starting state was moved.
+    </span><span class="kw">fn </span>shuffle_match_states(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="op">!</span><span class="self">self</span>.<span class="ident">premultiplied</span>,
-            <span class="string">&quot;cannot shuffle match states of premultiplied DFA&quot;</span>
-        );
+            !<span class="self">self</span>.premultiplied,
+            <span class="string">&quot;cannot shuffle match states of premultiplied DFA&quot;
+        </span>);
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state_count</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if </span><span class="self">self</span>.state_count &lt;= <span class="number">1 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first_non_match</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.<span class="ident">start_id</span>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>();
-        <span class="kw">while</span> <span class="ident">first_non_match</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">state_count</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">matches</span>[<span class="ident">first_non_match</span>].<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>
-        {
-            <span class="ident">first_non_match</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>first_non_match = <a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.start_id.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>();
+        <span class="kw">while </span>first_non_match &lt; <span class="self">self</span>.state_count
+            &amp;&amp; <span class="self">self</span>.matches[first_non_match].len() &gt; <span class="number">0
+        </span>{
+            first_non_match += <span class="number">1</span>;
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">swaps</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">fail_id</span>(); <span class="self">self</span>.<span class="ident">state_count</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cur</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.<span class="ident">state_count</span> <span class="op">-</span> <span class="number">1</span>;
-        <span class="kw">while</span> <span class="ident">cur</span> <span class="op">&gt;</span> <span class="ident">first_non_match</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">matches</span>[<span class="ident">cur</span>].<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="self">self</span>.<span class="ident">swap_states</span>(
-                    <span class="ident">S::from_usize</span>(<span class="ident">cur</span>),
-                    <span class="ident">S::from_usize</span>(<span class="ident">first_non_match</span>),
+        <span class="kw">let </span><span class="kw-2">mut </span>swaps: Vec&lt;S&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[fail_id(); <span class="self">self</span>.state_count];
+        <span class="kw">let </span><span class="kw-2">mut </span>cur = <a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.state_count - <span class="number">1</span>;
+        <span class="kw">while </span>cur &gt; first_non_match {
+            <span class="kw">if </span><span class="self">self</span>.matches[cur].len() &gt; <span class="number">0 </span>{
+                <span class="self">self</span>.swap_states(
+                    S::from_usize(cur),
+                    S::from_usize(first_non_match),
                 );
-                <span class="ident">swaps</span>[<span class="ident">cur</span>] <span class="op">=</span> <span class="ident">S::from_usize</span>(<span class="ident">first_non_match</span>);
-                <span class="ident">swaps</span>[<span class="ident">first_non_match</span>] <span class="op">=</span> <span class="ident">S::from_usize</span>(<span class="ident">cur</span>);
+                swaps[cur] = S::from_usize(first_non_match);
+                swaps[first_non_match] = S::from_usize(cur);
 
-                <span class="ident">first_non_match</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">while</span> <span class="ident">first_non_match</span> <span class="op">&lt;</span> <span class="ident">cur</span>
-                    <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">matches</span>[<span class="ident">first_non_match</span>].<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>
-                {
-                    <span class="ident">first_non_match</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                first_non_match += <span class="number">1</span>;
+                <span class="kw">while </span>first_non_match &lt; cur
+                    &amp;&amp; <span class="self">self</span>.matches[first_non_match].len() &gt; <span class="number">0
+                </span>{
+                    first_non_match += <span class="number">1</span>;
                 }
             }
-            <span class="ident">cur</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            cur -= <span class="number">1</span>;
         }
-        <span class="kw">for</span> <span class="ident">id</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="self">self</span>.<span class="ident">state_count</span>).<span class="ident">map</span>(<span class="ident">S::from_usize</span>) {
-            <span class="kw">let</span> <span class="ident">alphabet_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alphabet_len</span>();
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">to_usize</span>() <span class="op">*</span> <span class="ident">alphabet_len</span>;
-            <span class="kw">for</span> <span class="ident">next</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">trans</span>[<span class="ident">offset</span>..<span class="ident">offset</span> <span class="op">+</span> <span class="ident">alphabet_len</span>] {
-                <span class="kw">if</span> <span class="ident">swaps</span>[<span class="ident">next</span>.<span class="ident">to_usize</span>()] <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
-                    <span class="kw-2">*</span><span class="ident">next</span> <span class="op">=</span> <span class="ident">swaps</span>[<span class="ident">next</span>.<span class="ident">to_usize</span>()];
+        <span class="kw">for </span>id <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.state_count).map(S::from_usize) {
+            <span class="kw">let </span>alphabet_len = <span class="self">self</span>.alphabet_len();
+            <span class="kw">let </span>offset = id.to_usize() * alphabet_len;
+            <span class="kw">for </span>next <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.trans[offset..offset + alphabet_len] {
+                <span class="kw">if </span>swaps[next.to_usize()] != fail_id() {
+                    <span class="kw-2">*</span>next = swaps[next.to_usize()];
                 }
             }
         }
-        <span class="kw">if</span> <span class="ident">swaps</span>[<span class="self">self</span>.<span class="ident">start_id</span>.<span class="ident">to_usize</span>()] <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
-            <a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.<span class="ident">start_id</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#530">swaps</a>[<a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.<span class="ident">start_id</span>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>()];
+        <span class="kw">if </span>swaps[<span class="self">self</span>.start_id.to_usize()] != fail_id() {
+            <a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.start_id = <a href="../../src/aho_corasick/dfa.rs.html#530">swaps</a>[<a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.start_id.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>()];
         }
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.<span class="ident">max_match</span> <span class="op">=</span> <span class="ident">S::from_usize</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#523">first_non_match</a> <span class="op">-</span> <span class="number">1</span>);
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#513">self</a>.max_match = S::from_usize(<a href="../../src/aho_corasick/dfa.rs.html#523">first_non_match</a> - <span class="number">1</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">premultiply</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">premultiplied</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">state_count</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">fn </span>premultiply(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">if </span><span class="self">self</span>.premultiplied || <span class="self">self</span>.state_count &lt;= <span class="number">1 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let</span> <span class="ident">alpha_len</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
-        <span class="ident">premultiply_overflow_error</span>(
-            <span class="ident">S::from_usize</span>(<span class="self">self</span>.<span class="ident">state_count</span> <span class="op">-</span> <span class="number">1</span>),
-            <span class="ident">alpha_len</span>,
+        <span class="kw">let </span>alpha_len = <a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.<a href="../../src/aho_corasick/dfa.rs.html#427">alphabet_len</a>();
+        premultiply_overflow_error(
+            S::from_usize(<span class="self">self</span>.state_count - <span class="number">1</span>),
+            alpha_len,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <span class="ident">id</span> <span class="kw">in</span> (<span class="number">2</span>..<span class="self">self</span>.<span class="ident">state_count</span>).<span class="ident">map</span>(<span class="ident">S::from_usize</span>) {
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">to_usize</span>() <span class="op">*</span> <span class="ident">alpha_len</span>;
-            <span class="kw">for</span> <span class="ident">next</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">trans</span>[<span class="ident">offset</span>..<span class="ident">offset</span> <span class="op">+</span> <span class="ident">alpha_len</span>] {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">next</span> <span class="op">==</span> <span class="ident">dead_id</span>() {
+        <span class="kw">for </span>id <span class="kw">in </span>(<span class="number">2</span>..<span class="self">self</span>.state_count).map(S::from_usize) {
+            <span class="kw">let </span>offset = id.to_usize() * alpha_len;
+            <span class="kw">for </span>next <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.trans[offset..offset + alpha_len] {
+                <span class="kw">if </span><span class="kw-2">*</span>next == dead_id() {
                     <span class="kw">continue</span>;
                 }
-                <span class="kw-2">*</span><span class="ident">next</span> <span class="op">=</span> <span class="ident">S::from_usize</span>(<span class="ident">next</span>.<span class="ident">to_usize</span>() <span class="op">*</span> <span class="ident">alpha_len</span>);
+                <span class="kw-2">*</span>next = S::from_usize(next.to_usize() * alpha_len);
             }
         }
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.<span class="ident">premultiplied</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.<span class="ident">start_id</span> <span class="op">=</span> <span class="ident">S::from_usize</span>(<a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.<span class="ident">start_id</span>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">*</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#570">alpha_len</a>);
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.<span class="ident">max_match</span> <span class="op">=</span> <span class="ident">S::from_usize</span>(<a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.<span class="ident">max_match</span>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">*</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#570">alpha_len</a>);
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.premultiplied = <span class="bool-val">true</span>;
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.start_id = S::from_usize(<a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.start_id.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() * <a href="../../src/aho_corasick/dfa.rs.html#570">alpha_len</a>);
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.max_match = S::from_usize(<a class="self" href="../../src/aho_corasick/dfa.rs.html#565">self</a>.max_match.<a href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() * <a href="../../src/aho_corasick/dfa.rs.html#570">alpha_len</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Computes the total amount of heap used by this NFA in bytes.</span>
-    <span class="kw">fn</span> <span class="ident">calculate_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> (<a class="self" href="../../src/aho_corasick/dfa.rs.html#592">self</a>.<span class="ident">trans</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>())
-            <span class="op">+</span> (<a class="self" href="../../src/aho_corasick/dfa.rs.html#592">self</a>.<span class="ident">matches</span>.<span class="ident">len</span>()
-                <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#17">PatternID</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#20">PatternLength</a>)<span class="op">&gt;</span><span class="op">&gt;</span>());
-        <span class="kw">for</span> <span class="ident">state_matches</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">matches</span> {
-            <span class="ident">size</span> <span class="op">+</span><span class="op">=</span>
-                <span class="ident">state_matches</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span>(<span class="ident">PatternID</span>, <span class="ident">PatternLength</span>)<span class="op">&gt;</span>();
+    <span class="doccomment">/// Computes the total amount of heap used by this NFA in bytes.
+    </span><span class="kw">fn </span>calculate_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>size = (<a class="self" href="../../src/aho_corasick/dfa.rs.html#592">self</a>.trans.len() * size_of::&lt;S&gt;())
+            + (<a class="self" href="../../src/aho_corasick/dfa.rs.html#592">self</a>.matches.len()
+                * size_of::&lt;Vec&lt;(<a href="../../src/aho_corasick/nfa.rs.html#17">PatternID</a>, <a href="../../src/aho_corasick/nfa.rs.html#20">PatternLength</a>)&gt;&gt;());
+        <span class="kw">for </span>state_matches <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.matches {
+            size +=
+                state_matches.len() * size_of::&lt;(PatternID, PatternLength)&gt;();
         }
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#593">size</a> <span class="op">+</span><span class="op">=</span> <a class="self" href="../../src/aho_corasick/dfa.rs.html#592">self</a>.<span class="ident">prefilter</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#600">p</a>.<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>().<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#71">heap_bytes</a>());
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#592">self</a>.<span class="ident">heap_bytes</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#593">size</a>;
+        <a href="../../src/aho_corasick/dfa.rs.html#593">size</a> += <a class="self" href="../../src/aho_corasick/dfa.rs.html#592">self</a>.prefilter.as_ref().map_or(<span class="number">0</span>, |p| <a href="../../src/aho_corasick/dfa.rs.html#600">p</a>.<a href="../../src/aho_corasick/prefilter.rs.html#138">as_ref</a>().<a href="../../src/aho_corasick/prefilter.rs.html#71">heap_bytes</a>());
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#592">self</a>.heap_bytes = <a href="../../src/aho_corasick/dfa.rs.html#593">size</a>;
     }
 }
 
-<span class="doccomment">/// A builder for configuring the determinization of an NFA into a DFA.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span> {
-    <span class="ident">premultiply</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">byte_classes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// A builder for configuring the determinization of an NFA into a DFA.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Builder {
+    premultiply: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    byte_classes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> {
-    <span class="doccomment">/// Create a new builder for a DFA.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> {
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> { <span class="ident">premultiply</span>: <span class="bool-val">true</span>, <span class="ident">byte_classes</span>: <span class="bool-val">true</span> }
+<span class="kw">impl </span><a href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> {
+    <span class="doccomment">/// Create a new builder for a DFA.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> {
+        <a href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> { premultiply: <span class="bool-val">true</span>, byte_classes: <span class="bool-val">true </span>}
     }
 
-    <span class="doccomment">/// Build a DFA from the given NFA.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This returns an error if the state identifiers exceed their</span>
-    <span class="doccomment">/// representation size. This can only happen when state ids are</span>
-    <span class="doccomment">/// premultiplied (which is enabled by default).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_classes</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">byte_classes</span> {
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#96">byte_classes</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-        } <span class="kw">else</span> {
-            <span class="ident">ByteClasses::singletons</span>()
+    <span class="doccomment">/// Build a DFA from the given NFA.
+    ///
+    /// This returns an error if the state identifiers exceed their
+    /// representation size. This can only happen when state ids are
+    /// premultiplied (which is enabled by default).
+    </span><span class="kw">pub fn </span>build&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, nfa: <span class="kw-2">&amp;</span>NFA&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;DFA&lt;S&gt;&gt; {
+        <span class="kw">let </span>byte_classes = <span class="kw">if </span><span class="self">self</span>.byte_classes {
+            <a href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a href="../../src/aho_corasick/nfa.rs.html#96">byte_classes</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        } <span class="kw">else </span>{
+            ByteClasses::singletons()
         };
-        <span class="kw">let</span> <span class="ident">alphabet_len</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#624">byte_classes</a>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#46">alphabet_len</a>();
-        <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">fail_id</span>(); <span class="ident">alphabet_len</span> <span class="op">*</span> <span class="ident">nfa</span>.<span class="ident">state_len</span>()];
-        <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vec!</span>[]; <span class="ident">nfa</span>.<span class="ident">state_len</span>()];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">repr</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#399">Repr</a> {
-            <span class="ident">match_kind</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#87">match_kind</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">anchored</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#90">anchored</a>(),
-            <span class="ident">premultiplied</span>: <span class="bool-val">false</span>,
-            <span class="ident">start_id</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a class="ident" href="../../src/aho_corasick/automaton.rs.html#103">start_state</a>(),
-            <span class="ident">max_pattern_len</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#113">max_pattern_len</a>(),
-            <span class="ident">pattern_count</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#118">pattern_count</a>(),
-            <span class="ident">state_count</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#123">state_len</a>(),
-            <span class="ident">max_match</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>(),
-            <span class="ident">heap_bytes</span>: <span class="number">0</span>,
-            <span class="ident">prefilter</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#101">prefilter_obj</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#642">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            <span class="ident">byte_classes</span>: <a class="ident" href="../../src/aho_corasick/dfa.rs.html#624">byte_classes</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#630">trans</a>,
-            <a class="ident" href="../../src/aho_corasick/dfa.rs.html#631">matches</a>,
+        <span class="kw">let </span>alphabet_len = <a href="../../src/aho_corasick/dfa.rs.html#624">byte_classes</a>.<a href="../../src/aho_corasick/classes.rs.html#46">alphabet_len</a>();
+        <span class="kw">let </span>trans = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[fail_id(); alphabet_len * nfa.state_len()];
+        <span class="kw">let </span>matches = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vec!</span>[]; nfa.state_len()];
+        <span class="kw">let </span><span class="kw-2">mut </span>repr = <a href="../../src/aho_corasick/dfa.rs.html#399">Repr</a> {
+            match_kind: <a href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#87">match_kind</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            anchored: <a href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#90">anchored</a>(),
+            premultiplied: <span class="bool-val">false</span>,
+            start_id: <a href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a href="../../src/aho_corasick/automaton.rs.html#103">start_state</a>(),
+            max_pattern_len: <a href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a href="../../src/aho_corasick/nfa.rs.html#113">max_pattern_len</a>(),
+            pattern_count: <a href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a href="../../src/aho_corasick/nfa.rs.html#118">pattern_count</a>(),
+            state_count: <a href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a href="../../src/aho_corasick/nfa.rs.html#123">state_len</a>(),
+            max_match: <a href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>(),
+            heap_bytes: <span class="number">0</span>,
+            prefilter: <a href="../../src/aho_corasick/dfa.rs.html#623">nfa</a>.<a href="../../src/aho_corasick/nfa.rs.html#101">prefilter_obj</a>().map(|p| <a href="../../src/aho_corasick/dfa.rs.html#642">p</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            byte_classes: <a href="../../src/aho_corasick/dfa.rs.html#624">byte_classes</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="../../src/aho_corasick/dfa.rs.html#630">trans</a>,
+            <a href="../../src/aho_corasick/dfa.rs.html#631">matches</a>,
         };
-        <span class="kw">for</span> <span class="ident">id</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="ident">nfa</span>.<span class="ident">state_len</span>()).<span class="ident">map</span>(<span class="ident">S::from_usize</span>) {
-            <span class="ident">repr</span>.<span class="ident">matches</span>[<span class="ident">id</span>.<span class="ident">to_usize</span>()].<span class="ident">extend_from_slice</span>(<span class="ident">nfa</span>.<span class="ident">matches</span>(<span class="ident">id</span>));
+        <span class="kw">for </span>id <span class="kw">in </span>(<span class="number">0</span>..nfa.state_len()).map(S::from_usize) {
+            repr.matches[id.to_usize()].extend_from_slice(nfa.matches(id));
 
-            <span class="kw">let</span> <span class="ident">fail</span> <span class="op">=</span> <span class="ident">nfa</span>.<span class="ident">failure_transition</span>(<span class="ident">id</span>);
-            <span class="ident">nfa</span>.<span class="ident">iter_all_transitions</span>(<span class="kw-2">&amp;</span><span class="ident">byte_classes</span>, <span class="ident">id</span>, <span class="op">|</span><span class="ident">b</span>, <span class="kw-2">mut</span> <span class="ident">next</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="ident">next</span> <span class="op">==</span> <span class="ident">fail_id</span>() {
-                    <span class="ident">next</span> <span class="op">=</span> <span class="ident">nfa_next_state_memoized</span>(<span class="ident">nfa</span>, <span class="kw-2">&amp;</span><span class="ident">repr</span>, <span class="ident">id</span>, <span class="ident">fail</span>, <span class="ident">b</span>);
+            <span class="kw">let </span>fail = nfa.failure_transition(id);
+            nfa.iter_all_transitions(<span class="kw-2">&amp;</span>byte_classes, id, |b, <span class="kw-2">mut </span>next| {
+                <span class="kw">if </span>next == fail_id() {
+                    next = nfa_next_state_memoized(nfa, <span class="kw-2">&amp;</span>repr, id, fail, b);
                 }
-                <span class="ident">repr</span>.<span class="ident">set_next_state</span>(<span class="ident">id</span>, <span class="ident">b</span>, <span class="ident">next</span>);
+                repr.set_next_state(id, b, next);
             });
         }
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#632">repr</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#513">shuffle_match_states</a>();
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#632">repr</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#592">calculate_size</a>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">premultiply</span> {
-            <span class="ident">repr</span>.<span class="ident">premultiply</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">byte_classes</span>.<span class="ident">is_singleton</span>() {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#264">Premultiplied</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#632">repr</a>)))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#331">PremultipliedByteClass</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#632">repr</a>)))
+        <a href="../../src/aho_corasick/dfa.rs.html#632">repr</a>.<a href="../../src/aho_corasick/dfa.rs.html#513">shuffle_match_states</a>();
+        <a href="../../src/aho_corasick/dfa.rs.html#632">repr</a>.<a href="../../src/aho_corasick/dfa.rs.html#592">calculate_size</a>();
+        <span class="kw">if </span><span class="self">self</span>.premultiply {
+            repr.premultiply()<span class="question-mark">?</span>;
+            <span class="kw">if </span>byte_classes.is_singleton() {
+                <span class="prelude-val">Ok</span>(<a href="../../src/aho_corasick/dfa.rs.html#16">DFA::Premultiplied</a>(<a href="../../src/aho_corasick/dfa.rs.html#264">Premultiplied</a>(<a href="../../src/aho_corasick/dfa.rs.html#632">repr</a>)))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Ok</span>(<a href="../../src/aho_corasick/dfa.rs.html#17">DFA::PremultipliedByteClass</a>(<a href="../../src/aho_corasick/dfa.rs.html#331">PremultipliedByteClass</a>(<a href="../../src/aho_corasick/dfa.rs.html#632">repr</a>)))
             }
-        } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="ident">byte_classes</span>.<span class="ident">is_singleton</span>() {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#144">Standard</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#632">repr</a>)))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#203">ByteClass</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#632">repr</a>)))
+        } <span class="kw">else </span>{
+            <span class="kw">if </span>byte_classes.is_singleton() {
+                <span class="prelude-val">Ok</span>(<a href="../../src/aho_corasick/dfa.rs.html#14">DFA::Standard</a>(<a href="../../src/aho_corasick/dfa.rs.html#144">Standard</a>(<a href="../../src/aho_corasick/dfa.rs.html#632">repr</a>)))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Ok</span>(<a href="../../src/aho_corasick/dfa.rs.html#15">DFA::ByteClass</a>(<a href="../../src/aho_corasick/dfa.rs.html#203">ByteClass</a>(<a href="../../src/aho_corasick/dfa.rs.html#632">repr</a>)))
             }
         }
     }
 
-    <span class="doccomment">/// Whether to use byte classes or in the DFA.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_classes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#677">self</a>.<span class="ident">byte_classes</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#677">yes</a>;
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#677">self</a>
-    }
+    <span class="doccomment">/// Whether to use byte classes or in the DFA.
+    </span><span class="kw">pub fn </span>byte_classes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#677">self</a>.byte_classes = <a href="../../src/aho_corasick/dfa.rs.html#677">yes</a>;
+        <span class="self"><a href="../../src/aho_corasick/dfa.rs.html#677">self</a>
+    </span>}
 
-    <span class="doccomment">/// Whether to premultiply state identifier in the DFA.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">premultiply</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> {
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#683">self</a>.<span class="ident">premultiply</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#683">yes</a>;
-        <a class="self" href="../../src/aho_corasick/dfa.rs.html#683">self</a>
-    }
+    <span class="doccomment">/// Whether to premultiply state identifier in the DFA.
+    </span><span class="kw">pub fn </span>premultiply(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/aho_corasick/dfa.rs.html#607">Builder</a> {
+        <a class="self" href="../../src/aho_corasick/dfa.rs.html#683">self</a>.premultiply = <a href="../../src/aho_corasick/dfa.rs.html#683">yes</a>;
+        <span class="self"><a href="../../src/aho_corasick/dfa.rs.html#683">self</a>
+    </span>}
 }
 
-<span class="doccomment">/// This returns the next NFA transition (including resolving failure</span>
-<span class="doccomment">/// transitions), except once it sees a state id less than the id of the DFA</span>
-<span class="doccomment">/// state that is currently being populated, then we no longer need to follow</span>
-<span class="doccomment">/// failure transitions and can instead query the pre-computed state id from</span>
-<span class="doccomment">/// the DFA itself.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In general, this should only be called when a failure transition is seen.</span>
-<span class="kw">fn</span> <span class="ident">nfa_next_state_memoized</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a><span class="op">&gt;</span>(
-    <span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">dfa</span>: <span class="kw-2">&amp;</span><span class="ident">Repr</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">populating</span>: <span class="ident">S</span>,
-    <span class="kw-2">mut</span> <span class="ident">current</span>: <span class="ident">S</span>,
-    <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-) -&gt; <span class="ident">S</span> {
-    <span class="kw">loop</span> {
-        <span class="kw">if</span> <span class="ident">current</span> <span class="op">&lt;</span> <span class="ident">populating</span> {
-            <span class="kw">return</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#698">dfa</a>.<a class="ident" href="../../src/aho_corasick/dfa.rs.html#477">next_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#700">current</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#701">input</a>);
+<span class="doccomment">/// This returns the next NFA transition (including resolving failure
+/// transitions), except once it sees a state id less than the id of the DFA
+/// state that is currently being populated, then we no longer need to follow
+/// failure transitions and can instead query the pre-computed state id from
+/// the DFA itself.
+///
+/// In general, this should only be called when a failure transition is seen.
+</span><span class="kw">fn </span>nfa_next_state_memoized&lt;S: <a href="../../src/aho_corasick/state_id.rs.html#72-81">StateID</a>&gt;(
+    nfa: <span class="kw-2">&amp;</span>NFA&lt;S&gt;,
+    dfa: <span class="kw-2">&amp;</span>Repr&lt;S&gt;,
+    populating: S,
+    <span class="kw-2">mut </span>current: S,
+    input: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+) -&gt; S {
+    <span class="kw">loop </span>{
+        <span class="kw">if </span>current &lt; populating {
+            <span class="kw">return </span><a href="../../src/aho_corasick/dfa.rs.html#698">dfa</a>.<a href="../../src/aho_corasick/dfa.rs.html#477">next_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#700">current</a>, <a href="../../src/aho_corasick/dfa.rs.html#701">input</a>);
         }
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#697">nfa</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#154">next_state</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#700">current</a>, <a class="ident" href="../../src/aho_corasick/dfa.rs.html#701">input</a>);
-        <span class="kw">if</span> <span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
-            <span class="kw">return</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#707">next</a>;
+        <span class="kw">let </span>next = <a href="../../src/aho_corasick/dfa.rs.html#697">nfa</a>.<a href="../../src/aho_corasick/nfa.rs.html#154">next_state</a>(<a href="../../src/aho_corasick/dfa.rs.html#700">current</a>, <a href="../../src/aho_corasick/dfa.rs.html#701">input</a>);
+        <span class="kw">if </span>next != fail_id() {
+            <span class="kw">return </span><a href="../../src/aho_corasick/dfa.rs.html#707">next</a>;
         }
-        <a class="ident" href="../../src/aho_corasick/dfa.rs.html#700">current</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/dfa.rs.html#697">nfa</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#146">failure_transition</a>(<a class="ident" href="../../src/aho_corasick/dfa.rs.html#700">current</a>);
+        <a href="../../src/aho_corasick/dfa.rs.html#700">current</a> = <a href="../../src/aho_corasick/dfa.rs.html#697">nfa</a>.<a href="../../src/aho_corasick/nfa.rs.html#146">failure_transition</a>(<a href="../../src/aho_corasick/dfa.rs.html#700">current</a>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

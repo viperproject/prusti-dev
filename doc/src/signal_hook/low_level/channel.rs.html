@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/signal-hook-0.3.14/src/low_level/channel.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>channel.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../signal_hook/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../signal_hook/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../signal_hook/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/signal-hook-0.3.14/src/low_level/channel.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>channel.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../signal_hook/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../signal_hook/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../signal_hook/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -233,240 +233,240 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
-</pre><pre class="rust"><code><span class="doccomment">//! A restricted channel to pass data from signal handler.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When trying to communicate data from signal handler to the outside world, one can use an atomic</span>
-<span class="doccomment">//! variable (as it doesn&#39;t lock, so it can be made async-signal-safe). But this won&#39;t work for</span>
-<span class="doccomment">//! larger data.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module provides a channel that can be used for that purpose. It is used by certain</span>
-<span class="doccomment">//! [exfiltrators][crate::iterator::exfiltrator], but can be used as building block for custom</span>
-<span class="doccomment">//! actions. In general, this is not a ready-made end-user API.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # How does it work</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Each channel has a fixed number of slots and two queues (one for empty slots, one for full</span>
-<span class="doccomment">//! slots). A signal handler takes a slot out of the empty one, fills it and passes it into the</span>
-<span class="doccomment">//! full one. Outside of signal handler, it can take the value out of the full queue and return the</span>
-<span class="doccomment">//! slot to the empty queue.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The queues are implemented as bit-encoded indexes of the slots in the storage. The bits are</span>
-<span class="doccomment">//! stored in an atomic variable.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Note that the algorithm allows for a slot to be in neither queue (when it is being emptied or</span>
-<span class="doccomment">//! filled).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Fallible allocation of a slot</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! It is apparent that allocation of a new slot can fail (there&#39;s nothing in the empty slot). In</span>
-<span class="doccomment">//! such case, there&#39;s no way to send the new value out of the handler (there&#39;s no way to safely</span>
-<span class="doccomment">//! wait for a slot to appear, because the handler can be blocking the thread that is responsible</span>
-<span class="doccomment">//! for emptying them). But that&#39;s considered acceptable ‒ even the kernel collates the same kinds</span>
-<span class="doccomment">//! of signals together if they are not consumed by application fast enough and there are no free</span>
-<span class="doccomment">//! slots exactly because some are being filled, emptied or are full ‒ in particular, the whole</span>
-<span class="doccomment">//! system will yield a signal.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This assumes that separate signals don&#39;t share the same buffer and that there&#39;s only one reader</span>
-<span class="doccomment">//! (using multiple readers is still safe, but it is possible that all slots would be inside the</span>
-<span class="doccomment">//! readers, but already empty, so the above argument would not hold).</span>
+</pre><pre class="rust"><code><span class="doccomment">//! A restricted channel to pass data from signal handler.
+//!
+//! When trying to communicate data from signal handler to the outside world, one can use an atomic
+//! variable (as it doesn&#39;t lock, so it can be made async-signal-safe). But this won&#39;t work for
+//! larger data.
+//!
+//! This module provides a channel that can be used for that purpose. It is used by certain
+//! [exfiltrators][crate::iterator::exfiltrator], but can be used as building block for custom
+//! actions. In general, this is not a ready-made end-user API.
+//!
+//! # How does it work
+//!
+//! Each channel has a fixed number of slots and two queues (one for empty slots, one for full
+//! slots). A signal handler takes a slot out of the empty one, fills it and passes it into the
+//! full one. Outside of signal handler, it can take the value out of the full queue and return the
+//! slot to the empty queue.
+//!
+//! The queues are implemented as bit-encoded indexes of the slots in the storage. The bits are
+//! stored in an atomic variable.
+//!
+//! Note that the algorithm allows for a slot to be in neither queue (when it is being emptied or
+//! filled).
+//!
+//! # Fallible allocation of a slot
+//!
+//! It is apparent that allocation of a new slot can fail (there&#39;s nothing in the empty slot). In
+//! such case, there&#39;s no way to send the new value out of the handler (there&#39;s no way to safely
+//! wait for a slot to appear, because the handler can be blocking the thread that is responsible
+//! for emptying them). But that&#39;s considered acceptable ‒ even the kernel collates the same kinds
+//! of signals together if they are not consumed by application fast enough and there are no free
+//! slots exactly because some are being filled, emptied or are full ‒ in particular, the whole
+//! system will yield a signal.
+//!
+//! This assumes that separate signals don&#39;t share the same buffer and that there&#39;s only one reader
+//! (using multiple readers is still safe, but it is possible that all slots would be inside the
+//! readers, but already empty, so the above argument would not hold).
 
-<span class="comment">// TODO: Other sizes? Does anyone need more than 5 slots?</span>
+</span><span class="comment">// TODO: Other sizes? Does anyone need more than 5 slots?
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
 
-<span class="kw">const</span> <span class="ident">SLOTS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">5</span>;
-<span class="kw">const</span> <span class="ident">BITS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> <span class="op">=</span> <span class="number">3</span>;
-<span class="kw">const</span> <span class="ident">MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> <span class="op">=</span> <span class="number">0b111</span>;
+<span class="kw">const </span>SLOTS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">5</span>;
+<span class="kw">const </span>BITS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> = <span class="number">3</span>;
+<span class="kw">const </span>MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> = <span class="number">0b111</span>;
 
-<span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-    (<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#47">n</a> <span class="op">&gt;</span><span class="op">&gt;</span> (<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> <span class="op">*</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#47">idx</a>)) <span class="op">&amp;</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a>
+<span class="kw">fn </span>get(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+    (<a href="../../../src/signal_hook/low_level/channel.rs.html#47">n</a> &gt;&gt; (<a href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> * <a href="../../../src/signal_hook/low_level/channel.rs.html#47">idx</a>)) &amp; <a href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a>
 }
 
-<span class="kw">fn</span> <span class="ident">set</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">v</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-    <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#51">v</a> <span class="op">&lt;</span><span class="op">&lt;</span> (<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> <span class="op">*</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#51">idx</a>);
-    <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a> <span class="op">&lt;</span><span class="op">&lt;</span> (<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> <span class="op">*</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#51">idx</a>);
-    (<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#51">n</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#53">mask</a>) <span class="op">|</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#52">v</a>
+<span class="kw">fn </span>set(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, v: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+    <span class="kw">let </span>v = <a href="../../../src/signal_hook/low_level/channel.rs.html#51">v</a> &lt;&lt; (<a href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> * <a href="../../../src/signal_hook/low_level/channel.rs.html#51">idx</a>);
+    <span class="kw">let </span>mask = <a href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a> &lt;&lt; (<a href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a> * <a href="../../../src/signal_hook/low_level/channel.rs.html#51">idx</a>);
+    (<a href="../../../src/signal_hook/low_level/channel.rs.html#51">n</a> &amp; !<a href="../../../src/signal_hook/low_level/channel.rs.html#53">mask</a>) | <a href="../../../src/signal_hook/low_level/channel.rs.html#52">v</a>
 }
 
-<span class="kw">fn</span> <span class="ident">enqueue</span>(<span class="ident">q</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#57">q</a>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
-    <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">empty</span> <span class="op">=</span> (<span class="number">0</span>..<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#43">SLOTS</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#47">get</a>(<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#61">i</a>) <span class="op">==</span> <span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;No empty slot available&quot;</span>);
-        <span class="kw">let</span> <span class="ident">modified</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#51">set</a>(<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#60">empty</a>, <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#57">val</a>);
-        <span class="kw">match</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#57">q</a>.<span class="ident">compare_exchange_weak</span>(<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#63">modified</a>, <span class="ident">Ordering::Release</span>, <span class="ident">Ordering::Relaxed</span>) {
+<span class="kw">fn </span>enqueue(q: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+    <span class="kw">let </span><span class="kw-2">mut </span>current = <a href="../../../src/signal_hook/low_level/channel.rs.html#57">q</a>.load(Ordering::Relaxed);
+    <span class="kw">loop </span>{
+        <span class="kw">let </span>empty = (<span class="number">0</span>..<a href="../../../src/signal_hook/low_level/channel.rs.html#43">SLOTS</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|i| <a href="../../../src/signal_hook/low_level/channel.rs.html#47">get</a>(<a href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <span class="kw-2">*</span><a href="../../../src/signal_hook/low_level/channel.rs.html#61">i</a>) == <span class="number">0</span>)
+            .expect(<span class="string">&quot;No empty slot available&quot;</span>);
+        <span class="kw">let </span>modified = <a href="../../../src/signal_hook/low_level/channel.rs.html#51">set</a>(<a href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <a href="../../../src/signal_hook/low_level/channel.rs.html#60">empty</a>, <a href="../../../src/signal_hook/low_level/channel.rs.html#57">val</a>);
+        <span class="kw">match </span><a href="../../../src/signal_hook/low_level/channel.rs.html#57">q</a>.compare_exchange_weak(<a href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a>, <a href="../../../src/signal_hook/low_level/channel.rs.html#63">modified</a>, Ordering::Release, Ordering::Relaxed) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">changed</span>) =&gt; <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#66">changed</a>, <span class="comment">// And retry with the changed value</span>
+            <span class="prelude-val">Err</span>(changed) =&gt; <a href="../../../src/signal_hook/low_level/channel.rs.html#58">current</a> = <a href="../../../src/signal_hook/low_level/channel.rs.html#66">changed</a>, <span class="comment">// And retry with the changed value
+        </span>}
+    }
+}
+
+<span class="kw">fn </span>dequeue(q: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>current = <a href="../../../src/signal_hook/low_level/channel.rs.html#71">q</a>.load(Ordering::Relaxed);
+    <span class="kw">loop </span>{
+        <span class="kw">let </span>val = <a href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> &amp; <a href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a>;
+        <span class="comment">// It&#39;s completely empty
+        </span><span class="kw">if </span>val == <span class="number">0 </span>{
+            <span class="kw">break </span><span class="prelude-val">None</span>;
+        }
+        <span class="kw">let </span>modified = <a href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> &gt;&gt; <a href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a>;
+        <span class="kw">match </span><a href="../../../src/signal_hook/low_level/channel.rs.html#71">q</a>.compare_exchange_weak(<a href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a>, <a href="../../../src/signal_hook/low_level/channel.rs.html#79">modified</a>, Ordering::Acquire, Ordering::Relaxed) {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break </span><span class="prelude-val">Some</span>(<a href="../../../src/signal_hook/low_level/channel.rs.html#74">val</a>),
+            <span class="prelude-val">Err</span>(changed) =&gt; <a href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> = <a href="../../../src/signal_hook/low_level/channel.rs.html#82">changed</a>,
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">dequeue</span>(<span class="ident">q</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#71">q</a>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
-    <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#45">MASK</a>;
-        <span class="comment">// It&#39;s completely empty</span>
-        <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">break</span> <span class="prelude-val">None</span>;
-        }
-        <span class="kw">let</span> <span class="ident">modified</span> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#44">BITS</a>;
-        <span class="kw">match</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#71">q</a>.<span class="ident">compare_exchange_weak</span>(<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a>, <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#79">modified</a>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Relaxed</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#74">val</a>),
-            <span class="prelude-val">Err</span>(<span class="ident">changed</span>) =&gt; <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#72">current</a> <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#82">changed</a>,
-        }
-    }
+<span class="doccomment">/// A restricted async-signal-safe channel
+///
+/// This is a bit like the usual channel used for inter-thread communication, but with several
+/// restrictions:
+///
+/// * There&#39;s a limited number of slots (currently 5).
+/// * There&#39;s no way to wait for a place in it or for a value. If value is not available, `None` is
+///   returned. If there&#39;s no space for a value, the value is silently dropped.
+///
+/// In exchange for that, all the operations on that channel are async-signal-safe. That means it
+/// is possible to use it to communicate between a signal handler and the rest of the world with it
+/// (specifically, it&#39;s designed to send information from the handler to the rest of the
+/// application). The throwing out of values when full is in line with collating of the same type
+/// in kernel (you should not use the same channel for multiple different signals).
+///
+/// Technically, this is a MPMC queue which preserves order, but it is expected to be used in MPSC
+/// mode mostly (in theory, multiple threads can be executing a signal handler for the same signal
+/// at the same time). The channel is not responsible for wakeups.
+///
+/// While the channel is async-signal-safe, you still need to make sure *creating* of the values is
+/// too (it should not contain anything that allocates, for example ‒ so no `String`s inside, etc).
+///
+/// The code was *not* tuned for performance (signals are not expected to happen often).
+</span><span class="kw">pub struct </span>Channel&lt;T&gt; {
+    storage: [UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;; <a href="../../../src/signal_hook/low_level/channel.rs.html#43">SLOTS</a>],
+    empty: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>,
+    full: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>,
 }
 
-<span class="doccomment">/// A restricted async-signal-safe channel</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is a bit like the usual channel used for inter-thread communication, but with several</span>
-<span class="doccomment">/// restrictions:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * There&#39;s a limited number of slots (currently 5).</span>
-<span class="doccomment">/// * There&#39;s no way to wait for a place in it or for a value. If value is not available, `None` is</span>
-<span class="doccomment">///   returned. If there&#39;s no space for a value, the value is silently dropped.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In exchange for that, all the operations on that channel are async-signal-safe. That means it</span>
-<span class="doccomment">/// is possible to use it to communicate between a signal handler and the rest of the world with it</span>
-<span class="doccomment">/// (specifically, it&#39;s designed to send information from the handler to the rest of the</span>
-<span class="doccomment">/// application). The throwing out of values when full is in line with collating of the same type</span>
-<span class="doccomment">/// in kernel (you should not use the same channel for multiple different signals).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Technically, this is a MPMC queue which preserves order, but it is expected to be used in MPSC</span>
-<span class="doccomment">/// mode mostly (in theory, multiple threads can be executing a signal handler for the same signal</span>
-<span class="doccomment">/// at the same time). The channel is not responsible for wakeups.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// While the channel is async-signal-safe, you still need to make sure *creating* of the values is</span>
-<span class="doccomment">/// too (it should not contain anything that allocates, for example ‒ so no `String`s inside, etc).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The code was *not* tuned for performance (signals are not expected to happen often).</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">storage</span>: [<span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>; <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#43">SLOTS</a>],
-    <span class="ident">empty</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>,
-    <span class="ident">full</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU16.html">AtomicU16</a>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new channel with nothing in it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">storage</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>();
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="self">Self</span> {
-            <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#119">storage</a>,
-            <span class="ident">empty</span>: <span class="ident">AtomicU16::new</span>(<span class="number">0</span>),
-            <span class="ident">full</span>: <span class="ident">AtomicU16::new</span>(<span class="number">0</span>),
+<span class="kw">impl</span>&lt;T&gt; Channel&lt;T&gt; {
+    <span class="doccomment">/// Creates a new channel with nothing in it.
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>storage = <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>();
+        <span class="kw">let </span>me = <span class="self">Self </span>{
+            <a href="../../../src/signal_hook/low_level/channel.rs.html#119">storage</a>,
+            empty: AtomicU16::new(<span class="number">0</span>),
+            full: AtomicU16::new(<span class="number">0</span>),
         };
 
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">SLOTS</span> <span class="op">+</span> <span class="number">1</span> {
-            <span class="ident">enqueue</span>(<span class="kw-2">&amp;</span><span class="ident">me</span>.<span class="ident">empty</span>, <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u16</span>);
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..SLOTS + <span class="number">1 </span>{
+            enqueue(<span class="kw-2">&amp;</span>me.empty, i <span class="kw">as </span>u16);
         }
 
-        <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#120">me</a>
+        <a href="../../../src/signal_hook/low_level/channel.rs.html#120">me</a>
     }
 
-    <span class="doccomment">/// Inserts a value into the channel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the value doesn&#39;t fit, it is silently dropped. Never blocks.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">val</span>: <span class="ident">T</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">empty_idx</span>) <span class="op">=</span> <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#71">dequeue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.<span class="ident">empty</span>) {
-            <span class="kw">unsafe</span> { <span class="kw-2">*</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.<span class="ident">storage</span>[<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#137">empty_idx</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">-</span> <span class="number">1</span>].<span class="ident">get</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#136">val</a>) };
-            <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#57">enqueue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.<span class="ident">full</span>, <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#137">empty_idx</a>);
+    <span class="doccomment">/// Inserts a value into the channel.
+    ///
+    /// If the value doesn&#39;t fit, it is silently dropped. Never blocks.
+    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, val: T) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(empty_idx) = <a href="../../../src/signal_hook/low_level/channel.rs.html#71">dequeue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.empty) {
+            <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.storage[<a href="../../../src/signal_hook/low_level/channel.rs.html#137">empty_idx</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>].get() = <span class="prelude-val">Some</span>(<a href="../../../src/signal_hook/low_level/channel.rs.html#136">val</a>) };
+            <a href="../../../src/signal_hook/low_level/channel.rs.html#57">enqueue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#136">self</a>.full, <a href="../../../src/signal_hook/low_level/channel.rs.html#137">empty_idx</a>);
         }
     }
 
-    <span class="doccomment">/// Takes a value from the channel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Or returns `None` if the channel is empty. Never blocks.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#71">dequeue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.<span class="ident">full</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.<span class="ident">storage</span>[<a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#147">idx</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">-</span> <span class="number">1</span>].<span class="ident">get</span>() }
-                .<span class="ident">take</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Full slot with nothing in it&quot;</span>);
-            <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#57">enqueue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.<span class="ident">empty</span>, <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#147">idx</a>);
-            <a class="ident" href="../../../src/signal_hook/low_level/channel.rs.html#148">result</a>
+    <span class="doccomment">/// Takes a value from the channel.
+    ///
+    /// Or returns `None` if the channel is empty. Never blocks.
+    </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <a href="../../../src/signal_hook/low_level/channel.rs.html#71">dequeue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.full).map(|idx| {
+            <span class="kw">let </span>result = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.storage[<a href="../../../src/signal_hook/low_level/channel.rs.html#147">idx</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>].get() }
+                .take()
+                .expect(<span class="string">&quot;Full slot with nothing in it&quot;</span>);
+            <a href="../../../src/signal_hook/low_level/channel.rs.html#57">enqueue</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/signal_hook/low_level/channel.rs.html#146">self</a>.empty, <a href="../../../src/signal_hook/low_level/channel.rs.html#147">idx</a>);
+            <a href="../../../src/signal_hook/low_level/channel.rs.html#148">result</a>
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">Channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Channel&lt;T&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Channel&lt;T&gt; {}
 
-<span class="comment">// Yes, really Send -&gt; Sync. Having a reference to Channel allows Sending Ts, but not having refs</span>
-<span class="comment">// on them.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="comment">// Yes, really Send -&gt; Sync. Having a reference to Channel allows Sending Ts, but not having refs
+// on them.
+</span><span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Channel&lt;T&gt; {}
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-    <span class="kw">use</span> <span class="ident">std::thread</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::sync::Arc;
+    <span class="kw">use </span>std::thread;
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new_empty</span>() {
-        <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Channel</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="ident">::new</span>();
-        <span class="macro">assert!</span>(<span class="ident">channel</span>.<span class="ident">recv</span>().<span class="ident">is_none</span>());
-        <span class="macro">assert!</span>(<span class="ident">channel</span>.<span class="ident">recv</span>().<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>new_empty() {
+        <span class="kw">let </span>channel = Channel::&lt;usize&gt;::new();
+        <span class="macro">assert!</span>(channel.recv().is_none());
+        <span class="macro">assert!</span>(channel.recv().is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pass_value</span>() {
-        <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Channel::new</span>();
-        <span class="ident">channel</span>.<span class="ident">send</span>(<span class="number">42</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">42</span>, <span class="ident">channel</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>());
-        <span class="macro">assert!</span>(<span class="ident">channel</span>.<span class="ident">recv</span>().<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>pass_value() {
+        <span class="kw">let </span>channel = Channel::new();
+        channel.send(<span class="number">42</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">42</span>, channel.recv().unwrap());
+        <span class="macro">assert!</span>(channel.recv().is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">multiple</span>() {
-        <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Channel::new</span>();
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000</span> {
-            <span class="ident">channel</span>.<span class="ident">send</span>(<span class="ident">i</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">channel</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>());
-            <span class="macro">assert!</span>(<span class="ident">channel</span>.<span class="ident">recv</span>().<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>multiple() {
+        <span class="kw">let </span>channel = Channel::new();
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">1000 </span>{
+            channel.send(i);
+            <span class="macro">assert_eq!</span>(i, channel.recv().unwrap());
+            <span class="macro">assert!</span>(channel.recv().is_none());
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">overflow</span>() {
-        <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Channel::new</span>();
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10</span> {
-            <span class="ident">channel</span>.<span class="ident">send</span>(<span class="ident">i</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>overflow() {
+        <span class="kw">let </span>channel = Channel::new();
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
+            channel.send(i);
         }
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">5</span> {
-            <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">channel</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>());
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">5 </span>{
+            <span class="macro">assert_eq!</span>(i, channel.recv().unwrap());
         }
-        <span class="macro">assert!</span>(<span class="ident">channel</span>.<span class="ident">recv</span>().<span class="ident">is_none</span>());
+        <span class="macro">assert!</span>(channel.recv().is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">multi_thread</span>() {
-        <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Channel</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="ident">::new</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>multi_thread() {
+        <span class="kw">let </span>channel = Arc::new(Channel::&lt;usize&gt;::new());
 
-        <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="ident">thread::spawn</span>({
-            <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">channel</span>);
-            <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">4</span> {
-                    <span class="ident">channel</span>.<span class="ident">send</span>(<span class="ident">i</span>);
+        <span class="kw">let </span>sender = thread::spawn({
+            <span class="kw">let </span>channel = Arc::clone(<span class="kw-2">&amp;</span>channel);
+            <span class="kw">move </span>|| {
+                <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">4 </span>{
+                    channel.send(i);
                 }
             }
         });
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">while</span> <span class="ident">results</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">4</span> {
-            <span class="ident">results</span>.<span class="ident">extend</span>(<span class="ident">channel</span>.<span class="ident">recv</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>results = Vec::new();
+        <span class="kw">while </span>results.len() &lt; <span class="number">4 </span>{
+            results.extend(channel.recv());
         }
 
-        <span class="macro">assert_eq!</span>(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], <span class="ident">results</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], results);
 
-        <span class="ident">sender</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
+        sender.join().unwrap();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="signal_hook" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -115,122 +115,122 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/mod.rs.html#138-140"><span class="kw">super</span>::assert_stream</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stream</span>::{<a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#111-120">select_with_strategy</a>, <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#10">PollNext</a>, <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#37-48">SelectWithStrategy</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/stream/mod.rs.html#138-140"><span class="kw">super</span>::assert_stream</a>;
+<span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../../../src/futures_util/stream/select_with_strategy.rs.html#139-148">select_with_strategy</a>, <a href="../../../src/futures_util/stream/select_with_strategy.rs.html#9">PollNext</a>, <a href="../../../src/futures_util/stream/select_with_strategy.rs.html#63-76">SelectWithStrategy</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>futures_core::stream::{<a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Stream for the [`select()`] function.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">inner</span>: <span class="ident">SelectWithStrategy</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span>, <span class="kw">fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#10">PollNext</a>)-&gt; <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#10">PollNext</a>, <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#10">PollNext</a><span class="op">&gt;</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Stream for the [`select()`] function.
+    </span><span class="attribute">#[derive(Debug)]
+    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>Select&lt;St1, St2&gt; {
+        <span class="attribute">#[pin]
+        </span>inner: SelectWithStrategy&lt;St1, St2, <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span><a href="../../../src/futures_util/stream/select_with_strategy.rs.html#9">PollNext</a>)-&gt; <a href="../../../src/futures_util/stream/select_with_strategy.rs.html#9">PollNext</a>, <a href="../../../src/futures_util/stream/select_with_strategy.rs.html#9">PollNext</a>&gt;,
     }
 }
 
-<span class="doccomment">/// This function will attempt to pull items from both streams. Each</span>
-<span class="doccomment">/// stream will be polled in a round-robin fashion, and whenever a stream is</span>
-<span class="doccomment">/// ready to yield an item that item is yielded.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// After one of the two input streams completes, the remaining one will be</span>
-<span class="doccomment">/// polled exclusively. The returned stream completes when both input</span>
-<span class="doccomment">/// streams have completed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that this function consumes both streams and returns a wrapped</span>
-<span class="doccomment">/// version of them.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::stream::{ repeat, select, StreamExt };</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let left = repeat(1);</span>
-<span class="doccomment">/// let right = repeat(2);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut out = select(left, right);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// for _ in 0..100 {</span>
-<span class="doccomment">///     // We should be alternating.</span>
-<span class="doccomment">///     assert_eq!(1, out.select_next_some().await);</span>
-<span class="doccomment">///     assert_eq!(2, out.select_next_some().await);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span>(<span class="ident">stream1</span>: <span class="ident">St1</span>, <span class="ident">stream2</span>: <span class="ident">St2</span>) -&gt; <span class="ident">Select</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St1</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">St2</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">St1::Item</span><span class="op">&gt;</span>,
+<span class="doccomment">/// This function will attempt to pull items from both streams. Each
+/// stream will be polled in a round-robin fashion, and whenever a stream is
+/// ready to yield an item that item is yielded.
+///
+/// After one of the two input streams completes, the remaining one will be
+/// polled exclusively. The returned stream completes when both input
+/// streams have completed.
+///
+/// Note that this function consumes both streams and returns a wrapped
+/// version of them.
+///
+/// ## Examples
+///
+/// ```rust
+/// # futures::executor::block_on(async {
+/// use futures::stream::{ repeat, select, StreamExt };
+///
+/// let left = repeat(1);
+/// let right = repeat(2);
+///
+/// let mut out = select(left, right);
+///
+/// for _ in 0..100 {
+///     // We should be alternating.
+///     assert_eq!(1, out.select_next_some().await);
+///     assert_eq!(2, out.select_next_some().await);
+/// }
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>select&lt;St1, St2&gt;(stream1: St1, stream2: St2) -&gt; Select&lt;St1, St2&gt;
+<span class="kw">where
+    </span>St1: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    St2: Stream&lt;Item = St1::Item&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">round_robin</span>(<span class="ident">last</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#10">PollNext</a>) -&gt; <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#10">PollNext</a> {
-        <a class="ident" href="../../../src/futures_util/stream/select.rs.html#52">last</a>.<a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#19">toggle</a>()
+    <span class="kw">fn </span>round_robin(last: <span class="kw-2">&amp;mut </span><a href="../../../src/futures_util/stream/select_with_strategy.rs.html#9">PollNext</a>) -&gt; <a href="../../../src/futures_util/stream/select_with_strategy.rs.html#9">PollNext</a> {
+        <a href="../../../src/futures_util/stream/select.rs.html#52">last</a>.<a href="../../../src/futures_util/stream/select_with_strategy.rs.html#18">toggle</a>()
     }
 
-    <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="ident">St1::Item</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/stream/select.rs.html#8-16">Select</a> {
-        <span class="ident">inner</span>: <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#111-120">select_with_strategy</a>(<a class="ident" href="../../../src/futures_util/stream/select.rs.html#47">stream1</a>, <a class="ident" href="../../../src/futures_util/stream/select.rs.html#47">stream2</a>, <a class="ident" href="../../../src/futures_util/stream/select.rs.html#52">round_robin</a>),
+    assert_stream::&lt;St1::Item, <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/stream/select.rs.html#8-16">Select</a> {
+        inner: <a href="../../../src/futures_util/stream/select_with_strategy.rs.html#139-148">select_with_strategy</a>(<a href="../../../src/futures_util/stream/select.rs.html#47">stream1</a>, <a href="../../../src/futures_util/stream/select.rs.html#47">stream2</a>, <a href="../../../src/futures_util/stream/select.rs.html#52">round_robin</a>),
     })
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Acquires a reference to the underlying streams that this combinator is</span>
-    <span class="doccomment">/// pulling from.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="ident">St1</span>, <span class="kw-2">&amp;</span><span class="ident">St2</span>) {
-        <a class="self" href="../../../src/futures_util/stream/select.rs.html#64">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#133">get_ref</a>()
+<span class="kw">impl</span>&lt;St1, St2&gt; Select&lt;St1, St2&gt; {
+    <span class="doccomment">/// Acquires a reference to the underlying streams that this combinator is
+    /// pulling from.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span>St1, <span class="kw-2">&amp;</span>St2) {
+        <a class="self" href="../../../src/futures_util/stream/select.rs.html#64">self</a>.inner.<a href="../../../src/futures_util/stream/select_with_strategy.rs.html#162">get_ref</a>()
     }
 
-    <span class="doccomment">/// Acquires a mutable reference to the underlying streams that this</span>
-    <span class="doccomment">/// combinator is pulling from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care must be taken to avoid tampering with the state of the</span>
-    <span class="doccomment">/// stream which may otherwise confuse this combinator.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; (<span class="kw-2">&amp;mut</span> <span class="ident">St1</span>, <span class="kw-2">&amp;mut</span> <span class="ident">St2</span>) {
-        <a class="self" href="../../../src/futures_util/stream/select.rs.html#73">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#142">get_mut</a>()
+    <span class="doccomment">/// Acquires a mutable reference to the underlying streams that this
+    /// combinator is pulling from.
+    ///
+    /// Note that care must be taken to avoid tampering with the state of the
+    /// stream which may otherwise confuse this combinator.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;mut </span>St1, <span class="kw-2">&amp;mut </span>St2) {
+        <a class="self" href="../../../src/futures_util/stream/select.rs.html#73">self</a>.inner.<a href="../../../src/futures_util/stream/select_with_strategy.rs.html#171">get_mut</a>()
     }
 
-    <span class="doccomment">/// Acquires a pinned mutable reference to the underlying streams that this</span>
-    <span class="doccomment">/// combinator is pulling from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that care must be taken to avoid tampering with the state of the</span>
-    <span class="doccomment">/// stream which may otherwise confuse this combinator.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pin_mut</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">St1</span><span class="op">&gt;</span>, <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">St2</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/stream/select.rs.html#82">self</a>.<a class="ident" href="../../../src/futures_util/stream/select.rs.html#8-16">project</a>();
-        <a class="ident" href="../../../src/futures_util/stream/select.rs.html#83">this</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#151">get_pin_mut</a>()
+    <span class="doccomment">/// Acquires a pinned mutable reference to the underlying streams that this
+    /// combinator is pulling from.
+    ///
+    /// Note that care must be taken to avoid tampering with the state of the
+    /// stream which may otherwise confuse this combinator.
+    </span><span class="kw">pub fn </span>get_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (Pin&lt;<span class="kw-2">&amp;mut </span>St1&gt;, Pin&lt;<span class="kw-2">&amp;mut </span>St2&gt;) {
+        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/stream/select.rs.html#82">self</a>.<a href="../../../src/futures_util/stream/select.rs.html#8-16">project</a>();
+        <a href="../../../src/futures_util/stream/select.rs.html#83">this</a>.inner.<a href="../../../src/futures_util/stream/select_with_strategy.rs.html#180">get_pin_mut</a>()
     }
 
-    <span class="doccomment">/// Consumes this combinator, returning the underlying streams.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this may discard intermediate state of this combinator, so</span>
-    <span class="doccomment">/// care should be taken to avoid losing resources when this is called.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; (<span class="ident">St1</span>, <span class="ident">St2</span>) {
-        <a class="self" href="../../../src/futures_util/stream/select.rs.html#91">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#160">into_inner</a>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St1</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">St2</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">St1::Item</span><span class="op">&gt;</span>,
-{
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/futures_util/stream/select.rs.html#101">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+    <span class="doccomment">/// Consumes this combinator, returning the underlying streams.
+    ///
+    /// Note that this may discard intermediate state of this combinator, so
+    /// care should be taken to avoid losing resources when this is called.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; (St1, St2) {
+        <a class="self" href="../../../src/futures_util/stream/select.rs.html#91">self</a>.inner.<a href="../../../src/futures_util/stream/select_with_strategy.rs.html#189">into_inner</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="ident">St1</span>, <span class="ident">St2</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St1</span>: <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">St2</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">St1::Item</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;St1, St2&gt; <a href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>Select&lt;St1, St2&gt;
+<span class="kw">where
+    </span>St1: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    St2: Stream&lt;Item = St1::Item&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">St1::Item</span>;
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/futures_util/stream/select.rs.html#101">self</a>.inner.<a href="../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+    }
+}
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">St1::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/stream/select.rs.html#113">self</a>.<a class="ident" href="../../../src/futures_util/stream/select.rs.html#8-16">project</a>();
-        <a class="ident" href="../../../src/futures_util/stream/select.rs.html#114">this</a>.<span class="ident">inner</span>.<a class="ident" href="../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/futures_util/stream/select.rs.html#113">cx</a>)
+<span class="kw">impl</span>&lt;St1, St2&gt; <a href="../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Select&lt;St1, St2&gt;
+<span class="kw">where
+    </span>St1: <a href="../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    St2: Stream&lt;Item = St1::Item&gt;,
+{
+    <span class="kw">type </span>Item = St1::Item;
+
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;St1::Item&gt;&gt; {
+        <span class="kw">let </span>this = <a class="self" href="../../../src/futures_util/stream/select.rs.html#113">self</a>.<a href="../../../src/futures_util/stream/select.rs.html#8-16">project</a>();
+        <a href="../../../src/futures_util/stream/select.rs.html#114">this</a>.inner.<a href="../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../../src/futures_util/stream/select.rs.html#113">cx</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

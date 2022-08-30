@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -650,185 +650,185 @@
 <span id="650">650</span>
 <span id="651">651</span>
 <span id="652">652</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Path Filters</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The filters here work on the &quot;path&quot; of requests.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - [`path`](./fn.path.html) matches a specific segment, like `/foo`.</span>
-<span class="doccomment">//! - [`param`](./fn.param.html) tries to parse a segment into a type, like `/:u16`.</span>
-<span class="doccomment">//! - [`end`](./fn.end.html) matches when the path end is found.</span>
-<span class="doccomment">//! - [`path!`](../../macro.path.html) eases combining multiple `path` and `param` filters.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Routing</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Routing in warp is simple yet powerful.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! First up, matching a single segment:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use warp::Filter;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // GET /hi</span>
-<span class="doccomment">//! let hi = warp::path(&quot;hi&quot;).map(|| {</span>
-<span class="doccomment">//!     &quot;Hello, World!&quot;</span>
-<span class="doccomment">//! });</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! How about multiple segments? It&#39;s easiest with the `path!` macro:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use warp::Filter;</span>
-<span class="doccomment">//! // GET /hello/from/warp</span>
-<span class="doccomment">//! let hello_from_warp = warp::path!(&quot;hello&quot; / &quot;from&quot; / &quot;warp&quot;).map(|| {</span>
-<span class="doccomment">//!     &quot;Hello from warp!&quot;</span>
-<span class="doccomment">//! });</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Neat! But how do I handle **parameters** in paths?</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use warp::Filter;</span>
-<span class="doccomment">//! // GET /sum/:u32/:u32</span>
-<span class="doccomment">//! let sum = warp::path!(&quot;sum&quot; / u32 / u32).map(|a, b| {</span>
-<span class="doccomment">//!     format!(&quot;{} + {} = {}&quot;, a, b, a + b)</span>
-<span class="doccomment">//! });</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In fact, any type that implements `FromStr` can be used, in any order:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use warp::Filter;</span>
-<span class="doccomment">//! // GET /:u16/times/:u16</span>
-<span class="doccomment">//! let times = warp::path!(u16 / &quot;times&quot; / u16).map(|a, b| {</span>
-<span class="doccomment">//!     format!(&quot;{} times {} = {}&quot;, a, b, a * b)</span>
-<span class="doccomment">//! });</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Oh shoot, those math routes should be **mounted** at a different path,</span>
-<span class="doccomment">//! is that possible? Yep!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use warp::Filter;</span>
-<span class="doccomment">//! # let sum = warp::any().map(warp::reply);</span>
-<span class="doccomment">//! # let times = sum.clone();</span>
-<span class="doccomment">//! // GET /math/sum/:u32/:u32</span>
-<span class="doccomment">//! // GET /math/:u16/times/:u16</span>
-<span class="doccomment">//! let math = warp::path(&quot;math&quot;);</span>
-<span class="doccomment">//! let math_sum = math.and(sum);</span>
-<span class="doccomment">//! let math_times = math.and(times);</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! What! `and`? What&#39;s that do?</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! It combines the filters in a sort of &quot;this and then that&quot; order. In fact,</span>
-<span class="doccomment">//! it&#39;s exactly what the `path!` macro has been doing internally.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use warp::Filter;</span>
-<span class="doccomment">//! // GET /bye/:string</span>
-<span class="doccomment">//! let bye = warp::path(&quot;bye&quot;)</span>
-<span class="doccomment">//!     .and(warp::path::param())</span>
-<span class="doccomment">//!     .map(|name: String| {</span>
-<span class="doccomment">//!         format!(&quot;Good bye, {}!&quot;, name)</span>
-<span class="doccomment">//!     });</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Ah, so, can filters do things besides `and`?</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Why, yes they can! They can also `or`! As you might expect, `or` creates a</span>
-<span class="doccomment">//! &quot;this or else that&quot; chain of filters. If the first doesn&#39;t succeed, then</span>
-<span class="doccomment">//! it tries the other.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! So, those `math` routes could have been **mounted** all as one, with `or`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use warp::Filter;</span>
-<span class="doccomment">//! # let sum = warp::path(&quot;sum&quot;);</span>
-<span class="doccomment">//! # let times = warp::path(&quot;times&quot;);</span>
-<span class="doccomment">//! // GET /math/sum/:u32/:u32</span>
-<span class="doccomment">//! // GET /math/:u16/times/:u16</span>
-<span class="doccomment">//! let math = warp::path(&quot;math&quot;)</span>
-<span class="doccomment">//!     .and(sum.or(times));</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! It turns out, using `or` is how you combine everything together into a</span>
-<span class="doccomment">//! single API.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use warp::Filter;</span>
-<span class="doccomment">//! # let hi = warp::path(&quot;hi&quot;);</span>
-<span class="doccomment">//! # let hello_from_warp = hi.clone();</span>
-<span class="doccomment">//! # let bye = hi.clone();</span>
-<span class="doccomment">//! # let math = hi.clone();</span>
-<span class="doccomment">//! // GET /hi</span>
-<span class="doccomment">//! // GET /hello/from/warp</span>
-<span class="doccomment">//! // GET /bye/:string</span>
-<span class="doccomment">//! // GET /math/sum/:u32/:u32</span>
-<span class="doccomment">//! // GET /math/:u16/times/:u16</span>
-<span class="doccomment">//! let routes = hi</span>
-<span class="doccomment">//!     .or(hello_from_warp)</span>
-<span class="doccomment">//!     .or(bye)</span>
-<span class="doccomment">//!     .or(math);</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Note that you will generally want path filters to come **before** other filters</span>
-<span class="doccomment">//! like `body` or `headers`. If a different type of filter comes first, a request</span>
-<span class="doccomment">//! with an invalid body for route `/right-path-wrong-body` may try matching against `/wrong-path`</span>
-<span class="doccomment">//! and return the error from `/wrong-path` instead of the correct body-related error.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Path Filters
+//!
+//! The filters here work on the &quot;path&quot; of requests.
+//!
+//! - [`path`](./fn.path.html) matches a specific segment, like `/foo`.
+//! - [`param`](./fn.param.html) tries to parse a segment into a type, like `/:u16`.
+//! - [`end`](./fn.end.html) matches when the path end is found.
+//! - [`path!`](../../macro.path.html) eases combining multiple `path` and `param` filters.
+//!
+//! # Routing
+//!
+//! Routing in warp is simple yet powerful.
+//!
+//! First up, matching a single segment:
+//!
+//! ```
+//! use warp::Filter;
+//!
+//! // GET /hi
+//! let hi = warp::path(&quot;hi&quot;).map(|| {
+//!     &quot;Hello, World!&quot;
+//! });
+//! ```
+//!
+//! How about multiple segments? It&#39;s easiest with the `path!` macro:
+//!
+//! ```
+//! # use warp::Filter;
+//! // GET /hello/from/warp
+//! let hello_from_warp = warp::path!(&quot;hello&quot; / &quot;from&quot; / &quot;warp&quot;).map(|| {
+//!     &quot;Hello from warp!&quot;
+//! });
+//! ```
+//!
+//! Neat! But how do I handle **parameters** in paths?
+//!
+//! ```
+//! # use warp::Filter;
+//! // GET /sum/:u32/:u32
+//! let sum = warp::path!(&quot;sum&quot; / u32 / u32).map(|a, b| {
+//!     format!(&quot;{} + {} = {}&quot;, a, b, a + b)
+//! });
+//! ```
+//!
+//! In fact, any type that implements `FromStr` can be used, in any order:
+//!
+//! ```
+//! # use warp::Filter;
+//! // GET /:u16/times/:u16
+//! let times = warp::path!(u16 / &quot;times&quot; / u16).map(|a, b| {
+//!     format!(&quot;{} times {} = {}&quot;, a, b, a * b)
+//! });
+//! ```
+//!
+//! Oh shoot, those math routes should be **mounted** at a different path,
+//! is that possible? Yep!
+//!
+//! ```
+//! # use warp::Filter;
+//! # let sum = warp::any().map(warp::reply);
+//! # let times = sum.clone();
+//! // GET /math/sum/:u32/:u32
+//! // GET /math/:u16/times/:u16
+//! let math = warp::path(&quot;math&quot;);
+//! let math_sum = math.and(sum);
+//! let math_times = math.and(times);
+//! ```
+//!
+//! What! `and`? What&#39;s that do?
+//!
+//! It combines the filters in a sort of &quot;this and then that&quot; order. In fact,
+//! it&#39;s exactly what the `path!` macro has been doing internally.
+//!
+//! ```
+//! # use warp::Filter;
+//! // GET /bye/:string
+//! let bye = warp::path(&quot;bye&quot;)
+//!     .and(warp::path::param())
+//!     .map(|name: String| {
+//!         format!(&quot;Good bye, {}!&quot;, name)
+//!     });
+//! ```
+//!
+//! Ah, so, can filters do things besides `and`?
+//!
+//! Why, yes they can! They can also `or`! As you might expect, `or` creates a
+//! &quot;this or else that&quot; chain of filters. If the first doesn&#39;t succeed, then
+//! it tries the other.
+//!
+//! So, those `math` routes could have been **mounted** all as one, with `or`.
+//!
+//!
+//! ```
+//! # use warp::Filter;
+//! # let sum = warp::path(&quot;sum&quot;);
+//! # let times = warp::path(&quot;times&quot;);
+//! // GET /math/sum/:u32/:u32
+//! // GET /math/:u16/times/:u16
+//! let math = warp::path(&quot;math&quot;)
+//!     .and(sum.or(times));
+//! ```
+//!
+//! It turns out, using `or` is how you combine everything together into a
+//! single API.
+//!
+//! ```
+//! # use warp::Filter;
+//! # let hi = warp::path(&quot;hi&quot;);
+//! # let hello_from_warp = hi.clone();
+//! # let bye = hi.clone();
+//! # let math = hi.clone();
+//! // GET /hi
+//! // GET /hello/from/warp
+//! // GET /bye/:string
+//! // GET /math/sum/:u32/:u32
+//! // GET /math/:u16/times/:u16
+//! let routes = hi
+//!     .or(hello_from_warp)
+//!     .or(bye)
+//!     .or(math);
+//! ```
+//!
+//! Note that you will generally want path filters to come **before** other filters
+//! like `body` or `headers`. If a different type of filter comes first, a request
+//! with an invalid body for route `/right-path-wrong-body` may try matching against `/wrong-path`
+//! and return the error from `/wrong-path` instead of the correct body-related error.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/future/index.html">futures_util::future</a>;
-<span class="kw">use</span> <a class="ident" href="../../../http/uri/path/struct.PathAndQuery.html">http::uri::PathAndQuery</a>;
+<span class="kw">use </span><a href="../../../futures_util/future/index.html">futures_util::future</a>;
+<span class="kw">use </span><a href="../../../http/uri/path/struct.PathAndQuery.html">http::uri::PathAndQuery</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#616"><span class="self">self</span>::internal::Opaque</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::filter</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>, <a class="ident" href="../../../src/warp/generic.rs.html#7">one</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>, <a class="ident" href="../../../src/warp/generic.rs.html#4">One</a>, <a class="ident" href="../../../src/warp/generic.rs.html#25">Tuple</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reject</span>::{<a class="self" href="../../../src/warp/lib.rs.html#95">self</a>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::route</span>::{<a class="self" href="../../../src/warp/lib.rs.html#97">self</a>, <a class="ident" href="../../../src/warp/route.rs.html#31">Route</a>};
+<span class="kw">use </span><a href="../../../src/warp/filters/path.rs.html#616"><span class="self">self</span>::internal::Opaque</a>;
+<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>, <a href="../../../src/warp/generic.rs.html#7">one</a>, <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>, <a href="../../../src/warp/generic.rs.html#4">One</a>, <a href="../../../src/warp/generic.rs.html#25">Tuple</a>};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../../../src/warp/lib.rs.html#95">self</a>, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>};
+<span class="kw">use </span><span class="kw">crate</span>::route::{<a class="self" href="../../../src/warp/lib.rs.html#97">self</a>, <a href="../../../src/warp/route.rs.html#31">Route</a>};
 
-<span class="doccomment">/// Create an exact match path segment `Filter`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This will try to match exactly to the current request path segment.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - [`end()`](./fn.end.html) should be used to match the end of a path to avoid having</span>
-<span class="doccomment">///   filters for shorter paths like `/math` unintentionally match a longer</span>
-<span class="doccomment">///   path such as `/math/sum`</span>
-<span class="doccomment">/// - Path-related filters should generally come **before** other types of filters, such</span>
-<span class="doccomment">///   as those checking headers or body types. Including those other filters before</span>
-<span class="doccomment">///   the path checks may result in strange errors being returned because a given request</span>
-<span class="doccomment">///   does not match the parameters for a completely separate route.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Exact path filters cannot be empty, or contain slashes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Matches &#39;/hello&#39;</span>
-<span class="doccomment">/// let hello = warp::path(&quot;hello&quot;)</span>
-<span class="doccomment">///     .map(|| &quot;Hello, World!&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">p</span>: <span class="ident">P</span>) -&gt; <span class="ident">Exact</span><span class="op">&lt;</span><span class="ident">Opaque</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Create an exact match path segment `Filter`.
+///
+/// This will try to match exactly to the current request path segment.
+///
+/// # Note
+///
+/// - [`end()`](./fn.end.html) should be used to match the end of a path to avoid having
+///   filters for shorter paths like `/math` unintentionally match a longer
+///   path such as `/math/sum`
+/// - Path-related filters should generally come **before** other types of filters, such
+///   as those checking headers or body types. Including those other filters before
+///   the path checks may result in strange errors being returned because a given request
+///   does not match the parameters for a completely separate route.
+///
+/// # Panics
+///
+/// Exact path filters cannot be empty, or contain slashes.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// // Matches &#39;/hello&#39;
+/// let hello = warp::path(&quot;hello&quot;)
+///     .map(|| &quot;Hello, World!&quot;);
+/// ```
+</span><span class="kw">pub fn </span>path&lt;P&gt;(p: P) -&gt; Exact&lt;Opaque&lt;P&gt;&gt;
+<span class="kw">where
+    </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
 {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#167">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;exact path segments should not be empty&quot;</span>);
+    <span class="kw">let </span>s = <a href="../../../src/warp/filters/path.rs.html#167">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!s.is_empty(), <span class="string">&quot;exact path segments should not be empty&quot;</span>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-        <span class="op">!</span><span class="ident">s</span>.<span class="ident">contains</span>(<span class="string">&#39;/&#39;</span>),
+        !s.contains(<span class="string">&#39;/&#39;</span>),
         <span class="string">&quot;exact path segments should not contain a slash: {:?}&quot;</span>,
-        <span class="ident">s</span>
+        s
     );
 
-    <a class="ident" href="../../../src/warp/filters/path.rs.html#197">Exact</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#616">Opaque</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#167">p</a>))
+    <a href="../../../src/warp/filters/path.rs.html#197">Exact</a>(<a href="../../../src/warp/filters/path.rs.html#616">Opaque</a>(<a href="../../../src/warp/filters/path.rs.html#167">p</a>))
     <span class="comment">/*
     segment(move |seg| {
         tracing::trace!(&quot;{:?}?: {:?}&quot;, p, seg);
@@ -838,469 +838,469 @@
             Err(reject::not_found())
         }
     })
-    */</span>
-}
+    */
+</span>}
 
-<span class="doccomment">/// A `Filter` matching an exact path segment.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Constructed from `path()` or `path!()`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Exact</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">P</span>);
+<span class="doccomment">/// A `Filter` matching an exact path segment.
+///
+/// Constructed from `path()` or `path!()`.
+</span><span class="attribute">#[allow(missing_debug_implementations)]
+#[derive(Clone, Copy)]
+</span><span class="kw">pub struct </span>Exact&lt;P&gt;(P);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for</span> <span class="ident">Exact</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;P&gt; <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>Exact&lt;P&gt;
+<span class="kw">where
+    </span>P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Extract</span> <span class="op">=</span> ();
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a>;
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">future::Ready</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Extract</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Extract = ();
+    <span class="kw">type </span>Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>;
+    <span class="kw">type </span>Future = future::Ready&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Extract, <span class="self">Self</span>::Error&gt;&gt;;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <a class="ident" href="../../../src/warp/route.rs.html#23-25">route::with</a>(<span class="op">|</span><span class="ident">route</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/path.rs.html#208">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-            <span class="ident">future::ready</span>(<a class="ident" href="../../../src/warp/filters/path.rs.html#443-445">with_segment</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#209">route</a>, <span class="op">|</span><span class="ident">seg</span><span class="op">|</span> {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;{:?}?: {:?}&quot;</span>, <span class="ident">p</span>, <span class="ident">seg</span>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
+        <a href="../../../src/warp/route.rs.html#23-25">route::with</a>(|route| {
+            <span class="kw">let </span>p = <a class="self" href="../../../src/warp/filters/path.rs.html#208">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+            future::ready(<a href="../../../src/warp/filters/path.rs.html#443-445">with_segment</a>(<a href="../../../src/warp/filters/path.rs.html#209">route</a>, |seg| {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;{:?}?: {:?}&quot;</span>, p, seg);
 
-                <span class="kw">if</span> <span class="ident">seg</span> <span class="op">==</span> <span class="ident">p</span> {
+                <span class="kw">if </span>seg == p {
                     <span class="prelude-val">Ok</span>(())
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>())
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Err</span>(<a href="../../../src/warp/reject.rs.html#86">reject::not_found</a>())
                 }
             }))
         })
     }
 }
 
-<span class="doccomment">/// Matches the end of a route.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that _not_ including `end()` may result in shorter paths like</span>
-<span class="doccomment">/// `/math` unintentionally matching `/math/sum`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Matches &#39;/&#39;</span>
-<span class="doccomment">/// let hello = warp::path::end()</span>
-<span class="doccomment">///     .map(|| &quot;Hello, World!&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">route</span><span class="op">|</span> {
-        <span class="kw">if</span> <span class="ident">route</span>.<span class="ident">path</span>().<span class="ident">is_empty</span>() {
-            <span class="ident">future::ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="ident">future::err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>())
+<span class="doccomment">/// Matches the end of a route.
+///
+/// Note that _not_ including `end()` may result in shorter paths like
+/// `/math` unintentionally matching `/math/sum`.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// // Matches &#39;/&#39;
+/// let hello = warp::path::end()
+///     .map(|| &quot;Hello, World!&quot;);
+/// ```
+</span><span class="kw">pub fn </span>end() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
+        <span class="kw">if </span>route.path().is_empty() {
+            future::ok(())
+        } <span class="kw">else </span>{
+            future::err(<a href="../../../src/warp/reject.rs.html#86">reject::not_found</a>())
         }
     })
 }
 
-<span class="doccomment">/// Extract a parameter from a path segment.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This will try to parse a value from the current request path</span>
-<span class="doccomment">/// segment, and if successful, the value is returned as the `Filter`&#39;s</span>
-<span class="doccomment">/// &quot;extracted&quot; value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the value could not be parsed, rejects with a `404 Not Found`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::path::param()</span>
-<span class="doccomment">///     .map(|id: u32| {</span>
-<span class="doccomment">///         format!(&quot;You asked for /{}&quot;, id)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">param</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(
-) -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">One</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filters/path.rs.html#435-438">filter_segment</a>(<span class="op">|</span><span class="ident">seg</span><span class="op">|</span> {
-        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;param?: {:?}&quot;</span>, <span class="ident">seg</span>);
-        <span class="kw">if</span> <span class="ident">seg</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>());
+<span class="doccomment">/// Extract a parameter from a path segment.
+///
+/// This will try to parse a value from the current request path
+/// segment, and if successful, the value is returned as the `Filter`&#39;s
+/// &quot;extracted&quot; value.
+///
+/// If the value could not be parsed, rejects with a `404 Not Found`.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// let route = warp::path::param()
+///     .map(|id: u32| {
+///         format!(&quot;You asked for /{}&quot;, id)
+///     });
+/// ```
+</span><span class="kw">pub fn </span>param&lt;T: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt;(
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;T&gt;, Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filters/path.rs.html#435-438">filter_segment</a>(|seg| {
+        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;param?: {:?}&quot;</span>, seg);
+        <span class="kw">if </span>seg.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/warp/reject.rs.html#86">reject::not_found</a>());
         }
-        <span class="ident">T::from_str</span>(<a class="ident" href="../../../src/warp/filters/path.rs.html#268">seg</a>).<span class="ident">map</span>(<a class="ident" href="../../../src/warp/generic.rs.html#7">one</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>())
+        T::from_str(<a href="../../../src/warp/filters/path.rs.html#268">seg</a>).map(<a href="../../../src/warp/generic.rs.html#7">one</a>).map_err(|<span class="kw">_</span>| <a href="../../../src/warp/reject.rs.html#86">reject::not_found</a>())
     })
 }
 
-<span class="doccomment">/// Extract the unmatched tail of the path.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This will return a `Tail`, which allows access to the rest of the path</span>
-<span class="doccomment">/// that previous filters have not already matched.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::path(&quot;foo&quot;)</span>
-<span class="doccomment">///     .and(warp::path::tail())</span>
-<span class="doccomment">///     .map(|tail| {</span>
-<span class="doccomment">///         // GET /foo/bar/baz would return &quot;bar/baz&quot;.</span>
-<span class="doccomment">///         format!(&quot;The tail after foo is {:?}&quot;, tail)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tail</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">One</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/path.rs.html#312">Tail</a><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">route</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#464">path_and_query</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#295">route</a>);
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#295">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#112">matched_path_index</a>();
+<span class="doccomment">/// Extract the unmatched tail of the path.
+///
+/// This will return a `Tail`, which allows access to the rest of the path
+/// that previous filters have not already matched.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// let route = warp::path(&quot;foo&quot;)
+///     .and(warp::path::tail())
+///     .map(|tail| {
+///         // GET /foo/bar/baz would return &quot;bar/baz&quot;.
+///         format!(&quot;The tail after foo is {:?}&quot;, tail)
+///     });
+/// ```
+</span><span class="kw">pub fn </span>tail() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="../../../src/warp/filters/path.rs.html#312">Tail</a>&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
+        <span class="kw">let </span>path = <a href="../../../src/warp/filters/path.rs.html#464">path_and_query</a>(<a href="../../../src/warp/filters/path.rs.html#295">route</a>);
+        <span class="kw">let </span>idx = <a href="../../../src/warp/filters/path.rs.html#295">route</a>.<a href="../../../src/warp/route.rs.html#112">matched_path_index</a>();
 
-        <span class="comment">// Giving the user the full tail means we assume the full path</span>
-        <span class="comment">// has been matched now.</span>
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#296">path</a>.<span class="ident">path</span>().<span class="ident">len</span>() <span class="op">-</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#297">idx</a>;
-        <a class="ident" href="../../../src/warp/filters/path.rs.html#295">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#94">set_unmatched_path</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#301">end</a>);
+        <span class="comment">// Giving the user the full tail means we assume the full path
+        // has been matched now.
+        </span><span class="kw">let </span>end = <a href="../../../src/warp/filters/path.rs.html#296">path</a>.path().len() - <a href="../../../src/warp/filters/path.rs.html#297">idx</a>;
+        <a href="../../../src/warp/filters/path.rs.html#295">route</a>.<a href="../../../src/warp/route.rs.html#94">set_unmatched_path</a>(<a href="../../../src/warp/filters/path.rs.html#301">end</a>);
 
-        <span class="ident">future::ok</span>(<a class="ident" href="../../../src/warp/generic.rs.html#7">one</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#312">Tail</a> {
-            <a class="ident" href="../../../src/warp/filters/path.rs.html#296">path</a>,
-            <span class="ident">start_index</span>: <a class="ident" href="../../../src/warp/filters/path.rs.html#297">idx</a>,
+        future::ok(<a href="../../../src/warp/generic.rs.html#7">one</a>(<a href="../../../src/warp/filters/path.rs.html#312">Tail</a> {
+            <a href="../../../src/warp/filters/path.rs.html#296">path</a>,
+            start_index: <a href="../../../src/warp/filters/path.rs.html#297">idx</a>,
         }))
     })
 }
 
-<span class="doccomment">/// Represents the tail part of a request path, returned by the [`tail()`] filter.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tail</span> {
-    <span class="ident">path</span>: <a class="ident" href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>,
-    <span class="ident">start_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// Represents the tail part of a request path, returned by the [`tail()`] filter.
+</span><span class="kw">pub struct </span>Tail {
+    path: <a href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>,
+    start_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#312">Tail</a> {
-    <span class="doccomment">/// Get the `&amp;str` representation of the remaining path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/path.rs.html#319">self</a>.<span class="ident">path</span>.<span class="ident">path</span>()[<a class="self" href="../../../src/warp/filters/path.rs.html#319">self</a>.<span class="ident">start_index</span>..]
+<span class="kw">impl </span><a href="../../../src/warp/filters/path.rs.html#312">Tail</a> {
+    <span class="doccomment">/// Get the `&amp;str` representation of the remaining path.
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/path.rs.html#319">self</a>.path.path()[<a class="self" href="../../../src/warp/filters/path.rs.html#319">self</a>.start_index..]
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#312">Tail</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="../../../src/warp/filters/path.rs.html#325">self</a>.<a class="ident" href="../../../src/warp/filters/path.rs.html#319">as_str</a>(), <a class="ident" href="../../../src/warp/filters/path.rs.html#325">f</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/warp/filters/path.rs.html#312">Tail</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="../../../src/warp/filters/path.rs.html#325">self</a>.<a href="../../../src/warp/filters/path.rs.html#319">as_str</a>(), <a href="../../../src/warp/filters/path.rs.html#325">f</a>)
     }
 }
 
-<span class="doccomment">/// Peek at the unmatched tail of the path, without affecting the matched path.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This will return a `Peek`, which allows access to the rest of the path</span>
-<span class="doccomment">/// that previous filters have not already matched. This differs from `tail`</span>
-<span class="doccomment">/// in that `peek` will **not** set the entire path as matched.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::path(&quot;foo&quot;)</span>
-<span class="doccomment">///     .and(warp::path::peek())</span>
-<span class="doccomment">///     .map(|peek| {</span>
-<span class="doccomment">///         // GET /foo/bar/baz would return &quot;bar/baz&quot;.</span>
-<span class="doccomment">///         format!(&quot;The path after foo is {:?}&quot;, peek)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">One</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/path.rs.html#361">Peek</a><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">route</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#464">path_and_query</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#349">route</a>);
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#349">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#112">matched_path_index</a>();
+<span class="doccomment">/// Peek at the unmatched tail of the path, without affecting the matched path.
+///
+/// This will return a `Peek`, which allows access to the rest of the path
+/// that previous filters have not already matched. This differs from `tail`
+/// in that `peek` will **not** set the entire path as matched.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// let route = warp::path(&quot;foo&quot;)
+///     .and(warp::path::peek())
+///     .map(|peek| {
+///         // GET /foo/bar/baz would return &quot;bar/baz&quot;.
+///         format!(&quot;The path after foo is {:?}&quot;, peek)
+///     });
+/// ```
+</span><span class="kw">pub fn </span>peek() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="../../../src/warp/filters/path.rs.html#361">Peek</a>&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
+        <span class="kw">let </span>path = <a href="../../../src/warp/filters/path.rs.html#464">path_and_query</a>(<a href="../../../src/warp/filters/path.rs.html#349">route</a>);
+        <span class="kw">let </span>idx = <a href="../../../src/warp/filters/path.rs.html#349">route</a>.<a href="../../../src/warp/route.rs.html#112">matched_path_index</a>();
 
-        <span class="ident">future::ok</span>(<a class="ident" href="../../../src/warp/generic.rs.html#7">one</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#361">Peek</a> {
-            <a class="ident" href="../../../src/warp/filters/path.rs.html#350">path</a>,
-            <span class="ident">start_index</span>: <a class="ident" href="../../../src/warp/filters/path.rs.html#351">idx</a>,
+        future::ok(<a href="../../../src/warp/generic.rs.html#7">one</a>(<a href="../../../src/warp/filters/path.rs.html#361">Peek</a> {
+            <a href="../../../src/warp/filters/path.rs.html#350">path</a>,
+            start_index: <a href="../../../src/warp/filters/path.rs.html#351">idx</a>,
         }))
     })
 }
 
-<span class="doccomment">/// Represents the tail part of a request path, returned by the [`peek()`] filter.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Peek</span> {
-    <span class="ident">path</span>: <a class="ident" href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>,
-    <span class="ident">start_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// Represents the tail part of a request path, returned by the [`peek()`] filter.
+</span><span class="kw">pub struct </span>Peek {
+    path: <a href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>,
+    start_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#361">Peek</a> {
-    <span class="doccomment">/// Get the `&amp;str` representation of the remaining path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/path.rs.html#368">self</a>.<span class="ident">path</span>.<span class="ident">path</span>()[<a class="self" href="../../../src/warp/filters/path.rs.html#368">self</a>.<span class="ident">start_index</span>..]
+<span class="kw">impl </span><a href="../../../src/warp/filters/path.rs.html#361">Peek</a> {
+    <span class="doccomment">/// Get the `&amp;str` representation of the remaining path.
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/path.rs.html#368">self</a>.path.path()[<a class="self" href="../../../src/warp/filters/path.rs.html#368">self</a>.start_index..]
     }
 
-    <span class="doccomment">/// Get an iterator over the segments of the peeked path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">segments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/warp/filters/path.rs.html#373">self</a>.<a class="ident" href="../../../src/warp/filters/path.rs.html#368">as_str</a>().<span class="ident">split</span>(<span class="string">&#39;/&#39;</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">seg</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/warp/filters/path.rs.html#374">seg</a>.<span class="ident">is_empty</span>())
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#361">Peek</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="../../../src/warp/filters/path.rs.html#379">self</a>.<a class="ident" href="../../../src/warp/filters/path.rs.html#368">as_str</a>(), <a class="ident" href="../../../src/warp/filters/path.rs.html#379">f</a>)
+    <span class="doccomment">/// Get an iterator over the segments of the peeked path.
+    </span><span class="kw">pub fn </span>segments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a class="self" href="../../../src/warp/filters/path.rs.html#373">self</a>.<a href="../../../src/warp/filters/path.rs.html#368">as_str</a>().split(<span class="string">&#39;/&#39;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|seg| !<a href="../../../src/warp/filters/path.rs.html#374">seg</a>.is_empty())
     }
 }
 
-<span class="doccomment">/// Returns the full request path, irrespective of other filters.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This will return a `FullPath`, which can be stringified to return the</span>
-<span class="doccomment">/// full path of the request.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is more useful in generic pre/post-processing filters, and should</span>
-<span class="doccomment">/// probably not be used for request matching/routing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::{Filter, path::FullPath};</span>
-<span class="doccomment">/// use std::{collections::HashMap, sync::{Arc, Mutex}};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let counts = Arc::new(Mutex::new(HashMap::new()));</span>
-<span class="doccomment">/// let access_counter = warp::path::full()</span>
-<span class="doccomment">///     .map(move |path: FullPath| {</span>
-<span class="doccomment">///         let mut counts = counts.lock().unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///         *counts.entry(path.as_str().to_string())</span>
-<span class="doccomment">///             .and_modify(|c| *c += 1)</span>
-<span class="doccomment">///             .or_insert(0)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::path(&quot;foo&quot;)</span>
-<span class="doccomment">///     .and(warp::path(&quot;bar&quot;))</span>
-<span class="doccomment">///     .and(access_counter)</span>
-<span class="doccomment">///     .map(|count| {</span>
-<span class="doccomment">///         format!(&quot;This is the {}th visit to this URL!&quot;, count)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">full</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">One</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/path.rs.html#420">FullPath</a><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">route</span><span class="op">|</span> <span class="ident">future::ok</span>(<a class="ident" href="../../../src/warp/generic.rs.html#7">one</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#420">FullPath</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#464">path_and_query</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#416">route</a>)))))
-}
-
-<span class="doccomment">/// Represents the full request path, returned by the [`full()`] filter.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FullPath</span>(<a class="ident" href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>);
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#420">FullPath</a> {
-    <span class="doccomment">/// Get the `&amp;str` representation of the request path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../../src/warp/filters/path.rs.html#424">self</a>.<span class="number">0</span>.<span class="ident">path</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/warp/filters/path.rs.html#361">Peek</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="../../../src/warp/filters/path.rs.html#379">self</a>.<a href="../../../src/warp/filters/path.rs.html#368">as_str</a>(), <a href="../../../src/warp/filters/path.rs.html#379">f</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#420">FullPath</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="../../../src/warp/filters/path.rs.html#430">self</a>.<a class="ident" href="../../../src/warp/filters/path.rs.html#424">as_str</a>(), <a class="ident" href="../../../src/warp/filters/path.rs.html#430">f</a>)
+<span class="doccomment">/// Returns the full request path, irrespective of other filters.
+///
+/// This will return a `FullPath`, which can be stringified to return the
+/// full path of the request.
+///
+/// This is more useful in generic pre/post-processing filters, and should
+/// probably not be used for request matching/routing.
+///
+/// # Example
+///
+/// ```
+/// use warp::{Filter, path::FullPath};
+/// use std::{collections::HashMap, sync::{Arc, Mutex}};
+///
+/// let counts = Arc::new(Mutex::new(HashMap::new()));
+/// let access_counter = warp::path::full()
+///     .map(move |path: FullPath| {
+///         let mut counts = counts.lock().unwrap();
+///
+///         *counts.entry(path.as_str().to_string())
+///             .and_modify(|c| *c += 1)
+///             .or_insert(0)
+///     });
+///
+/// let route = warp::path(&quot;foo&quot;)
+///     .and(warp::path(&quot;bar&quot;))
+///     .and(access_counter)
+///     .map(|count| {
+///         format!(&quot;This is the {}th visit to this URL!&quot;, count)
+///     });
+/// ```
+</span><span class="kw">pub fn </span>full() -&gt; <span class="kw">impl </span>Filter&lt;Extract = One&lt;<a href="../../../src/warp/filters/path.rs.html#420">FullPath</a>&gt;, Error = <a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">Infallible</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| future::ok(<a href="../../../src/warp/generic.rs.html#7">one</a>(<a href="../../../src/warp/filters/path.rs.html#420">FullPath</a>(<a href="../../../src/warp/filters/path.rs.html#464">path_and_query</a>(<a href="../../../src/warp/filters/path.rs.html#416">route</a>)))))
+}
+
+<span class="doccomment">/// Represents the full request path, returned by the [`full()`] filter.
+</span><span class="kw">pub struct </span>FullPath(<a href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a>);
+
+<span class="kw">impl </span><a href="../../../src/warp/filters/path.rs.html#420">FullPath</a> {
+    <span class="doccomment">/// Get the `&amp;str` representation of the request path.
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <a class="self" href="../../../src/warp/filters/path.rs.html#424">self</a>.<span class="number">0</span>.path()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">filter_segment</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">U</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
-    <span class="ident">U</span>: <a class="ident" href="../../../src/warp/generic.rs.html#25">Tuple</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/warp/filters/path.rs.html#420">FullPath</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="self" href="../../../src/warp/filters/path.rs.html#430">self</a>.<a href="../../../src/warp/filters/path.rs.html#424">as_str</a>(), <a href="../../../src/warp/filters/path.rs.html#430">f</a>)
+    }
+}
+
+<span class="kw">fn </span>filter_segment&lt;F, U&gt;(func: F) -&gt; <span class="kw">impl </span>Filter&lt;Extract = U, Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;U, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
+    U: <a href="../../../src/warp/generic.rs.html#25">Tuple</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a class="ident" href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">route</span><span class="op">|</span> <span class="ident">future::ready</span>(<a class="ident" href="../../../src/warp/filters/path.rs.html#443-445">with_segment</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#440">route</a>, <a class="ident" href="../../../src/warp/filters/path.rs.html#435">func</a>)))
+    <a href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| future::ready(<a href="../../../src/warp/filters/path.rs.html#443-445">with_segment</a>(<a href="../../../src/warp/filters/path.rs.html#440">route</a>, <a href="../../../src/warp/filters/path.rs.html#435">func</a>)))
 }
 
-<span class="kw">fn</span> <span class="ident">with_segment</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">route</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/warp/route.rs.html#31">Route</a>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span>,
+<span class="kw">fn </span>with_segment&lt;F, U&gt;(route: <span class="kw-2">&amp;mut </span><a href="../../../src/warp/route.rs.html#31">Route</a>, func: F) -&gt; <span class="prelude-ty">Result</span>&lt;U, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;U, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;,
 {
-    <span class="kw">let</span> <span class="ident">seg</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#456">segment</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#443">route</a>);
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#443">func</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#447">seg</a>);
-    <span class="kw">if</span> <span class="ident">ret</span>.<span class="ident">is_ok</span>() {
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/path.rs.html#447">seg</a>.<span class="ident">len</span>();
-        <a class="ident" href="../../../src/warp/filters/path.rs.html#443">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#94">set_unmatched_path</a>(<a class="ident" href="../../../src/warp/filters/path.rs.html#450">idx</a>);
+    <span class="kw">let </span>seg = <a href="../../../src/warp/filters/path.rs.html#456">segment</a>(<a href="../../../src/warp/filters/path.rs.html#443">route</a>);
+    <span class="kw">let </span>ret = <a href="../../../src/warp/filters/path.rs.html#443">func</a>(<a href="../../../src/warp/filters/path.rs.html#447">seg</a>);
+    <span class="kw">if </span>ret.is_ok() {
+        <span class="kw">let </span>idx = <a href="../../../src/warp/filters/path.rs.html#447">seg</a>.len();
+        <a href="../../../src/warp/filters/path.rs.html#443">route</a>.<a href="../../../src/warp/route.rs.html#94">set_unmatched_path</a>(<a href="../../../src/warp/filters/path.rs.html#450">idx</a>);
     }
-    <a class="ident" href="../../../src/warp/filters/path.rs.html#448">ret</a>
+    <a href="../../../src/warp/filters/path.rs.html#448">ret</a>
 }
 
-<span class="kw">fn</span> <span class="ident">segment</span>(<span class="ident">route</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/warp/route.rs.html#31">Route</a>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <a class="ident" href="../../../src/warp/filters/path.rs.html#456">route</a>
-        .<a class="ident" href="../../../src/warp/route.rs.html#86">path</a>()
-        .<span class="ident">splitn</span>(<span class="number">2</span>, <span class="string">&#39;/&#39;</span>)
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-        .<span class="ident">expect</span>(<span class="string">&quot;split always has at least 1&quot;</span>)
+<span class="kw">fn </span>segment(route: <span class="kw-2">&amp;</span><a href="../../../src/warp/route.rs.html#31">Route</a>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <a href="../../../src/warp/filters/path.rs.html#456">route</a>
+        .<a href="../../../src/warp/route.rs.html#86">path</a>()
+        .splitn(<span class="number">2</span>, <span class="string">&#39;/&#39;</span>)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        .expect(<span class="string">&quot;split always has at least 1&quot;</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">path_and_query</span>(<span class="ident">route</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/warp/route.rs.html#31">Route</a>) -&gt; <a class="ident" href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a> {
-    <a class="ident" href="../../../src/warp/filters/path.rs.html#464">route</a>
-        .<a class="ident" href="../../../src/warp/route.rs.html#82">uri</a>()
-        .<span class="ident">path_and_query</span>()
-        .<span class="ident">cloned</span>()
-        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PathAndQuery::from_static</span>(<span class="string">&quot;&quot;</span>))
+<span class="kw">fn </span>path_and_query(route: <span class="kw-2">&amp;</span><a href="../../../src/warp/route.rs.html#31">Route</a>) -&gt; <a href="../../../http/uri/path/struct.PathAndQuery.html">PathAndQuery</a> {
+    <a href="../../../src/warp/filters/path.rs.html#464">route</a>
+        .<a href="../../../src/warp/route.rs.html#82">uri</a>()
+        .path_and_query()
+        .cloned()
+        .unwrap_or_else(|| PathAndQuery::from_static(<span class="string">&quot;&quot;</span>))
 }
 
-<span class="doccomment">/// Convenient way to chain multiple path filters together.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Any number of either type identifiers or string expressions can be passed,</span>
-<span class="doccomment">/// each separated by a forward slash (`/`). Strings will be used to match</span>
-<span class="doccomment">/// path segments exactly, and type identifiers are used just like</span>
-<span class="doccomment">/// [`param`](crate::path::param) filters.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Match `/sum/:a/:b`</span>
-<span class="doccomment">/// let route = warp::path!(&quot;sum&quot; / u32 / u32)</span>
-<span class="doccomment">///     .map(|a, b| {</span>
-<span class="doccomment">///         format!(&quot;{} + {} = {}&quot;, a, b, a + b)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The equivalent filter chain without using the `path!` macro looks this:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::path(&quot;sum&quot;)</span>
-<span class="doccomment">///     .and(warp::path::param::&lt;u32&gt;())</span>
-<span class="doccomment">///     .and(warp::path::param::&lt;u32&gt;())</span>
-<span class="doccomment">///     .and(warp::path::end())</span>
-<span class="doccomment">///     .map(|a, b| {</span>
-<span class="doccomment">///         format!(&quot;{} + {} = {}&quot;, a, b, a + b)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Path Prefixes</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `path!` macro automatically assumes the path should include an `end()`</span>
-<span class="doccomment">/// filter. To build up a path filter *prefix*, such that the `end()` isn&#39;t</span>
-<span class="doccomment">/// included, use the `/ ..` syntax.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let prefix = warp::path!(&quot;math&quot; / &quot;sum&quot; / ..);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let sum = warp::path!(u32 / u32)</span>
-<span class="doccomment">///     .map(|a, b| {</span>
-<span class="doccomment">///         format!(&quot;{} + {} = {}&quot;, a, b, a + b)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let help = warp::path::end()</span>
-<span class="doccomment">///     .map(|| &quot;This API returns the sum of two u32&#39;s&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let api = prefix.and(sum.or(help));</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">path</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pieces</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; ({
-        <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">start</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pieces</span>)<span class="kw-2">*</span>)
+<span class="doccomment">/// Convenient way to chain multiple path filters together.
+///
+/// Any number of either type identifiers or string expressions can be passed,
+/// each separated by a forward slash (`/`). Strings will be used to match
+/// path segments exactly, and type identifiers are used just like
+/// [`param`](crate::path::param) filters.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// // Match `/sum/:a/:b`
+/// let route = warp::path!(&quot;sum&quot; / u32 / u32)
+///     .map(|a, b| {
+///         format!(&quot;{} + {} = {}&quot;, a, b, a + b)
+///     });
+/// ```
+///
+/// The equivalent filter chain without using the `path!` macro looks this:
+///
+/// ```
+/// use warp::Filter;
+///
+/// let route = warp::path(&quot;sum&quot;)
+///     .and(warp::path::param::&lt;u32&gt;())
+///     .and(warp::path::param::&lt;u32&gt;())
+///     .and(warp::path::end())
+///     .map(|a, b| {
+///         format!(&quot;{} + {} = {}&quot;, a, b, a + b)
+///     });
+/// ```
+///
+/// # Path Prefixes
+///
+/// The `path!` macro automatically assumes the path should include an `end()`
+/// filter. To build up a path filter *prefix*, such that the `end()` isn&#39;t
+/// included, use the `/ ..` syntax.
+///
+///
+/// ```
+/// use warp::Filter;
+///
+/// let prefix = warp::path!(&quot;math&quot; / &quot;sum&quot; / ..);
+///
+/// let sum = warp::path!(u32 / u32)
+///     .map(|a, b| {
+///         format!(&quot;{} + {} = {}&quot;, a, b, a + b)
+///     });
+///
+/// let help = warp::path::end()
+///     .map(|| &quot;This API returns the sum of two u32&#39;s&quot;);
+///
+/// let api = prefix.and(sum.or(help));
+/// ```
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>path {
+    ($(<span class="macro-nonterminal">$pieces</span>:tt)<span class="kw-2">*</span>) =&gt; ({
+        <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">start </span>$(<span class="macro-nonterminal">$pieces</span>)<span class="kw-2">*</span>)
     });
 }
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="comment">// not public API</span>
-<span class="macro">macro_rules!</span> <span class="ident">__internal_path</span> {
-    (@<span class="ident">start</span>) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::path::end</span>()
+<span class="attribute">#[doc(hidden)]
+#[macro_export]
+</span><span class="comment">// not public API
+</span><span class="macro">macro_rules! </span>__internal_path {
+    (@start) =&gt; (
+        <span class="macro-nonterminal">$crate::path::end</span>()
     );
-    (@<span class="ident">start</span> ..) =&gt; ({
+    (@start ..) =&gt; ({
         <span class="macro">compile_error!</span>(<span class="string">&quot;&#39;..&#39; cannot be the only segment&quot;</span>)
     });
-    (@<span class="ident">start</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">first</span>:<span class="ident">tt</span> $(<span class="op">/</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; ({
-        <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">munch</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::any</span>(); [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">first</span>] [$(<span class="op">/</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>])
+    (@start <span class="macro-nonterminal">$first</span>:tt $(/ <span class="macro-nonterminal">$tail</span>:tt)<span class="kw-2">*</span>) =&gt; ({
+        <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">munch $crate::any</span>(); [<span class="macro-nonterminal">$first</span>] [$(/ <span class="macro-nonterminal">$tail</span>)<span class="kw-2">*</span>])
     });
 
-    (@<span class="ident">munch</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sum</span>:<span class="ident">expr</span>; [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cur</span>:<span class="ident">tt</span>] [<span class="op">/</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">next</span>:<span class="ident">tt</span> $(<span class="op">/</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]) =&gt; ({
-        <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">munch</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Filter::and</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">sum</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">segment</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cur</span>)); [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">next</span>] [$(<span class="op">/</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>])
+    (@munch <span class="macro-nonterminal">$sum</span>:expr; [<span class="macro-nonterminal">$cur</span>:tt] [/ <span class="macro-nonterminal">$next</span>:tt $(/ <span class="macro-nonterminal">$tail</span>:tt)<span class="kw-2">*</span>]) =&gt; ({
+        <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">munch $crate::Filter::and</span>(<span class="macro-nonterminal">$sum</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">segment $cur</span>)); [<span class="macro-nonterminal">$next</span>] [$(/ <span class="macro-nonterminal">$tail</span>)<span class="kw-2">*</span>])
     });
-    (@<span class="ident">munch</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sum</span>:<span class="ident">expr</span>; [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cur</span>:<span class="ident">tt</span>] []) =&gt; ({
-        <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">last</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sum</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cur</span>)
+    (@munch <span class="macro-nonterminal">$sum</span>:expr; [<span class="macro-nonterminal">$cur</span>:tt] []) =&gt; ({
+        <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">last $sum</span>; <span class="macro-nonterminal">$cur</span>)
     });
 
-    (@<span class="ident">last</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sum</span>:<span class="ident">expr</span>; ..) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sum</span>
-    );
-    (@<span class="ident">last</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sum</span>:<span class="ident">expr</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">end</span>:<span class="ident">tt</span>) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Filter::and</span>(
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Filter::and</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">sum</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">segment</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">end</span>)),
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::path::end</span>()
+    (@last <span class="macro-nonterminal">$sum</span>:expr; ..) =&gt; (
+        <span class="macro-nonterminal">$sum
+    </span>);
+    (@last <span class="macro-nonterminal">$sum</span>:expr; <span class="macro-nonterminal">$end</span>:tt) =&gt; (
+        <span class="macro-nonterminal">$crate::Filter::and</span>(
+            <span class="macro-nonterminal">$crate::Filter::and</span>(<span class="macro-nonterminal">$sum</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::__internal_path!</span>(@<span class="macro-nonterminal">segment $end</span>)),
+            <span class="macro-nonterminal">$crate::path::end</span>()
         )
     );
 
-    (@<span class="ident">segment</span> ..) =&gt; (
+    (@segment ..) =&gt; (
         <span class="macro">compile_error!</span>(<span class="string">&quot;&#39;..&#39; must be the last segment&quot;</span>)
     );
-    (@<span class="ident">segment</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">param</span>:<span class="ident">ty</span>) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::path::param</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">param</span><span class="op">&gt;</span>()
+    (@segment <span class="macro-nonterminal">$param</span>:ty) =&gt; (
+        <span class="macro-nonterminal">$crate::path::param</span>::&lt;<span class="macro-nonterminal">$param</span>&gt;()
     );
-    <span class="comment">// Constructs a unique ZST so the &amp;&#39;static str pointer doesn&#39;t need to</span>
-    <span class="comment">// be carried around.</span>
-    (@<span class="ident">segment</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">literal</span>) =&gt; ({
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">__StaticPath</span>;
-        <span class="kw">impl</span> <span class="ident">::std::convert::AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">__StaticPath</span> {
-            <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-                <span class="kw">static</span> <span class="ident">S</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>;
-                <span class="ident">S</span>
+    <span class="comment">// Constructs a unique ZST so the &amp;&#39;static str pointer doesn&#39;t need to
+    // be carried around.
+    </span>(@segment <span class="macro-nonterminal">$s</span>:literal) =&gt; ({
+        <span class="attribute">#[derive(Clone, Copy)]
+        </span><span class="kw">struct </span>__StaticPath;
+        <span class="kw">impl </span>::std::convert::AsRef&lt;str&gt; <span class="kw">for </span>__StaticPath {
+            <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+                <span class="kw">static </span>S: <span class="kw-2">&amp;</span>str = <span class="macro-nonterminal">$s</span>;
+                S
             }
         }
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::path</span>(<span class="ident">__StaticPath</span>)
+        <span class="macro-nonterminal">$crate::path</span>(__StaticPath)
     });
 }
 
-<span class="comment">// path! compile fail tests</span>
+<span class="comment">// path! compile fail tests
 
-<span class="doccomment">/// ```compile_fail</span>
-<span class="doccomment">/// warp::path!(&quot;foo&quot; / .. / &quot;bar&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```compile_fail</span>
-<span class="doccomment">/// warp::path!(.. / &quot;bar&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```compile_fail</span>
-<span class="doccomment">/// warp::path!(&quot;foo&quot; ..);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```compile_fail</span>
-<span class="doccomment">/// warp::path!(&quot;foo&quot; / .. /);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```compile_fail</span>
-<span class="doccomment">/// warp::path!(..);</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">fn</span> <span class="ident">_path_macro_compile_fail</span>() {}
+</span><span class="doccomment">/// ```compile_fail
+/// warp::path!(&quot;foo&quot; / .. / &quot;bar&quot;);
+/// ```
+///
+/// ```compile_fail
+/// warp::path!(.. / &quot;bar&quot;);
+/// ```
+///
+/// ```compile_fail
+/// warp::path!(&quot;foo&quot; ..);
+/// ```
+///
+/// ```compile_fail
+/// warp::path!(&quot;foo&quot; / .. /);
+/// ```
+///
+/// ```compile_fail
+/// warp::path!(..);
+/// ```
+</span><span class="kw">fn </span>_path_macro_compile_fail() {}
 
-<span class="kw">mod</span> <span class="ident">internal</span> {
-    <span class="comment">// Used to prevent users from naming this type.</span>
-    <span class="comment">//</span>
-    <span class="comment">// For instance, `Exact&lt;Opaque&lt;String&gt;&gt;` means a user cannot depend</span>
-    <span class="comment">// on it being `Exact&lt;String&gt;`.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Opaque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">T</span>);
+<span class="kw">mod </span>internal {
+    <span class="comment">// Used to prevent users from naming this type.
+    //
+    // For instance, `Exact&lt;Opaque&lt;String&gt;&gt;` means a user cannot depend
+    // on it being `Exact&lt;String&gt;`.
+    </span><span class="attribute">#[allow(missing_debug_implementations)]
+    #[derive(Clone, Copy)]
+    </span><span class="kw">pub struct </span>Opaque&lt;T&gt;(<span class="kw">pub</span>(<span class="kw">super</span>) T);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Opaque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-            <a class="self" href="../../../src/warp/filters/path.rs.html#620">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+    <span class="kw">impl</span>&lt;T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span>Opaque&lt;T&gt; {
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+            <a class="self" href="../../../src/warp/filters/path.rs.html#620">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_path_exact_size</span>() {
-        <span class="kw">use</span> <span class="ident">std::mem</span>::{<span class="ident">size_of</span>, <span class="ident">size_of_val</span>};
-
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>(<span class="string">&quot;hello&quot;</span>)),
-            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>(),
-            <span class="string">&quot;exact(&amp;str) is size of &amp;str&quot;</span>
-        );
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_path_exact_size() {
+        <span class="kw">use </span>std::mem::{size_of, size_of_val};
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>(<span class="ident">String::from</span>(<span class="string">&quot;world&quot;</span>))),
-            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(),
-            <span class="string">&quot;exact(String) is size of String&quot;</span>
-        );
+            size_of_val(<span class="kw-2">&amp;</span>path(<span class="string">&quot;hello&quot;</span>)),
+            size_of::&lt;<span class="kw-2">&amp;</span>str&gt;(),
+            <span class="string">&quot;exact(&amp;str) is size of &amp;str&quot;
+        </span>);
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">size_of_val</span>(<span class="kw-2">&amp;</span><span class="macro">path!</span>(<span class="string">&quot;zst&quot;</span>)),
-            <span class="ident">size_of</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>(),
-            <span class="string">&quot;path!(&amp;str) is ZST&quot;</span>
-        );
+            size_of_val(<span class="kw-2">&amp;</span>path(String::from(<span class="string">&quot;world&quot;</span>))),
+            size_of::&lt;String&gt;(),
+            <span class="string">&quot;exact(String) is size of String&quot;
+        </span>);
+
+        <span class="macro">assert_eq!</span>(
+            size_of_val(<span class="kw-2">&amp;</span><span class="macro">path!</span>(<span class="string">&quot;zst&quot;</span>)),
+            size_of::&lt;()&gt;(),
+            <span class="string">&quot;path!(&amp;str) is ZST&quot;
+        </span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

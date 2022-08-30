@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/io/cursor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cursor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/io/cursor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cursor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -238,245 +238,245 @@
 <span id="238">238</span>
 <span id="239">239</span>
 <span id="240">240</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read_initializer&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures_io::Initializer</span>;
-<span class="kw">use</span> <span class="ident">futures_io</span>::{<a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>, <a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>, <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSliceMut.html">IoSliceMut</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;read_initializer&quot;</span>)]
+</span><span class="kw">use </span>futures_io::Initializer;
+<span class="kw">use </span>futures_io::{<a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>, <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a>, <a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSliceMut.html">IoSliceMut</a>, <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 
-<span class="doccomment">/// A `Cursor` wraps an in-memory buffer and provides it with a</span>
-<span class="doccomment">/// [`AsyncSeek`] implementation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Cursor`s are used with in-memory buffers, anything implementing</span>
-<span class="doccomment">/// `AsRef&lt;[u8]&gt;`, to allow them to implement [`AsyncRead`] and/or [`AsyncWrite`],</span>
-<span class="doccomment">/// allowing these buffers to be used anywhere you might use a reader or writer</span>
-<span class="doccomment">/// that does actual I/O.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This library implements some I/O traits on various types which</span>
-<span class="doccomment">/// are commonly used as a buffer, like `Cursor&lt;`[`Vec`]`&lt;u8&gt;&gt;` and</span>
-<span class="doccomment">/// `Cursor&lt;`[`&amp;[u8]`][bytes]`&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`AsyncSeek`]: trait.AsyncSeek.html</span>
-<span class="doccomment">/// [`AsyncRead`]: trait.AsyncRead.html</span>
-<span class="doccomment">/// [`AsyncWrite`]: trait.AsyncWrite.html</span>
-<span class="doccomment">/// [bytes]: https://doc.rust-lang.org/std/primitive.slice.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">io::Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A `Cursor` wraps an in-memory buffer and provides it with a
+/// [`AsyncSeek`] implementation.
+///
+/// `Cursor`s are used with in-memory buffers, anything implementing
+/// `AsRef&lt;[u8]&gt;`, to allow them to implement [`AsyncRead`] and/or [`AsyncWrite`],
+/// allowing these buffers to be used anywhere you might use a reader or writer
+/// that does actual I/O.
+///
+/// This library implements some I/O traits on various types which
+/// are commonly used as a buffer, like `Cursor&lt;`[`Vec`]`&lt;u8&gt;&gt;` and
+/// `Cursor&lt;`[`&amp;[u8]`][bytes]`&gt;`.
+///
+/// [`AsyncSeek`]: trait.AsyncSeek.html
+/// [`AsyncRead`]: trait.AsyncRead.html
+/// [`AsyncWrite`]: trait.AsyncWrite.html
+/// [bytes]: https://doc.rust-lang.org/std/primitive.slice.html
+</span><span class="attribute">#[derive(Clone, Debug, Default)]
+</span><span class="kw">pub struct </span>Cursor&lt;T&gt; {
+    inner: io::Cursor&lt;T&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new cursor wrapping the provided underlying in-memory buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Cursor initial position is `0` even if underlying buffer (e.g., `Vec`)</span>
-    <span class="doccomment">/// is not empty. So writing to cursor starts with overwriting `Vec`</span>
-    <span class="doccomment">/// content, not with appending to it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use futures::io::Cursor;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buff = Cursor::new(Vec::new());</span>
-    <span class="doccomment">/// # fn force_inference(_: &amp;Cursor&lt;Vec&lt;u8&gt;&gt;) {}</span>
-    <span class="doccomment">/// # force_inference(&amp;buff);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">io::Cursor::new</span>(<a class="ident" href="../../../src/futures_util/io/cursor.rs.html#45">inner</a>) }
+<span class="kw">impl</span>&lt;T&gt; Cursor&lt;T&gt; {
+    <span class="doccomment">/// Creates a new cursor wrapping the provided underlying in-memory buffer.
+    ///
+    /// Cursor initial position is `0` even if underlying buffer (e.g., `Vec`)
+    /// is not empty. So writing to cursor starts with overwriting `Vec`
+    /// content, not with appending to it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use futures::io::Cursor;
+    ///
+    /// let buff = Cursor::new(Vec::new());
+    /// # fn force_inference(_: &amp;Cursor&lt;Vec&lt;u8&gt;&gt;) {}
+    /// # force_inference(&amp;buff);
+    /// ```
+    </span><span class="kw">pub fn </span>new(inner: T) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ inner: io::Cursor::new(<a href="../../../src/futures_util/io/cursor.rs.html#45">inner</a>) }
     }
 
-    <span class="doccomment">/// Consumes this cursor, returning the underlying value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use futures::io::Cursor;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buff = Cursor::new(Vec::new());</span>
-    <span class="doccomment">/// # fn force_inference(_: &amp;Cursor&lt;Vec&lt;u8&gt;&gt;) {}</span>
-    <span class="doccomment">/// # force_inference(&amp;buff);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let vec = buff.into_inner();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#62">self</a>.<span class="ident">inner</span>.<span class="ident">into_inner</span>()
+    <span class="doccomment">/// Consumes this cursor, returning the underlying value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use futures::io::Cursor;
+    ///
+    /// let buff = Cursor::new(Vec::new());
+    /// # fn force_inference(_: &amp;Cursor&lt;Vec&lt;u8&gt;&gt;) {}
+    /// # force_inference(&amp;buff);
+    ///
+    /// let vec = buff.into_inner();
+    /// ```
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#62">self</a>.inner.into_inner()
     }
 
-    <span class="doccomment">/// Gets a reference to the underlying value in this cursor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use futures::io::Cursor;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buff = Cursor::new(Vec::new());</span>
-    <span class="doccomment">/// # fn force_inference(_: &amp;Cursor&lt;Vec&lt;u8&gt;&gt;) {}</span>
-    <span class="doccomment">/// # force_inference(&amp;buff);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let reference = buff.get_ref();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#79">self</a>.<span class="ident">inner</span>.<span class="ident">get_ref</span>()
+    <span class="doccomment">/// Gets a reference to the underlying value in this cursor.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use futures::io::Cursor;
+    ///
+    /// let buff = Cursor::new(Vec::new());
+    /// # fn force_inference(_: &amp;Cursor&lt;Vec&lt;u8&gt;&gt;) {}
+    /// # force_inference(&amp;buff);
+    ///
+    /// let reference = buff.get_ref();
+    /// ```
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#79">self</a>.inner.get_ref()
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the underlying value in this cursor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Care should be taken to avoid modifying the internal I/O state of the</span>
-    <span class="doccomment">/// underlying value as it may corrupt this cursor&#39;s position.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use futures::io::Cursor;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buff = Cursor::new(Vec::new());</span>
-    <span class="doccomment">/// # fn force_inference(_: &amp;Cursor&lt;Vec&lt;u8&gt;&gt;) {}</span>
-    <span class="doccomment">/// # force_inference(&amp;buff);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let reference = buff.get_mut();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#99">self</a>.<span class="ident">inner</span>.<span class="ident">get_mut</span>()
+    <span class="doccomment">/// Gets a mutable reference to the underlying value in this cursor.
+    ///
+    /// Care should be taken to avoid modifying the internal I/O state of the
+    /// underlying value as it may corrupt this cursor&#39;s position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use futures::io::Cursor;
+    ///
+    /// let mut buff = Cursor::new(Vec::new());
+    /// # fn force_inference(_: &amp;Cursor&lt;Vec&lt;u8&gt;&gt;) {}
+    /// # force_inference(&amp;buff);
+    ///
+    /// let reference = buff.get_mut();
+    /// ```
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#99">self</a>.inner.get_mut()
     }
 
-    <span class="doccomment">/// Returns the current position of this cursor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # futures::executor::block_on(async {</span>
-    <span class="doccomment">/// use futures::io::{AsyncSeekExt, Cursor, SeekFrom};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buff = Cursor::new(vec![1, 2, 3, 4, 5]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(buff.position(), 0);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buff.seek(SeekFrom::Current(2)).await?;</span>
-    <span class="doccomment">/// assert_eq!(buff.position(), 2);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buff.seek(SeekFrom::Current(-1)).await?;</span>
-    <span class="doccomment">/// assert_eq!(buff.position(), 1);</span>
-    <span class="doccomment">/// # Ok::&lt;(), Box&lt;dyn std::error::Error&gt;&gt;(()) }).unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#122">self</a>.<span class="ident">inner</span>.<span class="ident">position</span>()
+    <span class="doccomment">/// Returns the current position of this cursor.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures::executor::block_on(async {
+    /// use futures::io::{AsyncSeekExt, Cursor, SeekFrom};
+    ///
+    /// let mut buff = Cursor::new(vec![1, 2, 3, 4, 5]);
+    ///
+    /// assert_eq!(buff.position(), 0);
+    ///
+    /// buff.seek(SeekFrom::Current(2)).await?;
+    /// assert_eq!(buff.position(), 2);
+    ///
+    /// buff.seek(SeekFrom::Current(-1)).await?;
+    /// assert_eq!(buff.position(), 1);
+    /// # Ok::&lt;(), Box&lt;dyn std::error::Error&gt;&gt;(()) }).unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#122">self</a>.inner.position()
     }
 
-    <span class="doccomment">/// Sets the position of this cursor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use futures::io::Cursor;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buff = Cursor::new(vec![1, 2, 3, 4, 5]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(buff.position(), 0);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buff.set_position(2);</span>
-    <span class="doccomment">/// assert_eq!(buff.position(), 2);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buff.set_position(4);</span>
-    <span class="doccomment">/// assert_eq!(buff.position(), 4);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_position</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#143">self</a>.<span class="ident">inner</span>.<span class="ident">set_position</span>(<a class="ident" href="../../../src/futures_util/io/cursor.rs.html#143">pos</a>)
+    <span class="doccomment">/// Sets the position of this cursor.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use futures::io::Cursor;
+    ///
+    /// let mut buff = Cursor::new(vec![1, 2, 3, 4, 5]);
+    ///
+    /// assert_eq!(buff.position(), 0);
+    ///
+    /// buff.set_position(2);
+    /// assert_eq!(buff.position(), 2);
+    ///
+    /// buff.set_position(4);
+    /// assert_eq!(buff.position(), 4);
+    /// ```
+    </span><span class="kw">pub fn </span>set_position(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <a class="self" href="../../../src/futures_util/io/cursor.rs.html#143">self</a>.inner.set_position(<a href="../../../src/futures_util/io/cursor.rs.html#143">pos</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="../../../futures_util/io/trait.AsyncSeek.html">AsyncSeek</a> <span class="kw">for </span>Cursor&lt;T&gt;
+<span class="kw">where
+    </span>T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">fn</span> <span class="ident">poll_seek</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">io::Seek::seek</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/futures_util/io/cursor.rs.html#153">self</a>.<span class="ident">inner</span>, <a class="ident" href="../../../src/futures_util/io/cursor.rs.html#155">pos</a>))
+    <span class="kw">fn </span>poll_seek(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        pos: <a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>,
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Seek.html">io::Seek::seek</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_util/io/cursor.rs.html#153">self</a>.inner, <a href="../../../src/futures_util/io/cursor.rs.html#155">pos</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read_initializer&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">initializer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Initializer</span> {
-        <span class="ident">io::Read::initializer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>)
+<span class="kw">impl</span>&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>Cursor&lt;T&gt; {
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;read_initializer&quot;</span>)]
+    #[inline]
+    </span><span class="kw">unsafe fn </span>initializer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Initializer {
+        io::Read::initializer(<span class="kw-2">&amp;</span><span class="self">self</span>.inner)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read::read</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/futures_util/io/cursor.rs.html#169">self</a>.<span class="ident">inner</span>, <a class="ident" href="../../../src/futures_util/io/cursor.rs.html#171">buf</a>))
+    <span class="kw">fn </span>poll_read(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read::read</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_util/io/cursor.rs.html#169">self</a>.inner, <a href="../../../src/futures_util/io/cursor.rs.html#171">buf</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_read_vectored</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">bufs</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSliceMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read::read_vectored</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/futures_util/io/cursor.rs.html#177">self</a>.<span class="ident">inner</span>, <a class="ident" href="../../../src/futures_util/io/cursor.rs.html#179">bufs</a>))
+    <span class="kw">fn </span>poll_read_vectored(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read::read_vectored</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_util/io/cursor.rs.html#177">self</a>.inner, <a href="../../../src/futures_util/io/cursor.rs.html#179">bufs</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for </span>Cursor&lt;T&gt;
+<span class="kw">where
+    </span>T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">fn</span> <span class="ident">poll_fill_buf</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">io::BufRead::fill_buf</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/futures_util/io/cursor.rs.html#189">self</a>.<span class="ident">get_mut</span>().<span class="ident">inner</span>))
+    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+        Poll::Ready(<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">io::BufRead::fill_buf</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_util/io/cursor.rs.html#189">self</a>.get_mut().inner))
     }
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">io::BufRead::consume</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/futures_util/io/cursor.rs.html#193">self</a>.<span class="ident">inner</span>, <a class="ident" href="../../../src/futures_util/io/cursor.rs.html#193">amt</a>)
+    <span class="kw">fn </span>consume(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">io::BufRead::consume</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_util/io/cursor.rs.html#193">self</a>.inner, <a href="../../../src/futures_util/io/cursor.rs.html#193">amt</a>)
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">delegate_async_write_to_stdio</span> {
+<span class="macro">macro_rules! </span>delegate_async_write_to_stdio {
     () =&gt; {
-        <span class="kw">fn</span> <span class="ident">poll_write</span>(
-            <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">Poll::Ready</span>(<span class="ident">io::Write::write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">buf</span>))
+        <span class="kw">fn </span>poll_write(
+            <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            buf: <span class="kw-2">&amp;</span>[u8],
+        ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+            Poll::Ready(io::Write::write(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, buf))
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
-            <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-            <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">Poll::Ready</span>(<span class="ident">io::Write::write_vectored</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">bufs</span>))
+        <span class="kw">fn </span>poll_write_vectored(
+            <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+        ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+            Poll::Ready(io::Write::write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, bufs))
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">Poll::Ready</span>(<span class="ident">io::Write::flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>))
+        <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+            Poll::Ready(io::Write::flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner))
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">poll_flush</span>(<span class="ident">cx</span>)
+        <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+            <span class="self">self</span>.poll_flush(cx)
         }
     };
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
+<span class="kw">impl </span><a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>Cursor&lt;<span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
     <a class="macro" href="../../../src/futures_util/io/cursor.rs.html#198-224">delegate_async_write_to_stdio!</a>();
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">impl </span><a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>Cursor&lt;<span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
     <a class="macro" href="../../../src/futures_util/io/cursor.rs.html#198-224">delegate_async_write_to_stdio!</a>();
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">impl </span><a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>Cursor&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
     <a class="macro" href="../../../src/futures_util/io/cursor.rs.html#198-224">delegate_async_write_to_stdio!</a>();
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">impl </span><a href="../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>Cursor&lt;Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
     <a class="macro" href="../../../src/futures_util/io/cursor.rs.html#198-224">delegate_async_write_to_stdio!</a>();
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

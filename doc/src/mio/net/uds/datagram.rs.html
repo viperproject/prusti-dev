@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/net/uds/datagram.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datagram.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../mio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/net/uds/datagram.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datagram.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../mio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -234,241 +234,241 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/mio/io_source.rs.html#62"><span class="kw">crate</span>::io_source::IoSource</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../../../src/mio/lib.rs.html#49">sys</a>, <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../../../src/mio/poll.rs.html#254">Registry</a>, <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/mio/io_source.rs.html#62"><span class="kw">crate</span>::io_source::IoSource</a>;
+<span class="kw">use crate</span>::{<a href="../../../../src/mio/lib.rs.html#54">event</a>, <a href="../../../../src/mio/lib.rs.html#49">sys</a>, <a href="../../../../src/mio/interest.rs.html#17">Interest</a>, <a href="../../../../src/mio/poll.rs.html#254">Registry</a>, <a href="../../../../src/mio/token.rs.html#132">Token</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">std::net::Shutdown</a>;
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/index.html">std::os::unix::net</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">std::net::Shutdown</a>;
+<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/index.html">std::os::unix::net</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
 
-<span class="doccomment">/// A Unix datagram socket.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnixDatagram</span> {
-    <span class="ident">inner</span>: <span class="ident">IoSource</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/datagram/struct.UnixDatagram.html">net::UnixDatagram</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A Unix datagram socket.
+</span><span class="kw">pub struct </span>UnixDatagram {
+    inner: IoSource&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/datagram/struct.UnixDatagram.html">net::UnixDatagram</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-    <span class="doccomment">/// Creates a Unix datagram socket bound to the given path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/mio/sys/unix/uds/datagram.rs.html#9">sys::uds::datagram::bind</a>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#17">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()).<span class="ident">map</span>(<span class="ident">UnixDatagram::from_std</span>)
+<span class="kw">impl </span><a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+    <span class="doccomment">/// Creates a Unix datagram socket bound to the given path.
+    </span><span class="kw">pub fn </span>bind&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(path: P) -&gt; io::Result&lt;<a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a>&gt; {
+        <a href="../../../../src/mio/sys/unix/uds/datagram.rs.html#9">sys::uds::datagram::bind</a>(<a href="../../../../src/mio/net/uds/datagram.rs.html#17">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()).map(UnixDatagram::from_std)
     }
 
-    <span class="doccomment">/// Creates a new `UnixDatagram` from a standard `net::UnixDatagram`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is intended to be used to wrap a Unix datagram from the</span>
-    <span class="doccomment">/// standard library in the Mio equivalent. The conversion assumes nothing</span>
-    <span class="doccomment">/// about the underlying datagram; it is left up to the user to set it in</span>
-    <span class="doccomment">/// non-blocking mode.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">socket</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/datagram/struct.UnixDatagram.html">net::UnixDatagram</a>) -&gt; <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-        <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-            <span class="ident">inner</span>: <span class="ident">IoSource::new</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#27">socket</a>),
+    <span class="doccomment">/// Creates a new `UnixDatagram` from a standard `net::UnixDatagram`.
+    ///
+    /// This function is intended to be used to wrap a Unix datagram from the
+    /// standard library in the Mio equivalent. The conversion assumes nothing
+    /// about the underlying datagram; it is left up to the user to set it in
+    /// non-blocking mode.
+    </span><span class="kw">pub fn </span>from_std(socket: <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/datagram/struct.UnixDatagram.html">net::UnixDatagram</a>) -&gt; <a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+        <a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+            inner: IoSource::new(<a href="../../../../src/mio/net/uds/datagram.rs.html#27">socket</a>),
         }
     }
 
-    <span class="doccomment">/// Connects the socket to the specified address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may return a `WouldBlock` in which case the socket connection</span>
-    <span class="doccomment">/// cannot be completed immediately.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#37">self</a>.<span class="ident">inner</span>.<span class="ident">connect</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#37">path</a>)
+    <span class="doccomment">/// Connects the socket to the specified address.
+    ///
+    /// This may return a `WouldBlock` in which case the socket connection
+    /// cannot be completed immediately.
+    </span><span class="kw">pub fn </span>connect&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#37">self</a>.inner.connect(<a href="../../../../src/mio/net/uds/datagram.rs.html#37">path</a>)
     }
 
-    <span class="doccomment">/// Creates a Unix Datagram socket which is not bound to any address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unbound</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/mio/sys/unix/uds/datagram.rs.html#19">sys::uds::datagram::unbound</a>().<span class="ident">map</span>(<span class="ident">UnixDatagram::from_std</span>)
+    <span class="doccomment">/// Creates a Unix Datagram socket which is not bound to any address.
+    </span><span class="kw">pub fn </span>unbound() -&gt; io::Result&lt;<a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a>&gt; {
+        <a href="../../../../src/mio/sys/unix/uds/datagram.rs.html#19">sys::uds::datagram::unbound</a>().map(UnixDatagram::from_std)
     }
 
-    <span class="doccomment">/// Create an unnamed pair of connected sockets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pair</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a>, <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a>)<span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/mio/sys/unix/uds/datagram.rs.html#24">sys::uds::datagram::pair</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">socket1</span>, <span class="ident">socket2</span>)<span class="op">|</span> {
+    <span class="doccomment">/// Create an unnamed pair of connected sockets.
+    </span><span class="kw">pub fn </span>pair() -&gt; io::Result&lt;(<a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a>, <a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a>)&gt; {
+        <a href="../../../../src/mio/sys/unix/uds/datagram.rs.html#24">sys::uds::datagram::pair</a>().map(|(socket1, socket2)| {
             (
-                <span class="ident">UnixDatagram::from_std</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#48">socket1</a>),
-                <span class="ident">UnixDatagram::from_std</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#48">socket2</a>),
+                UnixDatagram::from_std(<a href="../../../../src/mio/net/uds/datagram.rs.html#48">socket1</a>),
+                UnixDatagram::from_std(<a href="../../../../src/mio/net/uds/datagram.rs.html#48">socket2</a>),
             )
         })
     }
 
-    <span class="doccomment">/// Returns the address of this socket.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/mio/sys/unix/uds/datagram.rs.html#28">sys::uds::datagram::local_addr</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#57">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns the address of this socket.
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a>&gt; {
+        <a href="../../../../src/mio/sys/unix/uds/datagram.rs.html#28">sys::uds::datagram::local_addr</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#57">self</a>.inner)
     }
 
-    <span class="doccomment">/// Returns the address of this socket&#39;s peer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `connect` method will connect the socket to a peer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/mio/sys/unix/uds/datagram.rs.html#32">sys::uds::datagram::peer_addr</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#64">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Returns the address of this socket&#39;s peer.
+    ///
+    /// The `connect` method will connect the socket to a peer.
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a>&gt; {
+        <a href="../../../../src/mio/sys/unix/uds/datagram.rs.html#32">sys::uds::datagram::peer_addr</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#64">self</a>.inner)
     }
 
-    <span class="doccomment">/// Receives data from the socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes read and the address from</span>
-    <span class="doccomment">/// whence the data came.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a>)<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#72">self</a>.<span class="ident">inner</span>
-            .<a class="ident" href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../../src/mio/sys/unix/uds/datagram.rs.html#36-39">sys::uds::datagram::recv_from</a>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#74">inner</a>, <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#72">buf</a>))
+    <span class="doccomment">/// Receives data from the socket.
+    ///
+    /// On success, returns the number of bytes read and the address from
+    /// whence the data came.
+    </span><span class="kw">pub fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15">sys::SocketAddr</a>)&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#72">self</a>.inner
+            .<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../../src/mio/sys/unix/uds/datagram.rs.html#36-39">sys::uds::datagram::recv_from</a>(<a href="../../../../src/mio/net/uds/datagram.rs.html#74">inner</a>, <a href="../../../../src/mio/net/uds/datagram.rs.html#72">buf</a>))
     }
 
-    <span class="doccomment">/// Receives data from the socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes read.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#80">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#81">inner</a>.<span class="ident">recv</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#80">buf</a>))
+    <span class="doccomment">/// Receives data from the socket.
+    ///
+    /// On success, returns the number of bytes read.
+    </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#80">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../../src/mio/net/uds/datagram.rs.html#81">inner</a>.recv(<a href="../../../../src/mio/net/uds/datagram.rs.html#80">buf</a>))
     }
 
-    <span class="doccomment">/// Sends data on the socket to the specified address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes written.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_to</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#87">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#88">inner</a>.<span class="ident">send_to</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#87">buf</a>, <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#87">path</a>))
+    <span class="doccomment">/// Sends data on the socket to the specified address.
+    ///
+    /// On success, returns the number of bytes written.
+    </span><span class="kw">pub fn </span>send_to&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], path: P) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#87">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../../src/mio/net/uds/datagram.rs.html#88">inner</a>.send_to(<a href="../../../../src/mio/net/uds/datagram.rs.html#87">buf</a>, <a href="../../../../src/mio/net/uds/datagram.rs.html#87">path</a>))
     }
 
-    <span class="doccomment">/// Sends data on the socket to the socket&#39;s peer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The peer address may be set by the `connect` method, and this method</span>
-    <span class="doccomment">/// will return an error if the socket has not already been connected.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes written.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#97">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#98">inner</a>.<span class="ident">send</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#97">buf</a>))
+    <span class="doccomment">/// Sends data on the socket to the socket&#39;s peer.
+    ///
+    /// The peer address may be set by the `connect` method, and this method
+    /// will return an error if the socket has not already been connected.
+    ///
+    /// On success, returns the number of bytes written.
+    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#97">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../../src/mio/net/uds/datagram.rs.html#98">inner</a>.send(<a href="../../../../src/mio/net/uds/datagram.rs.html#97">buf</a>))
     }
 
-    <span class="doccomment">/// Returns the value of the `SO_ERROR` option.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#102">self</a>.<span class="ident">inner</span>.<span class="ident">take_error</span>()
+    <span class="doccomment">/// Returns the value of the `SO_ERROR` option.
+    </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#102">self</a>.inner.take_error()
     }
 
-    <span class="doccomment">/// Shut down the read, write, or both halves of this connection.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will cause all pending and future I/O calls on the</span>
-    <span class="doccomment">/// specified portions to immediately return with an appropriate value</span>
-    <span class="doccomment">/// (see the documentation of `Shutdown`).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">how</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#111">self</a>.<span class="ident">inner</span>.<span class="ident">shutdown</span>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#111">how</a>)
+    <span class="doccomment">/// Shut down the read, write, or both halves of this connection.
+    ///
+    /// This function will cause all pending and future I/O calls on the
+    /// specified portions to immediately return with an appropriate value
+    /// (see the documentation of `Shutdown`).
+    </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>, how: <a href="https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html">Shutdown</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#111">self</a>.inner.shutdown(<a href="../../../../src/mio/net/uds/datagram.rs.html#111">how</a>)
     }
 
-    <span class="doccomment">/// Execute an I/O operation ensuring that the socket receives more events</span>
-    <span class="doccomment">/// if it hits a [`WouldBlock`] error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is required to be called for **all** I/O operations to</span>
-    <span class="doccomment">/// ensure the user will receive events once the socket is ready again after</span>
-    <span class="doccomment">/// returning a [`WouldBlock`] error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`WouldBlock`]: io::ErrorKind::WouldBlock</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">/// use std::os::unix::io::AsRawFd;</span>
-    <span class="doccomment">/// use mio::net::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let (dgram1, dgram2) = UnixDatagram::pair()?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Wait until the dgram is writable...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Write to the dgram using a direct libc call, of course the</span>
-    <span class="doccomment">/// // `io::Write` implementation would be easier to use.</span>
-    <span class="doccomment">/// let buf = b&quot;hello&quot;;</span>
-    <span class="doccomment">/// let n = dgram1.try_io(|| {</span>
-    <span class="doccomment">///     let buf_ptr = &amp;buf as *const _ as *const _;</span>
-    <span class="doccomment">///     let res = unsafe { libc::send(dgram1.as_raw_fd(), buf_ptr, buf.len(), 0) };</span>
-    <span class="doccomment">///     if res != -1 {</span>
-    <span class="doccomment">///         Ok(res as usize)</span>
-    <span class="doccomment">///     } else {</span>
-    <span class="doccomment">///         // If EAGAIN or EWOULDBLOCK is set by libc::send, the closure</span>
-    <span class="doccomment">///         // should return `WouldBlock` error.</span>
-    <span class="doccomment">///         Err(io::Error::last_os_error())</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// })?;</span>
-    <span class="doccomment">/// eprintln!(&quot;write {} bytes&quot;, n);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Wait until the dgram is readable...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Read from the dgram using a direct libc call, of course the</span>
-    <span class="doccomment">/// // `io::Read` implementation would be easier to use.</span>
-    <span class="doccomment">/// let mut buf = [0; 512];</span>
-    <span class="doccomment">/// let n = dgram2.try_io(|| {</span>
-    <span class="doccomment">///     let buf_ptr = &amp;mut buf as *mut _ as *mut _;</span>
-    <span class="doccomment">///     let res = unsafe { libc::recv(dgram2.as_raw_fd(), buf_ptr, buf.len(), 0) };</span>
-    <span class="doccomment">///     if res != -1 {</span>
-    <span class="doccomment">///         Ok(res as usize)</span>
-    <span class="doccomment">///     } else {</span>
-    <span class="doccomment">///         // If EAGAIN or EWOULDBLOCK is set by libc::recv, the closure</span>
-    <span class="doccomment">///         // should return `WouldBlock` error.</span>
-    <span class="doccomment">///         Err(io::Error::last_os_error())</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// })?;</span>
-    <span class="doccomment">/// eprintln!(&quot;read {} bytes&quot;, n);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_io</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Execute an I/O operation ensuring that the socket receives more events
+    /// if it hits a [`WouldBlock`] error.
+    ///
+    /// # Notes
+    ///
+    /// This method is required to be called for **all** I/O operations to
+    /// ensure the user will receive events once the socket is ready again after
+    /// returning a [`WouldBlock`] error.
+    ///
+    /// [`WouldBlock`]: io::ErrorKind::WouldBlock
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use std::io;
+    /// use std::os::unix::io::AsRawFd;
+    /// use mio::net::UnixDatagram;
+    ///
+    /// let (dgram1, dgram2) = UnixDatagram::pair()?;
+    ///
+    /// // Wait until the dgram is writable...
+    ///
+    /// // Write to the dgram using a direct libc call, of course the
+    /// // `io::Write` implementation would be easier to use.
+    /// let buf = b&quot;hello&quot;;
+    /// let n = dgram1.try_io(|| {
+    ///     let buf_ptr = &amp;buf as *const _ as *const _;
+    ///     let res = unsafe { libc::send(dgram1.as_raw_fd(), buf_ptr, buf.len(), 0) };
+    ///     if res != -1 {
+    ///         Ok(res as usize)
+    ///     } else {
+    ///         // If EAGAIN or EWOULDBLOCK is set by libc::send, the closure
+    ///         // should return `WouldBlock` error.
+    ///         Err(io::Error::last_os_error())
+    ///     }
+    /// })?;
+    /// eprintln!(&quot;write {} bytes&quot;, n);
+    ///
+    /// // Wait until the dgram is readable...
+    ///
+    /// // Read from the dgram using a direct libc call, of course the
+    /// // `io::Read` implementation would be easier to use.
+    /// let mut buf = [0; 512];
+    /// let n = dgram2.try_io(|| {
+    ///     let buf_ptr = &amp;mut buf as *mut _ as *mut _;
+    ///     let res = unsafe { libc::recv(dgram2.as_raw_fd(), buf_ptr, buf.len(), 0) };
+    ///     if res != -1 {
+    ///         Ok(res as usize)
+    ///     } else {
+    ///         // If EAGAIN or EWOULDBLOCK is set by libc::recv, the closure
+    ///         // should return `WouldBlock` error.
+    ///         Err(io::Error::last_os_error())
+    ///     }
+    /// })?;
+    /// eprintln!(&quot;read {} bytes&quot;, n);
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>try_io&lt;F, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; io::Result&lt;T&gt;
+    <span class="kw">where
+        </span>F: FnOnce() -&gt; io::Result&lt;T&gt;,
     {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#176">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#176">f</a>())
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#176">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(|<span class="kw">_</span>| <a href="../../../../src/mio/net/uds/datagram.rs.html#176">f</a>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/mio/event/source.rs.html#75">event::Source</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-    <span class="kw">fn</span> <span class="ident">register</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254">Registry</a>,
-        <span class="ident">token</span>: <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>,
-        <span class="ident">interests</span>: <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#186">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#83-88">register</a>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#187">registry</a>, <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#188">token</a>, <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#189">interests</a>)
+<span class="kw">impl </span><a href="../../../../src/mio/event/source.rs.html#75">event::Source</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+    <span class="kw">fn </span>register(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>,
+        token: <a href="../../../../src/mio/token.rs.html#132">Token</a>,
+        interests: <a href="../../../../src/mio/interest.rs.html#17">Interest</a>,
+    ) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#186">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#83-88">register</a>(<a href="../../../../src/mio/net/uds/datagram.rs.html#187">registry</a>, <a href="../../../../src/mio/net/uds/datagram.rs.html#188">token</a>, <a href="../../../../src/mio/net/uds/datagram.rs.html#189">interests</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">reregister</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254">Registry</a>,
-        <span class="ident">token</span>: <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>,
-        <span class="ident">interests</span>: <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#195">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#196">registry</a>, <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#197">token</a>, <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#198">interests</a>)
+    <span class="kw">fn </span>reregister(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>,
+        token: <a href="../../../../src/mio/token.rs.html#132">Token</a>,
+        interests: <a href="../../../../src/mio/interest.rs.html#17">Interest</a>,
+    ) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#195">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a href="../../../../src/mio/net/uds/datagram.rs.html#196">registry</a>, <a href="../../../../src/mio/net/uds/datagram.rs.html#197">token</a>, <a href="../../../../src/mio/net/uds/datagram.rs.html#198">interests</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#203">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#203">registry</a>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#209">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#209">f</a>)
+    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../../../src/mio/poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#203">self</a>.inner.<a href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a href="../../../../src/mio/net/uds/datagram.rs.html#203">registry</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-    <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#215">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#105">into_inner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#209">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../../src/mio/net/uds/datagram.rs.html#209">f</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#221">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+    <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#215">self</a>.inner.<a href="../../../../src/mio/io_source.rs.html#105">into_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-    <span class="doccomment">/// Converts a `RawFd` to a `UnixDatagram`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller is responsible for ensuring that the socket is in</span>
-    <span class="doccomment">/// non-blocking mode.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
-        <span class="ident">UnixDatagram::from_std</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a class="ident" href="../../../../src/mio/net/uds/datagram.rs.html#233">fd</a>))
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../../src/mio/net/uds/datagram.rs.html#221">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+    <span class="doccomment">/// Converts a `RawFd` to a `UnixDatagram`.
+    ///
+    /// # Notes
+    ///
+    /// The caller is responsible for ensuring that the socket is in
+    /// non-blocking mode.
+    </span><span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="../../../../src/mio/net/uds/datagram.rs.html#11">UnixDatagram</a> {
+        UnixDatagram::from_std(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a href="../../../../src/mio/net/uds/datagram.rs.html#233">fd</a>))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/driver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/driver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -206,213 +206,213 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Abstracts out the entire chain of runtime sub-drivers into common types.</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#11"><span class="kw">crate</span>::park::thread::ParkThread</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#49"><span class="kw">crate</span>::park::Park</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! Abstracts out the entire chain of runtime sub-drivers into common types.
+</span><span class="kw">use </span><a href="../../../src/tokio/park/thread.rs.html#11"><span class="kw">crate</span>::park::thread::ParkThread</a>;
+<span class="kw">use </span><a href="../../../src/tokio/park/mod.rs.html#49"><span class="kw">crate</span>::park::Park</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="comment">// ===== io driver =====</span>
+<span class="comment">// ===== io driver =====
 
-<span class="macro">cfg_io_driver!</span> {
-    <span class="kw">type</span> <span class="ident">IoDriver</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#31"><span class="kw">crate</span>::io::driver::Driver</a>;
-    <span class="kw">type</span> <span class="ident">IoStack</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::park::either::Either</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/driver.rs.html#81">ProcessDriver</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a><span class="op">&gt;</span>;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">IoHandle</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#52"><span class="kw">crate</span>::io::driver::Handle</a><span class="op">&gt;</span>;
+</span><span class="macro">cfg_io_driver! </span>{
+    <span class="kw">type </span>IoDriver = <a href="../../../src/tokio/io/driver/mod.rs.html#31"><span class="kw">crate</span>::io::driver::Driver</a>;
+    <span class="kw">type </span>IoStack = <span class="kw">crate</span>::park::either::Either&lt;<a href="../../../src/tokio/runtime/driver.rs.html#81">ProcessDriver</a>, <a href="../../../src/tokio/park/thread.rs.html#11">ParkThread</a>&gt;;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>IoHandle = <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/io/driver/mod.rs.html#52"><span class="kw">crate</span>::io::driver::Handle</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">create_io_stack</span>(<span class="ident">enabled</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#13">IoHandle</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>)<span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/either.rs.html#8"><span class="kw">crate</span>::park::either::Either</a>;
+    <span class="kw">fn </span>create_io_stack(enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;(<a href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>, <a href="../../../src/tokio/runtime/driver.rs.html#13">IoHandle</a>, <a href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>)&gt; {
+        <span class="kw">use </span><a href="../../../src/tokio/park/either.rs.html#8"><span class="kw">crate</span>::park::either::Either</a>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">loom</span>)]</span>
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>);
+        <span class="attribute">#[cfg(loom)]
+        </span><span class="macro">assert!</span>(!enabled);
 
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">enabled</span> {
-            <span class="kw">let</span> <span class="ident">io_driver</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::io::driver::Driver::new</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">io_handle</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#22">io_driver</a>.<a class="ident" href="../../../src/tokio/io/driver/mod.rs.html#144">handle</a>();
+        <span class="kw">let </span>ret = <span class="kw">if </span>enabled {
+            <span class="kw">let </span>io_driver = <span class="kw">crate</span>::io::driver::Driver::new()<span class="question-mark">?</span>;
+            <span class="kw">let </span>io_handle = <a href="../../../src/tokio/runtime/driver.rs.html#22">io_driver</a>.<a href="../../../src/tokio/io/driver/mod.rs.html#144">handle</a>();
 
-            <span class="kw">let</span> (<span class="ident">signal_driver</span>, <span class="ident">signal_handle</span>) <span class="op">=</span> <span class="ident">create_signal_driver</span>(<span class="ident">io_driver</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">process_driver</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#83">create_process_driver</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#25">signal_driver</a>);
+            <span class="kw">let </span>(signal_driver, signal_handle) = create_signal_driver(io_driver)<span class="question-mark">?</span>;
+            <span class="kw">let </span>process_driver = <a href="../../../src/tokio/runtime/driver.rs.html#83">create_process_driver</a>(<a href="../../../src/tokio/runtime/driver.rs.html#25">signal_driver</a>);
 
-            (<a class="ident" href="../../../src/tokio/park/either.rs.html#9">Either::A</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#26">process_driver</a>), <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#23">io_handle</a>), <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#25">signal_handle</a>)
-        } <span class="kw">else</span> {
-            (<a class="ident" href="../../../src/tokio/park/either.rs.html#10">Either::B</a>(<span class="ident">ParkThread::new</span>()), <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>())
+            (<a href="../../../src/tokio/park/either.rs.html#9">Either::A</a>(<a href="../../../src/tokio/runtime/driver.rs.html#26">process_driver</a>), <span class="prelude-val">Some</span>(<a href="../../../src/tokio/runtime/driver.rs.html#23">io_handle</a>), <a href="../../../src/tokio/runtime/driver.rs.html#25">signal_handle</a>)
+        } <span class="kw">else </span>{
+            (<a href="../../../src/tokio/park/either.rs.html#10">Either::B</a>(ParkThread::new()), <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(), <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>())
         };
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#21">ret</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/runtime/driver.rs.html#21">ret</a>)
     }
 }
 
-<span class="macro">cfg_not_io_driver!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">IoHandle</span> <span class="op">=</span> ();
-    <span class="kw">type</span> <span class="ident">IoStack</span> <span class="op">=</span> <span class="ident">ParkThread</span>;
+<span class="macro">cfg_not_io_driver! </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>IoHandle = ();
+    <span class="kw">type </span>IoStack = ParkThread;
 
-    <span class="kw">fn</span> <span class="ident">create_io_stack</span>(<span class="ident">_enabled</span>: <span class="ident">bool</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">IoStack</span>, <span class="ident">IoHandle</span>, <span class="ident">SignalHandle</span>)<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>((<span class="ident">ParkThread::new</span>(), <span class="ident">Default::default</span>(), <span class="ident">Default::default</span>()))
+    <span class="kw">fn </span>create_io_stack(_enabled: bool) -&gt; io::Result&lt;(IoStack, IoHandle, SignalHandle)&gt; {
+        <span class="prelude-val">Ok</span>((ParkThread::new(), Default::default(), Default::default()))
     }
 }
 
-<span class="comment">// ===== signal driver =====</span>
+<span class="comment">// ===== signal driver =====
 
-<span class="macro">macro_rules!</span> <span class="ident">cfg_signal_internal_and_unix</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) =&gt; {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-        <span class="macro">cfg_signal_internal!</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>)<span class="op">*</span> }
+</span><span class="macro">macro_rules! </span>cfg_signal_internal_and_unix {
+    ($(<span class="macro-nonterminal">$item</span>:item)<span class="kw-2">*</span>) =&gt; {
+        <span class="attribute">#[cfg(unix)]
+        </span><span class="macro">cfg_signal_internal! </span>{ $(<span class="macro-nonterminal">$item</span>)* }
     }
 }
 
-<span class="macro">cfg_signal_internal_and_unix!</span> {
-    <span class="kw">type</span> <span class="ident">SignalDriver</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#23"><span class="kw">crate</span>::signal::unix::driver::Driver</a>;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">SignalHandle</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#35"><span class="kw">crate</span>::signal::unix::driver::Handle</a><span class="op">&gt;</span>;
+<span class="macro">cfg_signal_internal_and_unix! </span>{
+    <span class="kw">type </span>SignalDriver = <a href="../../../src/tokio/signal/unix/driver.rs.html#23"><span class="kw">crate</span>::signal::unix::driver::Driver</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SignalHandle = <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/signal/unix/driver.rs.html#35"><span class="kw">crate</span>::signal::unix::driver::Handle</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">create_signal_driver</span>(<span class="ident">io_driver</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#11">IoDriver</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#56">SignalDriver</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">driver</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::signal::unix::driver::Driver::new</span>(<span class="ident">io_driver</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#60">driver</a>.<a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#92">handle</a>();
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#60">driver</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#61">handle</a>)))
+    <span class="kw">fn </span>create_signal_driver(io_driver: <a href="../../../src/tokio/runtime/driver.rs.html#11">IoDriver</a>) -&gt; io::Result&lt;(<a href="../../../src/tokio/runtime/driver.rs.html#56">SignalDriver</a>, <a href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>)&gt; {
+        <span class="kw">let </span>driver = <span class="kw">crate</span>::signal::unix::driver::Driver::new(io_driver)<span class="question-mark">?</span>;
+        <span class="kw">let </span>handle = <a href="../../../src/tokio/runtime/driver.rs.html#60">driver</a>.<a href="../../../src/tokio/signal/unix/driver.rs.html#92">handle</a>();
+        <span class="prelude-val">Ok</span>((<a href="../../../src/tokio/runtime/driver.rs.html#60">driver</a>, <span class="prelude-val">Some</span>(<a href="../../../src/tokio/runtime/driver.rs.html#61">handle</a>)))
     }
 }
 
-<span class="macro">cfg_not_signal_internal!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">SignalHandle</span> <span class="op">=</span> ();
+<span class="macro">cfg_not_signal_internal! </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SignalHandle = ();
 
-    <span class="macro">cfg_io_driver!</span> {
-        <span class="kw">type</span> <span class="ident">SignalDriver</span> <span class="op">=</span> <span class="ident">IoDriver</span>;
+    <span class="macro">cfg_io_driver! </span>{
+        <span class="kw">type </span>SignalDriver = IoDriver;
 
-        <span class="kw">fn</span> <span class="ident">create_signal_driver</span>(<span class="ident">io_driver</span>: <span class="ident">IoDriver</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">SignalDriver</span>, <span class="ident">SignalHandle</span>)<span class="op">&gt;</span> {
-            <span class="prelude-val">Ok</span>((<span class="ident">io_driver</span>, ()))
+        <span class="kw">fn </span>create_signal_driver(io_driver: IoDriver) -&gt; io::Result&lt;(SignalDriver, SignalHandle)&gt; {
+            <span class="prelude-val">Ok</span>((io_driver, ()))
         }
     }
 }
 
-<span class="comment">// ===== process driver =====</span>
+<span class="comment">// ===== process driver =====
 
-<span class="macro">cfg_process_driver!</span> {
-    <span class="kw">type</span> <span class="ident">ProcessDriver</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/process/unix/driver.rs.html#14"><span class="kw">crate</span>::process::unix::driver::Driver</a>;
+</span><span class="macro">cfg_process_driver! </span>{
+    <span class="kw">type </span>ProcessDriver = <a href="../../../src/tokio/process/unix/driver.rs.html#14"><span class="kw">crate</span>::process::unix::driver::Driver</a>;
 
-    <span class="kw">fn</span> <span class="ident">create_process_driver</span>(<span class="ident">signal_driver</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#56">SignalDriver</a>) -&gt; <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#81">ProcessDriver</a> {
-        <span class="ident"><span class="kw">crate</span>::process::unix::driver::Driver::new</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#83">signal_driver</a>)
+    <span class="kw">fn </span>create_process_driver(signal_driver: <a href="../../../src/tokio/runtime/driver.rs.html#56">SignalDriver</a>) -&gt; <a href="../../../src/tokio/runtime/driver.rs.html#81">ProcessDriver</a> {
+        <span class="kw">crate</span>::process::unix::driver::Driver::new(<a href="../../../src/tokio/runtime/driver.rs.html#83">signal_driver</a>)
     }
 }
 
-<span class="macro">cfg_not_process_driver!</span> {
-    <span class="macro">cfg_io_driver!</span> {
-        <span class="kw">type</span> <span class="ident">ProcessDriver</span> <span class="op">=</span> <span class="ident">SignalDriver</span>;
+<span class="macro">cfg_not_process_driver! </span>{
+    <span class="macro">cfg_io_driver! </span>{
+        <span class="kw">type </span>ProcessDriver = SignalDriver;
 
-        <span class="kw">fn</span> <span class="ident">create_process_driver</span>(<span class="ident">signal_driver</span>: <span class="ident">SignalDriver</span>) -&gt; <span class="ident">ProcessDriver</span> {
-            <span class="ident">signal_driver</span>
+        <span class="kw">fn </span>create_process_driver(signal_driver: SignalDriver) -&gt; ProcessDriver {
+            signal_driver
         }
     }
 }
 
-<span class="comment">// ===== time driver =====</span>
+<span class="comment">// ===== time driver =====
 
-<span class="macro">cfg_time!</span> {
-    <span class="kw">type</span> <span class="ident">TimeDriver</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::park::either::Either</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::time::driver::Driver</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a><span class="op">&gt;</span>;
+</span><span class="macro">cfg_time! </span>{
+    <span class="kw">type </span>TimeDriver = <span class="kw">crate</span>::park::either::Either&lt;<span class="kw">crate</span>::time::driver::Driver&lt;<a href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>&gt;, <a href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>&gt;;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">Clock</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/time/clock.rs.html#13"><span class="kw">crate</span>::time::Clock</a>;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">TimeHandle</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/time/driver/handle.rs.html#7"><span class="kw">crate</span>::time::driver::Handle</a><span class="op">&gt;</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Clock = <a href="../../../src/tokio/time/clock.rs.html#13"><span class="kw">crate</span>::time::Clock</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>TimeHandle = <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tokio/time/driver/handle.rs.html#7"><span class="kw">crate</span>::time::driver::Handle</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">create_clock</span>(<span class="ident">enable_pausing</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">start_paused</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a> {
-        <span class="ident"><span class="kw">crate</span>::time::Clock::new</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#106">enable_pausing</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#106">start_paused</a>)
+    <span class="kw">fn </span>create_clock(enable_pausing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, start_paused: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a> {
+        <span class="kw">crate</span>::time::Clock::new(<a href="../../../src/tokio/runtime/driver.rs.html#106">enable_pausing</a>, <a href="../../../src/tokio/runtime/driver.rs.html#106">start_paused</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">create_time_driver</span>(
-        <span class="ident">enable</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="ident">io_stack</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>,
-        <span class="ident">clock</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a>,
-    ) -&gt; (<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#104">TimeHandle</a>) {
-        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/park/either.rs.html#8"><span class="kw">crate</span>::park::either::Either</a>;
+    <span class="kw">fn </span>create_time_driver(
+        enable: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        io_stack: <a href="../../../src/tokio/runtime/driver.rs.html#12">IoStack</a>,
+        clock: <a href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a>,
+    ) -&gt; (<a href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a>, <a href="../../../src/tokio/runtime/driver.rs.html#104">TimeHandle</a>) {
+        <span class="kw">use </span><a href="../../../src/tokio/park/either.rs.html#8"><span class="kw">crate</span>::park::either::Either</a>;
 
-        <span class="kw">if</span> <span class="ident">enable</span> {
-            <span class="kw">let</span> <span class="ident">driver</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::time::driver::Driver::new</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#112">io_stack</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#113">clock</a>);
-            <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#118">driver</a>.<a class="ident" href="../../../src/tokio/time/driver/mod.rs.html#201">handle</a>();
+        <span class="kw">if </span>enable {
+            <span class="kw">let </span>driver = <span class="kw">crate</span>::time::driver::Driver::new(<a href="../../../src/tokio/runtime/driver.rs.html#112">io_stack</a>, <a href="../../../src/tokio/runtime/driver.rs.html#113">clock</a>);
+            <span class="kw">let </span>handle = <a href="../../../src/tokio/runtime/driver.rs.html#118">driver</a>.<a href="../../../src/tokio/time/driver/mod.rs.html#201">handle</a>();
 
-            (<a class="ident" href="../../../src/tokio/park/either.rs.html#9">Either::A</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#118">driver</a>), <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#119">handle</a>))
-        } <span class="kw">else</span> {
-            (<a class="ident" href="../../../src/tokio/park/either.rs.html#10">Either::B</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#112">io_stack</a>), <span class="prelude-val">None</span>)
+            (<a href="../../../src/tokio/park/either.rs.html#9">Either::A</a>(<a href="../../../src/tokio/runtime/driver.rs.html#118">driver</a>), <span class="prelude-val">Some</span>(<a href="../../../src/tokio/runtime/driver.rs.html#119">handle</a>))
+        } <span class="kw">else </span>{
+            (<a href="../../../src/tokio/park/either.rs.html#10">Either::B</a>(<a href="../../../src/tokio/runtime/driver.rs.html#112">io_stack</a>), <span class="prelude-val">None</span>)
         }
     }
 }
 
-<span class="macro">cfg_not_time!</span> {
-    <span class="kw">type</span> <span class="ident">TimeDriver</span> <span class="op">=</span> <span class="ident">IoStack</span>;
+<span class="macro">cfg_not_time! </span>{
+    <span class="kw">type </span>TimeDriver = IoStack;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">Clock</span> <span class="op">=</span> ();
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">TimeHandle</span> <span class="op">=</span> ();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Clock = ();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>TimeHandle = ();
 
-    <span class="kw">fn</span> <span class="ident">create_clock</span>(<span class="ident">_enable_pausing</span>: <span class="ident">bool</span>, <span class="ident">_start_paused</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Clock</span> {
+    <span class="kw">fn </span>create_clock(_enable_pausing: bool, _start_paused: bool) -&gt; Clock {
         ()
     }
 
-    <span class="kw">fn</span> <span class="ident">create_time_driver</span>(
-        <span class="ident">_enable</span>: <span class="ident">bool</span>,
-        <span class="ident">io_stack</span>: <span class="ident">IoStack</span>,
-        <span class="ident">_clock</span>: <span class="ident">Clock</span>,
-    ) -&gt; (<span class="ident">TimeDriver</span>, <span class="ident">TimeHandle</span>) {
-        (<span class="ident">io_stack</span>, ())
+    <span class="kw">fn </span>create_time_driver(
+        _enable: bool,
+        io_stack: IoStack,
+        _clock: Clock,
+    ) -&gt; (TimeDriver, TimeHandle) {
+        (io_stack, ())
     }
 }
 
-<span class="comment">// ===== runtime driver =====</span>
+<span class="comment">// ===== runtime driver =====
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Driver</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a>,
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Driver {
+    inner: <a href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a>,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Resources</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">io_handle</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#13">IoHandle</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">signal_handle</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">time_handle</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#104">TimeHandle</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">clock</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Resources {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) io_handle: <a href="../../../src/tokio/runtime/driver.rs.html#13">IoHandle</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) signal_handle: <a href="../../../src/tokio/runtime/driver.rs.html#57">SignalHandle</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) time_handle: <a href="../../../src/tokio/runtime/driver.rs.html#104">TimeHandle</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) clock: <a href="../../../src/tokio/runtime/driver.rs.html#103">Clock</a>,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Cfg</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">enable_io</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">enable_time</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">enable_pause_time</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">start_paused</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Cfg {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) enable_io: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) enable_time: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) enable_pause_time: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) start_paused: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#150">Driver</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cfg</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#161">Cfg</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#154">Resources</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">io_stack</span>, <span class="ident">io_handle</span>, <span class="ident">signal_handle</span>) <span class="op">=</span> <span class="ident">create_io_stack</span>(<span class="ident">cfg</span>.<span class="ident">enable_io</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../src/tokio/runtime/driver.rs.html#150">Driver</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(cfg: <a href="../../../src/tokio/runtime/driver.rs.html#161">Cfg</a>) -&gt; io::Result&lt;(<span class="self">Self</span>, <a href="../../../src/tokio/runtime/driver.rs.html#154">Resources</a>)&gt; {
+        <span class="kw">let </span>(io_stack, io_handle, signal_handle) = create_io_stack(cfg.enable_io)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">clock</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#106">create_clock</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.<span class="ident">enable_pause_time</span>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.<span class="ident">start_paused</span>);
+        <span class="kw">let </span>clock = <a href="../../../src/tokio/runtime/driver.rs.html#106">create_clock</a>(<a href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.enable_pause_time, <a href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.start_paused);
 
-        <span class="kw">let</span> (<span class="ident">time_driver</span>, <span class="ident">time_handle</span>) <span class="op">=</span>
-            <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#110-114">create_time_driver</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.<span class="ident">enable_time</span>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#170">io_stack</a>, <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#172">clock</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>(time_driver, time_handle) =
+            <a href="../../../src/tokio/runtime/driver.rs.html#110-114">create_time_driver</a>(<a href="../../../src/tokio/runtime/driver.rs.html#169">cfg</a>.enable_time, <a href="../../../src/tokio/runtime/driver.rs.html#170">io_stack</a>, <a href="../../../src/tokio/runtime/driver.rs.html#172">clock</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
         <span class="prelude-val">Ok</span>((
-            <span class="self">Self</span> { <span class="ident">inner</span>: <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#174">time_driver</a> },
-            <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#154">Resources</a> {
-                <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#170">io_handle</a>,
-                <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#170">signal_handle</a>,
-                <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#174">time_handle</a>,
-                <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#172">clock</a>,
+            <span class="self">Self </span>{ inner: <a href="../../../src/tokio/runtime/driver.rs.html#174">time_driver</a> },
+            <a href="../../../src/tokio/runtime/driver.rs.html#154">Resources</a> {
+                <a href="../../../src/tokio/runtime/driver.rs.html#170">io_handle</a>,
+                <a href="../../../src/tokio/runtime/driver.rs.html#170">signal_handle</a>,
+                <a href="../../../src/tokio/runtime/driver.rs.html#174">time_handle</a>,
+                <a href="../../../src/tokio/runtime/driver.rs.html#172">clock</a>,
             },
         ))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/driver.rs.html#150">Driver</a> {
-    <span class="kw">type</span> <span class="ident">Unpark</span> <span class="op">=</span> <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a> <span class="kw">as</span> <span class="ident">Park</span><span class="op">&gt;</span><span class="ident">::Unpark</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a> <span class="kw">as</span> <span class="ident">Park</span><span class="op">&gt;</span><span class="ident">::Error</span>;
+<span class="kw">impl </span><a href="../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for </span><a href="../../../src/tokio/runtime/driver.rs.html#150">Driver</a> {
+    <span class="kw">type </span>Unpark = &lt;<a href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a> <span class="kw">as </span>Park&gt;::Unpark;
+    <span class="kw">type </span>Error = &lt;<a href="../../../src/tokio/runtime/driver.rs.html#101">TimeDriver</a> <span class="kw">as </span>Park&gt;::Error;
 
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Unpark</span> {
-        <a class="self" href="../../../src/tokio/runtime/driver.rs.html#193">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#57">unpark</a>()
+    <span class="kw">fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Unpark {
+        <a class="self" href="../../../src/tokio/runtime/driver.rs.html#193">self</a>.inner.<a href="../../../src/tokio/park/mod.rs.html#57">unpark</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/runtime/driver.rs.html#197">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#70">park</a>()
+    <span class="kw">fn </span>park(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="self" href="../../../src/tokio/runtime/driver.rs.html#197">self</a>.inner.<a href="../../../src/tokio/park/mod.rs.html#70">park</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/runtime/driver.rs.html#201">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#86">park_timeout</a>(<a class="ident" href="../../../src/tokio/runtime/driver.rs.html#201">duration</a>)
+    <span class="kw">fn </span>park_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="self" href="../../../src/tokio/runtime/driver.rs.html#201">self</a>.inner.<a href="../../../src/tokio/park/mod.rs.html#86">park_timeout</a>(<a href="../../../src/tokio/runtime/driver.rs.html#201">duration</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/runtime/driver.rs.html#205">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#89">shutdown</a>()
+    <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/tokio/runtime/driver.rs.html#205">self</a>.inner.<a href="../../../src/tokio/park/mod.rs.html#89">shutdown</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/leb128.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>leb128.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../gimli/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/leb128.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>leb128.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../gimli/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -610,589 +610,589 @@
 <span id="610">610</span>
 <span id="611">611</span>
 <span id="612">612</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Read and write DWARF&#39;s &quot;Little Endian Base 128&quot; (LEB128) variable length</span>
-<span class="doccomment">//! integer encoding.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The implementation is a direct translation of the psuedocode in the DWARF 4</span>
-<span class="doccomment">//! standard&#39;s appendix C.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Read and write signed integers:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # #[cfg(all(feature = &quot;read&quot;, feature = &quot;write&quot;))] {</span>
-<span class="doccomment">//! use gimli::{EndianSlice, NativeEndian, leb128};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut buf = [0; 1024];</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Write to anything that implements `std::io::Write`.</span>
-<span class="doccomment">//! {</span>
-<span class="doccomment">//!     let mut writable = &amp;mut buf[..];</span>
-<span class="doccomment">//!     leb128::write::signed(&amp;mut writable, -12345).expect(&quot;Should write number&quot;);</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Read from anything that implements `gimli::Reader`.</span>
-<span class="doccomment">//! let mut readable = EndianSlice::new(&amp;buf[..], NativeEndian);</span>
-<span class="doccomment">//! let val = leb128::read::signed(&amp;mut readable).expect(&quot;Should read number&quot;);</span>
-<span class="doccomment">//! assert_eq!(val, -12345);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Or read and write unsigned integers:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # #[cfg(all(feature = &quot;read&quot;, feature = &quot;write&quot;))] {</span>
-<span class="doccomment">//! use gimli::{EndianSlice, NativeEndian, leb128};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut buf = [0; 1024];</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! {</span>
-<span class="doccomment">//!     let mut writable = &amp;mut buf[..];</span>
-<span class="doccomment">//!     leb128::write::unsigned(&amp;mut writable, 98765).expect(&quot;Should write number&quot;);</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut readable = EndianSlice::new(&amp;buf[..], NativeEndian);</span>
-<span class="doccomment">//! let val = leb128::read::unsigned(&amp;mut readable).expect(&quot;Should read number&quot;);</span>
-<span class="doccomment">//! assert_eq!(val, 98765);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! ```</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Read and write DWARF&#39;s &quot;Little Endian Base 128&quot; (LEB128) variable length
+//! integer encoding.
+//!
+//! The implementation is a direct translation of the psuedocode in the DWARF 4
+//! standard&#39;s appendix C.
+//!
+//! Read and write signed integers:
+//!
+//! ```
+//! # #[cfg(all(feature = &quot;read&quot;, feature = &quot;write&quot;))] {
+//! use gimli::{EndianSlice, NativeEndian, leb128};
+//!
+//! let mut buf = [0; 1024];
+//!
+//! // Write to anything that implements `std::io::Write`.
+//! {
+//!     let mut writable = &amp;mut buf[..];
+//!     leb128::write::signed(&amp;mut writable, -12345).expect(&quot;Should write number&quot;);
+//! }
+//!
+//! // Read from anything that implements `gimli::Reader`.
+//! let mut readable = EndianSlice::new(&amp;buf[..], NativeEndian);
+//! let val = leb128::read::signed(&amp;mut readable).expect(&quot;Should read number&quot;);
+//! assert_eq!(val, -12345);
+//! # }
+//! ```
+//!
+//! Or read and write unsigned integers:
+//!
+//! ```
+//! # #[cfg(all(feature = &quot;read&quot;, feature = &quot;write&quot;))] {
+//! use gimli::{EndianSlice, NativeEndian, leb128};
+//!
+//! let mut buf = [0; 1024];
+//!
+//! {
+//!     let mut writable = &amp;mut buf[..];
+//!     leb128::write::unsigned(&amp;mut writable, 98765).expect(&quot;Should write number&quot;);
+//! }
+//!
+//! let mut readable = EndianSlice::new(&amp;buf[..], NativeEndian);
+//! let val = leb128::read::unsigned(&amp;mut readable).expect(&quot;Should read number&quot;);
+//! assert_eq!(val, 98765);
+//! # }
+//! ```
 
-<span class="kw">const</span> <span class="ident">CONTINUATION_BIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read-core&quot;</span>)]</span>
-<span class="kw">const</span> <span class="ident">SIGN_BIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>;
+</span><span class="kw">const </span>CONTINUATION_BIT: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> = <span class="number">1 </span>&lt;&lt; <span class="number">7</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;read-core&quot;</span>)]
+</span><span class="kw">const </span>SIGN_BIT: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> = <span class="number">1 </span>&lt;&lt; <span class="number">6</span>;
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">low_bits_of_byte</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-    <a class="ident" href="../../src/gimli/leb128.rs.html#52">byte</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a>
+<span class="attribute">#[inline]
+</span><span class="kw">fn </span>low_bits_of_byte(byte: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
+    <a href="../../src/gimli/leb128.rs.html#52">byte</a> &amp; !<a href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a>
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">fn</span> <span class="ident">low_bits_of_u64</span>(<span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
-    <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#58">val</a> <span class="op">&amp;</span> <span class="ident">u64::from</span>(<span class="ident">core::u8::MAX</span>);
-    <a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#59">byte</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>)
+<span class="attribute">#[inline]
+#[allow(dead_code)]
+</span><span class="kw">fn </span>low_bits_of_u64(val: <a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a> {
+    <span class="kw">let </span>byte = <a href="../../src/gimli/leb128.rs.html#58">val</a> &amp; u64::from(core::u8::MAX);
+    <a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#59">byte</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>)
 }
 
-<span class="doccomment">/// A module for reading signed and unsigned integers that have been LEB128</span>
-<span class="doccomment">/// encoded.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read-core&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">read</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>, <a class="ident" href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a>, <a class="ident" href="../../src/gimli/leb128.rs.html#49">SIGN_BIT</a>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../src/gimli/read/mod.rs.html#271">Error</a>, <a class="ident" href="../../src/gimli/read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>};
+<span class="doccomment">/// A module for reading signed and unsigned integers that have been LEB128
+/// encoded.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;read-core&quot;</span>)]
+</span><span class="kw">pub mod </span>read {
+    <span class="kw">use super</span>::{<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>, <a href="../../src/gimli/leb128.rs.html#47">CONTINUATION_BIT</a>, <a href="../../src/gimli/leb128.rs.html#49">SIGN_BIT</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../src/gimli/read/mod.rs.html#271">Error</a>, <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>, <span class="prelude-ty">Result</span>};
 
-    <span class="doccomment">/// Read bytes until the LEB128 continuation bit is not set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">CONTINUATION_BIT</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="doccomment">/// Read bytes until the LEB128 continuation bit is not set.
+    </span><span class="kw">pub fn </span>skip&lt;R: <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
+            <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
         }
     }
 
-    <span class="doccomment">/// Read an unsigned LEB128 number from the given `Reader` and</span>
-    <span class="doccomment">/// return it or an error if reading failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsigned</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="doccomment">/// Read an unsigned LEB128 number from the given `Reader` and
+    /// return it or an error if reading failed.
+    </span><span class="kw">pub fn </span>unsigned&lt;R: <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>shift = <span class="number">0</span>;
 
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">shift</span> <span class="op">==</span> <span class="number">63</span> <span class="op">&amp;&amp;</span> <span class="ident">byte</span> <span class="op">!</span><span class="op">=</span> <span class="number">0x00</span> <span class="op">&amp;&amp;</span> <span class="ident">byte</span> <span class="op">!</span><span class="op">=</span> <span class="number">0x01</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
+            <span class="kw">if </span>shift == <span class="number">63 </span>&amp;&amp; byte != <span class="number">0x00 </span>&amp;&amp; byte != <span class="number">0x01 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
             }
 
-            <span class="kw">let</span> <span class="ident">low_bits</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#87">byte</a>));
-            <a class="ident" href="../../src/gimli/leb128.rs.html#83">result</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#92">low_bits</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#84">shift</a>;
+            <span class="kw">let </span>low_bits = u64::from(<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#87">byte</a>));
+            <a href="../../src/gimli/leb128.rs.html#83">result</a> |= <a href="../../src/gimli/leb128.rs.html#92">low_bits</a> &lt;&lt; <a href="../../src/gimli/leb128.rs.html#84">shift</a>;
 
-            <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">CONTINUATION_BIT</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#83">result</a>);
+            <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#83">result</a>);
             }
 
-            <a class="ident" href="../../src/gimli/leb128.rs.html#84">shift</a> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>;
+            <a href="../../src/gimli/leb128.rs.html#84">shift</a> += <span class="number">7</span>;
         }
     }
 
-    <span class="doccomment">/// Read an LEB128 u16 from the given `Reader` and</span>
-    <span class="doccomment">/// return it or an error if reading failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">u16</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#106">byte</a>));
-        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">CONTINUATION_BIT</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a>);
+    <span class="doccomment">/// Read an LEB128 u16 from the given `Reader` and
+    /// return it or an error if reading failed.
+    </span><span class="kw">pub fn </span>u16&lt;R: <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>&gt; {
+        <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>result = u16::from(<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#106">byte</a>));
+        <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#107">result</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a> <span class="op">|</span><span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#112">byte</a>)) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>;
-        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">CONTINUATION_BIT</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a>);
+        <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
+        <a href="../../src/gimli/leb128.rs.html#107">result</a> |= u16::from(<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#112">byte</a>)) &lt;&lt; <span class="number">7</span>;
+        <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#107">result</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&gt;</span> <span class="number">0x03</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
+        <span class="kw">let </span>byte = r.read_u8()<span class="question-mark">?</span>;
+        <span class="kw">if </span>byte &gt; <span class="number">0x03 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/gimli/read/mod.rs.html#286">Error::BadUnsignedLeb128</a>);
         }
-        <a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a> <span class="op">+</span><span class="op">=</span> <span class="ident">u16::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#118">byte</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">14</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#107">result</a>)
+        <a href="../../src/gimli/leb128.rs.html#107">result</a> += u16::from(<a href="../../src/gimli/leb128.rs.html#118">byte</a>) &lt;&lt; <span class="number">14</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#107">result</a>)
     }
 
-    <span class="doccomment">/// Read a signed LEB128 number from the given `Reader` and</span>
-    <span class="doccomment">/// return it or an error if reading failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">64</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte</span>;
+    <span class="doccomment">/// Read a signed LEB128 number from the given `Reader` and
+    /// return it or an error if reading failed.
+    </span><span class="kw">pub fn </span>signed&lt;R: <a href="../../src/gimli/read/reader.rs.html#215">Reader</a>&gt;(r: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>shift = <span class="number">0</span>;
+        <span class="kw">let </span>size = <span class="number">64</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>byte;
 
-        <span class="kw">loop</span> {
-            <a class="ident" href="../../src/gimli/leb128.rs.html#132">byte</a> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">read_u8</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">shift</span> <span class="op">==</span> <span class="number">63</span> <span class="op">&amp;&amp;</span> <span class="ident">byte</span> <span class="op">!</span><span class="op">=</span> <span class="number">0x00</span> <span class="op">&amp;&amp;</span> <span class="ident">byte</span> <span class="op">!</span><span class="op">=</span> <span class="number">0x7f</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/gimli/read/mod.rs.html#288">Error::BadSignedLeb128</a>);
+        <span class="kw">loop </span>{
+            <a href="../../src/gimli/leb128.rs.html#132">byte</a> = r.read_u8()<span class="question-mark">?</span>;
+            <span class="kw">if </span>shift == <span class="number">63 </span>&amp;&amp; byte != <span class="number">0x00 </span>&amp;&amp; byte != <span class="number">0x7f </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/gimli/read/mod.rs.html#288">Error::BadSignedLeb128</a>);
             }
 
-            <span class="kw">let</span> <span class="ident">low_bits</span> <span class="op">=</span> <span class="ident">i64::from</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a class="ident" href="../../src/gimli/leb128.rs.html#132">byte</a>));
-            <a class="ident" href="../../src/gimli/leb128.rs.html#129">result</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/gimli/leb128.rs.html#140">low_bits</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#130">shift</a>;
-            <a class="ident" href="../../src/gimli/leb128.rs.html#130">shift</a> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>;
+            <span class="kw">let </span>low_bits = i64::from(<a href="../../src/gimli/leb128.rs.html#52">low_bits_of_byte</a>(<a href="../../src/gimli/leb128.rs.html#132">byte</a>));
+            <a href="../../src/gimli/leb128.rs.html#129">result</a> |= <a href="../../src/gimli/leb128.rs.html#140">low_bits</a> &lt;&lt; <a href="../../src/gimli/leb128.rs.html#130">shift</a>;
+            <a href="../../src/gimli/leb128.rs.html#130">shift</a> += <span class="number">7</span>;
 
-            <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">CONTINUATION_BIT</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if </span>byte &amp; CONTINUATION_BIT == <span class="number">0 </span>{
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="kw">if</span> <span class="ident">shift</span> <span class="op">&lt;</span> <span class="ident">size</span> <span class="op">&amp;&amp;</span> (<span class="ident">SIGN_BIT</span> <span class="op">&amp;</span> <span class="ident">byte</span>) <span class="op">==</span> <span class="ident">SIGN_BIT</span> {
-            <span class="comment">// Sign extend the result.</span>
-            <a class="ident" href="../../src/gimli/leb128.rs.html#129">result</a> <span class="op">|</span><span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/gimli/leb128.rs.html#130">shift</a>;
+        <span class="kw">if </span>shift &lt; size &amp;&amp; (SIGN_BIT &amp; byte) == SIGN_BIT {
+            <span class="comment">// Sign extend the result.
+            </span><a href="../../src/gimli/leb128.rs.html#129">result</a> |= !<span class="number">0 </span>&lt;&lt; <a href="../../src/gimli/leb128.rs.html#130">shift</a>;
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/gimli/leb128.rs.html#129">result</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../src/gimli/leb128.rs.html#129">result</a>)
     }
 }
 
-<span class="doccomment">/// A module for writing integers encoded as LEB128.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;write&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">write</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">low_bits_of_u64</span>, <span class="ident">CONTINUATION_BIT</span>};
-    <span class="kw">use</span> <span class="ident">std::io</span>;
+<span class="doccomment">/// A module for writing integers encoded as LEB128.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;write&quot;</span>)]
+</span><span class="kw">pub mod </span>write {
+    <span class="kw">use super</span>::{low_bits_of_u64, CONTINUATION_BIT};
+    <span class="kw">use </span>std::io;
 
-    <span class="doccomment">/// Write the given unsigned number using the LEB128 encoding to the given</span>
-    <span class="doccomment">/// `std::io::Write`able. Returns the number of bytes written to `w`, or an</span>
-    <span class="doccomment">/// error if writing failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsigned</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>, <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">W</span>: <span class="ident">io::Write</span>,
+    <span class="doccomment">/// Write the given unsigned number using the LEB128 encoding to the given
+    /// `std::io::Write`able. Returns the number of bytes written to `w`, or an
+    /// error if writing failed.
+    </span><span class="kw">pub fn </span>unsigned&lt;W&gt;(w: <span class="kw-2">&amp;mut </span>W, <span class="kw-2">mut </span>val: u64) -&gt; <span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;
+    <span class="kw">where
+        </span>W: io::Write,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes_written</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">low_bits_of_u64</span>(<span class="ident">val</span>);
-            <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">7</span>;
-            <span class="kw">if</span> <span class="ident">val</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="comment">// More bytes to come, so set the continuation bit.</span>
-                <span class="ident">byte</span> <span class="op">|</span><span class="op">=</span> <span class="ident">CONTINUATION_BIT</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>bytes_written = <span class="number">0</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>byte = low_bits_of_u64(val);
+            val &gt;&gt;= <span class="number">7</span>;
+            <span class="kw">if </span>val != <span class="number">0 </span>{
+                <span class="comment">// More bytes to come, so set the continuation bit.
+                </span>byte |= CONTINUATION_BIT;
             }
 
-            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="ident">byte</span>];
-            <span class="ident">w</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>)<span class="question-mark">?</span>;
-            <span class="ident">bytes_written</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">let </span>buf = [byte];
+            w.write_all(<span class="kw-2">&amp;</span>buf)<span class="question-mark">?</span>;
+            bytes_written += <span class="number">1</span>;
 
-            <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bytes_written</span>);
-            }
-        }
-    }
-
-    <span class="doccomment">/// Return the size of the LEB128 encoding of the given unsigned number.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uleb128_size</span>(<span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">u64</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">loop</span> {
-            <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">7</span>;
-            <span class="ident">size</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="ident">size</span>;
+            <span class="kw">if </span>val == <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(bytes_written);
             }
         }
     }
 
-    <span class="doccomment">/// Write the given signed number using the LEB128 encoding to the given</span>
-    <span class="doccomment">/// `std::io::Write`able. Returns the number of bytes written to `w`, or an</span>
-    <span class="doccomment">/// error if writing failed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>, <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">W</span>: <span class="ident">io::Write</span>,
+    <span class="doccomment">/// Return the size of the LEB128 encoding of the given unsigned number.
+    </span><span class="kw">pub fn </span>uleb128_size(<span class="kw-2">mut </span>val: u64) -&gt; usize {
+        <span class="kw">let </span><span class="kw-2">mut </span>size = <span class="number">0</span>;
+        <span class="kw">loop </span>{
+            val &gt;&gt;= <span class="number">7</span>;
+            size += <span class="number">1</span>;
+            <span class="kw">if </span>val == <span class="number">0 </span>{
+                <span class="kw">return </span>size;
+            }
+        }
+    }
+
+    <span class="doccomment">/// Write the given signed number using the LEB128 encoding to the given
+    /// `std::io::Write`able. Returns the number of bytes written to `w`, or an
+    /// error if writing failed.
+    </span><span class="kw">pub fn </span>signed&lt;W&gt;(w: <span class="kw-2">&amp;mut </span>W, <span class="kw-2">mut </span>val: i64) -&gt; <span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;
+    <span class="kw">where
+        </span>W: io::Write,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes_written</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">val</span> <span class="kw">as</span> <span class="ident">u8</span>;
-            <span class="comment">// Keep the sign bit for testing</span>
-            <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">6</span>;
-            <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">val</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span>;
-            <span class="kw">if</span> <span class="ident">done</span> {
-                <span class="ident">byte</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">CONTINUATION_BIT</span>;
-            } <span class="kw">else</span> {
-                <span class="comment">// Remove the sign bit</span>
-                <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="comment">// More bytes to come, so set the continuation bit.</span>
-                <span class="ident">byte</span> <span class="op">|</span><span class="op">=</span> <span class="ident">CONTINUATION_BIT</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>bytes_written = <span class="number">0</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>byte = val <span class="kw">as </span>u8;
+            <span class="comment">// Keep the sign bit for testing
+            </span>val &gt;&gt;= <span class="number">6</span>;
+            <span class="kw">let </span>done = val == <span class="number">0 </span>|| val == -<span class="number">1</span>;
+            <span class="kw">if </span>done {
+                byte &amp;= !CONTINUATION_BIT;
+            } <span class="kw">else </span>{
+                <span class="comment">// Remove the sign bit
+                </span>val &gt;&gt;= <span class="number">1</span>;
+                <span class="comment">// More bytes to come, so set the continuation bit.
+                </span>byte |= CONTINUATION_BIT;
             }
 
-            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="ident">byte</span>];
-            <span class="ident">w</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>)<span class="question-mark">?</span>;
-            <span class="ident">bytes_written</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">let </span>buf = [byte];
+            w.write_all(<span class="kw-2">&amp;</span>buf)<span class="question-mark">?</span>;
+            bytes_written += <span class="number">1</span>;
 
-            <span class="kw">if</span> <span class="ident">done</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bytes_written</span>);
+            <span class="kw">if </span>done {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(bytes_written);
             }
         }
     }
 
-    <span class="doccomment">/// Return the size of the LEB128 encoding of the given signed number.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleb128_size</span>(<span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">i64</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">loop</span> {
-            <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">6</span>;
-            <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">val</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span>;
-            <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="ident">size</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="ident">done</span> {
-                <span class="kw">return</span> <span class="ident">size</span>;
+    <span class="doccomment">/// Return the size of the LEB128 encoding of the given signed number.
+    </span><span class="kw">pub fn </span>sleb128_size(<span class="kw-2">mut </span>val: i64) -&gt; usize {
+        <span class="kw">let </span><span class="kw-2">mut </span>size = <span class="number">0</span>;
+        <span class="kw">loop </span>{
+            val &gt;&gt;= <span class="number">6</span>;
+            <span class="kw">let </span>done = val == <span class="number">0 </span>|| val == -<span class="number">1</span>;
+            val &gt;&gt;= <span class="number">1</span>;
+            size += <span class="number">1</span>;
+            <span class="kw">if </span>done {
+                <span class="kw">return </span>size;
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;read&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;write&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">low_bits_of_byte</span>, <span class="ident">low_bits_of_u64</span>, <span class="ident">read</span>, <span class="ident">write</span>, <span class="ident">CONTINUATION_BIT</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endianity::NativeEndian</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<span class="ident">EndianSlice</span>, <span class="ident">Error</span>, <span class="ident">ReaderOffsetId</span>};
+<span class="attribute">#[cfg(test)]
+#[cfg(all(feature = <span class="string">&quot;read&quot;</span>, feature = <span class="string">&quot;write&quot;</span>))]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::{low_bits_of_byte, low_bits_of_u64, read, write, CONTINUATION_BIT};
+    <span class="kw">use </span><span class="kw">crate</span>::endianity::NativeEndian;
+    <span class="kw">use </span><span class="kw">crate</span>::read::{EndianSlice, Error, ReaderOffsetId};
 
-    <span class="kw">trait</span> <span class="ident">ResultExt</span> {
-        <span class="kw">fn</span> <span class="ident">map_eof</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span>;
+    <span class="kw">trait </span>ResultExt {
+        <span class="kw">fn </span>map_eof(<span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self</span>;
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ResultExt</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">map_eof</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
-            <span class="kw">match</span> <span class="self">self</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedEof</span>(<span class="ident">id</span>)) =&gt; {
-                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">ReaderOffsetId</span>(<span class="ident">id</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">input</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">u64</span>);
-                    <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedEof</span>(<span class="ident">id</span>))
+    <span class="kw">impl</span>&lt;T&gt; ResultExt <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;T, Error&gt; {
+        <span class="kw">fn </span>map_eof(<span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+            <span class="kw">match </span><span class="self">self </span>{
+                <span class="prelude-val">Err</span>(Error::UnexpectedEof(id)) =&gt; {
+                    <span class="kw">let </span>id = ReaderOffsetId(id.<span class="number">0 </span>- input.as_ptr() <span class="kw">as </span>u64);
+                    <span class="prelude-val">Err</span>(Error::UnexpectedEof(id))
                 }
-                <span class="ident">r</span> =&gt; <span class="ident">r</span>,
+                r =&gt; r,
             }
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_low_bits_of_byte</span>() {
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">127</span> {
-            <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">low_bits_of_byte</span>(<span class="ident">i</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">low_bits_of_byte</span>(<span class="ident">i</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_low_bits_of_byte() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">127 </span>{
+            <span class="macro">assert_eq!</span>(i, low_bits_of_byte(i));
+            <span class="macro">assert_eq!</span>(i, low_bits_of_byte(i | CONTINUATION_BIT));
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_low_bits_of_u64</span>() {
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0u64</span>..<span class="number">127</span> {
-            <span class="macro">assert_eq!</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">low_bits_of_u64</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span> <span class="op">|</span> <span class="ident">i</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_low_bits_of_u64() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0u64</span>..<span class="number">127 </span>{
+            <span class="macro">assert_eq!</span>(i <span class="kw">as </span>u8, low_bits_of_u64(<span class="number">1 </span>&lt;&lt; <span class="number">16 </span>| i));
             <span class="macro">assert_eq!</span>(
-                <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                <span class="ident">low_bits_of_u64</span>(<span class="ident">i</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span> <span class="op">|</span> <span class="ident">i</span> <span class="op">|</span> (<span class="ident">u64::from</span>(<span class="ident">CONTINUATION_BIT</span>)))
+                i <span class="kw">as </span>u8,
+                low_bits_of_u64(i &lt;&lt; <span class="number">16 </span>| i | (u64::from(CONTINUATION_BIT)))
             );
         }
     }
 
-    <span class="comment">// Examples from the DWARF 4 standard, section 7.6, figure 22.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_unsigned</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">2u8</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+    <span class="comment">// Examples from the DWARF 4 standard, section 7.6, figure 22.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_unsigned() {
+        <span class="kw">let </span>buf = [<span class="number">2u8</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">2</span>,
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">127u8</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [<span class="number">127u8</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">127</span>,
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="ident">CONTINUATION_BIT</span>, <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [CONTINUATION_BIT, <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">128</span>,
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">1u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>, <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [<span class="number">1u8 </span>| CONTINUATION_BIT, <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">129</span>,
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">2u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>, <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [<span class="number">2u8 </span>| CONTINUATION_BIT, <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">130</span>,
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">57u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>, <span class="number">100</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [<span class="number">57u8 </span>| CONTINUATION_BIT, <span class="number">100</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">12857</span>,
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
     }
 
-    <span class="comment">// Examples from the DWARF 4 standard, section 7.6, figure 23.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_signed</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">2u8</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">2</span>, <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>));
+    <span class="comment">// Examples from the DWARF 4 standard, section 7.6, figure 23.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_signed() {
+        <span class="kw">let </span>buf = [<span class="number">2u8</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
+        <span class="macro">assert_eq!</span>(<span class="number">2</span>, read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>));
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x7eu8</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
-        <span class="macro">assert_eq!</span>(<span class="op">-</span><span class="number">2</span>, <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>));
+        <span class="kw">let </span>buf = [<span class="number">0x7eu8</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
+        <span class="macro">assert_eq!</span>(-<span class="number">2</span>, read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>));
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">127u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>, <span class="number">0</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [<span class="number">127u8 </span>| CONTINUATION_BIT, <span class="number">0</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">127</span>,
-            <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">1u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>, <span class="number">0x7f</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [<span class="number">1u8 </span>| CONTINUATION_BIT, <span class="number">0x7f</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
-            <span class="op">-</span><span class="number">127</span>,
-            <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            -<span class="number">127</span>,
+            read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="ident">CONTINUATION_BIT</span>, <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [CONTINUATION_BIT, <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">128</span>,
-            <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="ident">CONTINUATION_BIT</span>, <span class="number">0x7f</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [CONTINUATION_BIT, <span class="number">0x7f</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
-            <span class="op">-</span><span class="number">128</span>,
-            <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            -<span class="number">128</span>,
+            read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">1u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>, <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [<span class="number">1u8 </span>| CONTINUATION_BIT, <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
             <span class="number">129</span>,
-            <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0x7fu8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>, <span class="number">0x7e</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span>buf = [<span class="number">0x7fu8 </span>| CONTINUATION_BIT, <span class="number">0x7e</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
-            <span class="op">-</span><span class="number">129</span>,
-            <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            -<span class="number">129</span>,
+            read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_signed_63_bits</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="ident">CONTINUATION_BIT</span>,
-            <span class="ident">CONTINUATION_BIT</span>,
-            <span class="ident">CONTINUATION_BIT</span>,
-            <span class="ident">CONTINUATION_BIT</span>,
-            <span class="ident">CONTINUATION_BIT</span>,
-            <span class="ident">CONTINUATION_BIT</span>,
-            <span class="ident">CONTINUATION_BIT</span>,
-            <span class="ident">CONTINUATION_BIT</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_signed_63_bits() {
+        <span class="kw">let </span>buf = [
+            CONTINUATION_BIT,
+            CONTINUATION_BIT,
+            CONTINUATION_BIT,
+            CONTINUATION_BIT,
+            CONTINUATION_BIT,
+            CONTINUATION_BIT,
+            CONTINUATION_BIT,
+            CONTINUATION_BIT,
             <span class="number">0x40</span>,
         ];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
-            <span class="op">-</span><span class="number">0x4000_0000_0000_0000</span>,
-            <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>)
+            -<span class="number">0x4000_0000_0000_0000</span>,
+            read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>)
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_unsigned_not_enough_data</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="ident">CONTINUATION_BIT</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_unsigned_not_enough_data() {
+        <span class="kw">let </span>buf = [CONTINUATION_BIT];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">map_eof</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedEof</span>(<span class="ident">ReaderOffsetId</span>(<span class="number">1</span>)))
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).map_eof(<span class="kw-2">&amp;</span>buf),
+            <span class="prelude-val">Err</span>(Error::UnexpectedEof(ReaderOffsetId(<span class="number">1</span>)))
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_signed_not_enough_data</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="ident">CONTINUATION_BIT</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_signed_not_enough_data() {
+        <span class="kw">let </span>buf = [CONTINUATION_BIT];
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">map_eof</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedEof</span>(<span class="ident">ReaderOffsetId</span>(<span class="number">1</span>)))
+            read::signed(<span class="kw-2">&amp;mut </span>readable).map_eof(<span class="kw-2">&amp;</span>buf),
+            <span class="prelude-val">Err</span>(Error::UnexpectedEof(ReaderOffsetId(<span class="number">1</span>)))
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_write_unsigned_not_enough_space</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writable</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..];
-        <span class="kw">match</span> <span class="ident">write::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">writable</span>, <span class="number">128</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">std::io::ErrorKind::WriteZero</span>),
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_write_unsigned_not_enough_space() {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>writable = <span class="kw-2">&amp;mut </span>buf[..];
+        <span class="kw">match </span>write::unsigned(<span class="kw-2">&amp;mut </span>writable, <span class="number">128</span>) {
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">assert_eq!</span>(e.kind(), std::io::ErrorKind::WriteZero),
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, otherwise),
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_write_signed_not_enough_space</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writable</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..];
-        <span class="kw">match</span> <span class="ident">write::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">writable</span>, <span class="number">128</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">std::io::ErrorKind::WriteZero</span>),
-            <span class="ident">otherwise</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <span class="ident">otherwise</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_write_signed_not_enough_space() {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>writable = <span class="kw-2">&amp;mut </span>buf[..];
+        <span class="kw">match </span>write::signed(<span class="kw-2">&amp;mut </span>writable, <span class="number">128</span>) {
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">assert_eq!</span>(e.kind(), std::io::ErrorKind::WriteZero),
+            otherwise =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, otherwise),
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dogfood_signed</span>() {
-        <span class="kw">fn</span> <span class="ident">inner</span>(<span class="ident">i</span>: <span class="ident">i64</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">1024</span>];
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>dogfood_signed() {
+        <span class="kw">fn </span>inner(i: i64) {
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">1024</span>];
 
             {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writable</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..];
-                <span class="ident">write::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">writable</span>, <span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;Should write signed number&quot;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>writable = <span class="kw-2">&amp;mut </span>buf[..];
+                write::signed(<span class="kw-2">&amp;mut </span>writable, i).expect(<span class="string">&quot;Should write signed number&quot;</span>);
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should be able to read it back again&quot;</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">result</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
+            <span class="kw">let </span>result = read::signed(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should be able to read it back again&quot;</span>);
+            <span class="macro">assert_eq!</span>(i, result);
         }
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="op">-</span><span class="number">513</span>..<span class="number">513</span> {
-            <span class="ident">inner</span>(<span class="ident">i</span>);
+        <span class="kw">for </span>i <span class="kw">in </span>-<span class="number">513</span>..<span class="number">513 </span>{
+            inner(i);
         }
-        <span class="ident">inner</span>(<span class="ident">core::i64::MIN</span>);
+        inner(core::i64::MIN);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dogfood_unsigned</span>() {
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1025</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">1024</span>];
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>dogfood_unsigned() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">1025 </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">1024</span>];
 
             {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writable</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..];
-                <span class="ident">write::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">writable</span>, <span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;Should write signed number&quot;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>writable = <span class="kw-2">&amp;mut </span>buf[..];
+                write::unsigned(<span class="kw-2">&amp;mut </span>writable, i).expect(<span class="string">&quot;Should write signed number&quot;</span>);
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
-                <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should be able to read it back again&quot;</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">result</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
+            <span class="kw">let </span>result =
+                read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should be able to read it back again&quot;</span>);
+            <span class="macro">assert_eq!</span>(i, result);
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_unsigned_overflow</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="number">2u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_unsigned_overflow() {
+        <span class="kw">let </span>buf = [
+            <span class="number">2u8 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
             <span class="number">1</span>,
         ];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
-        <span class="macro">assert!</span>(<span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">is_err</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
+        <span class="macro">assert!</span>(read::unsigned(<span class="kw-2">&amp;mut </span>readable).is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_signed_overflow</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [
-            <span class="number">2u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
-            <span class="number">2</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_signed_overflow() {
+        <span class="kw">let </span>buf = [
+            <span class="number">2u8 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
+            <span class="number">2 </span>| CONTINUATION_BIT,
             <span class="number">1</span>,
         ];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
-        <span class="macro">assert!</span>(<span class="ident">read::signed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">is_err</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
+        <span class="macro">assert!</span>(read::signed(<span class="kw-2">&amp;mut </span>readable).is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_multiple</span>() {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">2u8</span> <span class="op">|</span> <span class="ident">CONTINUATION_BIT</span>, <span class="number">1u8</span>, <span class="number">1u8</span>];
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_multiple() {
+        <span class="kw">let </span>buf = [<span class="number">2u8 </span>| CONTINUATION_BIT, <span class="number">1u8</span>, <span class="number">1u8</span>];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..], <span class="ident">NativeEndian</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(<span class="kw-2">&amp;</span>buf[..], NativeEndian);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read first number&quot;</span>),
-            <span class="number">130u64</span>
-        );
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read first number&quot;</span>),
+            <span class="number">130u64
+        </span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">read::unsigned</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read first number&quot;</span>),
-            <span class="number">1u64</span>
-        );
+            read::unsigned(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read first number&quot;</span>),
+            <span class="number">1u64
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_read_u16</span>() {
-        <span class="kw">for</span> (<span class="ident">buf</span>, <span class="ident">val</span>) <span class="kw">in</span> [
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_read_u16() {
+        <span class="kw">for </span>(buf, val) <span class="kw">in </span>[
             (<span class="kw-2">&amp;</span>[<span class="number">2</span>][..], <span class="number">2</span>),
             (<span class="kw-2">&amp;</span>[<span class="number">0x7f</span>][..], <span class="number">0x7f</span>),
             (<span class="kw-2">&amp;</span>[<span class="number">0x80</span>, <span class="number">1</span>][..], <span class="number">0x80</span>),
@@ -1203,24 +1203,24 @@
             (<span class="kw-2">&amp;</span>[<span class="number">0xff</span>, <span class="number">0xff</span>, <span class="number">1</span>][..], <span class="number">0x7fff</span>),
             (<span class="kw-2">&amp;</span>[<span class="number">0xff</span>, <span class="number">0xff</span>, <span class="number">3</span>][..], <span class="number">0xffff</span>),
         ]
-        .<span class="ident">iter</span>()
+        .iter()
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="ident">buf</span>, <span class="ident">NativeEndian</span>);
-            <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">val</span>, <span class="ident">read::u16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">expect</span>(<span class="string">&quot;Should read number&quot;</span>));
+            <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(buf, NativeEndian);
+            <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>val, read::u16(<span class="kw-2">&amp;mut </span>readable).expect(<span class="string">&quot;Should read number&quot;</span>));
         }
 
-        <span class="kw">for</span> <span class="ident">buf</span> <span class="kw">in</span> [
+        <span class="kw">for </span>buf <span class="kw">in </span>[
             <span class="kw-2">&amp;</span>[<span class="number">0x80</span>][..],
             <span class="kw-2">&amp;</span>[<span class="number">0x80</span>, <span class="number">0x80</span>][..],
             <span class="kw-2">&amp;</span>[<span class="number">0x80</span>, <span class="number">0x80</span>, <span class="number">4</span>][..],
             <span class="kw-2">&amp;</span>[<span class="number">0x80</span>, <span class="number">0x80</span>, <span class="number">0x80</span>, <span class="number">3</span>][..],
         ]
-        .<span class="ident">iter</span>()
+        .iter()
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readable</span> <span class="op">=</span> <span class="ident">EndianSlice::new</span>(<span class="ident">buf</span>, <span class="ident">NativeEndian</span>);
-            <span class="macro">assert!</span>(<span class="ident">read::u16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">readable</span>).<span class="ident">is_err</span>(), <span class="string">&quot;{:?}&quot;</span>, <span class="ident">buf</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>readable = EndianSlice::new(buf, NativeEndian);
+            <span class="macro">assert!</span>(read::u16(<span class="kw-2">&amp;mut </span>readable).is_err(), <span class="string">&quot;{:?}&quot;</span>, buf);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/event.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>event.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/event.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>event.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
                         <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -128,133 +128,133 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Events represent single points in time during the execution of a program.</span>
-<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/parent.rs.html#4"><span class="kw">crate</span>::parent::Parent</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/span.rs.html#16"><span class="kw">crate</span>::span::Id</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/tracing_core/lib.rs.html#274">field</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>};
+</pre><pre class="rust"><code><span class="doccomment">//! Events represent single points in time during the execution of a program.
+</span><span class="kw">use </span><a href="../../src/tracing_core/parent.rs.html#4"><span class="kw">crate</span>::parent::Parent</a>;
+<span class="kw">use </span><a href="../../src/tracing_core/span.rs.html#16"><span class="kw">crate</span>::span::Id</a>;
+<span class="kw">use crate</span>::{<a href="../../src/tracing_core/lib.rs.html#274">field</a>, <a href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>};
 
-<span class="doccomment">/// `Event`s represent single points in time where something occurred during the</span>
-<span class="doccomment">/// execution of a program.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An `Event` can be compared to a log record in unstructured logging, but with</span>
-<span class="doccomment">/// two key differences:</span>
-<span class="doccomment">/// - `Event`s exist _within the context of a [span]_. Unlike log lines, they</span>
-<span class="doccomment">///   may be located within the trace tree, allowing visibility into the</span>
-<span class="doccomment">///   _temporal_ context in which the event occurred, as well as the source</span>
-<span class="doccomment">///   code location.</span>
-<span class="doccomment">/// - Like spans, `Event`s have structured key-value data known as _[fields]_,</span>
-<span class="doccomment">///   which may include textual message. In general, a majority of the data</span>
-<span class="doccomment">///   associated with an event should be in the event&#39;s fields rather than in</span>
-<span class="doccomment">///   the textual message, as the fields are more structured.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [span]: super::span</span>
-<span class="doccomment">/// [fields]: super::field</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
-    <span class="ident">parent</span>: <a class="ident" href="../../src/tracing_core/parent.rs.html#4">Parent</a>,
+<span class="doccomment">/// `Event`s represent single points in time where something occurred during the
+/// execution of a program.
+///
+/// An `Event` can be compared to a log record in unstructured logging, but with
+/// two key differences:
+/// - `Event`s exist _within the context of a [span]_. Unlike log lines, they
+///   may be located within the trace tree, allowing visibility into the
+///   _temporal_ context in which the event occurred, as well as the source
+///   code location.
+/// - Like spans, `Event`s have structured key-value data known as _[fields]_,
+///   which may include textual message. In general, a majority of the data
+///   associated with an event should be in the event&#39;s fields rather than in
+///   the textual message, as the fields are more structured.
+///
+/// [span]: super::span
+/// [fields]: super::field
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Event&lt;<span class="lifetime">&#39;a</span>&gt; {
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;,
+    metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
+    parent: <a href="../../src/tracing_core/parent.rs.html#4">Parent</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs a new `Event` with the specified metadata and set of values,</span>
-    <span class="doccomment">/// and observes it with the current subscriber.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dispatch</span>(<span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">Event::new</span>(<a class="ident" href="../../src/tracing_core/event.rs.html#32">metadata</a>, <a class="ident" href="../../src/tracing_core/event.rs.html#32">fields</a>);
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330-332"><span class="kw">crate</span>::dispatcher::get_default</a>(<span class="op">|</span><span class="ident">current</span><span class="op">|</span> {
-            <a class="ident" href="../../src/tracing_core/event.rs.html#34">current</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#524">event</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/event.rs.html#33">event</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Event&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Constructs a new `Event` with the specified metadata and set of values,
+    /// and observes it with the current subscriber.
+    </span><span class="kw">pub fn </span>dispatch(metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="kw">let </span>event = Event::new(<a href="../../src/tracing_core/event.rs.html#32">metadata</a>, <a href="../../src/tracing_core/event.rs.html#32">fields</a>);
+        <a href="../../src/tracing_core/dispatcher.rs.html#330-332"><span class="kw">crate</span>::dispatcher::get_default</a>(|current| {
+            <a href="../../src/tracing_core/event.rs.html#34">current</a>.<a href="../../src/tracing_core/dispatcher.rs.html#524">event</a>(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/event.rs.html#33">event</a>);
         });
     }
 
-    <span class="doccomment">/// Returns a new `Event` in the current span, with the specified metadata</span>
-    <span class="doccomment">/// and set of values.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/event.rs.html#23">Event</a> {
-            <a class="ident" href="../../src/tracing_core/event.rs.html#42">fields</a>,
-            <a class="ident" href="../../src/tracing_core/event.rs.html#42">metadata</a>,
-            <span class="ident">parent</span>: <a class="ident" href="../../src/tracing_core/parent.rs.html#8">Parent::Current</a>,
+    <span class="doccomment">/// Returns a new `Event` in the current span, with the specified metadata
+    /// and set of values.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;, fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/event.rs.html#23">Event</a> {
+            <a href="../../src/tracing_core/event.rs.html#42">fields</a>,
+            <a href="../../src/tracing_core/event.rs.html#42">metadata</a>,
+            parent: <a href="../../src/tracing_core/parent.rs.html#8">Parent::Current</a>,
         }
     }
 
-    <span class="doccomment">/// Returns a new `Event` as a child of the specified span, with the</span>
-    <span class="doccomment">/// provided metadata and set of values.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_child_of</span>(
-        <span class="ident">parent</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
-        <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">parent</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/tracing_core/event.rs.html#54">parent</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
-            <span class="prelude-val">Some</span>(<span class="ident">p</span>) =&gt; <a class="ident" href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<a class="ident" href="../../src/tracing_core/event.rs.html#59">p</a>),
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/tracing_core/parent.rs.html#6">Parent::Root</a>,
+    <span class="doccomment">/// Returns a new `Event` as a child of the specified span, with the
+    /// provided metadata and set of values.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new_child_of(
+        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt;&gt;,
+        metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;a</span>&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>parent = <span class="kw">match </span><a href="../../src/tracing_core/event.rs.html#54">parent</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+            <span class="prelude-val">Some</span>(p) =&gt; <a href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<a href="../../src/tracing_core/event.rs.html#59">p</a>),
+            <span class="prelude-val">None </span>=&gt; <a href="../../src/tracing_core/parent.rs.html#6">Parent::Root</a>,
         };
-        <a class="ident" href="../../src/tracing_core/event.rs.html#23">Event</a> {
-            <a class="ident" href="../../src/tracing_core/event.rs.html#56">fields</a>,
-            <a class="ident" href="../../src/tracing_core/event.rs.html#55">metadata</a>,
-            <a class="ident" href="../../src/tracing_core/event.rs.html#58">parent</a>,
+        <a href="../../src/tracing_core/event.rs.html#23">Event</a> {
+            <a href="../../src/tracing_core/event.rs.html#56">fields</a>,
+            <a href="../../src/tracing_core/event.rs.html#55">metadata</a>,
+            <a href="../../src/tracing_core/event.rs.html#58">parent</a>,
         }
     }
 
-    <span class="doccomment">/// Constructs a new `Event` with the specified metadata and set of values,</span>
-    <span class="doccomment">/// and observes it with the current subscriber and an explicit parent.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">child_of</span>(
-        <span class="ident">parent</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
-        <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Constructs a new `Event` with the specified metadata and set of values,
+    /// and observes it with the current subscriber and an explicit parent.
+    </span><span class="kw">pub fn </span>child_of(
+        parent: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt;&gt;,
+        metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>field::ValueSet&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) {
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new_child_of</span>(<a class="ident" href="../../src/tracing_core/event.rs.html#72">parent</a>, <a class="ident" href="../../src/tracing_core/event.rs.html#73">metadata</a>, <a class="ident" href="../../src/tracing_core/event.rs.html#74">fields</a>);
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330-332"><span class="kw">crate</span>::dispatcher::get_default</a>(<span class="op">|</span><span class="ident">current</span><span class="op">|</span> {
-            <a class="ident" href="../../src/tracing_core/event.rs.html#77">current</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#524">event</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/event.rs.html#76">event</a>);
+        <span class="kw">let </span>event = <span class="self">Self</span>::new_child_of(<a href="../../src/tracing_core/event.rs.html#72">parent</a>, <a href="../../src/tracing_core/event.rs.html#73">metadata</a>, <a href="../../src/tracing_core/event.rs.html#74">fields</a>);
+        <a href="../../src/tracing_core/dispatcher.rs.html#330-332"><span class="kw">crate</span>::dispatcher::get_default</a>(|current| {
+            <a href="../../src/tracing_core/event.rs.html#77">current</a>.<a href="../../src/tracing_core/dispatcher.rs.html#524">event</a>(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/event.rs.html#76">event</a>);
         });
     }
 
-    <span class="doccomment">/// Visits all the fields on this `Event` with the specified [visitor].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [visitor]: super::field::Visit</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
-        <a class="self" href="../../src/tracing_core/event.rs.html#86">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#990">record</a>(<a class="ident" href="../../src/tracing_core/event.rs.html#86">visitor</a>);
+    <span class="doccomment">/// Visits all the fields on this `Event` with the specified [visitor].
+    ///
+    /// [visitor]: super::field::Visit
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
+        <a class="self" href="../../src/tracing_core/event.rs.html#86">self</a>.fields.<a href="../../src/tracing_core/field.rs.html#990">record</a>(<a href="../../src/tracing_core/event.rs.html#86">visitor</a>);
     }
 
-    <span class="doccomment">/// Returns an iterator over the set of values on this `Event`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/field.rs.html#173">field::Iter</a> {
-        <a class="self" href="../../src/tracing_core/event.rs.html#91">self</a>.<span class="ident">fields</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1032">field_set</a>().<a class="ident" href="../../src/tracing_core/field.rs.html#859">iter</a>()
+    <span class="doccomment">/// Returns an iterator over the set of values on this `Event`.
+    </span><span class="kw">pub fn </span>fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/field.rs.html#173">field::Iter</a> {
+        <a class="self" href="../../src/tracing_core/event.rs.html#91">self</a>.fields.<a href="../../src/tracing_core/field.rs.html#1032">field_set</a>().<a href="../../src/tracing_core/field.rs.html#859">iter</a>()
     }
 
-    <span class="doccomment">/// Returns [metadata] describing this `Event`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [metadata]: super::Metadata</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/event.rs.html#98">self</a>.<span class="ident">metadata</span>
+    <span class="doccomment">/// Returns [metadata] describing this `Event`.
+    ///
+    /// [metadata]: super::Metadata
+    </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt; {
+        <a class="self" href="../../src/tracing_core/event.rs.html#98">self</a>.metadata
     }
 
-    <span class="doccomment">/// Returns true if the new event should be a root.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">parent</span>, <span class="ident">Parent::Root</span>)
+    <span class="doccomment">/// Returns true if the new event should be a root.
+    </span><span class="kw">pub fn </span>is_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.parent, Parent::Root)
     }
 
-    <span class="doccomment">/// Returns true if the new event&#39;s parent should be determined based on the</span>
-    <span class="doccomment">/// current context.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this is true and the current thread is currently inside a span, then</span>
-    <span class="doccomment">/// that span should be the new event&#39;s parent. Otherwise, if the current</span>
-    <span class="doccomment">/// thread is _not_ inside a span, then the new event will be the root of its</span>
-    <span class="doccomment">/// own trace tree.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_contextual</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">parent</span>, <span class="ident">Parent::Current</span>)
+    <span class="doccomment">/// Returns true if the new event&#39;s parent should be determined based on the
+    /// current context.
+    ///
+    /// If this is true and the current thread is currently inside a span, then
+    /// that span should be the new event&#39;s parent. Otherwise, if the current
+    /// thread is _not_ inside a span, then the new event will be the root of its
+    /// own trace tree.
+    </span><span class="kw">pub fn </span>is_contextual(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.parent, Parent::Current)
     }
 
-    <span class="doccomment">/// Returns the new event&#39;s explicitly-specified parent, if there is one.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Otherwise (if the new event is a root or is a child of the current span),</span>
-    <span class="doccomment">/// returns `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">Id</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/tracing_core/event.rs.html#122">self</a>.<span class="ident">parent</span> {
-            <a class="ident" href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<span class="kw-2">ref</span> <span class="ident">p</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/event.rs.html#124">p</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Returns the new event&#39;s explicitly-specified parent, if there is one.
+    ///
+    /// Otherwise (if the new event is a root or is a child of the current span),
+    /// returns `None`.
+    </span><span class="kw">pub fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">Id</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../src/tracing_core/event.rs.html#122">self</a>.parent {
+            <a href="../../src/tracing_core/parent.rs.html#10">Parent::Explicit</a>(<span class="kw-2">ref </span>p) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/event.rs.html#124">p</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

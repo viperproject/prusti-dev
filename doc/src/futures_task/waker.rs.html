@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-task-0.3.21/src/waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_task/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_task/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_task/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-task-0.3.24/src/waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_task/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_task/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_task/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -57,64 +57,64 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/futures_task/arc_wake.rs.html#20"><span class="kw">super</span>::arc_wake::ArcWake</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/futures_task/arc_wake.rs.html#20"><span class="kw">super</span>::arc_wake::ArcWake</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
+<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">waker_vtable</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a><span class="op">&gt;</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a> {
-    <span class="kw-2">&amp;</span><span class="ident">RawWakerVTable::new</span>(
-        <span class="ident">clone_arc_raw</span>::<span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
-        <span class="ident">wake_arc_raw</span>::<span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
-        <span class="ident">wake_by_ref_arc_raw</span>::<span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
-        <span class="ident">drop_arc_raw</span>::<span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>waker_vtable&lt;W: <a href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a>&gt;() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a> {
+    <span class="kw-2">&amp;</span>RawWakerVTable::new(
+        clone_arc_raw::&lt;W&gt;,
+        wake_arc_raw::&lt;W&gt;,
+        wake_by_ref_arc_raw::&lt;W&gt;,
+        drop_arc_raw::&lt;W&gt;,
     )
 }
 
-<span class="doccomment">/// Creates a [`Waker`] from an `Arc&lt;impl ArcWake&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The returned [`Waker`] will call</span>
-<span class="doccomment">/// [`ArcWake.wake()`](ArcWake::wake) if awoken.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">waker</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">wake</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>
-<span class="kw">where</span>
-    <span class="ident">W</span>: <a class="ident" href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Creates a [`Waker`] from an `Arc&lt;impl ArcWake&gt;`.
+///
+/// The returned [`Waker`] will call
+/// [`ArcWake.wake()`](ArcWake::wake) if awoken.
+</span><span class="kw">pub fn </span>waker&lt;W&gt;(wake: Arc&lt;W&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>
+<span class="kw">where
+    </span>W: <a href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a> + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Arc::into_raw</span>(<a class="ident" href="../../src/futures_task/waker.rs.html#19">wake</a>).<span class="ident">cast</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>();
+    <span class="kw">let </span>ptr = Arc::into_raw(<a href="../../src/futures_task/waker.rs.html#19">wake</a>).cast::&lt;()&gt;();
 
-    <span class="kw">unsafe</span> { <span class="ident">Waker::from_raw</span>(<span class="ident">RawWaker::new</span>(<a class="ident" href="../../src/futures_task/waker.rs.html#23">ptr</a>, <span class="ident">waker_vtable</span>::<span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>())) }
+    <span class="kw">unsafe </span>{ Waker::from_raw(RawWaker::new(<a href="../../src/futures_task/waker.rs.html#23">ptr</a>, waker_vtable::&lt;W&gt;())) }
 }
 
-<span class="comment">// FIXME: panics on Arc::clone / refcount changes could wreak havoc on the</span>
-<span class="comment">// code here. We should guard against this by aborting.</span>
+<span class="comment">// FIXME: panics on Arc::clone / refcount changes could wreak havoc on the
+// code here. We should guard against this by aborting.
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::redundant_clone</span>)]</span> <span class="comment">// The clone here isn&#39;t actually redundant.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">increase_refcount</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">*const</span> ()) {
-    <span class="comment">// Retain Arc, but don&#39;t touch refcount by wrapping in ManuallyDrop</span>
-    <span class="kw">let</span> <span class="ident">arc</span> <span class="op">=</span> <span class="ident">mem::ManuallyDrop::new</span>(<span class="ident">Arc</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::from_raw</span>(<a class="ident" href="../../src/futures_task/waker.rs.html#32">data</a>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()));
-    <span class="comment">// Now increase refcount, but don&#39;t drop new refcount either</span>
-    <span class="kw">let</span> <span class="ident">_arc_clone</span>: <span class="ident">mem::ManuallyDrop</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/futures_task/waker.rs.html#34">arc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+</span><span class="attribute">#[allow(clippy::redundant_clone)] </span><span class="comment">// The clone here isn&#39;t actually redundant.
+</span><span class="kw">unsafe fn </span>increase_refcount&lt;T: <a href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a>&gt;(data: <span class="kw-2">*const </span>()) {
+    <span class="comment">// Retain Arc, but don&#39;t touch refcount by wrapping in ManuallyDrop
+    </span><span class="kw">let </span>arc = mem::ManuallyDrop::new(Arc::&lt;T&gt;::from_raw(<a href="../../src/futures_task/waker.rs.html#32">data</a>.cast::&lt;T&gt;()));
+    <span class="comment">// Now increase refcount, but don&#39;t drop new refcount either
+    </span><span class="kw">let </span>_arc_clone: mem::ManuallyDrop&lt;<span class="kw">_</span>&gt; = <a href="../../src/futures_task/waker.rs.html#34">arc</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 }
 
-<span class="comment">// used by `waker_ref`</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">clone_arc_raw</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">*const</span> ()) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
-    <span class="ident">increase_refcount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<a class="ident" href="../../src/futures_task/waker.rs.html#40">data</a>);
-    <span class="ident">RawWaker::new</span>(<a class="ident" href="../../src/futures_task/waker.rs.html#40">data</a>, <span class="ident">waker_vtable</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())
+<span class="comment">// used by `waker_ref`
+</span><span class="kw">unsafe fn </span>clone_arc_raw&lt;T: <a href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a>&gt;(data: <span class="kw-2">*const </span>()) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
+    increase_refcount::&lt;T&gt;(<a href="../../src/futures_task/waker.rs.html#40">data</a>);
+    RawWaker::new(<a href="../../src/futures_task/waker.rs.html#40">data</a>, waker_vtable::&lt;T&gt;())
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">wake_arc_raw</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">*const</span> ()) {
-    <span class="kw">let</span> <span class="ident">arc</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Arc::from_raw</span>(<a class="ident" href="../../src/futures_task/waker.rs.html#45">data</a>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>());
-    <a class="ident" href="../../src/futures_task/arc_wake.rs.html#31">ArcWake::wake</a>(<a class="ident" href="../../src/futures_task/waker.rs.html#46">arc</a>);
+<span class="kw">unsafe fn </span>wake_arc_raw&lt;T: <a href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a>&gt;(data: <span class="kw-2">*const </span>()) {
+    <span class="kw">let </span>arc: Arc&lt;T&gt; = Arc::from_raw(<a href="../../src/futures_task/waker.rs.html#45">data</a>.cast::&lt;T&gt;());
+    <a href="../../src/futures_task/arc_wake.rs.html#31">ArcWake::wake</a>(<a href="../../src/futures_task/waker.rs.html#46">arc</a>);
 }
 
-<span class="comment">// used by `waker_ref`</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">wake_by_ref_arc_raw</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">*const</span> ()) {
-    <span class="comment">// Retain Arc, but don&#39;t touch refcount by wrapping in ManuallyDrop</span>
-    <span class="kw">let</span> <span class="ident">arc</span> <span class="op">=</span> <span class="ident">mem::ManuallyDrop::new</span>(<span class="ident">Arc</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::from_raw</span>(<a class="ident" href="../../src/futures_task/waker.rs.html#51">data</a>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()));
-    <a class="ident" href="../../src/futures_task/arc_wake.rs.html#48">ArcWake::wake_by_ref</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_task/waker.rs.html#53">arc</a>);
+<span class="comment">// used by `waker_ref`
+</span><span class="kw">unsafe fn </span>wake_by_ref_arc_raw&lt;T: <a href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a>&gt;(data: <span class="kw-2">*const </span>()) {
+    <span class="comment">// Retain Arc, but don&#39;t touch refcount by wrapping in ManuallyDrop
+    </span><span class="kw">let </span>arc = mem::ManuallyDrop::new(Arc::&lt;T&gt;::from_raw(<a href="../../src/futures_task/waker.rs.html#51">data</a>.cast::&lt;T&gt;()));
+    <a href="../../src/futures_task/arc_wake.rs.html#48">ArcWake::wake_by_ref</a>(<span class="kw-2">&amp;</span><a href="../../src/futures_task/waker.rs.html#53">arc</a>);
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">drop_arc_raw</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">*const</span> ()) {
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="ident">Arc</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::from_raw</span>(<a class="ident" href="../../src/futures_task/waker.rs.html#57">data</a>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()))
+<span class="kw">unsafe fn </span>drop_arc_raw&lt;T: <a href="../../src/futures_task/arc_wake.rs.html#20">ArcWake</a>&gt;(data: <span class="kw-2">*const </span>()) {
+    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Arc::&lt;T&gt;::from_raw(<a href="../../src/futures_task/waker.rs.html#57">data</a>.cast::&lt;T&gt;()))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_task" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

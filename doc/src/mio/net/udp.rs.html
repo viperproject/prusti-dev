@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/net/udp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../mio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/net/udp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../mio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -695,702 +695,702 @@
 <span id="695">695</span>
 <span id="696">696</span>
 <span id="697">697</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Primitives for working with UDP.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The types provided in this module are non-blocking by default and are</span>
-<span class="doccomment">//! designed to be portable across all supported Mio platforms. As long as the</span>
-<span class="doccomment">//! [portability guidelines] are followed, the behavior should be identical no</span>
-<span class="doccomment">//! matter the target platform.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [portability guidelines]: ../struct.Poll.html#portability</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Primitives for working with UDP.
+//!
+//! The types provided in this module are non-blocking by default and are
+//! designed to be portable across all supported Mio platforms. As long as the
+//! [portability guidelines] are followed, the behavior should be identical no
+//! matter the target platform.
+//!
+//! [portability guidelines]: ../struct.Poll.html#portability
 
-<span class="kw">use</span> <a class="ident" href="../../../src/mio/io_source.rs.html#62"><span class="kw">crate</span>::io_source::IoSource</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../../src/mio/lib.rs.html#49">sys</a>, <a class="ident" href="../../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../../src/mio/poll.rs.html#254">Registry</a>, <a class="ident" href="../../../src/mio/token.rs.html#132">Token</a>};
+</span><span class="kw">use </span><a href="../../../src/mio/io_source.rs.html#62"><span class="kw">crate</span>::io_source::IoSource</a>;
+<span class="kw">use crate</span>::{<a href="../../../src/mio/lib.rs.html#54">event</a>, <a href="../../../src/mio/lib.rs.html#49">sys</a>, <a href="../../../src/mio/interest.rs.html#17">Interest</a>, <a href="../../../src/mio/poll.rs.html#254">Registry</a>, <a href="../../../src/mio/token.rs.html#132">Token</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/index.html">std::net</a>;
-<span class="kw">use</span> <span class="ident">std::net</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::os::windows::io</span>::{<span class="ident">AsRawSocket</span>, <span class="ident">FromRawSocket</span>, <span class="ident">IntoRawSocket</span>, <span class="ident">RawSocket</span>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/index.html">std::net</a>;
+<span class="kw">use </span>std::net::{<a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>};
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">use </span>std::os::windows::io::{AsRawSocket, FromRawSocket, IntoRawSocket, RawSocket};
 
-<span class="doccomment">/// A User Datagram Protocol socket.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is an implementation of a bound UDP socket. This supports both IPv4 and</span>
-<span class="doccomment">/// IPv6 addresses, and there is no corresponding notion of a server because UDP</span>
-<span class="doccomment">/// is a datagram protocol.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-<span class="doccomment">/// # use std::error::Error;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-<span class="doccomment">/// // An Echo program:</span>
-<span class="doccomment">/// // SENDER -&gt; sends a message.</span>
-<span class="doccomment">/// // ECHOER -&gt; listens and prints the message received.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// use mio::net::UdpSocket;</span>
-<span class="doccomment">/// use mio::{Events, Interest, Poll, Token};</span>
-<span class="doccomment">/// use std::time::Duration;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// const SENDER: Token = Token(0);</span>
-<span class="doccomment">/// const ECHOER: Token = Token(1);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // This operation will fail if the address is in use, so we select different ports for each</span>
-<span class="doccomment">/// // socket.</span>
-<span class="doccomment">/// let mut sender_socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-<span class="doccomment">/// let mut echoer_socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // If we do not use connect here, SENDER and ECHOER would need to call send_to and recv_from</span>
-<span class="doccomment">/// // respectively.</span>
-<span class="doccomment">/// sender_socket.connect(echoer_socket.local_addr()?)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // We need a Poll to check if SENDER is ready to be written into, and if ECHOER is ready to be</span>
-<span class="doccomment">/// // read from.</span>
-<span class="doccomment">/// let mut poll = Poll::new()?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // We register our sockets here so that we can check if they are ready to be written/read.</span>
-<span class="doccomment">/// poll.registry().register(&amp;mut sender_socket, SENDER, Interest::WRITABLE)?;</span>
-<span class="doccomment">/// poll.registry().register(&amp;mut echoer_socket, ECHOER, Interest::READABLE)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let msg_to_send = [9; 9];</span>
-<span class="doccomment">/// let mut buffer = [0; 9];</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut events = Events::with_capacity(128);</span>
-<span class="doccomment">/// loop {</span>
-<span class="doccomment">///     poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;</span>
-<span class="doccomment">///     for event in events.iter() {</span>
-<span class="doccomment">///         match event.token() {</span>
-<span class="doccomment">///             // Our SENDER is ready to be written into.</span>
-<span class="doccomment">///             SENDER =&gt; {</span>
-<span class="doccomment">///                 let bytes_sent = sender_socket.send(&amp;msg_to_send)?;</span>
-<span class="doccomment">///                 assert_eq!(bytes_sent, 9);</span>
-<span class="doccomment">///                 println!(&quot;sent {:?} -&gt; {:?} bytes&quot;, msg_to_send, bytes_sent);</span>
-<span class="doccomment">///             },</span>
-<span class="doccomment">///             // Our ECHOER is ready to be read from.</span>
-<span class="doccomment">///             ECHOER =&gt; {</span>
-<span class="doccomment">///                 let num_recv = echoer_socket.recv(&amp;mut buffer)?;</span>
-<span class="doccomment">///                 println!(&quot;echo {:?} -&gt; {:?}&quot;, buffer, num_recv);</span>
-<span class="doccomment">///                 buffer = [0; 9];</span>
-<span class="doccomment">///                 # drop(buffer); // Silence unused assignment warning.</span>
-<span class="doccomment">///                 # return Ok(());</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///             _ =&gt; unreachable!()</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UdpSocket</span> {
-    <span class="ident">inner</span>: <span class="ident">IoSource</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A User Datagram Protocol socket.
+///
+/// This is an implementation of a bound UDP socket. This supports both IPv4 and
+/// IPv6 addresses, and there is no corresponding notion of a server because UDP
+/// is a datagram protocol.
+///
+/// # Examples
+///
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+#[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+</span><span class="doccomment">/// # use std::error::Error;
+/// #
+/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+/// // An Echo program:
+/// // SENDER -&gt; sends a message.
+/// // ECHOER -&gt; listens and prints the message received.
+///
+/// use mio::net::UdpSocket;
+/// use mio::{Events, Interest, Poll, Token};
+/// use std::time::Duration;
+///
+/// const SENDER: Token = Token(0);
+/// const ECHOER: Token = Token(1);
+///
+/// // This operation will fail if the address is in use, so we select different ports for each
+/// // socket.
+/// let mut sender_socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+/// let mut echoer_socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+///
+/// // If we do not use connect here, SENDER and ECHOER would need to call send_to and recv_from
+/// // respectively.
+/// sender_socket.connect(echoer_socket.local_addr()?)?;
+///
+/// // We need a Poll to check if SENDER is ready to be written into, and if ECHOER is ready to be
+/// // read from.
+/// let mut poll = Poll::new()?;
+///
+/// // We register our sockets here so that we can check if they are ready to be written/read.
+/// poll.registry().register(&amp;mut sender_socket, SENDER, Interest::WRITABLE)?;
+/// poll.registry().register(&amp;mut echoer_socket, ECHOER, Interest::READABLE)?;
+///
+/// let msg_to_send = [9; 9];
+/// let mut buffer = [0; 9];
+///
+/// let mut events = Events::with_capacity(128);
+/// loop {
+///     poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;
+///     for event in events.iter() {
+///         match event.token() {
+///             // Our SENDER is ready to be written into.
+///             SENDER =&gt; {
+///                 let bytes_sent = sender_socket.send(&amp;msg_to_send)?;
+///                 assert_eq!(bytes_sent, 9);
+///                 println!(&quot;sent {:?} -&gt; {:?} bytes&quot;, msg_to_send, bytes_sent);
+///             },
+///             // Our ECHOER is ready to be read from.
+///             ECHOER =&gt; {
+///                 let num_recv = echoer_socket.recv(&amp;mut buffer)?;
+///                 println!(&quot;echo {:?} -&gt; {:?}&quot;, buffer, num_recv);
+///                 buffer = [0; 9];
+///                 # drop(buffer); // Silence unused assignment warning.
+///                 # return Ok(());
+///             }
+///             _ =&gt; unreachable!()
+///         }
+///     }
+/// }
+/// # }
+/// ```
+</span><span class="kw">pub struct </span>UdpSocket {
+    inner: IoSource&lt;<a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-    <span class="doccomment">/// Creates a UDP socket from the given address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // We must bind it to an open address.</span>
-    <span class="doccomment">/// let socket = match UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?) {</span>
-    <span class="doccomment">///     Ok(new_socket) =&gt; new_socket,</span>
-    <span class="doccomment">///     Err(fail) =&gt; {</span>
-    <span class="doccomment">///         // We panic! here, but you could try to bind it again on another address.</span>
-    <span class="doccomment">///         panic!(&quot;Failed to bind socket. {:?}&quot;, fail);</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Our socket was created, but we should not use it before checking it&#39;s readiness.</span>
-    <span class="doccomment">/// #    drop(socket); // Silence unused variable warning.</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/mio/sys/unix/udp.rs.html#8">sys::udp::bind</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#121">addr</a>).<span class="ident">map</span>(<span class="ident">UdpSocket::from_std</span>)
+<span class="kw">impl </span><a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+    <span class="doccomment">/// Creates a UDP socket from the given address.
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// // We must bind it to an open address.
+    /// let socket = match UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?) {
+    ///     Ok(new_socket) =&gt; new_socket,
+    ///     Err(fail) =&gt; {
+    ///         // We panic! here, but you could try to bind it again on another address.
+    ///         panic!(&quot;Failed to bind socket. {:?}&quot;, fail);
+    ///     }
+    /// };
+    ///
+    /// // Our socket was created, but we should not use it before checking it&#39;s readiness.
+    /// #    drop(socket); // Silence unused variable warning.
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>bind(addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a>&gt; {
+        <a href="../../../src/mio/sys/unix/udp.rs.html#8">sys::udp::bind</a>(<a href="../../../src/mio/net/udp.rs.html#121">addr</a>).map(UdpSocket::from_std)
     }
 
-    <span class="doccomment">/// Creates a new `UdpSocket` from a standard `net::UdpSocket`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is intended to be used to wrap a UDP socket from the</span>
-    <span class="doccomment">/// standard library in the Mio equivalent. The conversion assumes nothing</span>
-    <span class="doccomment">/// about the underlying socket; it is left up to the user to set it in</span>
-    <span class="doccomment">/// non-blocking mode.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">socket</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>) -&gt; <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-        <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-            <span class="ident">inner</span>: <span class="ident">IoSource::new</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#131">socket</a>),
+    <span class="doccomment">/// Creates a new `UdpSocket` from a standard `net::UdpSocket`.
+    ///
+    /// This function is intended to be used to wrap a UDP socket from the
+    /// standard library in the Mio equivalent. The conversion assumes nothing
+    /// about the underlying socket; it is left up to the user to set it in
+    /// non-blocking mode.
+    </span><span class="kw">pub fn </span>from_std(socket: <a href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>) -&gt; <a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+        <a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+            inner: IoSource::new(<a href="../../../src/mio/net/udp.rs.html#131">socket</a>),
         }
     }
 
-    <span class="doccomment">/// Returns the socket address that this socket was created from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="comment">// This assertion is almost, but not quite, universal.  It fails on</span>
-    <span class="comment">// shared-IP FreeBSD jails.  It&#39;s hard for mio to know whether we&#39;re jailed,</span>
-    <span class="comment">// so simply disable the test on FreeBSD.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>),
-        <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>
-    )]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let addr = &quot;127.0.0.1:0&quot;.parse()?;</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(addr)?;</span>
-    <span class="doccomment">/// assert_eq!(socket.local_addr()?.ip(), addr.ip());</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#160">self</a>.<span class="ident">inner</span>.<span class="ident">local_addr</span>()
+    <span class="doccomment">/// Returns the socket address that this socket was created from.
+    ///
+    /// # Examples
+    ///
+    </span><span class="comment">// This assertion is almost, but not quite, universal.  It fails on
+    // shared-IP FreeBSD jails.  It&#39;s hard for mio to know whether we&#39;re jailed,
+    // so simply disable the test on FreeBSD.
+    </span><span class="attribute">#[cfg_attr(all(feature = <span class="string">&quot;os-poll&quot;</span>, not(target_os = <span class="string">&quot;freebsd&quot;</span>)), doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(
+        any(not(feature = <span class="string">&quot;os-poll&quot;</span>), target_os = <span class="string">&quot;freebsd&quot;</span>),
+        doc = <span class="string">&quot;```ignore&quot;
+    </span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let addr = &quot;127.0.0.1:0&quot;.parse()?;
+    /// let socket = UdpSocket::bind(addr)?;
+    /// assert_eq!(socket.local_addr()?.ip(), addr.ip());
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#160">self</a>.inner.local_addr()
     }
 
-    <span class="doccomment">/// Returns the socket address of the remote peer this socket was connected to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let addr = &quot;127.0.0.1:0&quot;.parse()?;</span>
-    <span class="doccomment">/// let peer_addr = &quot;127.0.0.1:11100&quot;.parse()?;</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(addr)?;</span>
-    <span class="doccomment">/// socket.connect(peer_addr)?;</span>
-    <span class="doccomment">/// assert_eq!(socket.peer_addr()?.ip(), peer_addr.ip());</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#183">self</a>.<span class="ident">inner</span>.<span class="ident">peer_addr</span>()
+    <span class="doccomment">/// Returns the socket address of the remote peer this socket was connected to.
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let addr = &quot;127.0.0.1:0&quot;.parse()?;
+    /// let peer_addr = &quot;127.0.0.1:11100&quot;.parse()?;
+    /// let socket = UdpSocket::bind(addr)?;
+    /// socket.connect(peer_addr)?;
+    /// assert_eq!(socket.peer_addr()?.ip(), peer_addr.ip());
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#183">self</a>.inner.peer_addr()
     }
 
-    <span class="doccomment">/// Sends data on the socket to the given address. On success, returns the</span>
-    <span class="doccomment">/// number of bytes written.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Address type can be any implementor of `ToSocketAddrs` trait. See its</span>
-    <span class="doccomment">/// documentation for concrete examples.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // We must check if the socket is writable before calling send_to,</span>
-    <span class="doccomment">/// // or we could run into a WouldBlock error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let bytes_sent = socket.send_to(&amp;[9; 9], &quot;127.0.0.1:11100&quot;.parse()?)?;</span>
-    <span class="doccomment">/// assert_eq!(bytes_sent, 9);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">target</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#211">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#212">inner</a>.<span class="ident">send_to</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#211">buf</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#211">target</a>))
+    <span class="doccomment">/// Sends data on the socket to the given address. On success, returns the
+    /// number of bytes written.
+    ///
+    /// Address type can be any implementor of `ToSocketAddrs` trait. See its
+    /// documentation for concrete examples.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::error::Error;
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+    ///
+    /// // We must check if the socket is writable before calling send_to,
+    /// // or we could run into a WouldBlock error.
+    ///
+    /// let bytes_sent = socket.send_to(&amp;[9; 9], &quot;127.0.0.1:11100&quot;.parse()?)?;
+    /// assert_eq!(bytes_sent, 9);
+    /// #
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>send_to(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], target: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#211">self</a>.inner.<a href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../src/mio/net/udp.rs.html#212">inner</a>.send_to(<a href="../../../src/mio/net/udp.rs.html#211">buf</a>, <a href="../../../src/mio/net/udp.rs.html#211">target</a>))
     }
 
-    <span class="doccomment">/// Receives data from the socket. On success, returns the number of bytes</span>
-    <span class="doccomment">/// read and the address from whence the data came.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Windows, if the data is larger than the buffer specified, the buffer</span>
-    <span class="doccomment">/// is filled with the first part of the data, and recv_from returns the error</span>
-    <span class="doccomment">/// WSAEMSGSIZE(10040). The excess data is lost.</span>
-    <span class="doccomment">/// Make sure to always use a sufficiently large buffer to hold the</span>
-    <span class="doccomment">/// maximum UDP packet size, which can be up to 65536 bytes in size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // We must check if the socket is readable before calling recv_from,</span>
-    <span class="doccomment">/// // or we could run into a WouldBlock error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = [0; 9];</span>
-    <span class="doccomment">/// let (num_recv, from_addr) = socket.recv_from(&amp;mut buf)?;</span>
-    <span class="doccomment">/// println!(&quot;Received {:?} -&gt; {:?} bytes from {:?}&quot;, buf, num_recv, from_addr);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#246">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#247">inner</a>.<span class="ident">recv_from</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#246">buf</a>))
+    <span class="doccomment">/// Receives data from the socket. On success, returns the number of bytes
+    /// read and the address from whence the data came.
+    ///
+    /// # Notes
+    ///
+    /// On Windows, if the data is larger than the buffer specified, the buffer
+    /// is filled with the first part of the data, and recv_from returns the error
+    /// WSAEMSGSIZE(10040). The excess data is lost.
+    /// Make sure to always use a sufficiently large buffer to hold the
+    /// maximum UDP packet size, which can be up to 65536 bytes in size.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+    ///
+    /// // We must check if the socket is readable before calling recv_from,
+    /// // or we could run into a WouldBlock error.
+    ///
+    /// let mut buf = [0; 9];
+    /// let (num_recv, from_addr) = socket.recv_from(&amp;mut buf)?;
+    /// println!(&quot;Received {:?} -&gt; {:?} bytes from {:?}&quot;, buf, num_recv, from_addr);
+    /// #
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#246">self</a>.inner.<a href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../src/mio/net/udp.rs.html#247">inner</a>.recv_from(<a href="../../../src/mio/net/udp.rs.html#246">buf</a>))
     }
 
-    <span class="doccomment">/// Receives data from the socket, without removing it from the input queue.</span>
-    <span class="doccomment">/// On success, returns the number of bytes read and the address from whence</span>
-    <span class="doccomment">/// the data came.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Windows, if the data is larger than the buffer specified, the buffer</span>
-    <span class="doccomment">/// is filled with the first part of the data, and peek_from returns the error</span>
-    <span class="doccomment">/// WSAEMSGSIZE(10040). The excess data is lost.</span>
-    <span class="doccomment">/// Make sure to always use a sufficiently large buffer to hold the</span>
-    <span class="doccomment">/// maximum UDP packet size, which can be up to 65536 bytes in size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // We must check if the socket is readable before calling recv_from,</span>
-    <span class="doccomment">/// // or we could run into a WouldBlock error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = [0; 9];</span>
-    <span class="doccomment">/// let (num_recv, from_addr) = socket.peek_from(&amp;mut buf)?;</span>
-    <span class="doccomment">/// println!(&quot;Received {:?} -&gt; {:?} bytes from {:?}&quot;, buf, num_recv, from_addr);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#282">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#283">inner</a>.<span class="ident">peek_from</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#282">buf</a>))
+    <span class="doccomment">/// Receives data from the socket, without removing it from the input queue.
+    /// On success, returns the number of bytes read and the address from whence
+    /// the data came.
+    ///
+    /// # Notes
+    ///
+    /// On Windows, if the data is larger than the buffer specified, the buffer
+    /// is filled with the first part of the data, and peek_from returns the error
+    /// WSAEMSGSIZE(10040). The excess data is lost.
+    /// Make sure to always use a sufficiently large buffer to hold the
+    /// maximum UDP packet size, which can be up to 65536 bytes in size.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+    ///
+    /// // We must check if the socket is readable before calling recv_from,
+    /// // or we could run into a WouldBlock error.
+    ///
+    /// let mut buf = [0; 9];
+    /// let (num_recv, from_addr) = socket.peek_from(&amp;mut buf)?;
+    /// println!(&quot;Received {:?} -&gt; {:?} bytes from {:?}&quot;, buf, num_recv, from_addr);
+    /// #
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>peek_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#282">self</a>.inner.<a href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../src/mio/net/udp.rs.html#283">inner</a>.peek_from(<a href="../../../src/mio/net/udp.rs.html#282">buf</a>))
     }
 
-    <span class="doccomment">/// Sends data on the socket to the address previously bound via connect(). On success,</span>
-    <span class="doccomment">/// returns the number of bytes written.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#288">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#289">inner</a>.<span class="ident">send</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#288">buf</a>))
+    <span class="doccomment">/// Sends data on the socket to the address previously bound via connect(). On success,
+    /// returns the number of bytes written.
+    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#288">self</a>.inner.<a href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../src/mio/net/udp.rs.html#289">inner</a>.send(<a href="../../../src/mio/net/udp.rs.html#288">buf</a>))
     }
 
-    <span class="doccomment">/// Receives data from the socket previously bound with connect(). On success, returns</span>
-    <span class="doccomment">/// the number of bytes read.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Windows, if the data is larger than the buffer specified, the buffer</span>
-    <span class="doccomment">/// is filled with the first part of the data, and recv returns the error</span>
-    <span class="doccomment">/// WSAEMSGSIZE(10040). The excess data is lost.</span>
-    <span class="doccomment">/// Make sure to always use a sufficiently large buffer to hold the</span>
-    <span class="doccomment">/// maximum UDP packet size, which can be up to 65536 bytes in size.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#302">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#303">inner</a>.<span class="ident">recv</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#302">buf</a>))
+    <span class="doccomment">/// Receives data from the socket previously bound with connect(). On success, returns
+    /// the number of bytes read.
+    ///
+    /// # Notes
+    ///
+    /// On Windows, if the data is larger than the buffer specified, the buffer
+    /// is filled with the first part of the data, and recv returns the error
+    /// WSAEMSGSIZE(10040). The excess data is lost.
+    /// Make sure to always use a sufficiently large buffer to hold the
+    /// maximum UDP packet size, which can be up to 65536 bytes in size.
+    </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#302">self</a>.inner.<a href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../src/mio/net/udp.rs.html#303">inner</a>.recv(<a href="../../../src/mio/net/udp.rs.html#302">buf</a>))
     }
 
-    <span class="doccomment">/// Receives data from the socket, without removing it from the input queue.</span>
-    <span class="doccomment">/// On success, returns the number of bytes read.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Windows, if the data is larger than the buffer specified, the buffer</span>
-    <span class="doccomment">/// is filled with the first part of the data, and peek returns the error</span>
-    <span class="doccomment">/// WSAEMSGSIZE(10040). The excess data is lost.</span>
-    <span class="doccomment">/// Make sure to always use a sufficiently large buffer to hold the</span>
-    <span class="doccomment">/// maximum UDP packet size, which can be up to 65536 bytes in size.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#316">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#317">inner</a>.<span class="ident">peek</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#316">buf</a>))
+    <span class="doccomment">/// Receives data from the socket, without removing it from the input queue.
+    /// On success, returns the number of bytes read.
+    ///
+    /// # Notes
+    ///
+    /// On Windows, if the data is larger than the buffer specified, the buffer
+    /// is filled with the first part of the data, and peek returns the error
+    /// WSAEMSGSIZE(10040). The excess data is lost.
+    /// Make sure to always use a sufficiently large buffer to hold the
+    /// maximum UDP packet size, which can be up to 65536 bytes in size.
+    </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#316">self</a>.inner.<a href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(|inner| <a href="../../../src/mio/net/udp.rs.html#317">inner</a>.peek(<a href="../../../src/mio/net/udp.rs.html#316">buf</a>))
     }
 
-    <span class="doccomment">/// Connects the UDP socket setting the default destination for `send()`</span>
-    <span class="doccomment">/// and limiting packets that are read via `recv` from the address specified</span>
-    <span class="doccomment">/// in `addr`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may return a `WouldBlock` in which case the socket connection</span>
-    <span class="doccomment">/// cannot be completed immediately, it usually means there are insufficient</span>
-    <span class="doccomment">/// entries in the routing cache.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#327">self</a>.<span class="ident">inner</span>.<span class="ident">connect</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#327">addr</a>)
+    <span class="doccomment">/// Connects the UDP socket setting the default destination for `send()`
+    /// and limiting packets that are read via `recv` from the address specified
+    /// in `addr`.
+    ///
+    /// This may return a `WouldBlock` in which case the socket connection
+    /// cannot be completed immediately, it usually means there are insufficient
+    /// entries in the routing cache.
+    </span><span class="kw">pub fn </span>connect(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#327">self</a>.inner.connect(<a href="../../../src/mio/net/udp.rs.html#327">addr</a>)
     }
 
-    <span class="doccomment">/// Sets the value of the `SO_BROADCAST` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When enabled, this socket is allowed to send packets to a broadcast</span>
-    <span class="doccomment">/// address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let broadcast_socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-    <span class="doccomment">/// if broadcast_socket.broadcast()? == false {</span>
-    <span class="doccomment">///     broadcast_socket.set_broadcast(true)?;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(broadcast_socket.broadcast()?, true);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_broadcast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#355">self</a>.<span class="ident">inner</span>.<span class="ident">set_broadcast</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#355">on</a>)
+    <span class="doccomment">/// Sets the value of the `SO_BROADCAST` option for this socket.
+    ///
+    /// When enabled, this socket is allowed to send packets to a broadcast
+    /// address.
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let broadcast_socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+    /// if broadcast_socket.broadcast()? == false {
+    ///     broadcast_socket.set_broadcast(true)?;
+    /// }
+    ///
+    /// assert_eq!(broadcast_socket.broadcast()?, true);
+    /// #
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>set_broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#355">self</a>.inner.set_broadcast(<a href="../../../src/mio/net/udp.rs.html#355">on</a>)
     }
 
-    <span class="doccomment">/// Gets the value of the `SO_BROADCAST` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see</span>
-    <span class="doccomment">/// [`set_broadcast`][link].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [link]: #method.set_broadcast</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let broadcast_socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-    <span class="doccomment">/// assert_eq!(broadcast_socket.broadcast()?, false);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">broadcast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#381">self</a>.<span class="ident">inner</span>.<span class="ident">broadcast</span>()
+    <span class="doccomment">/// Gets the value of the `SO_BROADCAST` option for this socket.
+    ///
+    /// For more information about this option, see
+    /// [`set_broadcast`][link].
+    ///
+    /// [link]: #method.set_broadcast
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let broadcast_socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+    /// assert_eq!(broadcast_socket.broadcast()?, false);
+    /// #
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#381">self</a>.inner.broadcast()
     }
 
-    <span class="doccomment">/// Sets the value of the `IP_MULTICAST_LOOP` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If enabled, multicast packets will be looped back to the local socket.</span>
-    <span class="doccomment">/// Note that this may not have any affect on IPv6 sockets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_loop_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#389">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_loop_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#389">on</a>)
+    <span class="doccomment">/// Sets the value of the `IP_MULTICAST_LOOP` option for this socket.
+    ///
+    /// If enabled, multicast packets will be looped back to the local socket.
+    /// Note that this may not have any affect on IPv6 sockets.
+    </span><span class="kw">pub fn </span>set_multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#389">self</a>.inner.set_multicast_loop_v4(<a href="../../../src/mio/net/udp.rs.html#389">on</a>)
     }
 
-    <span class="doccomment">/// Gets the value of the `IP_MULTICAST_LOOP` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see</span>
-    <span class="doccomment">/// [`set_multicast_loop_v4`][link].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [link]: #method.set_multicast_loop_v4</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_loop_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#399">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_loop_v4</span>()
+    <span class="doccomment">/// Gets the value of the `IP_MULTICAST_LOOP` option for this socket.
+    ///
+    /// For more information about this option, see
+    /// [`set_multicast_loop_v4`][link].
+    ///
+    /// [link]: #method.set_multicast_loop_v4
+    </span><span class="kw">pub fn </span>multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#399">self</a>.inner.multicast_loop_v4()
     }
 
-    <span class="doccomment">/// Sets the value of the `IP_MULTICAST_TTL` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Indicates the time-to-live value of outgoing multicast packets for</span>
-    <span class="doccomment">/// this socket. The default value is 1 which means that multicast packets</span>
-    <span class="doccomment">/// don&#39;t leave the local network unless explicitly requested.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this may not have any affect on IPv6 sockets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_ttl_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#410">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_ttl_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#410">ttl</a>)
+    <span class="doccomment">/// Sets the value of the `IP_MULTICAST_TTL` option for this socket.
+    ///
+    /// Indicates the time-to-live value of outgoing multicast packets for
+    /// this socket. The default value is 1 which means that multicast packets
+    /// don&#39;t leave the local network unless explicitly requested.
+    ///
+    /// Note that this may not have any affect on IPv6 sockets.
+    </span><span class="kw">pub fn </span>set_multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#410">self</a>.inner.set_multicast_ttl_v4(<a href="../../../src/mio/net/udp.rs.html#410">ttl</a>)
     }
 
-    <span class="doccomment">/// Gets the value of the `IP_MULTICAST_TTL` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see</span>
-    <span class="doccomment">/// [`set_multicast_ttl_v4`][link].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [link]: #method.set_multicast_ttl_v4</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_ttl_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#420">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_ttl_v4</span>()
+    <span class="doccomment">/// Gets the value of the `IP_MULTICAST_TTL` option for this socket.
+    ///
+    /// For more information about this option, see
+    /// [`set_multicast_ttl_v4`][link].
+    ///
+    /// [link]: #method.set_multicast_ttl_v4
+    </span><span class="kw">pub fn </span>multicast_ttl_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#420">self</a>.inner.multicast_ttl_v4()
     }
 
-    <span class="doccomment">/// Sets the value of the `IPV6_MULTICAST_LOOP` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Controls whether this socket sees the multicast packets it sends itself.</span>
-    <span class="doccomment">/// Note that this may not have any affect on IPv4 sockets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_loop_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#428">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_loop_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#428">on</a>)
+    <span class="doccomment">/// Sets the value of the `IPV6_MULTICAST_LOOP` option for this socket.
+    ///
+    /// Controls whether this socket sees the multicast packets it sends itself.
+    /// Note that this may not have any affect on IPv4 sockets.
+    </span><span class="kw">pub fn </span>set_multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, on: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#428">self</a>.inner.set_multicast_loop_v6(<a href="../../../src/mio/net/udp.rs.html#428">on</a>)
     }
 
-    <span class="doccomment">/// Gets the value of the `IPV6_MULTICAST_LOOP` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see</span>
-    <span class="doccomment">/// [`set_multicast_loop_v6`][link].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [link]: #method.set_multicast_loop_v6</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_loop_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#438">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_loop_v6</span>()
+    <span class="doccomment">/// Gets the value of the `IPV6_MULTICAST_LOOP` option for this socket.
+    ///
+    /// For more information about this option, see
+    /// [`set_multicast_loop_v6`][link].
+    ///
+    /// [link]: #method.set_multicast_loop_v6
+    </span><span class="kw">pub fn </span>multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#438">self</a>.inner.multicast_loop_v6()
     }
 
-    <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This value sets the time-to-live field that is used in every packet sent</span>
-    <span class="doccomment">/// from this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-    <span class="doccomment">/// if socket.ttl()? &lt; 255 {</span>
-    <span class="doccomment">///     socket.set_ttl(255)?;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(socket.ttl()?, 255);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#466">self</a>.<span class="ident">inner</span>.<span class="ident">set_ttl</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#466">ttl</a>)
+    <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.
+    ///
+    /// This value sets the time-to-live field that is used in every packet sent
+    /// from this socket.
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+    /// if socket.ttl()? &lt; 255 {
+    ///     socket.set_ttl(255)?;
+    /// }
+    ///
+    /// assert_eq!(socket.ttl()?, 255);
+    /// #
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>set_ttl(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#466">self</a>.inner.set_ttl(<a href="../../../src/mio/net/udp.rs.html#466">ttl</a>)
     }
 
-    <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_ttl`][link].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [link]: #method.set_ttl</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;</span>
-    <span class="doccomment">/// socket.set_ttl(255)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(socket.ttl()?, 255);</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #    Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#493">self</a>.<span class="ident">inner</span>.<span class="ident">ttl</span>()
+    <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.
+    ///
+    /// For more information about this option, see [`set_ttl`][link].
+    ///
+    /// [link]: #method.set_ttl
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::net::UdpSocket;
+    ///
+    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;.parse()?)?;
+    /// socket.set_ttl(255)?;
+    ///
+    /// assert_eq!(socket.ttl()?, 255);
+    /// #
+    /// #    Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>ttl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#493">self</a>.inner.ttl()
     }
 
-    <span class="doccomment">/// Executes an operation of the `IP_ADD_MEMBERSHIP` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function specifies a new multicast group for this socket to join.</span>
-    <span class="doccomment">/// The address must be a valid multicast address, and `interface` is the</span>
-    <span class="doccomment">/// address of the local interface with which the system should join the</span>
-    <span class="doccomment">/// multicast group. If it&#39;s equal to `INADDR_ANY` then an appropriate</span>
-    <span class="doccomment">/// interface is chosen by the system.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_multicast_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <span class="ident">interface</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#505">self</a>.<span class="ident">inner</span>.<span class="ident">join_multicast_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#505">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#505">interface</a>)
+    <span class="doccomment">/// Executes an operation of the `IP_ADD_MEMBERSHIP` type.
+    ///
+    /// This function specifies a new multicast group for this socket to join.
+    /// The address must be a valid multicast address, and `interface` is the
+    /// address of the local interface with which the system should join the
+    /// multicast group. If it&#39;s equal to `INADDR_ANY` then an appropriate
+    /// interface is chosen by the system.
+    </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
+    </span><span class="kw">pub fn </span>join_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#505">self</a>.inner.join_multicast_v4(<a href="../../../src/mio/net/udp.rs.html#505">multiaddr</a>, <a href="../../../src/mio/net/udp.rs.html#505">interface</a>)
     }
 
-    <span class="doccomment">/// Executes an operation of the `IPV6_ADD_MEMBERSHIP` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function specifies a new multicast group for this socket to join.</span>
-    <span class="doccomment">/// The address must be a valid multicast address, and `interface` is the</span>
-    <span class="doccomment">/// index of the interface to join/leave (or 0 to indicate any interface).</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_multicast_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <span class="ident">interface</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#515">self</a>.<span class="ident">inner</span>.<span class="ident">join_multicast_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#515">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#515">interface</a>)
+    <span class="doccomment">/// Executes an operation of the `IPV6_ADD_MEMBERSHIP` type.
+    ///
+    /// This function specifies a new multicast group for this socket to join.
+    /// The address must be a valid multicast address, and `interface` is the
+    /// index of the interface to join/leave (or 0 to indicate any interface).
+    </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
+    </span><span class="kw">pub fn </span>join_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#515">self</a>.inner.join_multicast_v6(<a href="../../../src/mio/net/udp.rs.html#515">multiaddr</a>, <a href="../../../src/mio/net/udp.rs.html#515">interface</a>)
     }
 
-    <span class="doccomment">/// Executes an operation of the `IP_DROP_MEMBERSHIP` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see</span>
-    <span class="doccomment">/// [`join_multicast_v4`][link].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [link]: #method.join_multicast_v4</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_multicast_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <span class="ident">interface</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#526">self</a>.<span class="ident">inner</span>.<span class="ident">leave_multicast_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#526">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#526">interface</a>)
+    <span class="doccomment">/// Executes an operation of the `IP_DROP_MEMBERSHIP` type.
+    ///
+    /// For more information about this option, see
+    /// [`join_multicast_v4`][link].
+    ///
+    /// [link]: #method.join_multicast_v4
+    </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
+    </span><span class="kw">pub fn </span>leave_multicast_v4(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, interface: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#526">self</a>.inner.leave_multicast_v4(<a href="../../../src/mio/net/udp.rs.html#526">multiaddr</a>, <a href="../../../src/mio/net/udp.rs.html#526">interface</a>)
     }
 
-    <span class="doccomment">/// Executes an operation of the `IPV6_DROP_MEMBERSHIP` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see</span>
-    <span class="doccomment">/// [`join_multicast_v6`][link].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [link]: #method.join_multicast_v6</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_multicast_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <span class="ident">interface</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#537">self</a>.<span class="ident">inner</span>.<span class="ident">leave_multicast_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#537">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#537">interface</a>)
+    <span class="doccomment">/// Executes an operation of the `IPV6_DROP_MEMBERSHIP` type.
+    ///
+    /// For more information about this option, see
+    /// [`join_multicast_v6`][link].
+    ///
+    /// [link]: #method.join_multicast_v6
+    </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
+    </span><span class="kw">pub fn </span>leave_multicast_v6(<span class="kw-2">&amp;</span><span class="self">self</span>, multiaddr: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, interface: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#537">self</a>.inner.leave_multicast_v6(<a href="../../../src/mio/net/udp.rs.html#537">multiaddr</a>, <a href="../../../src/mio/net/udp.rs.html#537">interface</a>)
     }
 
-    <span class="doccomment">/// Get the value of the `IPV6_V6ONLY` option on this socket.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">only_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/mio/sys/unix/udp.rs.html#26">sys::udp::only_v6</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/net/udp.rs.html#543">self</a>.<span class="ident">inner</span>)
+    <span class="doccomment">/// Get the value of the `IPV6_V6ONLY` option on this socket.
+    </span><span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
+    </span><span class="kw">pub fn </span>only_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
+        <a href="../../../src/mio/sys/unix/udp.rs.html#26">sys::udp::only_v6</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/net/udp.rs.html#543">self</a>.inner)
     }
 
-    <span class="doccomment">/// Get the value of the `SO_ERROR` option on this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will retrieve the stored error in the underlying socket, clearing</span>
-    <span class="doccomment">/// the field in the process. This can be useful for checking errors between</span>
-    <span class="doccomment">/// calls.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#552">self</a>.<span class="ident">inner</span>.<span class="ident">take_error</span>()
+    <span class="doccomment">/// Get the value of the `SO_ERROR` option on this socket.
+    ///
+    /// This will retrieve the stored error in the underlying socket, clearing
+    /// the field in the process. This can be useful for checking errors between
+    /// calls.
+    </span><span class="kw">pub fn </span>take_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#552">self</a>.inner.take_error()
     }
 
-    <span class="doccomment">/// Execute an I/O operation ensuring that the socket receives more events</span>
-    <span class="doccomment">/// if it hits a [`WouldBlock`] error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is required to be called for **all** I/O operations to</span>
-    <span class="doccomment">/// ensure the user will receive events once the socket is ready again after</span>
-    <span class="doccomment">/// returning a [`WouldBlock`] error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`WouldBlock`]: io::ErrorKind::WouldBlock</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">unix</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```no_run&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">/// #[cfg(unix)]</span>
-    <span class="doccomment">/// use std::os::unix::io::AsRawFd;</span>
-    <span class="doccomment">/// #[cfg(windows)]</span>
-    <span class="doccomment">/// use std::os::windows::io::AsRawSocket;</span>
-    <span class="doccomment">/// use mio::net::UdpSocket;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let address = &quot;127.0.0.1:8080&quot;.parse().unwrap();</span>
-    <span class="doccomment">/// let dgram = UdpSocket::bind(address)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Wait until the dgram is readable...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Read from the dgram using a direct libc call, of course the</span>
-    <span class="doccomment">/// // `io::Read` implementation would be easier to use.</span>
-    <span class="doccomment">/// let mut buf = [0; 512];</span>
-    <span class="doccomment">/// let n = dgram.try_io(|| {</span>
-    <span class="doccomment">///     let buf_ptr = &amp;mut buf as *mut _ as *mut _;</span>
-    <span class="doccomment">///     #[cfg(unix)]</span>
-    <span class="doccomment">///     let res = unsafe { libc::recv(dgram.as_raw_fd(), buf_ptr, buf.len(), 0) };</span>
-    <span class="doccomment">///     #[cfg(windows)]</span>
-    <span class="doccomment">///     let res = unsafe { libc::recvfrom(dgram.as_raw_socket() as usize, buf_ptr, buf.len() as i32, 0, std::ptr::null_mut(), std::ptr::null_mut()) };</span>
-    <span class="doccomment">///     if res != -1 {</span>
-    <span class="doccomment">///         Ok(res as usize)</span>
-    <span class="doccomment">///     } else {</span>
-    <span class="doccomment">///         // If EAGAIN or EWOULDBLOCK is set by libc::recv, the closure</span>
-    <span class="doccomment">///         // should return `WouldBlock` error.</span>
-    <span class="doccomment">///         Err(io::Error::last_os_error())</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// })?;</span>
-    <span class="doccomment">/// eprintln!(&quot;read {} bytes&quot;, n);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_io</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Execute an I/O operation ensuring that the socket receives more events
+    /// if it hits a [`WouldBlock`] error.
+    ///
+    /// # Notes
+    ///
+    /// This method is required to be called for **all** I/O operations to
+    /// ensure the user will receive events once the socket is ready again after
+    /// returning a [`WouldBlock`] error.
+    ///
+    /// [`WouldBlock`]: io::ErrorKind::WouldBlock
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(unix, doc = <span class="string">&quot;```no_run&quot;</span>)]
+    #[cfg_attr(windows, doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// #
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use std::io;
+    /// #[cfg(unix)]
+    /// use std::os::unix::io::AsRawFd;
+    /// #[cfg(windows)]
+    /// use std::os::windows::io::AsRawSocket;
+    /// use mio::net::UdpSocket;
+    ///
+    /// let address = &quot;127.0.0.1:8080&quot;.parse().unwrap();
+    /// let dgram = UdpSocket::bind(address)?;
+    ///
+    /// // Wait until the dgram is readable...
+    ///
+    /// // Read from the dgram using a direct libc call, of course the
+    /// // `io::Read` implementation would be easier to use.
+    /// let mut buf = [0; 512];
+    /// let n = dgram.try_io(|| {
+    ///     let buf_ptr = &amp;mut buf as *mut _ as *mut _;
+    ///     #[cfg(unix)]
+    ///     let res = unsafe { libc::recv(dgram.as_raw_fd(), buf_ptr, buf.len(), 0) };
+    ///     #[cfg(windows)]
+    ///     let res = unsafe { libc::recvfrom(dgram.as_raw_socket() as usize, buf_ptr, buf.len() as i32, 0, std::ptr::null_mut(), std::ptr::null_mut()) };
+    ///     if res != -1 {
+    ///         Ok(res as usize)
+    ///     } else {
+    ///         // If EAGAIN or EWOULDBLOCK is set by libc::recv, the closure
+    ///         // should return `WouldBlock` error.
+    ///         Err(io::Error::last_os_error())
+    ///     }
+    /// })?;
+    /// eprintln!(&quot;read {} bytes&quot;, n);
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>try_io&lt;F, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; io::Result&lt;T&gt;
+    <span class="kw">where
+        </span>F: FnOnce() -&gt; io::Result&lt;T&gt;,
     {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#607">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#607">f</a>())
+        <a class="self" href="../../../src/mio/net/udp.rs.html#607">self</a>.inner.<a href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(|<span class="kw">_</span>| <a href="../../../src/mio/net/udp.rs.html#607">f</a>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/mio/event/source.rs.html#75">event::Source</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-    <span class="kw">fn</span> <span class="ident">register</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/mio/poll.rs.html#254">Registry</a>,
-        <span class="ident">token</span>: <a class="ident" href="../../../src/mio/token.rs.html#132">Token</a>,
-        <span class="ident">interests</span>: <a class="ident" href="../../../src/mio/interest.rs.html#17">Interest</a>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#617">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#83-88">register</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#618">registry</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#619">token</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#620">interests</a>)
+<span class="kw">impl </span><a href="../../../src/mio/event/source.rs.html#75">event::Source</a> <span class="kw">for </span><a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+    <span class="kw">fn </span>register(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        registry: <span class="kw-2">&amp;</span><a href="../../../src/mio/poll.rs.html#254">Registry</a>,
+        token: <a href="../../../src/mio/token.rs.html#132">Token</a>,
+        interests: <a href="../../../src/mio/interest.rs.html#17">Interest</a>,
+    ) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#617">self</a>.inner.<a href="../../../src/mio/event/source.rs.html#83-88">register</a>(<a href="../../../src/mio/net/udp.rs.html#618">registry</a>, <a href="../../../src/mio/net/udp.rs.html#619">token</a>, <a href="../../../src/mio/net/udp.rs.html#620">interests</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">reregister</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/mio/poll.rs.html#254">Registry</a>,
-        <span class="ident">token</span>: <a class="ident" href="../../../src/mio/token.rs.html#132">Token</a>,
-        <span class="ident">interests</span>: <a class="ident" href="../../../src/mio/interest.rs.html#17">Interest</a>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#626">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#627">registry</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#628">token</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#629">interests</a>)
+    <span class="kw">fn </span>reregister(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        registry: <span class="kw-2">&amp;</span><a href="../../../src/mio/poll.rs.html#254">Registry</a>,
+        token: <a href="../../../src/mio/token.rs.html#132">Token</a>,
+        interests: <a href="../../../src/mio/interest.rs.html#17">Interest</a>,
+    ) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#626">self</a>.inner.<a href="../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a href="../../../src/mio/net/udp.rs.html#627">registry</a>, <a href="../../../src/mio/net/udp.rs.html#628">token</a>, <a href="../../../src/mio/net/udp.rs.html#629">interests</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/mio/poll.rs.html#254">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#634">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#111">deregister</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#634">registry</a>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#640">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#640">f</a>)
+    <span class="kw">fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span><a href="../../../src/mio/poll.rs.html#254">Registry</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#634">self</a>.inner.<a href="../../../src/mio/event/source.rs.html#111">deregister</a>(<a href="../../../src/mio/net/udp.rs.html#634">registry</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-    <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#647">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#105">into_inner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#640">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../src/mio/net/udp.rs.html#640">f</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#654">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+    <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#647">self</a>.inner.<a href="../../../src/mio/io_source.rs.html#105">into_inner</a>().<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-    <span class="doccomment">/// Converts a `RawFd` to a `UdpSocket`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller is responsible for ensuring that the socket is in</span>
-    <span class="doccomment">/// non-blocking mode.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a class="ident" href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
-        <span class="ident">UdpSocket::from_std</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#667">fd</a>))
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../src/mio/net/udp.rs.html#654">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">IntoRawSocket</span> <span class="kw">for</span> <span class="ident">UdpSocket</span> {
-    <span class="kw">fn</span> <span class="ident">into_raw_socket</span>(<span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_inner</span>().<span class="ident">into_raw_socket</span>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+    <span class="doccomment">/// Converts a `RawFd` to a `UdpSocket`.
+    ///
+    /// # Notes
+    ///
+    /// The caller is responsible for ensuring that the socket is in
+    /// non-blocking mode.
+    </span><span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a href="../../../src/mio/net/udp.rs.html#91">UdpSocket</a> {
+        UdpSocket::from_std(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a href="../../../src/mio/net/udp.rs.html#667">fd</a>))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">AsRawSocket</span> <span class="kw">for</span> <span class="ident">UdpSocket</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_socket</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_socket</span>()
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">impl </span>IntoRawSocket <span class="kw">for </span>UdpSocket {
+    <span class="kw">fn </span>into_raw_socket(<span class="self">self</span>) -&gt; RawSocket {
+        <span class="self">self</span>.inner.into_inner().into_raw_socket()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">FromRawSocket</span> <span class="kw">for</span> <span class="ident">UdpSocket</span> {
-    <span class="doccomment">/// Converts a `RawSocket` to a `UdpSocket`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller is responsible for ensuring that the socket is in</span>
-    <span class="doccomment">/// non-blocking mode.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_socket</span>(<span class="ident">socket</span>: <span class="ident">RawSocket</span>) -&gt; <span class="ident">UdpSocket</span> {
-        <span class="ident">UdpSocket::from_std</span>(<span class="ident">FromRawSocket::from_raw_socket</span>(<span class="ident">socket</span>))
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">impl </span>AsRawSocket <span class="kw">for </span>UdpSocket {
+    <span class="kw">fn </span>as_raw_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawSocket {
+        <span class="self">self</span>.inner.as_raw_socket()
+    }
+}
+
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">impl </span>FromRawSocket <span class="kw">for </span>UdpSocket {
+    <span class="doccomment">/// Converts a `RawSocket` to a `UdpSocket`.
+    ///
+    /// # Notes
+    ///
+    /// The caller is responsible for ensuring that the socket is in
+    /// non-blocking mode.
+    </span><span class="kw">unsafe fn </span>from_raw_socket(socket: RawSocket) -&gt; UdpSocket {
+        UdpSocket::from_std(FromRawSocket::from_raw_socket(socket))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/ssl/connector.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connector.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/ssl/connector.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connector.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -598,21 +598,21 @@
 <span id="598">598</span>
 <span id="599">599</span>
 <span id="600">600</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
-<span class="kw">use</span> <span class="ident">std::ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/dh.rs.html#12-19"><span class="kw">crate</span>::dh::Dh</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl340</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#597"><span class="kw">crate</span>::ssl::SslVersion</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ssl</span>::{
-    <a class="ident" href="../../../src/openssl/ssl/error.rs.html#138">HandshakeError</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">Ssl</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#262-309">SslMode</a>,
-    <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#142-260">SslOptions</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#3072">SslStream</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#359-379">SslVerifyMode</a>,
+<span class="kw">use </span><a href="../../../src/openssl/dh.rs.html#12-19"><span class="kw">crate</span>::dh::Dh</a>;
+<span class="kw">use </span><a href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="attribute">#[cfg(any(ossl111, libressl340))]
+</span><span class="kw">use </span><a href="../../../src/openssl/ssl/mod.rs.html#597"><span class="kw">crate</span>::ssl::SslVersion</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ssl::{
+    <a href="../../../src/openssl/ssl/error.rs.html#138">HandshakeError</a>, <a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">Ssl</a>, <a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a>, <a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>, <a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a>, <a href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>, <a href="../../../src/openssl/ssl/mod.rs.html#262-309">SslMode</a>,
+    <a href="../../../src/openssl/ssl/mod.rs.html#142-260">SslOptions</a>, <a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a href="../../../src/openssl/ssl/mod.rs.html#3072">SslStream</a>, <a href="../../../src/openssl/ssl/mod.rs.html#359-379">SslVerifyMode</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/lib.rs.html#181"><span class="kw">crate</span>::version</a>;
+<span class="kw">use </span><a href="../../../src/openssl/lib.rs.html#181"><span class="kw">crate</span>::version</a>;
 
-<span class="kw">const</span> <span class="ident">FFDHE_2048</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;
+<span class="kw">const </span>FFDHE_2048: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;
 -----BEGIN DH PARAMETERS-----
 MIIBCAKCAQEA//////////+t+FRYortKmq/cViAnPTzx2LnFg84tNpWp4TZBFGQz
 +8yTnc4kmz75fS/jY2MMddj2gbICrsRhetPfHtXV/WVhJDP1H18GbtCFY2VVPe0a
@@ -623,262 +623,262 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
 -----END DH PARAMETERS-----
 &quot;</span>;
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::inconsistent_digit_grouping</span>, <span class="ident">clippy::unusual_byte_groupings</span>)]</span>
-<span class="kw">fn</span> <span class="ident">ctx</span>(<span class="ident">method</span>: <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">SslContextBuilder::new</span>(<span class="ident">method</span>)<span class="question-mark">?</span>;
+<span class="attribute">#[allow(clippy::inconsistent_digit_grouping, clippy::unusual_byte_groupings)]
+</span><span class="kw">fn </span>ctx(method: <a href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>ctx = SslContextBuilder::new(method)<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">SslOptions::ALL</span>
-        <span class="op">|</span> <span class="ident">SslOptions::NO_COMPRESSION</span>
-        <span class="op">|</span> <span class="ident">SslOptions::NO_SSLV2</span>
-        <span class="op">|</span> <span class="ident">SslOptions::NO_SSLV3</span>
-        <span class="op">|</span> <span class="ident">SslOptions::SINGLE_DH_USE</span>
-        <span class="op">|</span> <span class="ident">SslOptions::SINGLE_ECDH_USE</span>;
-    <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#30">opts</a> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">SslOptions::DONT_INSERT_EMPTY_FRAGMENTS</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>opts = SslOptions::ALL
+        | SslOptions::NO_COMPRESSION
+        | SslOptions::NO_SSLV2
+        | SslOptions::NO_SSLV3
+        | SslOptions::SINGLE_DH_USE
+        | SslOptions::SINGLE_ECDH_USE;
+    <a href="../../../src/openssl/ssl/connector.rs.html#30">opts</a> &amp;= !SslOptions::DONT_INSERT_EMPTY_FRAGMENTS;
 
-    <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#28">ctx</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#30">opts</a>);
+    <a href="../../../src/openssl/ssl/connector.rs.html#28">ctx</a>.<a href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(<a href="../../../src/openssl/ssl/connector.rs.html#30">opts</a>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mode</span> <span class="op">=</span>
-        <span class="ident">SslMode::AUTO_RETRY</span> <span class="op">|</span> <span class="ident">SslMode::ACCEPT_MOVING_WRITE_BUFFER</span> <span class="op">|</span> <span class="ident">SslMode::ENABLE_PARTIAL_WRITE</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>mode =
+        SslMode::AUTO_RETRY | SslMode::ACCEPT_MOVING_WRITE_BUFFER | SslMode::ENABLE_PARTIAL_WRITE;
 
-    <span class="comment">// This is quite a useful optimization for saving memory, but historically</span>
-    <span class="comment">// caused CVEs in OpenSSL pre-1.0.1h, according to</span>
-    <span class="comment">// https://bugs.python.org/issue25672</span>
-    <span class="kw">if</span> <span class="ident">version::number</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x1_00_01_08_0</span> {
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#40">mode</a> <span class="op">|</span><span class="op">=</span> <span class="ident">SslMode::RELEASE_BUFFERS</span>;
+    <span class="comment">// This is quite a useful optimization for saving memory, but historically
+    // caused CVEs in OpenSSL pre-1.0.1h, according to
+    // https://bugs.python.org/issue25672
+    </span><span class="kw">if </span>version::number() &gt;= <span class="number">0x1_00_01_08_0 </span>{
+        <a href="../../../src/openssl/ssl/connector.rs.html#40">mode</a> |= SslMode::RELEASE_BUFFERS;
     }
 
-    <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#28">ctx</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#782">set_mode</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#40">mode</a>);
+    <a href="../../../src/openssl/ssl/connector.rs.html#28">ctx</a>.<a href="../../../src/openssl/ssl/mod.rs.html#782">set_mode</a>(<a href="../../../src/openssl/ssl/connector.rs.html#40">mode</a>);
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#28">ctx</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../src/openssl/ssl/connector.rs.html#28">ctx</a>)
 }
 
-<span class="doccomment">/// A type which wraps client-side streams in a TLS session.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// OpenSSL&#39;s default configuration is highly insecure. This connector manages the OpenSSL</span>
-<span class="doccomment">/// structures, configuring cipher suites, session options, hostname verification, and more.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// OpenSSL&#39;s built-in hostname verification is used when linking against OpenSSL 1.0.2 or 1.1.0,</span>
-<span class="doccomment">/// and a custom implementation is used when linking against OpenSSL 1.0.1.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SslConnector</span>(<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a>);
+<span class="doccomment">/// A type which wraps client-side streams in a TLS session.
+///
+/// OpenSSL&#39;s default configuration is highly insecure. This connector manages the OpenSSL
+/// structures, configuring cipher suites, session options, hostname verification, and more.
+///
+/// OpenSSL&#39;s built-in hostname verification is used when linking against OpenSSL 1.0.2 or 1.1.0,
+/// and a custom implementation is used when linking against OpenSSL 1.0.1.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>SslConnector(<a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#63">SslConnector</a> {
-    <span class="doccomment">/// Creates a new builder for TLS connections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default configuration is subject to change, and is currently derived from Python.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>(<span class="ident">method</span>: <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>(<span class="ident">method</span>)<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_default_verify_paths</span>()<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_cipher_list</span>(
+<span class="kw">impl </span><a href="../../../src/openssl/ssl/connector.rs.html#63">SslConnector</a> {
+    <span class="doccomment">/// Creates a new builder for TLS connections.
+    ///
+    /// The default configuration is subject to change, and is currently derived from Python.
+    </span><span class="kw">pub fn </span>builder(method: <a href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
+        ctx.set_default_verify_paths()<span class="question-mark">?</span>;
+        ctx.set_cipher_list(
             <span class="string">&quot;DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK&quot;</span>,
         )<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#384">setup_verify</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#70">ctx</a>);
+        <a href="../../../src/openssl/ssl/connector.rs.html#384">setup_verify</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/connector.rs.html#70">ctx</a>);
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#70">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a>(<a href="../../../src/openssl/ssl/connector.rs.html#70">ctx</a>))
     }
 
-    <span class="doccomment">/// Initiates a client-side TLS session on a stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The domain is used for SNI and hostname verification.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">stream</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SslStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    <span class="doccomment">/// Initiates a client-side TLS session on a stream.
+    ///
+    /// The domain is used for SNI and hostname verification.
+    </span><span class="kw">pub fn </span>connect&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, stream: S) -&gt; <span class="prelude-ty">Result</span>&lt;SslStream&lt;S&gt;, HandshakeError&lt;S&gt;&gt;
+    <span class="kw">where
+        </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
-        <span class="self">self</span>.<span class="ident">configure</span>()<span class="question-mark">?</span>.<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#192-194">connect</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#83">domain</a>, <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#83">stream</a>)
+        <span class="self">self</span>.configure()<span class="question-mark">?</span>.<a href="../../../src/openssl/ssl/connector.rs.html#192-194">connect</a>(<a href="../../../src/openssl/ssl/connector.rs.html#83">domain</a>, <a href="../../../src/openssl/ssl/connector.rs.html#83">stream</a>)
     }
 
-    <span class="doccomment">/// Returns a structure allowing for configuration of a single TLS session before connection.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configure</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="ident">Ssl::new</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#91">self</a>.<span class="number">0</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">ssl</span><span class="op">|</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
-            <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#92">ssl</a>,
-            <span class="ident">sni</span>: <span class="bool-val">true</span>,
-            <span class="ident">verify_hostname</span>: <span class="bool-val">true</span>,
+    <span class="doccomment">/// Returns a structure allowing for configuration of a single TLS session before connection.
+    </span><span class="kw">pub fn </span>configure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        Ssl::new(<span class="kw-2">&amp;</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#91">self</a>.<span class="number">0</span>).map(|ssl| <a href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
+            <a href="../../../src/openssl/ssl/connector.rs.html#92">ssl</a>,
+            sni: <span class="bool-val">true</span>,
+            verify_hostname: <span class="bool-val">true</span>,
         })
     }
 
-    <span class="doccomment">/// Consumes the `SslConnector`, returning the inner raw `SslContext`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_context</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a> {
-        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#100">self</a>.<span class="number">0</span>
-    }
+    <span class="doccomment">/// Consumes the `SslConnector`, returning the inner raw `SslContext`.
+    </span><span class="kw">pub fn </span>into_context(<span class="self">self</span>) -&gt; <a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a> {
+        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#100">self</a>.<span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns a shared reference to the inner raw `SslContext`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a> {
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#105">self</a>.<span class="number">0</span>
+    <span class="doccomment">/// Returns a shared reference to the inner raw `SslContext`.
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a> {
+        <span class="kw-2">&amp;*</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#105">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="doccomment">/// A builder for `SslConnector`s.
+</span><span class="kw">pub struct </span>SslConnectorBuilder(<a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>);
+
+<span class="kw">impl </span><a href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a> {
+    <span class="doccomment">/// Consumes the builder, returning an `SslConnector`.
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="../../../src/openssl/ssl/connector.rs.html#63">SslConnector</a> {
+        <a href="../../../src/openssl/ssl/connector.rs.html#63">SslConnector</a>(<a class="self" href="../../../src/openssl/ssl/connector.rs.html#115">self</a>.<span class="number">0</span>.<a href="../../../src/openssl/ssl/mod.rs.html#1635">build</a>())
     }
 }
 
-<span class="doccomment">/// A builder for `SslConnector`s.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SslConnectorBuilder</span>(<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>);
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a> {
+    <span class="kw">type </span>Target = <a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a> {
-    <span class="doccomment">/// Consumes the builder, returning an `SslConnector`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#63">SslConnector</a> {
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#63">SslConnector</a>(<a class="self" href="../../../src/openssl/ssl/connector.rs.html#115">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1635">build</a>())
-    }
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#123">self</a>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>;
-
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#123">self</a>.<span class="number">0</span>
-    }
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a> {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#129">self</a>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#111">SslConnectorBuilder</a> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/openssl/ssl/connector.rs.html#129">self</a>.<span class="number">0</span>
-    }
+<span class="doccomment">/// A type which allows for configuration of a client-side TLS session before connection.
+</span><span class="kw">pub struct </span>ConnectConfiguration {
+    ssl: <a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">Ssl</a>,
+    sni: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    verify_hostname: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="doccomment">/// A type which allows for configuration of a client-side TLS session before connection.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConnectConfiguration</span> {
-    <span class="ident">ssl</span>: <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">Ssl</a>,
-    <span class="ident">sni</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">verify_hostname</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-}
+<span class="kw">impl </span><a href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
+    <span class="doccomment">/// A builder-style version of `set_use_server_name_indication`.
+    </span><span class="kw">pub fn </span>use_server_name_indication(<span class="kw-2">mut </span><span class="self">self</span>, use_sni: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
+        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#143">self</a>.<a href="../../../src/openssl/ssl/connector.rs.html#151">set_use_server_name_indication</a>(<a href="../../../src/openssl/ssl/connector.rs.html#143">use_sni</a>);
+        <span class="self"><a href="../../../src/openssl/ssl/connector.rs.html#143">self</a>
+    </span>}
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
-    <span class="doccomment">/// A builder-style version of `set_use_server_name_indication`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_server_name_indication</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">use_sni</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
-        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#143">self</a>.<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#151">set_use_server_name_indication</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#143">use_sni</a>);
-        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#143">self</a>
+    <span class="doccomment">/// Configures the use of Server Name Indication (SNI) when connecting.
+    ///
+    /// Defaults to `true`.
+    </span><span class="kw">pub fn </span>set_use_server_name_indication(<span class="kw-2">&amp;mut </span><span class="self">self</span>, use_sni: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#151">self</a>.sni = <a href="../../../src/openssl/ssl/connector.rs.html#151">use_sni</a>;
     }
 
-    <span class="doccomment">/// Configures the use of Server Name Indication (SNI) when connecting.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_use_server_name_indication</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">use_sni</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#151">self</a>.<span class="ident">sni</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#151">use_sni</a>;
+    <span class="doccomment">/// A builder-style version of `set_verify_hostname`.
+    </span><span class="kw">pub fn </span>verify_hostname(<span class="kw-2">mut </span><span class="self">self</span>, verify_hostname: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
+        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#156">self</a>.<a href="../../../src/openssl/ssl/connector.rs.html#170">set_verify_hostname</a>(<a href="../../../src/openssl/ssl/connector.rs.html#156">verify_hostname</a>);
+        <span class="self"><a href="../../../src/openssl/ssl/connector.rs.html#156">self</a>
+    </span>}
+
+    <span class="doccomment">/// Configures the use of hostname verification when connecting.
+    ///
+    /// Defaults to `true`.
+    ///
+    /// # Warning
+    ///
+    /// You should think very carefully before you use this method. If hostname verification is not
+    /// used, *any* valid certificate for *any* site will be trusted for use from any other. This
+    /// introduces a significant vulnerability to man-in-the-middle attacks.
+    </span><span class="kw">pub fn </span>set_verify_hostname(<span class="kw-2">&amp;mut </span><span class="self">self</span>, verify_hostname: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#170">self</a>.verify_hostname = <a href="../../../src/openssl/ssl/connector.rs.html#170">verify_hostname</a>;
     }
 
-    <span class="doccomment">/// A builder-style version of `set_verify_hostname`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_hostname</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">verify_hostname</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
-        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#156">self</a>.<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#170">set_verify_hostname</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#156">verify_hostname</a>);
-        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#156">self</a>
-    }
-
-    <span class="doccomment">/// Configures the use of hostname verification when connecting.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to `true`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Warning</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You should think very carefully before you use this method. If hostname verification is not</span>
-    <span class="doccomment">/// used, *any* valid certificate for *any* site will be trusted for use from any other. This</span>
-    <span class="doccomment">/// introduces a significant vulnerability to man-in-the-middle attacks.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_verify_hostname</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">verify_hostname</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#170">self</a>.<span class="ident">verify_hostname</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#170">verify_hostname</a>;
-    }
-
-    <span class="doccomment">/// Returns an `Ssl` configured to connect to the provided domain.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The domain is used for SNI and hostname verification if enabled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_ssl</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">Ssl</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sni</span> {
-            <span class="self">self</span>.<span class="ident">ssl</span>.<span class="ident">set_hostname</span>(<span class="ident">domain</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Returns an `Ssl` configured to connect to the provided domain.
+    ///
+    /// The domain is used for SNI and hostname verification if enabled.
+    </span><span class="kw">pub fn </span>into_ssl(<span class="kw-2">mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">Ssl</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.sni {
+            <span class="self">self</span>.ssl.set_hostname(domain)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">verify_hostname</span> {
-            <span class="ident">setup_verify_hostname</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">ssl</span>, <span class="ident">domain</span>)<span class="question-mark">?</span>;
+        <span class="kw">if </span><span class="self">self</span>.verify_hostname {
+            setup_verify_hostname(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ssl, domain)<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/openssl/ssl/connector.rs.html#177">self</a>.<span class="ident">ssl</span>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/openssl/ssl/connector.rs.html#177">self</a>.ssl)
     }
 
-    <span class="doccomment">/// Initiates a client-side TLS session on a stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The domain is used for SNI and hostname verification if enabled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">stream</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SslStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    <span class="doccomment">/// Initiates a client-side TLS session on a stream.
+    ///
+    /// The domain is used for SNI and hostname verification if enabled.
+    </span><span class="kw">pub fn </span>connect&lt;S&gt;(<span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, stream: S) -&gt; <span class="prelude-ty">Result</span>&lt;SslStream&lt;S&gt;, HandshakeError&lt;S&gt;&gt;
+    <span class="kw">where
+        </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
-        <span class="self">self</span>.<span class="ident">into_ssl</span>(<span class="ident">domain</span>)<span class="question-mark">?</span>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2166-2168">connect</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#192">stream</a>)
+        <span class="self">self</span>.into_ssl(domain)<span class="question-mark">?</span>.<a href="../../../src/openssl/ssl/mod.rs.html#2166-2168">connect</a>(<a href="../../../src/openssl/ssl/connector.rs.html#192">stream</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
+    <span class="kw">type </span>Target = <a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#203">self</a>.<span class="ident">ssl</span>
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#203">self</a>.ssl
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/openssl/ssl/connector.rs.html#209">self</a>.<span class="ident">ssl</span>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/connector.rs.html#135">ConnectConfiguration</a> {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#209">self</a>.ssl
     }
 }
 
-<span class="doccomment">/// A type which wraps server-side streams in a TLS session.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// OpenSSL&#39;s default configuration is highly insecure. This connector manages the OpenSSL</span>
-<span class="doccomment">/// structures, configuring cipher suites, session options, and more.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SslAcceptor</span>(<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a>);
+<span class="doccomment">/// A type which wraps server-side streams in a TLS session.
+///
+/// OpenSSL&#39;s default configuration is highly insecure. This connector manages the OpenSSL
+/// structures, configuring cipher suites, session options, and more.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>SslAcceptor(<a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#219">SslAcceptor</a> {
-    <span class="doccomment">/// Creates a new builder configured to connect to non-legacy clients. This should generally be</span>
-    <span class="doccomment">/// considered a reasonable default choice.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to the intermediate configuration of version 5 of Mozilla&#39;s server side TLS</span>
-    <span class="doccomment">/// recommendations. See its [documentation][docs] for more details on specifics.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mozilla_intermediate_v5</span>(<span class="ident">method</span>: <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>(<span class="ident">method</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#230">ctx</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(<span class="ident">SslOptions::NO_TLSV1</span> <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1_1</span>);
-        <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">Dh::params_from_pem</span>(<span class="ident">FFDHE_2048</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_tmp_dh</span>(<span class="kw-2">&amp;</span><span class="ident">dh</span>)<span class="question-mark">?</span>;
-        <span class="ident">setup_curves</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ctx</span>)<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_cipher_list</span>(
+<span class="kw">impl </span><a href="../../../src/openssl/ssl/connector.rs.html#219">SslAcceptor</a> {
+    <span class="doccomment">/// Creates a new builder configured to connect to non-legacy clients. This should generally be
+    /// considered a reasonable default choice.
+    ///
+    /// This corresponds to the intermediate configuration of version 5 of Mozilla&#39;s server side TLS
+    /// recommendations. See its [documentation][docs] for more details on specifics.
+    ///
+    /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
+    </span><span class="kw">pub fn </span>mozilla_intermediate_v5(method: <a href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
+        <a href="../../../src/openssl/ssl/connector.rs.html#230">ctx</a>.<a href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(SslOptions::NO_TLSV1 | SslOptions::NO_TLSV1_1);
+        <span class="kw">let </span>dh = Dh::params_from_pem(FFDHE_2048.as_bytes())<span class="question-mark">?</span>;
+        ctx.set_tmp_dh(<span class="kw-2">&amp;</span>dh)<span class="question-mark">?</span>;
+        setup_curves(<span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>;
+        ctx.set_cipher_list(
             <span class="string">&quot;ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:\
              ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:\
-             DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384&quot;</span>
-        )<span class="question-mark">?</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl340</span>))]</span>
-        <span class="ident">ctx</span>.<span class="ident">set_ciphersuites</span>(
+             DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384&quot;
+        </span>)<span class="question-mark">?</span>;
+        <span class="attribute">#[cfg(any(ossl111, libressl340))]
+        </span>ctx.set_ciphersuites(
             <span class="string">&quot;TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#230">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>(<a href="../../../src/openssl/ssl/connector.rs.html#230">ctx</a>))
     }
 
-    <span class="doccomment">/// Creates a new builder configured to connect to modern clients.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to the modern configuration of version 5 of Mozilla&#39;s server side TLS recommendations.</span>
-    <span class="doccomment">/// See its [documentation][docs] for more details on specifics.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl340</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mozilla_modern_v5</span>(<span class="ident">method</span>: <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>(<span class="ident">method</span>)<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_min_proto_version</span>(<span class="prelude-val">Some</span>(<span class="ident">SslVersion::TLS1_3</span>))<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_ciphersuites</span>(
+    <span class="doccomment">/// Creates a new builder configured to connect to modern clients.
+    ///
+    /// This corresponds to the modern configuration of version 5 of Mozilla&#39;s server side TLS recommendations.
+    /// See its [documentation][docs] for more details on specifics.
+    ///
+    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
+    ///
+    /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
+    </span><span class="attribute">#[cfg(any(ossl111, libressl340))]
+    </span><span class="kw">pub fn </span>mozilla_modern_v5(method: <a href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
+        ctx.set_min_proto_version(<span class="prelude-val">Some</span>(SslVersion::TLS1_3))<span class="question-mark">?</span>;
+        ctx.set_ciphersuites(
             <span class="string">&quot;TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#257">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>(<a href="../../../src/openssl/ssl/connector.rs.html#257">ctx</a>))
     }
 
-    <span class="doccomment">/// Creates a new builder configured to connect to non-legacy clients. This should generally be</span>
-    <span class="doccomment">/// considered a reasonable default choice.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to the intermediate configuration of version 4 of Mozilla&#39;s server side TLS</span>
-    <span class="doccomment">/// recommendations. See its [documentation][docs] for more details on specifics.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS</span>
-    <span class="comment">// FIXME remove in next major version</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mozilla_intermediate</span>(<span class="ident">method</span>: <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>(<span class="ident">method</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#274">ctx</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(<span class="ident">SslOptions::CIPHER_SERVER_PREFERENCE</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl340</span>))]</span>
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#274">ctx</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(<span class="ident">SslOptions::NO_TLSV1_3</span>);
-        <span class="kw">let</span> <span class="ident">dh</span> <span class="op">=</span> <span class="ident">Dh::params_from_pem</span>(<span class="ident">FFDHE_2048</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_tmp_dh</span>(<span class="kw-2">&amp;</span><span class="ident">dh</span>)<span class="question-mark">?</span>;
-        <span class="ident">setup_curves</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ctx</span>)<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_cipher_list</span>(
+    <span class="doccomment">/// Creates a new builder configured to connect to non-legacy clients. This should generally be
+    /// considered a reasonable default choice.
+    ///
+    /// This corresponds to the intermediate configuration of version 4 of Mozilla&#39;s server side TLS
+    /// recommendations. See its [documentation][docs] for more details on specifics.
+    ///
+    /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
+    </span><span class="comment">// FIXME remove in next major version
+    </span><span class="kw">pub fn </span>mozilla_intermediate(method: <a href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
+        <a href="../../../src/openssl/ssl/connector.rs.html#274">ctx</a>.<a href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(SslOptions::CIPHER_SERVER_PREFERENCE);
+        <span class="attribute">#[cfg(any(ossl111, libressl340))]
+        </span><a href="../../../src/openssl/ssl/connector.rs.html#274">ctx</a>.<a href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(SslOptions::NO_TLSV1_3);
+        <span class="kw">let </span>dh = Dh::params_from_pem(FFDHE_2048.as_bytes())<span class="question-mark">?</span>;
+        ctx.set_tmp_dh(<span class="kw-2">&amp;</span>dh)<span class="question-mark">?</span>;
+        setup_curves(<span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>;
+        ctx.set_cipher_list(
             <span class="string">&quot;ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:\
              ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:\
              DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:\
@@ -888,315 +888,315 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
              EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:\
              AES256-SHA:DES-CBC3-SHA:!DSS&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#274">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>(<a href="../../../src/openssl/ssl/connector.rs.html#274">ctx</a>))
     }
 
-    <span class="doccomment">/// Creates a new builder configured to connect to modern clients.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to the modern configuration of version 4 of Mozilla&#39;s server side TLS recommendations.</span>
-    <span class="doccomment">/// See its [documentation][docs] for more details on specifics.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS</span>
-    <span class="comment">// FIXME remove in next major version</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mozilla_modern</span>(<span class="ident">method</span>: <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>(<span class="ident">method</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#302">ctx</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(
-            <span class="ident">SslOptions::CIPHER_SERVER_PREFERENCE</span> <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1</span> <span class="op">|</span> <span class="ident">SslOptions::NO_TLSV1_1</span>,
+    <span class="doccomment">/// Creates a new builder configured to connect to modern clients.
+    ///
+    /// This corresponds to the modern configuration of version 4 of Mozilla&#39;s server side TLS recommendations.
+    /// See its [documentation][docs] for more details on specifics.
+    ///
+    /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
+    </span><span class="comment">// FIXME remove in next major version
+    </span><span class="kw">pub fn </span>mozilla_modern(method: <a href="../../../src/openssl/ssl/mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
+        <a href="../../../src/openssl/ssl/connector.rs.html#302">ctx</a>.<a href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(
+            SslOptions::CIPHER_SERVER_PREFERENCE | SslOptions::NO_TLSV1 | SslOptions::NO_TLSV1_1,
         );
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl340</span>))]</span>
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#302">ctx</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(<span class="ident">SslOptions::NO_TLSV1_3</span>);
-        <span class="ident">setup_curves</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ctx</span>)<span class="question-mark">?</span>;
-        <span class="ident">ctx</span>.<span class="ident">set_cipher_list</span>(
+        <span class="attribute">#[cfg(any(ossl111, libressl340))]
+        </span><a href="../../../src/openssl/ssl/connector.rs.html#302">ctx</a>.<a href="../../../src/openssl/ssl/mod.rs.html#1050">set_options</a>(SslOptions::NO_TLSV1_3);
+        setup_curves(<span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>;
+        ctx.set_cipher_list(
             <span class="string">&quot;ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:\
              ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:\
              ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#302">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a>(<a href="../../../src/openssl/ssl/connector.rs.html#302">ctx</a>))
     }
 
-    <span class="doccomment">/// Initiates a server-side TLS session on a stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stream</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SslStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    <span class="doccomment">/// Initiates a server-side TLS session on a stream.
+    </span><span class="kw">pub fn </span>accept&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, stream: S) -&gt; <span class="prelude-ty">Result</span>&lt;SslStream&lt;S&gt;, HandshakeError&lt;S&gt;&gt;
+    <span class="kw">where
+        </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">Ssl::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#322">ssl</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2185-2187">accept</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#318">stream</a>)
+        <span class="kw">let </span>ssl = Ssl::new(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
+        <a href="../../../src/openssl/ssl/connector.rs.html#322">ssl</a>.<a href="../../../src/openssl/ssl/mod.rs.html#2185-2187">accept</a>(<a href="../../../src/openssl/ssl/connector.rs.html#318">stream</a>)
     }
 
-    <span class="doccomment">/// Consumes the `SslAcceptor`, returning the inner raw `SslContext`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_context</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a> {
-        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#327">self</a>.<span class="number">0</span>
-    }
+    <span class="doccomment">/// Consumes the `SslAcceptor`, returning the inner raw `SslContext`.
+    </span><span class="kw">pub fn </span>into_context(<span class="self">self</span>) -&gt; <a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a> {
+        <a class="self" href="../../../src/openssl/ssl/connector.rs.html#327">self</a>.<span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns a shared reference to the inner raw `SslContext`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a> {
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#332">self</a>.<span class="number">0</span>
+    <span class="doccomment">/// Returns a shared reference to the inner raw `SslContext`.
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a> {
+        <span class="kw-2">&amp;*</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#332">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="doccomment">/// A builder for `SslAcceptor`s.
+</span><span class="kw">pub struct </span>SslAcceptorBuilder(<a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>);
+
+<span class="kw">impl </span><a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a> {
+    <span class="doccomment">/// Consumes the builder, returning a `SslAcceptor`.
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="../../../src/openssl/ssl/connector.rs.html#219">SslAcceptor</a> {
+        <a href="../../../src/openssl/ssl/connector.rs.html#219">SslAcceptor</a>(<a class="self" href="../../../src/openssl/ssl/connector.rs.html#342">self</a>.<span class="number">0</span>.<a href="../../../src/openssl/ssl/mod.rs.html#1635">build</a>())
     }
 }
 
-<span class="doccomment">/// A builder for `SslAcceptor`s.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SslAcceptorBuilder</span>(<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>);
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a> {
+    <span class="kw">type </span>Target = <a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a> {
-    <span class="doccomment">/// Consumes the builder, returning a `SslAcceptor`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#219">SslAcceptor</a> {
-        <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#219">SslAcceptor</a>(<a class="self" href="../../../src/openssl/ssl/connector.rs.html#342">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1635">build</a>())
-    }
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#350">self</a>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>;
-
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#350">self</a>.<span class="number">0</span>
-    }
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a> {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/openssl/ssl/connector.rs.html#356">self</a>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#338">SslAcceptorBuilder</a> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/openssl/ssl/connector.rs.html#356">self</a>.<span class="number">0</span>
-    }
-}
-
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">setup_curves</span>(<span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(ossl110)] </span>{
+        <span class="attribute">#[allow(clippy::unnecessary_wraps)]
+        </span><span class="kw">fn </span>setup_curves(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
             <span class="prelude-val">Ok</span>(())
         }
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl</span>))]</span> {
-        <span class="kw">fn</span> <span class="ident">setup_curves</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SslContextBuilder</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-            <span class="ident">ctx</span>.<span class="ident">set_ecdh_auto</span>(<span class="bool-val">true</span>)
+    } <span class="kw">else if </span><span class="attribute">#[cfg(any(ossl102, libressl))] </span>{
+        <span class="kw">fn </span>setup_curves(ctx: <span class="kw-2">&amp;mut </span>SslContextBuilder) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+            ctx.set_ecdh_auto(<span class="bool-val">true</span>)
         }
-    } <span class="kw">else</span> {
-        <span class="kw">fn</span> <span class="ident">setup_curves</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SslContextBuilder</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ec::EcKey</span>;
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::nid::Nid</span>;
+    } <span class="kw">else </span>{
+        <span class="kw">fn </span>setup_curves(ctx: <span class="kw-2">&amp;mut </span>SslContextBuilder) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+            <span class="kw">use </span><span class="kw">crate</span>::ec::EcKey;
+            <span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
 
-            <span class="kw">let</span> <span class="ident">curve</span> <span class="op">=</span> <span class="ident">EcKey::from_curve_name</span>(<span class="ident">Nid::X9_62_PRIME256V1</span>)<span class="question-mark">?</span>;
-            <span class="ident">ctx</span>.<span class="ident">set_tmp_ecdh</span>(<span class="kw-2">&amp;</span><span class="ident">curve</span>)
+            <span class="kw">let </span>curve = EcKey::from_curve_name(Nid::X9_62_PRIME256V1)<span class="question-mark">?</span>;
+            ctx.set_tmp_ecdh(<span class="kw-2">&amp;</span>curve)
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span> {
-        <span class="kw">fn</span> <span class="ident">setup_verify</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>) {
-            <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#384">ctx</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#681">set_verify</a>(<span class="ident">SslVerifyMode::PEER</span>);
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl102, libressl261))] </span>{
+        <span class="kw">fn </span>setup_verify(ctx: <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#651">SslContextBuilder</a>) {
+            <a href="../../../src/openssl/ssl/connector.rs.html#384">ctx</a>.<a href="../../../src/openssl/ssl/mod.rs.html#681">set_verify</a>(SslVerifyMode::PEER);
         }
 
-        <span class="kw">fn</span> <span class="ident">setup_verify_hostname</span>(<span class="ident">ssl</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-            <span class="kw">use</span> <a class="ident" href="../../../src/openssl/x509/verify.rs.html#10-25"><span class="kw">crate</span>::x509::verify::X509CheckFlags</a>;
+        <span class="kw">fn </span>setup_verify_hostname(ssl: <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+            <span class="kw">use </span><a href="../../../src/openssl/x509/verify.rs.html#10-25"><span class="kw">crate</span>::x509::verify::X509CheckFlags</a>;
 
-            <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#388">ssl</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2626">param_mut</a>();
-            <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#391">param</a>.<a class="ident" href="../../../src/openssl/x509/verify.rs.html#75">set_hostflags</a>(<span class="ident">X509CheckFlags::NO_PARTIAL_WILDCARDS</span>);
-            <span class="kw">match</span> <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#388">domain</a>.<span class="ident">parse</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">ip</span>) =&gt; <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#391">param</a>.<a class="ident" href="../../../src/openssl/x509/verify.rs.html#121">set_ip</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#394">ip</a>),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../src/openssl/ssl/connector.rs.html#391">param</a>.<a class="ident" href="../../../src/openssl/x509/verify.rs.html#108">set_host</a>(<a class="ident" href="../../../src/openssl/ssl/connector.rs.html#388">domain</a>),
+            <span class="kw">let </span>param = <a href="../../../src/openssl/ssl/connector.rs.html#388">ssl</a>.<a href="../../../src/openssl/ssl/mod.rs.html#2626">param_mut</a>();
+            <a href="../../../src/openssl/ssl/connector.rs.html#391">param</a>.<a href="../../../src/openssl/x509/verify.rs.html#75">set_hostflags</a>(X509CheckFlags::NO_PARTIAL_WILDCARDS);
+            <span class="kw">match </span><a href="../../../src/openssl/ssl/connector.rs.html#388">domain</a>.parse() {
+                <span class="prelude-val">Ok</span>(ip) =&gt; <a href="../../../src/openssl/ssl/connector.rs.html#391">param</a>.<a href="../../../src/openssl/x509/verify.rs.html#121">set_ip</a>(<a href="../../../src/openssl/ssl/connector.rs.html#394">ip</a>),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="../../../src/openssl/ssl/connector.rs.html#391">param</a>.<a href="../../../src/openssl/x509/verify.rs.html#108">set_host</a>(<a href="../../../src/openssl/ssl/connector.rs.html#388">domain</a>),
             }
         }
-    } <span class="kw">else</span> {
-        <span class="kw">fn</span> <span class="ident">setup_verify</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SslContextBuilder</span>) {
-            <span class="ident">ctx</span>.<span class="ident">set_verify_callback</span>(<span class="ident">SslVerifyMode::PEER</span>, <span class="ident">verify::verify_callback</span>);
+    } <span class="kw">else </span>{
+        <span class="kw">fn </span>setup_verify(ctx: <span class="kw-2">&amp;mut </span>SslContextBuilder) {
+            ctx.set_verify_callback(SslVerifyMode::PEER, verify::verify_callback);
         }
 
-        <span class="kw">fn</span> <span class="ident">setup_verify_hostname</span>(<span class="ident">ssl</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Ssl</span>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <span class="ident">domain</span>.<span class="ident">to_string</span>();
-            <span class="kw">let</span> <span class="ident">hostname_idx</span> <span class="op">=</span> <span class="ident">verify::try_get_hostname_idx</span>()<span class="question-mark">?</span>;
-            <span class="ident">ssl</span>.<span class="ident">set_ex_data</span>(<span class="kw-2">*</span><span class="ident">hostname_idx</span>, <span class="ident">domain</span>);
+        <span class="kw">fn </span>setup_verify_hostname(ssl: <span class="kw-2">&amp;mut </span>Ssl, domain: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), ErrorStack&gt; {
+            <span class="kw">let </span>domain = domain.to_string();
+            <span class="kw">let </span>hostname_idx = verify::try_get_hostname_idx()<span class="question-mark">?</span>;
+            ssl.set_ex_data(<span class="kw-2">*</span>hostname_idx, domain);
             <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="kw">mod</span> <span class="ident">verify</span> {
-            <span class="kw">use</span> <span class="ident">std::net::IpAddr</span>;
-            <span class="kw">use</span> <span class="ident">std::str</span>;
-            <span class="kw">use</span> <span class="ident">once_cell::sync::OnceCell</span>;
+        <span class="kw">mod </span>verify {
+            <span class="kw">use </span>std::net::IpAddr;
+            <span class="kw">use </span>std::str;
+            <span class="kw">use </span>once_cell::sync::OnceCell;
 
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::ErrorStack</span>;
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ex_data::Index</span>;
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::nid::Nid</span>;
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ssl::Ssl</span>;
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stack::Stack</span>;
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{
-                <span class="ident">GeneralName</span>, <span class="ident">X509NameRef</span>, <span class="ident">X509Ref</span>, <span class="ident">X509StoreContext</span>, <span class="ident">X509StoreContextRef</span>,
-                <span class="ident">X509VerifyResult</span>,
+            <span class="kw">use </span><span class="kw">crate</span>::error::ErrorStack;
+            <span class="kw">use </span><span class="kw">crate</span>::ex_data::Index;
+            <span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+            <span class="kw">use </span><span class="kw">crate</span>::ssl::Ssl;
+            <span class="kw">use </span><span class="kw">crate</span>::stack::Stack;
+            <span class="kw">use </span><span class="kw">crate</span>::x509::{
+                GeneralName, X509NameRef, X509Ref, X509StoreContext, X509StoreContextRef,
+                X509VerifyResult,
             };
 
-            <span class="kw">static</span> <span class="ident">HOSTNAME_IDX</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">Index</span><span class="op">&lt;</span><span class="ident">Ssl</span>, <span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">OnceCell::new</span>();
+            <span class="kw">static </span>HOSTNAME_IDX: OnceCell&lt;Index&lt;Ssl, String&gt;&gt; = OnceCell::new();
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_get_hostname_idx</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">Ssl</span>, <span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-                <span class="ident">HOSTNAME_IDX</span>.<span class="ident">get_or_try_init</span>(<span class="ident">Ssl::new_ex_index</span>)
+            <span class="kw">pub fn </span>try_get_hostname_idx() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Index&lt;Ssl, String&gt;, ErrorStack&gt; {
+                HOSTNAME_IDX.get_or_try_init(Ssl::new_ex_index)
             }
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_callback</span>(<span class="ident">preverify_ok</span>: <span class="ident">bool</span>, <span class="ident">x509_ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">X509StoreContextRef</span>) -&gt; <span class="ident">bool</span> {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">preverify_ok</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x509_ctx</span>.<span class="ident">error_depth</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="kw">return</span> <span class="ident">preverify_ok</span>;
+            <span class="kw">pub fn </span>verify_callback(preverify_ok: bool, x509_ctx: <span class="kw-2">&amp;mut </span>X509StoreContextRef) -&gt; bool {
+                <span class="kw">if </span>!preverify_ok || x509_ctx.error_depth() != <span class="number">0 </span>{
+                    <span class="kw">return </span>preverify_ok;
                 }
 
-                <span class="kw">let</span> <span class="ident">hostname_idx</span> <span class="op">=</span>
-                    <span class="ident">try_get_hostname_idx</span>().<span class="ident">expect</span>(<span class="string">&quot;failed to initialize hostname index&quot;</span>);
-                <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="kw">match</span> (
-                    <span class="ident">x509_ctx</span>.<span class="ident">current_cert</span>(),
-                    <span class="ident">X509StoreContext::ssl_idx</span>()
-                        .<span class="ident">ok</span>()
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="ident">x509_ctx</span>.<span class="ident">ex_data</span>(<span class="ident">idx</span>))
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">ssl</span><span class="op">|</span> <span class="ident">ssl</span>.<span class="ident">ex_data</span>(<span class="kw-2">*</span><span class="ident">hostname_idx</span>)),
+                <span class="kw">let </span>hostname_idx =
+                    try_get_hostname_idx().expect(<span class="string">&quot;failed to initialize hostname index&quot;</span>);
+                <span class="kw">let </span>ok = <span class="kw">match </span>(
+                    x509_ctx.current_cert(),
+                    X509StoreContext::ssl_idx()
+                        .ok()
+                        .and_then(|idx| x509_ctx.ex_data(idx))
+                        .and_then(|ssl| ssl.ex_data(<span class="kw-2">*</span>hostname_idx)),
                 ) {
-                    (<span class="prelude-val">Some</span>(<span class="ident">x509</span>), <span class="prelude-val">Some</span>(<span class="ident">domain</span>)) =&gt; <span class="ident">verify_hostname</span>(<span class="ident">domain</span>, <span class="kw-2">&amp;</span><span class="ident">x509</span>),
-                    <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
+                    (<span class="prelude-val">Some</span>(x509), <span class="prelude-val">Some</span>(domain)) =&gt; verify_hostname(domain, <span class="kw-2">&amp;</span>x509),
+                    <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
                 };
 
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">ok</span> {
-                    <span class="ident">x509_ctx</span>.<span class="ident">set_error</span>(<span class="ident">X509VerifyResult::APPLICATION_VERIFICATION</span>);
+                <span class="kw">if </span>!ok {
+                    x509_ctx.set_error(X509VerifyResult::APPLICATION_VERIFICATION);
                 }
 
-                <span class="ident">ok</span>
+                ok
             }
 
-            <span class="kw">fn</span> <span class="ident">verify_hostname</span>(<span class="ident">domain</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">cert</span>: <span class="kw-2">&amp;</span><span class="ident">X509Ref</span>) -&gt; <span class="ident">bool</span> {
-                <span class="kw">match</span> <span class="ident">cert</span>.<span class="ident">subject_alt_names</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">names</span>) =&gt; <span class="ident">verify_subject_alt_names</span>(<span class="ident">domain</span>, <span class="ident">names</span>),
-                    <span class="prelude-val">None</span> =&gt; <span class="ident">verify_subject_name</span>(<span class="ident">domain</span>, <span class="kw-2">&amp;</span><span class="ident">cert</span>.<span class="ident">subject_name</span>()),
+            <span class="kw">fn </span>verify_hostname(domain: <span class="kw-2">&amp;</span>str, cert: <span class="kw-2">&amp;</span>X509Ref) -&gt; bool {
+                <span class="kw">match </span>cert.subject_alt_names() {
+                    <span class="prelude-val">Some</span>(names) =&gt; verify_subject_alt_names(domain, names),
+                    <span class="prelude-val">None </span>=&gt; verify_subject_name(domain, <span class="kw-2">&amp;</span>cert.subject_name()),
                 }
             }
 
-            <span class="kw">fn</span> <span class="ident">verify_subject_alt_names</span>(<span class="ident">domain</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">names</span>: <span class="ident">Stack</span><span class="op">&lt;</span><span class="ident">GeneralName</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-                <span class="kw">let</span> <span class="ident">ip</span> <span class="op">=</span> <span class="ident">domain</span>.<span class="ident">parse</span>();
+            <span class="kw">fn </span>verify_subject_alt_names(domain: <span class="kw-2">&amp;</span>str, names: Stack&lt;GeneralName&gt;) -&gt; bool {
+                <span class="kw">let </span>ip = domain.parse();
 
-                <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">names</span> {
-                    <span class="kw">match</span> <span class="ident">ip</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">ip</span>) =&gt; {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">actual</span>) <span class="op">=</span> <span class="ident">name</span>.<span class="ident">ipaddress</span>() {
-                                <span class="kw">if</span> <span class="ident">matches_ip</span>(<span class="kw-2">&amp;</span><span class="ident">ip</span>, <span class="ident">actual</span>) {
-                                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>names {
+                    <span class="kw">match </span>ip {
+                        <span class="prelude-val">Ok</span>(ip) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(actual) = name.ipaddress() {
+                                <span class="kw">if </span>matches_ip(<span class="kw-2">&amp;</span>ip, actual) {
+                                    <span class="kw">return </span><span class="bool-val">true</span>;
                                 }
                             }
                         }
                         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span> <span class="ident">name</span>.<span class="ident">dnsname</span>() {
-                                <span class="kw">if</span> <span class="ident">matches_dns</span>(<span class="ident">pattern</span>, <span class="ident">domain</span>) {
-                                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(pattern) = name.dnsname() {
+                                <span class="kw">if </span>matches_dns(pattern, domain) {
+                                    <span class="kw">return </span><span class="bool-val">true</span>;
                                 }
                             }
                         }
                     }
                 }
 
-                <span class="bool-val">false</span>
-            }
+                <span class="bool-val">false
+            </span>}
 
-            <span class="kw">fn</span> <span class="ident">verify_subject_name</span>(<span class="ident">domain</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">subject_name</span>: <span class="kw-2">&amp;</span><span class="ident">X509NameRef</span>) -&gt; <span class="ident">bool</span> {
-                <span class="kw">match</span> <span class="ident">subject_name</span>.<span class="ident">entries_by_nid</span>(<span class="ident">Nid::COMMONNAME</span>).<span class="ident">next</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">str::from_utf8</span>(<span class="ident">pattern</span>.<span class="ident">data</span>().<span class="ident">as_slice</span>()) {
-                            <span class="prelude-val">Ok</span>(<span class="ident">pattern</span>) =&gt; <span class="ident">pattern</span>,
-                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+            <span class="kw">fn </span>verify_subject_name(domain: <span class="kw-2">&amp;</span>str, subject_name: <span class="kw-2">&amp;</span>X509NameRef) -&gt; bool {
+                <span class="kw">match </span>subject_name.entries_by_nid(Nid::COMMONNAME).next() {
+                    <span class="prelude-val">Some</span>(pattern) =&gt; {
+                        <span class="kw">let </span>pattern = <span class="kw">match </span>str::from_utf8(pattern.data().as_slice()) {
+                            <span class="prelude-val">Ok</span>(pattern) =&gt; pattern,
+                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
                         };
 
-                        <span class="comment">// Unlike SANs, IP addresses in the subject name don&#39;t have a</span>
-                        <span class="comment">// different encoding.</span>
-                        <span class="kw">match</span> <span class="ident">domain</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;</span>() {
-                            <span class="prelude-val">Ok</span>(<span class="ident">ip</span>) =&gt; <span class="ident">pattern</span>
-                                .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;</span>()
-                                .<span class="ident">ok</span>()
-                                .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">pattern</span><span class="op">|</span> <span class="ident">pattern</span> <span class="op">==</span> <span class="ident">ip</span>),
-                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">matches_dns</span>(<span class="ident">pattern</span>, <span class="ident">domain</span>),
+                        <span class="comment">// Unlike SANs, IP addresses in the subject name don&#39;t have a
+                        // different encoding.
+                        </span><span class="kw">match </span>domain.parse::&lt;IpAddr&gt;() {
+                            <span class="prelude-val">Ok</span>(ip) =&gt; pattern
+                                .parse::&lt;IpAddr&gt;()
+                                .ok()
+                                .map_or(<span class="bool-val">false</span>, |pattern| pattern == ip),
+                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; matches_dns(pattern, domain),
                         }
                     }
-                    <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+                    <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
                 }
             }
 
-            <span class="kw">fn</span> <span class="ident">matches_dns</span>(<span class="kw-2">mut</span> <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">mut</span> <span class="ident">hostname</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-                <span class="comment">// first strip trailing . off of pattern and hostname to normalize</span>
-                <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">ends_with</span>(<span class="string">&#39;.&#39;</span>) {
-                    <span class="ident">pattern</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">pattern</span>[..<span class="ident">pattern</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>];
+            <span class="kw">fn </span>matches_dns(<span class="kw-2">mut </span>pattern: <span class="kw-2">&amp;</span>str, <span class="kw-2">mut </span>hostname: <span class="kw-2">&amp;</span>str) -&gt; bool {
+                <span class="comment">// first strip trailing . off of pattern and hostname to normalize
+                </span><span class="kw">if </span>pattern.ends_with(<span class="string">&#39;.&#39;</span>) {
+                    pattern = <span class="kw-2">&amp;</span>pattern[..pattern.len() - <span class="number">1</span>];
                 }
-                <span class="kw">if</span> <span class="ident">hostname</span>.<span class="ident">ends_with</span>(<span class="string">&#39;.&#39;</span>) {
-                    <span class="ident">hostname</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">hostname</span>[..<span class="ident">hostname</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>];
+                <span class="kw">if </span>hostname.ends_with(<span class="string">&#39;.&#39;</span>) {
+                    hostname = <span class="kw-2">&amp;</span>hostname[..hostname.len() - <span class="number">1</span>];
                 }
 
-                <span class="ident">matches_wildcard</span>(<span class="ident">pattern</span>, <span class="ident">hostname</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">pattern</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="ident">hostname</span>))
+                matches_wildcard(pattern, hostname).unwrap_or_else(|| pattern.eq_ignore_ascii_case(hostname))
             }
 
-            <span class="kw">fn</span> <span class="ident">matches_wildcard</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">hostname</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">wildcard_location</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">pattern</span>.<span class="ident">find</span>(<span class="string">&#39;*&#39;</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
-                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="kw">fn </span>matches_wildcard(pattern: <span class="kw-2">&amp;</span>str, hostname: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+                <span class="kw">let </span>wildcard_location = <span class="kw">match </span>pattern.find(<span class="string">&#39;*&#39;</span>) {
+                    <span class="prelude-val">Some</span>(l) =&gt; l,
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
                 };
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_idxs</span> <span class="op">=</span> <span class="ident">pattern</span>.<span class="ident">match_indices</span>(<span class="string">&#39;.&#39;</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">l</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">l</span>);
-                <span class="kw">let</span> <span class="ident">wildcard_end</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dot_idxs</span>.<span class="ident">next</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
-                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="kw">let </span><span class="kw-2">mut </span>dot_idxs = pattern.match_indices(<span class="string">&#39;.&#39;</span>).map(|(l, <span class="kw">_</span>)| l);
+                <span class="kw">let </span>wildcard_end = <span class="kw">match </span>dot_idxs.next() {
+                    <span class="prelude-val">Some</span>(l) =&gt; l,
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
                 };
 
-                <span class="comment">// Never match wildcards if the pattern has less than 2 &#39;.&#39;s (no *.com)</span>
-                <span class="comment">//</span>
-                <span class="comment">// This is a bit dubious, as it doesn&#39;t disallow other TLDs like *.co.uk.</span>
-                <span class="comment">// Chrome has a black- and white-list for this, but Firefox (via NSS) does</span>
-                <span class="comment">// the same thing we do here.</span>
-                <span class="comment">//</span>
-                <span class="comment">// The Public Suffix (https://www.publicsuffix.org/) list could</span>
-                <span class="comment">// potentially be used here, but it&#39;s both huge and updated frequently</span>
-                <span class="comment">// enough that management would be a PITA.</span>
-                <span class="kw">if</span> <span class="ident">dot_idxs</span>.<span class="ident">next</span>().<span class="ident">is_none</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                <span class="comment">// Never match wildcards if the pattern has less than 2 &#39;.&#39;s (no *.com)
+                //
+                // This is a bit dubious, as it doesn&#39;t disallow other TLDs like *.co.uk.
+                // Chrome has a black- and white-list for this, but Firefox (via NSS) does
+                // the same thing we do here.
+                //
+                // The Public Suffix (https://www.publicsuffix.org/) list could
+                // potentially be used here, but it&#39;s both huge and updated frequently
+                // enough that management would be a PITA.
+                </span><span class="kw">if </span>dot_idxs.next().is_none() {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
 
-                <span class="comment">// Wildcards can only be in the first component, and must be the entire first label</span>
-                <span class="kw">if</span> <span class="ident">wildcard_location</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">wildcard_end</span> <span class="op">!</span><span class="op">=</span> <span class="ident">wildcard_location</span> <span class="op">+</span> <span class="number">1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                <span class="comment">// Wildcards can only be in the first component, and must be the entire first label
+                </span><span class="kw">if </span>wildcard_location != <span class="number">0 </span>|| wildcard_end != wildcard_location + <span class="number">1 </span>{
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
 
-                <span class="kw">let</span> <span class="ident">hostname_label_end</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">hostname</span>.<span class="ident">find</span>(<span class="string">&#39;.&#39;</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
-                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="kw">let </span>hostname_label_end = <span class="kw">match </span>hostname.find(<span class="string">&#39;.&#39;</span>) {
+                    <span class="prelude-val">Some</span>(l) =&gt; l,
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
                 };
 
-                <span class="kw">let</span> <span class="ident">pattern_after_wildcard</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">pattern</span>[<span class="ident">wildcard_end</span>..];
-                <span class="kw">let</span> <span class="ident">hostname_after_wildcard</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">hostname</span>[<span class="ident">hostname_label_end</span>..];
+                <span class="kw">let </span>pattern_after_wildcard = <span class="kw-2">&amp;</span>pattern[wildcard_end..];
+                <span class="kw">let </span>hostname_after_wildcard = <span class="kw-2">&amp;</span>hostname[hostname_label_end..];
 
-                <span class="prelude-val">Some</span>(<span class="ident">pattern_after_wildcard</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="ident">hostname_after_wildcard</span>))
+                <span class="prelude-val">Some</span>(pattern_after_wildcard.eq_ignore_ascii_case(hostname_after_wildcard))
             }
 
-            <span class="kw">fn</span> <span class="ident">matches_ip</span>(<span class="ident">expected</span>: <span class="kw-2">&amp;</span><span class="ident">IpAddr</span>, <span class="ident">actual</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expected</span> {
-                    <span class="ident">IpAddr::V4</span>(<span class="kw-2">ref</span> <span class="ident">addr</span>) =&gt; <span class="ident">actual</span> <span class="op">==</span> <span class="ident">addr</span>.<span class="ident">octets</span>(),
-                    <span class="ident">IpAddr::V6</span>(<span class="kw-2">ref</span> <span class="ident">addr</span>) =&gt; <span class="ident">actual</span> <span class="op">==</span> <span class="ident">addr</span>.<span class="ident">octets</span>(),
+            <span class="kw">fn </span>matches_ip(expected: <span class="kw-2">&amp;</span>IpAddr, actual: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+                <span class="kw">match </span><span class="kw-2">*</span>expected {
+                    IpAddr::V4(<span class="kw-2">ref </span>addr) =&gt; actual == addr.octets(),
+                    IpAddr::V6(<span class="kw-2">ref </span>addr) =&gt; actual == addr.octets(),
                 }
             }
 
-            <span class="attribute">#[<span class="ident">test</span>]</span>
-            <span class="kw">fn</span> <span class="ident">test_dns_match</span>() {
-                <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ssl::connector::verify::matches_dns</span>;
-                <span class="macro">assert!</span>(<span class="ident">matches_dns</span>(<span class="string">&quot;website.tld&quot;</span>, <span class="string">&quot;website.tld&quot;</span>)); <span class="comment">// A name should match itself.</span>
-                <span class="macro">assert!</span>(<span class="ident">matches_dns</span>(<span class="string">&quot;website.tld&quot;</span>, <span class="string">&quot;wEbSiTe.tLd&quot;</span>)); <span class="comment">// DNS name matching ignores case of hostname.</span>
-                <span class="macro">assert!</span>(<span class="ident">matches_dns</span>(<span class="string">&quot;wEbSiTe.TlD&quot;</span>, <span class="string">&quot;website.tld&quot;</span>)); <span class="comment">// DNS name matching ignores case of subject.</span>
+            <span class="attribute">#[test]
+            </span><span class="kw">fn </span>test_dns_match() {
+                <span class="kw">use </span><span class="kw">crate</span>::ssl::connector::verify::matches_dns;
+                <span class="macro">assert!</span>(matches_dns(<span class="string">&quot;website.tld&quot;</span>, <span class="string">&quot;website.tld&quot;</span>)); <span class="comment">// A name should match itself.
+                </span><span class="macro">assert!</span>(matches_dns(<span class="string">&quot;website.tld&quot;</span>, <span class="string">&quot;wEbSiTe.tLd&quot;</span>)); <span class="comment">// DNS name matching ignores case of hostname.
+                </span><span class="macro">assert!</span>(matches_dns(<span class="string">&quot;wEbSiTe.TlD&quot;</span>, <span class="string">&quot;website.tld&quot;</span>)); <span class="comment">// DNS name matching ignores case of subject.
 
-                <span class="macro">assert!</span>(<span class="ident">matches_dns</span>(<span class="string">&quot;xn--bcher-kva.tld&quot;</span>, <span class="string">&quot;xn--bcher-kva.tld&quot;</span>)); <span class="comment">// Likewise, nothing special to punycode names.</span>
-                <span class="macro">assert!</span>(<span class="ident">matches_dns</span>(<span class="string">&quot;xn--bcher-kva.tld&quot;</span>, <span class="string">&quot;xn--BcHer-Kva.tLd&quot;</span>)); <span class="comment">// And punycode must be compared similarly case-insensitively.</span>
+                </span><span class="macro">assert!</span>(matches_dns(<span class="string">&quot;xn--bcher-kva.tld&quot;</span>, <span class="string">&quot;xn--bcher-kva.tld&quot;</span>)); <span class="comment">// Likewise, nothing special to punycode names.
+                </span><span class="macro">assert!</span>(matches_dns(<span class="string">&quot;xn--bcher-kva.tld&quot;</span>, <span class="string">&quot;xn--BcHer-Kva.tLd&quot;</span>)); <span class="comment">// And punycode must be compared similarly case-insensitively.
 
-                <span class="macro">assert!</span>(<span class="ident">matches_dns</span>(<span class="string">&quot;*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// Wildcard matching works.</span>
-                <span class="macro">assert!</span>(<span class="ident">matches_dns</span>(<span class="string">&quot;*.eXaMpLe.cOm&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// Wildcard matching ignores case of subject.</span>
-                <span class="macro">assert!</span>(<span class="ident">matches_dns</span>(<span class="string">&quot;*.example.com&quot;</span>, <span class="string">&quot;sUbDoMaIn.eXaMpLe.cOm&quot;</span>)); <span class="comment">// Wildcard matching ignores case of hostname.</span>
+                </span><span class="macro">assert!</span>(matches_dns(<span class="string">&quot;*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// Wildcard matching works.
+                </span><span class="macro">assert!</span>(matches_dns(<span class="string">&quot;*.eXaMpLe.cOm&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// Wildcard matching ignores case of subject.
+                </span><span class="macro">assert!</span>(matches_dns(<span class="string">&quot;*.example.com&quot;</span>, <span class="string">&quot;sUbDoMaIn.eXaMpLe.cOm&quot;</span>)); <span class="comment">// Wildcard matching ignores case of hostname.
 
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;prefix*.example.com&quot;</span>, <span class="string">&quot;p.example.com&quot;</span>)); <span class="comment">// Prefix longer than the label works and does not match.</span>
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;*suffix.example.com&quot;</span>, <span class="string">&quot;s.example.com&quot;</span>)); <span class="comment">// Suffix longer than the label works and does not match.</span>
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;prefix*.example.com&quot;</span>, <span class="string">&quot;p.example.com&quot;</span>)); <span class="comment">// Prefix longer than the label works and does not match.
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;*suffix.example.com&quot;</span>, <span class="string">&quot;s.example.com&quot;</span>)); <span class="comment">// Suffix longer than the label works and does not match.
 
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;prefix*.example.com&quot;</span>, <span class="string">&quot;prefix.example.com&quot;</span>)); <span class="comment">// Partial wildcards do not work.</span>
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;*suffix.example.com&quot;</span>, <span class="string">&quot;suffix.example.com&quot;</span>)); <span class="comment">// Partial wildcards do not work.</span>
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;prefix*.example.com&quot;</span>, <span class="string">&quot;prefix.example.com&quot;</span>)); <span class="comment">// Partial wildcards do not work.
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;*suffix.example.com&quot;</span>, <span class="string">&quot;suffix.example.com&quot;</span>)); <span class="comment">// Partial wildcards do not work.
 
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;prefix*.example.com&quot;</span>, <span class="string">&quot;prefixdomain.example.com&quot;</span>)); <span class="comment">// Partial wildcards do not work.</span>
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;*suffix.example.com&quot;</span>, <span class="string">&quot;domainsuffix.example.com&quot;</span>)); <span class="comment">// Partial wildcards do not work.</span>
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;prefix*.example.com&quot;</span>, <span class="string">&quot;prefixdomain.example.com&quot;</span>)); <span class="comment">// Partial wildcards do not work.
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;*suffix.example.com&quot;</span>, <span class="string">&quot;domainsuffix.example.com&quot;</span>)); <span class="comment">// Partial wildcards do not work.
 
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;xn--*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// Punycode domains with wildcard parts do not match.</span>
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;xN--*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// And we can&#39;t bypass a punycode test with weird casing.</span>
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;Xn--*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// And we can&#39;t bypass a punycode test with weird casing.</span>
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">matches_dns</span>(<span class="string">&quot;XN--*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// And we can&#39;t bypass a punycode test with weird casing.</span>
-            }
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;xn--*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// Punycode domains with wildcard parts do not match.
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;xN--*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// And we can&#39;t bypass a punycode test with weird casing.
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;Xn--*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// And we can&#39;t bypass a punycode test with weird casing.
+                </span><span class="macro">assert!</span>(!matches_dns(<span class="string">&quot;XN--*.example.com&quot;</span>, <span class="string">&quot;subdomain.example.com&quot;</span>)); <span class="comment">// And we can&#39;t bypass a punycode test with weird casing.
+            </span>}
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

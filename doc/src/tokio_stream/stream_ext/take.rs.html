@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.9/src/stream_ext/take.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>take.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-stream-0.1.9/src/stream_ext/take.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>take.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_stream/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_stream/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -74,81 +74,81 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html"><span class="kw">crate</span>::Stream</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html"><span class="kw">crate</span>::Stream</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Stream for the [`take`](super::StreamExt::take) method.</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">stream</span>: <span class="ident">St</span>,
-        <span class="ident">remaining</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Stream for the [`take`](super::StreamExt::take) method.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>Take&lt;St&gt; {
+        <span class="attribute">#[pin]
+        </span>stream: St,
+        remaining: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;St&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Take&lt;St&gt;
+<span class="kw">where
+    </span>St: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#23">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Take&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#23">self</a>.<span class="ident">stream</span>)
-            .<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio_stream/stream_ext/take.rs.html#23">f</a>.debug_struct(<span class="string">&quot;Take&quot;</span>)
+            .field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#23">self</a>.stream)
+            .finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">St</span>, <span class="ident">remaining</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#31">stream</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#31">remaining</a> }
+<span class="kw">impl</span>&lt;St&gt; Take&lt;St&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, remaining: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../../src/tokio_stream/stream_ext/take.rs.html#31">stream</a>, <a href="../../../src/tokio_stream/stream_ext/take.rs.html#31">remaining</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
+<span class="kw">impl</span>&lt;St&gt; <a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Take&lt;St&gt;
+<span class="kw">where
+    </span>St: <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">St::Item</span>;
+    <span class="kw">type </span>Item = St::Item;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">project</span>().<span class="ident">remaining</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#42">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#9-17">project</a>().<span class="ident">stream</span>.<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#42">cx</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">ready</span><span class="op">|</span> {
-                <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#44">ready</a> {
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">if </span><span class="kw-2">*</span><span class="self">self</span>.as_mut().project().remaining &gt; <span class="number">0 </span>{
+            <a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#42">self</a>.as_mut().<a href="../../../src/tokio_stream/stream_ext/take.rs.html#9-17">project</a>().stream.<a href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a href="../../../src/tokio_stream/stream_ext/take.rs.html#42">cx</a>).map(|ready| {
+                <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../src/tokio_stream/stream_ext/take.rs.html#44">ready</a> {
                     <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="kw-2">*</span><a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#42">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#9-17">project</a>().<span class="ident">remaining</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                        <span class="kw-2">*</span><a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#42">self</a>.as_mut().<a href="../../../src/tokio_stream/stream_ext/take.rs.html#9-17">project</a>().remaining -= <span class="number">1</span>;
                     }
-                    <span class="prelude-val">None</span> =&gt; {
-                        <span class="kw-2">*</span><a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#42">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#9-17">project</a>().<span class="ident">remaining</span> <span class="op">=</span> <span class="number">0</span>;
+                    <span class="prelude-val">None </span>=&gt; {
+                        <span class="kw-2">*</span><a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#42">self</a>.as_mut().<a href="../../../src/tokio_stream/stream_ext/take.rs.html#9-17">project</a>().remaining = <span class="number">0</span>;
                     }
                 }
-                <a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#44">ready</a>
+                <a href="../../../src/tokio_stream/stream_ext/take.rs.html#44">ready</a>
             })
-        } <span class="kw">else</span> {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
+        } <span class="kw">else </span>{
+            Poll::Ready(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">remaining</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <span class="kw">if </span><span class="self">self</span>.remaining == <span class="number">0 </span>{
+            <span class="kw">return </span>(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">let</span> (<span class="ident">lower</span>, <span class="ident">upper</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#60">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>(lower, upper) = <a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#60">self</a>.stream.<a href="../../../futures_core/stream/trait.Stream.html">size_hint</a>();
 
-        <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#65">lower</a>, <a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#60">self</a>.<span class="ident">remaining</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">let </span>lower = cmp::min(<a href="../../../src/tokio_stream/stream_ext/take.rs.html#65">lower</a>, <a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#60">self</a>.remaining <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#65">upper</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#70">x</a> <span class="op">&lt;</span> <a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#60">self</a>.<span class="ident">remaining</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#70">x</a>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#60">self</a>.<span class="ident">remaining</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+        <span class="kw">let </span>upper = <span class="kw">match </span><a href="../../../src/tokio_stream/stream_ext/take.rs.html#65">upper</a> {
+            <span class="prelude-val">Some</span>(x) <span class="kw">if </span><a href="../../../src/tokio_stream/stream_ext/take.rs.html#70">x</a> &lt; <a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#60">self</a>.remaining <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/tokio_stream/stream_ext/take.rs.html#70">x</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(<a class="self" href="../../../src/tokio_stream/stream_ext/take.rs.html#60">self</a>.remaining <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
         };
 
-        (<a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#67">lower</a>, <a class="ident" href="../../../src/tokio_stream/stream_ext/take.rs.html#69">upper</a>)
+        (<a href="../../../src/tokio_stream/stream_ext/take.rs.html#67">lower</a>, <a href="../../../src/tokio_stream/stream_ext/take.rs.html#69">upper</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_stream" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

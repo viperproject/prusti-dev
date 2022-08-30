@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/failure-0.1.8/src/backtrace/internal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>internal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../failure/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../failure/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../failure/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/failure-0.1.8/src/backtrace/internal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>internal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../failure/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../failure/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../failure/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -130,137 +130,137 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/macro.env.html">std::env</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span> <span class="comment">// to allow for older Rust versions (&lt;1.24)</span>
-<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/constant.ATOMIC_USIZE_INIT.html">ATOMIC_USIZE_INIT</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">std::sync::Mutex</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/macro.env.html">std::env</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="attribute">#[allow(deprecated)] </span><span class="comment">// to allow for older Rust versions (&lt;1.24)
+</span><span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/constant.ATOMIC_USIZE_INIT.html">ATOMIC_USIZE_INIT</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">std::sync::Mutex</a>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../backtrace/capture/struct.Backtrace.html"><span class="kw">super</span>::backtrace::Backtrace</a>;
+<span class="kw">pub use </span><a href="../../../backtrace/capture/struct.Backtrace.html"><span class="kw">super</span>::backtrace::Backtrace</a>;
 
-<span class="kw">const</span> <span class="ident">GENERAL_BACKTRACE</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;RUST_BACKTRACE&quot;</span>;
-<span class="kw">const</span> <span class="ident">FAILURE_BACKTRACE</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;RUST_FAILURE_BACKTRACE&quot;</span>;
+<span class="kw">const </span>GENERAL_BACKTRACE: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;RUST_BACKTRACE&quot;</span>;
+<span class="kw">const </span>FAILURE_BACKTRACE: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;RUST_FAILURE_BACKTRACE&quot;</span>;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">InternalBacktrace</span> {
-    <span class="ident">backtrace</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InternalBacktrace {
+    backtrace: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a>&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">MaybeResolved</span> {
-    <span class="ident">resolved</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
-    <span class="ident">backtrace</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../backtrace/capture/struct.Backtrace.html">Backtrace</a><span class="op">&gt;</span>,
+<span class="kw">struct </span>MaybeResolved {
+    resolved: Mutex&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    backtrace: UnsafeCell&lt;<a href="../../../backtrace/capture/struct.Backtrace.html">Backtrace</a>&gt;,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span> <span class="comment">// to allow for older Rust versions (&lt;1.24)</span>
-        <span class="kw">static</span> <span class="ident">ENABLED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/constant.ATOMIC_USIZE_INIT.html">ATOMIC_USIZE_INIT</a>;
+<span class="kw">impl </span><a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
+        <span class="attribute">#[allow(deprecated)] </span><span class="comment">// to allow for older Rust versions (&lt;1.24)
+        </span><span class="kw">static </span>ENABLED: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> = <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/constant.ATOMIC_USIZE_INIT.html">ATOMIC_USIZE_INIT</a>;
 
-        <span class="kw">match</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#29">ENABLED</a>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) {
-            <span class="number">0</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">enabled</span> <span class="op">=</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#83">is_backtrace_enabled</a>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="ident">env::var_os</span>(<a class="ident" href="../../../src/failure/backtrace/internal.rs.html#33">var</a>));
-                <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#29">ENABLED</a>.<span class="ident">store</span>(<a class="ident" href="../../../src/failure/backtrace/internal.rs.html#33">enabled</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">+</span> <span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>);
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">enabled</span> {
-                    <span class="kw">return</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { <span class="ident">backtrace</span>: <span class="prelude-val">None</span> }
+        <span class="kw">match </span><a href="../../../src/failure/backtrace/internal.rs.html#29">ENABLED</a>.load(Ordering::SeqCst) {
+            <span class="number">0 </span>=&gt; {
+                <span class="kw">let </span>enabled = <a href="../../../src/failure/backtrace/internal.rs.html#83">is_backtrace_enabled</a>(|var| env::var_os(<a href="../../../src/failure/backtrace/internal.rs.html#33">var</a>));
+                <a href="../../../src/failure/backtrace/internal.rs.html#29">ENABLED</a>.store(<a href="../../../src/failure/backtrace/internal.rs.html#33">enabled</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1</span>, Ordering::SeqCst);
+                <span class="kw">if </span>!enabled {
+                    <span class="kw">return </span><a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>}
                 }
             }
-            <span class="number">1</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { <span class="ident">backtrace</span>: <span class="prelude-val">None</span> },
-            <span class="kw">_</span> =&gt; {}
+            <span class="number">1 </span>=&gt; <span class="kw">return </span><a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>},
+            <span class="kw">_ </span>=&gt; {}
         }
 
-        <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
-            <span class="ident">backtrace</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {
-                <span class="ident">resolved</span>: <span class="ident">Mutex::new</span>(<span class="bool-val">false</span>),
-                <span class="ident">backtrace</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">Backtrace::new_unresolved</span>()),
+        <a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
+            backtrace: <span class="prelude-val">Some</span>(<a href="../../../src/failure/backtrace/internal.rs.html#18">MaybeResolved</a> {
+                resolved: Mutex::new(<span class="bool-val">false</span>),
+                backtrace: UnsafeCell::new(Backtrace::new_unresolved()),
             }),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
-        <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { <span class="ident">backtrace</span>: <span class="prelude-val">None</span> }
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>none() -&gt; <a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
+        <a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> { backtrace: <span class="prelude-val">None </span>}
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">as_backtrace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../backtrace/capture/struct.Backtrace.html">Backtrace</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">bt</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/failure/backtrace/internal.rs.html#55">self</a>.<span class="ident">backtrace</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">bt</span>) =&gt; <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#57">bt</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_backtrace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../backtrace/capture/struct.Backtrace.html">Backtrace</a>&gt; {
+        <span class="kw">let </span>bt = <span class="kw">match </span><a class="self" href="../../../src/failure/backtrace/internal.rs.html#55">self</a>.backtrace {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>bt) =&gt; <a href="../../../src/failure/backtrace/internal.rs.html#57">bt</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resolved</span> <span class="op">=</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.<span class="ident">resolved</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw">unsafe</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">resolved</span> {
-                (<span class="kw-2">*</span><a class="ident" href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.<span class="ident">backtrace</span>.<span class="ident">get</span>()).<span class="ident">resolve</span>();
-                <span class="kw-2">*</span><a class="ident" href="../../../src/failure/backtrace/internal.rs.html#60">resolved</a> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>resolved = <a href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.resolved.lock().unwrap();
+        <span class="kw">unsafe </span>{
+            <span class="kw">if </span>!<span class="kw-2">*</span>resolved {
+                (<span class="kw-2">*</span><a href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.backtrace.get()).resolve();
+                <span class="kw-2">*</span><a href="../../../src/failure/backtrace/internal.rs.html#60">resolved</a> = <span class="bool-val">true</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.<span class="ident">backtrace</span>.<span class="ident">get</span>())
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span><a href="../../../src/failure/backtrace/internal.rs.html#56">bt</a>.backtrace.get())
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/failure/backtrace/internal.rs.html#70">self</a>.<span class="ident">backtrace</span>.<span class="ident">is_none</span>()
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/failure/backtrace/internal.rs.html#70">self</a>.backtrace.is_none()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#76">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;InternalBacktrace&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;backtrace&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/failure/backtrace/internal.rs.html#76">self</a>.<a class="ident" href="../../../src/failure/backtrace/internal.rs.html#55">as_backtrace</a>())
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/failure/backtrace/internal.rs.html#14">InternalBacktrace</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/failure/backtrace/internal.rs.html#76">f</a>.debug_struct(<span class="string">&quot;InternalBacktrace&quot;</span>)
+            .field(<span class="string">&quot;backtrace&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/failure/backtrace/internal.rs.html#76">self</a>.<a href="../../../src/failure/backtrace/internal.rs.html#55">as_backtrace</a>())
+            .finish()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">is_backtrace_enabled</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">get_var</span>: <span class="ident">F</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#83">get_var</a>(<a class="ident" href="../../../src/failure/backtrace/internal.rs.html#12">FAILURE_BACKTRACE</a>) {
-        <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">val</span>) <span class="kw">if</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#85">val</a> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;0&quot;</span> =&gt; <span class="bool-val">true</span>,
-        <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">val</span>) <span class="kw">if</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#86">val</a> <span class="op">==</span> <span class="string">&quot;0&quot;</span> =&gt; <span class="bool-val">false</span>,
-        <span class="kw">_</span> =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#83">get_var</a>(<a class="ident" href="../../../src/failure/backtrace/internal.rs.html#11">GENERAL_BACKTRACE</a>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">val</span>) <span class="kw">if</span> <a class="ident" href="../../../src/failure/backtrace/internal.rs.html#88">val</a> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;0&quot;</span> =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span>                           =&gt; <span class="bool-val">false</span>,
+<span class="kw">fn </span>is_backtrace_enabled&lt;F: Fn(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt;&gt;(get_var: F) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">match </span><a href="../../../src/failure/backtrace/internal.rs.html#83">get_var</a>(<a href="../../../src/failure/backtrace/internal.rs.html#12">FAILURE_BACKTRACE</a>) {
+        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="../../../src/failure/backtrace/internal.rs.html#85">val</a> != <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">true</span>,
+        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="../../../src/failure/backtrace/internal.rs.html#86">val</a> == <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">false</span>,
+        <span class="kw">_ </span>=&gt; <span class="kw">match </span><a href="../../../src/failure/backtrace/internal.rs.html#83">get_var</a>(<a href="../../../src/failure/backtrace/internal.rs.html#11">GENERAL_BACKTRACE</a>) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val) <span class="kw">if </span><a href="../../../src/failure/backtrace/internal.rs.html#88">val</a> != <span class="string">&quot;0&quot; </span>=&gt; <span class="bool-val">true</span>,
+            <span class="kw">_                           </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">const</span> <span class="ident">YEA</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;1&quot;</span>);
-    <span class="kw">const</span> <span class="ident">NAY</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;0&quot;</span>);
-    <span class="kw">const</span> <span class="ident">NOT_SET</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">const </span>YEA: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="prelude-val">Some</span>(<span class="string">&quot;1&quot;</span>);
+    <span class="kw">const </span>NAY: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="prelude-val">Some</span>(<span class="string">&quot;0&quot;</span>);
+    <span class="kw">const </span>NOT_SET: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="prelude-val">None</span>;
 
-    <span class="macro">macro_rules!</span> <span class="ident">test_enabled</span> {
-        (<span class="ident">failure</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">failure</span>:<span class="ident">ident</span>, <span class="ident">general</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">general</span>:<span class="ident">ident</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>:<span class="ident">expr</span>) =&gt; {{
-            <span class="macro">assert_eq!</span>(<span class="ident">is_backtrace_enabled</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">var</span> {
-                <span class="ident">FAILURE_BACKTRACE</span>   =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">failure</span>.<span class="ident">map</span>(<span class="ident">OsString::from</span>),
-                <span class="ident">GENERAL_BACKTRACE</span>   =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">general</span>.<span class="ident">map</span>(<span class="ident">OsString::from</span>),
-                <span class="kw">_</span>                   =&gt; <span class="macro">panic!</span>()
-            }), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>);
+    <span class="macro">macro_rules! </span>test_enabled {
+        (failure: <span class="macro-nonterminal">$failure</span>:ident, general: <span class="macro-nonterminal">$general</span>:ident =&gt; <span class="macro-nonterminal">$result</span>:expr) =&gt; {{
+            <span class="macro">assert_eq!</span>(is_backtrace_enabled(|var| <span class="kw">match </span>var {
+                FAILURE_BACKTRACE   =&gt; <span class="macro-nonterminal">$failure</span>.map(OsString::from),
+                GENERAL_BACKTRACE   =&gt; <span class="macro-nonterminal">$general</span>.map(OsString::from),
+                <span class="kw">_                   </span>=&gt; <span class="macro">panic!</span>()
+            }), <span class="macro-nonterminal">$result</span>);
         }}
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">always_enabled_if_failure_is_set_to_yes</span>() {
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">YEA</span>, <span class="ident">general</span>: <span class="ident">YEA</span> =&gt; <span class="bool-val">true</span>);
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">YEA</span>, <span class="ident">general</span>: <span class="ident">NOT_SET</span> =&gt; <span class="bool-val">true</span>);
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">YEA</span>, <span class="ident">general</span>: <span class="ident">NAY</span> =&gt; <span class="bool-val">true</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>always_enabled_if_failure_is_set_to_yes() {
+        <span class="macro">test_enabled!</span>(failure: YEA, general: YEA =&gt; <span class="bool-val">true</span>);
+        <span class="macro">test_enabled!</span>(failure: YEA, general: NOT_SET =&gt; <span class="bool-val">true</span>);
+        <span class="macro">test_enabled!</span>(failure: YEA, general: NAY =&gt; <span class="bool-val">true</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">never_enabled_if_failure_is_set_to_no</span>() {
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">NAY</span>, <span class="ident">general</span>: <span class="ident">YEA</span> =&gt; <span class="bool-val">false</span>);
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">NAY</span>, <span class="ident">general</span>: <span class="ident">NOT_SET</span> =&gt; <span class="bool-val">false</span>);
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">NAY</span>, <span class="ident">general</span>: <span class="ident">NAY</span> =&gt; <span class="bool-val">false</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>never_enabled_if_failure_is_set_to_no() {
+        <span class="macro">test_enabled!</span>(failure: NAY, general: YEA =&gt; <span class="bool-val">false</span>);
+        <span class="macro">test_enabled!</span>(failure: NAY, general: NOT_SET =&gt; <span class="bool-val">false</span>);
+        <span class="macro">test_enabled!</span>(failure: NAY, general: NAY =&gt; <span class="bool-val">false</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">follows_general_if_failure_is_not_set</span>() {
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">NOT_SET</span>, <span class="ident">general</span>: <span class="ident">YEA</span> =&gt; <span class="bool-val">true</span>);
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">NOT_SET</span>, <span class="ident">general</span>: <span class="ident">NOT_SET</span> =&gt; <span class="bool-val">false</span>);
-        <span class="macro">test_enabled!</span>(<span class="ident">failure</span>: <span class="ident">NOT_SET</span>, <span class="ident">general</span>: <span class="ident">NAY</span> =&gt; <span class="bool-val">false</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>follows_general_if_failure_is_not_set() {
+        <span class="macro">test_enabled!</span>(failure: NOT_SET, general: YEA =&gt; <span class="bool-val">true</span>);
+        <span class="macro">test_enabled!</span>(failure: NOT_SET, general: NOT_SET =&gt; <span class="bool-val">false</span>);
+        <span class="macro">test_enabled!</span>(failure: NOT_SET, general: NAY =&gt; <span class="bool-val">false</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="failure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="failure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -297,304 +297,304 @@
 <span id="297">297</span>
 <span id="298">298</span>
 <span id="299">299</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module has containers for storing the tasks spawned on a scheduler. The</span>
-<span class="doccomment">//! `OwnedTasks` container is thread-safe but can only store tasks that</span>
-<span class="doccomment">//! implement Send. The `LocalOwnedTasks` container is not thread safe, but can</span>
-<span class="doccomment">//! store non-Send tasks.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The collections can be closed to prevent adding new tasks during shutdown of</span>
-<span class="doccomment">//! the scheduler with the collection.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module has containers for storing the tasks spawned on a scheduler. The
+//! `OwnedTasks` container is thread-safe but can only store tasks that
+//! implement Send. The `LocalOwnedTasks` container is not thread safe, but can
+//! store non-Send tasks.
+//!
+//! The collections can be closed to prevent adding new tasks during shutdown of
+//! the scheduler with the collection.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#145">JoinHandle</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#230">LocalNotified</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#210">Task</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::linked_list</span>::{<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#43">Link</a>, <a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#19">LinkedList</a>};
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a href="../../../../src/tokio/runtime/task/join.rs.html#145">JoinHandle</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#230">LocalNotified</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#210">Task</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::linked_list::{<a href="../../../../src/tokio/util/linked_list.rs.html#43">Link</a>, <a href="../../../../src/tokio/util/linked_list.rs.html#19">LinkedList</a>};
 
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use </span>std::marker::PhantomData;
 
-<span class="comment">// The id from the module below is used to verify whether a given task is stored</span>
-<span class="comment">// in this OwnedTasks, or some other task. The counter starts at one so we can</span>
-<span class="comment">// use zero for tasks not owned by any list.</span>
-<span class="comment">//</span>
-<span class="comment">// The safety checks in this file can technically be violated if the counter is</span>
-<span class="comment">// overflown, but the checks are not supposed to ever fail unless there is a</span>
-<span class="comment">// bug in Tokio, so we accept that certain bugs would not be caught if the two</span>
-<span class="comment">// mixed up runtimes happen to have the same id.</span>
+<span class="comment">// The id from the module below is used to verify whether a given task is stored
+// in this OwnedTasks, or some other task. The counter starts at one so we can
+// use zero for tasks not owned by any list.
+//
+// The safety checks in this file can technically be violated if the counter is
+// overflown, but the checks are not supposed to ever fail unless there is a
+// bug in Tokio, so we accept that certain bugs would not be caught if the two
+// mixed up runtimes happen to have the same id.
 
-<span class="macro">cfg_has_atomic_u64!</span> {
-    <span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html">AtomicU64</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+</span><span class="macro">cfg_has_atomic_u64! </span>{
+    <span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html">AtomicU64</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
 
-    <span class="kw">static</span> <span class="ident">NEXT_OWNED_TASKS_ID</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html">AtomicU64</a> <span class="op">=</span> <span class="ident">AtomicU64::new</span>(<span class="number">1</span>);
+    <span class="kw">static </span>NEXT_OWNED_TASKS_ID: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html">AtomicU64</a> = AtomicU64::new(<span class="number">1</span>);
 
-    <span class="kw">fn</span> <span class="ident">get_next_id</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#29">NEXT_OWNED_TASKS_ID</a>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>);
-            <span class="kw">if</span> <span class="ident">id</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">return</span> <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#33">id</a>;
+    <span class="kw">fn </span>get_next_id() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>id = <a href="../../../../src/tokio/runtime/task/list.rs.html#29">NEXT_OWNED_TASKS_ID</a>.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
+            <span class="kw">if </span>id != <span class="number">0 </span>{
+                <span class="kw">return </span><a href="../../../../src/tokio/runtime/task/list.rs.html#33">id</a>;
             }
         }
     }
 }
 
-<span class="macro">cfg_not_has_atomic_u64!</span> {
-    <span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<span class="ident">AtomicU32</span>, <span class="ident">Ordering</span>};
+<span class="macro">cfg_not_has_atomic_u64! </span>{
+    <span class="kw">use </span>std::sync::atomic::{AtomicU32, Ordering};
 
-    <span class="kw">static</span> <span class="ident">NEXT_OWNED_TASKS_ID</span>: <span class="ident">AtomicU32</span> <span class="op">=</span> <span class="ident">AtomicU32::new</span>(<span class="number">1</span>);
+    <span class="kw">static </span>NEXT_OWNED_TASKS_ID: AtomicU32 = AtomicU32::new(<span class="number">1</span>);
 
-    <span class="kw">fn</span> <span class="ident">get_next_id</span>() -&gt; <span class="ident">u64</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">NEXT_OWNED_TASKS_ID</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>);
-            <span class="kw">if</span> <span class="ident">id</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="ident">u64::from</span>(<span class="ident">id</span>);
+    <span class="kw">fn </span>get_next_id() -&gt; u64 {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>id = NEXT_OWNED_TASKS_ID.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
+            <span class="kw">if </span>id != <span class="number">0 </span>{
+                <span class="kw">return </span>u64::from(id);
             }
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">OwnedTasks</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">OwnedTasksInner</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>OwnedTasks&lt;S: <span class="lifetime">&#39;static</span>&gt; {
+    inner: Mutex&lt;OwnedTasksInner&lt;S&gt;&gt;,
+    id: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
 }
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LocalOwnedTasks</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">OwnedTasksInner</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="ident">_not_send_or_sync</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>LocalOwnedTasks&lt;S: <span class="lifetime">&#39;static</span>&gt; {
+    inner: UnsafeCell&lt;OwnedTasksInner&lt;S&gt;&gt;,
+    id: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    _not_send_or_sync: PhantomData&lt;<span class="kw-2">*const </span>()&gt;,
 }
-<span class="kw">struct</span> <span class="ident">OwnedTasksInner</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="ident">list</span>: <span class="ident">LinkedList</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>,
-    <span class="ident">closed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="kw">struct </span>OwnedTasksInner&lt;S: <span class="lifetime">&#39;static</span>&gt; {
+    list: LinkedList&lt;Task&lt;S&gt;, &lt;Task&lt;S&gt; <span class="kw">as </span>Link&gt;::Target&gt;,
+    closed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">OwnedTasks</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#65">OwnedTasksInner</a> {
-                <span class="ident">list</span>: <span class="ident">LinkedList::new</span>(),
-                <span class="ident">closed</span>: <span class="bool-val">false</span>,
+<span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; OwnedTasks&lt;S&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Mutex::new(<a href="../../../../src/tokio/runtime/task/list.rs.html#65">OwnedTasksInner</a> {
+                list: LinkedList::new(),
+                closed: <span class="bool-val">false</span>,
             }),
-            <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#31">get_next_id</a>(),
+            id: <a href="../../../../src/tokio/runtime/task/list.rs.html#31">get_next_id</a>(),
         }
     }
 
-    <span class="doccomment">/// Binds the provided task to this OwnedTasks instance. This fails if the</span>
-    <span class="doccomment">/// OwnedTasks has been closed.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Binds the provided task to this OwnedTasks instance. This fails if the
+    /// OwnedTasks has been closed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">task</span>: <span class="ident">T</span>,
-        <span class="ident">scheduler</span>: <span class="ident">S</span>,
-        <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">super</span>::Id</a>,
-    ) -&gt; (<span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Notified</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>)
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">T::Output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        task: T,
+        scheduler: S,
+        id: <a href="../../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">super</span>::Id</a>,
+    ) -&gt; (JoinHandle&lt;T::Output&gt;, <span class="prelude-ty">Option</span>&lt;Notified&lt;S&gt;&gt;)
+    <span class="kw">where
+        </span>S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+        T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        T::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> (<span class="ident">task</span>, <span class="ident">notified</span>, <span class="ident">join</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#277-285"><span class="kw">super</span>::new_task</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#85">task</a>, <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#86">scheduler</a>, <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#87">id</a>);
+        <span class="kw">let </span>(task, notified, join) = <a href="../../../../src/tokio/runtime/task/mod.rs.html#277-285"><span class="kw">super</span>::new_task</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#85">task</a>, <a href="../../../../src/tokio/runtime/task/list.rs.html#86">scheduler</a>, <a href="../../../../src/tokio/runtime/task/list.rs.html#87">id</a>);
 
-        <span class="kw">unsafe</span> {
-            <span class="comment">// safety: We just created the task, so we have exclusive access</span>
-            <span class="comment">// to the field.</span>
-            <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#94">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#234">set_owner_id</a>(<a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#84">self</a>.<span class="ident">id</span>);
+        <span class="kw">unsafe </span>{
+            <span class="comment">// safety: We just created the task, so we have exclusive access
+            // to the field.
+            </span><a href="../../../../src/tokio/runtime/task/list.rs.html#94">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a href="../../../../src/tokio/runtime/task/core.rs.html#234">set_owner_id</a>(<a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#84">self</a>.id);
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#84">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-        <span class="kw">if</span> <span class="ident">lock</span>.<span class="ident">closed</span> {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#102">lock</a>);
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#94">notified</a>);
-            <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#94">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#369">shutdown</a>();
-            (<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#94">join</a>, <span class="prelude-val">None</span>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#102">lock</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#94">task</a>);
-            (<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#94">join</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#94">notified</a>))
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#84">self</a>.inner.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">if </span>lock.closed {
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#102">lock</a>);
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#94">notified</a>);
+            <a href="../../../../src/tokio/runtime/task/list.rs.html#94">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#369">shutdown</a>();
+            (<a href="../../../../src/tokio/runtime/task/list.rs.html#94">join</a>, <span class="prelude-val">None</span>)
+        } <span class="kw">else </span>{
+            <a href="../../../../src/tokio/runtime/task/list.rs.html#102">lock</a>.list.<a href="../../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#94">task</a>);
+            (<a href="../../../../src/tokio/runtime/task/list.rs.html#94">join</a>, <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/runtime/task/list.rs.html#94">notified</a>))
         }
     }
 
-    <span class="doccomment">/// Asserts that the given task is owned by this OwnedTasks and convert it to</span>
-    <span class="doccomment">/// a LocalNotified, giving the thread permission to poll this task.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assert_owner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="ident">Notified</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">LocalNotified</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">task</span>.<span class="ident">header</span>().<span class="ident">get_owner_id</span>(), <span class="self">self</span>.<span class="ident">id</span>);
+    <span class="doccomment">/// Asserts that the given task is owned by this OwnedTasks and convert it to
+    /// a LocalNotified, giving the thread permission to poll this task.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert_owner(<span class="kw-2">&amp;</span><span class="self">self</span>, task: Notified&lt;S&gt;) -&gt; LocalNotified&lt;S&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(task.header().get_owner_id(), <span class="self">self</span>.id);
 
-        <span class="comment">// safety: All tasks bound to this OwnedTasks are Send, so it is safe</span>
-        <span class="comment">// to poll it on this thread no matter what thread we are on.</span>
-        <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#230">LocalNotified</a> {
-            <span class="ident">task</span>: <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#117">task</a>.<span class="number">0</span>,
-            <span class="ident">_not_send</span>: <span class="ident">PhantomData</span>,
+        <span class="comment">// safety: All tasks bound to this OwnedTasks are Send, so it is safe
+        // to poll it on this thread no matter what thread we are on.
+        </span><a href="../../../../src/tokio/runtime/task/mod.rs.html#230">LocalNotified</a> {
+            task: <a href="../../../../src/tokio/runtime/task/list.rs.html#117">task</a>.<span class="number">0</span>,
+            _not_send: PhantomData,
         }
     }
 
-    <span class="doccomment">/// Shuts down all tasks in the collection. This call also closes the</span>
-    <span class="doccomment">/// collection, preventing new items from being added.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close_and_shutdown_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>)
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+    <span class="doccomment">/// Shuts down all tasks in the collection. This call also closes the
+    /// collection, preventing new items from being added.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close_and_shutdown_all(<span class="kw-2">&amp;</span><span class="self">self</span>)
+    <span class="kw">where
+        </span>S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
     {
-        <span class="comment">// The first iteration of the loop was unrolled so it can set the</span>
-        <span class="comment">// closed bool.</span>
-        <span class="kw">let</span> <span class="ident">first_task</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#130">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-            <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#137">lock</a>.<span class="ident">closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#137">lock</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#149">pop_back</a>()
+        <span class="comment">// The first iteration of the loop was unrolled so it can set the
+        // closed bool.
+        </span><span class="kw">let </span>first_task = {
+            <span class="kw">let </span><span class="kw-2">mut </span>lock = <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#130">self</a>.inner.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+            <a href="../../../../src/tokio/runtime/task/list.rs.html#137">lock</a>.closed = <span class="bool-val">true</span>;
+            <a href="../../../../src/tokio/runtime/task/list.rs.html#137">lock</a>.list.<a href="../../../../src/tokio/util/linked_list.rs.html#149">pop_back</a>()
         };
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#136">first_task</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">task</span>) =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#142">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#369">shutdown</a>(),
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
+        <span class="kw">match </span><a href="../../../../src/tokio/runtime/task/list.rs.html#136">first_task</a> {
+            <span class="prelude-val">Some</span>(task) =&gt; <a href="../../../../src/tokio/runtime/task/list.rs.html#142">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#369">shutdown</a>(),
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         }
 
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#130">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#149">pop_back</a>() {
-                <span class="prelude-val">Some</span>(<span class="ident">task</span>) =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#148">task</a>,
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>task = <span class="kw">match </span><a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#130">self</a>.inner.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().list.<a href="../../../../src/tokio/util/linked_list.rs.html#149">pop_back</a>() {
+                <span class="prelude-val">Some</span>(task) =&gt; <a href="../../../../src/tokio/runtime/task/list.rs.html#148">task</a>,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
             };
 
-            <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#147">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#369">shutdown</a>();
+            <a href="../../../../src/tokio/runtime/task/list.rs.html#147">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#369">shutdown</a>();
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">task_id</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#156">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#238">get_owner_id</a>();
-        <span class="kw">if</span> <span class="ident">task_id</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="comment">// The task is unowned.</span>
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="kw-2">&amp;</span><span class="self">self</span>, task: <span class="kw-2">&amp;</span>Task&lt;S&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Task&lt;S&gt;&gt; {
+        <span class="kw">let </span>task_id = <a href="../../../../src/tokio/runtime/task/list.rs.html#156">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a href="../../../../src/tokio/runtime/task/core.rs.html#238">get_owner_id</a>();
+        <span class="kw">if </span>task_id == <span class="number">0 </span>{
+            <span class="comment">// The task is unowned.
+            </span><span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">task_id</span>, <span class="self">self</span>.<span class="ident">id</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(task_id, <span class="self">self</span>.id);
 
-        <span class="comment">// safety: We just checked that the provided task is not in some other</span>
-        <span class="comment">// linked list.</span>
-        <span class="kw">unsafe</span> { <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#156">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#183">remove</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#156">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) }
+        <span class="comment">// safety: We just checked that the provided task is not in some other
+        // linked list.
+        </span><span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#156">self</a>.inner.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().list.<a href="../../../../src/tokio/util/linked_list.rs.html#183">remove</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#156">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#170">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#168">is_empty</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#170">self</a>.inner.<a href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().list.<a href="../../../../src/tokio/util/linked_list.rs.html#168">is_empty</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">LocalOwnedTasks</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#65">OwnedTasksInner</a> {
-                <span class="ident">list</span>: <span class="ident">LinkedList::new</span>(),
-                <span class="ident">closed</span>: <span class="bool-val">false</span>,
+<span class="kw">impl</span>&lt;S: <span class="lifetime">&#39;static</span>&gt; LocalOwnedTasks&lt;S&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: UnsafeCell::new(<a href="../../../../src/tokio/runtime/task/list.rs.html#65">OwnedTasksInner</a> {
+                list: LinkedList::new(),
+                closed: <span class="bool-val">false</span>,
             }),
-            <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#31">get_next_id</a>(),
-            <span class="ident">_not_send_or_sync</span>: <span class="ident">PhantomData</span>,
+            id: <a href="../../../../src/tokio/runtime/task/list.rs.html#31">get_next_id</a>(),
+            _not_send_or_sync: PhantomData,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">task</span>: <span class="ident">T</span>,
-        <span class="ident">scheduler</span>: <span class="ident">S</span>,
-        <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">super</span>::Id</a>,
-    ) -&gt; (<span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Notified</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>)
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">T::Output</span>: <span class="lifetime">&#39;static</span>,
+        task: T,
+        scheduler: S,
+        id: <a href="../../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">super</span>::Id</a>,
+    ) -&gt; (JoinHandle&lt;T::Output&gt;, <span class="prelude-ty">Option</span>&lt;Notified&lt;S&gt;&gt;)
+    <span class="kw">where
+        </span>S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+        T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="lifetime">&#39;static</span>,
+        T::Output: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> (<span class="ident">task</span>, <span class="ident">notified</span>, <span class="ident">join</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#277-285"><span class="kw">super</span>::new_task</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#189">task</a>, <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#190">scheduler</a>, <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#191">id</a>);
+        <span class="kw">let </span>(task, notified, join) = <a href="../../../../src/tokio/runtime/task/mod.rs.html#277-285"><span class="kw">super</span>::new_task</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#189">task</a>, <a href="../../../../src/tokio/runtime/task/list.rs.html#190">scheduler</a>, <a href="../../../../src/tokio/runtime/task/list.rs.html#191">id</a>);
 
-        <span class="kw">unsafe</span> {
-            <span class="comment">// safety: We just created the task, so we have exclusive access</span>
-            <span class="comment">// to the field.</span>
-            <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#198">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#234">set_owner_id</a>(<a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#188">self</a>.<span class="ident">id</span>);
+        <span class="kw">unsafe </span>{
+            <span class="comment">// safety: We just created the task, so we have exclusive access
+            // to the field.
+            </span><a href="../../../../src/tokio/runtime/task/list.rs.html#198">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a href="../../../../src/tokio/runtime/task/core.rs.html#234">set_owner_id</a>(<a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#188">self</a>.id);
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_closed</span>() {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#198">notified</a>);
-            <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#198">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#369">shutdown</a>();
-            (<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#198">join</a>, <span class="prelude-val">None</span>)
-        } <span class="kw">else</span> {
-            <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#188">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> {
-                <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#211">inner</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#198">task</a>);
+        <span class="kw">if </span><span class="self">self</span>.is_closed() {
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#198">notified</a>);
+            <a href="../../../../src/tokio/runtime/task/list.rs.html#198">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#369">shutdown</a>();
+            (<a href="../../../../src/tokio/runtime/task/list.rs.html#198">join</a>, <span class="prelude-val">None</span>)
+        } <span class="kw">else </span>{
+            <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#188">self</a>.<a href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(|inner| {
+                <a href="../../../../src/tokio/runtime/task/list.rs.html#211">inner</a>.list.<a href="../../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#198">task</a>);
             });
-            (<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#198">join</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#198">notified</a>))
+            (<a href="../../../../src/tokio/runtime/task/list.rs.html#198">join</a>, <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/runtime/task/list.rs.html#198">notified</a>))
         }
     }
 
-    <span class="doccomment">/// Shuts down all tasks in the collection. This call also closes the</span>
-    <span class="doccomment">/// collection, preventing new items from being added.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close_and_shutdown_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>)
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+    <span class="doccomment">/// Shuts down all tasks in the collection. This call also closes the
+    /// collection, preventing new items from being added.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close_and_shutdown_all(<span class="kw-2">&amp;</span><span class="self">self</span>)
+    <span class="kw">where
+        </span>S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
     {
-        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#220">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#224">inner</a>.<span class="ident">closed</span> <span class="op">=</span> <span class="bool-val">true</span>);
+        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#220">self</a>.<a href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(|inner| <a href="../../../../src/tokio/runtime/task/list.rs.html#224">inner</a>.closed = <span class="bool-val">true</span>);
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">list</span>.<span class="ident">pop_back</span>()) {
-            <span class="ident">task</span>.<span class="ident">shutdown</span>();
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(task) = <span class="self">self</span>.with_inner(|inner| inner.list.pop_back()) {
+            task.shutdown();
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">task_id</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#231">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#238">get_owner_id</a>();
-        <span class="kw">if</span> <span class="ident">task_id</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="comment">// The task is unowned.</span>
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="kw-2">&amp;</span><span class="self">self</span>, task: <span class="kw-2">&amp;</span>Task&lt;S&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Task&lt;S&gt;&gt; {
+        <span class="kw">let </span>task_id = <a href="../../../../src/tokio/runtime/task/list.rs.html#231">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a href="../../../../src/tokio/runtime/task/core.rs.html#238">get_owner_id</a>();
+        <span class="kw">if </span>task_id == <span class="number">0 </span>{
+            <span class="comment">// The task is unowned.
+            </span><span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">task_id</span>, <span class="self">self</span>.<span class="ident">id</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(task_id, <span class="self">self</span>.id);
 
-        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#231">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span>
-            <span class="comment">// safety: We just checked that the provided task is not in some</span>
-            <span class="comment">// other linked list.</span>
-            <span class="kw">unsafe</span> { <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#240">inner</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#183">remove</a>(<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#231">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) })
+        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#231">self</a>.<a href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(|inner|
+            <span class="comment">// safety: We just checked that the provided task is not in some
+            // other linked list.
+            </span><span class="kw">unsafe </span>{ <a href="../../../../src/tokio/runtime/task/list.rs.html#240">inner</a>.list.<a href="../../../../src/tokio/util/linked_list.rs.html#183">remove</a>(<a href="../../../../src/tokio/runtime/task/list.rs.html#231">task</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#334">header</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) })
     }
 
-    <span class="doccomment">/// Asserts that the given task is owned by this LocalOwnedTasks and convert</span>
-    <span class="doccomment">/// it to a LocalNotified, giving the thread permission to poll this task.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assert_owner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="ident">Notified</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">LocalNotified</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">task</span>.<span class="ident">header</span>().<span class="ident">get_owner_id</span>(), <span class="self">self</span>.<span class="ident">id</span>);
+    <span class="doccomment">/// Asserts that the given task is owned by this LocalOwnedTasks and convert
+    /// it to a LocalNotified, giving the thread permission to poll this task.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert_owner(<span class="kw-2">&amp;</span><span class="self">self</span>, task: Notified&lt;S&gt;) -&gt; LocalNotified&lt;S&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(task.header().get_owner_id(), <span class="self">self</span>.id);
 
-        <span class="comment">// safety: The task was bound to this LocalOwnedTasks, and the</span>
-        <span class="comment">// LocalOwnedTasks is not Send or Sync, so we are on the right thread</span>
-        <span class="comment">// for polling this task.</span>
-        <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#230">LocalNotified</a> {
-            <span class="ident">task</span>: <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#249">task</a>.<span class="number">0</span>,
-            <span class="ident">_not_send</span>: <span class="ident">PhantomData</span>,
+        <span class="comment">// safety: The task was bound to this LocalOwnedTasks, and the
+        // LocalOwnedTasks is not Send or Sync, so we are on the right thread
+        // for polling this task.
+        </span><a href="../../../../src/tokio/runtime/task/mod.rs.html#230">LocalNotified</a> {
+            task: <a href="../../../../src/tokio/runtime/task/list.rs.html#249">task</a>.<span class="number">0</span>,
+            _not_send: PhantomData,
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_inner</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">T</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">OwnedTasksInner</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>with_inner&lt;F, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; T
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>OwnedTasksInner&lt;S&gt;) -&gt; T,
     {
-        <span class="comment">// safety: This type is not Sync, so concurrent calls of this method</span>
-        <span class="comment">// can&#39;t happen.  Furthermore, all uses of this method in this file make</span>
-        <span class="comment">// sure that they don&#39;t call `with_inner` recursively.</span>
-        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#262">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#262">f</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#269">ptr</a>) })
+        <span class="comment">// safety: This type is not Sync, so concurrent calls of this method
+        // can&#39;t happen.  Furthermore, all uses of this method in this file make
+        // sure that they don&#39;t call `with_inner` recursively.
+        </span><a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#262">self</a>.inner.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <span class="kw">unsafe </span>{ <a href="../../../../src/tokio/runtime/task/list.rs.html#262">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../../src/tokio/runtime/task/list.rs.html#269">ptr</a>) })
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#272">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#273">inner</a>.<span class="ident">closed</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#272">self</a>.<a href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(|inner| <a href="../../../../src/tokio/runtime/task/list.rs.html#273">inner</a>.closed)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#276">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/runtime/task/list.rs.html#277">inner</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#168">is_empty</a>())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tokio/runtime/task/list.rs.html#276">self</a>.<a href="../../../../src/tokio/runtime/task/list.rs.html#262-264">with_inner</a>(|inner| <a href="../../../../src/tokio/runtime/task/list.rs.html#277">inner</a>.list.<a href="../../../../src/tokio/util/linked_list.rs.html#168">is_empty</a>())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>))]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(all(test))]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="comment">// This test may run in parallel with other tests, so we only test that ids</span>
-    <span class="comment">// come in increasing order.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_id_not_broken</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_id</span> <span class="op">=</span> <span class="ident">get_next_id</span>();
-        <span class="macro">assert_ne!</span>(<span class="ident">last_id</span>, <span class="number">0</span>);
+    <span class="comment">// This test may run in parallel with other tests, so we only test that ids
+    // come in increasing order.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_id_not_broken() {
+        <span class="kw">let </span><span class="kw-2">mut </span>last_id = get_next_id();
+        <span class="macro">assert_ne!</span>(last_id, <span class="number">0</span>);
 
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000</span> {
-            <span class="kw">let</span> <span class="ident">next_id</span> <span class="op">=</span> <span class="ident">get_next_id</span>();
-            <span class="macro">assert_ne!</span>(<span class="ident">next_id</span>, <span class="number">0</span>);
-            <span class="macro">assert!</span>(<span class="ident">last_id</span> <span class="op">&lt;</span> <span class="ident">next_id</span>);
-            <span class="ident">last_id</span> <span class="op">=</span> <span class="ident">next_id</span>;
+        <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">1000 </span>{
+            <span class="kw">let </span>next_id = get_next_id();
+            <span class="macro">assert_ne!</span>(next_id, <span class="number">0</span>);
+            <span class="macro">assert!</span>(last_id &lt; next_id);
+            last_id = next_id;
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

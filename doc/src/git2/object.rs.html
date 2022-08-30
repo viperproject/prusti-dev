@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -246,253 +246,253 @@
 <span id="246">246</span>
 <span id="247">247</span>
 <span id="248">248</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/blob.rs.html#12">Blob</a>, <a class="ident" href="../../src/git2/buf.rs.html#13">Buf</a>, <a class="ident" href="../../src/git2/commit.rs.html#14">Commit</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/lib.rs.html#336">ObjectType</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a>, <a class="ident" href="../../src/git2/tag.rs.html#12">Tag</a>, <a class="ident" href="../../src/git2/tree.rs.html#17">Tree</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/git2/describe.rs.html#13">Describe</a>, <a class="ident" href="../../src/git2/describe.rs.html#19">DescribeOptions</a>};
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/blob.rs.html#12">Blob</a>, <a href="../../src/git2/buf.rs.html#13">Buf</a>, <a href="../../src/git2/commit.rs.html#14">Commit</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/lib.rs.html#336">ObjectType</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/tag.rs.html#12">Tag</a>, <a href="../../src/git2/tree.rs.html#17">Tree</a>};
+<span class="kw">use crate</span>::{<a href="../../src/git2/describe.rs.html#13">Describe</a>, <a href="../../src/git2/describe.rs.html#19">DescribeOptions</a>};
 
-<span class="doccomment">/// A structure to represent a git [object][1]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [1]: http://git-scm.com/book/en/Git-Internals-Git-Objects</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_object.html">raw::git_object</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A structure to represent a git [object][1]
+///
+/// [1]: http://git-scm.com/book/en/Git-Internals-Git-Objects
+</span><span class="kw">pub struct </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_object.html">raw::git_object</a>,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../src/git2/repo.rs.html#108">Repository</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Get the id (SHA1) of a repository object</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="ident">raw::git_object_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/object.rs.html#19">self</a>.<span class="ident">raw</span>)) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Get the id (SHA1) of a repository object
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/oid.rs.html#15">Oid</a> {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(raw::git_object_id(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/object.rs.html#19">self</a>.raw)) }
     }
 
-    <span class="doccomment">/// Get the object type of an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the type is unknown, then `None` is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/lib.rs.html#336">ObjectType</a><span class="op">&gt;</span> {
-        <span class="ident">ObjectType::from_raw</span>(<span class="kw">unsafe</span> { <span class="ident">raw::git_object_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/object.rs.html#26">self</a>.<span class="ident">raw</span>) })
+    <span class="doccomment">/// Get the object type of an object.
+    ///
+    /// If the type is unknown, then `None` is returned.
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/git2/lib.rs.html#336">ObjectType</a>&gt; {
+        ObjectType::from_raw(<span class="kw">unsafe </span>{ raw::git_object_type(<span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/object.rs.html#26">self</a>.raw) })
     }
 
-    <span class="doccomment">/// Recursively peel an object until an object of the specified type is met.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you pass `Any` as the target type, then the object will be</span>
-    <span class="doccomment">/// peeled until the type changes (e.g. a tag will be chased until the</span>
-    <span class="doccomment">/// referenced object is no longer a tag).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_object_peel</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>(), <span class="ident">kind</span>));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/object.rs.html#36">raw</a>))
+    <span class="doccomment">/// Recursively peel an object until an object of the specified type is met.
+    ///
+    /// If you pass `Any` as the target type, then the object will be
+    /// peeled until the type changes (e.g. a tag will be chased until the
+    /// referenced object is no longer a tag).
+    </span><span class="kw">pub fn </span>peel(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Object&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_object_peel(<span class="kw-2">&amp;mut </span>raw, <span class="kw-2">&amp;*</span><span class="self">self</span>.raw(), kind));
+            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/object.rs.html#36">raw</a>))
         }
     }
 
-    <span class="doccomment">/// Recursively peel an object until a blob is found</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peel_to_blob</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#44">self</a>.<a class="ident" href="../../src/git2/object.rs.html#35">peel</a>(<a class="ident" href="../../src/git2/lib.rs.html#344">ObjectType::Blob</a>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <a class="ident" href="../../src/git2/object.rs.html#46">o</a>.<a class="ident" href="../../src/git2/object.rs.html#173">cast_or_panic</a>(<a class="ident" href="../../src/git2/lib.rs.html#344">ObjectType::Blob</a>))
+    <span class="doccomment">/// Recursively peel an object until a blob is found
+    </span><span class="kw">pub fn </span>peel_to_blob(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Blob&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#44">self</a>.<a href="../../src/git2/object.rs.html#35">peel</a>(<a href="../../src/git2/lib.rs.html#344">ObjectType::Blob</a>)
+            .map(|o| <a href="../../src/git2/object.rs.html#46">o</a>.<a href="../../src/git2/object.rs.html#173">cast_or_panic</a>(<a href="../../src/git2/lib.rs.html#344">ObjectType::Blob</a>))
     }
 
-    <span class="doccomment">/// Recursively peel an object until a commit is found</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peel_to_commit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Commit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#50">self</a>.<a class="ident" href="../../src/git2/object.rs.html#35">peel</a>(<a class="ident" href="../../src/git2/lib.rs.html#340">ObjectType::Commit</a>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <a class="ident" href="../../src/git2/object.rs.html#52">o</a>.<a class="ident" href="../../src/git2/object.rs.html#173">cast_or_panic</a>(<a class="ident" href="../../src/git2/lib.rs.html#340">ObjectType::Commit</a>))
+    <span class="doccomment">/// Recursively peel an object until a commit is found
+    </span><span class="kw">pub fn </span>peel_to_commit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Commit&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#50">self</a>.<a href="../../src/git2/object.rs.html#35">peel</a>(<a href="../../src/git2/lib.rs.html#340">ObjectType::Commit</a>)
+            .map(|o| <a href="../../src/git2/object.rs.html#52">o</a>.<a href="../../src/git2/object.rs.html#173">cast_or_panic</a>(<a href="../../src/git2/lib.rs.html#340">ObjectType::Commit</a>))
     }
 
-    <span class="doccomment">/// Recursively peel an object until a tag is found</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peel_to_tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Tag</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#56">self</a>.<a class="ident" href="../../src/git2/object.rs.html#35">peel</a>(<a class="ident" href="../../src/git2/lib.rs.html#346">ObjectType::Tag</a>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <a class="ident" href="../../src/git2/object.rs.html#58">o</a>.<a class="ident" href="../../src/git2/object.rs.html#173">cast_or_panic</a>(<a class="ident" href="../../src/git2/lib.rs.html#346">ObjectType::Tag</a>))
+    <span class="doccomment">/// Recursively peel an object until a tag is found
+    </span><span class="kw">pub fn </span>peel_to_tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Tag&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#56">self</a>.<a href="../../src/git2/object.rs.html#35">peel</a>(<a href="../../src/git2/lib.rs.html#346">ObjectType::Tag</a>)
+            .map(|o| <a href="../../src/git2/object.rs.html#58">o</a>.<a href="../../src/git2/object.rs.html#173">cast_or_panic</a>(<a href="../../src/git2/lib.rs.html#346">ObjectType::Tag</a>))
     }
 
-    <span class="doccomment">/// Recursively peel an object until a tree is found</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peel_to_tree</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Tree</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#62">self</a>.<a class="ident" href="../../src/git2/object.rs.html#35">peel</a>(<a class="ident" href="../../src/git2/lib.rs.html#342">ObjectType::Tree</a>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <a class="ident" href="../../src/git2/object.rs.html#64">o</a>.<a class="ident" href="../../src/git2/object.rs.html#173">cast_or_panic</a>(<a class="ident" href="../../src/git2/lib.rs.html#342">ObjectType::Tree</a>))
+    <span class="doccomment">/// Recursively peel an object until a tree is found
+    </span><span class="kw">pub fn </span>peel_to_tree(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Tree&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#62">self</a>.<a href="../../src/git2/object.rs.html#35">peel</a>(<a href="../../src/git2/lib.rs.html#342">ObjectType::Tree</a>)
+            .map(|o| <a href="../../src/git2/object.rs.html#64">o</a>.<a href="../../src/git2/object.rs.html#173">cast_or_panic</a>(<a href="../../src/git2/lib.rs.html#342">ObjectType::Tree</a>))
     }
 
-    <span class="doccomment">/// Get a short abbreviated OID string for the object</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This starts at the &quot;core.abbrev&quot; length (default 7 characters) and</span>
-    <span class="doccomment">/// iteratively extends to a longer string if that length is ambiguous. The</span>
-    <span class="doccomment">/// result will be unambiguous (at least until new objects are added to the</span>
-    <span class="doccomment">/// repository).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">short_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/buf.rs.html#13">Buf</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_object_short_id</span>(<span class="ident">buf</span>.<span class="ident">raw</span>(), <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>()));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/object.rs.html#75">buf</a>)
+    <span class="doccomment">/// Get a short abbreviated OID string for the object
+    ///
+    /// This starts at the &quot;core.abbrev&quot; length (default 7 characters) and
+    /// iteratively extends to a longer string if that length is ambiguous. The
+    /// result will be unambiguous (at least until new objects are added to the
+    /// repository).
+    </span><span class="kw">pub fn </span>short_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/buf.rs.html#13">Buf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>buf = Buf::new();
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_object_short_id(buf.raw(), <span class="kw-2">&amp;*</span><span class="self">self</span>.raw()));
+            <span class="prelude-val">Ok</span>(<a href="../../src/git2/object.rs.html#75">buf</a>)
         }
     }
 
-    <span class="doccomment">/// Attempt to view this object as a commit.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the object is not actually a commit.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_commit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Commit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#84">self</a>.<a class="ident" href="../../src/git2/object.rs.html#148">cast</a>(<a class="ident" href="../../src/git2/lib.rs.html#340">ObjectType::Commit</a>)
+    <span class="doccomment">/// Attempt to view this object as a commit.
+    ///
+    /// Returns `None` if the object is not actually a commit.
+    </span><span class="kw">pub fn </span>as_commit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Commit&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#84">self</a>.<a href="../../src/git2/object.rs.html#148">cast</a>(<a href="../../src/git2/lib.rs.html#340">ObjectType::Commit</a>)
     }
 
-    <span class="doccomment">/// Attempt to consume this object and return a commit.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Err(self)` if this object is not actually a commit.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_commit</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Commit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#91">self</a>.<a class="ident" href="../../src/git2/object.rs.html#157">cast_into</a>(<a class="ident" href="../../src/git2/lib.rs.html#340">ObjectType::Commit</a>)
+    <span class="doccomment">/// Attempt to consume this object and return a commit.
+    ///
+    /// Returns `Err(self)` if this object is not actually a commit.
+    </span><span class="kw">pub fn </span>into_commit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Commit&lt;<span class="lifetime">&#39;repo</span>&gt;, Object&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#91">self</a>.<a href="../../src/git2/object.rs.html#157">cast_into</a>(<a href="../../src/git2/lib.rs.html#340">ObjectType::Commit</a>)
     }
 
-    <span class="doccomment">/// Attempt to view this object as a tag.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the object is not actually a tag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Tag</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#98">self</a>.<a class="ident" href="../../src/git2/object.rs.html#148">cast</a>(<a class="ident" href="../../src/git2/lib.rs.html#346">ObjectType::Tag</a>)
+    <span class="doccomment">/// Attempt to view this object as a tag.
+    ///
+    /// Returns `None` if the object is not actually a tag.
+    </span><span class="kw">pub fn </span>as_tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Tag&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#98">self</a>.<a href="../../src/git2/object.rs.html#148">cast</a>(<a href="../../src/git2/lib.rs.html#346">ObjectType::Tag</a>)
     }
 
-    <span class="doccomment">/// Attempt to consume this object and return a tag.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Err(self)` if this object is not actually a tag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_tag</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Tag</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#105">self</a>.<a class="ident" href="../../src/git2/object.rs.html#157">cast_into</a>(<a class="ident" href="../../src/git2/lib.rs.html#346">ObjectType::Tag</a>)
+    <span class="doccomment">/// Attempt to consume this object and return a tag.
+    ///
+    /// Returns `Err(self)` if this object is not actually a tag.
+    </span><span class="kw">pub fn </span>into_tag(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Tag&lt;<span class="lifetime">&#39;repo</span>&gt;, Object&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#105">self</a>.<a href="../../src/git2/object.rs.html#157">cast_into</a>(<a href="../../src/git2/lib.rs.html#346">ObjectType::Tag</a>)
     }
 
-    <span class="doccomment">/// Attempt to view this object as a tree.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the object is not actually a tree.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_tree</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Tree</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#112">self</a>.<a class="ident" href="../../src/git2/object.rs.html#148">cast</a>(<a class="ident" href="../../src/git2/lib.rs.html#342">ObjectType::Tree</a>)
+    <span class="doccomment">/// Attempt to view this object as a tree.
+    ///
+    /// Returns `None` if the object is not actually a tree.
+    </span><span class="kw">pub fn </span>as_tree(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Tree&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#112">self</a>.<a href="../../src/git2/object.rs.html#148">cast</a>(<a href="../../src/git2/lib.rs.html#342">ObjectType::Tree</a>)
     }
 
-    <span class="doccomment">/// Attempt to consume this object and return a tree.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Err(self)` if this object is not actually a tree.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_tree</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Tree</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#119">self</a>.<a class="ident" href="../../src/git2/object.rs.html#157">cast_into</a>(<a class="ident" href="../../src/git2/lib.rs.html#342">ObjectType::Tree</a>)
+    <span class="doccomment">/// Attempt to consume this object and return a tree.
+    ///
+    /// Returns `Err(self)` if this object is not actually a tree.
+    </span><span class="kw">pub fn </span>into_tree(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Tree&lt;<span class="lifetime">&#39;repo</span>&gt;, Object&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#119">self</a>.<a href="../../src/git2/object.rs.html#157">cast_into</a>(<a href="../../src/git2/lib.rs.html#342">ObjectType::Tree</a>)
     }
 
-    <span class="doccomment">/// Attempt to view this object as a blob.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the object is not actually a blob.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_blob</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#126">self</a>.<a class="ident" href="../../src/git2/object.rs.html#148">cast</a>(<a class="ident" href="../../src/git2/lib.rs.html#344">ObjectType::Blob</a>)
+    <span class="doccomment">/// Attempt to view this object as a blob.
+    ///
+    /// Returns `None` if the object is not actually a blob.
+    </span><span class="kw">pub fn </span>as_blob(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Blob&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#126">self</a>.<a href="../../src/git2/object.rs.html#148">cast</a>(<a href="../../src/git2/lib.rs.html#344">ObjectType::Blob</a>)
     }
 
-    <span class="doccomment">/// Attempt to consume this object and return a blob.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Err(self)` if this object is not actually a blob.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_blob</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Blob</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/object.rs.html#133">self</a>.<a class="ident" href="../../src/git2/object.rs.html#157">cast_into</a>(<a class="ident" href="../../src/git2/lib.rs.html#344">ObjectType::Blob</a>)
+    <span class="doccomment">/// Attempt to consume this object and return a blob.
+    ///
+    /// Returns `Err(self)` if this object is not actually a blob.
+    </span><span class="kw">pub fn </span>into_blob(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Blob&lt;<span class="lifetime">&#39;repo</span>&gt;, Object&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/object.rs.html#133">self</a>.<a href="../../src/git2/object.rs.html#157">cast_into</a>(<a href="../../src/git2/lib.rs.html#344">ObjectType::Blob</a>)
     }
 
-    <span class="doccomment">/// Describes a commit</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Performs a describe operation on this commitish object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">describe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">opts</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/describe.rs.html#19">DescribeOptions</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Describe</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_describe_commit</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ret</span>, <span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">opts</span>.<span class="ident">raw</span>()));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/object.rs.html#141">ret</a>))
+    <span class="doccomment">/// Describes a commit
+    ///
+    /// Performs a describe operation on this commitish object.
+    </span><span class="kw">pub fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>, opts: <span class="kw-2">&amp;</span><a href="../../src/git2/describe.rs.html#19">DescribeOptions</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Describe&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_describe_commit(<span class="kw-2">&amp;mut </span>ret, <span class="self">self</span>.raw, opts.raw()));
+            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/object.rs.html#141">ret</a>))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">cast</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>(), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>());
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">kind</span>) {
-            <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="self" href="../../src/git2/object.rs.html#148">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">T</span>)) }
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="kw">fn </span>cast&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::size_of::&lt;Object&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(), mem::size_of::&lt;T&gt;());
+        <span class="kw">if </span><span class="self">self</span>.kind() == <span class="prelude-val">Some</span>(kind) {
+            <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<span class="self"><a href="../../src/git2/object.rs.html#148">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>T)) }
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="kw">fn</span> <span class="ident">cast_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>());
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">kind</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">other</span> <span class="op">=</span> <span class="ident">ptr::read</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/object.rs.html#157">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">T</span>);
-                <span class="ident">mem::forget</span>(<a class="self" href="../../src/git2/object.rs.html#157">self</a>);
-                <a class="ident" href="../../src/git2/object.rs.html#161">other</a>
+    <span class="kw">fn </span>cast_into&lt;T&gt;(<span class="self">self</span>, kind: <a href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;T, Object&lt;<span class="lifetime">&#39;repo</span>&gt;&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::size_of_val(<span class="kw-2">&amp;</span><span class="self">self</span>), mem::size_of::&lt;T&gt;());
+        <span class="kw">if </span><span class="self">self</span>.kind() == <span class="prelude-val">Some</span>(kind) {
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{
+                <span class="kw">let </span>other = ptr::read(<span class="kw-2">&amp;</span><span class="self"><a href="../../src/git2/object.rs.html#157">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>T);
+                mem::forget(<a class="self" href="../../src/git2/object.rs.html#157">self</a>);
+                <a href="../../src/git2/object.rs.html#161">other</a>
             })
-        } <span class="kw">else</span> {
+        } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(<a class="self" href="../../src/git2/object.rs.html#157">self</a>)
         }
     }
 }
 
-<span class="doccomment">/// This trait is useful to export cast_or_panic into crate but not outside</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CastOrPanic</span> {
-    <span class="kw">fn</span> <span class="ident">cast_or_panic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; <span class="ident">T</span>;
+<span class="doccomment">/// This trait is useful to export cast_or_panic into crate but not outside
+</span><span class="kw">pub trait </span>CastOrPanic {
+    <span class="kw">fn </span>cast_or_panic&lt;T&gt;(<span class="self">self</span>, kind: <a href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; T;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/object.rs.html#172">CastOrPanic</a> <span class="kw">for</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">cast_or_panic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; <span class="ident">T</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>());
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">kind</span>) {
-            <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">other</span> <span class="op">=</span> <span class="ident">ptr::read</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/git2/object.rs.html#177">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">T</span>);
-                <span class="ident">mem::forget</span>(<a class="self" href="../../src/git2/object.rs.html#177">self</a>);
-                <a class="ident" href="../../src/git2/object.rs.html#181">other</a>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/object.rs.html#172">CastOrPanic</a> <span class="kw">for </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>cast_or_panic&lt;T&gt;(<span class="self">self</span>, kind: <a href="../../src/git2/lib.rs.html#336">ObjectType</a>) -&gt; T {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mem::size_of_val(<span class="kw-2">&amp;</span><span class="self">self</span>), mem::size_of::&lt;T&gt;());
+        <span class="kw">if </span><span class="self">self</span>.kind() == <span class="prelude-val">Some</span>(kind) {
+            <span class="kw">unsafe </span>{
+                <span class="kw">let </span>other = ptr::read(<span class="kw-2">&amp;</span><span class="self"><a href="../../src/git2/object.rs.html#177">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>T);
+                mem::forget(<a class="self" href="../../src/git2/object.rs.html#177">self</a>);
+                <a href="../../src/git2/object.rs.html#181">other</a>
             }
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">buf</span>;
-            <span class="kw">let</span> <span class="ident">akind</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/git2/object.rs.html#177">self</a>.<a class="ident" href="../../src/git2/object.rs.html#26">kind</a>() {
-                <span class="prelude-val">Some</span>(<span class="ident">akind</span>) =&gt; <a class="ident" href="../../src/git2/object.rs.html#188">akind</a>.<a class="ident" href="../../src/git2/lib.rs.html#873">str</a>(),
-                <span class="prelude-val">None</span> =&gt; {
-                    <a class="ident" href="../../src/git2/object.rs.html#186">buf</a> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unknown ({})&quot;</span>, <span class="kw">unsafe</span> { <span class="ident">raw::git_object_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>) });
-                    <span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/object.rs.html#186">buf</a>
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>buf;
+            <span class="kw">let </span>akind = <span class="kw">match </span><a class="self" href="../../src/git2/object.rs.html#177">self</a>.<a href="../../src/git2/object.rs.html#26">kind</a>() {
+                <span class="prelude-val">Some</span>(akind) =&gt; <a href="../../src/git2/object.rs.html#188">akind</a>.<a href="../../src/git2/lib.rs.html#873">str</a>(),
+                <span class="prelude-val">None </span>=&gt; {
+                    <a href="../../src/git2/object.rs.html#186">buf</a> = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unknown ({})&quot;</span>, <span class="kw">unsafe </span>{ raw::git_object_type(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw) });
+                    <span class="kw-2">&amp;</span><a href="../../src/git2/object.rs.html#186">buf</a>
                 }
             };
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
                 <span class="string">&quot;Expected object {} to be {} but it is {}&quot;</span>,
-                <span class="self">self</span>.<span class="ident">id</span>(),
-                <span class="ident">kind</span>.<span class="ident">str</span>(),
-                <span class="ident">akind</span>
+                <span class="self">self</span>.id(),
+                kind.str(),
+                akind
             )
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">rc</span> <span class="op">=</span> <span class="ident">raw::git_object_dup</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/object.rs.html#206">raw</a>, <a class="self" href="../../src/git2/object.rs.html#205">self</a>.<span class="ident">raw</span>);
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">rc</span>, <span class="number">0</span>);
-            <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/object.rs.html#206">raw</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>rc = raw::git_object_dup(<span class="kw-2">&amp;mut </span><a href="../../src/git2/object.rs.html#206">raw</a>, <a class="self" href="../../src/git2/object.rs.html#205">self</a>.raw);
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(rc, <span class="number">0</span>);
+            <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/object.rs.html#206">raw</a>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">std::fmt::Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ds</span> <span class="op">=</span> <a class="ident" href="../../src/git2/object.rs.html#216">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Object&quot;</span>);
-        <span class="kw">match</span> <a class="self" href="../../src/git2/object.rs.html#216">self</a>.<a class="ident" href="../../src/git2/object.rs.html#26">kind</a>() {
-            <span class="prelude-val">Some</span>(<span class="ident">kind</span>) =&gt; <a class="ident" href="../../src/git2/object.rs.html#217">ds</a>.<span class="ident">field</span>(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/object.rs.html#219">kind</a>),
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/git2/object.rs.html#217">ds</a>.<span class="ident">field</span>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">std::fmt::Error</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ds = <a href="../../src/git2/object.rs.html#216">f</a>.debug_struct(<span class="string">&quot;Object&quot;</span>);
+        <span class="kw">match </span><a class="self" href="../../src/git2/object.rs.html#216">self</a>.<a href="../../src/git2/object.rs.html#26">kind</a>() {
+            <span class="prelude-val">Some</span>(kind) =&gt; <a href="../../src/git2/object.rs.html#217">ds</a>.field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><a href="../../src/git2/object.rs.html#219">kind</a>),
+            <span class="prelude-val">None </span>=&gt; <a href="../../src/git2/object.rs.html#217">ds</a>.field(
                 <span class="string">&quot;kind&quot;</span>,
-                <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Unknow ({})&quot;</span>, <span class="kw">unsafe</span> { <span class="ident">raw::git_object_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>) }),
+                <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Unknow ({})&quot;</span>, <span class="kw">unsafe </span>{ raw::git_object_type(<span class="kw-2">&amp;*</span><span class="self">self</span>.raw) }),
             ),
         };
-        <a class="ident" href="../../src/git2/object.rs.html#217">ds</a>.<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/object.rs.html#216">self</a>.<a class="ident" href="../../src/git2/object.rs.html#19">id</a>());
-        <a class="ident" href="../../src/git2/object.rs.html#217">ds</a>.<span class="ident">finish</span>()
+        <a href="../../src/git2/object.rs.html#217">ds</a>.field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/object.rs.html#216">self</a>.<a href="../../src/git2/object.rs.html#19">id</a>());
+        <a href="../../src/git2/object.rs.html#217">ds</a>.finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_object.html">raw::git_object</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_object.html">raw::git_object</a>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_object.html">raw::git_object</a>) -&gt; <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/object.rs.html#12">Object</a> {
-            <a class="ident" href="../../src/git2/object.rs.html#233">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_object.html">raw::git_object</a>) -&gt; Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/object.rs.html#12">Object</a> {
+            <a href="../../src/git2/object.rs.html#233">raw</a>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_object.html">raw::git_object</a> {
-        <a class="self" href="../../src/git2/object.rs.html#239">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_object.html">raw::git_object</a> {
+        <a class="self" href="../../src/git2/object.rs.html#239">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_object_free</span>(<a class="self" href="../../src/git2/object.rs.html#245">self</a>.<span class="ident">raw</span>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Object&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{ raw::git_object_free(<a class="self" href="../../src/git2/object.rs.html#245">self</a>.raw) }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.21/src/recompose.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>recompose.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.21/src/recompose.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>recompose.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container">
                     <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../unicode_normalization/index.html">
                         <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -154,145 +154,145 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT</span>
-<span class="comment">// file at the top-level directory of this distribution and at</span>
-<span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
-<span class="comment">//</span>
-<span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
-<span class="comment">// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
-<span class="comment">// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your</span>
-<span class="comment">// option. This file may not be copied, modified, or distributed</span>
-<span class="comment">// except according to those terms.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT
+// file at the top-level directory of this distribution and at
+// http://rust-lang.org/COPYRIGHT.
+//
+// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license
+// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
 
-<span class="kw">use</span> <a class="ident" href="../../src/unicode_normalization/decompose.rs.html#23"><span class="kw">crate</span>::decompose::Decompositions</a>;
-<span class="kw">use</span> <span class="ident">core::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">Write</a>};
-<span class="kw">use</span> <a class="ident" href="../../tinyvec/tinyvec/enum.TinyVec.html">tinyvec::TinyVec</a>;
+</span><span class="kw">use </span><a href="../../src/unicode_normalization/decompose.rs.html#23"><span class="kw">crate</span>::decompose::Decompositions</a>;
+<span class="kw">use </span>core::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">Write</a>};
+<span class="kw">use </span><a href="../../tinyvec/tinyvec/enum.TinyVec.html">tinyvec::TinyVec</a>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">RecompositionState</span> {
-    <span class="ident">Composing</span>,
-    <span class="ident">Purging</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-    <span class="ident">Finished</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">enum </span>RecompositionState {
+    Composing,
+    Purging(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    Finished(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
 }
 
-<span class="doccomment">/// External iterator for a string recomposition&#39;s characters.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="ident">iter</span>: <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
-    <span class="ident">state</span>: <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#16">RecompositionState</a>,
-    <span class="ident">buffer</span>: <span class="ident">TinyVec</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>; <span class="number">4</span>]<span class="op">&gt;</span>,
-    <span class="ident">composee</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span>,
-    <span class="ident">last_ccc</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
+<span class="doccomment">/// External iterator for a string recomposition&#39;s characters.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Recompositions&lt;I&gt; {
+    iter: Decompositions&lt;I&gt;,
+    state: <a href="../../src/unicode_normalization/recompose.rs.html#16">RecompositionState</a>,
+    buffer: TinyVec&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>; <span class="number">4</span>]&gt;,
+    composee: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;,
+    last_ccc: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_canonical</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#24">Recompositions</a> {
-        <span class="ident">iter</span>: <a class="ident" href="../../src/unicode_normalization/decompose.rs.html#40"><span class="kw">super</span>::decompose::new_canonical</a>(<a class="ident" href="../../src/unicode_normalization/recompose.rs.html#33">iter</a>),
-        <span class="ident">state</span>: <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#17"><span class="self">self</span>::RecompositionState::Composing</a>,
-        <span class="ident">buffer</span>: <span class="ident">TinyVec::new</span>(),
-        <span class="ident">composee</span>: <span class="prelude-val">None</span>,
-        <span class="ident">last_ccc</span>: <span class="prelude-val">None</span>,
+<span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>new_canonical&lt;I: Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt;(iter: I) -&gt; Recompositions&lt;I&gt; {
+    <a href="../../src/unicode_normalization/recompose.rs.html#24">Recompositions</a> {
+        iter: <a href="../../src/unicode_normalization/decompose.rs.html#40"><span class="kw">super</span>::decompose::new_canonical</a>(<a href="../../src/unicode_normalization/recompose.rs.html#33">iter</a>),
+        state: <a href="../../src/unicode_normalization/recompose.rs.html#17"><span class="self">self</span>::RecompositionState::Composing</a>,
+        buffer: TinyVec::new(),
+        composee: <span class="prelude-val">None</span>,
+        last_ccc: <span class="prelude-val">None</span>,
     }
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_compatible</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#24">Recompositions</a> {
-        <span class="ident">iter</span>: <a class="ident" href="../../src/unicode_normalization/decompose.rs.html#50"><span class="kw">super</span>::decompose::new_compatible</a>(<a class="ident" href="../../src/unicode_normalization/recompose.rs.html#44">iter</a>),
-        <span class="ident">state</span>: <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#17"><span class="self">self</span>::RecompositionState::Composing</a>,
-        <span class="ident">buffer</span>: <span class="ident">TinyVec::new</span>(),
-        <span class="ident">composee</span>: <span class="prelude-val">None</span>,
-        <span class="ident">last_ccc</span>: <span class="prelude-val">None</span>,
+<span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>new_compatible&lt;I: Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt;(iter: I) -&gt; Recompositions&lt;I&gt; {
+    <a href="../../src/unicode_normalization/recompose.rs.html#24">Recompositions</a> {
+        iter: <a href="../../src/unicode_normalization/decompose.rs.html#50"><span class="kw">super</span>::decompose::new_compatible</a>(<a href="../../src/unicode_normalization/recompose.rs.html#44">iter</a>),
+        state: <a href="../../src/unicode_normalization/recompose.rs.html#17"><span class="self">self</span>::RecompositionState::Composing</a>,
+        buffer: TinyVec::new(),
+        composee: <span class="prelude-val">None</span>,
+        last_ccc: <span class="prelude-val">None</span>,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>;
+<span class="kw">impl</span>&lt;I: Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt;&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Recompositions&lt;I&gt; {
+    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#16"><span class="self">self</span>::RecompositionState</a>::<span class="kw-2">*</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; {
+        <span class="kw">use </span><a href="../../src/unicode_normalization/recompose.rs.html#16"><span class="self">self</span>::RecompositionState</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#17">Composing</a> =&gt; {
-                    <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">by_ref</span>() {
-                        <span class="kw">let</span> <span class="ident">ch_class</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::char::canonical_combining_class</span>(<span class="ident">ch</span>);
-                        <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">composee</span> {
-                            <span class="prelude-val">None</span> =&gt; {
-                                <span class="kw">if</span> <span class="ident">ch_class</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>);
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.state {
+                <a href="../../src/unicode_normalization/recompose.rs.html#17">Composing</a> =&gt; {
+                    <span class="kw">for </span>ch <span class="kw">in </span><span class="self">self</span>.iter.by_ref() {
+                        <span class="kw">let </span>ch_class = <span class="kw">super</span>::char::canonical_combining_class(ch);
+                        <span class="kw">let </span>k = <span class="kw">match </span><span class="self">self</span>.composee {
+                            <span class="prelude-val">None </span>=&gt; {
+                                <span class="kw">if </span>ch_class != <span class="number">0 </span>{
+                                    <span class="kw">return </span><span class="prelude-val">Some</span>(ch);
                                 }
-                                <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>);
+                                <span class="self">self</span>.composee = <span class="prelude-val">Some</span>(ch);
                                 <span class="kw">continue</span>;
                             }
-                            <span class="prelude-val">Some</span>(<span class="ident">k</span>) =&gt; <span class="ident">k</span>,
+                            <span class="prelude-val">Some</span>(k) =&gt; k,
                         };
-                        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">last_ccc</span> {
-                            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::char::compose</span>(<span class="ident">k</span>, <span class="ident">ch</span>) {
-                                <span class="prelude-val">Some</span>(<span class="ident">r</span>) =&gt; {
-                                    <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>);
+                        <span class="kw">match </span><span class="self">self</span>.last_ccc {
+                            <span class="prelude-val">None </span>=&gt; <span class="kw">match </span><span class="kw">super</span>::char::compose(k, ch) {
+                                <span class="prelude-val">Some</span>(r) =&gt; {
+                                    <span class="self">self</span>.composee = <span class="prelude-val">Some</span>(r);
                                     <span class="kw">continue</span>;
                                 }
-                                <span class="prelude-val">None</span> =&gt; {
-                                    <span class="kw">if</span> <span class="ident">ch_class</span> <span class="op">==</span> <span class="number">0</span> {
-                                        <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>);
-                                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">k</span>);
+                                <span class="prelude-val">None </span>=&gt; {
+                                    <span class="kw">if </span>ch_class == <span class="number">0 </span>{
+                                        <span class="self">self</span>.composee = <span class="prelude-val">Some</span>(ch);
+                                        <span class="kw">return </span><span class="prelude-val">Some</span>(k);
                                     }
-                                    <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">ch</span>);
-                                    <span class="self">self</span>.<span class="ident">last_ccc</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch_class</span>);
+                                    <span class="self">self</span>.buffer.push(ch);
+                                    <span class="self">self</span>.last_ccc = <span class="prelude-val">Some</span>(ch_class);
                                 }
                             },
-                            <span class="prelude-val">Some</span>(<span class="ident">l_class</span>) =&gt; {
-                                <span class="kw">if</span> <span class="ident">l_class</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">ch_class</span> {
-                                    <span class="comment">// `ch` is blocked from `composee`</span>
-                                    <span class="kw">if</span> <span class="ident">ch_class</span> <span class="op">==</span> <span class="number">0</span> {
-                                        <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>);
-                                        <span class="self">self</span>.<span class="ident">last_ccc</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                                        <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Purging</span>(<span class="number">0</span>);
-                                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">k</span>);
+                            <span class="prelude-val">Some</span>(l_class) =&gt; {
+                                <span class="kw">if </span>l_class &gt;= ch_class {
+                                    <span class="comment">// `ch` is blocked from `composee`
+                                    </span><span class="kw">if </span>ch_class == <span class="number">0 </span>{
+                                        <span class="self">self</span>.composee = <span class="prelude-val">Some</span>(ch);
+                                        <span class="self">self</span>.last_ccc = <span class="prelude-val">None</span>;
+                                        <span class="self">self</span>.state = Purging(<span class="number">0</span>);
+                                        <span class="kw">return </span><span class="prelude-val">Some</span>(k);
                                     }
-                                    <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">ch</span>);
-                                    <span class="self">self</span>.<span class="ident">last_ccc</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch_class</span>);
+                                    <span class="self">self</span>.buffer.push(ch);
+                                    <span class="self">self</span>.last_ccc = <span class="prelude-val">Some</span>(ch_class);
                                     <span class="kw">continue</span>;
                                 }
-                                <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::char::compose</span>(<span class="ident">k</span>, <span class="ident">ch</span>) {
-                                    <span class="prelude-val">Some</span>(<span class="ident">r</span>) =&gt; {
-                                        <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>);
+                                <span class="kw">match </span><span class="kw">super</span>::char::compose(k, ch) {
+                                    <span class="prelude-val">Some</span>(r) =&gt; {
+                                        <span class="self">self</span>.composee = <span class="prelude-val">Some</span>(r);
                                         <span class="kw">continue</span>;
                                     }
-                                    <span class="prelude-val">None</span> =&gt; {
-                                        <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">ch</span>);
-                                        <span class="self">self</span>.<span class="ident">last_ccc</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch_class</span>);
+                                    <span class="prelude-val">None </span>=&gt; {
+                                        <span class="self">self</span>.buffer.push(ch);
+                                        <span class="self">self</span>.last_ccc = <span class="prelude-val">Some</span>(ch_class);
                                     }
                                 }
                             }
                         }
                     }
-                    <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#19">Finished</a>(<span class="number">0</span>);
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">composee</span>.<span class="ident">is_some</span>() {
-                        <span class="kw">return</span> <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">composee</span>.<span class="ident">take</span>();
+                    <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.state = <a href="../../src/unicode_normalization/recompose.rs.html#19">Finished</a>(<span class="number">0</span>);
+                    <span class="kw">if </span><span class="self">self</span>.composee.is_some() {
+                        <span class="kw">return </span><a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.composee.take();
                     }
                 }
-                <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#18">Purging</a>(<span class="ident">next</span>) =&gt; <span class="kw">match</span> <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">buffer</span>.<span class="ident">get</span>(<a class="ident" href="../../src/unicode_normalization/recompose.rs.html#122">next</a>).<span class="ident">cloned</span>() {
-                    <span class="prelude-val">None</span> =&gt; {
-                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">buffer</span>.<span class="ident">clear</span>();
-                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#17">Composing</a>;
+                <a href="../../src/unicode_normalization/recompose.rs.html#18">Purging</a>(next) =&gt; <span class="kw">match </span><a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.buffer.get(<a href="../../src/unicode_normalization/recompose.rs.html#122">next</a>).cloned() {
+                    <span class="prelude-val">None </span>=&gt; {
+                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.buffer.clear();
+                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.state = <a href="../../src/unicode_normalization/recompose.rs.html#17">Composing</a>;
                     }
-                    <span class="ident">s</span> =&gt; {
-                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#18">Purging</a>(<a class="ident" href="../../src/unicode_normalization/recompose.rs.html#122">next</a> <span class="op">+</span> <span class="number">1</span>);
-                        <span class="kw">return</span> <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#127">s</a>;
+                    s =&gt; {
+                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.state = <a href="../../src/unicode_normalization/recompose.rs.html#18">Purging</a>(<a href="../../src/unicode_normalization/recompose.rs.html#122">next</a> + <span class="number">1</span>);
+                        <span class="kw">return </span><a href="../../src/unicode_normalization/recompose.rs.html#127">s</a>;
                     }
                 },
-                <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#19">Finished</a>(<span class="ident">next</span>) =&gt; <span class="kw">match</span> <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">buffer</span>.<span class="ident">get</span>(<a class="ident" href="../../src/unicode_normalization/recompose.rs.html#132">next</a>).<span class="ident">cloned</span>() {
-                    <span class="prelude-val">None</span> =&gt; {
-                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">buffer</span>.<span class="ident">clear</span>();
-                        <span class="kw">return</span> <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">composee</span>.<span class="ident">take</span>();
+                <a href="../../src/unicode_normalization/recompose.rs.html#19">Finished</a>(next) =&gt; <span class="kw">match </span><a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.buffer.get(<a href="../../src/unicode_normalization/recompose.rs.html#132">next</a>).cloned() {
+                    <span class="prelude-val">None </span>=&gt; {
+                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.buffer.clear();
+                        <span class="kw">return </span><a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.composee.take();
                     }
-                    <span class="ident">s</span> =&gt; {
-                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#19">Finished</a>(<a class="ident" href="../../src/unicode_normalization/recompose.rs.html#132">next</a> <span class="op">+</span> <span class="number">1</span>);
-                        <span class="kw">return</span> <a class="ident" href="../../src/unicode_normalization/recompose.rs.html#137">s</a>;
+                    s =&gt; {
+                        <a class="self" href="../../src/unicode_normalization/recompose.rs.html#58">self</a>.state = <a href="../../src/unicode_normalization/recompose.rs.html#19">Finished</a>(<a href="../../src/unicode_normalization/recompose.rs.html#132">next</a> + <span class="number">1</span>);
+                        <span class="kw">return </span><a href="../../src/unicode_normalization/recompose.rs.html#137">s</a>;
                     }
                 },
             }
@@ -300,13 +300,13 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">clone</span>() {
-            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="ident">c</span>)<span class="question-mark">?</span>;
+<span class="kw">impl</span>&lt;I: Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>Recompositions&lt;I&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">for </span>c <span class="kw">in </span><span class="self">self</span>.clone() {
+            f.write_char(c)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_normalization" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_normalization" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

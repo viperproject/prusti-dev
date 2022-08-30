@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro-error-1.0.4/src/diagnostic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diagnostic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro_error/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro-error-1.0.4/src/diagnostic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diagnostic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro_error/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -347,354 +347,354 @@
 <span id="347">347</span>
 <span id="348">348</span>
 <span id="349">349</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/proc_macro_error/lib.rs.html#470">abort_now</a>, <a class="ident" href="../../src/proc_macro_error/lib.rs.html#481">check_correctness</a>, <a class="ident" href="../../src/proc_macro_error/sealed.rs.html#1">sealed::Sealed</a>, <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>};
-<span class="kw">use</span> <a class="ident" href="../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../src/proc_macro_error/lib.rs.html#470">abort_now</a>, <a href="../../src/proc_macro_error/lib.rs.html#481">check_correctness</a>, <a href="../../src/proc_macro_error/sealed.rs.html#1">sealed::Sealed</a>, <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>};
+<span class="kw">use </span><a href="../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
+<span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
 
-<span class="kw">use</span> <span class="ident">quote</span>::{<a class="ident" href="../../quote/macro.quote_spanned.html">quote_spanned</a>, <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
+<span class="kw">use </span>quote::{<a href="../../quote/macro.quote_spanned.html">quote_spanned</a>, <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
 
-<span class="doccomment">/// Represents a diagnostic level</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warnings</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Warnings are ignored on stable/beta</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Level</span> {
-    <span class="ident">Error</span>,
-    <span class="ident">Warning</span>,
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="ident">NonExhaustive</span>,
+<span class="doccomment">/// Represents a diagnostic level
+///
+/// # Warnings
+///
+/// Warnings are ignored on stable/beta
+</span><span class="attribute">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub enum </span>Level {
+    Error,
+    Warning,
+    <span class="attribute">#[doc(hidden)]
+    </span>NonExhaustive,
 }
 
-<span class="doccomment">/// Represents a single diagnostic message</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Diagnostic</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">level</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">suggestions</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#276">SuggestionKind</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a><span class="op">&gt;</span>)<span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)<span class="op">&gt;</span>,
+<span class="doccomment">/// Represents a single diagnostic message
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Diagnostic {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) level: <a href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) suggestions: Vec&lt;(<a href="../../src/proc_macro_error/diagnostic.rs.html#276">SuggestionKind</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;<a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>&gt;)&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) children: Vec&lt;(<a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)&gt;,
 }
 
-<span class="doccomment">/// A collection of methods that do not exist in `proc_macro::Diagnostic`</span>
-<span class="doccomment">/// but still useful to have around.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This trait is sealed and cannot be implemented outside of `proc_macro_error`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DiagnosticExt</span>: <a class="ident" href="../../src/proc_macro_error/sealed.rs.html#1">Sealed</a> {
-    <span class="doccomment">/// Create a new diagnostic message that points to the `span_range`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is the same as `Diagnostic::spanned` but produces considerably</span>
-    <span class="doccomment">/// better error messages for multi-token spans on stable.</span>
-    <span class="kw">fn</span> <span class="ident">spanned_range</span>(<span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <span class="ident">level</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, <span class="ident">message</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span>;
+<span class="doccomment">/// A collection of methods that do not exist in `proc_macro::Diagnostic`
+/// but still useful to have around.
+///
+/// This trait is sealed and cannot be implemented outside of `proc_macro_error`.
+</span><span class="kw">pub trait </span>DiagnosticExt: <a href="../../src/proc_macro_error/sealed.rs.html#1">Sealed</a> {
+    <span class="doccomment">/// Create a new diagnostic message that points to the `span_range`.
+    ///
+    /// This function is the same as `Diagnostic::spanned` but produces considerably
+    /// better error messages for multi-token spans on stable.
+    </span><span class="kw">fn </span>spanned_range(span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, level: <a href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, message: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Add another error message to self such that it will be emitted right after</span>
-    <span class="doccomment">/// the main message.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is the same as `Diagnostic::span_error` but produces considerably</span>
-    <span class="doccomment">/// better error messages for multi-token spans on stable.</span>
-    <span class="kw">fn</span> <span class="ident">span_range_error</span>(<span class="self">self</span>, <span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Add another error message to self such that it will be emitted right after
+    /// the main message.
+    ///
+    /// This function is the same as `Diagnostic::span_error` but produces considerably
+    /// better error messages for multi-token spans on stable.
+    </span><span class="kw">fn </span>span_range_error(<span class="self">self</span>, span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message, the note will have it&#39;s own span on nightly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is the same as `Diagnostic::span_help` but produces considerably</span>
-    <span class="doccomment">/// better error messages for multi-token spans on stable.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span</span>
-    <span class="kw">fn</span> <span class="ident">span_range_help</span>(<span class="self">self</span>, <span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message, the note will have it&#39;s own span on nightly.
+    ///
+    /// This function is the same as `Diagnostic::span_help` but produces considerably
+    /// better error messages for multi-token spans on stable.
+    ///
+    /// # Span
+    ///
+    /// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span
+    </span><span class="kw">fn </span>span_range_help(<span class="self">self</span>, span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Attach a note to your main message, the note will have it&#39;s own span on nightly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is the same as `Diagnostic::span_note` but produces considerably</span>
-    <span class="doccomment">/// better error messages for multi-token spans on stable.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span</span>
-    <span class="kw">fn</span> <span class="ident">span_range_note</span>(<span class="self">self</span>, <span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Attach a note to your main message, the note will have it&#39;s own span on nightly.
+    ///
+    /// This function is the same as `Diagnostic::span_note` but produces considerably
+    /// better error messages for multi-token spans on stable.
+    ///
+    /// # Span
+    ///
+    /// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span
+    </span><span class="kw">fn </span>span_range_note(<span class="self">self</span>, span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#34">DiagnosticExt</a> <span class="kw">for</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
-    <span class="kw">fn</span> <span class="ident">spanned_range</span>(<span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <span class="ident">level</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, <span class="ident">message</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#70">level</a>,
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#70">span_range</a>,
-            <span class="ident">msg</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#70">message</a>,
-            <span class="ident">suggestions</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            <span class="ident">children</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+<span class="kw">impl </span><a href="../../src/proc_macro_error/diagnostic.rs.html#34">DiagnosticExt</a> <span class="kw">for </span><a href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
+    <span class="kw">fn </span>spanned_range(span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, level: <a href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, message: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#70">level</a>,
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#70">span_range</a>,
+            msg: <a href="../../src/proc_macro_error/diagnostic.rs.html#70">message</a>,
+            suggestions: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            children: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">span_range_error</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#80">self</a>.<span class="ident">children</span>.<span class="ident">push</span>((<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#80">span_range</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#80">msg</a>));
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#80">self</a>
+    <span class="kw">fn </span>span_range_error(<span class="kw-2">mut </span><span class="self">self</span>, span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#80">self</a>.children.push((<a href="../../src/proc_macro_error/diagnostic.rs.html#80">span_range</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#80">msg</a>));
+        <span class="self"><a href="../../src/proc_macro_error/diagnostic.rs.html#80">self</a>
+    </span>}
+
+    <span class="kw">fn </span>span_range_help(<span class="kw-2">mut </span><span class="self">self</span>, span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#85">self</a>.suggestions
+            .push((<a href="../../src/proc_macro_error/diagnostic.rs.html#277">SuggestionKind::Help</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#85">msg</a>, <span class="prelude-val">Some</span>(<a href="../../src/proc_macro_error/diagnostic.rs.html#85">span_range</a>)));
+        <span class="self"><a href="../../src/proc_macro_error/diagnostic.rs.html#85">self</a>
+    </span>}
+
+    <span class="kw">fn </span>span_range_note(<span class="kw-2">mut </span><span class="self">self</span>, span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#91">self</a>.suggestions
+            .push((<a href="../../src/proc_macro_error/diagnostic.rs.html#278">SuggestionKind::Note</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#91">msg</a>, <span class="prelude-val">Some</span>(<a href="../../src/proc_macro_error/diagnostic.rs.html#91">span_range</a>)));
+        <span class="self"><a href="../../src/proc_macro_error/diagnostic.rs.html#91">self</a>
+    </span>}
+}
+
+<span class="kw">impl </span><a href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
+    <span class="doccomment">/// Create a new diagnostic message that points to `Span::call_site()`
+    </span><span class="kw">pub fn </span>new(level: <a href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, message: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        Diagnostic::spanned(Span::call_site(), <a href="../../src/proc_macro_error/diagnostic.rs.html#100">level</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#100">message</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">span_range_help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#85">self</a>.<span class="ident">suggestions</span>
-            .<span class="ident">push</span>((<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#277">SuggestionKind::Help</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#85">msg</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#85">span_range</a>)));
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#85">self</a>
+    <span class="doccomment">/// Create a new diagnostic message that points to the `span`
+    </span><span class="kw">pub fn </span>spanned(span: <a href="../../proc_macro2/struct.Span.html">Span</a>, level: <a href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, message: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        Diagnostic::spanned_range(
+            <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> {
+                first: <a href="../../src/proc_macro_error/diagnostic.rs.html#105">span</a>,
+                last: <a href="../../src/proc_macro_error/diagnostic.rs.html#105">span</a>,
+            },
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#105">level</a>,
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#105">message</a>,
+        )
     }
 
-    <span class="kw">fn</span> <span class="ident">span_range_note</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#91">self</a>.<span class="ident">suggestions</span>
-            .<span class="ident">push</span>((<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#278">SuggestionKind::Note</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#91">msg</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#91">span_range</a>)));
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#91">self</a>
+    <span class="doccomment">/// Add another error message to self such that it will be emitted right after
+    /// the main message.
+    </span><span class="kw">pub fn </span>span_error(<span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#118">self</a>.<a href="../../src/proc_macro_error/diagnostic.rs.html#46">span_range_error</a>(
+            <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> {
+                first: <a href="../../src/proc_macro_error/diagnostic.rs.html#118">span</a>,
+                last: <a href="../../src/proc_macro_error/diagnostic.rs.html#118">span</a>,
+            },
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#118">msg</a>,
+        )
+    }
+
+    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message, the note will have it&#39;s own span on nightly.
+    ///
+    /// # Span
+    ///
+    /// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span
+    </span><span class="kw">pub fn </span>span_help(<span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#133">self</a>.<a href="../../src/proc_macro_error/diagnostic.rs.html#56">span_range_help</a>(
+            <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> {
+                first: <a href="../../src/proc_macro_error/diagnostic.rs.html#133">span</a>,
+                last: <a href="../../src/proc_macro_error/diagnostic.rs.html#133">span</a>,
+            },
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#133">msg</a>,
+        )
+    }
+
+    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message.
+    </span><span class="kw">pub fn </span>help(<span class="kw-2">mut </span><span class="self">self</span>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#144">self</a>.suggestions.push((<a href="../../src/proc_macro_error/diagnostic.rs.html#277">SuggestionKind::Help</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#144">msg</a>, <span class="prelude-val">None</span>));
+        <span class="self"><a href="../../src/proc_macro_error/diagnostic.rs.html#144">self</a>
+    </span>}
+
+    <span class="doccomment">/// Attach a note to your main message, the note will have it&#39;s own span on nightly.
+    ///
+    /// # Span
+    ///
+    /// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span
+    </span><span class="kw">pub fn </span>span_note(<span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#154">self</a>.<a href="../../src/proc_macro_error/diagnostic.rs.html#66">span_range_note</a>(
+            <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> {
+                first: <a href="../../src/proc_macro_error/diagnostic.rs.html#154">span</a>,
+                last: <a href="../../src/proc_macro_error/diagnostic.rs.html#154">span</a>,
+            },
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#154">msg</a>,
+        )
+    }
+
+    <span class="doccomment">/// Attach a note to your main message
+    </span><span class="kw">pub fn </span>note(<span class="kw-2">mut </span><span class="self">self</span>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#165">self</a>.suggestions.push((<a href="../../src/proc_macro_error/diagnostic.rs.html#278">SuggestionKind::Note</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#165">msg</a>, <span class="prelude-val">None</span>));
+        <span class="self"><a href="../../src/proc_macro_error/diagnostic.rs.html#165">self</a>
+    </span>}
+
+    <span class="doccomment">/// The message of main warning/error (no notes attached)
+    </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#171">self</a>.msg
+    }
+
+    <span class="doccomment">/// Abort the proc-macro&#39;s execution and display the diagnostic.
+    ///
+    /// # Warnings
+    ///
+    /// Warnings are not emitted on stable and beta, but this function will abort anyway.
+    </span><span class="kw">pub fn </span>abort(<span class="self">self</span>) -&gt; ! {
+        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#180">self</a>.<a href="../../src/proc_macro_error/diagnostic.rs.html#190">emit</a>();
+        <a href="../../src/proc_macro_error/lib.rs.html#470">abort_now</a>()
+    }
+
+    <span class="doccomment">/// Display the diagnostic while not aborting macro execution.
+    ///
+    /// # Warnings
+    ///
+    /// Warnings are ignored on stable/beta
+    </span><span class="kw">pub fn </span>emit(<span class="self">self</span>) {
+        <a href="../../src/proc_macro_error/lib.rs.html#481">check_correctness</a>();
+        <a href="../../src/proc_macro_error/imp/delegate.rs.html#24"><span class="kw">crate</span>::imp::emit_diagnostic</a>(<a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#190">self</a>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
-    <span class="doccomment">/// Create a new diagnostic message that points to `Span::call_site()`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">level</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, <span class="ident">message</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Diagnostic::spanned</span>(<span class="ident">Span::call_site</span>(), <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#100">level</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#100">message</a>)
-    }
-
-    <span class="doccomment">/// Create a new diagnostic message that points to the `span`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spanned</span>(<span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">level</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>, <span class="ident">message</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Diagnostic::spanned_range</span>(
-            <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> {
-                <span class="ident">first</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#105">span</a>,
-                <span class="ident">last</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#105">span</a>,
-            },
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#105">level</a>,
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#105">message</a>,
-        )
-    }
-
-    <span class="doccomment">/// Add another error message to self such that it will be emitted right after</span>
-    <span class="doccomment">/// the main message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_error</span>(<span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#118">self</a>.<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#46">span_range_error</a>(
-            <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> {
-                <span class="ident">first</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#118">span</a>,
-                <span class="ident">last</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#118">span</a>,
-            },
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#118">msg</a>,
-        )
-    }
-
-    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message, the note will have it&#39;s own span on nightly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_help</span>(<span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#133">self</a>.<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#56">span_range_help</a>(
-            <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> {
-                <span class="ident">first</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#133">span</a>,
-                <span class="ident">last</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#133">span</a>,
-            },
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#133">msg</a>,
-        )
-    }
-
-    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#144">self</a>.<span class="ident">suggestions</span>.<span class="ident">push</span>((<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#277">SuggestionKind::Help</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#144">msg</a>, <span class="prelude-val">None</span>));
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#144">self</a>
-    }
-
-    <span class="doccomment">/// Attach a note to your main message, the note will have it&#39;s own span on nightly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_note</span>(<span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#154">self</a>.<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#66">span_range_note</a>(
-            <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> {
-                <span class="ident">first</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#154">span</a>,
-                <span class="ident">last</span>: <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#154">span</a>,
-            },
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#154">msg</a>,
-        )
-    }
-
-    <span class="doccomment">/// Attach a note to your main message</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">note</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#165">self</a>.<span class="ident">suggestions</span>.<span class="ident">push</span>((<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#278">SuggestionKind::Note</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#165">msg</a>, <span class="prelude-val">None</span>));
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#165">self</a>
-    }
-
-    <span class="doccomment">/// The message of main warning/error (no notes attached)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#171">self</a>.<span class="ident">msg</span>
-    }
-
-    <span class="doccomment">/// Abort the proc-macro&#39;s execution and display the diagnostic.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Warnings</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Warnings are not emitted on stable and beta, but this function will abort anyway.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abort</span>(<span class="self">self</span>) -&gt; <span class="op">!</span> {
-        <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#180">self</a>.<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#190">emit</a>();
-        <a class="ident" href="../../src/proc_macro_error/lib.rs.html#470">abort_now</a>()
-    }
-
-    <span class="doccomment">/// Display the diagnostic while not aborting macro execution.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Warnings</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Warnings are ignored on stable/beta</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="self">self</span>) {
-        <a class="ident" href="../../src/proc_macro_error/lib.rs.html#481">check_correctness</a>();
-        <a class="ident" href="../../src/proc_macro_error/imp/delegate.rs.html#24"><span class="kw">crate</span>::imp::emit_diagnostic</a>(<a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#190">self</a>);
-    }
-}
-
-<span class="doccomment">/// **NOT PUBLIC API! NOTHING TO SEE HERE!!!**</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_suggestion</span>(<span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">suggestion</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#199">suggestion</a> {
-            <span class="string">&quot;help&quot;</span> <span class="op">|</span> <span class="string">&quot;hint&quot;</span> =&gt; <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#199">self</a>.<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#133">span_help</a>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#199">span</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#199">msg</a>),
-            <span class="kw">_</span> =&gt; <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#199">self</a>.<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#154">span_note</a>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#199">span</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#199">msg</a>),
+<span class="doccomment">/// **NOT PUBLIC API! NOTHING TO SEE HERE!!!**
+</span><span class="attribute">#[doc(hidden)]
+</span><span class="kw">impl </span><a href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
+    <span class="kw">pub fn </span>span_suggestion(<span class="self">self</span>, span: <a href="../../proc_macro2/struct.Span.html">Span</a>, suggestion: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><a href="../../src/proc_macro_error/diagnostic.rs.html#199">suggestion</a> {
+            <span class="string">&quot;help&quot; </span>| <span class="string">&quot;hint&quot; </span>=&gt; <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#199">self</a>.<a href="../../src/proc_macro_error/diagnostic.rs.html#133">span_help</a>(<a href="../../src/proc_macro_error/diagnostic.rs.html#199">span</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#199">msg</a>),
+            <span class="kw">_ </span>=&gt; <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#199">self</a>.<a href="../../src/proc_macro_error/diagnostic.rs.html#154">span_note</a>(<a href="../../src/proc_macro_error/diagnostic.rs.html#199">span</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#199">msg</a>),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">suggestion</span>(<span class="self">self</span>, <span class="ident">suggestion</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">msg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#206">suggestion</a> {
-            <span class="string">&quot;help&quot;</span> <span class="op">|</span> <span class="string">&quot;hint&quot;</span> =&gt; <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#206">self</a>.<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#144">help</a>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#206">msg</a>),
-            <span class="kw">_</span> =&gt; <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#206">self</a>.<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#165">note</a>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#206">msg</a>),
+    <span class="kw">pub fn </span>suggestion(<span class="self">self</span>, suggestion: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, msg: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><a href="../../src/proc_macro_error/diagnostic.rs.html#206">suggestion</a> {
+            <span class="string">&quot;help&quot; </span>| <span class="string">&quot;hint&quot; </span>=&gt; <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#206">self</a>.<a href="../../src/proc_macro_error/diagnostic.rs.html#144">help</a>(<a href="../../src/proc_macro_error/diagnostic.rs.html#206">msg</a>),
+            <span class="kw">_ </span>=&gt; <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#206">self</a>.<a href="../../src/proc_macro_error/diagnostic.rs.html#165">note</a>(<a href="../../src/proc_macro_error/diagnostic.rs.html#206">msg</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ts</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
+<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
+    <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
 
-        <span class="kw">fn</span> <span class="ident">ensure_lf</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">ends_with</span>(<span class="string">&#39;\n&#39;</span>) {
-                <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#218">buf</a>.<span class="ident">push_str</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#218">s</a>);
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#218">buf</a>.<span class="ident">push_str</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#218">s</a>);
-                <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#218">buf</a>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+        <span class="kw">fn </span>ensure_lf(buf: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+            <span class="kw">if </span>s.ends_with(<span class="string">&#39;\n&#39;</span>) {
+                <a href="../../src/proc_macro_error/diagnostic.rs.html#218">buf</a>.push_str(<a href="../../src/proc_macro_error/diagnostic.rs.html#218">s</a>);
+            } <span class="kw">else </span>{
+                <a href="../../src/proc_macro_error/diagnostic.rs.html#218">buf</a>.push_str(<a href="../../src/proc_macro_error/diagnostic.rs.html#218">s</a>);
+                <a href="../../src/proc_macro_error/diagnostic.rs.html#218">buf</a>.push(<span class="string">&#39;\n&#39;</span>);
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">diag_to_tokens</span>(
-            <span class="ident">span_range</span>: <a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>,
-            <span class="ident">level</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>,
-            <span class="ident">msg</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-            <span class="ident">suggestions</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#276">SuggestionKind</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a><span class="op">&gt;</span>)],
-        ) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">level</span> <span class="op">==</span> <span class="ident">Level::Warning</span> {
-                <span class="kw">return</span> <span class="ident">TokenStream::new</span>();
+        <span class="kw">fn </span>diag_to_tokens(
+            span_range: <a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>,
+            level: <span class="kw-2">&amp;</span><a href="../../src/proc_macro_error/diagnostic.rs.html#13">Level</a>,
+            msg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+            suggestions: <span class="kw-2">&amp;</span>[(<a href="../../src/proc_macro_error/diagnostic.rs.html#276">SuggestionKind</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;<a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>&gt;)],
+        ) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
+            <span class="kw">if </span><span class="kw-2">*</span>level == Level::Warning {
+                <span class="kw">return </span>TokenStream::new();
             }
 
-            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">suggestions</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">Cow::Borrowed</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#230">msg</a>)
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#218">ensure_lf</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#240">message</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#230">msg</a>);
-                <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#240">message</a>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+            <span class="kw">let </span>message = <span class="kw">if </span>suggestions.is_empty() {
+                Cow::Borrowed(<a href="../../src/proc_macro_error/diagnostic.rs.html#230">msg</a>)
+            } <span class="kw">else </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>message = String::new();
+                <a href="../../src/proc_macro_error/diagnostic.rs.html#218">ensure_lf</a>(<span class="kw-2">&amp;mut </span><a href="../../src/proc_macro_error/diagnostic.rs.html#240">message</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#230">msg</a>);
+                <a href="../../src/proc_macro_error/diagnostic.rs.html#240">message</a>.push(<span class="string">&#39;\n&#39;</span>);
 
-                <span class="kw">for</span> (<span class="ident">kind</span>, <span class="ident">note</span>, <span class="ident">_span</span>) <span class="kw">in</span> <span class="ident">suggestions</span> {
-                    <span class="ident">message</span>.<span class="ident">push_str</span>(<span class="string">&quot;  = &quot;</span>);
-                    <span class="ident">message</span>.<span class="ident">push_str</span>(<span class="ident">kind</span>.<span class="ident">name</span>());
-                    <span class="ident">message</span>.<span class="ident">push_str</span>(<span class="string">&quot;: &quot;</span>);
-                    <span class="ident">ensure_lf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">message</span>, <span class="ident">note</span>);
+                <span class="kw">for </span>(kind, note, _span) <span class="kw">in </span>suggestions {
+                    message.push_str(<span class="string">&quot;  = &quot;</span>);
+                    message.push_str(kind.name());
+                    message.push_str(<span class="string">&quot;: &quot;</span>);
+                    ensure_lf(<span class="kw-2">&amp;mut </span>message, note);
                 }
-                <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#240">message</a>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+                <a href="../../src/proc_macro_error/diagnostic.rs.html#240">message</a>.push(<span class="string">&#39;\n&#39;</span>);
 
-                <span class="ident">Cow::Owned</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#240">message</a>)
+                Cow::Owned(<a href="../../src/proc_macro_error/diagnostic.rs.html#240">message</a>)
             };
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">proc_macro2::Literal::string</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#237">message</a>);
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#255">msg</a>.<span class="ident">set_span</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#228">span_range</a>.<span class="ident">last</span>);
-            <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(<span class="ident">span_range</span>.<span class="ident">last</span>=&gt; { #<span class="ident">msg</span> } );
-            <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(<span class="ident">span_range</span>.<span class="ident">first</span>=&gt; <span class="macro">compile_error!</span>#<span class="ident">group</span>)
+            <span class="kw">let </span><span class="kw-2">mut </span>msg = proc_macro2::Literal::string(<span class="kw-2">&amp;</span><a href="../../src/proc_macro_error/diagnostic.rs.html#237">message</a>);
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#255">msg</a>.set_span(<a href="../../src/proc_macro_error/diagnostic.rs.html#228">span_range</a>.last);
+            <span class="kw">let </span>group = <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(span_range.last=&gt; { #msg } );
+            <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(span_range.first=&gt; <span class="macro">compile_error!</span>#group)
         }
 
-        <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#215">ts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#227-232">diag_to_tokens</a>(
-            <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.<span class="ident">span_range</span>,
-            <span class="kw-2">&amp;</span><a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.<span class="ident">level</span>,
-            <span class="kw-2">&amp;</span><a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.<span class="ident">msg</span>,
-            <span class="kw-2">&amp;</span><a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.<span class="ident">suggestions</span>,
+        <a href="../../src/proc_macro_error/diagnostic.rs.html#215">ts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../src/proc_macro_error/diagnostic.rs.html#227-232">diag_to_tokens</a>(
+            <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.span_range,
+            <span class="kw-2">&amp;</span><a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.level,
+            <span class="kw-2">&amp;</span><a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.msg,
+            <span class="kw-2">&amp;</span><a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.suggestions,
         ));
-        <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#215">ts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
-            <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.<span class="ident">children</span>
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">span_range</span>, <span class="ident">msg</span>)<span class="op">|</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#227-232">diag_to_tokens</a>(<span class="kw-2">*</span><a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#270">span_range</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#14">Level::Error</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#270">msg</a>, <span class="kw-2">&amp;</span>[])),
+        <a href="../../src/proc_macro_error/diagnostic.rs.html#215">ts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
+            <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#215">self</a>.children
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(span_range, msg)| <a href="../../src/proc_macro_error/diagnostic.rs.html#227-232">diag_to_tokens</a>(<span class="kw-2">*</span><a href="../../src/proc_macro_error/diagnostic.rs.html#270">span_range</a>, <span class="kw-2">&amp;</span><a href="../../src/proc_macro_error/diagnostic.rs.html#14">Level::Error</a>, <span class="kw-2">&amp;</span><a href="../../src/proc_macro_error/diagnostic.rs.html#270">msg</a>, <span class="kw-2">&amp;</span>[])),
         );
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">SuggestionKind</span> {
-    <span class="ident">Help</span>,
-    <span class="ident">Note</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>SuggestionKind {
+    Help,
+    Note,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#276">SuggestionKind</a> {
-    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/proc_macro_error/diagnostic.rs.html#282">self</a> {
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#278">SuggestionKind::Note</a> =&gt; <span class="string">&quot;note&quot;</span>,
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#277">SuggestionKind::Help</a> =&gt; <span class="string">&quot;help&quot;</span>,
+<span class="kw">impl </span><a href="../../src/proc_macro_error/diagnostic.rs.html#276">SuggestionKind</a> {
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw">match </span><span class="self"><a href="../../src/proc_macro_error/diagnostic.rs.html#282">self</a> </span>{
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#278">SuggestionKind::Note</a> =&gt; <span class="string">&quot;note&quot;</span>,
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#277">SuggestionKind::Help</a> =&gt; <span class="string">&quot;help&quot;</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;syn-error&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../syn/error/struct.Error.html">syn::Error</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<a class="ident" href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>, <a class="ident" href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;syn-error&quot;</span>)]
+</span><span class="kw">impl </span>From&lt;<a href="../../syn/error/struct.Error.html">syn::Error</a>&gt; <span class="kw">for </span><a href="../../src/proc_macro_error/diagnostic.rs.html#22">Diagnostic</a> {
+    <span class="kw">fn </span>from(err: <a href="../../syn/error/struct.Error.html">syn::Error</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>, <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
 
-        <span class="kw">fn</span> <span class="ident">gut_error</span>(<span class="ident">ts</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../proc_macro2/enum.TokenTree.html">TokenTree</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)<span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#295">ts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                <span class="comment">// compile_error</span>
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">tt</span>) =&gt; <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#299">tt</a>.<span class="ident">span</span>(),
+        <span class="kw">fn </span>gut_error(ts: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Iterator&lt;Item = <a href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)&gt; {
+            <span class="kw">let </span>first = <span class="kw">match </span><a href="../../src/proc_macro_error/diagnostic.rs.html#295">ts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                <span class="comment">// compile_error
+                </span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+                <span class="prelude-val">Some</span>(tt) =&gt; <a href="../../src/proc_macro_error/diagnostic.rs.html#299">tt</a>.span(),
             };
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#295">ts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>(); <span class="comment">// !</span>
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#295">ts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// !
 
-            <span class="kw">let</span> <span class="ident">lit</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#295">ts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>() {
-                <span class="ident">TokenTree::Group</span>(<span class="ident">group</span>) =&gt; {
-                    <span class="comment">// Currently `syn` builds `compile_error!` invocations</span>
-                    <span class="comment">// exclusively in `ident{&quot;...&quot;}` (braced) form which is not</span>
-                    <span class="comment">// followed by `;` (semicolon).</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// But if it changes to `ident(&quot;...&quot;);` (parenthesized)</span>
-                    <span class="comment">// or `ident[&quot;...&quot;];` (bracketed) form,</span>
-                    <span class="comment">// we will need to skip the `;` as well.</span>
-                    <span class="comment">// Highly unlikely, but better safe than sorry.</span>
+            </span><span class="kw">let </span>lit = <span class="kw">match </span><a href="../../src/proc_macro_error/diagnostic.rs.html#295">ts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap() {
+                TokenTree::Group(group) =&gt; {
+                    <span class="comment">// Currently `syn` builds `compile_error!` invocations
+                    // exclusively in `ident{&quot;...&quot;}` (braced) form which is not
+                    // followed by `;` (semicolon).
+                    //
+                    // But if it changes to `ident(&quot;...&quot;);` (parenthesized)
+                    // or `ident[&quot;...&quot;];` (bracketed) form,
+                    // we will need to skip the `;` as well.
+                    // Highly unlikely, but better safe than sorry.
 
-                    <span class="kw">if</span> <span class="ident">group</span>.<span class="ident">delimiter</span>() <span class="op">==</span> <span class="ident">Delimiter::Parenthesis</span>
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">group</span>.<span class="ident">delimiter</span>() <span class="op">==</span> <span class="ident">Delimiter::Bracket</span>
+                    </span><span class="kw">if </span>group.delimiter() == Delimiter::Parenthesis
+                        || group.delimiter() == Delimiter::Bracket
                     {
-                        <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#295">ts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>(); <span class="comment">// ;</span>
-                    }
+                        <a href="../../src/proc_macro_error/diagnostic.rs.html#295">ts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap(); <span class="comment">// ;
+                    </span>}
 
-                    <span class="kw">match</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#304">group</a>.<span class="ident">stream</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>() {
-                        <span class="ident">TokenTree::Literal</span>(<span class="ident">lit</span>) =&gt; <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#321">lit</a>,
-                        <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                    <span class="kw">match </span><a href="../../src/proc_macro_error/diagnostic.rs.html#304">group</a>.stream().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap() {
+                        TokenTree::Literal(lit) =&gt; <a href="../../src/proc_macro_error/diagnostic.rs.html#321">lit</a>,
+                        <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                     }
                 }
-                <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
             };
 
-            <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#303">lit</a>.<span class="ident">span</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#303">lit</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+            <span class="kw">let </span>last = <a href="../../src/proc_macro_error/diagnostic.rs.html#303">lit</a>.span();
+            <span class="kw">let </span><span class="kw-2">mut </span>msg = <a href="../../src/proc_macro_error/diagnostic.rs.html#303">lit</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
-            <span class="comment">// &quot;abc&quot; =&gt; abc</span>
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#329">msg</a>.<span class="ident">pop</span>();
-            <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#329">msg</a>.<span class="ident">remove</span>(<span class="number">0</span>);
+            <span class="comment">// &quot;abc&quot; =&gt; abc
+            </span><a href="../../src/proc_macro_error/diagnostic.rs.html#329">msg</a>.pop();
+            <a href="../../src/proc_macro_error/diagnostic.rs.html#329">msg</a>.remove(<span class="number">0</span>);
 
-            <span class="prelude-val">Some</span>((<a class="ident" href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> { <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#296">first</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#328">last</a> }, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#329">msg</a>))
+            <span class="prelude-val">Some</span>((<a href="../../src/proc_macro_error/lib.rs.html#307">SpanRange</a> { <a href="../../src/proc_macro_error/diagnostic.rs.html#296">first</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#328">last</a> }, <a href="../../src/proc_macro_error/diagnostic.rs.html#329">msg</a>))
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ts</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#292">err</a>.<span class="ident">to_compile_error</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>ts = <a href="../../src/proc_macro_error/diagnostic.rs.html#292">err</a>.to_compile_error().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
 
-        <span class="kw">let</span> (<span class="ident">span_range</span>, <span class="ident">msg</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#295">gut_error</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#338">ts</a>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Diagnostic::spanned_range</span>(<a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#340">span_range</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#14">Level::Error</a>, <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#340">msg</a>);
+        <span class="kw">let </span>(span_range, msg) = <a href="../../src/proc_macro_error/diagnostic.rs.html#295">gut_error</a>(<span class="kw-2">&amp;mut </span><a href="../../src/proc_macro_error/diagnostic.rs.html#338">ts</a>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>res = Diagnostic::spanned_range(<a href="../../src/proc_macro_error/diagnostic.rs.html#340">span_range</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#14">Level::Error</a>, <a href="../../src/proc_macro_error/diagnostic.rs.html#340">msg</a>);
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">span_range</span>, <span class="ident">msg</span>)) <span class="op">=</span> <span class="ident">gut_error</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ts</span>) {
-            <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">span_range_error</span>(<span class="ident">span_range</span>, <span class="ident">msg</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>((span_range, msg)) = gut_error(<span class="kw-2">&amp;mut </span>ts) {
+            res = res.span_range_error(span_range, msg);
         }
 
-        <a class="ident" href="../../src/proc_macro_error/diagnostic.rs.html#341">res</a>
+        <a href="../../src/proc_macro_error/diagnostic.rs.html#341">res</a>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

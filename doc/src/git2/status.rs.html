@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/status.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>status.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/status.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>status.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -423,430 +423,430 @@
 <span id="423">423</span>
 <span id="424">424</span>
 <span id="425">425</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">std::ops::Range</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">std::ops::Range</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<a class="self" href="../../src/git2/lib.rs.html#658">self</a>, <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/diff.rs.html#27">DiffDelta</a>, <a class="ident" href="../../src/git2/util.rs.html#101">IntoCString</a>, <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a>, <a class="ident" href="../../src/git2/lib.rs.html#985-1025">Status</a>};
+<span class="kw">use </span><span class="kw">crate</span>::util::{<a class="self" href="../../src/git2/lib.rs.html#658">self</a>, <a href="../../src/git2/util.rs.html#25">Binding</a>};
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/diff.rs.html#27">DiffDelta</a>, <a href="../../src/git2/util.rs.html#101">IntoCString</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/lib.rs.html#985-1025">Status</a>};
 
-<span class="doccomment">/// Options that can be provided to `repo.statuses()` to control how the status</span>
-<span class="doccomment">/// information is gathered.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatusOptions</span> {
-    <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_status_options.html">raw::git_status_options</a>,
-    <span class="ident">pathspec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a><span class="op">&gt;</span>,
-    <span class="ident">ptrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Options that can be provided to `repo.statuses()` to control how the status
+/// information is gathered.
+</span><span class="kw">pub struct </span>StatusOptions {
+    raw: <a href="../../libgit2_sys/struct.git_status_options.html">raw::git_status_options</a>,
+    pathspec: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>&gt;,
+    ptrs: Vec&lt;<span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>&gt;,
 }
 
-<span class="doccomment">/// Enumeration of possible methods of what can be shown through a status</span>
-<span class="doccomment">/// operation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StatusShow</span> {
-    <span class="doccomment">/// Only gives status based on HEAD to index comparison, not looking at</span>
-    <span class="doccomment">/// working directory changes.</span>
-    <span class="ident">Index</span>,
+<span class="doccomment">/// Enumeration of possible methods of what can be shown through a status
+/// operation.
+</span><span class="attribute">#[derive(Copy, Clone)]
+</span><span class="kw">pub enum </span>StatusShow {
+    <span class="doccomment">/// Only gives status based on HEAD to index comparison, not looking at
+    /// working directory changes.
+    </span>Index,
 
-    <span class="doccomment">/// Only gives status based on index to working directory comparison, not</span>
-    <span class="doccomment">/// comparing the index to the HEAD.</span>
-    <span class="ident">Workdir</span>,
+    <span class="doccomment">/// Only gives status based on index to working directory comparison, not
+    /// comparing the index to the HEAD.
+    </span>Workdir,
 
-    <span class="doccomment">/// The default, this roughly matches `git status --porcelain` regarding</span>
-    <span class="doccomment">/// which files are included and in what order.</span>
-    <span class="ident">IndexAndWorkdir</span>,
+    <span class="doccomment">/// The default, this roughly matches `git status --porcelain` regarding
+    /// which files are included and in what order.
+    </span>IndexAndWorkdir,
 }
 
-<span class="doccomment">/// A container for a list of status information about a repository.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Each instance appears as if it were a collection, having a length and</span>
-<span class="doccomment">/// allowing indexing, as well as providing an iterator.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a>,
+<span class="doccomment">/// A container for a list of status information about a repository.
+///
+/// Each instance appears as if it were a collection, having a length and
+/// allowing indexing, as well as providing an iterator.
+</span><span class="kw">pub struct </span>Statuses&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a>,
 
-    <span class="comment">// Hm, not currently present, but can&#39;t hurt?</span>
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a><span class="op">&gt;</span>,
+    <span class="comment">// Hm, not currently present, but can&#39;t hurt?
+    </span>_marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../src/git2/repo.rs.html#108">Repository</a>&gt;,
 }
 
-<span class="doccomment">/// An iterator over the statuses in a `Statuses` instance.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
-    <span class="ident">statuses</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;statuses</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span>,
-    <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the statuses in a `Statuses` instance.
+</span><span class="kw">pub struct </span>StatusIter&lt;<span class="lifetime">&#39;statuses</span>&gt; {
+    statuses: <span class="kw-2">&amp;</span><span class="lifetime">&#39;statuses </span>Statuses&lt;<span class="lifetime">&#39;statuses</span>&gt;,
+    range: Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
 }
 
-<span class="doccomment">/// A structure representing an entry in the `Statuses` structure.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Instances are created through the `.iter()` method or the `.get()` method.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;statuses</span> <span class="ident">DiffDelta</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A structure representing an entry in the `Statuses` structure.
+///
+/// Instances are created through the `.iter()` method or the `.get()` method.
+</span><span class="kw">pub struct </span>StatusEntry&lt;<span class="lifetime">&#39;statuses</span>&gt; {
+    raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a>,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;statuses </span>DiffDelta&lt;<span class="lifetime">&#39;statuses</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-    <span class="doccomment">/// Creates a new blank set of status options.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">mem::zeroed</span>();
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">raw::git_status_init_options</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#71">raw</a>, <span class="ident">raw::GIT_STATUS_OPTIONS_VERSION</span>);
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">r</span>, <span class="number">0</span>);
-            <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-                <a class="ident" href="../../src/git2/status.rs.html#71">raw</a>,
-                <span class="ident">pathspec</span>: <span class="ident">Vec::new</span>(),
-                <span class="ident">ptrs</span>: <span class="ident">Vec::new</span>(),
+<span class="kw">impl </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+    <span class="doccomment">/// Creates a new blank set of status options.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>raw = mem::zeroed();
+            <span class="kw">let </span>r = raw::git_status_init_options(<span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#71">raw</a>, raw::GIT_STATUS_OPTIONS_VERSION);
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(r, <span class="number">0</span>);
+            <a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+                <a href="../../src/git2/status.rs.html#71">raw</a>,
+                pathspec: Vec::new(),
+                ptrs: Vec::new(),
             }
         }
     }
 
-    <span class="doccomment">/// Select the files on which to report status.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default, if unspecified, is to show the index and the working</span>
-    <span class="doccomment">/// directory.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">show</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">show</span>: <a class="ident" href="../../src/git2/status.rs.html#22">StatusShow</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#86">self</a>.<span class="ident">raw</span>.<span class="ident">show</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/status.rs.html#86">show</a> {
-            <a class="ident" href="../../src/git2/status.rs.html#25">StatusShow::Index</a> =&gt; <span class="ident">raw::GIT_STATUS_SHOW_INDEX_ONLY</span>,
-            <a class="ident" href="../../src/git2/status.rs.html#29">StatusShow::Workdir</a> =&gt; <span class="ident">raw::GIT_STATUS_SHOW_WORKDIR_ONLY</span>,
-            <a class="ident" href="../../src/git2/status.rs.html#33">StatusShow::IndexAndWorkdir</a> =&gt; <span class="ident">raw::GIT_STATUS_SHOW_INDEX_AND_WORKDIR</span>,
+    <span class="doccomment">/// Select the files on which to report status.
+    ///
+    /// The default, if unspecified, is to show the index and the working
+    /// directory.
+    </span><span class="kw">pub fn </span>show(<span class="kw-2">&amp;mut </span><span class="self">self</span>, show: <a href="../../src/git2/status.rs.html#22">StatusShow</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#86">self</a>.raw.show = <span class="kw">match </span><a href="../../src/git2/status.rs.html#86">show</a> {
+            <a href="../../src/git2/status.rs.html#25">StatusShow::Index</a> =&gt; raw::GIT_STATUS_SHOW_INDEX_ONLY,
+            <a href="../../src/git2/status.rs.html#29">StatusShow::Workdir</a> =&gt; raw::GIT_STATUS_SHOW_WORKDIR_ONLY,
+            <a href="../../src/git2/status.rs.html#33">StatusShow::IndexAndWorkdir</a> =&gt; raw::GIT_STATUS_SHOW_INDEX_AND_WORKDIR,
         };
-        <a class="self" href="../../src/git2/status.rs.html#86">self</a>
-    }
+        <span class="self"><a href="../../src/git2/status.rs.html#86">self</a>
+    </span>}
 
-    <span class="doccomment">/// Add a path pattern to match (using fnmatch-style matching).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the `disable_pathspec_match` option is given, then this is a literal</span>
-    <span class="doccomment">/// path to match. If this is not called, then there will be no patterns to</span>
-    <span class="doccomment">/// match and the entire directory will be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pathspec</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/git2/util.rs.html#101">IntoCString</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pathspec</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#238">util::cstring_to_repo_path</a>(<a class="ident" href="../../src/git2/status.rs.html#100">pathspec</a>).<span class="ident">unwrap</span>();
-        <a class="self" href="../../src/git2/status.rs.html#100">self</a>.<span class="ident">ptrs</span>.<span class="ident">push</span>(<a class="ident" href="../../src/git2/status.rs.html#101">s</a>.<span class="ident">as_ptr</span>());
-        <a class="self" href="../../src/git2/status.rs.html#100">self</a>.<span class="ident">pathspec</span>.<span class="ident">push</span>(<a class="ident" href="../../src/git2/status.rs.html#101">s</a>);
-        <a class="self" href="../../src/git2/status.rs.html#100">self</a>
-    }
+    <span class="doccomment">/// Add a path pattern to match (using fnmatch-style matching).
+    ///
+    /// If the `disable_pathspec_match` option is given, then this is a literal
+    /// path to match. If this is not called, then there will be no patterns to
+    /// match and the entire directory will be used.
+    </span><span class="kw">pub fn </span>pathspec&lt;T: <a href="../../src/git2/util.rs.html#101">IntoCString</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pathspec: T) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <span class="kw">let </span>s = <a href="../../src/git2/util.rs.html#238">util::cstring_to_repo_path</a>(<a href="../../src/git2/status.rs.html#100">pathspec</a>).unwrap();
+        <a class="self" href="../../src/git2/status.rs.html#100">self</a>.ptrs.push(<a href="../../src/git2/status.rs.html#101">s</a>.as_ptr());
+        <a class="self" href="../../src/git2/status.rs.html#100">self</a>.pathspec.push(<a href="../../src/git2/status.rs.html#101">s</a>);
+        <span class="self"><a href="../../src/git2/status.rs.html#100">self</a>
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">flag</span>: <a class="ident" href="../../libgit2_sys/type.git_status_opt_t.html">raw::git_status_opt_t</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <span class="kw">if</span> <span class="ident">val</span> {
-            <a class="self" href="../../src/git2/status.rs.html#107">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/git2/status.rs.html#107">flag</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>;
-        } <span class="kw">else</span> {
-            <a class="self" href="../../src/git2/status.rs.html#107">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;=</span> <span class="op">!</span>(<a class="ident" href="../../src/git2/status.rs.html#107">flag</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>);
+    <span class="kw">fn </span>flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flag: <a href="../../libgit2_sys/type.git_status_opt_t.html">raw::git_status_opt_t</a>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <span class="kw">if </span>val {
+            <a class="self" href="../../src/git2/status.rs.html#107">self</a>.raw.flags |= <a href="../../src/git2/status.rs.html#107">flag</a> <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>;
+        } <span class="kw">else </span>{
+            <a class="self" href="../../src/git2/status.rs.html#107">self</a>.raw.flags &amp;= !(<a href="../../src/git2/status.rs.html#107">flag</a> <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>);
         }
-        <a class="self" href="../../src/git2/status.rs.html#107">self</a>
+        <span class="self"><a href="../../src/git2/status.rs.html#107">self</a>
+    </span>}
+
+    <span class="doccomment">/// Flag whether untracked files will be included.
+    ///
+    /// Untracked files will only be included if the workdir files are included
+    /// in the status &quot;show&quot; option.
+    </span><span class="kw">pub fn </span>include_untracked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#120">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_INCLUDE_UNTRACKED, <a href="../../src/git2/status.rs.html#120">include</a>)
     }
 
-    <span class="doccomment">/// Flag whether untracked files will be included.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Untracked files will only be included if the workdir files are included</span>
-    <span class="doccomment">/// in the status &quot;show&quot; option.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_untracked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#120">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNTRACKED</span>, <a class="ident" href="../../src/git2/status.rs.html#120">include</a>)
+    <span class="doccomment">/// Flag whether ignored files will be included.
+    ///
+    /// The files will only be included if the workdir files are included
+    /// in the status &quot;show&quot; option.
+    </span><span class="kw">pub fn </span>include_ignored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#128">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_INCLUDE_IGNORED, <a href="../../src/git2/status.rs.html#128">include</a>)
     }
 
-    <span class="doccomment">/// Flag whether ignored files will be included.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The files will only be included if the workdir files are included</span>
-    <span class="doccomment">/// in the status &quot;show&quot; option.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_ignored</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#128">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_IGNORED</span>, <a class="ident" href="../../src/git2/status.rs.html#128">include</a>)
+    <span class="doccomment">/// Flag to include unmodified files.
+    </span><span class="kw">pub fn </span>include_unmodified(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#133">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_INCLUDE_UNMODIFIED, <a href="../../src/git2/status.rs.html#133">include</a>)
     }
 
-    <span class="doccomment">/// Flag to include unmodified files.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unmodified</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#133">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNMODIFIED</span>, <a class="ident" href="../../src/git2/status.rs.html#133">include</a>)
+    <span class="doccomment">/// Flag that submodules should be skipped.
+    ///
+    /// This only applies if there are no pending typechanges to the submodule
+    /// (either from or to another type).
+    </span><span class="kw">pub fn </span>exclude_submodules(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exclude: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#141">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_EXCLUDE_SUBMODULES, <a href="../../src/git2/status.rs.html#141">exclude</a>)
     }
 
-    <span class="doccomment">/// Flag that submodules should be skipped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This only applies if there are no pending typechanges to the submodule</span>
-    <span class="doccomment">/// (either from or to another type).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exclude_submodules</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">exclude</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#141">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_EXCLUDE_SUBMODULES</span>, <a class="ident" href="../../src/git2/status.rs.html#141">exclude</a>)
+    <span class="doccomment">/// Flag that all files in untracked directories should be included.
+    ///
+    /// Normally if an entire directory is new then just the top-level directory
+    /// is included (with a trailing slash on the entry name).
+    </span><span class="kw">pub fn </span>recurse_untracked_dirs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#149">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS, <a href="../../src/git2/status.rs.html#149">include</a>)
     }
 
-    <span class="doccomment">/// Flag that all files in untracked directories should be included.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Normally if an entire directory is new then just the top-level directory</span>
-    <span class="doccomment">/// is included (with a trailing slash on the entry name).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recurse_untracked_dirs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#149">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS</span>, <a class="ident" href="../../src/git2/status.rs.html#149">include</a>)
+    <span class="doccomment">/// Indicates that the given paths should be treated as literals paths, note
+    /// patterns.
+    </span><span class="kw">pub fn </span>disable_pathspec_match(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#155">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH, <a href="../../src/git2/status.rs.html#155">include</a>)
     }
 
-    <span class="doccomment">/// Indicates that the given paths should be treated as literals paths, note</span>
-    <span class="doccomment">/// patterns.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_pathspec_match</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#155">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH</span>, <a class="ident" href="../../src/git2/status.rs.html#155">include</a>)
+    <span class="doccomment">/// Indicates that the contents of ignored directories should be included in
+    /// the status.
+    </span><span class="kw">pub fn </span>recurse_ignored_dirs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#161">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_RECURSE_IGNORED_DIRS, <a href="../../src/git2/status.rs.html#161">include</a>)
     }
 
-    <span class="doccomment">/// Indicates that the contents of ignored directories should be included in</span>
-    <span class="doccomment">/// the status.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recurse_ignored_dirs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#161">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_RECURSE_IGNORED_DIRS</span>, <a class="ident" href="../../src/git2/status.rs.html#161">include</a>)
+    <span class="doccomment">/// Indicates that rename detection should be processed between the head.
+    </span><span class="kw">pub fn </span>renames_head_to_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#166">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX, <a href="../../src/git2/status.rs.html#166">include</a>)
     }
 
-    <span class="doccomment">/// Indicates that rename detection should be processed between the head.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_head_to_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#166">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX</span>, <a class="ident" href="../../src/git2/status.rs.html#166">include</a>)
+    <span class="doccomment">/// Indicates that rename detection should be run between the index and the
+    /// working directory.
+    </span><span class="kw">pub fn </span>renames_index_to_workdir(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#172">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR, <a href="../../src/git2/status.rs.html#172">include</a>)
     }
 
-    <span class="doccomment">/// Indicates that rename detection should be run between the index and the</span>
-    <span class="doccomment">/// working directory.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_index_to_workdir</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#172">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR</span>, <a class="ident" href="../../src/git2/status.rs.html#172">include</a>)
+    <span class="doccomment">/// Override the native case sensitivity for the file system and force the
+    /// output to be in case sensitive order.
+    </span><span class="kw">pub fn </span>sort_case_sensitively(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#178">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_SORT_CASE_SENSITIVELY, <a href="../../src/git2/status.rs.html#178">include</a>)
     }
 
-    <span class="doccomment">/// Override the native case sensitivity for the file system and force the</span>
-    <span class="doccomment">/// output to be in case sensitive order.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_case_sensitively</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#178">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_SORT_CASE_SENSITIVELY</span>, <a class="ident" href="../../src/git2/status.rs.html#178">include</a>)
+    <span class="doccomment">/// Override the native case sensitivity for the file system and force the
+    /// output to be in case-insensitive order.
+    </span><span class="kw">pub fn </span>sort_case_insensitively(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#184">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_SORT_CASE_INSENSITIVELY, <a href="../../src/git2/status.rs.html#184">include</a>)
     }
 
-    <span class="doccomment">/// Override the native case sensitivity for the file system and force the</span>
-    <span class="doccomment">/// output to be in case-insensitive order.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_case_insensitively</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#184">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_SORT_CASE_INSENSITIVELY</span>, <a class="ident" href="../../src/git2/status.rs.html#184">include</a>)
+    <span class="doccomment">/// Indicates that rename detection should include rewritten files.
+    </span><span class="kw">pub fn </span>renames_from_rewrites(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#189">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_RENAMES_FROM_REWRITES, <a href="../../src/git2/status.rs.html#189">include</a>)
     }
 
-    <span class="doccomment">/// Indicates that rename detection should include rewritten files.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_from_rewrites</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#189">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_RENAMES_FROM_REWRITES</span>, <a class="ident" href="../../src/git2/status.rs.html#189">include</a>)
+    <span class="doccomment">/// Bypasses the default status behavior of doing a &quot;soft&quot; index reload.
+    </span><span class="kw">pub fn </span>no_refresh(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#194">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_NO_REFRESH, <a href="../../src/git2/status.rs.html#194">include</a>)
     }
 
-    <span class="doccomment">/// Bypasses the default status behavior of doing a &quot;soft&quot; index reload.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_refresh</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#194">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_NO_REFRESH</span>, <a class="ident" href="../../src/git2/status.rs.html#194">include</a>)
+    <span class="doccomment">/// Refresh the stat cache in the index for files are unchanged but have
+    /// out of date stat information in the index.
+    ///
+    /// This will result in less work being done on subsequent calls to fetching
+    /// the status.
+    </span><span class="kw">pub fn </span>update_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#203">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_UPDATE_INDEX, <a href="../../src/git2/status.rs.html#203">include</a>)
     }
 
-    <span class="doccomment">/// Refresh the stat cache in the index for files are unchanged but have</span>
-    <span class="doccomment">/// out of date stat information in the index.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will result in less work being done on subsequent calls to fetching</span>
-    <span class="doccomment">/// the status.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#203">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_UPDATE_INDEX</span>, <a class="ident" href="../../src/git2/status.rs.html#203">include</a>)
+    <span class="comment">// erm...
+    </span><span class="attribute">#[allow(missing_docs)]
+    </span><span class="kw">pub fn </span>include_unreadable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#209">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_INCLUDE_UNREADABLE, <a href="../../src/git2/status.rs.html#209">include</a>)
     }
 
-    <span class="comment">// erm...</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unreadable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#209">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNREADABLE</span>, <a class="ident" href="../../src/git2/status.rs.html#209">include</a>)
+    <span class="comment">// erm...
+    </span><span class="attribute">#[allow(missing_docs)]
+    </span><span class="kw">pub fn </span>include_unreadable_as_untracked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, include: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#215">self</a>.<a href="../../src/git2/status.rs.html#107">flag</a>(raw::GIT_STATUS_OPT_INCLUDE_UNREADABLE_AS_UNTRACKED, <a href="../../src/git2/status.rs.html#215">include</a>)
     }
 
-    <span class="comment">// erm...</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unreadable_as_untracked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#215">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNREADABLE_AS_UNTRACKED</span>, <a class="ident" href="../../src/git2/status.rs.html#215">include</a>)
-    }
+    <span class="doccomment">/// Set threshold above which similar files will be considered renames.
+    ///
+    /// This is equivalent to the `-M` option. Defaults to 50.
+    </span><span class="kw">pub fn </span>rename_threshold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, threshold: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../src/git2/status.rs.html#13">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#222">self</a>.raw.rename_threshold = <a href="../../src/git2/status.rs.html#222">threshold</a>;
+        <span class="self"><a href="../../src/git2/status.rs.html#222">self</a>
+    </span>}
 
-    <span class="doccomment">/// Set threshold above which similar files will be considered renames.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is equivalent to the `-M` option. Defaults to 50.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rename_threshold</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">threshold</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13">StatusOptions</a> {
-        <a class="self" href="../../src/git2/status.rs.html#222">self</a>.<span class="ident">raw</span>.<span class="ident">rename_threshold</span> <span class="op">=</span> <a class="ident" href="../../src/git2/status.rs.html#222">threshold</a>;
-        <a class="self" href="../../src/git2/status.rs.html#222">self</a>
-    }
-
-    <span class="doccomment">/// Get a pointer to the inner list of status options.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is unsafe as the returned structure has interior pointers</span>
-    <span class="doccomment">/// and may no longer be valid if these options continue to be mutated.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_status_options.html">raw::git_status_options</a> {
-        <a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">strings</span> <span class="op">=</span> <a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">ptrs</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-        <a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">count</span> <span class="op">=</span> <a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">ptrs</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>;
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">raw</span>
+    <span class="doccomment">/// Get a pointer to the inner list of status options.
+    ///
+    /// This function is unsafe as the returned structure has interior pointers
+    /// and may no longer be valid if these options continue to be mutated.
+    </span><span class="kw">pub unsafe fn </span>raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_status_options.html">raw::git_status_options</a> {
+        <a class="self" href="../../src/git2/status.rs.html#231">self</a>.raw.pathspec.strings = <a class="self" href="../../src/git2/status.rs.html#231">self</a>.ptrs.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <a class="self" href="../../src/git2/status.rs.html#231">self</a>.raw.pathspec.count = <a class="self" href="../../src/git2/status.rs.html#231">self</a>.ptrs.len() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>;
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/status.rs.html#231">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Gets a status entry from this list at the specified index.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the index is out of bounds.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">raw::git_status_byindex</span>(<a class="self" href="../../src/git2/status.rs.html#242">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/status.rs.html#242">index</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>);
-            <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a class="ident" href="../../src/git2/status.rs.html#244">p</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Statuses&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Gets a status entry from this list at the specified index.
+    ///
+    /// Returns `None` if the index is out of bounds.
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;StatusEntry&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>p = raw::git_status_byindex(<a class="self" href="../../src/git2/status.rs.html#242">self</a>.raw, <a href="../../src/git2/status.rs.html#242">index</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>);
+            <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a href="../../src/git2/status.rs.html#244">p</a>)
         }
     }
 
-    <span class="doccomment">/// Gets the count of status entries in this list.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there are no changes in status (according to the options given</span>
-    <span class="doccomment">/// when the status list was created), this should return 0.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_status_list_entrycount</span>(<a class="self" href="../../src/git2/status.rs.html#253">self</a>.<span class="ident">raw</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+    <span class="doccomment">/// Gets the count of status entries in this list.
+    ///
+    /// If there are no changes in status (according to the options given
+    /// when the status list was created), this should return 0.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">unsafe </span>{ raw::git_status_list_entrycount(<a class="self" href="../../src/git2/status.rs.html#253">self</a>.raw) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
-    <span class="doccomment">/// Return `true` if there is no status entry in this list.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/git2/status.rs.html#258">self</a>.<a class="ident" href="../../src/git2/status.rs.html#253">len</a>() <span class="op">==</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Return `true` if there is no status entry in this list.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/git2/status.rs.html#258">self</a>.<a href="../../src/git2/status.rs.html#253">len</a>() == <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns an iterator over the statuses in this list.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/status.rs.html#48">StatusIter</a> {
-            <span class="ident">statuses</span>: <a class="self" href="../../src/git2/status.rs.html#263">self</a>,
-            <span class="ident">range</span>: <span class="number">0</span>..<a class="self" href="../../src/git2/status.rs.html#263">self</a>.<a class="ident" href="../../src/git2/status.rs.html#253">len</a>(),
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a>) -&gt; <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/status.rs.html#40">Statuses</a> {
-            <a class="ident" href="../../src/git2/status.rs.html#273">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
-        }
-    }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a> {
-        <a class="self" href="../../src/git2/status.rs.html#279">self</a>.<span class="ident">raw</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">raw::git_status_list_free</span>(<a class="self" href="../../src/git2/status.rs.html#285">self</a>.<span class="ident">raw</span>);
+    <span class="doccomment">/// Returns an iterator over the statuses in this list.
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StatusIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a href="../../src/git2/status.rs.html#48">StatusIter</a> {
+            statuses: <a class="self" href="../../src/git2/status.rs.html#263">self</a>,
+            range: <span class="number">0</span>..<a class="self" href="../../src/git2/status.rs.html#263">self</a>.<a href="../../src/git2/status.rs.html#253">len</a>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/status.rs.html#294">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="self" href="../../src/git2/status.rs.html#294">self</a>.<span class="ident">statuses</span>.<a class="ident" href="../../src/git2/status.rs.html#242">get</a>(<a class="ident" href="../../src/git2/status.rs.html#295">i</a>))
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Statuses&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a>;
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a>) -&gt; Statuses&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/status.rs.html#40">Statuses</a> {
+            <a href="../../src/git2/status.rs.html#273">raw</a>,
+            _marker: marker::PhantomData,
+        }
     }
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/git2/status.rs.html#297">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
-    }
-}
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/status.rs.html#302">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="self" href="../../src/git2/status.rs.html#302">self</a>.<span class="ident">statuses</span>.<a class="ident" href="../../src/git2/status.rs.html#242">get</a>(<a class="ident" href="../../src/git2/status.rs.html#303">i</a>))
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a> {
+        <a class="self" href="../../src/git2/status.rs.html#279">self</a>.raw
     }
 }
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Access the bytes for this entry&#39;s corresponding pathname</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe</span> {
-            <span class="kw">if</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>.<span class="ident">is_null</span>() {
-                <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/status.rs.html#310">self</a>, (<span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#310">self</a>.<span class="ident">raw</span>).<span class="ident">index_to_workdir</span>).<span class="ident">old_file</span>.<span class="ident">path</span>)
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/status.rs.html#310">self</a>, (<span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#310">self</a>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>).<span class="ident">old_file</span>.<span class="ident">path</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Statuses&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            raw::git_status_list_free(<a class="self" href="../../src/git2/status.rs.html#285">self</a>.raw);
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>StatusIter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = StatusEntry&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StatusEntry&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/status.rs.html#294">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().and_then(|i| <a class="self" href="../../src/git2/status.rs.html#294">self</a>.statuses.<a href="../../src/git2/status.rs.html#242">get</a>(<a href="../../src/git2/status.rs.html#295">i</a>))
+    }
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <a class="self" href="../../src/git2/status.rs.html#297">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    }
+}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>StatusIter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StatusEntry&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <a class="self" href="../../src/git2/status.rs.html#302">self</a>.range.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().and_then(|i| <a class="self" href="../../src/git2/status.rs.html#302">self</a>.statuses.<a href="../../src/git2/status.rs.html#242">get</a>(<a href="../../src/git2/status.rs.html#303">i</a>))
+    }
+}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>StatusIter&lt;<span class="lifetime">&#39;a</span>&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;statuses</span>&gt; StatusEntry&lt;<span class="lifetime">&#39;statuses</span>&gt; {
+    <span class="doccomment">/// Access the bytes for this entry&#39;s corresponding pathname
+    </span><span class="kw">pub fn </span>path_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">unsafe </span>{
+            <span class="kw">if </span>(<span class="kw-2">*</span><span class="self">self</span>.raw).head_to_index.is_null() {
+                <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/status.rs.html#310">self</a>, (<span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#310">self</a>.raw).index_to_workdir).old_file.path)
+            } <span class="kw">else </span>{
+                <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/status.rs.html#310">self</a>, (<span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#310">self</a>.raw).head_to_index).old_file.path)
             }
-            .<span class="ident">unwrap</span>()
+            .unwrap()
         }
     }
 
-    <span class="doccomment">/// Access this entry&#39;s path name as a string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the path is not valid utf-8.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/status.rs.html#324">self</a>.<a class="ident" href="../../src/git2/status.rs.html#310">path_bytes</a>()).<span class="ident">ok</span>()
+    <span class="doccomment">/// Access this entry&#39;s path name as a string.
+    ///
+    /// Returns `None` if the path is not valid utf-8.
+    </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/status.rs.html#324">self</a>.<a href="../../src/git2/status.rs.html#310">path_bytes</a>()).ok()
     }
 
-    <span class="doccomment">/// Access the status flags for this file</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/lib.rs.html#985-1025">Status</a> {
-        <span class="ident">Status::from_bits_truncate</span>(<span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#329">self</a>.<span class="ident">raw</span>).<span class="ident">status</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> })
+    <span class="doccomment">/// Access the status flags for this file
+    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/lib.rs.html#985-1025">Status</a> {
+        Status::from_bits_truncate(<span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#329">self</a>.raw).status <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> })
     }
 
-    <span class="doccomment">/// Access detailed information about the differences between the file in</span>
-    <span class="doccomment">/// HEAD and the file in the index.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">head_to_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DiffDelta</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#335">self</a>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>) }
+    <span class="doccomment">/// Access detailed information about the differences between the file in
+    /// HEAD and the file in the index.
+    </span><span class="kw">pub fn </span>head_to_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DiffDelta&lt;<span class="lifetime">&#39;statuses</span>&gt;&gt; {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#335">self</a>.raw).head_to_index) }
     }
 
-    <span class="doccomment">/// Access detailed information about the differences between the file in</span>
-    <span class="doccomment">/// the index and the file in the working directory.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index_to_workdir</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DiffDelta</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#341">self</a>.<span class="ident">raw</span>).<span class="ident">index_to_workdir</span>) }
+    <span class="doccomment">/// Access detailed information about the differences between the file in
+    /// the index and the file in the working directory.
+    </span><span class="kw">pub fn </span>index_to_workdir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DiffDelta&lt;<span class="lifetime">&#39;statuses</span>&gt;&gt; {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#341">self</a>.raw).index_to_workdir) }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;statuses</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>StatusEntry&lt;<span class="lifetime">&#39;statuses</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a>) -&gt; <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/status.rs.html#56">StatusEntry</a> {
-            <a class="ident" href="../../src/git2/status.rs.html#349">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a>) -&gt; StatusEntry&lt;<span class="lifetime">&#39;statuses</span>&gt; {
+        <a href="../../src/git2/status.rs.html#56">StatusEntry</a> {
+            <a href="../../src/git2/status.rs.html#349">raw</a>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a> {
-        <a class="self" href="../../src/git2/status.rs.html#355">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a> {
+        <a class="self" href="../../src/git2/status.rs.html#355">self</a>.raw
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::StatusOptions</span>;
-    <span class="kw">use</span> <span class="ident">std::fs::File</span>;
-    <span class="kw">use</span> <span class="ident">std::io::prelude</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std::path::Path</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">super</span>::StatusOptions;
+    <span class="kw">use </span>std::fs::File;
+    <span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::path::Path;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="kw">let</span> (<span class="ident">td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">repo</span>.<span class="ident">statuses</span>(<span class="prelude-val">None</span>).<span class="ident">unwrap</span>().<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;foo&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">statuses</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">statuses</span>(<span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">statuses</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">statuses</span>.<span class="ident">iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">status</span>.<span class="ident">path</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">status</span>.<span class="ident">status</span>().<span class="ident">contains</span>(<span class="ident"><span class="kw">crate</span>::Status::WT_NEW</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">status</span>.<span class="ident">status</span>().<span class="ident">contains</span>(<span class="ident"><span class="kw">crate</span>::Status::INDEX_NEW</span>));
-        <span class="macro">assert!</span>(<span class="ident">status</span>.<span class="ident">head_to_index</span>().<span class="ident">is_none</span>());
-        <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="ident">status</span>.<span class="ident">index_to_workdir</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">diff</span>.<span class="ident">old_file</span>().<span class="ident">path_bytes</span>().<span class="ident">unwrap</span>(), <span class="string">b&quot;foo&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">diff</span>.<span class="ident">new_file</span>().<span class="ident">path_bytes</span>().<span class="ident">unwrap</span>(), <span class="string">b&quot;foo&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke() {
+        <span class="kw">let </span>(td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="macro">assert_eq!</span>(repo.statuses(<span class="prelude-val">None</span>).unwrap().len(), <span class="number">0</span>);
+        File::create(<span class="kw-2">&amp;</span>td.path().join(<span class="string">&quot;foo&quot;</span>)).unwrap();
+        <span class="kw">let </span>statuses = repo.statuses(<span class="prelude-val">None</span>).unwrap();
+        <span class="macro">assert_eq!</span>(statuses.iter().count(), <span class="number">1</span>);
+        <span class="kw">let </span>status = statuses.iter().next().unwrap();
+        <span class="macro">assert_eq!</span>(status.path(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>));
+        <span class="macro">assert!</span>(status.status().contains(<span class="kw">crate</span>::Status::WT_NEW));
+        <span class="macro">assert!</span>(!status.status().contains(<span class="kw">crate</span>::Status::INDEX_NEW));
+        <span class="macro">assert!</span>(status.head_to_index().is_none());
+        <span class="kw">let </span>diff = status.index_to_workdir().unwrap();
+        <span class="macro">assert_eq!</span>(diff.old_file().path_bytes().unwrap(), <span class="string">b&quot;foo&quot;</span>);
+        <span class="macro">assert_eq!</span>(diff.new_file().path_bytes().unwrap(), <span class="string">b&quot;foo&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter</span>() {
-        <span class="kw">let</span> (<span class="ident">td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="macro">t!</span>(<span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;foo&quot;</span>)));
-        <span class="macro">t!</span>(<span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;bar&quot;</span>)));
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">StatusOptions::new</span>();
-        <span class="ident">opts</span>.<span class="ident">include_untracked</span>(<span class="bool-val">true</span>).<span class="ident">pathspec</span>(<span class="string">&quot;foo&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>filter() {
+        <span class="kw">let </span>(td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="macro">t!</span>(File::create(<span class="kw-2">&amp;</span>td.path().join(<span class="string">&quot;foo&quot;</span>)));
+        <span class="macro">t!</span>(File::create(<span class="kw-2">&amp;</span>td.path().join(<span class="string">&quot;bar&quot;</span>)));
+        <span class="kw">let </span><span class="kw-2">mut </span>opts = StatusOptions::new();
+        opts.include_untracked(<span class="bool-val">true</span>).pathspec(<span class="string">&quot;foo&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">statuses</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">statuses</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>)));
-        <span class="macro">assert_eq!</span>(<span class="ident">statuses</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">statuses</span>.<span class="ident">iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">status</span>.<span class="ident">path</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>));
+        <span class="kw">let </span>statuses = <span class="macro">t!</span>(repo.statuses(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>opts)));
+        <span class="macro">assert_eq!</span>(statuses.iter().count(), <span class="number">1</span>);
+        <span class="kw">let </span>status = statuses.iter().next().unwrap();
+        <span class="macro">assert_eq!</span>(status.path(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">gitignore</span>() {
-        <span class="kw">let</span> (<span class="ident">td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="macro">t!</span>(<span class="macro">t!</span>(<span class="ident">File::create</span>(<span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;.gitignore&quot;</span>))).<span class="ident">write_all</span>(<span class="string">b&quot;foo\n&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">status_should_ignore</span>(<span class="ident">Path::new</span>(<span class="string">&quot;bar&quot;</span>))));
-        <span class="macro">assert!</span>(<span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">status_should_ignore</span>(<span class="ident">Path::new</span>(<span class="string">&quot;foo&quot;</span>))));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>gitignore() {
+        <span class="kw">let </span>(td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="macro">t!</span>(<span class="macro">t!</span>(File::create(td.path().join(<span class="string">&quot;.gitignore&quot;</span>))).write_all(<span class="string">b&quot;foo\n&quot;</span>));
+        <span class="macro">assert!</span>(!<span class="macro">t!</span>(repo.status_should_ignore(Path::new(<span class="string">&quot;bar&quot;</span>))));
+        <span class="macro">assert!</span>(<span class="macro">t!</span>(repo.status_should_ignore(Path::new(<span class="string">&quot;foo&quot;</span>))));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">status_file</span>() {
-        <span class="kw">let</span> (<span class="ident">td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="macro">assert!</span>(<span class="ident">repo</span>.<span class="ident">status_file</span>(<span class="ident">Path::new</span>(<span class="string">&quot;foo&quot;</span>)).<span class="ident">is_err</span>());
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
-            <span class="macro">assert!</span>(<span class="ident">repo</span>.<span class="ident">status_file</span>(<span class="ident">Path::new</span>(<span class="string">&quot;bar\\foo.txt&quot;</span>)).<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>status_file() {
+        <span class="kw">let </span>(td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="macro">assert!</span>(repo.status_file(Path::new(<span class="string">&quot;foo&quot;</span>)).is_err());
+        <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
+            <span class="macro">assert!</span>(repo.status_file(Path::new(<span class="string">&quot;bar\\foo.txt&quot;</span>)).is_err());
         }
-        <span class="macro">t!</span>(<span class="ident">File::create</span>(<span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;foo&quot;</span>)));
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
-            <span class="macro">t!</span>(<span class="ident">::std::fs::create_dir_all</span>(<span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;bar&quot;</span>)));
-            <span class="macro">t!</span>(<span class="ident">File::create</span>(<span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;bar&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;foo.txt&quot;</span>)));
+        <span class="macro">t!</span>(File::create(td.path().join(<span class="string">&quot;foo&quot;</span>)));
+        <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
+            <span class="macro">t!</span>(::std::fs::create_dir_all(td.path().join(<span class="string">&quot;bar&quot;</span>)));
+            <span class="macro">t!</span>(File::create(td.path().join(<span class="string">&quot;bar&quot;</span>).join(<span class="string">&quot;foo.txt&quot;</span>)));
         }
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">status_file</span>(<span class="ident">Path::new</span>(<span class="string">&quot;foo&quot;</span>)));
-        <span class="macro">assert!</span>(<span class="ident">status</span>.<span class="ident">contains</span>(<span class="ident"><span class="kw">crate</span>::Status::WT_NEW</span>));
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
-            <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">status_file</span>(<span class="ident">Path::new</span>(<span class="string">&quot;bar\\foo.txt&quot;</span>)));
-            <span class="macro">assert!</span>(<span class="ident">status</span>.<span class="ident">contains</span>(<span class="ident"><span class="kw">crate</span>::Status::WT_NEW</span>));
+        <span class="kw">let </span>status = <span class="macro">t!</span>(repo.status_file(Path::new(<span class="string">&quot;foo&quot;</span>)));
+        <span class="macro">assert!</span>(status.contains(<span class="kw">crate</span>::Status::WT_NEW));
+        <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
+            <span class="kw">let </span>status = <span class="macro">t!</span>(repo.status_file(Path::new(<span class="string">&quot;bar\\foo.txt&quot;</span>)));
+            <span class="macro">assert!</span>(status.contains(<span class="kw">crate</span>::Status::WT_NEW));
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

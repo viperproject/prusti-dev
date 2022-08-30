@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/body/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/body/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -783,790 +783,790 @@
 <span id="783">783</span>
 <span id="784">784</span>
 <span id="785">785</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../hyper/body/struct.Bytes.html">bytes::Bytes</a>;
-<span class="kw">use</span> <a class="ident" href="../../../futures_channel/mpsc/index.html">futures_channel::mpsc</a>;
-<span class="kw">use</span> <a class="ident" href="../../../futures_channel/oneshot/index.html">futures_channel::oneshot</a>;
-<span class="kw">use</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>; <span class="comment">// for mpsc::Receiver</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">futures_util::TryStreamExt</a>;
-<span class="kw">use</span> <a class="ident" href="../../../hyper/header/struct.HeaderMap.html">http::HeaderMap</a>;
-<span class="kw">use</span> <span class="ident">http_body</span>::{<a class="ident" href="../../../hyper/body/trait.HttpBody.html">Body</a> <span class="kw">as</span> <span class="ident">HttpBody</span>, <a class="ident" href="../../../hyper/body/struct.SizeHint.html">SizeHint</a>};
+<span class="kw">use </span><a href="../../../hyper/body/struct.Bytes.html">bytes::Bytes</a>;
+<span class="kw">use </span><a href="../../../futures_channel/mpsc/index.html">futures_channel::mpsc</a>;
+<span class="kw">use </span><a href="../../../futures_channel/oneshot/index.html">futures_channel::oneshot</a>;
+<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>; <span class="comment">// for mpsc::Receiver
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">futures_util::TryStreamExt</a>;
+<span class="kw">use </span><a href="../../../hyper/header/struct.HeaderMap.html">http::HeaderMap</a>;
+<span class="kw">use </span>http_body::{<a href="../../../hyper/body/trait.HttpBody.html">Body</a> <span class="kw">as </span>HttpBody, <a href="../../../hyper/body/struct.SizeHint.html">SizeHint</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#4"><span class="kw">super</span>::DecodedLength</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/hyper/common/sync_wrapper.rs.html#44"><span class="kw">crate</span>::common::sync_wrapper::SyncWrapper</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::common::Future</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="../../../src/hyper/common/mod.rs.html#27">watch</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/hyper/proto/h2/mod.rs.html#17"><span class="kw">crate</span>::proto::h2::ping</a>;
+<span class="kw">use </span><a href="../../../src/hyper/body/length.rs.html#4"><span class="kw">super</span>::DecodedLength</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../src/hyper/common/sync_wrapper.rs.html#44"><span class="kw">crate</span>::common::sync_wrapper::SyncWrapper</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::common::Future</a>;
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;client&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
+</span><span class="kw">use </span><a href="../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>;
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="../../../src/hyper/common/mod.rs.html#27">watch</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
+</span><span class="kw">use </span><a href="../../../src/hyper/proto/h2/mod.rs.html#17"><span class="kw">crate</span>::proto::h2::ping</a>;
 
-<span class="kw">type</span> <span class="ident">BodySender</span> <span class="op">=</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/hyper/error.rs.html#11"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span><span class="op">&gt;</span>;
-<span class="kw">type</span> <span class="ident">TrailersSender</span> <span class="op">=</span> <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a><span class="op">&gt;</span>;
+<span class="kw">type </span>BodySender = mpsc::Sender&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <a href="../../../src/hyper/error.rs.html#11"><span class="kw">crate</span>::Error</a>&gt;&gt;;
+<span class="kw">type </span>TrailersSender = oneshot::Sender&lt;<a href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>&gt;;
 
-<span class="doccomment">/// A stream of `Bytes`, used when receiving bodies.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A good default [`HttpBody`](crate::body::HttpBody) to use in many</span>
-<span class="doccomment">/// applications.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note: To read the full body, use [`body::to_bytes`](crate::body::to_bytes)</span>
-<span class="doccomment">/// or [`body::aggregate`](crate::body::aggregate).</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Body</span> {
-    <span class="ident">kind</span>: <a class="ident" href="../../../src/hyper/body/body.rs.html#43">Kind</a>,
-    <span class="doccomment">/// Keep the extra bits in an `Option&lt;Box&lt;Extra&gt;&gt;`, so that</span>
-    <span class="doccomment">/// Body stays small in the common case (no extras needed).</span>
-    <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#67">Extra</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A stream of `Bytes`, used when receiving bodies.
+///
+/// A good default [`HttpBody`](crate::body::HttpBody) to use in many
+/// applications.
+///
+/// Note: To read the full body, use [`body::to_bytes`](crate::body::to_bytes)
+/// or [`body::aggregate`](crate::body::aggregate).
+</span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+</span><span class="kw">pub struct </span>Body {
+    kind: <a href="../../../src/hyper/body/body.rs.html#43">Kind</a>,
+    <span class="doccomment">/// Keep the extra bits in an `Option&lt;Box&lt;Extra&gt;&gt;`, so that
+    /// Body stays small in the common case (no extras needed).
+    </span>extra: <span class="prelude-ty">Option</span>&lt;Box&lt;<a href="../../../src/hyper/body/body.rs.html#67">Extra</a>&gt;&gt;,
 }
 
-<span class="kw">enum</span> <span class="ident">Kind</span> {
-    <span class="ident">Once</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>),
-    <span class="ident">Chan</span> {
-        <span class="ident">content_length</span>: <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>,
-        <span class="ident">want_tx</span>: <a class="ident" href="../../../src/hyper/common/watch.rs.html#37">watch::Sender</a>,
-        <span class="ident">data_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/hyper/error.rs.html#11"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">trailers_rx</span>: <span class="ident">oneshot::Receiver</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a><span class="op">&gt;</span>,
+<span class="kw">enum </span>Kind {
+    Once(<span class="prelude-ty">Option</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;),
+    Chan {
+        content_length: <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>,
+        want_tx: <a href="../../../src/hyper/common/watch.rs.html#37">watch::Sender</a>,
+        data_rx: mpsc::Receiver&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <a href="../../../src/hyper/error.rs.html#11"><span class="kw">crate</span>::Error</a>&gt;&gt;,
+        trailers_rx: oneshot::Receiver&lt;<a href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>&gt;,
     },
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)))]</span>
-    <span class="ident">H2</span> {
-        <span class="ident">ping</span>: <a class="ident" href="../../../src/hyper/proto/h2/ping.rs.html#117">ping::Recorder</a>,
-        <span class="ident">content_length</span>: <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>,
-        <span class="ident">recv</span>: <a class="ident" href="../../../h2/share/struct.RecvStream.html">h2::RecvStream</a>,
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
+    </span>H2 {
+        ping: <a href="../../../src/hyper/proto/h2/ping.rs.html#117">ping::Recorder</a>,
+        content_length: <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>,
+        recv: <a href="../../../h2/share/struct.RecvStream.html">h2::RecvStream</a>,
     },
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
-    <span class="ident">Ffi</span>(<span class="ident"><span class="kw">crate</span>::ffi::UserBody</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-    <span class="ident">Wrapped</span>(
-        <span class="ident">SyncWrapper</span><span class="op">&lt;</span>
-            <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
+    </span>Ffi(<span class="kw">crate</span>::ffi::UserBody),
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+    </span>Wrapped(
+        SyncWrapper&lt;
+            Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt;,
+        &gt;,
     ),
 }
 
-<span class="kw">struct</span> <span class="ident">Extra</span> {
-    <span class="doccomment">/// Allow the client to pass a future to delay the `Body` from returning</span>
-    <span class="doccomment">/// EOF. This allows the `Client` to try to put the idle connection</span>
-    <span class="doccomment">/// back into the pool before the body is &quot;finished&quot;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The reason for this is so that creating a new request after finishing</span>
-    <span class="doccomment">/// streaming the body of a response could sometimes result in creating</span>
-    <span class="doccomment">/// a brand new connection, since the pool didn&#39;t know about the idle</span>
-    <span class="doccomment">/// connection yet.</span>
-    <span class="ident">delayed_eof</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#82">DelayEof</a><span class="op">&gt;</span>,
+<span class="kw">struct </span>Extra {
+    <span class="doccomment">/// Allow the client to pass a future to delay the `Body` from returning
+    /// EOF. This allows the `Client` to try to put the idle connection
+    /// back into the pool before the body is &quot;finished&quot;.
+    ///
+    /// The reason for this is so that creating a new request after finishing
+    /// streaming the body of a response could sometimes result in creating
+    /// a brand new connection, since the pool didn&#39;t know about the idle
+    /// connection yet.
+    </span>delayed_eof: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/hyper/body/body.rs.html#82">DelayEof</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)))]</span>
-<span class="kw">type</span> <span class="ident">DelayEofUntil</span> <span class="op">=</span> <span class="ident">oneshot::Receiver</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/common/never.rs.html#9">Never</a><span class="op">&gt;</span>;
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;client&quot;</span>, any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)))]
+</span><span class="kw">type </span>DelayEofUntil = oneshot::Receiver&lt;<a href="../../../src/hyper/common/never.rs.html#9">Never</a>&gt;;
 
-<span class="kw">enum</span> <span class="ident">DelayEof</span> {
-    <span class="doccomment">/// Initial state, stream hasn&#39;t seen EOF yet.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
-    <span class="ident">NotEof</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#80">DelayEofUntil</a>),
-    <span class="doccomment">/// Transitions to this state once we&#39;ve seen `poll` try to</span>
-    <span class="doccomment">/// return EOF (`None`). This future is then polled, and</span>
-    <span class="doccomment">/// when it completes, the Body finally returns EOF (`None`).</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
-    <span class="ident">Eof</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#80">DelayEofUntil</a>),
+<span class="kw">enum </span>DelayEof {
+    <span class="doccomment">/// Initial state, stream hasn&#39;t seen EOF yet.
+    </span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+    #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
+    </span>NotEof(<a href="../../../src/hyper/body/body.rs.html#80">DelayEofUntil</a>),
+    <span class="doccomment">/// Transitions to this state once we&#39;ve seen `poll` try to
+    /// return EOF (`None`). This future is then polled, and
+    /// when it completes, the Body finally returns EOF (`None`).
+    </span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+    #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
+    </span>Eof(<a href="../../../src/hyper/body/body.rs.html#80">DelayEofUntil</a>),
 }
 
-<span class="doccomment">/// A sender half created through [`Body::channel()`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Useful when wanting to stream chunks from another thread.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Body Closing</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that the request body will always be closed normally when the sender is dropped (meaning</span>
-<span class="doccomment">/// that the empty terminating chunk will be sent to the remote). If you desire to close the</span>
-<span class="doccomment">/// connection with an incomplete response (e.g. in the case of an error during asynchronous</span>
-<span class="doccomment">/// processing), call the [`Sender::abort()`] method to abort the body in an abnormal fashion.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Body::channel()`]: struct.Body.html#method.channel</span>
-<span class="doccomment">/// [`Sender::abort()`]: struct.Sender.html#method.abort</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;Sender does nothing unless sent on&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sender</span> {
-    <span class="ident">want_rx</span>: <a class="ident" href="../../../src/hyper/common/watch.rs.html#41">watch::Receiver</a>,
-    <span class="ident">data_tx</span>: <a class="ident" href="../../../src/hyper/body/body.rs.html#25">BodySender</a>,
-    <span class="ident">trailers_tx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#26">TrailersSender</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A sender half created through [`Body::channel()`].
+///
+/// Useful when wanting to stream chunks from another thread.
+///
+/// ## Body Closing
+///
+/// Note that the request body will always be closed normally when the sender is dropped (meaning
+/// that the empty terminating chunk will be sent to the remote). If you desire to close the
+/// connection with an incomplete response (e.g. in the case of an error during asynchronous
+/// processing), call the [`Sender::abort()`] method to abort the body in an abnormal fashion.
+///
+/// [`Body::channel()`]: struct.Body.html#method.channel
+/// [`Sender::abort()`]: struct.Sender.html#method.abort
+</span><span class="attribute">#[must_use = <span class="string">&quot;Sender does nothing unless sent on&quot;</span>]
+</span><span class="kw">pub struct </span>Sender {
+    want_rx: <a href="../../../src/hyper/common/watch.rs.html#41">watch::Receiver</a>,
+    data_tx: <a href="../../../src/hyper/body/body.rs.html#25">BodySender</a>,
+    trailers_tx: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/hyper/body/body.rs.html#26">TrailersSender</a>&gt;,
 }
 
-<span class="kw">const</span> <span class="ident">WANT_PENDING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">WANT_READY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">const </span>WANT_PENDING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+<span class="kw">const </span>WANT_READY: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="doccomment">/// Create an empty `Body` stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use hyper::{Body, Request};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // create a `GET /` request</span>
-    <span class="doccomment">/// let get = Request::new(Body::empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="ident">Body::new</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">None</span>))
+<span class="kw">impl </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="doccomment">/// Create an empty `Body` stream.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use hyper::{Body, Request};
+    ///
+    /// // create a `GET /` request
+    /// let get = Request::new(Body::empty());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>empty() -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        Body::new(<a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">None</span>))
     }
 
-    <span class="doccomment">/// Create a `Body` stream with an associated sender half.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Useful when wanting to stream chunks from another thread.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span>() -&gt; (<a class="ident" href="../../../src/hyper/body/body.rs.html#109">Sender</a>, <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a>) {
-        <span class="ident"><span class="self">Self</span>::new_channel</span>(<span class="ident">DecodedLength::CHUNKED</span>, <span class="comment">/*wanter =*/</span> <span class="bool-val">false</span>)
+    <span class="doccomment">/// Create a `Body` stream with an associated sender half.
+    ///
+    /// Useful when wanting to stream chunks from another thread.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>channel() -&gt; (<a href="../../../src/hyper/body/body.rs.html#109">Sender</a>, <a href="../../../src/hyper/body/body.rs.html#36">Body</a>) {
+        <span class="self">Self</span>::new_channel(DecodedLength::CHUNKED, <span class="comment">/*wanter =*/ </span><span class="bool-val">false</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_channel</span>(<span class="ident">content_length</span>: <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>, <span class="ident">wanter</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; (<a class="ident" href="../../../src/hyper/body/body.rs.html#109">Sender</a>, <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a>) {
-        <span class="kw">let</span> (<span class="ident">data_tx</span>, <span class="ident">data_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">0</span>);
-        <span class="kw">let</span> (<span class="ident">trailers_tx</span>, <span class="ident">trailers_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_channel(content_length: <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>, wanter: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; (<a href="../../../src/hyper/body/body.rs.html#109">Sender</a>, <a href="../../../src/hyper/body/body.rs.html#36">Body</a>) {
+        <span class="kw">let </span>(data_tx, data_rx) = mpsc::channel(<span class="number">0</span>);
+        <span class="kw">let </span>(trailers_tx, trailers_rx) = oneshot::channel();
 
-        <span class="comment">// If wanter is true, `Sender::poll_ready()` won&#39;t becoming ready</span>
-        <span class="comment">// until the `Body` has been polled for data once.</span>
-        <span class="kw">let</span> <span class="ident">want</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">wanter</span> { <a class="ident" href="../../../src/hyper/body/body.rs.html#115">WANT_PENDING</a> } <span class="kw">else</span> { <a class="ident" href="../../../src/hyper/body/body.rs.html#116">WANT_READY</a> };
+        <span class="comment">// If wanter is true, `Sender::poll_ready()` won&#39;t becoming ready
+        // until the `Body` has been polled for data once.
+        </span><span class="kw">let </span>want = <span class="kw">if </span>wanter { <a href="../../../src/hyper/body/body.rs.html#115">WANT_PENDING</a> } <span class="kw">else </span>{ <a href="../../../src/hyper/body/body.rs.html#116">WANT_READY</a> };
 
-        <span class="kw">let</span> (<span class="ident">want_tx</span>, <span class="ident">want_rx</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/common/watch.rs.html#18">watch::channel</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#148">want</a>);
+        <span class="kw">let </span>(want_tx, want_rx) = <a href="../../../src/hyper/common/watch.rs.html#18">watch::channel</a>(<a href="../../../src/hyper/body/body.rs.html#148">want</a>);
 
-        <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#109">Sender</a> {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#150">want_rx</a>,
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#143">data_tx</a>,
-            <span class="ident">trailers_tx</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#144">trailers_tx</a>),
+        <span class="kw">let </span>tx = <a href="../../../src/hyper/body/body.rs.html#109">Sender</a> {
+            <a href="../../../src/hyper/body/body.rs.html#150">want_rx</a>,
+            <a href="../../../src/hyper/body/body.rs.html#143">data_tx</a>,
+            trailers_tx: <span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#144">trailers_tx</a>),
         };
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">Body::new</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#142">content_length</a>,
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#150">want_tx</a>,
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#143">data_rx</a>,
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#144">trailers_rx</a>,
+        <span class="kw">let </span>rx = Body::new(<a href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> {
+            <a href="../../../src/hyper/body/body.rs.html#142">content_length</a>,
+            <a href="../../../src/hyper/body/body.rs.html#150">want_tx</a>,
+            <a href="../../../src/hyper/body/body.rs.html#143">data_rx</a>,
+            <a href="../../../src/hyper/body/body.rs.html#144">trailers_rx</a>,
         });
 
-        (<a class="ident" href="../../../src/hyper/body/body.rs.html#152">tx</a>, <a class="ident" href="../../../src/hyper/body/body.rs.html#157">rx</a>)
+        (<a href="../../../src/hyper/body/body.rs.html#152">tx</a>, <a href="../../../src/hyper/body/body.rs.html#157">rx</a>)
     }
 
-    <span class="doccomment">/// Wrap a futures `Stream` in a box inside `Body`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use hyper::Body;</span>
-    <span class="doccomment">/// let chunks: Vec&lt;Result&lt;_, std::io::Error&gt;&gt; = vec![</span>
-    <span class="doccomment">///     Ok(&quot;hello&quot;),</span>
-    <span class="doccomment">///     Ok(&quot; &quot;),</span>
-    <span class="doccomment">///     Ok(&quot;world&quot;),</span>
-    <span class="doccomment">/// ];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = futures_util::stream::iter(chunks);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let body = Body::wrap_stream(stream);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Optional</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function requires enabling the `stream` feature in your</span>
-    <span class="doccomment">/// `Cargo.toml`.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_stream</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Wrap a futures `Stream` in a box inside `Body`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use hyper::Body;
+    /// let chunks: Vec&lt;Result&lt;_, std::io::Error&gt;&gt; = vec![
+    ///     Ok(&quot;hello&quot;),
+    ///     Ok(&quot; &quot;),
+    ///     Ok(&quot;world&quot;),
+    /// ];
+    ///
+    /// let stream = futures_util::stream::iter(chunks);
+    ///
+    /// let body = Body::wrap_stream(stream);
+    /// ```
+    ///
+    /// # Optional
+    ///
+    /// This function requires enabling the `stream` feature in your
+    /// `Cargo.toml`.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;stream&quot;</span>)))]
+    </span><span class="kw">pub fn </span>wrap_stream&lt;S, O, E&gt;(stream: S) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a>
+    <span class="kw">where
+        </span>S: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;O, E&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        O: Into&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; + <span class="lifetime">&#39;static</span>,
+        E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt; + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> <span class="ident">mapped</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#190">stream</a>.<a class="ident" href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_ok</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>).<a class="ident" href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_err</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>);
-        <span class="ident">Body::new</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(<span class="ident">SyncWrapper::new</span>(<span class="ident">Box::pin</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#196">mapped</a>))))
+        <span class="kw">let </span>mapped = <a href="../../../src/hyper/body/body.rs.html#190">stream</a>.<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_ok</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>).<a href="../../../futures_util/stream/try_stream/trait.TryStreamExt.html">map_err</a>(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>);
+        Body::new(<a href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(SyncWrapper::new(Box::pin(<a href="../../../src/hyper/body/body.rs.html#196">mapped</a>))))
     }
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <a class="ident" href="../../../src/hyper/body/body.rs.html#43">Kind</a>) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> { <a class="ident" href="../../../src/hyper/body/body.rs.html#200">kind</a>, <span class="ident">extra</span>: <span class="prelude-val">None</span> }
+    <span class="kw">fn </span>new(kind: <a href="../../../src/hyper/body/body.rs.html#43">Kind</a>) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        <a href="../../../src/hyper/body/body.rs.html#36">Body</a> { <a href="../../../src/hyper/body/body.rs.html#200">kind</a>, extra: <span class="prelude-val">None </span>}
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">h2</span>(
-        <span class="ident">recv</span>: <a class="ident" href="../../../h2/share/struct.RecvStream.html">h2::RecvStream</a>,
-        <span class="kw-2">mut</span> <span class="ident">content_length</span>: <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>,
-        <span class="ident">ping</span>: <a class="ident" href="../../../src/hyper/proto/h2/ping.rs.html#117">ping::Recorder</a>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="comment">// If the stream is already EOS, then the &quot;unknown length&quot; is clearly</span>
-        <span class="comment">// actually ZERO.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">content_length</span>.<span class="ident">is_exact</span>() <span class="op">&amp;&amp;</span> <span class="ident">recv</span>.<span class="ident">is_end_stream</span>() {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#207">content_length</a> <span class="op">=</span> <span class="ident">DecodedLength::ZERO</span>;
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>h2(
+        recv: <a href="../../../h2/share/struct.RecvStream.html">h2::RecvStream</a>,
+        <span class="kw-2">mut </span>content_length: <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>,
+        ping: <a href="../../../src/hyper/proto/h2/ping.rs.html#117">ping::Recorder</a>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="comment">// If the stream is already EOS, then the &quot;unknown length&quot; is clearly
+        // actually ZERO.
+        </span><span class="kw">if </span>!content_length.is_exact() &amp;&amp; recv.is_end_stream() {
+            <a href="../../../src/hyper/body/body.rs.html#207">content_length</a> = DecodedLength::ZERO;
         }
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Body::new</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#208">ping</a>,
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#207">content_length</a>,
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#206">recv</a>,
+        <span class="kw">let </span>body = Body::new(<a href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> {
+            <a href="../../../src/hyper/body/body.rs.html#208">ping</a>,
+            <a href="../../../src/hyper/body/body.rs.html#207">content_length</a>,
+            <a href="../../../src/hyper/body/body.rs.html#206">recv</a>,
         });
 
-        <a class="ident" href="../../../src/hyper/body/body.rs.html#215">body</a>
+        <a href="../../../src/hyper/body/body.rs.html#215">body</a>
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">delayed_eof</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">fut</span>: <a class="ident" href="../../../src/hyper/body/body.rs.html#80">DelayEofUntil</a>) {
-        <a class="self" href="../../../src/hyper/body/body.rs.html#226">self</a>.<a class="ident" href="../../../src/hyper/body/body.rs.html#237">extra_mut</a>().<span class="ident">delayed_eof</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#86">DelayEof::NotEof</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#226">fut</a>));
+    <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+    #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delayed_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fut: <a href="../../../src/hyper/body/body.rs.html#80">DelayEofUntil</a>) {
+        <a class="self" href="../../../src/hyper/body/body.rs.html#226">self</a>.<a href="../../../src/hyper/body/body.rs.html#237">extra_mut</a>().delayed_eof = <span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#86">DelayEof::NotEof</a>(<a href="../../../src/hyper/body/body.rs.html#226">fut</a>));
     }
 
-    <span class="kw">fn</span> <span class="ident">take_delayed_eof</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#82">DelayEof</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/hyper/body/body.rs.html#230">self</a>.<span class="ident">extra</span>
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">extra</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#233">extra</a>.<span class="ident">delayed_eof</span>.<span class="ident">take</span>())
+    <span class="kw">fn </span>take_delayed_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/hyper/body/body.rs.html#82">DelayEof</a>&gt; {
+        <a class="self" href="../../../src/hyper/body/body.rs.html#230">self</a>.extra
+            .as_mut()
+            .and_then(|extra| <a href="../../../src/hyper/body/body.rs.html#233">extra</a>.delayed_eof.take())
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">extra_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#67">Extra</a> {
-        <a class="self" href="../../../src/hyper/body/body.rs.html#237">self</a>.<span class="ident">extra</span>
-            .<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Box::new</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#67">Extra</a> { <span class="ident">delayed_eof</span>: <span class="prelude-val">None</span> }))
+    <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+    </span><span class="kw">fn </span>extra_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/hyper/body/body.rs.html#67">Extra</a> {
+        <a class="self" href="../../../src/hyper/body/body.rs.html#237">self</a>.extra
+            .get_or_insert_with(|| Box::new(<a href="../../../src/hyper/body/body.rs.html#67">Extra</a> { delayed_eof: <span class="prelude-val">None </span>}))
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_eof</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a class="ident" href="../../../src/hyper/body/body.rs.html#230">take_delayed_eof</a>() {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#86">DelayEof::NotEof</a>(<span class="kw-2">mut</span> <span class="ident">delay</span>)) =&gt; <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a class="ident" href="../../../src/hyper/body/body.rs.html#295">poll_inner</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#242">cx</a>) {
-                <span class="ident">ok</span> @ <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(..))) <span class="op">|</span> <span class="ident">ok</span> @ <span class="ident">Poll::Pending</span> =&gt; {
-                    <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a class="ident" href="../../../src/hyper/body/body.rs.html#237">extra_mut</a>().<span class="ident">delayed_eof</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#86">DelayEof::NotEof</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#246">delay</a>));
-                    <a class="ident" href="../../../src/hyper/body/body.rs.html#247">ok</a>
+    <span class="kw">fn </span>poll_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a href="../../../src/hyper/body/body.rs.html#230">take_delayed_eof</a>() {
+            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+            #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
+            </span><span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#86">DelayEof::NotEof</a>(<span class="kw-2">mut </span>delay)) =&gt; <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a href="../../../src/hyper/body/body.rs.html#295">poll_inner</a>(<a href="../../../src/hyper/body/body.rs.html#242">cx</a>) {
+                ok @ Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(..))) | ok @ Poll::Pending =&gt; {
+                    <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a href="../../../src/hyper/body/body.rs.html#237">extra_mut</a>().delayed_eof = <span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#86">DelayEof::NotEof</a>(<a href="../../../src/hyper/body/body.rs.html#246">delay</a>));
+                    <a href="../../../src/hyper/body/body.rs.html#247">ok</a>
                 }
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#246">delay</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#242">cx</a>) {
-                    <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">never</span>)) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#252">never</a> {},
-                    <span class="ident">Poll::Pending</span> =&gt; {
-                        <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a class="ident" href="../../../src/hyper/body/body.rs.html#237">extra_mut</a>().<span class="ident">delayed_eof</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#92">DelayEof::Eof</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#246">delay</a>));
-                        <span class="ident">Poll::Pending</span>
+                Poll::Ready(<span class="prelude-val">None</span>) =&gt; <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="../../../src/hyper/body/body.rs.html#246">delay</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/body/body.rs.html#242">cx</a>) {
+                    Poll::Ready(<span class="prelude-val">Ok</span>(never)) =&gt; <span class="kw">match </span><a href="../../../src/hyper/body/body.rs.html#252">never</a> {},
+                    Poll::Pending =&gt; {
+                        <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a href="../../../src/hyper/body/body.rs.html#237">extra_mut</a>().delayed_eof = <span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#92">DelayEof::Eof</a>(<a href="../../../src/hyper/body/body.rs.html#246">delay</a>));
+                        Poll::Pending
                     }
-                    <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">_done</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+                    Poll::Ready(<span class="prelude-val">Err</span>(_done)) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
                 },
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#259">e</a>))),
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e))) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../../src/hyper/body/body.rs.html#259">e</a>))),
             },
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#92">DelayEof::Eof</a>(<span class="kw-2">mut</span> <span class="ident">delay</span>)) =&gt; <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#263">delay</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#242">cx</a>) {
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">never</span>)) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#264">never</a> {},
-                <span class="ident">Poll::Pending</span> =&gt; {
-                    <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a class="ident" href="../../../src/hyper/body/body.rs.html#237">extra_mut</a>().<span class="ident">delayed_eof</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#92">DelayEof::Eof</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#263">delay</a>));
-                    <span class="ident">Poll::Pending</span>
+            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+            #[cfg(feature = <span class="string">&quot;client&quot;</span>)]
+            </span><span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#92">DelayEof::Eof</a>(<span class="kw-2">mut </span>delay)) =&gt; <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="../../../src/hyper/body/body.rs.html#263">delay</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/body/body.rs.html#242">cx</a>) {
+                Poll::Ready(<span class="prelude-val">Ok</span>(never)) =&gt; <span class="kw">match </span><a href="../../../src/hyper/body/body.rs.html#264">never</a> {},
+                Poll::Pending =&gt; {
+                    <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a href="../../../src/hyper/body/body.rs.html#237">extra_mut</a>().delayed_eof = <span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#92">DelayEof::Eof</a>(<a href="../../../src/hyper/body/body.rs.html#263">delay</a>));
+                    Poll::Pending
                 }
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">_done</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+                Poll::Ready(<span class="prelude-val">Err</span>(_done)) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
             },
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-                <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)),
-                <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)
-            ))]</span>
-            <span class="prelude-val">Some</span>(<span class="ident">delay_eof</span>) =&gt; <span class="kw">match</span> <span class="ident">delay_eof</span> {},
-            <span class="prelude-val">None</span> =&gt; <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a class="ident" href="../../../src/hyper/body/body.rs.html#295">poll_inner</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#242">cx</a>),
+            <span class="attribute">#[cfg(any(
+                not(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>)),
+                not(feature = <span class="string">&quot;client&quot;</span>)
+            ))]
+            </span><span class="prelude-val">Some</span>(delay_eof) =&gt; <span class="kw">match </span>delay_eof {},
+            <span class="prelude-val">None </span>=&gt; <a class="self" href="../../../src/hyper/body/body.rs.html#242">self</a>.<a href="../../../src/hyper/body/body.rs.html#295">poll_inner</a>(<a href="../../../src/hyper/body/body.rs.html#242">cx</a>),
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_ffi_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="kw">crate</span>::ffi::UserBody</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Kind::Ffi</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">body</span>) =&gt; <span class="kw">return</span> <span class="ident">body</span>,
-            <span class="kw">_</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">Kind::Ffi</span>(<span class="ident"><span class="kw">crate</span>::ffi::UserBody::new</span>());
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_ffi_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::ffi::UserBody {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            Kind::Ffi(<span class="kw-2">ref mut </span>body) =&gt; <span class="kw">return </span>body,
+            <span class="kw">_ </span>=&gt; {
+                <span class="self">self</span>.kind = Kind::Ffi(<span class="kw">crate</span>::ffi::UserBody::new());
             }
         }
 
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Kind::Ffi</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">body</span>) =&gt; <span class="ident">body</span>,
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            Kind::Ffi(<span class="kw-2">ref mut </span>body) =&gt; body,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_inner</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#295">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">val</span>) =&gt; <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#297">val</a>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="prelude-val">Ok</span>)),
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> {
-                <span class="ident">content_length</span>: <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">len</span>,
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">data_rx</span>,
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">want_tx</span>,
+    <span class="kw">fn </span>poll_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Result&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#295">self</a>.kind {
+            <a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="kw-2">ref mut </span>val) =&gt; Poll::Ready(<a href="../../../src/hyper/body/body.rs.html#297">val</a>.take().map(<span class="prelude-val">Ok</span>)),
+            <a href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> {
+                content_length: <span class="kw-2">ref mut </span>len,
+                <span class="kw-2">ref mut </span>data_rx,
+                <span class="kw-2">ref mut </span>want_tx,
                 ..
             } =&gt; {
-                <a class="ident" href="../../../src/hyper/body/body.rs.html#301">want_tx</a>.<a class="ident" href="../../../src/hyper/common/watch.rs.html#51">send</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#116">WANT_READY</a>);
+                <a href="../../../src/hyper/body/body.rs.html#301">want_tx</a>.<a href="../../../src/hyper/common/watch.rs.html#51">send</a>(<a href="../../../src/hyper/body/body.rs.html#116">WANT_READY</a>);
 
-                <span class="kw">match</span> <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">Pin::new</span>(<span class="ident">data_rx</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">chunk</span>) =&gt; {
-                        <a class="ident" href="../../../src/hyper/body/body.rs.html#299">len</a>.<a class="ident" href="../../../src/hyper/body/length.rs.html#63">sub_if</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#307">chunk</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#307">chunk</a>)))
+                <span class="kw">match </span><a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(Pin::new(data_rx).poll_next(cx)<span class="question-mark">?</span>) {
+                    <span class="prelude-val">Some</span>(chunk) =&gt; {
+                        <a href="../../../src/hyper/body/body.rs.html#299">len</a>.<a href="../../../src/hyper/body/length.rs.html#63">sub_if</a>(<a href="../../../src/hyper/body/body.rs.html#307">chunk</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../src/hyper/body/body.rs.html#307">chunk</a>)))
                     }
-                    <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+                    <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
                 }
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)))]</span>
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> {
-                <span class="kw-2">ref</span> <span class="ident">ping</span>,
-                <span class="ident">recv</span>: <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h2</span>,
-                <span class="ident">content_length</span>: <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">len</span>,
-            } =&gt; <span class="kw">match</span> <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">h2</span>.<span class="ident">poll_data</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)) =&gt; {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#317">h2</a>.<span class="ident">flow_control</span>().<span class="ident">release_capacity</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#320">bytes</a>.<span class="ident">len</span>());
-                    <a class="ident" href="../../../src/hyper/body/body.rs.html#318">len</a>.<a class="ident" href="../../../src/hyper/body/length.rs.html#63">sub_if</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#320">bytes</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-                    <a class="ident" href="../../../src/hyper/body/body.rs.html#316">ping</a>.<a class="ident" href="../../../src/hyper/proto/h2/ping.rs.html#215">record_data</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#320">bytes</a>.<span class="ident">len</span>());
-                    <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#320">bytes</a>)))
+            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
+            </span><a href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> {
+                <span class="kw-2">ref </span>ping,
+                recv: <span class="kw-2">ref mut </span>h2,
+                content_length: <span class="kw-2">ref mut </span>len,
+            } =&gt; <span class="kw">match </span><a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(h2.poll_data(cx)) {
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(bytes)) =&gt; {
+                    <span class="kw">let _ </span>= <a href="../../../src/hyper/body/body.rs.html#317">h2</a>.flow_control().release_capacity(<a href="../../../src/hyper/body/body.rs.html#320">bytes</a>.len());
+                    <a href="../../../src/hyper/body/body.rs.html#318">len</a>.<a href="../../../src/hyper/body/length.rs.html#63">sub_if</a>(<a href="../../../src/hyper/body/body.rs.html#320">bytes</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+                    <a href="../../../src/hyper/body/body.rs.html#316">ping</a>.<a href="../../../src/hyper/proto/h2/ping.rs.html#215">record_data</a>(<a href="../../../src/hyper/body/body.rs.html#320">bytes</a>.len());
+                    Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../src/hyper/body/body.rs.html#320">bytes</a>)))
                 }
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_body</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#326">e</a>)))),
-                <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_body(<a href="../../../src/hyper/body/body.rs.html#326">e</a>)))),
+                <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
             },
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
-            <span class="ident">Kind::Ffi</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">body</span>) =&gt; <span class="ident">body</span>.<span class="ident">poll_data</span>(<span class="ident">cx</span>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
+            </span>Kind::Ffi(<span class="kw-2">ref mut </span>body) =&gt; body.poll_data(cx),
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <span class="kw">match</span> <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">s</span>.<span class="ident">get_mut</span>().<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">res</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#335">res</a>.<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_body</span>))),
-                <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+            </span><a href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(<span class="kw-2">ref mut </span>s) =&gt; <span class="kw">match </span><a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(s.get_mut().as_mut().poll_next(cx)) {
+                <span class="prelude-val">Some</span>(res) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#335">res</a>.map_err(<span class="kw">crate</span>::Error::new_body))),
+                <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
             },
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">take_full_data</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">chunk</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/body/body.rs.html#342">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#343">chunk</a>.<span class="ident">take</span>()
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_full_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; {
+        <span class="kw">if let </span><a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="kw-2">ref mut </span>chunk) = <a class="self" href="../../../src/hyper/body/body.rs.html#342">self</a>.kind {
+            <a href="../../../src/hyper/body/body.rs.html#343">chunk</a>.take()
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="doccomment">/// Returns `Body::empty()`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="ident">Body::empty</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="doccomment">/// Returns `Body::empty()`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        Body::empty()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="kw">type</span> <span class="ident">Data</span> <span class="op">=</span> <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/error.rs.html#11"><span class="kw">crate</span>::Error</a>;
+<span class="kw">impl </span><a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="kw">type </span>Data = <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>;
+    <span class="kw">type </span>Error = <a href="../../../src/hyper/error.rs.html#11"><span class="kw">crate</span>::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll_data</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Data</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/hyper/body/body.rs.html#364">self</a>.<a class="ident" href="../../../src/hyper/body/body.rs.html#242">poll_eof</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#365">cx</a>)
+    <span class="kw">fn </span>poll_data(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Data, <span class="self">Self</span>::Error&gt;&gt;&gt; {
+        <a class="self" href="../../../src/hyper/body/body.rs.html#364">self</a>.<a href="../../../src/hyper/body/body.rs.html#242">poll_eof</a>(<a href="../../../src/hyper/body/body.rs.html#365">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_trailers</span>(
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>), <span class="ident">allow</span>(<span class="ident">unused_mut</span>))]</span> <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>), <span class="ident">allow</span>(<span class="ident">unused</span>))]</span> <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#371">self</a>.<span class="ident">kind</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)))]</span>
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> {
-                <span class="ident">recv</span>: <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h2</span>,
-                <span class="kw-2">ref</span> <span class="ident">ping</span>,
+    <span class="kw">fn </span>poll_trailers(
+        <span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;http2&quot;</span>), allow(unused_mut))] </span><span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        <span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;http2&quot;</span>), allow(unused))] </span>cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>&gt;, <span class="self">Self</span>::Error&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#371">self</a>.kind {
+            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
+            </span><a href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> {
+                recv: <span class="kw-2">ref mut </span>h2,
+                <span class="kw-2">ref </span>ping,
                 ..
-            } =&gt; <span class="kw">match</span> <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">h2</span>.<span class="ident">poll_trailers</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; {
-                    <a class="ident" href="../../../src/hyper/body/body.rs.html#378">ping</a>.<a class="ident" href="../../../src/hyper/proto/h2/ping.rs.html#250">record_non_data</a>();
-                    <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#381">t</a>))
+            } =&gt; <span class="kw">match </span><a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(h2.poll_trailers(cx)) {
+                <span class="prelude-val">Ok</span>(t) =&gt; {
+                    <a href="../../../src/hyper/body/body.rs.html#378">ping</a>.<a href="../../../src/hyper/proto/h2/ping.rs.html#250">record_non_data</a>();
+                    Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/hyper/body/body.rs.html#381">t</a>))
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_h2</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#385">e</a>))),
+                <span class="prelude-val">Err</span>(e) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_h2(<a href="../../../src/hyper/body/body.rs.html#385">e</a>))),
             },
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> {
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">trailers_rx</span>,
+            <a href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> {
+                <span class="kw-2">ref mut </span>trailers_rx,
                 ..
-            } =&gt; <span class="kw">match</span> <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">Pin::new</span>(<span class="ident">trailers_rx</span>).<span class="ident">poll</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#391">t</a>))),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
+            } =&gt; <span class="kw">match </span><a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(Pin::new(trailers_rx).poll(cx)) {
+                <span class="prelude-val">Ok</span>(t) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#391">t</a>))),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
             },
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
-            <span class="ident">Kind::Ffi</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">body</span>) =&gt; <span class="ident">body</span>.<span class="ident">poll_trailers</span>(<span class="ident">cx</span>),
-            <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
+            </span>Kind::Ffi(<span class="kw-2">ref mut </span>body) =&gt; body.poll_trailers(cx),
+            <span class="kw">_ </span>=&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_end_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#400">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="kw-2">ref</span> <span class="ident">val</span>) =&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#402">val</a>.<span class="ident">is_none</span>(),
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> { <span class="ident">content_length</span>, .. } =&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#403">content_length</a> <span class="op">==</span> <span class="ident">DecodedLength::ZERO</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)))]</span>
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> { <span class="ident">recv</span>: <span class="kw-2">ref</span> <span class="ident">h2</span>, .. } =&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#405">h2</a>.<span class="ident">is_end_stream</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
-            <span class="ident">Kind::Ffi</span>(..) =&gt; <span class="bool-val">false</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(..) =&gt; <span class="bool-val">false</span>,
+    <span class="kw">fn </span>is_end_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#400">self</a>.kind {
+            <a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="kw-2">ref </span>val) =&gt; <a href="../../../src/hyper/body/body.rs.html#402">val</a>.is_none(),
+            <a href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> { content_length, .. } =&gt; <a href="../../../src/hyper/body/body.rs.html#403">content_length</a> == DecodedLength::ZERO,
+            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
+            </span><a href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> { recv: <span class="kw-2">ref </span>h2, .. } =&gt; <a href="../../../src/hyper/body/body.rs.html#405">h2</a>.is_end_stream(),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
+            </span>Kind::Ffi(..) =&gt; <span class="bool-val">false</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+            </span><a href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(..) =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../hyper/body/struct.SizeHint.html">SizeHint</a> {
-        <span class="macro">macro_rules!</span> <span class="ident">opt_len</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">content_length</span>:<span class="ident">expr</span>) =&gt; {{
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hint</span> <span class="op">=</span> <span class="ident">SizeHint::default</span>();
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../hyper/body/struct.SizeHint.html">SizeHint</a> {
+        <span class="macro">macro_rules! </span>opt_len {
+            (<span class="macro-nonterminal">$content_length</span>:expr) =&gt; {{
+                <span class="kw">let </span><span class="kw-2">mut </span>hint = SizeHint::default();
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">content_length</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">content_length</span>.<span class="ident">into_opt</span>() {
-                    <span class="ident">hint</span>.<span class="ident">set_exact</span>(<span class="ident">content_length</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(content_length) = <span class="macro-nonterminal">$content_length</span>.into_opt() {
+                    hint.set_exact(content_length);
                 }
 
-                <span class="ident">hint</span>
+                hint
             }};
         }
 
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#413">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">val</span>)) =&gt; <span class="ident">SizeHint::with_exact</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#427">val</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">None</span>) =&gt; <span class="ident">SizeHint::with_exact</span>(<span class="number">0</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(..) =&gt; <span class="ident">SizeHint::default</span>(),
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> { <span class="ident">content_length</span>, .. } =&gt; <a class="macro" href="../../../src/hyper/body/body.rs.html#414-424">opt_len!</a>(<span class="ident">content_length</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)))]</span>
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> { <span class="ident">content_length</span>, .. } =&gt; <a class="macro" href="../../../src/hyper/body/body.rs.html#414-424">opt_len!</a>(<span class="ident">content_length</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
-            <span class="ident">Kind::Ffi</span>(..) =&gt; <span class="ident">SizeHint::default</span>(),
+        <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#413">self</a>.kind {
+            <a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>val)) =&gt; SizeHint::with_exact(<a href="../../../src/hyper/body/body.rs.html#427">val</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+            <a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">None</span>) =&gt; SizeHint::with_exact(<span class="number">0</span>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+            </span><a href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(..) =&gt; SizeHint::default(),
+            <a href="../../../src/hyper/body/body.rs.html#45">Kind::Chan</a> { content_length, .. } =&gt; <a class="macro" href="../../../src/hyper/body/body.rs.html#414-424">opt_len!</a>(content_length),
+            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;http2&quot;</span>, any(feature = <span class="string">&quot;client&quot;</span>, feature = <span class="string">&quot;server&quot;</span>)))]
+            </span><a href="../../../src/hyper/body/body.rs.html#52">Kind::H2</a> { content_length, .. } =&gt; <a class="macro" href="../../../src/hyper/body/body.rs.html#414-424">opt_len!</a>(content_length),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;ffi&quot;</span>)]
+            </span>Kind::Ffi(..) =&gt; SizeHint::default(),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">Streaming</span>;
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">Empty</span>;
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">Full</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>);
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="attribute">#[derive(Debug)]
+        </span><span class="kw">struct </span>Streaming;
+        <span class="attribute">#[derive(Debug)]
+        </span><span class="kw">struct </span>Empty;
+        <span class="attribute">#[derive(Debug)]
+        </span><span class="kw">struct </span>Full&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../hyper/body/struct.Bytes.html">Bytes</a>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#441">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Body&quot;</span>);
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#441">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">None</span>) =&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#449">builder</a>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#445">Empty</a>),
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">chunk</span>)) =&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#449">builder</a>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#447">Full</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#452">chunk</a>)),
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#449">builder</a>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#443">Streaming</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="../../../src/hyper/body/body.rs.html#441">f</a>.debug_tuple(<span class="string">&quot;Body&quot;</span>);
+        <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#441">self</a>.kind {
+            <a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">None</span>) =&gt; <a href="../../../src/hyper/body/body.rs.html#449">builder</a>.field(<span class="kw-2">&amp;</span><a href="../../../src/hyper/body/body.rs.html#445">Empty</a>),
+            <a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>chunk)) =&gt; <a href="../../../src/hyper/body/body.rs.html#449">builder</a>.field(<span class="kw-2">&amp;</span><a href="../../../src/hyper/body/body.rs.html#447">Full</a>(<a href="../../../src/hyper/body/body.rs.html#452">chunk</a>)),
+            <span class="kw">_ </span>=&gt; <a href="../../../src/hyper/body/body.rs.html#449">builder</a>.field(<span class="kw-2">&amp;</span><a href="../../../src/hyper/body/body.rs.html#443">Streaming</a>),
         };
 
-        <a class="ident" href="../../../src/hyper/body/body.rs.html#449">builder</a>.<span class="ident">finish</span>()
+        <a href="../../../src/hyper/body/body.rs.html#449">builder</a>.finish()
     }
 }
 
-<span class="doccomment">/// # Optional</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function requires enabling the `stream` feature in your</span>
-<span class="doccomment">/// `Cargo.toml`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>;
+<span class="doccomment">/// # Optional
+///
+/// This function requires enabling the `stream` feature in your
+/// `Cargo.toml`.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+</span><span class="kw">impl </span><a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="kw">type </span>Item = <span class="kw">crate</span>::Result&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody::poll_data</a>(<a class="self" href="../../../src/hyper/body/body.rs.html#468">self</a>, <a class="ident" href="../../../src/hyper/body/body.rs.html#468">cx</a>)
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <a href="../../../hyper/body/trait.HttpBody.html">HttpBody::poll_data</a>(<a class="self" href="../../../src/hyper/body/body.rs.html#468">self</a>, <a href="../../../src/hyper/body/body.rs.html#468">cx</a>)
     }
 }
 
-<span class="doccomment">/// # Optional</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function requires enabling the `stream` feature in your</span>
-<span class="doccomment">/// `Cargo.toml`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(
-        <span class="ident">stream</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>,
-    ) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="ident">Body::new</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(<span class="ident">SyncWrapper::new</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#481">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())))
+<span class="doccomment">/// # Optional
+///
+/// This function requires enabling the `stream` feature in your
+/// `Cargo.toml`.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+</span><span class="kw">impl </span>From&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(
+        stream: Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;,
+    ) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        Body::new(<a href="../../../src/hyper/body/body.rs.html#60">Kind::Wrapped</a>(SyncWrapper::new(<a href="../../../src/hyper/body/body.rs.html#481">stream</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">chunk</span>: <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="kw">if</span> <span class="ident">chunk</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">Body::empty</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">Body::new</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#489">chunk</a>)))
+<span class="kw">impl </span>From&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(chunk: <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        <span class="kw">if </span>chunk.is_empty() {
+            Body::empty()
+        } <span class="kw">else </span>{
+            Body::new(<a href="../../../src/hyper/body/body.rs.html#44">Kind::Once</a>(<span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/body.rs.html#489">chunk</a>)))
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="ident">Body::from</span>(<span class="ident">Bytes::from</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#500">vec</a>))
+<span class="kw">impl </span>From&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(vec: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        Body::from(Bytes::from(<a href="../../../src/hyper/body/body.rs.html#500">vec</a>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="ident">Body::from</span>(<span class="ident">Bytes::from</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#507">slice</a>))
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        Body::from(Bytes::from(<a href="../../../src/hyper/body/body.rs.html#507">slice</a>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cow</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#514">cow</a> {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">b</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#516">b</a>),
-            <span class="ident">Cow::Owned</span>(<span class="ident">o</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#517">o</a>),
+<span class="kw">impl </span>From&lt;Cow&lt;<span class="lifetime">&#39;static</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">&#39;static</span>, [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        <span class="kw">match </span><a href="../../../src/hyper/body/body.rs.html#514">cow</a> {
+            Cow::Borrowed(b) =&gt; Body::from(<a href="../../../src/hyper/body/body.rs.html#516">b</a>),
+            Cow::Owned(o) =&gt; Body::from(<a href="../../../src/hyper/body/body.rs.html#517">o</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="ident">Body::from</span>(<span class="ident">Bytes::from</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#524">s</a>.<span class="ident">into_bytes</span>()))
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(s: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        Body::from(Bytes::from(<a href="../../../src/hyper/body/body.rs.html#524">s</a>.into_bytes()))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="ident">Body::from</span>(<span class="ident">Bytes::from</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#531">slice</a>.<span class="ident">as_bytes</span>()))
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        Body::from(Bytes::from(<a href="../../../src/hyper/body/body.rs.html#531">slice</a>.as_bytes()))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cow</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#538">cow</a> {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">b</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#540">b</a>),
-            <span class="ident">Cow::Owned</span>(<span class="ident">o</span>) =&gt; <span class="ident">Body::from</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#541">o</a>),
+<span class="kw">impl </span>From&lt;Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <a href="../../../src/hyper/body/body.rs.html#36">Body</a> {
+        <span class="kw">match </span><a href="../../../src/hyper/body/body.rs.html#538">cow</a> {
+            Cow::Borrowed(b) =&gt; Body::from(<a href="../../../src/hyper/body/body.rs.html#540">b</a>),
+            Cow::Owned(o) =&gt; Body::from(<a href="../../../src/hyper/body/body.rs.html#541">o</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#109">Sender</a> {
-    <span class="doccomment">/// Check to see if this `Sender` can send more data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Check if the receiver end has tried polling for the body yet</span>
-        <a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">poll_want</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>);
-        <a class="self" href="../../../src/hyper/body/body.rs.html#548">self</a>.<span class="ident">data_tx</span>
-            .<span class="ident">poll_ready</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#548">cx</a>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::Error::new_closed</span>())
+<span class="kw">impl </span><a href="../../../src/hyper/body/body.rs.html#109">Sender</a> {
+    <span class="doccomment">/// Check to see if this `Sender` can send more data.
+    </span><span class="kw">pub fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
+        <span class="comment">// Check if the receiver end has tried polling for the body yet
+        </span><a class="macro" href="../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.poll_want(cx)<span class="question-mark">?</span>);
+        <a class="self" href="../../../src/hyper/body/body.rs.html#548">self</a>.data_tx
+            .poll_ready(<a href="../../../src/hyper/body/body.rs.html#548">cx</a>)
+            .map_err(|<span class="kw">_</span>| <span class="kw">crate</span>::Error::new_closed())
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_want</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#556">self</a>.<span class="ident">want_rx</span>.<a class="ident" href="../../../src/hyper/common/watch.rs.html#65">load</a>(<a class="ident" href="../../../src/hyper/body/body.rs.html#556">cx</a>) {
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#116">WANT_READY</a> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
-            <a class="ident" href="../../../src/hyper/body/body.rs.html#115">WANT_PENDING</a> =&gt; <span class="ident">Poll::Pending</span>,
-            <a class="ident" href="../../../src/hyper/common/watch.rs.html#16">watch::CLOSED</a> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_closed</span>())),
-            <span class="ident">unexpected</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;want_rx value: {}&quot;</span>, <span class="ident">unexpected</span>),
+    <span class="kw">fn </span>poll_want(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#556">self</a>.want_rx.<a href="../../../src/hyper/common/watch.rs.html#65">load</a>(<a href="../../../src/hyper/body/body.rs.html#556">cx</a>) {
+            <a href="../../../src/hyper/body/body.rs.html#116">WANT_READY</a> =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(())),
+            <a href="../../../src/hyper/body/body.rs.html#115">WANT_PENDING</a> =&gt; Poll::Pending,
+            <a href="../../../src/hyper/common/watch.rs.html#16">watch::CLOSED</a> =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_closed())),
+            unexpected =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;want_rx value: {}&quot;</span>, unexpected),
         }
     }
 
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="ident">futures_util::future::poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>)).<span class="kw">await</span>
+    <span class="kw">async fn </span>ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+        futures_util::future::poll_fn(|cx| <span class="self">self</span>.poll_ready(cx)).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Send data on data channel when it is ready.
+    </span><span class="kw">pub async fn </span>send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+        <span class="self">self</span>.ready().<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.data_tx
+            .try_send(<span class="prelude-val">Ok</span>(chunk))
+            .map_err(|<span class="kw">_</span>| <span class="kw">crate</span>::Error::new_closed())
     }
 
-    <span class="doccomment">/// Send data on data channel when it is ready.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_data</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">ready</span>().<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">data_tx</span>
-            .<span class="ident">try_send</span>(<span class="prelude-val">Ok</span>(<span class="ident">chunk</span>))
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::Error::new_closed</span>())
-    }
-
-    <span class="doccomment">/// Send trailers on trailers channel.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_trailers</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">trailers</span>: <a class="ident" href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">trailers_tx</span>.<span class="ident">take</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">tx</span>) =&gt; <span class="ident">tx</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_closed</span>()),
+    <span class="doccomment">/// Send trailers on trailers channel.
+    </span><span class="kw">pub async fn </span>send_trailers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trailers: <a href="../../../hyper/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+        <span class="kw">let </span>tx = <span class="kw">match </span><span class="self">self</span>.trailers_tx.take() {
+            <span class="prelude-val">Some</span>(tx) =&gt; tx,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_closed()),
         };
-        <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">trailers</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::Error::new_closed</span>())
+        tx.send(trailers).map_err(|<span class="kw">_</span>| <span class="kw">crate</span>::Error::new_closed())
     }
 
-    <span class="doccomment">/// Try to send data on this channel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Err(Bytes)` if the channel could not (currently) accept</span>
-    <span class="doccomment">/// another `Bytes`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is mostly useful for when trying to send from some other thread</span>
-    <span class="doccomment">/// that doesn&#39;t have an async context. If in an async context, prefer</span>
-    <span class="doccomment">/// `send_data()` instead.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_send_data</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/hyper/body/body.rs.html#598">self</a>.<span class="ident">data_tx</span>
-            .<span class="ident">try_send</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#598">chunk</a>))
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#601">err</a>.<span class="ident">into_inner</span>().<span class="ident">expect</span>(<span class="string">&quot;just sent Ok&quot;</span>))
+    <span class="doccomment">/// Try to send data on this channel.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(Bytes)` if the channel could not (currently) accept
+    /// another `Bytes`.
+    ///
+    /// # Note
+    ///
+    /// This is mostly useful for when trying to send from some other thread
+    /// that doesn&#39;t have an async context. If in an async context, prefer
+    /// `send_data()` instead.
+    </span><span class="kw">pub fn </span>try_send_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; {
+        <a class="self" href="../../../src/hyper/body/body.rs.html#598">self</a>.data_tx
+            .try_send(<span class="prelude-val">Ok</span>(<a href="../../../src/hyper/body/body.rs.html#598">chunk</a>))
+            .map_err(|err| <a href="../../../src/hyper/body/body.rs.html#601">err</a>.into_inner().expect(<span class="string">&quot;just sent Ok&quot;</span>))
     }
 
-    <span class="doccomment">/// Aborts the body in an abnormal fashion.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abort</span>(<span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/body/body.rs.html#605">self</a>
-            .<span class="ident">data_tx</span>
-            <span class="comment">// clone so the send works even if buffer is full</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-            .<span class="ident">try_send</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_body_write_aborted</span>()));
+    <span class="doccomment">/// Aborts the body in an abnormal fashion.
+    </span><span class="kw">pub fn </span>abort(<span class="self">self</span>) {
+        <span class="kw">let _ </span>= <span class="self"><a href="../../../src/hyper/body/body.rs.html#605">self</a>
+            </span>.data_tx
+            <span class="comment">// clone so the send works even if buffer is full
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            .try_send(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_body_write_aborted()));
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">err</span>: <a class="ident" href="../../../src/hyper/error.rs.html#11"><span class="kw">crate</span>::Error</a>) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/body/body.rs.html#614">self</a>.<span class="ident">data_tx</span>.<span class="ident">try_send</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/body/body.rs.html#614">err</a>));
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, err: <a href="../../../src/hyper/error.rs.html#11"><span class="kw">crate</span>::Error</a>) {
+        <span class="kw">let _ </span>= <a class="self" href="../../../src/hyper/body/body.rs.html#614">self</a>.data_tx.try_send(<span class="prelude-val">Err</span>(<a href="../../../src/hyper/body/body.rs.html#614">err</a>));
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#109">Sender</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">Open</span>;
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">Closed</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/hyper/body/body.rs.html#109">Sender</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="attribute">#[derive(Debug)]
+        </span><span class="kw">struct </span>Open;
+        <span class="attribute">#[derive(Debug)]
+        </span><span class="kw">struct </span>Closed;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/body.rs.html#620">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Sender&quot;</span>);
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/body.rs.html#620">self</a>.<span class="ident">want_rx</span>.<a class="ident" href="../../../src/hyper/common/watch.rs.html#70">peek</a>() {
-            <a class="ident" href="../../../src/hyper/common/watch.rs.html#16">watch::CLOSED</a> =&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#626">builder</a>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#624">Closed</a>),
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../../src/hyper/body/body.rs.html#626">builder</a>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#622">Open</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="../../../src/hyper/body/body.rs.html#620">f</a>.debug_tuple(<span class="string">&quot;Sender&quot;</span>);
+        <span class="kw">match </span><a class="self" href="../../../src/hyper/body/body.rs.html#620">self</a>.want_rx.<a href="../../../src/hyper/common/watch.rs.html#70">peek</a>() {
+            <a href="../../../src/hyper/common/watch.rs.html#16">watch::CLOSED</a> =&gt; <a href="../../../src/hyper/body/body.rs.html#626">builder</a>.field(<span class="kw-2">&amp;</span><a href="../../../src/hyper/body/body.rs.html#624">Closed</a>),
+            <span class="kw">_ </span>=&gt; <a href="../../../src/hyper/body/body.rs.html#626">builder</a>.field(<span class="kw-2">&amp;</span><a href="../../../src/hyper/body/body.rs.html#622">Open</a>),
         };
 
-        <a class="ident" href="../../../src/hyper/body/body.rs.html#626">builder</a>.<span class="ident">finish</span>()
+        <a href="../../../src/hyper/body/body.rs.html#626">builder</a>.finish()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::mem</span>;
-    <span class="kw">use</span> <span class="ident">std::task::Poll</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::mem;
+    <span class="kw">use </span>std::task::Poll;
 
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Body</span>, <span class="ident">DecodedLength</span>, <span class="ident">HttpBody</span>, <span class="ident">Sender</span>, <span class="ident">SizeHint</span>};
+    <span class="kw">use super</span>::{Body, DecodedLength, HttpBody, Sender, SizeHint};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_size_of</span>() {
-        <span class="comment">// These are mostly to help catch *accidentally* increasing</span>
-        <span class="comment">// the size by too much.</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_size_of() {
+        <span class="comment">// These are mostly to help catch *accidentally* increasing
+        // the size by too much.
 
-        <span class="kw">let</span> <span class="ident">body_size</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">body_expected_size</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="number">6</span>;
+        </span><span class="kw">let </span>body_size = mem::size_of::&lt;Body&gt;();
+        <span class="kw">let </span>body_expected_size = mem::size_of::&lt;u64&gt;() * <span class="number">6</span>;
         <span class="macro">assert!</span>(
-            <span class="ident">body_size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">body_expected_size</span>,
+            body_size &lt;= body_expected_size,
             <span class="string">&quot;Body size = {} &lt;= {}&quot;</span>,
-            <span class="ident">body_size</span>,
-            <span class="ident">body_expected_size</span>,
+            body_size,
+            body_expected_size,
         );
 
-        <span class="macro">assert_eq!</span>(<span class="ident">body_size</span>, <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span><span class="op">&gt;</span>(), <span class="string">&quot;Option&lt;Body&gt;&quot;</span>);
-
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&gt;</span>(),
-            <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="number">5</span>,
-            <span class="string">&quot;Sender&quot;</span>
-        );
+        <span class="macro">assert_eq!</span>(body_size, mem::size_of::&lt;<span class="prelude-ty">Option</span>&lt;Body&gt;&gt;(), <span class="string">&quot;Option&lt;Body&gt;&quot;</span>);
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&gt;</span>(),
-            <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-            <span class="string">&quot;Option&lt;Sender&gt;&quot;</span>
-        );
+            mem::size_of::&lt;Sender&gt;(),
+            mem::size_of::&lt;usize&gt;() * <span class="number">5</span>,
+            <span class="string">&quot;Sender&quot;
+        </span>);
+
+        <span class="macro">assert_eq!</span>(
+            mem::size_of::&lt;Sender&gt;(),
+            mem::size_of::&lt;<span class="prelude-ty">Option</span>&lt;Sender&gt;&gt;(),
+            <span class="string">&quot;Option&lt;Sender&gt;&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>() {
-        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="ident">body</span>: <span class="ident">Body</span>, <span class="ident">b</span>: <span class="ident">SizeHint</span>, <span class="ident">note</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-            <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">size_hint</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">a</span>.<span class="ident">lower</span>(), <span class="ident">b</span>.<span class="ident">lower</span>(), <span class="string">&quot;lower for {:?}&quot;</span>, <span class="ident">note</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">a</span>.<span class="ident">upper</span>(), <span class="ident">b</span>.<span class="ident">upper</span>(), <span class="string">&quot;upper for {:?}&quot;</span>, <span class="ident">note</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>size_hint() {
+        <span class="kw">fn </span>eq(body: Body, b: SizeHint, note: <span class="kw-2">&amp;</span>str) {
+            <span class="kw">let </span>a = body.size_hint();
+            <span class="macro">assert_eq!</span>(a.lower(), b.lower(), <span class="string">&quot;lower for {:?}&quot;</span>, note);
+            <span class="macro">assert_eq!</span>(a.upper(), b.upper(), <span class="string">&quot;upper for {:?}&quot;</span>, note);
         }
 
-        <span class="ident">eq</span>(<span class="ident">Body::from</span>(<span class="string">&quot;Hello&quot;</span>), <span class="ident">SizeHint::with_exact</span>(<span class="number">5</span>), <span class="string">&quot;from str&quot;</span>);
+        eq(Body::from(<span class="string">&quot;Hello&quot;</span>), SizeHint::with_exact(<span class="number">5</span>), <span class="string">&quot;from str&quot;</span>);
 
-        <span class="ident">eq</span>(<span class="ident">Body::empty</span>(), <span class="ident">SizeHint::with_exact</span>(<span class="number">0</span>), <span class="string">&quot;empty&quot;</span>);
+        eq(Body::empty(), SizeHint::with_exact(<span class="number">0</span>), <span class="string">&quot;empty&quot;</span>);
 
-        <span class="ident">eq</span>(<span class="ident">Body::channel</span>().<span class="number">1</span>, <span class="ident">SizeHint::new</span>(), <span class="string">&quot;channel&quot;</span>);
+        eq(Body::channel().<span class="number">1</span>, SizeHint::new(), <span class="string">&quot;channel&quot;</span>);
 
-        <span class="ident">eq</span>(
-            <span class="ident">Body::new_channel</span>(<span class="ident">DecodedLength::new</span>(<span class="number">4</span>), <span class="comment">/*wanter =*/</span> <span class="bool-val">false</span>).<span class="number">1</span>,
-            <span class="ident">SizeHint::with_exact</span>(<span class="number">4</span>),
+        eq(
+            Body::new_channel(DecodedLength::new(<span class="number">4</span>), <span class="comment">/*wanter =*/ </span><span class="bool-val">false</span>).<span class="number">1</span>,
+            SizeHint::with_exact(<span class="number">4</span>),
             <span class="string">&quot;channel with length&quot;</span>,
         );
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">channel_abort</span>() {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="kw-2">mut</span> <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">Body::channel</span>();
+    <span class="attribute">#[tokio::test]
+    </span><span class="kw">async fn </span>channel_abort() {
+        <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = Body::channel();
 
-        <span class="ident">tx</span>.<span class="ident">abort</span>();
+        tx.abort();
 
-        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">data</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap_err</span>();
-        <span class="macro">assert!</span>(<span class="ident">err</span>.<span class="ident">is_body_write_aborted</span>(), <span class="string">&quot;{:?}&quot;</span>, <span class="ident">err</span>);
+        <span class="kw">let </span>err = rx.data().<span class="kw">await</span>.unwrap().unwrap_err();
+        <span class="macro">assert!</span>(err.is_body_write_aborted(), <span class="string">&quot;{:?}&quot;</span>, err);
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">channel_abort_when_buffer_is_full</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="kw-2">mut</span> <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">Body::channel</span>();
+    <span class="attribute">#[tokio::test]
+    </span><span class="kw">async fn </span>channel_abort_when_buffer_is_full() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>tx, <span class="kw-2">mut </span>rx) = Body::channel();
 
-        <span class="ident">tx</span>.<span class="ident">try_send_data</span>(<span class="string">&quot;chunk 1&quot;</span>.<span class="ident">into</span>()).<span class="ident">expect</span>(<span class="string">&quot;send 1&quot;</span>);
-        <span class="comment">// buffer is full, but can still send abort</span>
-        <span class="ident">tx</span>.<span class="ident">abort</span>();
+        tx.try_send_data(<span class="string">&quot;chunk 1&quot;</span>.into()).expect(<span class="string">&quot;send 1&quot;</span>);
+        <span class="comment">// buffer is full, but can still send abort
+        </span>tx.abort();
 
-        <span class="kw">let</span> <span class="ident">chunk1</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">data</span>().<span class="kw">await</span>.<span class="ident">expect</span>(<span class="string">&quot;item 1&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;chunk 1&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">chunk1</span>, <span class="string">&quot;chunk 1&quot;</span>);
+        <span class="kw">let </span>chunk1 = rx.data().<span class="kw">await</span>.expect(<span class="string">&quot;item 1&quot;</span>).expect(<span class="string">&quot;chunk 1&quot;</span>);
+        <span class="macro">assert_eq!</span>(chunk1, <span class="string">&quot;chunk 1&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">data</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap_err</span>();
-        <span class="macro">assert!</span>(<span class="ident">err</span>.<span class="ident">is_body_write_aborted</span>(), <span class="string">&quot;{:?}&quot;</span>, <span class="ident">err</span>);
+        <span class="kw">let </span>err = rx.data().<span class="kw">await</span>.unwrap().unwrap_err();
+        <span class="macro">assert!</span>(err.is_body_write_aborted(), <span class="string">&quot;{:?}&quot;</span>, err);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">channel_buffers_one</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="ident">_rx</span>) <span class="op">=</span> <span class="ident">Body::channel</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>channel_buffers_one() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>tx, _rx) = Body::channel();
 
-        <span class="ident">tx</span>.<span class="ident">try_send_data</span>(<span class="string">&quot;chunk 1&quot;</span>.<span class="ident">into</span>()).<span class="ident">expect</span>(<span class="string">&quot;send 1&quot;</span>);
+        tx.try_send_data(<span class="string">&quot;chunk 1&quot;</span>.into()).expect(<span class="string">&quot;send 1&quot;</span>);
 
-        <span class="comment">// buffer is now full</span>
-        <span class="kw">let</span> <span class="ident">chunk2</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">try_send_data</span>(<span class="string">&quot;chunk 2&quot;</span>.<span class="ident">into</span>()).<span class="ident">expect_err</span>(<span class="string">&quot;send 2&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">chunk2</span>, <span class="string">&quot;chunk 2&quot;</span>);
+        <span class="comment">// buffer is now full
+        </span><span class="kw">let </span>chunk2 = tx.try_send_data(<span class="string">&quot;chunk 2&quot;</span>.into()).expect_err(<span class="string">&quot;send 2&quot;</span>);
+        <span class="macro">assert_eq!</span>(chunk2, <span class="string">&quot;chunk 2&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">channel_empty</span>() {
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="kw-2">mut</span> <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">Body::channel</span>();
+    <span class="attribute">#[tokio::test]
+    </span><span class="kw">async fn </span>channel_empty() {
+        <span class="kw">let </span>(<span class="kw">_</span>, <span class="kw-2">mut </span>rx) = Body::channel();
 
-        <span class="macro">assert!</span>(<span class="ident">rx</span>.<span class="ident">data</span>().<span class="kw">await</span>.<span class="ident">is_none</span>());
+        <span class="macro">assert!</span>(rx.data().<span class="kw">await</span>.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">channel_ready</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="ident">_rx</span>) <span class="op">=</span> <span class="ident">Body::new_channel</span>(<span class="ident">DecodedLength::CHUNKED</span>, <span class="comment">/*wanter = */</span> <span class="bool-val">false</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>channel_ready() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>tx, _rx) = Body::new_channel(DecodedLength::CHUNKED, <span class="comment">/*wanter = */ </span><span class="bool-val">false</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tx_ready</span> <span class="op">=</span> <span class="ident">tokio_test::task::spawn</span>(<span class="ident">tx</span>.<span class="ident">ready</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>tx_ready = tokio_test::task::spawn(tx.ready());
 
-        <span class="macro">assert!</span>(<span class="ident">tx_ready</span>.<span class="ident">poll</span>().<span class="ident">is_ready</span>(), <span class="string">&quot;tx is ready immediately&quot;</span>);
+        <span class="macro">assert!</span>(tx_ready.poll().is_ready(), <span class="string">&quot;tx is ready immediately&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">channel_wanter</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="kw-2">mut</span> <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">Body::new_channel</span>(<span class="ident">DecodedLength::CHUNKED</span>, <span class="comment">/*wanter = */</span> <span class="bool-val">true</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>channel_wanter() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>tx, <span class="kw-2">mut </span>rx) = Body::new_channel(DecodedLength::CHUNKED, <span class="comment">/*wanter = */ </span><span class="bool-val">true</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tx_ready</span> <span class="op">=</span> <span class="ident">tokio_test::task::spawn</span>(<span class="ident">tx</span>.<span class="ident">ready</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rx_data</span> <span class="op">=</span> <span class="ident">tokio_test::task::spawn</span>(<span class="ident">rx</span>.<span class="ident">data</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>tx_ready = tokio_test::task::spawn(tx.ready());
+        <span class="kw">let </span><span class="kw-2">mut </span>rx_data = tokio_test::task::spawn(rx.data());
 
         <span class="macro">assert!</span>(
-            <span class="ident">tx_ready</span>.<span class="ident">poll</span>().<span class="ident">is_pending</span>(),
-            <span class="string">&quot;tx isn&#39;t ready before rx has been polled&quot;</span>
-        );
+            tx_ready.poll().is_pending(),
+            <span class="string">&quot;tx isn&#39;t ready before rx has been polled&quot;
+        </span>);
 
-        <span class="macro">assert!</span>(<span class="ident">rx_data</span>.<span class="ident">poll</span>().<span class="ident">is_pending</span>(), <span class="string">&quot;poll rx.data&quot;</span>);
-        <span class="macro">assert!</span>(<span class="ident">tx_ready</span>.<span class="ident">is_woken</span>(), <span class="string">&quot;rx poll wakes tx&quot;</span>);
+        <span class="macro">assert!</span>(rx_data.poll().is_pending(), <span class="string">&quot;poll rx.data&quot;</span>);
+        <span class="macro">assert!</span>(tx_ready.is_woken(), <span class="string">&quot;rx poll wakes tx&quot;</span>);
 
         <span class="macro">assert!</span>(
-            <span class="ident">tx_ready</span>.<span class="ident">poll</span>().<span class="ident">is_ready</span>(),
-            <span class="string">&quot;tx is ready after rx has been polled&quot;</span>
-        );
+            tx_ready.poll().is_ready(),
+            <span class="string">&quot;tx is ready after rx has been polled&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">channel_notices_closure</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">Body::new_channel</span>(<span class="ident">DecodedLength::CHUNKED</span>, <span class="comment">/*wanter = */</span> <span class="bool-val">true</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>channel_notices_closure() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>tx, rx) = Body::new_channel(DecodedLength::CHUNKED, <span class="comment">/*wanter = */ </span><span class="bool-val">true</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tx_ready</span> <span class="op">=</span> <span class="ident">tokio_test::task::spawn</span>(<span class="ident">tx</span>.<span class="ident">ready</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>tx_ready = tokio_test::task::spawn(tx.ready());
 
         <span class="macro">assert!</span>(
-            <span class="ident">tx_ready</span>.<span class="ident">poll</span>().<span class="ident">is_pending</span>(),
-            <span class="string">&quot;tx isn&#39;t ready before rx has been polled&quot;</span>
-        );
+            tx_ready.poll().is_pending(),
+            <span class="string">&quot;tx isn&#39;t ready before rx has been polled&quot;
+        </span>);
 
-        <span class="ident">drop</span>(<span class="ident">rx</span>);
-        <span class="macro">assert!</span>(<span class="ident">tx_ready</span>.<span class="ident">is_woken</span>(), <span class="string">&quot;dropping rx wakes tx&quot;</span>);
+        drop(rx);
+        <span class="macro">assert!</span>(tx_ready.is_woken(), <span class="string">&quot;dropping rx wakes tx&quot;</span>);
 
-        <span class="kw">match</span> <span class="ident">tx_ready</span>.<span class="ident">poll</span>() {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>)) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">is_closed</span>() =&gt; (),
-            <span class="ident">unexpected</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;tx poll ready unexpected: {:?}&quot;</span>, <span class="ident">unexpected</span>),
+        <span class="kw">match </span>tx_ready.poll() {
+            Poll::Ready(<span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e)) <span class="kw">if </span>e.is_closed() =&gt; (),
+            unexpected =&gt; <span class="macro">panic!</span>(<span class="string">&quot;tx poll ready unexpected: {:?}&quot;</span>, unexpected),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/sync/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/sync/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -191,196 +191,196 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Synchronization primitives.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module is an async version of [`std::sync`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`std::sync`]: https://doc.rust-lang.org/std/sync/index.html</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## The need for synchronization</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! async-std&#39;s sync primitives are scheduler-aware, making it possible to</span>
-<span class="doccomment">//! `.await` their operations - for example the locking of a [`Mutex`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Conceptually, a Rust program is a series of operations which will</span>
-<span class="doccomment">//! be executed on a computer. The timeline of events happening in the</span>
-<span class="doccomment">//! program is consistent with the order of the operations in the code.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Consider the following code, operating on some global static variables:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! static mut A: u32 = 0;</span>
-<span class="doccomment">//! static mut B: u32 = 0;</span>
-<span class="doccomment">//! static mut C: u32 = 0;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! fn main() {</span>
-<span class="doccomment">//!     unsafe {</span>
-<span class="doccomment">//!         A = 3;</span>
-<span class="doccomment">//!         B = 4;</span>
-<span class="doccomment">//!         A = A + B;</span>
-<span class="doccomment">//!         C = B;</span>
-<span class="doccomment">//!         println!(&quot;{} {} {}&quot;, A, B, C);</span>
-<span class="doccomment">//!         C = A;</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! It appears as if some variables stored in memory are changed, an addition</span>
-<span class="doccomment">//! is performed, result is stored in `A` and the variable `C` is</span>
-<span class="doccomment">//! modified twice.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When only a single thread is involved, the results are as expected:</span>
-<span class="doccomment">//! the line `7 4 4` gets printed.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! As for what happens behind the scenes, when optimizations are enabled the</span>
-<span class="doccomment">//! final generated machine code might look very different from the code:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - The first store to `C` might be moved before the store to `A` or `B`,</span>
-<span class="doccomment">//!   _as if_ we had written `C = 4; A = 3; B = 4`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - Assignment of `A + B` to `A` might be removed, since the sum can be stored</span>
-<span class="doccomment">//!   in a temporary location until it gets printed, with the global variable</span>
-<span class="doccomment">//!   never getting updated.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - The final result could be determined just by looking at the code</span>
-<span class="doccomment">//!   at compile time, so [constant folding] might turn the whole</span>
-<span class="doccomment">//!   block into a simple `println!(&quot;7 4 4&quot;)`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The compiler is allowed to perform any combination of these</span>
-<span class="doccomment">//! optimizations, as long as the final optimized code, when executed,</span>
-<span class="doccomment">//! produces the same results as the one without optimizations.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Due to the [concurrency] involved in modern computers, assumptions</span>
-<span class="doccomment">//! about the program&#39;s execution order are often wrong. Access to</span>
-<span class="doccomment">//! global variables can lead to nondeterministic results, **even if**</span>
-<span class="doccomment">//! compiler optimizations are disabled, and it is **still possible**</span>
-<span class="doccomment">//! to introduce synchronization bugs.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Note that thanks to Rust&#39;s safety guarantees, accessing global (static)</span>
-<span class="doccomment">//! variables requires `unsafe` code, assuming we don&#39;t use any of the</span>
-<span class="doccomment">//! synchronization primitives in this module.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [constant folding]: https://en.wikipedia.org/wiki/Constant_folding</span>
-<span class="doccomment">//! [concurrency]: https://en.wikipedia.org/wiki/Concurrency_(computer_science)</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Out-of-order execution</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Instructions can execute in a different order from the one we define, due to</span>
-<span class="doccomment">//! various reasons:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - The **compiler** reordering instructions: If the compiler can issue an</span>
-<span class="doccomment">//!   instruction at an earlier point, it will try to do so. For example, it</span>
-<span class="doccomment">//!   might hoist memory loads at the top of a code block, so that the CPU can</span>
-<span class="doccomment">//!   start [prefetching] the values from memory.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!   In single-threaded scenarios, this can cause issues when writing</span>
-<span class="doccomment">//!   signal handlers or certain kinds of low-level code.</span>
-<span class="doccomment">//!   Use [compiler fences] to prevent this reordering.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - A **single processor** executing instructions [out-of-order]:</span>
-<span class="doccomment">//!   Modern CPUs are capable of [superscalar] execution,</span>
-<span class="doccomment">//!   i.e., multiple instructions might be executing at the same time,</span>
-<span class="doccomment">//!   even though the machine code describes a sequential process.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!   This kind of reordering is handled transparently by the CPU.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - A **multiprocessor** system executing multiple hardware threads</span>
-<span class="doccomment">//!   at the same time: In multi-threaded scenarios, you can use two</span>
-<span class="doccomment">//!   kinds of primitives to deal with synchronization:</span>
-<span class="doccomment">//!   - [memory fences] to ensure memory accesses are made visible to</span>
-<span class="doccomment">//!   other CPUs in the right order.</span>
-<span class="doccomment">//!   - [atomic operations] to ensure simultaneous access to the same</span>
-<span class="doccomment">//!   memory location doesn&#39;t lead to undefined behavior.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [prefetching]: https://en.wikipedia.org/wiki/Cache_prefetching</span>
-<span class="doccomment">//! [compiler fences]: https://doc.rust-lang.org/std/sync/atomic/fn.compiler_fence.html</span>
-<span class="doccomment">//! [out-of-order]: https://en.wikipedia.org/wiki/Out-of-order_execution</span>
-<span class="doccomment">//! [superscalar]: https://en.wikipedia.org/wiki/Superscalar_processor</span>
-<span class="doccomment">//! [memory fences]: https://doc.rust-lang.org/std/sync/atomic/fn.fence.html</span>
-<span class="doccomment">//! [atomic operations]: https://doc.rust-lang.org/std/sync/atomic/index.html</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Higher-level synchronization objects</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Most of the low-level synchronization primitives are quite error-prone and</span>
-<span class="doccomment">//! inconvenient to use, which is why async-std also exposes some</span>
-<span class="doccomment">//! higher-level synchronization objects.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! These abstractions can be built out of lower-level primitives.</span>
-<span class="doccomment">//! For efficiency, the sync objects in async-std are usually</span>
-<span class="doccomment">//! implemented with help from the scheduler, which is</span>
-<span class="doccomment">//! able to reschedule the tasks while they are blocked on acquiring</span>
-<span class="doccomment">//! a lock.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following is an overview of the available synchronization</span>
-<span class="doccomment">//! objects:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - [`Arc`]: Atomically Reference-Counted pointer, which can be used</span>
-<span class="doccomment">//!   in multithreaded environments to prolong the lifetime of some</span>
-<span class="doccomment">//!   data until all the threads have finished using it.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - [`Barrier`]: Ensures multiple threads will wait for each other</span>
-<span class="doccomment">//!   to reach a point in the program, before continuing execution all</span>
-<span class="doccomment">//!   together.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - [`Mutex`]: Mutual exclusion mechanism, which ensures that at</span>
-<span class="doccomment">//!   most one task at a time is able to access some data.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - [`RwLock`]: Provides a mutual exclusion mechanism which allows</span>
-<span class="doccomment">//!   multiple readers at the same time, while allowing only one</span>
-<span class="doccomment">//!   writer at a time. In some cases, this can be more efficient than</span>
-<span class="doccomment">//!   a mutex.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! If you&#39;re looking for channels, check out</span>
-<span class="doccomment">//! [`async_std::channel`][crate::channel].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Arc`]: struct.Arc.html</span>
-<span class="doccomment">//! [`Barrier`]: struct.Barrier.html</span>
-<span class="doccomment">//! [`channel`]: fn.channel.html</span>
-<span class="doccomment">//! [`Mutex`]: struct.Mutex.html</span>
-<span class="doccomment">//! [`RwLock`]: struct.RwLock.html</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Spawn a task that updates an integer protected by a mutex:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # async_std::task::block_on(async {</span>
-<span class="doccomment">//! #</span>
-<span class="doccomment">//! use async_std::sync::{Arc, Mutex};</span>
-<span class="doccomment">//! use async_std::task;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let m1 = Arc::new(Mutex::new(0));</span>
-<span class="doccomment">//! let m2 = m1.clone();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! task::spawn(async move {</span>
-<span class="doccomment">//!     *m2.lock().await = 1;</span>
-<span class="doccomment">//! })</span>
-<span class="doccomment">//! .await;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! assert_eq!(*m1.lock().await, 1);</span>
-<span class="doccomment">//! #</span>
-<span class="doccomment">//! # })</span>
-<span class="doccomment">//! ```</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Synchronization primitives.
+//!
+//! This module is an async version of [`std::sync`].
+//!
+//! [`std::sync`]: https://doc.rust-lang.org/std/sync/index.html
+//!
+//! ## The need for synchronization
+//!
+//! async-std&#39;s sync primitives are scheduler-aware, making it possible to
+//! `.await` their operations - for example the locking of a [`Mutex`].
+//!
+//! Conceptually, a Rust program is a series of operations which will
+//! be executed on a computer. The timeline of events happening in the
+//! program is consistent with the order of the operations in the code.
+//!
+//! Consider the following code, operating on some global static variables:
+//!
+//! ```
+//! static mut A: u32 = 0;
+//! static mut B: u32 = 0;
+//! static mut C: u32 = 0;
+//!
+//! fn main() {
+//!     unsafe {
+//!         A = 3;
+//!         B = 4;
+//!         A = A + B;
+//!         C = B;
+//!         println!(&quot;{} {} {}&quot;, A, B, C);
+//!         C = A;
+//!     }
+//! }
+//! ```
+//!
+//! It appears as if some variables stored in memory are changed, an addition
+//! is performed, result is stored in `A` and the variable `C` is
+//! modified twice.
+//!
+//! When only a single thread is involved, the results are as expected:
+//! the line `7 4 4` gets printed.
+//!
+//! As for what happens behind the scenes, when optimizations are enabled the
+//! final generated machine code might look very different from the code:
+//!
+//! - The first store to `C` might be moved before the store to `A` or `B`,
+//!   _as if_ we had written `C = 4; A = 3; B = 4`.
+//!
+//! - Assignment of `A + B` to `A` might be removed, since the sum can be stored
+//!   in a temporary location until it gets printed, with the global variable
+//!   never getting updated.
+//!
+//! - The final result could be determined just by looking at the code
+//!   at compile time, so [constant folding] might turn the whole
+//!   block into a simple `println!(&quot;7 4 4&quot;)`.
+//!
+//! The compiler is allowed to perform any combination of these
+//! optimizations, as long as the final optimized code, when executed,
+//! produces the same results as the one without optimizations.
+//!
+//! Due to the [concurrency] involved in modern computers, assumptions
+//! about the program&#39;s execution order are often wrong. Access to
+//! global variables can lead to nondeterministic results, **even if**
+//! compiler optimizations are disabled, and it is **still possible**
+//! to introduce synchronization bugs.
+//!
+//! Note that thanks to Rust&#39;s safety guarantees, accessing global (static)
+//! variables requires `unsafe` code, assuming we don&#39;t use any of the
+//! synchronization primitives in this module.
+//!
+//! [constant folding]: https://en.wikipedia.org/wiki/Constant_folding
+//! [concurrency]: https://en.wikipedia.org/wiki/Concurrency_(computer_science)
+//!
+//! ## Out-of-order execution
+//!
+//! Instructions can execute in a different order from the one we define, due to
+//! various reasons:
+//!
+//! - The **compiler** reordering instructions: If the compiler can issue an
+//!   instruction at an earlier point, it will try to do so. For example, it
+//!   might hoist memory loads at the top of a code block, so that the CPU can
+//!   start [prefetching] the values from memory.
+//!
+//!   In single-threaded scenarios, this can cause issues when writing
+//!   signal handlers or certain kinds of low-level code.
+//!   Use [compiler fences] to prevent this reordering.
+//!
+//! - A **single processor** executing instructions [out-of-order]:
+//!   Modern CPUs are capable of [superscalar] execution,
+//!   i.e., multiple instructions might be executing at the same time,
+//!   even though the machine code describes a sequential process.
+//!
+//!   This kind of reordering is handled transparently by the CPU.
+//!
+//! - A **multiprocessor** system executing multiple hardware threads
+//!   at the same time: In multi-threaded scenarios, you can use two
+//!   kinds of primitives to deal with synchronization:
+//!   - [memory fences] to ensure memory accesses are made visible to
+//!   other CPUs in the right order.
+//!   - [atomic operations] to ensure simultaneous access to the same
+//!   memory location doesn&#39;t lead to undefined behavior.
+//!
+//! [prefetching]: https://en.wikipedia.org/wiki/Cache_prefetching
+//! [compiler fences]: https://doc.rust-lang.org/std/sync/atomic/fn.compiler_fence.html
+//! [out-of-order]: https://en.wikipedia.org/wiki/Out-of-order_execution
+//! [superscalar]: https://en.wikipedia.org/wiki/Superscalar_processor
+//! [memory fences]: https://doc.rust-lang.org/std/sync/atomic/fn.fence.html
+//! [atomic operations]: https://doc.rust-lang.org/std/sync/atomic/index.html
+//!
+//! ## Higher-level synchronization objects
+//!
+//! Most of the low-level synchronization primitives are quite error-prone and
+//! inconvenient to use, which is why async-std also exposes some
+//! higher-level synchronization objects.
+//!
+//! These abstractions can be built out of lower-level primitives.
+//! For efficiency, the sync objects in async-std are usually
+//! implemented with help from the scheduler, which is
+//! able to reschedule the tasks while they are blocked on acquiring
+//! a lock.
+//!
+//! The following is an overview of the available synchronization
+//! objects:
+//!
+//! - [`Arc`]: Atomically Reference-Counted pointer, which can be used
+//!   in multithreaded environments to prolong the lifetime of some
+//!   data until all the threads have finished using it.
+//!
+//! - [`Barrier`]: Ensures multiple threads will wait for each other
+//!   to reach a point in the program, before continuing execution all
+//!   together.
+//!
+//! - [`Mutex`]: Mutual exclusion mechanism, which ensures that at
+//!   most one task at a time is able to access some data.
+//!
+//! - [`RwLock`]: Provides a mutual exclusion mechanism which allows
+//!   multiple readers at the same time, while allowing only one
+//!   writer at a time. In some cases, this can be more efficient than
+//!   a mutex.
+//!
+//! If you&#39;re looking for channels, check out
+//! [`async_std::channel`][crate::channel].
+//!
+//! [`Arc`]: struct.Arc.html
+//! [`Barrier`]: struct.Barrier.html
+//! [`channel`]: fn.channel.html
+//! [`Mutex`]: struct.Mutex.html
+//! [`RwLock`]: struct.RwLock.html
+//!
+//! # Examples
+//!
+//! Spawn a task that updates an integer protected by a mutex:
+//!
+//! ```
+//! # async_std::task::block_on(async {
+//! #
+//! use async_std::sync::{Arc, Mutex};
+//! use async_std::task;
+//!
+//! let m1 = Arc::new(Mutex::new(0));
+//! let m2 = m1.clone();
+//!
+//! task::spawn(async move {
+//!     *m2.lock().await = 1;
+//! })
+//! .await;
+//!
+//! assert_eq!(*m1.lock().await, 1);
+//! #
+//! # })
+//! ```
 
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::needless_doctest_main</span>)]</span>
+</span><span class="attribute">#![allow(clippy::needless_doctest_main)]
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std::sync</span>::{<a class="ident" href="../../../async_std/sync/struct.Arc.html">Arc</a>, <a class="ident" href="../../../async_std/sync/struct.Weak.html">Weak</a>};
+#[doc(inline)]
+</span><span class="kw">pub use </span>std::sync::{<a href="../../../async_std/sync/struct.Arc.html">Arc</a>, <a href="../../../async_std/sync/struct.Weak.html">Weak</a>};
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_lock</span>::{<a class="ident" href="../../../async_std/sync/struct.Mutex.html">Mutex</a>, <a class="ident" href="../../../async_std/sync/struct.MutexGuard.html">MutexGuard</a>, <a class="ident" href="../../../async_std/sync/struct.MutexGuardArc.html">MutexGuardArc</a>};
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub use </span>async_lock::{<a href="../../../async_std/sync/struct.Mutex.html">Mutex</a>, <a href="../../../async_std/sync/struct.MutexGuard.html">MutexGuard</a>, <a href="../../../async_std/sync/struct.MutexGuardArc.html">MutexGuardArc</a>};
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_lock</span>::{<a class="ident" href="../../../async_std/sync/struct.RwLock.html">RwLock</a>, <a class="ident" href="../../../async_std/sync/struct.RwLockReadGuard.html">RwLockReadGuard</a>, <a class="ident" href="../../../async_std/sync/struct.RwLockUpgradableReadGuard.html">RwLockUpgradableReadGuard</a>, <a class="ident" href="../../../async_std/sync/struct.RwLockWriteGuard.html">RwLockWriteGuard</a>};
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub use </span>async_lock::{<a href="../../../async_std/sync/struct.RwLock.html">RwLock</a>, <a href="../../../async_std/sync/struct.RwLockReadGuard.html">RwLockReadGuard</a>, <a href="../../../async_std/sync/struct.RwLockUpgradableReadGuard.html">RwLockUpgradableReadGuard</a>, <a href="../../../async_std/sync/struct.RwLockWriteGuard.html">RwLockWriteGuard</a>};
 
-<span class="macro">cfg_unstable!</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_lock</span>::{<a class="ident" href="../../../async_std/sync/struct.Barrier.html">Barrier</a>, <a class="ident" href="../../../async_std/sync/struct.BarrierWaitResult.html">BarrierWaitResult</a>};
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/sync/condvar.rs.html#59">condvar::Condvar</a>;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../src/async_std/sync/waker_set.rs.html#41">waker_set::WakerSet</a>;
+<span class="macro">cfg_unstable! </span>{
+    <span class="kw">pub use </span>async_lock::{<a href="../../../async_std/sync/struct.Barrier.html">Barrier</a>, <a href="../../../async_std/sync/struct.BarrierWaitResult.html">BarrierWaitResult</a>};
+    <span class="kw">pub use </span><a href="../../../src/async_std/sync/condvar.rs.html#59">condvar::Condvar</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/async_std/sync/waker_set.rs.html#41">waker_set::WakerSet</a>;
 
-    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/sync/condvar.rs.html#1-417">condvar</a>;
+    <span class="kw">mod </span><a href="../../../src/async_std/sync/condvar.rs.html#1-417">condvar</a>;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/sync/waker_set.rs.html#1-235">waker_set</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/async_std/sync/waker_set.rs.html#1-235">waker_set</a>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

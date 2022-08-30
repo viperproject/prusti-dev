@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/service/make.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>make.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/service/make.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>make.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -185,192 +185,192 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/hyper/service/http.rs.html#8">HttpService</a>, <a class="ident" href="../../../hyper/service/trait.Service.html">Service</a>};
-<span class="kw">use</span> <a class="ident" href="../../../hyper/body/trait.HttpBody.html"><span class="kw">crate</span>::body::HttpBody</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use super</span>::{<a href="../../../src/hyper/service/http.rs.html#8">HttpService</a>, <a href="../../../hyper/service/trait.Service.html">Service</a>};
+<span class="kw">use </span><a href="../../../hyper/body/trait.HttpBody.html"><span class="kw">crate</span>::body::HttpBody</a>;
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="comment">// The same &quot;trait alias&quot; as tower::MakeConnection, but inlined to reduce</span>
-<span class="comment">// dependencies.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">MakeConnection</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span>: <span class="ident"><span class="self">self</span>::sealed::Sealed</span><span class="op">&lt;</span>(<span class="ident">Target</span>,)<span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Connection</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>;
-    <span class="kw">type</span> <span class="ident">Error</span>;
-    <span class="kw">type</span> <span class="ident">Future</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Connection</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="comment">// The same &quot;trait alias&quot; as tower::MakeConnection, but inlined to reduce
+// dependencies.
+</span><span class="kw">pub trait </span>MakeConnection&lt;Target&gt;: <span class="self">self</span>::sealed::Sealed&lt;(Target,)&gt; {
+    <span class="kw">type </span>Connection: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>;
+    <span class="kw">type </span>Error;
+    <span class="kw">type </span>Future: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Connection, <span class="self">Self</span>::Error&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">make_connection</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="ident">Target</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span>;
+    <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt;;
+    <span class="kw">fn </span>make_connection(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: Target) -&gt; <span class="self">Self</span>::Future;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Target</span><span class="op">&gt;</span> <span class="ident"><span class="self">self</span>::sealed::Sealed</span><span class="op">&lt;</span>(<span class="ident">Target</span>,)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">S</span> <span class="kw">where</span> <span class="ident">S</span>: <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;S, Target&gt; <span class="self">self</span>::sealed::Sealed&lt;(Target,)&gt; <span class="kw">for </span>S <span class="kw">where </span>S: Service&lt;Target&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Target</span><span class="op">&gt;</span> <span class="ident">MakeConnection</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">S</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span>,
-    <span class="ident">S::Response</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
+<span class="kw">impl</span>&lt;S, Target&gt; MakeConnection&lt;Target&gt; <span class="kw">for </span>S
+<span class="kw">where
+    </span>S: Service&lt;Target&gt;,
+    S::Response: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
 {
-    <span class="kw">type</span> <span class="ident">Connection</span> <span class="op">=</span> <span class="ident">S::Response</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">S::Error</span>;
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">S::Future</span>;
+    <span class="kw">type </span>Connection = S::Response;
+    <span class="kw">type </span>Error = S::Error;
+    <span class="kw">type </span>Future = S::Future;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../hyper/service/trait.Service.html">Service::poll_ready</a>(<a class="self" href="../../../src/hyper/service/make.rs.html#32">self</a>, <a class="ident" href="../../../src/hyper/service/make.rs.html#32">cx</a>)
+    <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        <a href="../../../hyper/service/trait.Service.html">Service::poll_ready</a>(<a class="self" href="../../../src/hyper/service/make.rs.html#32">self</a>, <a href="../../../src/hyper/service/make.rs.html#32">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">make_connection</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="ident">Target</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <a class="ident" href="../../../hyper/service/trait.Service.html">Service::call</a>(<a class="self" href="../../../src/hyper/service/make.rs.html#36">self</a>, <a class="ident" href="../../../src/hyper/service/make.rs.html#36">target</a>)
+    <span class="kw">fn </span>make_connection(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: Target) -&gt; <span class="self">Self</span>::Future {
+        <a href="../../../hyper/service/trait.Service.html">Service::call</a>(<a class="self" href="../../../src/hyper/service/make.rs.html#36">self</a>, <a href="../../../src/hyper/service/make.rs.html#36">target</a>)
     }
 }
 
-<span class="comment">// Just a sort-of &quot;trait alias&quot; of `MakeService`, not to be implemented</span>
-<span class="comment">// by anyone, only used as bounds.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">MakeServiceRef</span><span class="op">&lt;</span><span class="ident">Target</span>, <span class="ident">ReqBody</span><span class="op">&gt;</span>: <span class="ident"><span class="self">self</span>::sealed::Sealed</span><span class="op">&lt;</span>(<span class="ident">Target</span>, <span class="ident">ReqBody</span>)<span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">ResBody</span>: <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>;
-    <span class="kw">type</span> <span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Service</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">ReqBody</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::ResBody</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">MakeError</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Future</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Service</span>, <span class="ident"><span class="self">Self</span>::MakeError</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="comment">// Just a sort-of &quot;trait alias&quot; of `MakeService`, not to be implemented
+// by anyone, only used as bounds.
+</span><span class="kw">pub trait </span>MakeServiceRef&lt;Target, ReqBody&gt;: <span class="self">self</span>::sealed::Sealed&lt;(Target, ReqBody)&gt; {
+    <span class="kw">type </span>ResBody: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>;
+    <span class="kw">type </span>Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;;
+    <span class="kw">type </span>Service: HttpService&lt;ReqBody, ResBody = <span class="self">Self</span>::ResBody, Error = <span class="self">Self</span>::Error&gt;;
+    <span class="kw">type </span>MakeError: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;;
+    <span class="kw">type </span>Future: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Service, <span class="self">Self</span>::MakeError&gt;&gt;;
 
-    <span class="comment">// Acting like a #[non_exhaustive] for associated types of this trait.</span>
-    <span class="comment">//</span>
-    <span class="comment">// Basically, no one outside of hyper should be able to set this type</span>
-    <span class="comment">// or declare bounds on it, so it should prevent people from creating</span>
-    <span class="comment">// trait objects or otherwise writing code that requires using *all*</span>
-    <span class="comment">// of the associated types.</span>
-    <span class="comment">//</span>
-    <span class="comment">// Why? So we can add new associated types to this alias in the future,</span>
-    <span class="comment">// if necessary.</span>
-    <span class="kw">type</span> <span class="ident">__DontNameMe</span>: <a class="ident" href="../../../src/hyper/service/make.rs.html#181"><span class="self">self</span>::sealed::CantImpl</a>;
+    <span class="comment">// Acting like a #[non_exhaustive] for associated types of this trait.
+    //
+    // Basically, no one outside of hyper should be able to set this type
+    // or declare bounds on it, so it should prevent people from creating
+    // trait objects or otherwise writing code that requires using *all*
+    // of the associated types.
+    //
+    // Why? So we can add new associated types to this alias in the future,
+    // if necessary.
+    </span><span class="kw">type </span>__DontNameMe: <a href="../../../src/hyper/service/make.rs.html#181"><span class="self">self</span>::sealed::CantImpl</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::MakeError</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">fn </span>poll_ready_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::MakeError&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">make_service_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">Target</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span>;
+    <span class="kw">fn </span>make_service_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <span class="kw-2">&amp;</span>Target) -&gt; <span class="self">Self</span>::Future;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Target</span>, <span class="ident">E</span>, <span class="ident">ME</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">IB</span>, <span class="ident">OB</span><span class="op">&gt;</span> <span class="ident">MakeServiceRef</span><span class="op">&lt;</span><span class="ident">Target</span>, <span class="ident">IB</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Target</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ME</span>, <span class="ident">Response</span> <span class="op">=</span> <span class="ident">S</span>, <span class="ident">Future</span> <span class="op">=</span> <span class="ident">F</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">ME</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">IB</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">OB</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">ME</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">IB</span>: <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
-    <span class="ident">OB</span>: <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
+<span class="kw">impl</span>&lt;T, Target, E, ME, S, F, IB, OB&gt; MakeServiceRef&lt;Target, IB&gt; <span class="kw">for </span>T
+<span class="kw">where
+    </span>T: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; Service&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Target, Error = ME, Response = S, Future = F&gt;,
+    E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    ME: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    S: HttpService&lt;IB, ResBody = OB, Error = E&gt;,
+    F: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;S, ME&gt;&gt;,
+    IB: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
+    OB: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
-    <span class="kw">type</span> <span class="ident">Service</span> <span class="op">=</span> <span class="ident">S</span>;
-    <span class="kw">type</span> <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">OB</span>;
-    <span class="kw">type</span> <span class="ident">MakeError</span> <span class="op">=</span> <span class="ident">ME</span>;
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">F</span>;
+    <span class="kw">type </span>Error = E;
+    <span class="kw">type </span>Service = S;
+    <span class="kw">type </span>ResBody = OB;
+    <span class="kw">type </span>MakeError = ME;
+    <span class="kw">type </span>Future = F;
 
-    <span class="kw">type</span> <span class="ident">__DontNameMe</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#184"><span class="self">self</span>::sealed::CantName</a>;
+    <span class="kw">type </span>__DontNameMe = <a href="../../../src/hyper/service/make.rs.html#184"><span class="self">self</span>::sealed::CantName</a>;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::MakeError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/hyper/service/make.rs.html#84">self</a>.<a class="ident" href="../../../hyper/service/trait.Service.html">poll_ready</a>(<a class="ident" href="../../../src/hyper/service/make.rs.html#84">cx</a>)
+    <span class="kw">fn </span>poll_ready_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::MakeError&gt;&gt; {
+        <a class="self" href="../../../src/hyper/service/make.rs.html#84">self</a>.<a href="../../../hyper/service/trait.Service.html">poll_ready</a>(<a href="../../../src/hyper/service/make.rs.html#84">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">make_service_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">Target</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <a class="self" href="../../../src/hyper/service/make.rs.html#88">self</a>.<a class="ident" href="../../../hyper/service/trait.Service.html">call</a>(<a class="ident" href="../../../src/hyper/service/make.rs.html#88">target</a>)
+    <span class="kw">fn </span>make_service_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <span class="kw-2">&amp;</span>Target) -&gt; <span class="self">Self</span>::Future {
+        <a class="self" href="../../../src/hyper/service/make.rs.html#88">self</a>.<a href="../../../hyper/service/trait.Service.html">call</a>(<a href="../../../src/hyper/service/make.rs.html#88">target</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Target</span>, <span class="ident">S</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span> <span class="ident"><span class="self">self</span>::sealed::Sealed</span><span class="op">&lt;</span>(<span class="ident">Target</span>, <span class="ident">B1</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Target</span>, <span class="ident">Response</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B2</span><span class="op">&gt;</span>,
-    <span class="ident">B1</span>: <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
-    <span class="ident">B2</span>: <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
+<span class="kw">impl</span>&lt;T, Target, S, B1, B2&gt; <span class="self">self</span>::sealed::Sealed&lt;(Target, B1)&gt; <span class="kw">for </span>T
+<span class="kw">where
+    </span>T: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; Service&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Target, Response = S&gt;,
+    S: HttpService&lt;B1, ResBody = B2&gt;,
+    B1: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
+    B2: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
 {
 }
 
-<span class="doccomment">/// Create a `MakeService` from a function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # #[cfg(feature = &quot;runtime&quot;)]</span>
-<span class="doccomment">/// # async fn run() {</span>
-<span class="doccomment">/// use std::convert::Infallible;</span>
-<span class="doccomment">/// use hyper::{Body, Request, Response, Server};</span>
-<span class="doccomment">/// use hyper::server::conn::AddrStream;</span>
-<span class="doccomment">/// use hyper::service::{make_service_fn, service_fn};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let addr = ([127, 0, 0, 1], 3000).into();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let make_svc = make_service_fn(|socket: &amp;AddrStream| {</span>
-<span class="doccomment">///     let remote_addr = socket.remote_addr();</span>
-<span class="doccomment">///     async move {</span>
-<span class="doccomment">///         Ok::&lt;_, Infallible&gt;(service_fn(move |_: Request&lt;Body&gt;| async move {</span>
-<span class="doccomment">///             Ok::&lt;_, Infallible&gt;(</span>
-<span class="doccomment">///                 Response::new(Body::from(format!(&quot;Hello, {}!&quot;, remote_addr)))</span>
-<span class="doccomment">///             )</span>
-<span class="doccomment">///         }))</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Then bind and serve...</span>
-<span class="doccomment">/// let server = Server::bind(&amp;addr)</span>
-<span class="doccomment">///     .serve(make_svc);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Finally, spawn `server` onto an Executor...</span>
-<span class="doccomment">/// if let Err(e) = server.await {</span>
-<span class="doccomment">///     eprintln!(&quot;server error: {}&quot;, e);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// # fn main() {}</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_service_fn</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Target</span>, <span class="ident">Ret</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">MakeServiceFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Target</span>) -&gt; <span class="ident">Ret</span>,
-    <span class="ident">Ret</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="doccomment">/// Create a `MakeService` from a function.
+///
+/// # Example
+///
+/// ```
+/// # #[cfg(feature = &quot;runtime&quot;)]
+/// # async fn run() {
+/// use std::convert::Infallible;
+/// use hyper::{Body, Request, Response, Server};
+/// use hyper::server::conn::AddrStream;
+/// use hyper::service::{make_service_fn, service_fn};
+///
+/// let addr = ([127, 0, 0, 1], 3000).into();
+///
+/// let make_svc = make_service_fn(|socket: &amp;AddrStream| {
+///     let remote_addr = socket.remote_addr();
+///     async move {
+///         Ok::&lt;_, Infallible&gt;(service_fn(move |_: Request&lt;Body&gt;| async move {
+///             Ok::&lt;_, Infallible&gt;(
+///                 Response::new(Body::from(format!(&quot;Hello, {}!&quot;, remote_addr)))
+///             )
+///         }))
+///     }
+/// });
+///
+/// // Then bind and serve...
+/// let server = Server::bind(&amp;addr)
+///     .serve(make_svc);
+///
+/// // Finally, spawn `server` onto an Executor...
+/// if let Err(e) = server.await {
+///     eprintln!(&quot;server error: {}&quot;, e);
+/// }
+/// # }
+/// # fn main() {}
+/// ```
+</span><span class="kw">pub fn </span>make_service_fn&lt;F, Target, Ret&gt;(f: F) -&gt; MakeServiceFn&lt;F&gt;
+<span class="kw">where
+    </span>F: FnMut(<span class="kw-2">&amp;</span>Target) -&gt; Ret,
+    Ret: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <a class="ident" href="../../../src/hyper/service/make.rs.html#148">MakeServiceFn</a> { <a class="ident" href="../../../src/hyper/service/make.rs.html#138">f</a> }
+    <a href="../../../src/hyper/service/make.rs.html#148">MakeServiceFn</a> { <a href="../../../src/hyper/service/make.rs.html#138">f</a> }
 }
 
-<span class="doccomment">/// `MakeService` returned from [`make_service_fn`]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MakeServiceFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="ident">f</span>: <span class="ident">F</span>,
+<span class="doccomment">/// `MakeService` returned from [`make_service_fn`]
+</span><span class="attribute">#[derive(Clone, Copy)]
+</span><span class="kw">pub struct </span>MakeServiceFn&lt;F&gt; {
+    f: F,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="ident">F</span>, <span class="ident">Ret</span>, <span class="ident">Target</span>, <span class="ident">Svc</span>, <span class="ident">MkErr</span><span class="op">&gt;</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">Target</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MakeServiceFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Target</span>) -&gt; <span class="ident">Ret</span>,
-    <span class="ident">Ret</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Svc</span>, <span class="ident">MkErr</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">MkErr</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>, F, Ret, Target, Svc, MkErr&gt; Service&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Target&gt; <span class="kw">for </span>MakeServiceFn&lt;F&gt;
+<span class="kw">where
+    </span>F: FnMut(<span class="kw-2">&amp;</span>Target) -&gt; Ret,
+    Ret: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Svc, MkErr&gt;&gt;,
+    MkErr: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">MkErr</span>;
-    <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">Svc</span>;
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">Ret</span>;
+    <span class="kw">type </span>Error = MkErr;
+    <span class="kw">type </span>Response = Svc;
+    <span class="kw">type </span>Future = Ret;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+    <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
+        Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
-    <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">Target</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        (<a class="self" href="../../../src/hyper/service/make.rs.html#166">self</a>.<span class="ident">f</span>)(<a class="ident" href="../../../src/hyper/service/make.rs.html#166">target</a>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MakeServiceFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/hyper/service/make.rs.html#172">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;MakeServiceFn&quot;</span>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Target) -&gt; <span class="self">Self</span>::Future {
+        (<a class="self" href="../../../src/hyper/service/make.rs.html#166">self</a>.f)(<a href="../../../src/hyper/service/make.rs.html#166">target</a>)
     }
 }
 
-<span class="kw">mod</span> <span class="ident">sealed</span> {
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;F&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MakeServiceFn&lt;F&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/hyper/service/make.rs.html#172">f</a>.debug_struct(<span class="string">&quot;MakeServiceFn&quot;</span>).finish()
+    }
+}
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_pub</span>)]</span> <span class="comment">// This is intentional.</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CantImpl</span> {}
+<span class="kw">mod </span>sealed {
+    <span class="kw">pub trait </span>Sealed&lt;X&gt; {}
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CantName</span> {}
+    <span class="attribute">#[allow(unreachable_pub)] </span><span class="comment">// This is intentional.
+    </span><span class="kw">pub trait </span>CantImpl {}
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#181">CantImpl</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#184">CantName</a> {}
+    <span class="attribute">#[allow(missing_debug_implementations)]
+    </span><span class="kw">pub enum </span>CantName {}
+
+    <span class="kw">impl </span><a href="../../../src/hyper/service/make.rs.html#181">CantImpl</a> <span class="kw">for </span><a href="../../../src/hyper/service/make.rs.html#184">CantName</a> {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

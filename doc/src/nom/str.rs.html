@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.1/src/str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nom/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.1/src/str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nom/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -534,541 +534,541 @@
 <span id="534">534</span>
 <span id="535">535</span>
 <span id="536">536</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-  <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-  <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">branch::alt</span>, <span class="ident">bytes::complete::tag_no_case</span>, <span class="ident">combinator::recognize</span>, <span class="ident">multi::many1</span>};
-  <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">bytes::complete</span>::{<span class="ident">is_a</span>, <span class="ident">is_not</span>, <span class="ident">tag</span>, <span class="ident">take</span>, <span class="ident">take_till</span>, <span class="ident">take_until</span>},
-    <span class="ident">error</span>::{<span class="self">self</span>, <span class="ident">ErrorKind</span>},
-    <span class="prelude-val">Err</span>, <span class="ident">IResult</span>,
+</pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+  <span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+  </span><span class="kw">use crate</span>::{branch::alt, bytes::complete::tag_no_case, combinator::recognize, multi::many1};
+  <span class="kw">use crate</span>::{
+    bytes::complete::{is_a, is_not, tag, take, take_till, take_until},
+    error::{<span class="self">self</span>, ErrorKind},
+    <span class="prelude-val">Err</span>, IResult,
   };
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">tagtr_succeed</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello World!&quot;</span>;
-    <span class="kw">const</span> <span class="ident">TAG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">tag</span>(<span class="ident">TAG</span>)(<span class="ident">input</span>)
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>tagtr_succeed() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Hello World!&quot;</span>;
+    <span class="kw">const </span>TAG: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Hello&quot;</span>;
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      tag(TAG)(input)
     }
 
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
-        <span class="macro">assert!</span>(<span class="ident">extra</span> <span class="op">==</span> <span class="string">&quot; World!&quot;</span>, <span class="string">&quot;Parser `tag` consumed leftover input.&quot;</span>);
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
+        <span class="macro">assert!</span>(extra == <span class="string">&quot; World!&quot;</span>, <span class="string">&quot;Parser `tag` consumed leftover input.&quot;</span>);
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">TAG</span>,
+          output == TAG,
           <span class="string">&quot;Parser `tag` doesn&#39;t return the tag it matched on success. \
            Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">TAG</span>,
-          <span class="ident">output</span>
+          TAG,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `tag` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">tagtr_incomplete</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::tag</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>tagtr_incomplete() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::streaming::tag;
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello&quot;</span>;
-    <span class="kw">const</span> <span class="ident">TAG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello World!&quot;</span>;
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Hello&quot;</span>;
+    <span class="kw">const </span>TAG: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Hello World!&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">error::Error</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">tag</span>(<span class="ident">TAG</span>)(<span class="ident">INPUT</span>);
-    <span class="kw">match</span> <span class="ident">res</span> {
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="kw">_</span>)) =&gt; (),
-      <span class="ident">other</span> =&gt; {
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, error::Error&lt;<span class="kw">_</span>&gt;&gt; = tag(TAG)(INPUT);
+    <span class="kw">match </span>res {
+      <span class="prelude-val">Err</span>(Err::Incomplete(<span class="kw">_</span>)) =&gt; (),
+      other =&gt; {
         <span class="macro">panic!</span>(
           <span class="string">&quot;Parser `tag` didn&#39;t require more input when it should have. \
            Got `{:?}`.&quot;</span>,
-          <span class="ident">other</span>
+          other
         );
       }
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">tagtr_error</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello World!&quot;</span>;
-    <span class="kw">const</span> <span class="ident">TAG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Random&quot;</span>; <span class="comment">// TAG must be closer than INPUT.</span>
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>tagtr_error() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Hello World!&quot;</span>;
+    <span class="kw">const </span>TAG: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Random&quot;</span>; <span class="comment">// TAG must be closer than INPUT.
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">error::Error</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">tag</span>(<span class="ident">TAG</span>)(<span class="ident">INPUT</span>);
-    <span class="kw">match</span> <span class="ident">res</span> {
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; (),
-      <span class="ident">other</span> =&gt; {
+    </span><span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, error::Error&lt;<span class="kw">_</span>&gt;&gt; = tag(TAG)(INPUT);
+    <span class="kw">match </span>res {
+      <span class="prelude-val">Err</span>(Err::Error(<span class="kw">_</span>)) =&gt; (),
+      other =&gt; {
         <span class="macro">panic!</span>(
           <span class="string">&quot;Parser `tag` didn&#39;t fail when it should have. Got `{:?}`.`&quot;</span>,
-          <span class="ident">other</span>
+          other
         );
       }
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_s_succeed</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
-    <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_s_succeed() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>CONSUMED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
+    <span class="kw">const </span>LEFTOVER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;áƒƭèř&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">error::Error</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take</span>(<span class="number">9_usize</span>)(<span class="ident">INPUT</span>);
-    <span class="kw">match</span> <span class="ident">res</span> {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, error::Error&lt;<span class="kw">_</span>&gt;&gt; = take(<span class="number">9_usize</span>)(INPUT);
+    <span class="kw">match </span>res {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
         <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="ident">LEFTOVER</span>,
+          extra == LEFTOVER,
           <span class="string">&quot;Parser `take_s` consumed leftover input. Leftover `{}`.&quot;</span>,
-          <span class="ident">extra</span>
+          extra
         );
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
+          output == CONSUMED,
           <span class="string">&quot;Parser `take_s` doesn&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">CONSUMED</span>,
-          <span class="ident">output</span>
+          CONSUMED,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_s` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_until_succeed</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ∂áƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">FIND</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ÂßÇ∂&quot;</span>;
-    <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřè&quot;</span>;
-    <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ÂßÇ∂áƒƭèř&quot;</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_until_succeed() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ∂áƒƭèř&quot;</span>;
+    <span class="kw">const </span>FIND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;ÂßÇ∂&quot;</span>;
+    <span class="kw">const </span>CONSUMED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřè&quot;</span>;
+    <span class="kw">const </span>LEFTOVER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;ÂßÇ∂áƒƭèř&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take_until</span>(<span class="ident">FIND</span>)(<span class="ident">INPUT</span>);
-    <span class="kw">match</span> <span class="ident">res</span> {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, ErrorKind)&gt; = take_until(FIND)(INPUT);
+    <span class="kw">match </span>res {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
         <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="ident">LEFTOVER</span>,
+          extra == LEFTOVER,
           <span class="string">&quot;Parser `take_until`\
            consumed leftover input. Leftover `{}`.&quot;</span>,
-          <span class="ident">extra</span>
+          extra
         );
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
+          output == CONSUMED,
           <span class="string">&quot;Parser `take_until`\
            doesn&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">CONSUMED</span>,
-          <span class="ident">output</span>
+          CONSUMED,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_until` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_s_incomplete</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_s_incomplete() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::streaming::take;
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇá&quot;</span>;
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇá&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take</span>(<span class="number">13_usize</span>)(<span class="ident">INPUT</span>);
-    <span class="kw">match</span> <span class="ident">res</span> {
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="kw">_</span>)) =&gt; (),
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, ErrorKind)&gt; = take(<span class="number">13_usize</span>)(INPUT);
+    <span class="kw">match </span>res {
+      <span class="prelude-val">Err</span>(Err::Incomplete(<span class="kw">_</span>)) =&gt; (),
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take` didn&#39;t require more input when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     }
   }
 
-  <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::internal::Needed</span>;
+  <span class="kw">use </span><span class="kw">crate</span>::internal::Needed;
 
-  <span class="kw">fn</span> <span class="ident">is_alphabetic</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
-    (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x41</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x5A</span>) <span class="op">|</span><span class="op">|</span> (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x61</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7A</span>)
+  <span class="kw">fn </span>is_alphabetic(c: char) -&gt; bool {
+    (c <span class="kw">as </span>u8 &gt;= <span class="number">0x41 </span>&amp;&amp; c <span class="kw">as </span>u8 &lt;= <span class="number">0x5A</span>) || (c <span class="kw">as </span>u8 &gt;= <span class="number">0x61 </span>&amp;&amp; c <span class="kw">as </span>u8 &lt;= <span class="number">0x7A</span>)
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_while</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take_while</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_while() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::streaming::take_while;
 
-    <span class="kw">fn</span> <span class="ident">f</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">take_while</span>(<span class="ident">is_alphabetic</span>)(<span class="ident">i</span>)
+    <span class="kw">fn </span>f(i: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      take_while(is_alphabetic)(i)
     }
-    <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
-    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;abcd&quot;</span>;
-    <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="string">&quot;abcd123&quot;</span>;
-    <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="string">&quot;123&quot;</span>;
+    <span class="kw">let </span>a = <span class="string">&quot;&quot;</span>;
+    <span class="kw">let </span>b = <span class="string">&quot;abcd&quot;</span>;
+    <span class="kw">let </span>c = <span class="string">&quot;abcd123&quot;</span>;
+    <span class="kw">let </span>d = <span class="string">&quot;123&quot;</span>;
 
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>))));
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>))));
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">d</span>[..], <span class="kw-2">&amp;</span><span class="ident">b</span>[..])));
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">d</span>[..], <span class="kw-2">&amp;</span><span class="ident">a</span>[..])));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>a[..]), <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(<span class="number">1</span>))));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>b[..]), <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(<span class="number">1</span>))));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>c[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span>d[..], <span class="kw-2">&amp;</span>b[..])));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>d[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span>d[..], <span class="kw-2">&amp;</span>a[..])));
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_while1</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take_while1</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_while1() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::streaming::take_while1;
 
-    <span class="kw">fn</span> <span class="ident">f</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">take_while1</span>(<span class="ident">is_alphabetic</span>)(<span class="ident">i</span>)
+    <span class="kw">fn </span>f(i: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      take_while1(is_alphabetic)(i)
     }
-    <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
-    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;abcd&quot;</span>;
-    <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="string">&quot;abcd123&quot;</span>;
-    <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="string">&quot;123&quot;</span>;
+    <span class="kw">let </span>a = <span class="string">&quot;&quot;</span>;
+    <span class="kw">let </span>b = <span class="string">&quot;abcd&quot;</span>;
+    <span class="kw">let </span>c = <span class="string">&quot;abcd123&quot;</span>;
+    <span class="kw">let </span>d = <span class="string">&quot;123&quot;</span>;
 
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>))));
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>))));
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="string">&quot;123&quot;</span>[..], <span class="kw-2">&amp;</span><span class="ident">b</span>[..])));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>a[..]), <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(<span class="number">1</span>))));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>b[..]), <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(<span class="number">1</span>))));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>c[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="string">&quot;123&quot;</span>[..], <span class="kw-2">&amp;</span>b[..])));
     <span class="macro">assert_eq!</span>(
-      <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>[..]),
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="macro">error_position!</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>[..], <span class="ident">ErrorKind::TakeWhile1</span>)))
+      f(<span class="kw-2">&amp;</span>d[..]),
+      <span class="prelude-val">Err</span>(Err::Error(<span class="macro">error_position!</span>(<span class="kw-2">&amp;</span>d[..], ErrorKind::TakeWhile1)))
     );
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_till_s_succeed</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
-    <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">till_s</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
-      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;á&#39;</span>
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_till_s_succeed() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>CONSUMED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
+    <span class="kw">const </span>LEFTOVER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;áƒƭèř&quot;</span>;
+    <span class="kw">fn </span>till_s(c: char) -&gt; bool {
+      c == <span class="string">&#39;á&#39;
+    </span>}
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      take_till(till_s)(input)
     }
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">take_till</span>(<span class="ident">till_s</span>)(<span class="ident">input</span>)
-    }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
         <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="ident">LEFTOVER</span>,
-          <span class="string">&quot;Parser `take_till` consumed leftover input.&quot;</span>
-        );
+          extra == LEFTOVER,
+          <span class="string">&quot;Parser `take_till` consumed leftover input.&quot;
+        </span>);
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
+          output == CONSUMED,
           <span class="string">&quot;Parser `take_till` doesn&#39;t return the string it consumed on success. \
            Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">CONSUMED</span>,
-          <span class="ident">output</span>
+          CONSUMED,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_till` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_while_succeed_none</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::complete::take_while</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_while_succeed_none() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::complete::take_while;
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
-    <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">while_s</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
-      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;9&#39;</span>
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>CONSUMED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;&quot;</span>;
+    <span class="kw">const </span>LEFTOVER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">fn </span>while_s(c: char) -&gt; bool {
+      c == <span class="string">&#39;9&#39;
+    </span>}
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      take_while(while_s)(input)
     }
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">take_while</span>(<span class="ident">while_s</span>)(<span class="ident">input</span>)
-    }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
         <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="ident">LEFTOVER</span>,
-          <span class="string">&quot;Parser `take_while` consumed leftover input.&quot;</span>
-        );
+          extra == LEFTOVER,
+          <span class="string">&quot;Parser `take_while` consumed leftover input.&quot;
+        </span>);
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
+          output == CONSUMED,
           <span class="string">&quot;Parser `take_while` doesn&#39;t return the string it consumed on success. \
            Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">CONSUMED</span>,
-          <span class="ident">output</span>
+          CONSUMED,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_while` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">is_not_succeed</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">AVOID</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;£úçƙ¥á&quot;</span>;
-    <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
-    <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">is_not</span>(<span class="ident">AVOID</span>)(<span class="ident">input</span>)
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>is_not_succeed() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>AVOID: <span class="kw-2">&amp;</span>str = <span class="string">&quot;£úçƙ¥á&quot;</span>;
+    <span class="kw">const </span>CONSUMED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
+    <span class="kw">const </span>LEFTOVER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;áƒƭèř&quot;</span>;
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      is_not(AVOID)(input)
     }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
         <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="ident">LEFTOVER</span>,
+          extra == LEFTOVER,
           <span class="string">&quot;Parser `is_not` consumed leftover input. Leftover `{}`.&quot;</span>,
-          <span class="ident">extra</span>
+          extra
         );
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
+          output == CONSUMED,
           <span class="string">&quot;Parser `is_not` doesn&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">CONSUMED</span>,
-          <span class="ident">output</span>
+          CONSUMED,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `is_not` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_while_succeed_some</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::complete::take_while</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_while_succeed_some() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::complete::take_while;
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
-    <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">while_s</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
-      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;β&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ƒ&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ô&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ř&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Â&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ß&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Ç&#39;</span>
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>CONSUMED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
+    <span class="kw">const </span>LEFTOVER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;áƒƭèř&quot;</span>;
+    <span class="kw">fn </span>while_s(c: char) -&gt; bool {
+      c == <span class="string">&#39;β&#39;
+        </span>|| c == <span class="string">&#39;è&#39;
+        </span>|| c == <span class="string">&#39;ƒ&#39;
+        </span>|| c == <span class="string">&#39;ô&#39;
+        </span>|| c == <span class="string">&#39;ř&#39;
+        </span>|| c == <span class="string">&#39;è&#39;
+        </span>|| c == <span class="string">&#39;Â&#39;
+        </span>|| c == <span class="string">&#39;ß&#39;
+        </span>|| c == <span class="string">&#39;Ç&#39;
+    </span>}
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      take_while(while_s)(input)
     }
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">take_while</span>(<span class="ident">while_s</span>)(<span class="ident">input</span>)
-    }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
         <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="ident">LEFTOVER</span>,
-          <span class="string">&quot;Parser `take_while` consumed leftover input.&quot;</span>
-        );
+          extra == LEFTOVER,
+          <span class="string">&quot;Parser `take_while` consumed leftover input.&quot;
+        </span>);
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
+          output == CONSUMED,
           <span class="string">&quot;Parser `take_while` doesn&#39;t return the string it consumed on success. \
            Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">CONSUMED</span>,
-          <span class="ident">output</span>
+          CONSUMED,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_while` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">is_not_fail</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">AVOID</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βúçƙ¥&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">is_not</span>(<span class="ident">AVOID</span>)(<span class="ident">input</span>)
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>is_not_fail() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>AVOID: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βúçƙ¥&quot;</span>;
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      is_not(AVOID)(input)
     }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; (),
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Err</span>(Err::Error(<span class="kw">_</span>)) =&gt; (),
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `is_not` didn&#39;t fail when it should have. Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_while1_succeed</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::complete::take_while1</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_while1_succeed() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::complete::take_while1;
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
-    <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">while1_s</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
-      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;β&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ƒ&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ô&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ř&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Â&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ß&#39;</span>
-        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Ç&#39;</span>
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>CONSUMED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
+    <span class="kw">const </span>LEFTOVER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;áƒƭèř&quot;</span>;
+    <span class="kw">fn </span>while1_s(c: char) -&gt; bool {
+      c == <span class="string">&#39;β&#39;
+        </span>|| c == <span class="string">&#39;è&#39;
+        </span>|| c == <span class="string">&#39;ƒ&#39;
+        </span>|| c == <span class="string">&#39;ô&#39;
+        </span>|| c == <span class="string">&#39;ř&#39;
+        </span>|| c == <span class="string">&#39;è&#39;
+        </span>|| c == <span class="string">&#39;Â&#39;
+        </span>|| c == <span class="string">&#39;ß&#39;
+        </span>|| c == <span class="string">&#39;Ç&#39;
+    </span>}
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      take_while1(while1_s)(input)
     }
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">take_while1</span>(<span class="ident">while1_s</span>)(<span class="ident">input</span>)
-    }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
         <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="ident">LEFTOVER</span>,
-          <span class="string">&quot;Parser `take_while1` consumed leftover input.&quot;</span>
-        );
+          extra == LEFTOVER,
+          <span class="string">&quot;Parser `take_while1` consumed leftover input.&quot;
+        </span>);
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
+          output == CONSUMED,
           <span class="string">&quot;Parser `take_while1` doesn&#39;t return the string it consumed on success. \
            Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">CONSUMED</span>,
-          <span class="ident">output</span>
+          CONSUMED,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_while1` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_until_incomplete</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take_until</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_until_incomplete() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::streaming::take_until;
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřè&quot;</span>;
-    <span class="kw">const</span> <span class="ident">FIND</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřè&quot;</span>;
+    <span class="kw">const </span>FIND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take_until</span>(<span class="ident">FIND</span>)(<span class="ident">INPUT</span>);
-    <span class="kw">match</span> <span class="ident">res</span> {
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="kw">_</span>)) =&gt; (),
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, ErrorKind)&gt; = take_until(FIND)(INPUT);
+    <span class="kw">match </span>res {
+      <span class="prelude-val">Err</span>(Err::Incomplete(<span class="kw">_</span>)) =&gt; (),
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_until` didn&#39;t require more input when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">is_a_succeed</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">MATCH</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
-    <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
-    <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">is_a</span>(<span class="ident">MATCH</span>)(<span class="ident">input</span>)
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>is_a_succeed() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>MATCH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
+    <span class="kw">const </span>CONSUMED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
+    <span class="kw">const </span>LEFTOVER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;áƒƭèř&quot;</span>;
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      is_a(MATCH)(input)
     }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Ok</span>((extra, output)) =&gt; {
         <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="ident">LEFTOVER</span>,
+          extra == LEFTOVER,
           <span class="string">&quot;Parser `is_a` consumed leftover input. Leftover `{}`.&quot;</span>,
-          <span class="ident">extra</span>
+          extra
         );
         <span class="macro">assert!</span>(
-          <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
+          output == CONSUMED,
           <span class="string">&quot;Parser `is_a` doesn&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
-          <span class="ident">CONSUMED</span>,
-          <span class="ident">output</span>
+          CONSUMED,
+          output
         );
       }
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `is_a` didn&#39;t succeed when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_while1_fail</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::complete::take_while1</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_while1_fail() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::complete::take_while1;
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">while1_s</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
-      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;9&#39;</span>
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">fn </span>while1_s(c: char) -&gt; bool {
+      c == <span class="string">&#39;9&#39;
+    </span>}
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      take_while1(while1_s)(input)
     }
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">take_while1</span>(<span class="ident">while1_s</span>)(<span class="ident">input</span>)
-    }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; (),
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Err</span>(Err::Error(<span class="kw">_</span>)) =&gt; (),
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_while1` didn&#39;t fail when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">is_a_fail</span>() {
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">MATCH</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Ûñℓúçƙ¥&quot;</span>;
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">is_a</span>(<span class="ident">MATCH</span>)(<span class="ident">input</span>)
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>is_a_fail() {
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>MATCH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Ûñℓúçƙ¥&quot;</span>;
+    <span class="kw">fn </span>test(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      is_a(MATCH)(input)
     }
-    <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; (),
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+    <span class="kw">match </span>test(INPUT) {
+      <span class="prelude-val">Err</span>(Err::Error(<span class="kw">_</span>)) =&gt; (),
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `is_a` didn&#39;t fail when it should have. Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">take_until_error</span>() {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take_until</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>take_until_error() {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::streaming::take_until;
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
-    <span class="kw">const</span> <span class="ident">FIND</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Ráñδô₥&quot;</span>;
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
+    <span class="kw">const </span>FIND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Ráñδô₥&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take_until</span>(<span class="ident">FIND</span>)(<span class="ident">INPUT</span>);
-    <span class="kw">match</span> <span class="ident">res</span> {
-      <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="kw">_</span>)) =&gt; (),
-      <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, ErrorKind)&gt; = take_until(FIND)(INPUT);
+    <span class="kw">match </span>res {
+      <span class="prelude-val">Err</span>(Err::Incomplete(<span class="kw">_</span>)) =&gt; (),
+      other =&gt; <span class="macro">panic!</span>(
         <span class="string">&quot;Parser `take_until` didn&#39;t fail when it should have. \
          Got `{:?}`.&quot;</span>,
-        <span class="ident">other</span>
+        other
       ),
     };
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">recognize_is_a</span>() {
-    <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;aabbab&quot;</span>;
-    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;ababcd&quot;</span>;
+  <span class="attribute">#[test]
+  #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+  </span><span class="kw">fn </span>recognize_is_a() {
+    <span class="kw">let </span>a = <span class="string">&quot;aabbab&quot;</span>;
+    <span class="kw">let </span>b = <span class="string">&quot;ababcd&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">f</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">recognize</span>(<span class="ident">many1</span>(<span class="ident">alt</span>((<span class="ident">tag</span>(<span class="string">&quot;a&quot;</span>), <span class="ident">tag</span>(<span class="string">&quot;b&quot;</span>)))))(<span class="ident">i</span>)
+    <span class="kw">fn </span>f(i: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      recognize(many1(alt((tag(<span class="string">&quot;a&quot;</span>), tag(<span class="string">&quot;b&quot;</span>)))))(i)
     }
 
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">a</span>[<span class="number">6</span>..], <span class="kw-2">&amp;</span><span class="ident">a</span>[..])));
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">b</span>[<span class="number">4</span>..], <span class="kw-2">&amp;</span><span class="ident">b</span>[..<span class="number">4</span>])));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>a[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span>a[<span class="number">6</span>..], <span class="kw-2">&amp;</span>a[..])));
+    <span class="macro">assert_eq!</span>(f(<span class="kw-2">&amp;</span>b[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span>b[<span class="number">4</span>..], <span class="kw-2">&amp;</span>b[..<span class="number">4</span>])));
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">utf8_indexing</span>() {
-    <span class="kw">fn</span> <span class="ident">dot</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">tag</span>(<span class="string">&quot;.&quot;</span>)(<span class="ident">i</span>)
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>utf8_indexing() {
+    <span class="kw">fn </span>dot(i: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      tag(<span class="string">&quot;.&quot;</span>)(i)
     }
 
-    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">dot</span>(<span class="string">&quot;點&quot;</span>);
+    <span class="kw">let _ </span>= dot(<span class="string">&quot;點&quot;</span>);
   }
 
-  <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">case_insensitive</span>() {
-    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="ident">tag_no_case</span>(<span class="string">&quot;ABcd&quot;</span>)(<span class="ident">i</span>)
+  <span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+  #[test]
+  </span><span class="kw">fn </span>case_insensitive() {
+    <span class="kw">fn </span>test(i: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+      tag_no_case(<span class="string">&quot;ABcd&quot;</span>)(i)
     }
-    <span class="macro">assert_eq!</span>(<span class="ident">test</span>(<span class="string">&quot;aBCdefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;aBCd&quot;</span>)));
-    <span class="macro">assert_eq!</span>(<span class="ident">test</span>(<span class="string">&quot;abcdefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;abcd&quot;</span>)));
-    <span class="macro">assert_eq!</span>(<span class="ident">test</span>(<span class="string">&quot;ABCDefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;ABCD&quot;</span>)));
+    <span class="macro">assert_eq!</span>(test(<span class="string">&quot;aBCdefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;aBCd&quot;</span>)));
+    <span class="macro">assert_eq!</span>(test(<span class="string">&quot;abcdefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;abcd&quot;</span>)));
+    <span class="macro">assert_eq!</span>(test(<span class="string">&quot;ABCDefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;ABCD&quot;</span>)));
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

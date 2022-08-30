@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.21/src/stream_select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream_select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.24/src/stream_select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream_select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -111,83 +111,83 @@
 <span id="111">111</span>
 <span id="112">112</span>
 <span id="113">113</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
-<span class="kw">use</span> <span class="ident">quote</span>::{<a class="ident" href="../../quote/macro.format_ident.html">format_ident</a>, <a class="ident" href="../../quote/macro.quote.html">quote</a>, <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
-<span class="kw">use</span> <span class="ident">syn</span>::{<a class="ident" href="../../syn/parse/trait.Parser.html">parse::Parser</a>, <a class="ident" href="../../syn/punctuated/struct.Punctuated.html">punctuated::Punctuated</a>, <a class="ident" href="../../syn/expr/enum.Expr.html">Expr</a>, <a class="ident" href="../../syn/expr/struct.Index.html">Index</a>, <a class="ident" href="../../syn/macro.Token.html">Token</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
+<span class="kw">use </span>quote::{<a href="../../quote/macro.format_ident.html">format_ident</a>, <a href="../../quote/macro.quote.html">quote</a>, <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
+<span class="kw">use </span>syn::{<a href="../../syn/parse/trait.Parser.html">parse::Parser</a>, <a href="../../syn/punctuated/struct.Punctuated.html">punctuated::Punctuated</a>, <a href="../../syn/expr/enum.Expr.html">Expr</a>, <a href="../../syn/expr/struct.Index.html">Index</a>, <a href="../../syn/macro.Token.html">Token</a>};
 
-<span class="doccomment">/// The `stream_select!` macro.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stream_select</span>(<span class="ident">input</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../syn/error/struct.Error.html">syn::Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="op">&lt;</span><span class="ident">Expr</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::parse_terminated</span>.<span class="ident">parse2</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote.html">quote!</a> {
+<span class="doccomment">/// The `stream_select!` macro.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stream_select(input: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a href="../../syn/error/struct.Error.html">syn::Error</a>&gt; {
+    <span class="kw">let </span>args = Punctuated::&lt;Expr, <span class="macro">Token!</span>[,]&gt;::parse_terminated.parse2(input)<span class="question-mark">?</span>;
+    <span class="kw">if </span>args.len() &lt; <span class="number">2 </span>{
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{
            <span class="macro">compile_error!</span>(<span class="string">&quot;stream select macro needs at least two arguments.&quot;</span>)
         });
     }
-    <span class="kw">let</span> <span class="ident">generic_idents</span> <span class="op">=</span> (<span class="number">0</span>..<a class="ident" href="../../src/futures_macro/stream_select.rs.html#7">args</a>.<span class="ident">len</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_{}&quot;</span>, <span class="ident">i</span>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="ident">field_idents</span> <span class="op">=</span> (<span class="number">0</span>..<a class="ident" href="../../src/futures_macro/stream_select.rs.html#7">args</a>.<span class="ident">len</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;__{}&quot;</span>, <span class="ident">i</span>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="ident">field_idents_2</span> <span class="op">=</span> (<span class="number">0</span>..<a class="ident" href="../../src/futures_macro/stream_select.rs.html#7">args</a>.<span class="ident">len</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;___{}&quot;</span>, <span class="ident">i</span>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="ident">field_indices</span> <span class="op">=</span> (<span class="number">0</span>..<a class="ident" href="../../src/futures_macro/stream_select.rs.html#7">args</a>.<span class="ident">len</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="ident">Index::from</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <a class="ident" href="../../src/futures_macro/stream_select.rs.html#7">args</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../src/futures_macro/stream_select.rs.html#17">e</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>());
+    <span class="kw">let </span>generic_idents = (<span class="number">0</span>..<a href="../../src/futures_macro/stream_select.rs.html#7">args</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|i| <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_{}&quot;</span>, i)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span>field_idents = (<span class="number">0</span>..<a href="../../src/futures_macro/stream_select.rs.html#7">args</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|i| <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;__{}&quot;</span>, i)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span>field_idents_2 = (<span class="number">0</span>..<a href="../../src/futures_macro/stream_select.rs.html#7">args</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|i| <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;___{}&quot;</span>, i)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span>field_indices = (<span class="number">0</span>..<a href="../../src/futures_macro/stream_select.rs.html#7">args</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(Index::from).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span>args = <a href="../../src/futures_macro/stream_select.rs.html#7">args</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a href="../../src/futures_macro/stream_select.rs.html#17">e</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>());
 
-    <span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote.html">quote!</a> {
+    <span class="prelude-val">Ok</span>(<a class="macro" href="../../quote/macro.quote.html">quote! </a>{
         {
-            <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-            <span class="kw">struct</span> <span class="ident">StreamSelect</span><span class="op">&lt;</span>#(#<span class="ident">generic_idents</span>),<span class="kw-2">*</span><span class="op">&gt;</span> (#(<span class="prelude-ty">Option</span><span class="op">&lt;</span>#<span class="ident">generic_idents</span><span class="op">&gt;</span>),<span class="kw-2">*</span>);
+            <span class="attribute">#[derive(Debug)]
+            </span><span class="kw">struct </span>StreamSelect&lt;#(#generic_idents),<span class="kw-2">*</span>&gt; (#(<span class="prelude-ty">Option</span>&lt;#generic_idents&gt;),<span class="kw-2">*</span>);
 
-            <span class="kw">enum</span> <span class="ident">StreamEnum</span><span class="op">&lt;</span>#(#<span class="ident">generic_idents</span>),<span class="kw-2">*</span><span class="op">&gt;</span> {
+            <span class="kw">enum </span>StreamEnum&lt;#(#generic_idents),<span class="kw-2">*</span>&gt; {
                 #(
-                    #<span class="ident">generic_idents</span>(#<span class="ident">generic_idents</span>)
+                    #generic_idents(#generic_idents)
                 ),<span class="kw-2">*</span>,
                 <span class="prelude-val">None</span>,
             }
 
-            <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">ITEM</span>, #(#<span class="ident">generic_idents</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">__futures_crate::stream::Stream</span> <span class="kw">for</span> <span class="ident">StreamEnum</span><span class="op">&lt;</span>#(#<span class="ident">generic_idents</span>),<span class="kw-2">*</span><span class="op">&gt;</span>
-            <span class="kw">where</span> #(#<span class="ident">generic_idents</span>: <span class="ident">__futures_crate::stream::Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">ITEM</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">::std::marker::Unpin</span>,)<span class="op">*</span>
+            <span class="kw">impl</span>&lt;ITEM, #(#generic_idents),<span class="kw-2">*</span>&gt; __futures_crate::stream::Stream <span class="kw">for </span>StreamEnum&lt;#(#generic_idents),<span class="kw-2">*</span>&gt;
+            <span class="kw">where </span>#(#generic_idents: __futures_crate::stream::Stream&lt;Item=ITEM&gt; + ::std::marker::Unpin,)*
             {
-                <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">ITEM</span>;
+                <span class="kw">type </span>Item = ITEM;
 
-                <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">::std::pin::Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__futures_crate::task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">__futures_crate::task::Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-                    <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_mut</span>() {
+                <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: ::std::pin::Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>__futures_crate::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; __futures_crate::task::Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+                    <span class="kw">match </span><span class="self">self</span>.get_mut() {
                         #(
-                            <span class="self">Self</span>::#<span class="ident">generic_idents</span>(#<span class="ident">generic_idents</span>) =&gt; <span class="ident">::std::pin::Pin::new</span>(#<span class="ident">generic_idents</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)
+                            <span class="self">Self</span>::#generic_idents(#generic_idents) =&gt; ::std::pin::Pin::new(#generic_idents).poll_next(cx)
                         ),<span class="kw-2">*</span>,
-                        <span class="ident"><span class="self">Self</span>::None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;StreamEnum::None should never be polled!&quot;</span>),
+                        <span class="self">Self</span>::None =&gt; <span class="macro">panic!</span>(<span class="string">&quot;StreamEnum::None should never be polled!&quot;</span>),
                     }
                 }
             }
 
-            <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">ITEM</span>, #(#<span class="ident">generic_idents</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">__futures_crate::stream::Stream</span> <span class="kw">for</span> <span class="ident">StreamSelect</span><span class="op">&lt;</span>#(#<span class="ident">generic_idents</span>),<span class="kw-2">*</span><span class="op">&gt;</span>
-            <span class="kw">where</span> #(#<span class="ident">generic_idents</span>: <span class="ident">__futures_crate::stream::Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">ITEM</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">::std::marker::Unpin</span>,)<span class="op">*</span>
+            <span class="kw">impl</span>&lt;ITEM, #(#generic_idents),<span class="kw-2">*</span>&gt; __futures_crate::stream::Stream <span class="kw">for </span>StreamSelect&lt;#(#generic_idents),<span class="kw-2">*</span>&gt;
+            <span class="kw">where </span>#(#generic_idents: __futures_crate::stream::Stream&lt;Item=ITEM&gt; + ::std::marker::Unpin,)*
             {
-                <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">ITEM</span>;
+                <span class="kw">type </span>Item = ITEM;
 
-                <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">::std::pin::Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__futures_crate::task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">__futures_crate::task::Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="self">Self</span>(#(<span class="kw-2">ref</span> <span class="kw-2">mut</span> #<span class="ident">field_idents</span>),<span class="kw-2">*</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_mut</span>();
+                <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: ::std::pin::Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>__futures_crate::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; __futures_crate::task::Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+                    <span class="kw">let </span><span class="self">Self</span>(#(<span class="kw-2">ref mut </span>#field_idents),<span class="kw-2">*</span>) = <span class="self">self</span>.get_mut();
                     #(
-                        <span class="kw">let</span> <span class="kw-2">mut</span> #<span class="ident">field_idents_2</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    )<span class="op">*</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">any_pending</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                        <span class="kw">let </span><span class="kw-2">mut </span>#field_idents_2 = <span class="bool-val">false</span>;
+                    )*
+                    <span class="kw">let </span><span class="kw-2">mut </span>any_pending = <span class="bool-val">false</span>;
                     {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream_array</span> <span class="op">=</span> [#(#<span class="ident">field_idents</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">StreamEnum</span>::#<span class="ident">generic_idents</span>(<span class="ident">f</span>)).<span class="ident">unwrap_or</span>(<span class="ident">StreamEnum::None</span>)),<span class="kw-2">*</span>];
-                        <span class="ident">__futures_crate::async_await::shuffle</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stream_array</span>);
+                        <span class="kw">let </span><span class="kw-2">mut </span>stream_array = [#(#field_idents.as_mut().map(|f| StreamEnum::#generic_idents(f)).unwrap_or(StreamEnum::None)),<span class="kw-2">*</span>];
+                        __futures_crate::async_await::shuffle(<span class="kw-2">&amp;mut </span>stream_array);
 
-                        <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">stream_array</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">StreamEnum::None</span> <span class="op">=</span> <span class="ident">s</span> {
+                        <span class="kw">for </span><span class="kw-2">mut </span>s <span class="kw">in </span>stream_array {
+                            <span class="kw">if let </span>StreamEnum::None = s {
                                 <span class="kw">continue</span>;
-                            } <span class="kw">else</span> {
-                                <span class="kw">match</span> <span class="ident">__futures_crate::stream::Stream::poll_next</span>(<span class="ident">::std::pin::Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>), <span class="ident">cx</span>) {
-                                    <span class="ident">r</span> @ <span class="ident">__futures_crate::task::Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
-                                        <span class="kw">return</span> <span class="ident">r</span>;
+                            } <span class="kw">else </span>{
+                                <span class="kw">match </span>__futures_crate::stream::Stream::poll_next(::std::pin::Pin::new(<span class="kw-2">&amp;mut </span>s), cx) {
+                                    r @ __futures_crate::task::Poll::Ready(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
+                                        <span class="kw">return </span>r;
                                     },
-                                    <span class="ident">__futures_crate::task::Poll::Pending</span> =&gt; {
-                                        <span class="ident">any_pending</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                                    __futures_crate::task::Poll::Pending =&gt; {
+                                        any_pending = <span class="bool-val">true</span>;
                                     },
-                                    <span class="ident">__futures_crate::task::Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; {
-                                        <span class="kw">match</span> <span class="ident">s</span> {
+                                    __futures_crate::task::Poll::Ready(<span class="prelude-val">None</span>) =&gt; {
+                                        <span class="kw">match </span>s {
                                             #(
-                                                <span class="ident">StreamEnum</span>::#<span class="ident">generic_idents</span>(<span class="kw">_</span>) =&gt; { #<span class="ident">field_idents_2</span> <span class="op">=</span> <span class="bool-val">true</span>; }
+                                                StreamEnum::#generic_idents(<span class="kw">_</span>) =&gt; { #field_idents_2 = <span class="bool-val">true</span>; }
                                             ),<span class="kw-2">*</span>,
-                                            <span class="ident">StreamEnum::None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;StreamEnum::None should never be polled!&quot;</span>),
+                                            StreamEnum::None =&gt; <span class="macro">panic!</span>(<span class="string">&quot;StreamEnum::None should never be polled!&quot;</span>),
                                         }
                                     },
                                 }
@@ -195,34 +195,34 @@
                         }
                     }
                     #(
-                        <span class="kw">if</span> #<span class="ident">field_idents_2</span> {
-                            <span class="kw-2">*</span>#<span class="ident">field_idents</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                        <span class="kw">if </span>#field_idents_2 {
+                            <span class="kw-2">*</span>#field_idents = <span class="prelude-val">None</span>;
                         }
-                    )<span class="op">*</span>
-                    <span class="kw">if</span> <span class="ident">any_pending</span> {
-                        <span class="ident">__futures_crate::task::Poll::Pending</span>
-                    } <span class="kw">else</span> {
-                        <span class="ident">__futures_crate::task::Poll::Ready</span>(<span class="prelude-val">None</span>)
+                    )*
+                    <span class="kw">if </span>any_pending {
+                        __futures_crate::task::Poll::Pending
+                    } <span class="kw">else </span>{
+                        __futures_crate::task::Poll::Ready(<span class="prelude-val">None</span>)
                     }
                 }
 
-                <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
+                <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+                    <span class="kw">let </span><span class="kw-2">mut </span>s = (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
                     #(
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_hint</span>) <span class="op">=</span> <span class="self">self</span>.#<span class="ident">field_indices</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">size_hint</span>()) {
-                            <span class="ident">s</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="ident">new_hint</span>.<span class="number">0</span>;
-                            <span class="comment">// We can change this out for `.zip` when the MSRV is 1.46.0 or higher.</span>
-                            <span class="ident">s</span>.<span class="number">1</span> <span class="op">=</span> <span class="ident">s</span>.<span class="number">1</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">new_hint</span>.<span class="number">1</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">a</span> <span class="op">+</span> <span class="ident">b</span>));
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_hint) = <span class="self">self</span>.#field_indices.as_ref().map(|s| s.size_hint()) {
+                            s.<span class="number">0 </span>+= new_hint.<span class="number">0</span>;
+                            <span class="comment">// We can change this out for `.zip` when the MSRV is 1.46.0 or higher.
+                            </span>s.<span class="number">1 </span>= s.<span class="number">1</span>.and_then(|a| new_hint.<span class="number">1</span>.map(|b| a + b));
                         }
-                    )<span class="op">*</span>
-                    <span class="ident">s</span>
+                    )*
+                    s
                 }
             }
 
-            <span class="ident">StreamSelect</span>(#(<span class="prelude-val">Some</span>(#<span class="ident">args</span>)),<span class="kw-2">*</span>)
+            StreamSelect(#(<span class="prelude-val">Some</span>(#args)),<span class="kw-2">*</span>)
 
         }
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

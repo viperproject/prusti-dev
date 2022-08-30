@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-smt-solver/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_smt_solver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_smt_solver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_smt_solver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-smt-solver/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_smt_solver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_smt_solver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_smt_solver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -117,106 +117,106 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">async_std</span>::{
-    <a class="ident" href="../../async_std/fs/file/struct.File.html">fs::File</a>,
-    <span class="ident">io</span>::{<a class="ident" href="../../async_std/io/buf_read/trait.BufReadExt.html">prelude::BufReadExt</a>, <a class="ident" href="../../async_std/io/buf_reader/struct.BufReader.html">BufReader</a>, <a class="ident" href="../../async_std/io/buf_writer/struct.BufWriter.html">BufWriter</a>, <a class="ident" href="../../async_std/io/write/trait.WriteExt.html">WriteExt</a>},
-    <a class="ident" href="../../async_std/net/tcp/stream/struct.TcpStream.html">net::TcpStream</a>,
-    <a class="ident" href="../../async_lock/mutex/struct.Mutex.html">sync::Mutex</a>,
+</pre><pre class="rust"><code><span class="kw">use </span>async_std::{
+    <a href="../../async_std/fs/file/struct.File.html">fs::File</a>,
+    io::{<a href="../../async_std/io/buf_read/trait.BufReadExt.html">prelude::BufReadExt</a>, <a href="../../async_std/io/buf_reader/struct.BufReader.html">BufReader</a>, <a href="../../async_std/io/buf_writer/struct.BufWriter.html">BufWriter</a>, <a href="../../async_std/io/write/trait.WriteExt.html">WriteExt</a>},
+    <a href="../../async_std/net/tcp/stream/struct.TcpStream.html">net::TcpStream</a>,
+    <a href="../../async_lock/mutex/struct.Mutex.html">sync::Mutex</a>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/env/enum.VarError.html">env::VarError</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">str::FromStr</a>};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/env/enum.VarError.html">env::VarError</a>, <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">str::FromStr</a>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Context</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">quantifier_instantiations_bound_global</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">log_file</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">BufWriter</span><span class="op">&lt;</span><a class="ident" href="../../async_std/fs/file/struct.File.html">File</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">z3_trace_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Context {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) quantifier_instantiations_bound_global: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) log_file: <span class="prelude-ty">Option</span>&lt;Mutex&lt;BufWriter&lt;<a href="../../async_std/fs/file/struct.File.html">File</a>&gt;&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) z3_trace_path: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#10">Context</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> (<span class="ident">log_file_path</span>, <span class="ident">z3_trace_path</span>) <span class="op">=</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">port</span>) <span class="op">=</span> <span class="ident">read_integer</span>(<span class="string">&quot;PRUSTI_SMT_SOLVER_MANAGER_PORT&quot;</span>) {
-                <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">TcpStream::connect</span>((<span class="string">&quot;127.0.0.1&quot;</span>, <span class="ident">port</span>)).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="ident">stream</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">log_file_path</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                <span class="ident">reader</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">log_file_path</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                <span class="ident">log_file_path</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">z3_trace_path</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                <span class="ident">reader</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">z3_trace_path</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                <span class="ident">z3_trace_path</span>.<span class="ident">pop</span>();
-                (<span class="prelude-val">Some</span>(<span class="ident">log_file_path</span>), <span class="prelude-val">Some</span>(<span class="ident">z3_trace_path</span>))
-            } <span class="kw">else</span> {
+<span class="kw">impl </span><a href="../../src/prusti_smt_solver/context.rs.html#10">Context</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>(log_file_path, z3_trace_path) =
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(port) = read_integer(<span class="string">&quot;PRUSTI_SMT_SOLVER_MANAGER_PORT&quot;</span>) {
+                <span class="kw">let </span>stream = TcpStream::connect((<span class="string">&quot;127.0.0.1&quot;</span>, port)).<span class="kw">await</span>.unwrap();
+                <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(stream);
+                <span class="kw">let </span><span class="kw-2">mut </span>log_file_path = String::new();
+                reader.read_line(<span class="kw-2">&amp;mut </span>log_file_path).<span class="kw">await</span>.unwrap();
+                log_file_path.pop();
+                <span class="kw">let </span><span class="kw-2">mut </span>z3_trace_path = String::new();
+                reader.read_line(<span class="kw-2">&amp;mut </span>z3_trace_path).<span class="kw">await</span>.unwrap();
+                z3_trace_path.pop();
+                (<span class="prelude-val">Some</span>(log_file_path), <span class="prelude-val">Some</span>(z3_trace_path))
+            } <span class="kw">else </span>{
                 (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
             };
-        <span class="kw">let</span> <span class="ident">quantifier_instantiations_bound_global</span> <span class="op">=</span>
-            <span class="ident">read_integer</span>(<span class="string">&quot;PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL&quot;</span>);
-        <span class="kw">let</span> <span class="ident">log_file</span> <span class="op">=</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">std::env::var</span>(<span class="string">&quot;PRUSTI_LOG_SMT_INTERACTION&quot;</span>) {
-                <span class="kw">if</span> <span class="ident">value</span> <span class="op">==</span> <span class="string">&quot;true&quot;</span> {
-                    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::create</span>(<span class="ident">log_file_path</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                    <span class="prelude-val">Some</span>(<span class="ident">Mutex::new</span>(<span class="ident">BufWriter::new</span>(<span class="ident">file</span>)))
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                }
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            }
+        <span class="kw">let </span>quantifier_instantiations_bound_global =
+            read_integer(<span class="string">&quot;PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL&quot;</span>);
+        <span class="kw">let </span>log_file = {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(value) = std::env::var(<span class="string">&quot;PRUSTI_LOG_SMT_INTERACTION&quot;</span>) {
+                <span class="kw">if </span>value == <span class="string">&quot;true&quot; </span>{
+                    <span class="kw">let </span>file = File::create(log_file_path.as_ref().unwrap()).<span class="kw">await</span>.unwrap();
+                    <span class="prelude-val">Some</span>(Mutex::new(BufWriter::new(file)))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
         };
 
-        <span class="self">Self</span> {
-            <span class="ident">quantifier_instantiations_bound_global</span>,
-            <span class="ident">log_file</span>,
-            <span class="ident">z3_trace_path</span>,
+        <span class="self">Self </span>{
+            quantifier_instantiations_bound_global,
+            log_file,
+            z3_trace_path,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write_to_log</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>write_to_log(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">line</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">log_file</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">log_file</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">log_file</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
-            <span class="macro">write!</span>(<span class="ident">file</span>, <span class="string">&quot;{}: {}&quot;</span>, <span class="ident">stream</span>, <span class="ident">line</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        stream: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        line: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(log_file) = <span class="kw-2">&amp;</span><span class="self">self</span>.log_file {
+            <span class="kw">let </span><span class="kw-2">mut </span>file = log_file.lock().<span class="kw">await</span>;
+            <span class="macro">write!</span>(file, <span class="string">&quot;{}: {}&quot;</span>, stream, line).<span class="kw">await</span><span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write_number_to_log</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>write_number_to_log(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">number</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">log_file</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">log_file</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">log_file</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
-            <span class="macro">writeln!</span>(<span class="ident">file</span>, <span class="string">&quot;{}: {}&quot;</span>, <span class="ident">stream</span>, <span class="ident">number</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        stream: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        number: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(log_file) = <span class="kw-2">&amp;</span><span class="self">self</span>.log_file {
+            <span class="kw">let </span><span class="kw-2">mut </span>file = log_file.lock().<span class="kw">await</span>;
+            <span class="macro">writeln!</span>(file, <span class="string">&quot;{}: {}&quot;</span>, stream, number).<span class="kw">await</span><span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write_config_to_log</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">write_to_log</span>(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;--------\n-&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">write_to_log</span>(<span class="string">&quot;context&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}\n&quot;</span>, <span class="self">self</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>write_config_to_log(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+        <span class="self">self</span>.write_to_log(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;--------\n-&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.write_to_log(<span class="string">&quot;context&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}\n&quot;</span>, <span class="self">self</span>))
             .<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">write_to_log</span>(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;---------\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.write_to_log(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;---------\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">command</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">response</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">quantifier_instantiations_bound_global</span>) <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">quantifier_instantiations_bound_global</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>check(<span class="kw-2">&amp;</span><span class="self">self</span>, command: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, response: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(quantifier_instantiations_bound_global) =
+            <span class="self">self</span>.quantifier_instantiations_bound_global
         {
-            <span class="kw">if</span> <span class="ident">command</span> <span class="op">==</span> <span class="string">&quot;(get-info :all-statistics)\n&quot;</span> {
-                <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">response</span>.<span class="ident">lines</span>() {
-                    <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot; :quant-instantiations&quot;</span>) {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">words</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">split_whitespace</span>();
-                        <span class="ident">words</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
-                        <span class="kw">let</span> <span class="ident">quant_instantiations</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">words</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+            <span class="kw">if </span>command == <span class="string">&quot;(get-info :all-statistics)\n&quot; </span>{
+                <span class="kw">for </span>line <span class="kw">in </span>response.lines() {
+                    <span class="kw">if </span>line.starts_with(<span class="string">&quot; :quant-instantiations&quot;</span>) {
+                        <span class="kw">let </span><span class="kw-2">mut </span>words = line.split_whitespace();
+                        words.next().unwrap();
+                        <span class="kw">let </span>quant_instantiations: u64 = words.next().unwrap().parse().unwrap();
                         <span class="macro">assert!</span>(
-                            <span class="ident">quant_instantiations</span> <span class="op">&lt;</span> <span class="ident">quantifier_instantiations_bound_global</span>,
+                            quant_instantiations &lt; quantifier_instantiations_bound_global,
                             <span class="string">&quot;Quantifier instantiation bound exceeded: {} &lt; {}&quot;</span>,
-                            <span class="ident">quant_instantiations</span>,
-                            <span class="ident">quantifier_instantiations_bound_global</span>
+                            quant_instantiations,
+                            quantifier_instantiations_bound_global
                         );
                     }
                 }
@@ -226,15 +226,15 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">read_integer</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a>,
+<span class="kw">fn </span>read_integer&lt;T: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>&gt;(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
+<span class="kw">where
+    </span>&lt;T <span class="kw">as </span>FromStr&gt;::Err: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a>,
 {
-    <span class="kw">match</span> <span class="ident">std::env::var</span>(<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#110">name</a>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#115">value</a>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()),
-        <span class="prelude-val">Err</span>(<span class="ident">VarError::NotPresent</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">match </span>std::env::var(<a href="../../src/prusti_smt_solver/context.rs.html#110">name</a>) {
+        <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/prusti_smt_solver/context.rs.html#115">value</a>.parse().unwrap()),
+        <span class="prelude-val">Err</span>(VarError::NotPresent) =&gt; <span class="prelude-val">None</span>,
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Invalid value of the environment variable&quot;</span>),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_smt_solver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_smt_solver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

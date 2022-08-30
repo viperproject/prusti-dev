@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/reply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/reply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -582,238 +582,238 @@
 <span id="582">582</span>
 <span id="583">583</span>
 <span id="584">584</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Reply to requests.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A [`Reply`](./trait.Reply.html) is a type that can be converted into an HTTP</span>
-<span class="doccomment">//! response to be sent to the client. These are typically the successful</span>
-<span class="doccomment">//! counterpart to a [rejection](../reject).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The functions in this module are helpers for quickly creating a reply.</span>
-<span class="doccomment">//! Besides them, you can return a type that implements [`Reply`](./trait.Reply.html). This</span>
-<span class="doccomment">//! could be any of the following:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - [`http::Response&lt;impl Into&lt;hyper::Body&gt;&gt;`](https://docs.rs/http)</span>
-<span class="doccomment">//! - `String`</span>
-<span class="doccomment">//! - `&amp;&#39;static str`</span>
-<span class="doccomment">//! - `http::StatusCode`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Example</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use warp::{Filter, http::Response};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Returns an empty `200 OK` response.</span>
-<span class="doccomment">//! let empty_200 = warp::any().map(warp::reply);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Returns a `200 OK` response with custom header and body.</span>
-<span class="doccomment">//! let custom = warp::any().map(|| {</span>
-<span class="doccomment">//!     Response::builder()</span>
-<span class="doccomment">//!         .header(&quot;my-custom-header&quot;, &quot;some-value&quot;)</span>
-<span class="doccomment">//!         .body(&quot;and a custom body&quot;)</span>
-<span class="doccomment">//! });</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // GET requests return the empty 200, POST return the custom.</span>
-<span class="doccomment">//! let routes = warp::get().and(empty_200)</span>
-<span class="doccomment">//!     .or(warp::post().and(custom));</span>
-<span class="doccomment">//! ```</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Reply to requests.
+//!
+//! A [`Reply`](./trait.Reply.html) is a type that can be converted into an HTTP
+//! response to be sent to the client. These are typically the successful
+//! counterpart to a [rejection](../reject).
+//!
+//! The functions in this module are helpers for quickly creating a reply.
+//! Besides them, you can return a type that implements [`Reply`](./trait.Reply.html). This
+//! could be any of the following:
+//!
+//! - [`http::Response&lt;impl Into&lt;hyper::Body&gt;&gt;`](https://docs.rs/http)
+//! - `String`
+//! - `&amp;&#39;static str`
+//! - `http::StatusCode`
+//!
+//! # Example
+//!
+//! ```
+//! use warp::{Filter, http::Response};
+//!
+//! // Returns an empty `200 OK` response.
+//! let empty_200 = warp::any().map(warp::reply);
+//!
+//! // Returns a `200 OK` response with custom header and body.
+//! let custom = warp::any().map(|| {
+//!     Response::builder()
+//!         .header(&quot;my-custom-header&quot;, &quot;some-value&quot;)
+//!         .body(&quot;and a custom body&quot;)
+//! });
+//!
+//! // GET requests return the empty 200, POST return the custom.
+//! let routes = warp::get().and(empty_200)
+//!     .or(warp::post().and(custom));
+//! ```
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::generic</span>::{<a class="ident" href="../../src/warp/generic.rs.html#12">Either</a>, <a class="ident" href="../../src/warp/generic.rs.html#4">One</a>};
-<span class="kw">use</span> <span class="ident">http::header</span>::{<a class="ident" href="../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a class="ident" href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>, <a class="ident" href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>};
-<span class="kw">use</span> <a class="ident" href="../../http/status/struct.StatusCode.html">http::StatusCode</a>;
-<span class="kw">use</span> <a class="ident" href="../../hyper/body/body/struct.Body.html">hyper::Body</a>;
-<span class="kw">use</span> <a class="ident" href="../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
-<span class="kw">use</span> <a class="ident" href="../../serde_json/index.html">serde_json</a>;
+<span class="kw">use </span><span class="kw">crate</span>::generic::{<a href="../../src/warp/generic.rs.html#12">Either</a>, <a href="../../src/warp/generic.rs.html#4">One</a>};
+<span class="kw">use </span>http::header::{<a href="../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>, <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>};
+<span class="kw">use </span><a href="../../http/status/struct.StatusCode.html">http::StatusCode</a>;
+<span class="kw">use </span><a href="../../hyper/body/body/struct.Body.html">hyper::Body</a>;
+<span class="kw">use </span><a href="../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
+<span class="kw">use </span><a href="../../serde_json/index.html">serde_json</a>;
 
-<span class="comment">// This re-export just looks weird in docs...</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../src/warp/reply.rs.html#525"><span class="self">self</span>::sealed::Reply_</a>;
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::sealed</span>::{<a class="ident" href="../../src/warp/reply.rs.html#541">BoxedReply</a>, <a class="ident" href="../../src/warp/reply.rs.html#535">Internal</a>};
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/warp/filters/mod.rs.html#23"><span class="kw">crate</span>::filters::reply</a> <span class="kw">as</span> <span class="ident">with</span>;
+<span class="comment">// This re-export just looks weird in docs...
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../src/warp/reply.rs.html#525"><span class="self">self</span>::sealed::Reply_</a>;
+<span class="kw">use </span><span class="self">self</span>::sealed::{<a href="../../src/warp/reply.rs.html#541">BoxedReply</a>, <a href="../../src/warp/reply.rs.html#535">Internal</a>};
+<span class="attribute">#[doc(hidden)]
+</span><span class="kw">pub use </span><a href="../../src/warp/filters/mod.rs.html#23"><span class="kw">crate</span>::filters::reply</a> <span class="kw">as </span>with;
 
-<span class="doccomment">/// Response type into which types implementing the `Reply` trait are convertable.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">::http::Response</span><span class="op">&lt;</span><a class="ident" href="../../hyper/body/body/struct.Body.html">Body</a><span class="op">&gt;</span>;
+<span class="doccomment">/// Response type into which types implementing the `Reply` trait are convertable.
+</span><span class="kw">pub type </span>Response = ::http::Response&lt;<a href="../../hyper/body/body/struct.Body.html">Body</a>&gt;;
 
-<span class="doccomment">/// Returns an empty `Reply` with status code `200 OK`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // GET /just-ok returns an empty `200 OK`.</span>
-<span class="doccomment">/// let route = warp::path(&quot;just-ok&quot;)</span>
-<span class="doccomment">///     .map(|| {</span>
-<span class="doccomment">///         println!(&quot;got a /just-ok request!&quot;);</span>
-<span class="doccomment">///         warp::reply()</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reply</span>() -&gt; <span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> {
-    <span class="ident">StatusCode::OK</span>
+<span class="doccomment">/// Returns an empty `Reply` with status code `200 OK`.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// // GET /just-ok returns an empty `200 OK`.
+/// let route = warp::path(&quot;just-ok&quot;)
+///     .map(|| {
+///         println!(&quot;got a /just-ok request!&quot;);
+///         warp::reply()
+///     });
+/// ```
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>reply() -&gt; <span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> {
+    StatusCode::OK
 }
 
-<span class="doccomment">/// Convert the value into a `Reply` with the value encoded as JSON.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The passed value must implement [`Serialize`][ser]. Many</span>
-<span class="doccomment">/// collections do, and custom domain types can have `Serialize` derived.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [ser]: https://serde.rs</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // GET /ids returns a `200 OK` with a JSON array of ids:</span>
-<span class="doccomment">/// // `[1, 3, 7, 13]`</span>
-<span class="doccomment">/// let route = warp::path(&quot;ids&quot;)</span>
-<span class="doccomment">///     .map(|| {</span>
-<span class="doccomment">///         let our_ids = vec![1, 3, 7, 13];</span>
-<span class="doccomment">///         warp::reply::json(&amp;our_ids)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If a type fails to be serialized into JSON, the error is logged at the</span>
-<span class="doccomment">/// `error` level, and the returned `impl Reply` will be an empty</span>
-<span class="doccomment">/// `500 Internal Server Error` response.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">json</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#115">Json</a>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../serde/ser/trait.Serialize.html">Serialize</a>,
+<span class="doccomment">/// Convert the value into a `Reply` with the value encoded as JSON.
+///
+/// The passed value must implement [`Serialize`][ser]. Many
+/// collections do, and custom domain types can have `Serialize` derived.
+///
+/// [ser]: https://serde.rs
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// // GET /ids returns a `200 OK` with a JSON array of ids:
+/// // `[1, 3, 7, 13]`
+/// let route = warp::path(&quot;ids&quot;)
+///     .map(|| {
+///         let our_ids = vec![1, 3, 7, 13];
+///         warp::reply::json(&amp;our_ids)
+///     });
+/// ```
+///
+/// # Note
+///
+/// If a type fails to be serialized into JSON, the error is logged at the
+/// `error` level, and the returned `impl Reply` will be an empty
+/// `500 Internal Server Error` response.
+</span><span class="kw">pub fn </span>json&lt;T&gt;(val: <span class="kw-2">&amp;</span>T) -&gt; <a href="../../src/warp/reply.rs.html#115">Json</a>
+<span class="kw">where
+    </span>T: <a href="../../serde/ser/trait.Serialize.html">Serialize</a>,
 {
-    <a class="ident" href="../../src/warp/reply.rs.html#115">Json</a> {
-        <span class="ident">inner</span>: <span class="ident">serde_json::to_vec</span>(<a class="ident" href="../../src/warp/reply.rs.html#102">val</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;reply::json error: {}&quot;</span>, <span class="ident">err</span>);
+    <a href="../../src/warp/reply.rs.html#115">Json</a> {
+        inner: serde_json::to_vec(<a href="../../src/warp/reply.rs.html#102">val</a>).map_err(|err| {
+            <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;reply::json error: {}&quot;</span>, err);
         }),
     }
 }
 
-<span class="doccomment">/// A JSON formatted reply.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Json</span> {
-    <span class="ident">inner</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, ()<span class="op">&gt;</span>,
+<span class="doccomment">/// A JSON formatted reply.
+</span><span class="attribute">#[allow(missing_debug_implementations)]
+</span><span class="kw">pub struct </span>Json {
+    inner: <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, ()&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <a class="ident" href="../../src/warp/reply.rs.html#115">Json</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/warp/reply.rs.html#121">self</a>.<span class="ident">inner</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">body</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Response::new</span>(<a class="ident" href="../../src/warp/reply.rs.html#123">body</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a class="ident" href="../../src/warp/reply.rs.html#124">res</a>.<span class="ident">headers_mut</span>()
-                    .<span class="ident">insert</span>(<a class="ident" href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;application/json&quot;</span>));
-                <a class="ident" href="../../src/warp/reply.rs.html#124">res</a>
+<span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="../../src/warp/reply.rs.html#115">Json</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">match </span><a class="self" href="../../src/warp/reply.rs.html#121">self</a>.inner {
+            <span class="prelude-val">Ok</span>(body) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>res = Response::new(<a href="../../src/warp/reply.rs.html#123">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <a href="../../src/warp/reply.rs.html#124">res</a>.headers_mut()
+                    .insert(<a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>, HeaderValue::from_static(<span class="string">&quot;application/json&quot;</span>));
+                <a href="../../src/warp/reply.rs.html#124">res</a>
             }
-            <span class="prelude-val">Err</span>(()) =&gt; <span class="ident">StatusCode::INTERNAL_SERVER_ERROR</span>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>(),
+            <span class="prelude-val">Err</span>(()) =&gt; StatusCode::INTERNAL_SERVER_ERROR.<a href="../../src/warp/reply.rs.html#232">into_response</a>(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">ReplyJsonError</span>;
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ReplyJsonError;
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/warp/reply.rs.html#135">ReplyJsonError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/warp/reply.rs.html#138">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;warp::reply::json() failed&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/warp/reply.rs.html#135">ReplyJsonError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/warp/reply.rs.html#138">f</a>.write_str(<span class="string">&quot;warp::reply::json() failed&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../src/warp/reply.rs.html#135">ReplyJsonError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../src/warp/reply.rs.html#135">ReplyJsonError</a> {}
 
-<span class="doccomment">/// Reply with a body and `content-type` set to `text/html; charset=utf-8`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let body = r#&quot;</span>
-<span class="doccomment">/// &lt;html&gt;</span>
-<span class="doccomment">///     &lt;head&gt;</span>
-<span class="doccomment">///         &lt;title&gt;HTML with warp!&lt;/title&gt;</span>
-<span class="doccomment">///     &lt;/head&gt;</span>
-<span class="doccomment">///     &lt;body&gt;</span>
-<span class="doccomment">///         &lt;h1&gt;warp + HTML = &amp;hearts;&lt;/h1&gt;</span>
-<span class="doccomment">///     &lt;/body&gt;</span>
-<span class="doccomment">/// &lt;/html&gt;</span>
-<span class="doccomment">/// &quot;#;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::any()</span>
-<span class="doccomment">///     .map(move || {</span>
-<span class="doccomment">///         warp::reply::html(body)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">html</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">body</span>: <span class="ident">T</span>) -&gt; <span class="ident">Html</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <a class="ident" href="../../hyper/body/body/struct.Body.html">Body</a>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="doccomment">/// Reply with a body and `content-type` set to `text/html; charset=utf-8`.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// let body = r#&quot;
+/// &lt;html&gt;
+///     &lt;head&gt;
+///         &lt;title&gt;HTML with warp!&lt;/title&gt;
+///     &lt;/head&gt;
+///     &lt;body&gt;
+///         &lt;h1&gt;warp + HTML = &amp;hearts;&lt;/h1&gt;
+///     &lt;/body&gt;
+/// &lt;/html&gt;
+/// &quot;#;
+///
+/// let route = warp::any()
+///     .map(move || {
+///         warp::reply::html(body)
+///     });
+/// ```
+</span><span class="kw">pub fn </span>html&lt;T&gt;(body: T) -&gt; Html&lt;T&gt;
+<span class="kw">where
+    </span><a href="../../hyper/body/body/struct.Body.html">Body</a>: From&lt;T&gt;,
+    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <a class="ident" href="../../src/warp/reply.rs.html#178">Html</a> { <a class="ident" href="../../src/warp/reply.rs.html#168">body</a> }
+    <a href="../../src/warp/reply.rs.html#178">Html</a> { <a href="../../src/warp/reply.rs.html#168">body</a> }
 }
 
-<span class="doccomment">/// An HTML reply.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Html</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">body</span>: <span class="ident">T</span>,
+<span class="doccomment">/// An HTML reply.
+</span><span class="attribute">#[allow(missing_debug_implementations)]
+</span><span class="kw">pub struct </span>Html&lt;T&gt; {
+    body: T,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">Html</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <a class="ident" href="../../hyper/body/body/struct.Body.html">Body</a>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>Html&lt;T&gt;
+<span class="kw">where
+    </span><a href="../../hyper/body/body/struct.Body.html">Body</a>: From&lt;T&gt;,
+    T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Response::new</span>(<span class="ident">Body::from</span>(<a class="self" href="../../src/warp/reply.rs.html#188">self</a>.<span class="ident">body</span>));
-        <a class="ident" href="../../src/warp/reply.rs.html#189">res</a>.<span class="ident">headers_mut</span>().<span class="ident">insert</span>(
-            <a class="ident" href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
-            <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;text/html; charset=utf-8&quot;</span>),
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>res = Response::new(Body::from(<a class="self" href="../../src/warp/reply.rs.html#188">self</a>.body));
+        <a href="../../src/warp/reply.rs.html#189">res</a>.headers_mut().insert(
+            <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+            HeaderValue::from_static(<span class="string">&quot;text/html; charset=utf-8&quot;</span>),
         );
-        <a class="ident" href="../../src/warp/reply.rs.html#189">res</a>
+        <a href="../../src/warp/reply.rs.html#189">res</a>
     }
 }
 
-<span class="doccomment">/// Types that can be converted into a `Response`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This trait is implemented for the following:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - `http::StatusCode`</span>
-<span class="doccomment">/// - `http::Response&lt;impl Into&lt;hyper::Body&gt;&gt;`</span>
-<span class="doccomment">/// - `String`</span>
-<span class="doccomment">/// - `&amp;&#39;static str`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use warp::{Filter, http::Response};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// struct Message {</span>
-<span class="doccomment">///     msg: String</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl warp::Reply for Message {</span>
-<span class="doccomment">///     fn into_response(self) -&gt; warp::reply::Response {</span>
-<span class="doccomment">///         Response::new(format!(&quot;message: {}&quot;, self.msg).into())</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn handler() -&gt; Message {</span>
-<span class="doccomment">///     Message { msg: &quot;Hello&quot;.to_string() }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::any().map(handler);</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Reply</span>: <a class="ident" href="../../src/warp/reply.rs.html#541">BoxedReply</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
-    <span class="doccomment">/// Converts the given value into a [`Response`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Response`]: type.Response.html</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a>;
+<span class="doccomment">/// Types that can be converted into a `Response`.
+///
+/// This trait is implemented for the following:
+///
+/// - `http::StatusCode`
+/// - `http::Response&lt;impl Into&lt;hyper::Body&gt;&gt;`
+/// - `String`
+/// - `&amp;&#39;static str`
+///
+/// # Example
+///
+/// ```rust
+/// use warp::{Filter, http::Response};
+///
+/// struct Message {
+///     msg: String
+/// }
+///
+/// impl warp::Reply for Message {
+///     fn into_response(self) -&gt; warp::reply::Response {
+///         Response::new(format!(&quot;message: {}&quot;, self.msg).into())
+///     }
+/// }
+///
+/// fn handler() -&gt; Message {
+///     Message { msg: &quot;Hello&quot;.to_string() }
+/// }
+///
+/// let route = warp::any().map(handler);
+/// ```
+</span><span class="kw">pub trait </span>Reply: <a href="../../src/warp/reply.rs.html#541">BoxedReply</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
+    <span class="doccomment">/// Converts the given value into a [`Response`].
+    ///
+    /// [`Response`]: type.Response.html
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a>;
 
     <span class="comment">/*
     TODO: Currently unsure about having trait methods here, as it
@@ -871,300 +871,300 @@
             }
         }
     }
-    */</span>
-}
+    */
+</span>}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <a class="self" href="../../src/warp/reply.rs.html#294">self</a>.<a class="ident" href="../../src/warp/reply.rs.html#542">boxed_into_response</a>(<a class="ident" href="../../src/warp/reply.rs.html#535">Internal</a>)
+<span class="kw">impl</span>&lt;T: <a href="../../src/warp/reply.rs.html#228">Reply</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>Box&lt;T&gt; {
+    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <a class="self" href="../../src/warp/reply.rs.html#294">self</a>.<a href="../../src/warp/reply.rs.html#542">boxed_into_response</a>(<a href="../../src/warp/reply.rs.html#535">Internal</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">_assert_object_safe</span>() {
-    <span class="kw">fn</span> <span class="ident">_assert</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a>) {}
+<span class="kw">fn </span>_assert_object_safe() {
+    <span class="kw">fn </span>_assert(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="../../src/warp/reply.rs.html#228">Reply</a>) {}
 }
 
-<span class="doccomment">/// Wrap an `impl Reply` to change its `StatusCode`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::any()</span>
-<span class="doccomment">///     .map(warp::reply)</span>
-<span class="doccomment">///     .map(|reply| {</span>
-<span class="doccomment">///         warp::reply::with_status(reply, warp::http::StatusCode::CREATED)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_status</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a><span class="op">&gt;</span>(<span class="ident">reply</span>: <span class="ident">T</span>, <span class="ident">status</span>: <a class="ident" href="../../http/status/struct.StatusCode.html">StatusCode</a>) -&gt; <span class="ident">WithStatus</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/warp/reply.rs.html#324">WithStatus</a> { <a class="ident" href="../../src/warp/reply.rs.html#316">reply</a>, <a class="ident" href="../../src/warp/reply.rs.html#316">status</a> }
+<span class="doccomment">/// Wrap an `impl Reply` to change its `StatusCode`.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// let route = warp::any()
+///     .map(warp::reply)
+///     .map(|reply| {
+///         warp::reply::with_status(reply, warp::http::StatusCode::CREATED)
+///     });
+/// ```
+</span><span class="kw">pub fn </span>with_status&lt;T: <a href="../../src/warp/reply.rs.html#228">Reply</a>&gt;(reply: T, status: <a href="../../http/status/struct.StatusCode.html">StatusCode</a>) -&gt; WithStatus&lt;T&gt; {
+    <a href="../../src/warp/reply.rs.html#324">WithStatus</a> { <a href="../../src/warp/reply.rs.html#316">reply</a>, <a href="../../src/warp/reply.rs.html#316">status</a> }
 }
 
-<span class="doccomment">/// Wrap an `impl Reply` to change its `StatusCode`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returned by `warp::reply::with_status`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithStatus</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">reply</span>: <span class="ident">T</span>,
-    <span class="ident">status</span>: <a class="ident" href="../../http/status/struct.StatusCode.html">StatusCode</a>,
+<span class="doccomment">/// Wrap an `impl Reply` to change its `StatusCode`.
+///
+/// Returned by `warp::reply::with_status`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>WithStatus&lt;T&gt; {
+    reply: T,
+    status: <a href="../../http/status/struct.StatusCode.html">StatusCode</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">WithStatus</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../src/warp/reply.rs.html#330">self</a>.<span class="ident">reply</span>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>();
-        <span class="kw-2">*</span><a class="ident" href="../../src/warp/reply.rs.html#331">res</a>.<span class="ident">status_mut</span>() <span class="op">=</span> <a class="self" href="../../src/warp/reply.rs.html#330">self</a>.<span class="ident">status</span>;
-        <a class="ident" href="../../src/warp/reply.rs.html#331">res</a>
+<span class="kw">impl</span>&lt;T: <a href="../../src/warp/reply.rs.html#228">Reply</a>&gt; <a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>WithStatus&lt;T&gt; {
+    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>res = <a class="self" href="../../src/warp/reply.rs.html#330">self</a>.reply.<a href="../../src/warp/reply.rs.html#232">into_response</a>();
+        <span class="kw-2">*</span><a href="../../src/warp/reply.rs.html#331">res</a>.status_mut() = <a class="self" href="../../src/warp/reply.rs.html#330">self</a>.status;
+        <a href="../../src/warp/reply.rs.html#331">res</a>
     }
 }
 
-<span class="doccomment">/// Wrap an `impl Reply` to add a header when rendering.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::any()</span>
-<span class="doccomment">///     .map(warp::reply)</span>
-<span class="doccomment">///     .map(|reply| {</span>
-<span class="doccomment">///         warp::reply::with_header(reply, &quot;server&quot;, &quot;warp&quot;)</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_header</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">reply</span>: <span class="ident">T</span>, <span class="ident">name</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <span class="ident">WithHeader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <a class="ident" href="../../http/header/name/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><a class="ident" href="../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
-    <a class="ident" href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><a class="ident" href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Wrap an `impl Reply` to add a header when rendering.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// let route = warp::any()
+///     .map(warp::reply)
+///     .map(|reply| {
+///         warp::reply::with_header(reply, &quot;server&quot;, &quot;warp&quot;)
+///     });
+/// ```
+</span><span class="kw">pub fn </span>with_header&lt;T: <a href="../../src/warp/reply.rs.html#228">Reply</a>, K, V&gt;(reply: T, name: K, value: V) -&gt; WithHeader&lt;T&gt;
+<span class="kw">where
+    </span><a href="../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
+    &lt;<a href="../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../http/error/struct.Error.html">http::Error</a>&gt;,
+    <a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
+    &lt;<a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../http/error/struct.Error.html">http::Error</a>&gt;,
 {
-    <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="kw">match</span> <span class="op">&lt;</span><a class="ident" href="../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<a class="ident" href="../../src/warp/reply.rs.html#350">name</a>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">name</span>) =&gt; <span class="kw">match</span> <span class="op">&lt;</span><a class="ident" href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<a class="ident" href="../../src/warp/reply.rs.html#350">value</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../src/warp/reply.rs.html#358">name</a>, <a class="ident" href="../../src/warp/reply.rs.html#359">value</a>)),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <a class="ident" href="../../src/warp/reply.rs.html#360">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;with_header value error: {}&quot;</span>, <span class="ident">err</span>);
-                <span class="prelude-val">None</span>
-            }
+    <span class="kw">let </span>header = <span class="kw">match </span>&lt;<a href="../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(<a href="../../src/warp/reply.rs.html#350">name</a>) {
+        <span class="prelude-val">Ok</span>(name) =&gt; <span class="kw">match </span>&lt;<a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(<a href="../../src/warp/reply.rs.html#350">value</a>) {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Some</span>((<a href="../../src/warp/reply.rs.html#358">name</a>, <a href="../../src/warp/reply.rs.html#359">value</a>)),
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="kw">let </span>err = <a href="../../src/warp/reply.rs.html#360">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;with_header value error: {}&quot;</span>, err);
+                <span class="prelude-val">None
+            </span>}
         },
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <a class="ident" href="../../src/warp/reply.rs.html#366">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-            <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;with_header name error: {}&quot;</span>, <span class="ident">err</span>);
-            <span class="prelude-val">None</span>
-        }
+        <span class="prelude-val">Err</span>(err) =&gt; {
+            <span class="kw">let </span>err = <a href="../../src/warp/reply.rs.html#366">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;with_header name error: {}&quot;</span>, err);
+            <span class="prelude-val">None
+        </span>}
     };
 
-    <a class="ident" href="../../src/warp/reply.rs.html#380">WithHeader</a> { <a class="ident" href="../../src/warp/reply.rs.html#357">header</a>, <a class="ident" href="../../src/warp/reply.rs.html#350">reply</a> }
+    <a href="../../src/warp/reply.rs.html#380">WithHeader</a> { <a href="../../src/warp/reply.rs.html#357">header</a>, <a href="../../src/warp/reply.rs.html#350">reply</a> }
 }
 
-<span class="doccomment">/// Wraps an `impl Reply` and adds a header when rendering.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returned by `warp::reply::with_header`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithHeader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">header</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a class="ident" href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>)<span class="op">&gt;</span>,
-    <span class="ident">reply</span>: <span class="ident">T</span>,
+<span class="doccomment">/// Wraps an `impl Reply` and adds a header when rendering.
+///
+/// Returned by `warp::reply::with_header`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>WithHeader&lt;T&gt; {
+    header: <span class="prelude-ty">Option</span>&lt;(<a href="../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../http/header/value/struct.HeaderValue.html">HeaderValue</a>)&gt;,
+    reply: T,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">WithHeader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../src/warp/reply.rs.html#386">self</a>.<span class="ident">reply</span>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">name</span>, <span class="ident">value</span>)) <span class="op">=</span> <a class="self" href="../../src/warp/reply.rs.html#386">self</a>.<span class="ident">header</span> {
-            <a class="ident" href="../../src/warp/reply.rs.html#387">res</a>.<span class="ident">headers_mut</span>().<span class="ident">insert</span>(<a class="ident" href="../../src/warp/reply.rs.html#388">name</a>, <a class="ident" href="../../src/warp/reply.rs.html#388">value</a>);
+<span class="kw">impl</span>&lt;T: <a href="../../src/warp/reply.rs.html#228">Reply</a>&gt; <a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>WithHeader&lt;T&gt; {
+    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>res = <a class="self" href="../../src/warp/reply.rs.html#386">self</a>.reply.<a href="../../src/warp/reply.rs.html#232">into_response</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((name, value)) = <a class="self" href="../../src/warp/reply.rs.html#386">self</a>.header {
+            <a href="../../src/warp/reply.rs.html#387">res</a>.headers_mut().insert(<a href="../../src/warp/reply.rs.html#388">name</a>, <a href="../../src/warp/reply.rs.html#388">value</a>);
         }
-        <a class="ident" href="../../src/warp/reply.rs.html#387">res</a>
+        <a href="../../src/warp/reply.rs.html#387">res</a>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">::http::Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <a class="ident" href="../../hyper/body/body/struct.Body.html">Body</a>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>::http::Response&lt;T&gt;
+<span class="kw">where
+    </span><a href="../../hyper/body/body/struct.Body.html">Body</a>: From&lt;T&gt;,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <a class="self" href="../../src/warp/reply.rs.html#400">self</a>.<span class="ident">map</span>(<span class="ident">Body::from</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <a class="self" href="../../src/warp/reply.rs.html#400">self</a>.map(Body::from)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <a class="ident" href="../../http/status/struct.StatusCode.html">::http::StatusCode</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Response::default</span>();
-        <span class="kw-2">*</span><a class="ident" href="../../src/warp/reply.rs.html#408">res</a>.<span class="ident">status_mut</span>() <span class="op">=</span> <a class="self" href="../../src/warp/reply.rs.html#407">self</a>;
-        <a class="ident" href="../../src/warp/reply.rs.html#408">res</a>
+<span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="../../http/status/struct.StatusCode.html">::http::StatusCode</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>res = Response::default();
+        <span class="kw-2">*</span><a href="../../src/warp/reply.rs.html#408">res</a>.status_mut() = <a class="self" href="../../src/warp/reply.rs.html#407">self</a>;
+        <a href="../../src/warp/reply.rs.html#408">res</a>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../http/error/struct.Error.html">::http::Error</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;T, <a href="../../http/error/struct.Error.html">::http::Error</a>&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/warp/reply.rs.html#228">Reply</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/warp/reply.rs.html#419">self</a> {
-            <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/warp/reply.rs.html#421">t</a>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>(),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;reply error: {:?}&quot;</span>, <span class="ident">e</span>);
-                <span class="ident">StatusCode::INTERNAL_SERVER_ERROR</span>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">match </span><span class="self"><a href="../../src/warp/reply.rs.html#419">self</a> </span>{
+            <span class="prelude-val">Ok</span>(t) =&gt; <a href="../../src/warp/reply.rs.html#421">t</a>.<a href="../../src/warp/reply.rs.html#232">into_response</a>(),
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a class="macro" href="../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;reply error: {:?}&quot;</span>, e);
+                StatusCode::INTERNAL_SERVER_ERROR.<a href="../../src/warp/reply.rs.html#232">into_response</a>()
             }
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">text_plain</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../hyper/body/body/struct.Body.html">Body</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">body</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">::http::Response::new</span>(<a class="ident" href="../../src/warp/reply.rs.html#430">body</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-    <a class="ident" href="../../src/warp/reply.rs.html#431">response</a>.<span class="ident">headers_mut</span>().<span class="ident">insert</span>(
-        <a class="ident" href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
-        <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;text/plain; charset=utf-8&quot;</span>),
+<span class="kw">fn </span>text_plain&lt;T: Into&lt;<a href="../../hyper/body/body/struct.Body.html">Body</a>&gt;&gt;(body: T) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>response = ::http::Response::new(<a href="../../src/warp/reply.rs.html#430">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+    <a href="../../src/warp/reply.rs.html#431">response</a>.headers_mut().insert(
+        <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+        HeaderValue::from_static(<span class="string">&quot;text/plain; charset=utf-8&quot;</span>),
     );
-    <a class="ident" href="../../src/warp/reply.rs.html#431">response</a>
+    <a href="../../src/warp/reply.rs.html#431">response</a>
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <a class="ident" href="../../src/warp/reply.rs.html#430">text_plain</a>(<a class="self" href="../../src/warp/reply.rs.html#441">self</a>)
+<span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <a href="../../src/warp/reply.rs.html#430">text_plain</a>(<a class="self" href="../../src/warp/reply.rs.html#441">self</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="ident">::http::Response::builder</span>()
-            .<span class="ident">header</span>(
-                <a class="ident" href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
-                <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;application/octet-stream&quot;</span>),
+<span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        ::http::Response::builder()
+            .header(
+                <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+                HeaderValue::from_static(<span class="string">&quot;application/octet-stream&quot;</span>),
             )
-            .<span class="ident">body</span>(<span class="ident">Body::from</span>(<a class="self" href="../../src/warp/reply.rs.html#448">self</a>))
-            .<span class="ident">unwrap</span>()
+            .body(Body::from(<a class="self" href="../../src/warp/reply.rs.html#448">self</a>))
+            .unwrap()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <a class="ident" href="../../src/warp/reply.rs.html#430">text_plain</a>(<a class="self" href="../../src/warp/reply.rs.html#461">self</a>)
+<span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <a href="../../src/warp/reply.rs.html#430">text_plain</a>(<a class="self" href="../../src/warp/reply.rs.html#461">self</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/warp/reply.rs.html#468">self</a> {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/warp/reply.rs.html#470">s</a>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>(),
-            <span class="ident">Cow::Owned</span>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/warp/reply.rs.html#471">s</a>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>(),
+<span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;static</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">match </span><span class="self"><a href="../../src/warp/reply.rs.html#468">self</a> </span>{
+            Cow::Borrowed(s) =&gt; <a href="../../src/warp/reply.rs.html#470">s</a>.<a href="../../src/warp/reply.rs.html#232">into_response</a>(),
+            Cow::Owned(s) =&gt; <a href="../../src/warp/reply.rs.html#471">s</a>.<a href="../../src/warp/reply.rs.html#232">into_response</a>(),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="ident">::http::Response::builder</span>()
-            .<span class="ident">header</span>(
-                <a class="ident" href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
-                <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;application/octet-stream&quot;</span>),
+<span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        ::http::Response::builder()
+            .header(
+                <a href="../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+                HeaderValue::from_static(<span class="string">&quot;application/octet-stream&quot;</span>),
             )
-            .<span class="ident">body</span>(<span class="ident">Body::from</span>(<a class="self" href="../../src/warp/reply.rs.html#478">self</a>))
-            .<span class="ident">unwrap</span>()
+            .body(Body::from(<a class="self" href="../../src/warp/reply.rs.html#478">self</a>))
+            .unwrap()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a>,
-    <span class="ident">U</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a>,
+<span class="kw">impl</span>&lt;T, U&gt; <a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>Either&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/warp/reply.rs.html#228">Reply</a>,
+    U: <a href="../../src/warp/reply.rs.html#228">Reply</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/warp/reply.rs.html#495">self</a> {
-            <a class="ident" href="../../src/warp/generic.rs.html#13">Either::A</a>(<span class="ident">a</span>) =&gt; <a class="ident" href="../../src/warp/reply.rs.html#497">a</a>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>(),
-            <a class="ident" href="../../src/warp/generic.rs.html#14">Either::B</a>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../src/warp/reply.rs.html#498">b</a>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>(),
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">match </span><span class="self"><a href="../../src/warp/reply.rs.html#495">self</a> </span>{
+            <a href="../../src/warp/generic.rs.html#13">Either::A</a>(a) =&gt; <a href="../../src/warp/reply.rs.html#497">a</a>.<a href="../../src/warp/reply.rs.html#232">into_response</a>(),
+            <a href="../../src/warp/generic.rs.html#14">Either::B</a>(b) =&gt; <a href="../../src/warp/reply.rs.html#498">b</a>.<a href="../../src/warp/reply.rs.html#232">into_response</a>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <span class="ident">One</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span>One&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../src/warp/reply.rs.html#228">Reply</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <a class="self" href="../../src/warp/reply.rs.html#508">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <a class="self" href="../../src/warp/reply.rs.html#508">self</a>.<span class="number">0</span>.<a href="../../src/warp/reply.rs.html#232">into_response</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a> {
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/warp/reply.rs.html#515">self</a> {}
+<span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html">std::convert::Infallible</a> {
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+        <span class="kw">match </span><span class="self"><a href="../../src/warp/reply.rs.html#515">self</a> </span>{}
     }
 }
 
-<span class="kw">mod</span> <span class="ident">sealed</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a>, <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a>};
+<span class="kw">mod </span>sealed {
+    <span class="kw">use super</span>::{<a href="../../src/warp/reply.rs.html#228">Reply</a>, <a href="../../src/warp/reply.rs.html#55">Response</a>};
 
-    <span class="comment">// An opaque type to return `impl Reply` from trait methods.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Reply_</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a>);
+    <span class="comment">// An opaque type to return `impl Reply` from trait methods.
+    </span><span class="attribute">#[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>Reply_(<span class="kw">pub</span>(<span class="kw">crate</span>) <a href="../../src/warp/reply.rs.html#55">Response</a>);
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for</span> <a class="ident" href="../../src/warp/reply.rs.html#525">Reply_</a> {
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-            <a class="self" href="../../src/warp/reply.rs.html#529">self</a>.<span class="number">0</span>
+    <span class="kw">impl </span><a href="../../src/warp/reply.rs.html#228">Reply</a> <span class="kw">for </span><a href="../../src/warp/reply.rs.html#525">Reply_</a> {
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+            <a class="self" href="../../src/warp/reply.rs.html#529">self</a>.<span class="number">0
+        </span>}
+    }
+
+    <span class="attribute">#[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>Internal;
+
+    <span class="comment">// Implemented for all types that implement `Reply`.
+    //
+    // A user doesn&#39;t need to worry about this, it&#39;s just trait
+    // hackery to get `Box&lt;dyn Reply&gt;` working.
+    </span><span class="kw">pub trait </span>BoxedReply {
+        <span class="kw">fn </span>boxed_into_response(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, internal: <a href="../../src/warp/reply.rs.html#535">Internal</a>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a>;
+    }
+
+    <span class="kw">impl</span>&lt;T: <a href="../../src/warp/reply.rs.html#228">Reply</a>&gt; <a href="../../src/warp/reply.rs.html#541">BoxedReply</a> <span class="kw">for </span>T {
+        <span class="kw">fn </span>boxed_into_response(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <a href="../../src/warp/reply.rs.html#535">Internal</a>) -&gt; <a href="../../src/warp/reply.rs.html#55">Response</a> {
+            (<span class="kw-2">*</span><a class="self" href="../../src/warp/reply.rs.html#546">self</a>).<a href="../../src/warp/reply.rs.html#232">into_response</a>()
         }
     }
-
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Internal</span>;
-
-    <span class="comment">// Implemented for all types that implement `Reply`.</span>
-    <span class="comment">//</span>
-    <span class="comment">// A user doesn&#39;t need to worry about this, it&#39;s just trait</span>
-    <span class="comment">// hackery to get `Box&lt;dyn Reply&gt;` working.</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BoxedReply</span> {
-        <span class="kw">fn</span> <span class="ident">boxed_into_response</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">internal</span>: <a class="ident" href="../../src/warp/reply.rs.html#535">Internal</a>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a>;
-    }
-
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/warp/reply.rs.html#228">Reply</a><span class="op">&gt;</span> <a class="ident" href="../../src/warp/reply.rs.html#541">BoxedReply</a> <span class="kw">for</span> <span class="ident">T</span> {
-        <span class="kw">fn</span> <span class="ident">boxed_into_response</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <a class="ident" href="../../src/warp/reply.rs.html#535">Internal</a>) -&gt; <a class="ident" href="../../src/warp/reply.rs.html#55">Response</a> {
-            (<span class="kw-2">*</span><a class="self" href="../../src/warp/reply.rs.html#546">self</a>).<a class="ident" href="../../src/warp/reply.rs.html#232">into_response</a>()
-        }
-    }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::collections::HashMap;
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">json_serde_error</span>() {
-        <span class="comment">// a HashMap&lt;Vec, _&gt; cannot be serialized to JSON</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-        <span class="ident">map</span>.<span class="ident">insert</span>(<span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>], <span class="number">45</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>json_serde_error() {
+        <span class="comment">// a HashMap&lt;Vec, _&gt; cannot be serialized to JSON
+        </span><span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
+        map.insert(<span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>], <span class="number">45</span>);
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">json</span>(<span class="kw-2">&amp;</span><span class="ident">map</span>).<span class="ident">into_response</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">status</span>(), <span class="number">500</span>);
+        <span class="kw">let </span>res = json(<span class="kw-2">&amp;</span>map).into_response();
+        <span class="macro">assert_eq!</span>(res.status(), <span class="number">500</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">response_builder_error</span>() {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">::http::Response::builder</span>()
-            .<span class="ident">status</span>(<span class="number">1337</span>)
-            .<span class="ident">body</span>(<span class="string">&quot;woops&quot;</span>)
-            .<span class="ident">into_response</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>response_builder_error() {
+        <span class="kw">let </span>res = ::http::Response::builder()
+            .status(<span class="number">1337</span>)
+            .body(<span class="string">&quot;woops&quot;</span>)
+            .into_response();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">status</span>(), <span class="number">500</span>);
+        <span class="macro">assert_eq!</span>(res.status(), <span class="number">500</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">boxed_reply</span>() {
-        <span class="kw">let</span> <span class="ident">r</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Reply</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">reply</span>());
-        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">into_response</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="number">200</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>boxed_reply() {
+        <span class="kw">let </span>r: Box&lt;<span class="kw">dyn </span>Reply&gt; = Box::new(reply());
+        <span class="kw">let </span>resp = r.into_response();
+        <span class="macro">assert_eq!</span>(resp.status(), <span class="number">200</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

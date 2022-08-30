@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/body/length.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/body/length.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -121,128 +121,128 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DecodedLength</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<span class="attribute">#[derive(Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DecodedLength(<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/hyper/body/length.rs.html#8">len</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">len</span><span class="op">|</span> {
-            <span class="comment">// If the length is u64::MAX, oh well, just reported chunked.</span>
-            <span class="ident"><span class="self">Self</span>::checked_new</span>(<a class="ident" href="../../../src/hyper/body/length.rs.html#9">len</a>).<span class="ident">ok</span>()
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+</span><span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> {
+    <span class="kw">fn </span>from(len: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/hyper/body/length.rs.html#8">len</a>.and_then(|len| {
+            <span class="comment">// If the length is u64::MAX, oh well, just reported chunked.
+            </span><span class="self">Self</span>::checked_new(<a href="../../../src/hyper/body/length.rs.html#9">len</a>).ok()
         })
-        .<span class="ident">unwrap_or</span>(<span class="ident">DecodedLength::CHUNKED</span>)
+        .unwrap_or(DecodedLength::CHUNKED)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">const</span> <span class="ident">MAX_LEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">=</span> <span class="ident">std::u64::MAX</span> <span class="op">-</span> <span class="number">2</span>;
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>, test))]
+</span><span class="kw">const </span>MAX_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = std::u64::MAX - <span class="number">2</span>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">CLOSE_DELIMITED</span>: <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="ident">::std::u64::MAX</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">CHUNKED</span>: <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="ident">::std::u64::MAX</span> <span class="op">-</span> <span class="number">1</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">ZERO</span>: <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="number">0</span>);
+<span class="kw">impl </span><a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CLOSE_DELIMITED: <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> = <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(::std::u64::MAX);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CHUNKED: <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> = <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(::std::u64::MAX - <span class="number">1</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ZERO: <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> = <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="number">0</span>);
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">len</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-        <span class="macro">debug_assert!</span>(<span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_LEN</span>);
-        <span class="ident">DecodedLength</span>(<span class="ident">len</span>)
+    <span class="attribute">#[cfg(test)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(len: u64) -&gt; <span class="self">Self </span>{
+        <span class="macro">debug_assert!</span>(len &lt;= MAX_LEN);
+        DecodedLength(len)
     }
 
-    <span class="doccomment">/// Takes the length as a content-length without other checks.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Should only be called if previously confirmed this isn&#39;t</span>
-    <span class="doccomment">/// CLOSE_DELIMITED or CHUNKED.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">danger_len</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="number">0</span> <span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::CHUNKED</span>.<span class="number">0</span>);
-        <a class="self" href="../../../src/hyper/body/length.rs.html#37">self</a>.<span class="number">0</span>
-    }
+    <span class="doccomment">/// Takes the length as a content-length without other checks.
+    ///
+    /// Should only be called if previously confirmed this isn&#39;t
+    /// CLOSE_DELIMITED or CHUNKED.
+    </span><span class="attribute">#[inline]
+    #[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>danger_len(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="number">0 </span>&lt; <span class="self">Self</span>::CHUNKED.<span class="number">0</span>);
+        <a class="self" href="../../../src/hyper/body/length.rs.html#37">self</a>.<span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Converts to an Option&lt;u64&gt; representing a Known or Unknown length.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_opt</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/body/length.rs.html#43">self</a> {
-            <span class="ident">DecodedLength::CHUNKED</span> <span class="op">|</span> <span class="ident">DecodedLength::CLOSE_DELIMITED</span> =&gt; <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="ident">known</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/body/length.rs.html#46">known</a>),
+    <span class="doccomment">/// Converts to an Option&lt;u64&gt; representing a Known or Unknown length.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_opt(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../src/hyper/body/length.rs.html#43">self</a> </span>{
+            DecodedLength::CHUNKED | DecodedLength::CLOSE_DELIMITED =&gt; <span class="prelude-val">None</span>,
+            <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(known) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/hyper/body/length.rs.html#46">known</a>),
         }
     }
 
-    <span class="doccomment">/// Checks the `u64` is within the maximum allowed for content-length.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">checked_new</span>(<span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/hyper/error.rs.html#66"><span class="kw">crate</span>::error::Parse</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../tracing/macro.warn.html">tracing::warn</a>;
+    <span class="doccomment">/// Checks the `u64` is within the maximum allowed for content-length.
+    </span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>checked_new(len: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <a href="../../../src/hyper/error.rs.html#66"><span class="kw">crate</span>::error::Parse</a>&gt; {
+        <span class="kw">use </span><a href="../../../tracing/macro.warn.html">tracing::warn</a>;
 
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_LEN</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<a class="ident" href="../../../src/hyper/body/length.rs.html#52">len</a>))
-        } <span class="kw">else</span> {
-            <a class="macro" href="../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;content-length bigger than maximum: {} &gt; {}&quot;</span>, <span class="ident">len</span>, <span class="ident">MAX_LEN</span>);
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/error.rs.html#75"><span class="kw">crate</span>::error::Parse::TooLarge</a>)
+        <span class="kw">if </span>len &lt;= MAX_LEN {
+            <span class="prelude-val">Ok</span>(<a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<a href="../../../src/hyper/body/length.rs.html#52">len</a>))
+        } <span class="kw">else </span>{
+            <a class="macro" href="../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;content-length bigger than maximum: {} &gt; {}&quot;</span>, len, MAX_LEN);
+            <span class="prelude-val">Err</span>(<a href="../../../src/hyper/error.rs.html#75"><span class="kw">crate</span>::error::Parse::TooLarge</a>)
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sub_if</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/hyper/body/length.rs.html#63">self</a> {
-            <span class="ident">DecodedLength::CHUNKED</span> <span class="op">|</span> <span class="ident">DecodedLength::CLOSE_DELIMITED</span> =&gt; (),
-            <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">known</span>) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/hyper/body/length.rs.html#66">known</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#63">amt</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/hyper/body/length.rs.html#63">self</a> </span>{
+            DecodedLength::CHUNKED | DecodedLength::CLOSE_DELIMITED =&gt; (),
+            <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="kw-2">ref mut </span>known) =&gt; {
+                <span class="kw-2">*</span><a href="../../../src/hyper/body/length.rs.html#66">known</a> -= <a href="../../../src/hyper/body/length.rs.html#63">amt</a>;
             }
         }
     }
 
-    <span class="doccomment">/// Returns whether this represents an exact length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This includes 0, which of course is an exact known length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It would return false if &quot;chunked&quot; or otherwise size-unknown.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_exact</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/hyper/body/length.rs.html#78">self</a>.<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#18">MAX_LEN</a>
+    <span class="doccomment">/// Returns whether this represents an exact length.
+    ///
+    /// This includes 0, which of course is an exact known length.
+    ///
+    /// It would return false if &quot;chunked&quot; or otherwise size-unknown.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_exact(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/hyper/body/length.rs.html#78">self</a>.<span class="number">0 </span>&lt;= <a href="../../../src/hyper/body/length.rs.html#18">MAX_LEN</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/hyper/body/length.rs.html#84">self</a> {
-            <span class="ident">DecodedLength::CLOSE_DELIMITED</span> =&gt; <a class="ident" href="../../../src/hyper/body/length.rs.html#84">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;CLOSE_DELIMITED&quot;</span>),
-            <span class="ident">DecodedLength::CHUNKED</span> =&gt; <a class="ident" href="../../../src/hyper/body/length.rs.html#84">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;CHUNKED&quot;</span>),
-            <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="ident">n</span>) =&gt; <a class="ident" href="../../../src/hyper/body/length.rs.html#84">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;DecodedLength&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/body/length.rs.html#88">n</a>).<span class="ident">finish</span>(),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/hyper/body/length.rs.html#84">self</a> </span>{
+            DecodedLength::CLOSE_DELIMITED =&gt; <a href="../../../src/hyper/body/length.rs.html#84">f</a>.write_str(<span class="string">&quot;CLOSE_DELIMITED&quot;</span>),
+            DecodedLength::CHUNKED =&gt; <a href="../../../src/hyper/body/length.rs.html#84">f</a>.write_str(<span class="string">&quot;CHUNKED&quot;</span>),
+            <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(n) =&gt; <a href="../../../src/hyper/body/length.rs.html#84">f</a>.debug_tuple(<span class="string">&quot;DecodedLength&quot;</span>).field(<span class="kw-2">&amp;</span><a href="../../../src/hyper/body/length.rs.html#88">n</a>).finish(),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/hyper/body/length.rs.html#94">self</a> {
-            <span class="ident">DecodedLength::CLOSE_DELIMITED</span> =&gt; <a class="ident" href="../../../src/hyper/body/length.rs.html#94">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;close-delimited&quot;</span>),
-            <span class="ident">DecodedLength::CHUNKED</span> =&gt; <a class="ident" href="../../../src/hyper/body/length.rs.html#94">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;chunked encoding&quot;</span>),
-            <span class="ident">DecodedLength::ZERO</span> =&gt; <a class="ident" href="../../../src/hyper/body/length.rs.html#94">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;empty&quot;</span>),
-            <a class="ident" href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(<span class="ident">n</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/hyper/body/length.rs.html#94">f</a>, <span class="string">&quot;content-length ({} bytes)&quot;</span>, <span class="ident">n</span>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/hyper/body/length.rs.html#94">self</a> </span>{
+            DecodedLength::CLOSE_DELIMITED =&gt; <a href="../../../src/hyper/body/length.rs.html#94">f</a>.write_str(<span class="string">&quot;close-delimited&quot;</span>),
+            DecodedLength::CHUNKED =&gt; <a href="../../../src/hyper/body/length.rs.html#94">f</a>.write_str(<span class="string">&quot;chunked encoding&quot;</span>),
+            DecodedLength::ZERO =&gt; <a href="../../../src/hyper/body/length.rs.html#94">f</a>.write_str(<span class="string">&quot;empty&quot;</span>),
+            <a href="../../../src/hyper/body/length.rs.html#4">DecodedLength</a>(n) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/hyper/body/length.rs.html#94">f</a>, <span class="string">&quot;content-length ({} bytes)&quot;</span>, n),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sub_if_known</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">DecodedLength::new</span>(<span class="number">30</span>);
-        <span class="ident">len</span>.<span class="ident">sub_if</span>(<span class="number">20</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>sub_if_known() {
+        <span class="kw">let </span><span class="kw-2">mut </span>len = DecodedLength::new(<span class="number">30</span>);
+        len.sub_if(<span class="number">20</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">len</span>.<span class="number">0</span>, <span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(len.<span class="number">0</span>, <span class="number">10</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sub_if_chunked</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">DecodedLength::CHUNKED</span>;
-        <span class="ident">len</span>.<span class="ident">sub_if</span>(<span class="number">20</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>sub_if_chunked() {
+        <span class="kw">let </span><span class="kw-2">mut </span>len = DecodedLength::CHUNKED;
+        len.sub_if(<span class="number">20</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">len</span>, <span class="ident">DecodedLength::CHUNKED</span>);
+        <span class="macro">assert_eq!</span>(len, DecodedLength::CHUNKED);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

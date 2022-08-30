@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/sha-1-0.10.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../sha1/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../sha1/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/sha-1-0.10.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../sha1/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../sha1/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../sha1/index.html">
                         <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -140,145 +140,145 @@
 <span id="138">138</span>
 <span id="139">139</span>
 <span id="140">140</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Pure Rust implementation of the [SHA-1][1] cryptographic hash algorithm</span>
-<span class="doccomment">//! with optional hardware-specific optimizations.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # 🚨 Warning: Cryptographically Broken! 🚨</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The SHA-1 hash function should be considered cryptographically broken and</span>
-<span class="doccomment">//! unsuitable for further use in any security critical capacity, as it is</span>
-<span class="doccomment">//! [practically vulnerable to chosen-prefix collisions][2].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! We provide this crate for legacy interoperability purposes only.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Usage</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use hex_literal::hex;</span>
-<span class="doccomment">//! use sha1::{Sha1, Digest};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // create a Sha1 object</span>
-<span class="doccomment">//! let mut hasher = Sha1::new();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // process input message</span>
-<span class="doccomment">//! hasher.update(b&quot;hello world&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // acquire hash digest in the form of GenericArray,</span>
-<span class="doccomment">//! // which in this case is equivalent to [u8; 20]</span>
-<span class="doccomment">//! let result = hasher.finalize();</span>
-<span class="doccomment">//! assert_eq!(result[..], hex!(&quot;2aae6c35c94fcfb415dbe95f408b9ce91ee846ed&quot;));</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Also see [RustCrypto/hashes][3] readme.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [1]: https://en.wikipedia.org/wiki/SHA-1</span>
-<span class="doccomment">//! [2]: https://sha-mbles.github.io/</span>
-<span class="doccomment">//! [3]: https://github.com/RustCrypto/hashes</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Pure Rust implementation of the [SHA-1][1] cryptographic hash algorithm
+//! with optional hardware-specific optimizations.
+//!
+//! # 🚨 Warning: Cryptographically Broken! 🚨
+//!
+//! The SHA-1 hash function should be considered cryptographically broken and
+//! unsuitable for further use in any security critical capacity, as it is
+//! [practically vulnerable to chosen-prefix collisions][2].
+//!
+//! We provide this crate for legacy interoperability purposes only.
+//!
+//! # Usage
+//!
+//! ```rust
+//! use hex_literal::hex;
+//! use sha1::{Sha1, Digest};
+//!
+//! // create a Sha1 object
+//! let mut hasher = Sha1::new();
+//!
+//! // process input message
+//! hasher.update(b&quot;hello world&quot;);
+//!
+//! // acquire hash digest in the form of GenericArray,
+//! // which in this case is equivalent to [u8; 20]
+//! let result = hasher.finalize();
+//! assert_eq!(result[..], hex!(&quot;2aae6c35c94fcfb415dbe95f408b9ce91ee846ed&quot;));
+//! ```
+//!
+//! Also see [RustCrypto/hashes][3] readme.
+//!
+//! [1]: https://en.wikipedia.org/wiki/SHA-1
+//! [2]: https://sha-mbles.github.io/
+//! [3]: https://github.com/RustCrypto/hashes
 
-<span class="attribute">#![<span class="ident">no_std</span>]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">feature</span>(<span class="ident">doc_cfg</span>))]</span>
-<span class="attribute">#![<span class="ident">doc</span>(
-    <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg&quot;</span>,
-    <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg&quot;</span>,
-    <span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/sha-1/0.10.0&quot;</span>
-)]</span>
-<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>, <span class="ident">rust_2018_idioms</span>)]</span>
+</span><span class="attribute">#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc(
+    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg&quot;</span>,
+    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg&quot;</span>,
+    html_root_url = <span class="string">&quot;https://docs.rs/sha-1/0.10.0&quot;
+</span>)]
+#![warn(missing_docs, rust_2018_idioms)]
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">digest</span>::{<a class="self" href="../../digest/index.html">self</a>, <a class="ident" href="../../sha1/trait.Digest.html">Digest</a>};
+</span><span class="kw">pub use </span>digest::{<a class="self" href="../../digest/index.html">self</a>, <a href="../../sha1/trait.Digest.html">Digest</a>};
 
-<span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/raw/fn.from_ref.html">slice::from_ref</a>};
-<span class="kw">use</span> <span class="ident">digest</span>::{
-    <a class="ident" href="../../block_buffer/struct.Eager.html">block_buffer::Eager</a>,
-    <span class="ident">core_api</span>::{
-        <a class="ident" href="../../crypto_common/trait.AlgorithmName.html">AlgorithmName</a>, <a class="ident" href="../../crypto_common/type.Block.html">Block</a>, <a class="ident" href="../../crypto_common/trait.BlockSizeUser.html">BlockSizeUser</a>, <a class="ident" href="../../digest/core_api/type.Buffer.html">Buffer</a>, <a class="ident" href="../../digest/core_api/trait.BufferKindUser.html">BufferKindUser</a>, <a class="ident" href="../../digest/core_api/wrapper/struct.CoreWrapper.html">CoreWrapper</a>, <a class="ident" href="../../digest/core_api/trait.FixedOutputCore.html">FixedOutputCore</a>,
-        <a class="ident" href="../../crypto_common/trait.OutputSizeUser.html">OutputSizeUser</a>, <a class="ident" href="../../crypto_common/trait.Reset.html">Reset</a>, <a class="ident" href="../../digest/core_api/trait.UpdateCore.html">UpdateCore</a>,
+<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/raw/fn.from_ref.html">slice::from_ref</a>};
+<span class="kw">use </span>digest::{
+    <a href="../../block_buffer/struct.Eager.html">block_buffer::Eager</a>,
+    core_api::{
+        <a href="../../crypto_common/trait.AlgorithmName.html">AlgorithmName</a>, <a href="../../crypto_common/type.Block.html">Block</a>, <a href="../../crypto_common/trait.BlockSizeUser.html">BlockSizeUser</a>, <a href="../../digest/core_api/type.Buffer.html">Buffer</a>, <a href="../../digest/core_api/trait.BufferKindUser.html">BufferKindUser</a>, <a href="../../digest/core_api/wrapper/struct.CoreWrapper.html">CoreWrapper</a>, <a href="../../digest/core_api/trait.FixedOutputCore.html">FixedOutputCore</a>,
+        <a href="../../crypto_common/trait.OutputSizeUser.html">OutputSizeUser</a>, <a href="../../crypto_common/trait.Reset.html">Reset</a>, <a href="../../digest/core_api/trait.UpdateCore.html">UpdateCore</a>,
     },
-    <span class="ident">generic_array::typenum</span>::{<a class="ident" href="../../typenum/marker_traits/trait.Unsigned.html">Unsigned</a>, <a class="ident" href="../../typenum/generated/consts/type.U20.html">U20</a>, <a class="ident" href="../../typenum/generated/consts/type.U64.html">U64</a>},
-    <a class="ident" href="../../digest/digest/trait.HashMarker.html">HashMarker</a>, <a class="ident" href="../../crypto_common/type.Output.html">Output</a>,
+    generic_array::typenum::{<a href="../../typenum/marker_traits/trait.Unsigned.html">Unsigned</a>, <a href="../../typenum/generated/consts/type.U20.html">U20</a>, <a href="../../typenum/generated/consts/type.U64.html">U64</a>},
+    <a href="../../digest/digest/trait.HashMarker.html">HashMarker</a>, <a href="../../crypto_common/type.Output.html">Output</a>,
 };
 
-<span class="kw">mod</span> <a class="ident" href="../../src/sha1/compress.rs.html#1-38">compress</a>;
+<span class="kw">mod </span><a href="../../src/sha1/compress.rs.html#1-38">compress</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;compress&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">compress::compress</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;compress&quot;</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../src/sha1/compress.rs.html#31">compress::compress</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;compress&quot;</span>)]
+</span><span class="kw">pub use </span>compress::compress;
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;compress&quot;</span>))]
+</span><span class="kw">use </span><a href="../../src/sha1/compress.rs.html#31">compress::compress</a>;
 
-<span class="kw">const</span> <span class="ident">STATE_LEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">const </span>STATE_LEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">5</span>;
 
-<span class="doccomment">/// Core SHA-1 hasher state.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sha1Core</span> {
-    <span class="ident">h</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <a class="ident" href="../../src/sha1/lib.rs.html#65">STATE_LEN</a>],
-    <span class="ident">block_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+<span class="doccomment">/// Core SHA-1 hasher state.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Sha1Core {
+    h: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>; <a href="../../src/sha1/lib.rs.html#65">STATE_LEN</a>],
+    block_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../digest/digest/trait.HashMarker.html">HashMarker</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {}
+<span class="kw">impl </span><a href="../../digest/digest/trait.HashMarker.html">HashMarker</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../crypto_common/trait.BlockSizeUser.html">BlockSizeUser</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="kw">type</span> <span class="ident">BlockSize</span> <span class="op">=</span> <a class="ident" href="../../typenum/generated/consts/type.U64.html">U64</a>;
+<span class="kw">impl </span><a href="../../crypto_common/trait.BlockSizeUser.html">BlockSizeUser</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="kw">type </span>BlockSize = <a href="../../typenum/generated/consts/type.U64.html">U64</a>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../digest/core_api/trait.BufferKindUser.html">BufferKindUser</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="kw">type</span> <span class="ident">BufferKind</span> <span class="op">=</span> <a class="ident" href="../../block_buffer/struct.Eager.html">Eager</a>;
+<span class="kw">impl </span><a href="../../digest/core_api/trait.BufferKindUser.html">BufferKindUser</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="kw">type </span>BufferKind = <a href="../../block_buffer/struct.Eager.html">Eager</a>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../crypto_common/trait.OutputSizeUser.html">OutputSizeUser</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="kw">type</span> <span class="ident">OutputSize</span> <span class="op">=</span> <a class="ident" href="../../typenum/generated/consts/type.U20.html">U20</a>;
+<span class="kw">impl </span><a href="../../crypto_common/trait.OutputSizeUser.html">OutputSizeUser</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="kw">type </span>OutputSize = <a href="../../typenum/generated/consts/type.U20.html">U20</a>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../digest/core_api/trait.UpdateCore.html">UpdateCore</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">update_blocks</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">blocks</span>: <span class="kw-2">&amp;</span>[<span class="ident">Block</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>]) {
-        <a class="self" href="../../src/sha1/lib.rs.html#90">self</a>.<span class="ident">block_len</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/sha1/lib.rs.html#90">blocks</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-        <a class="ident" href="../../src/sha1/compress.rs.html#31">compress</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/sha1/lib.rs.html#90">self</a>.<span class="ident">h</span>, <a class="ident" href="../../src/sha1/lib.rs.html#90">blocks</a>);
+<span class="kw">impl </span><a href="../../digest/core_api/trait.UpdateCore.html">UpdateCore</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>update_blocks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, blocks: <span class="kw-2">&amp;</span>[Block&lt;<span class="self">Self</span>&gt;]) {
+        <a class="self" href="../../src/sha1/lib.rs.html#90">self</a>.block_len += <a href="../../src/sha1/lib.rs.html#90">blocks</a>.len() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+        <a href="../../src/sha1/compress.rs.html#31">compress</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/sha1/lib.rs.html#90">self</a>.h, <a href="../../src/sha1/lib.rs.html#90">blocks</a>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../digest/core_api/trait.FixedOutputCore.html">FixedOutputCore</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">finalize_fixed_core</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">bs</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::BlockSize::U64</span>;
-        <span class="kw">let</span> <span class="ident">bit_len</span> <span class="op">=</span> <span class="number">8</span> <span class="op">*</span> (<a class="ident" href="../../src/sha1/lib.rs.html#98">buffer</a>.<span class="ident">get_pos</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">+</span> <a class="ident" href="../../src/sha1/lib.rs.html#99">bs</a> <span class="op">*</span> <a class="self" href="../../src/sha1/lib.rs.html#98">self</a>.<span class="ident">block_len</span>);
+<span class="kw">impl </span><a href="../../digest/core_api/trait.FixedOutputCore.html">FixedOutputCore</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>finalize_fixed_core(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span>Buffer&lt;<span class="self">Self</span>&gt;, out: <span class="kw-2">&amp;mut </span>Output&lt;<span class="self">Self</span>&gt;) {
+        <span class="kw">let </span>bs = <span class="self">Self</span>::BlockSize::U64;
+        <span class="kw">let </span>bit_len = <span class="number">8 </span>* (<a href="../../src/sha1/lib.rs.html#98">buffer</a>.get_pos() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> + <a href="../../src/sha1/lib.rs.html#99">bs</a> * <a class="self" href="../../src/sha1/lib.rs.html#98">self</a>.block_len);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <a class="self" href="../../src/sha1/lib.rs.html#98">self</a>.<span class="ident">h</span>;
-        <a class="ident" href="../../src/sha1/lib.rs.html#98">buffer</a>.<span class="ident">len64_padding_be</span>(<a class="ident" href="../../src/sha1/lib.rs.html#100">bit_len</a>, <span class="op">|</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/sha1/compress.rs.html#31">compress</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/sha1/lib.rs.html#102">h</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/raw/fn.from_ref.html">from_ref</a>(<a class="ident" href="../../src/sha1/lib.rs.html#103">b</a>)));
-        <span class="kw">for</span> (<span class="ident">chunk</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">out</span>.<span class="ident">chunks_exact_mut</span>(<span class="number">4</span>).<span class="ident">zip</span>(<span class="ident">h</span>.<span class="ident">iter</span>()) {
-            <span class="ident">chunk</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">to_be_bytes</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>h = <a class="self" href="../../src/sha1/lib.rs.html#98">self</a>.h;
+        <a href="../../src/sha1/lib.rs.html#98">buffer</a>.len64_padding_be(<a href="../../src/sha1/lib.rs.html#100">bit_len</a>, |b| <a href="../../src/sha1/compress.rs.html#31">compress</a>(<span class="kw-2">&amp;mut </span><a href="../../src/sha1/lib.rs.html#102">h</a>, <a href="https://doc.rust-lang.org/nightly/core/slice/raw/fn.from_ref.html">from_ref</a>(<a href="../../src/sha1/lib.rs.html#103">b</a>)));
+        <span class="kw">for </span>(chunk, v) <span class="kw">in </span>out.chunks_exact_mut(<span class="number">4</span>).zip(h.iter()) {
+            chunk.copy_from_slice(<span class="kw-2">&amp;</span>v.to_be_bytes());
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">h</span>: [<span class="number">0x67452301</span>, <span class="number">0xEFCDAB89</span>, <span class="number">0x98BADCFE</span>, <span class="number">0x10325476</span>, <span class="number">0xC3D2E1F0</span>],
-            <span class="ident">block_len</span>: <span class="number">0</span>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            h: [<span class="number">0x67452301</span>, <span class="number">0xEFCDAB89</span>, <span class="number">0x98BADCFE</span>, <span class="number">0x10325476</span>, <span class="number">0xC3D2E1F0</span>],
+            block_len: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../crypto_common/trait.Reset.html">Reset</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw-2">*</span><a class="self" href="../../src/sha1/lib.rs.html#122">self</a> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>();
+<span class="kw">impl </span><a href="../../crypto_common/trait.Reset.html">Reset</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw-2">*</span><span class="self"><a href="../../src/sha1/lib.rs.html#122">self</a> </span>= <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>();
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../crypto_common/trait.AlgorithmName.html">AlgorithmName</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="kw">fn</span> <span class="ident">write_alg_name</span>(<span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/sha1/lib.rs.html#128">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Sha1&quot;</span>)
+<span class="kw">impl </span><a href="../../crypto_common/trait.AlgorithmName.html">AlgorithmName</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="kw">fn </span>write_alg_name(f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/sha1/lib.rs.html#128">f</a>.write_str(<span class="string">&quot;Sha1&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/sha1/lib.rs.html#134">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Sha1Core { ... }&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/sha1/lib.rs.html#69">Sha1Core</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/sha1/lib.rs.html#134">f</a>.write_str(<span class="string">&quot;Sha1Core { ... }&quot;</span>)
     }
 }
 
-<span class="doccomment">/// SHA-1 hasher state.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Sha1</span> <span class="op">=</span> <span class="ident">CoreWrapper</span><span class="op">&lt;</span><a class="ident" href="../../src/sha1/lib.rs.html#69">Sha1Core</a><span class="op">&gt;</span>;
+<span class="doccomment">/// SHA-1 hasher state.
+</span><span class="kw">pub type </span>Sha1 = CoreWrapper&lt;<a href="../../src/sha1/lib.rs.html#69">Sha1Core</a>&gt;;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="sha1" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="sha1" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

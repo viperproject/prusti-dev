@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["prusti_driver"] = [{"text":"impl <a class=\"trait\" href=\"lazy_static/trait.LazyStatic.html\" title=\"trait lazy_static::LazyStatic\">LazyStatic</a> for <a class=\"struct\" href=\"prusti_driver/struct.ICE_HOOK.html\" title=\"struct prusti_driver::ICE_HOOK\">ICE_HOOK</a>","synthetic":false,"types":["prusti_driver::ICE_HOOK"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"prusti_driver":[["impl <a class=\"trait\" href=\"lazy_static/trait.LazyStatic.html\" title=\"trait lazy_static::LazyStatic\">LazyStatic</a> for <a class=\"struct\" href=\"prusti_driver/struct.ICE_HOOK.html\" title=\"struct prusti_driver::ICE_HOOK\">ICE_HOOK</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

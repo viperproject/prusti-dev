@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mpsc/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mpsc/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -113,120 +113,120 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>, <span class="ident">unreachable_pub</span>))]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;sync&quot;</span>), allow(dead_code, unreachable_pub))]
 
-<span class="doccomment">//! A multi-producer, single-consumer queue for sending values between</span>
-<span class="doccomment">//! asynchronous tasks.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module provides two variants of the channel: bounded and unbounded. The</span>
-<span class="doccomment">//! bounded variant has a limit on the number of messages that the channel can</span>
-<span class="doccomment">//! store, and if this limit is reached, trying to send another message will</span>
-<span class="doccomment">//! wait until a message is received from the channel. An unbounded channel has</span>
-<span class="doccomment">//! an infinite capacity, so the `send` method will always complete immediately.</span>
-<span class="doccomment">//! This makes the [`UnboundedSender`] usable from both synchronous and</span>
-<span class="doccomment">//! asynchronous code.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Similar to the `mpsc` channels provided by `std`, the channel constructor</span>
-<span class="doccomment">//! functions provide separate send and receive handles, [`Sender`] and</span>
-<span class="doccomment">//! [`Receiver`] for the bounded channel, [`UnboundedSender`] and</span>
-<span class="doccomment">//! [`UnboundedReceiver`] for the unbounded channel. If there is no message to read,</span>
-<span class="doccomment">//! the current task will be notified when a new value is sent. [`Sender`] and</span>
-<span class="doccomment">//! [`UnboundedSender`] allow sending values into the channel. If the bounded</span>
-<span class="doccomment">//! channel is at capacity, the send is rejected and the task will be notified</span>
-<span class="doccomment">//! when additional capacity is available. In other words, the channel provides</span>
-<span class="doccomment">//! backpressure.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Disconnection</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When all [`Sender`] handles have been dropped, it is no longer</span>
-<span class="doccomment">//! possible to send values into the channel. This is considered the termination</span>
-<span class="doccomment">//! event of the stream. As such, `Receiver::poll` returns `Ok(Ready(None))`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! If the [`Receiver`] handle is dropped, then messages can no longer</span>
-<span class="doccomment">//! be read out of the channel. In this case, all further attempts to send will</span>
-<span class="doccomment">//! result in an error.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Clean Shutdown</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When the [`Receiver`] is dropped, it is possible for unprocessed messages to</span>
-<span class="doccomment">//! remain in the channel. Instead, it is usually desirable to perform a &quot;clean&quot;</span>
-<span class="doccomment">//! shutdown. To do this, the receiver first calls `close`, which will prevent</span>
-<span class="doccomment">//! any further messages to be sent into the channel. Then, the receiver</span>
-<span class="doccomment">//! consumes the channel to completion, at which point the receiver can be</span>
-<span class="doccomment">//! dropped.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Communicating between sync and async code</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When you want to communicate between synchronous and asynchronous code, there</span>
-<span class="doccomment">//! are two situations to consider:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! **Bounded channel**: If you need a bounded channel, you should use a bounded</span>
-<span class="doccomment">//! Tokio `mpsc` channel for both directions of communication. Instead of calling</span>
-<span class="doccomment">//! the async [`send`][bounded-send] or [`recv`][bounded-recv] methods, in</span>
-<span class="doccomment">//! synchronous code you will need to use the [`blocking_send`][blocking-send] or</span>
-<span class="doccomment">//! [`blocking_recv`][blocking-recv] methods.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! **Unbounded channel**: You should use the kind of channel that matches where</span>
-<span class="doccomment">//! the receiver is. So for sending a message _from async to sync_, you should</span>
-<span class="doccomment">//! use [the standard library unbounded channel][std-unbounded] or</span>
-<span class="doccomment">//! [crossbeam][crossbeam-unbounded].  Similarly, for sending a message _from sync</span>
-<span class="doccomment">//! to async_, you should use an unbounded Tokio `mpsc` channel.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Please be aware that the above remarks were written with the `mpsc` channel</span>
-<span class="doccomment">//! in mind, but they can also be generalized to other kinds of channels. In</span>
-<span class="doccomment">//! general, any channel method that isn&#39;t marked async can be called anywhere,</span>
-<span class="doccomment">//! including outside of the runtime. For example, sending a message on a</span>
-<span class="doccomment">//! oneshot channel from outside the runtime is perfectly fine.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Multiple runtimes</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The mpsc channel does not care about which runtime you use it in, and can be</span>
-<span class="doccomment">//! used to send messages from one runtime to another. It can also be used in</span>
-<span class="doccomment">//! non-Tokio runtimes.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! There is one exception to the above: the [`send_timeout`] must be used from</span>
-<span class="doccomment">//! within a Tokio runtime, however it is still not tied to one specific Tokio</span>
-<span class="doccomment">//! runtime, and the sender may be moved from one Tokio runtime to another.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Sender`]: crate::sync::mpsc::Sender</span>
-<span class="doccomment">//! [`Receiver`]: crate::sync::mpsc::Receiver</span>
-<span class="doccomment">//! [bounded-send]: crate::sync::mpsc::Sender::send()</span>
-<span class="doccomment">//! [bounded-recv]: crate::sync::mpsc::Receiver::recv()</span>
-<span class="doccomment">//! [blocking-send]: crate::sync::mpsc::Sender::blocking_send()</span>
-<span class="doccomment">//! [blocking-recv]: crate::sync::mpsc::Receiver::blocking_recv()</span>
-<span class="doccomment">//! [`UnboundedSender`]: crate::sync::mpsc::UnboundedSender</span>
-<span class="doccomment">//! [`UnboundedReceiver`]: crate::sync::mpsc::UnboundedReceiver</span>
-<span class="doccomment">//! [`Handle::block_on`]: crate::runtime::Handle::block_on()</span>
-<span class="doccomment">//! [std-unbounded]: std::sync::mpsc::channel</span>
-<span class="doccomment">//! [crossbeam-unbounded]: https://docs.rs/crossbeam/*/crossbeam/channel/fn.unbounded.html</span>
-<span class="doccomment">//! [`send_timeout`]: crate::sync::mpsc::Sender::send_timeout</span>
+</span><span class="doccomment">//! A multi-producer, single-consumer queue for sending values between
+//! asynchronous tasks.
+//!
+//! This module provides two variants of the channel: bounded and unbounded. The
+//! bounded variant has a limit on the number of messages that the channel can
+//! store, and if this limit is reached, trying to send another message will
+//! wait until a message is received from the channel. An unbounded channel has
+//! an infinite capacity, so the `send` method will always complete immediately.
+//! This makes the [`UnboundedSender`] usable from both synchronous and
+//! asynchronous code.
+//!
+//! Similar to the `mpsc` channels provided by `std`, the channel constructor
+//! functions provide separate send and receive handles, [`Sender`] and
+//! [`Receiver`] for the bounded channel, [`UnboundedSender`] and
+//! [`UnboundedReceiver`] for the unbounded channel. If there is no message to read,
+//! the current task will be notified when a new value is sent. [`Sender`] and
+//! [`UnboundedSender`] allow sending values into the channel. If the bounded
+//! channel is at capacity, the send is rejected and the task will be notified
+//! when additional capacity is available. In other words, the channel provides
+//! backpressure.
+//!
+//!
+//! # Disconnection
+//!
+//! When all [`Sender`] handles have been dropped, it is no longer
+//! possible to send values into the channel. This is considered the termination
+//! event of the stream. As such, `Receiver::poll` returns `Ok(Ready(None))`.
+//!
+//! If the [`Receiver`] handle is dropped, then messages can no longer
+//! be read out of the channel. In this case, all further attempts to send will
+//! result in an error.
+//!
+//! # Clean Shutdown
+//!
+//! When the [`Receiver`] is dropped, it is possible for unprocessed messages to
+//! remain in the channel. Instead, it is usually desirable to perform a &quot;clean&quot;
+//! shutdown. To do this, the receiver first calls `close`, which will prevent
+//! any further messages to be sent into the channel. Then, the receiver
+//! consumes the channel to completion, at which point the receiver can be
+//! dropped.
+//!
+//! # Communicating between sync and async code
+//!
+//! When you want to communicate between synchronous and asynchronous code, there
+//! are two situations to consider:
+//!
+//! **Bounded channel**: If you need a bounded channel, you should use a bounded
+//! Tokio `mpsc` channel for both directions of communication. Instead of calling
+//! the async [`send`][bounded-send] or [`recv`][bounded-recv] methods, in
+//! synchronous code you will need to use the [`blocking_send`][blocking-send] or
+//! [`blocking_recv`][blocking-recv] methods.
+//!
+//! **Unbounded channel**: You should use the kind of channel that matches where
+//! the receiver is. So for sending a message _from async to sync_, you should
+//! use [the standard library unbounded channel][std-unbounded] or
+//! [crossbeam][crossbeam-unbounded].  Similarly, for sending a message _from sync
+//! to async_, you should use an unbounded Tokio `mpsc` channel.
+//!
+//! Please be aware that the above remarks were written with the `mpsc` channel
+//! in mind, but they can also be generalized to other kinds of channels. In
+//! general, any channel method that isn&#39;t marked async can be called anywhere,
+//! including outside of the runtime. For example, sending a message on a
+//! oneshot channel from outside the runtime is perfectly fine.
+//!
+//! # Multiple runtimes
+//!
+//! The mpsc channel does not care about which runtime you use it in, and can be
+//! used to send messages from one runtime to another. It can also be used in
+//! non-Tokio runtimes.
+//!
+//! There is one exception to the above: the [`send_timeout`] must be used from
+//! within a Tokio runtime, however it is still not tied to one specific Tokio
+//! runtime, and the sender may be moved from one Tokio runtime to another.
+//!
+//! [`Sender`]: crate::sync::mpsc::Sender
+//! [`Receiver`]: crate::sync::mpsc::Receiver
+//! [bounded-send]: crate::sync::mpsc::Sender::send()
+//! [bounded-recv]: crate::sync::mpsc::Receiver::recv()
+//! [blocking-send]: crate::sync::mpsc::Sender::blocking_send()
+//! [blocking-recv]: crate::sync::mpsc::Receiver::blocking_recv()
+//! [`UnboundedSender`]: crate::sync::mpsc::UnboundedSender
+//! [`UnboundedReceiver`]: crate::sync::mpsc::UnboundedReceiver
+//! [`Handle::block_on`]: crate::runtime::Handle::block_on()
+//! [std-unbounded]: std::sync::mpsc::channel
+//! [crossbeam-unbounded]: https://docs.rs/crossbeam/*/crossbeam/channel/fn.unbounded.html
+//! [`send_timeout`]: crate::sync::mpsc::Sender::send_timeout
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#1-385">block</a>;
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span><a href="../../../../src/tokio/sync/mpsc/block.rs.html#1-385">block</a>;
 
-<span class="kw">mod</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1-1200">bounded</a>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::bounded</span>::{<a class="ident" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#109">channel</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#48">OwnedPermit</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#32">Permit</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#59">Receiver</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/bounded.rs.html#21">Sender</a>};
+<span class="kw">mod </span><a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#1-1200">bounded</a>;
+<span class="kw">pub use </span><span class="self">self</span>::bounded::{<a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#109">channel</a>, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#48">OwnedPermit</a>, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#32">Permit</a>, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#59">Receiver</a>, <a href="../../../../src/tokio/sync/mpsc/bounded.rs.html#21">Sender</a>};
 
-<span class="kw">mod</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#1-405">chan</a>;
+<span class="kw">mod </span><a href="../../../../src/tokio/sync/mpsc/chan.rs.html#1-405">chan</a>;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#1-371">list</a>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span><a href="../../../../src/tokio/sync/mpsc/list.rs.html#1-371">list</a>;
 
-<span class="kw">mod</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#1-385">unbounded</a>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::unbounded</span>::{<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#63">unbounded_channel</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#40">UnboundedReceiver</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#12">UnboundedSender</a>};
+<span class="kw">mod </span><a href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#1-385">unbounded</a>;
+<span class="kw">pub use </span><span class="self">self</span>::unbounded::{<a href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#63">unbounded_channel</a>, <a href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#40">UnboundedReceiver</a>, <a href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#12">UnboundedSender</a>};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#1-125">error</a>;
+<span class="kw">pub mod </span><a href="../../../../src/tokio/sync/mpsc/error.rs.html#1-125">error</a>;
 
-<span class="doccomment">/// The number of values a block can contain.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This value must be a power of 2. It also must be smaller than the number of</span>
-<span class="doccomment">/// bits in `usize`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>, <span class="ident">not</span>(<span class="ident">loom</span>)))]</span>
-<span class="kw">const</span> <span class="ident">BLOCK_CAP</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">32</span>;
+<span class="doccomment">/// The number of values a block can contain.
+///
+/// This value must be a power of 2. It also must be smaller than the number of
+/// bits in `usize`.
+</span><span class="attribute">#[cfg(all(target_pointer_width = <span class="string">&quot;64&quot;</span>, not(loom)))]
+</span><span class="kw">const </span>BLOCK_CAP: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">32</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>), <span class="ident">not</span>(<span class="ident">loom</span>)))]</span>
-<span class="kw">const</span> <span class="ident">BLOCK_CAP</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="attribute">#[cfg(all(not(target_pointer_width = <span class="string">&quot;64&quot;</span>), not(loom)))]
+</span><span class="kw">const </span>BLOCK_CAP: usize = <span class="number">16</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">loom</span>)]</span>
-<span class="kw">const</span> <span class="ident">BLOCK_CAP</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="attribute">#[cfg(loom)]
+</span><span class="kw">const </span>BLOCK_CAP: usize = <span class="number">2</span>;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

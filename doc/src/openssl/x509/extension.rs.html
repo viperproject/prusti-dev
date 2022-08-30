@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/x509/extension.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>extension.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/x509/extension.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>extension.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -556,563 +556,563 @@
 <span id="556">556</span>
 <span id="557">557</span>
 <span id="558">558</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Add extensions to an `X509` certificate or certificate request.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The extensions defined for X.509 v3 certificates provide methods for</span>
-<span class="doccomment">//! associating additional attributes with users or public keys and for</span>
-<span class="doccomment">//! managing relationships between CAs. The extensions created using this</span>
-<span class="doccomment">//! module can be used with `X509v3Context` objects.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Example</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::x509::extension::BasicConstraints;</span>
-<span class="doccomment">//! use openssl::x509::X509Extension;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut bc = BasicConstraints::new();</span>
-<span class="doccomment">//! let bc = bc.critical().ca().pathlen(1);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let extension: X509Extension = bc.build().unwrap();</span>
-<span class="doccomment">//! ```</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">std::fmt::Write</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! Add extensions to an `X509` certificate or certificate request.
+//!
+//! The extensions defined for X.509 v3 certificates provide methods for
+//! associating additional attributes with users or public keys and for
+//! managing relationships between CAs. The extensions created using this
+//! module can be used with `X509v3Context` objects.
+//!
+//! # Example
+//!
+//! ```rust
+//! use openssl::x509::extension::BasicConstraints;
+//! use openssl::x509::X509Extension;
+//!
+//! let mut bc = BasicConstraints::new();
+//! let bc = bc.critical().ca().pathlen(1);
+//!
+//! let extension: X509Extension = bc.build().unwrap();
+//! ```
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">std::fmt::Write</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a class="ident" href="../../../src/openssl/x509/mod.rs.html#772">X509v3Context</a>};
+<span class="kw">use </span><a href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
+<span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a href="../../../src/openssl/x509/mod.rs.html#772">X509v3Context</a>};
 
-<span class="doccomment">/// An extension which indicates whether a certificate is a CA certificate.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BasicConstraints</span> {
-    <span class="ident">critical</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">ca</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">pathlen</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span>,
+<span class="doccomment">/// An extension which indicates whether a certificate is a CA certificate.
+</span><span class="kw">pub struct </span>BasicConstraints {
+    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ca: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    pathlen: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
-        <span class="ident">BasicConstraints::new</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
-    <span class="doccomment">/// Construct a new `BasicConstraints` extension.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
-            <span class="ident">critical</span>: <span class="bool-val">false</span>,
-            <span class="ident">ca</span>: <span class="bool-val">false</span>,
-            <span class="ident">pathlen</span>: <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">critical</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#49">self</a>.<span class="ident">critical</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#49">self</a>
-    }
-
-    <span class="doccomment">/// Sets the `ca` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ca</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#55">self</a>.<span class="ident">ca</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#55">self</a>
-    }
-
-    <span class="doccomment">/// Sets the `pathlen` to an optional non-negative value. The `pathlen` is the</span>
-    <span class="doccomment">/// maximum number of CAs that can appear below this one in a chain.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pathlen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pathlen</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#62">self</a>.<span class="ident">pathlen</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#62">pathlen</a>);
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#62">self</a>
-    }
-
-    <span class="doccomment">/// Return the `BasicConstraints` extension as an `X509Extension`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">critical</span> {
-            <a class="ident" href="../../../src/openssl/x509/extension.rs.html#69">value</a>.<span class="ident">push_str</span>(<span class="string">&quot;critical,&quot;</span>);
-        }
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#69">value</a>.<span class="ident">push_str</span>(<span class="string">&quot;CA:&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ca</span> {
-            <a class="ident" href="../../../src/openssl/x509/extension.rs.html#69">value</a>.<span class="ident">push_str</span>(<span class="string">&quot;TRUE&quot;</span>);
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/openssl/x509/extension.rs.html#69">value</a>.<span class="ident">push_str</span>(<span class="string">&quot;FALSE&quot;</span>);
-        }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pathlen</span>) <span class="op">=</span> <a class="self" href="../../../src/openssl/x509/extension.rs.html#68">self</a>.<span class="ident">pathlen</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#69">value</a>, <span class="string">&quot;,pathlen:{}&quot;</span>, <span class="ident">pathlen</span>).<span class="ident">unwrap</span>();
-        }
-        <span class="ident">X509Extension::new_nid</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="ident">Nid::BASIC_CONSTRAINTS</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/extension.rs.html#69">value</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
+        BasicConstraints::new()
     }
 }
 
-<span class="doccomment">/// An extension consisting of a list of names of the permitted key usages.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeyUsage</span> {
-    <span class="ident">critical</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">digital_signature</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">non_repudiation</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">key_encipherment</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">data_encipherment</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">key_agreement</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">key_cert_sign</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">crl_sign</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">encipher_only</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">decipher_only</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <span class="ident">KeyUsage::new</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-    <span class="doccomment">/// Construct a new `KeyUsage` extension.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-            <span class="ident">critical</span>: <span class="bool-val">false</span>,
-            <span class="ident">digital_signature</span>: <span class="bool-val">false</span>,
-            <span class="ident">non_repudiation</span>: <span class="bool-val">false</span>,
-            <span class="ident">key_encipherment</span>: <span class="bool-val">false</span>,
-            <span class="ident">data_encipherment</span>: <span class="bool-val">false</span>,
-            <span class="ident">key_agreement</span>: <span class="bool-val">false</span>,
-            <span class="ident">key_cert_sign</span>: <span class="bool-val">false</span>,
-            <span class="ident">crl_sign</span>: <span class="bool-val">false</span>,
-            <span class="ident">encipher_only</span>: <span class="bool-val">false</span>,
-            <span class="ident">decipher_only</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span><a href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
+    <span class="doccomment">/// Construct a new `BasicConstraints` extension.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
+        <a href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
+            critical: <span class="bool-val">false</span>,
+            ca: <span class="bool-val">false</span>,
+            pathlen: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">critical</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#124">self</a>.<span class="ident">critical</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#124">self</a>
+    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#49">self</a>.critical = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#49">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `ca` flag to `true`.
+    </span><span class="kw">pub fn </span>ca(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#55">self</a>.ca = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#55">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `pathlen` to an optional non-negative value. The `pathlen` is the
+    /// maximum number of CAs that can appear below this one in a chain.
+    </span><span class="kw">pub fn </span>pathlen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pathlen: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#26">BasicConstraints</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#62">self</a>.pathlen = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/x509/extension.rs.html#62">pathlen</a>);
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#62">self</a>
+    </span>}
+
+    <span class="doccomment">/// Return the `BasicConstraints` extension as an `X509Extension`.
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
+        <span class="kw">if </span><span class="self">self</span>.critical {
+            <a href="../../../src/openssl/x509/extension.rs.html#69">value</a>.push_str(<span class="string">&quot;critical,&quot;</span>);
+        }
+        <a href="../../../src/openssl/x509/extension.rs.html#69">value</a>.push_str(<span class="string">&quot;CA:&quot;</span>);
+        <span class="kw">if </span><span class="self">self</span>.ca {
+            <a href="../../../src/openssl/x509/extension.rs.html#69">value</a>.push_str(<span class="string">&quot;TRUE&quot;</span>);
+        } <span class="kw">else </span>{
+            <a href="../../../src/openssl/x509/extension.rs.html#69">value</a>.push_str(<span class="string">&quot;FALSE&quot;</span>);
+        }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pathlen) = <a class="self" href="../../../src/openssl/x509/extension.rs.html#68">self</a>.pathlen {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/openssl/x509/extension.rs.html#69">value</a>, <span class="string">&quot;,pathlen:{}&quot;</span>, pathlen).unwrap();
+        }
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::BASIC_CONSTRAINTS, <span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/extension.rs.html#69">value</a>)
+    }
+}
+
+<span class="doccomment">/// An extension consisting of a list of names of the permitted key usages.
+</span><span class="kw">pub struct </span>KeyUsage {
+    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    digital_signature: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    non_repudiation: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    key_encipherment: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    data_encipherment: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    key_agreement: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    key_cert_sign: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    crl_sign: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    encipher_only: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    decipher_only: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        KeyUsage::new()
+    }
+}
+
+<span class="kw">impl </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+    <span class="doccomment">/// Construct a new `KeyUsage` extension.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+            critical: <span class="bool-val">false</span>,
+            digital_signature: <span class="bool-val">false</span>,
+            non_repudiation: <span class="bool-val">false</span>,
+            key_encipherment: <span class="bool-val">false</span>,
+            data_encipherment: <span class="bool-val">false</span>,
+            key_agreement: <span class="bool-val">false</span>,
+            key_cert_sign: <span class="bool-val">false</span>,
+            crl_sign: <span class="bool-val">false</span>,
+            encipher_only: <span class="bool-val">false</span>,
+            decipher_only: <span class="bool-val">false</span>,
+        }
     }
 
-    <span class="doccomment">/// Sets the `digitalSignature` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">digital_signature</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#130">self</a>.<span class="ident">digital_signature</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#130">self</a>
-    }
+    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#124">self</a>.critical = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#124">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `nonRepudiation` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">non_repudiation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#136">self</a>.<span class="ident">non_repudiation</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#136">self</a>
-    }
+    <span class="doccomment">/// Sets the `digitalSignature` flag to `true`.
+    </span><span class="kw">pub fn </span>digital_signature(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#130">self</a>.digital_signature = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#130">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `keyEncipherment` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_encipherment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#142">self</a>.<span class="ident">key_encipherment</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#142">self</a>
-    }
+    <span class="doccomment">/// Sets the `nonRepudiation` flag to `true`.
+    </span><span class="kw">pub fn </span>non_repudiation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#136">self</a>.non_repudiation = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#136">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `dataEncipherment` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_encipherment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#148">self</a>.<span class="ident">data_encipherment</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#148">self</a>
-    }
+    <span class="doccomment">/// Sets the `keyEncipherment` flag to `true`.
+    </span><span class="kw">pub fn </span>key_encipherment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#142">self</a>.key_encipherment = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#142">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `keyAgreement` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_agreement</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#154">self</a>.<span class="ident">key_agreement</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#154">self</a>
-    }
+    <span class="doccomment">/// Sets the `dataEncipherment` flag to `true`.
+    </span><span class="kw">pub fn </span>data_encipherment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#148">self</a>.data_encipherment = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#148">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `keyCertSign` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_cert_sign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#160">self</a>.<span class="ident">key_cert_sign</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#160">self</a>
-    }
+    <span class="doccomment">/// Sets the `keyAgreement` flag to `true`.
+    </span><span class="kw">pub fn </span>key_agreement(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#154">self</a>.key_agreement = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#154">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `cRLSign` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crl_sign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#166">self</a>.<span class="ident">crl_sign</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#166">self</a>
-    }
+    <span class="doccomment">/// Sets the `keyCertSign` flag to `true`.
+    </span><span class="kw">pub fn </span>key_cert_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#160">self</a>.key_cert_sign = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#160">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `encipherOnly` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encipher_only</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#172">self</a>.<span class="ident">encipher_only</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#172">self</a>
-    }
+    <span class="doccomment">/// Sets the `cRLSign` flag to `true`.
+    </span><span class="kw">pub fn </span>crl_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#166">self</a>.crl_sign = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#166">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `decipherOnly` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decipher_only</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#178">self</a>.<span class="ident">decipher_only</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#178">self</a>
-    }
+    <span class="doccomment">/// Sets the `encipherOnly` flag to `true`.
+    </span><span class="kw">pub fn </span>encipher_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#172">self</a>.encipher_only = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#172">self</a>
+    </span>}
 
-    <span class="doccomment">/// Return the `KeyUsage` extension as an `X509Extension`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">critical</span>, <span class="string">&quot;critical&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>,
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>,
-            <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">digital_signature</span>,
+    <span class="doccomment">/// Sets the `decipherOnly` flag to `true`.
+    </span><span class="kw">pub fn </span>decipher_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#87">KeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#178">self</a>.decipher_only = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#178">self</a>
+    </span>}
+
+    <span class="doccomment">/// Return the `KeyUsage` extension as an `X509Extension`.
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>,
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>,
+            <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.digital_signature,
             <span class="string">&quot;digitalSignature&quot;</span>,
         );
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>,
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>,
-            <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">non_repudiation</span>,
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>,
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>,
+            <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.non_repudiation,
             <span class="string">&quot;nonRepudiation&quot;</span>,
         );
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>,
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>,
-            <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">key_encipherment</span>,
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>,
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>,
+            <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.key_encipherment,
             <span class="string">&quot;keyEncipherment&quot;</span>,
         );
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>,
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>,
-            <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">data_encipherment</span>,
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>,
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>,
+            <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.data_encipherment,
             <span class="string">&quot;dataEncipherment&quot;</span>,
         );
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">key_agreement</span>, <span class="string">&quot;keyAgreement&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">key_cert_sign</span>, <span class="string">&quot;keyCertSign&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">crl_sign</span>, <span class="string">&quot;cRLSign&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">encipher_only</span>, <span class="string">&quot;encipherOnly&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.<span class="ident">decipher_only</span>, <span class="string">&quot;decipherOnly&quot;</span>);
-        <span class="ident">X509Extension::new_nid</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="ident">Nid::KEY_USAGE</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/extension.rs.html#185">value</a>)
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.key_agreement, <span class="string">&quot;keyAgreement&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.key_cert_sign, <span class="string">&quot;keyCertSign&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.crl_sign, <span class="string">&quot;cRLSign&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.encipher_only, <span class="string">&quot;encipherOnly&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#186">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#184">self</a>.decipher_only, <span class="string">&quot;decipherOnly&quot;</span>);
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::KEY_USAGE, <span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/extension.rs.html#185">value</a>)
     }
 }
 
-<span class="doccomment">/// An extension consisting of a list of usages indicating purposes</span>
-<span class="doccomment">/// for which the certificate public key can be used for.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExtendedKeyUsage</span> {
-    <span class="ident">critical</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">server_auth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">client_auth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">code_signing</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">email_protection</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">time_stamping</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">ms_code_ind</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">ms_code_com</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">ms_ctl_sign</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">ms_sgc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">ms_efs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">ns_sgc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">other</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+<span class="doccomment">/// An extension consisting of a list of usages indicating purposes
+/// for which the certificate public key can be used for.
+</span><span class="kw">pub struct </span>ExtendedKeyUsage {
+    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    server_auth: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    client_auth: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    code_signing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    email_protection: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    time_stamping: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ms_code_ind: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ms_code_com: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ms_ctl_sign: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ms_sgc: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ms_efs: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ns_sgc: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    other: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <span class="ident">ExtendedKeyUsage::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        ExtendedKeyUsage::new()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-    <span class="doccomment">/// Construct a new `ExtendedKeyUsage` extension.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-            <span class="ident">critical</span>: <span class="bool-val">false</span>,
-            <span class="ident">server_auth</span>: <span class="bool-val">false</span>,
-            <span class="ident">client_auth</span>: <span class="bool-val">false</span>,
-            <span class="ident">code_signing</span>: <span class="bool-val">false</span>,
-            <span class="ident">email_protection</span>: <span class="bool-val">false</span>,
-            <span class="ident">time_stamping</span>: <span class="bool-val">false</span>,
-            <span class="ident">ms_code_ind</span>: <span class="bool-val">false</span>,
-            <span class="ident">ms_code_com</span>: <span class="bool-val">false</span>,
-            <span class="ident">ms_ctl_sign</span>: <span class="bool-val">false</span>,
-            <span class="ident">ms_sgc</span>: <span class="bool-val">false</span>,
-            <span class="ident">ms_efs</span>: <span class="bool-val">false</span>,
-            <span class="ident">ns_sgc</span>: <span class="bool-val">false</span>,
-            <span class="ident">other</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+<span class="kw">impl </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+    <span class="doccomment">/// Construct a new `ExtendedKeyUsage` extension.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+            critical: <span class="bool-val">false</span>,
+            server_auth: <span class="bool-val">false</span>,
+            client_auth: <span class="bool-val">false</span>,
+            code_signing: <span class="bool-val">false</span>,
+            email_protection: <span class="bool-val">false</span>,
+            time_stamping: <span class="bool-val">false</span>,
+            ms_code_ind: <span class="bool-val">false</span>,
+            ms_code_com: <span class="bool-val">false</span>,
+            ms_ctl_sign: <span class="bool-val">false</span>,
+            ms_sgc: <span class="bool-val">false</span>,
+            ms_efs: <span class="bool-val">false</span>,
+            ns_sgc: <span class="bool-val">false</span>,
+            other: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
     }
 
-    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">critical</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#266">self</a>.<span class="ident">critical</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#266">self</a>
-    }
+    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#266">self</a>.critical = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#266">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `serverAuth` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">server_auth</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#272">self</a>.<span class="ident">server_auth</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#272">self</a>
-    }
+    <span class="doccomment">/// Sets the `serverAuth` flag to `true`.
+    </span><span class="kw">pub fn </span>server_auth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#272">self</a>.server_auth = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#272">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `clientAuth` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">client_auth</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#278">self</a>.<span class="ident">client_auth</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#278">self</a>
-    }
+    <span class="doccomment">/// Sets the `clientAuth` flag to `true`.
+    </span><span class="kw">pub fn </span>client_auth(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#278">self</a>.client_auth = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#278">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `codeSigning` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code_signing</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#284">self</a>.<span class="ident">code_signing</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#284">self</a>
-    }
+    <span class="doccomment">/// Sets the `codeSigning` flag to `true`.
+    </span><span class="kw">pub fn </span>code_signing(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#284">self</a>.code_signing = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#284">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `emailProtection` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">email_protection</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#290">self</a>.<span class="ident">email_protection</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#290">self</a>
-    }
+    <span class="doccomment">/// Sets the `emailProtection` flag to `true`.
+    </span><span class="kw">pub fn </span>email_protection(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#290">self</a>.email_protection = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#290">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `timeStamping` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">time_stamping</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#296">self</a>.<span class="ident">time_stamping</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#296">self</a>
-    }
+    <span class="doccomment">/// Sets the `timeStamping` flag to `true`.
+    </span><span class="kw">pub fn </span>time_stamping(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#296">self</a>.time_stamping = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#296">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `msCodeInd` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ms_code_ind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#302">self</a>.<span class="ident">ms_code_ind</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#302">self</a>
-    }
+    <span class="doccomment">/// Sets the `msCodeInd` flag to `true`.
+    </span><span class="kw">pub fn </span>ms_code_ind(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#302">self</a>.ms_code_ind = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#302">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `msCodeCom` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ms_code_com</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#308">self</a>.<span class="ident">ms_code_com</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#308">self</a>
-    }
+    <span class="doccomment">/// Sets the `msCodeCom` flag to `true`.
+    </span><span class="kw">pub fn </span>ms_code_com(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#308">self</a>.ms_code_com = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#308">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `msCTLSign` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ms_ctl_sign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#314">self</a>.<span class="ident">ms_ctl_sign</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#314">self</a>
-    }
+    <span class="doccomment">/// Sets the `msCTLSign` flag to `true`.
+    </span><span class="kw">pub fn </span>ms_ctl_sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#314">self</a>.ms_ctl_sign = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#314">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `msSGC` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ms_sgc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#320">self</a>.<span class="ident">ms_sgc</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#320">self</a>
-    }
+    <span class="doccomment">/// Sets the `msSGC` flag to `true`.
+    </span><span class="kw">pub fn </span>ms_sgc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#320">self</a>.ms_sgc = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#320">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `msEFS` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ms_efs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#326">self</a>.<span class="ident">ms_efs</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#326">self</a>
-    }
+    <span class="doccomment">/// Sets the `msEFS` flag to `true`.
+    </span><span class="kw">pub fn </span>ms_efs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#326">self</a>.ms_efs = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#326">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `nsSGC` flag to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ns_sgc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#332">self</a>.<span class="ident">ns_sgc</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#332">self</a>
-    }
+    <span class="doccomment">/// Sets the `nsSGC` flag to `true`.
+    </span><span class="kw">pub fn </span>ns_sgc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#332">self</a>.ns_sgc = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#332">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets a flag not already defined.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">other</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#338">self</a>.<span class="ident">other</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#338">other</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#338">self</a>
-    }
+    <span class="doccomment">/// Sets a flag not already defined.
+    </span><span class="kw">pub fn </span>other(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#223">ExtendedKeyUsage</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#338">self</a>.other.push(<a href="../../../src/openssl/x509/extension.rs.html#338">other</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#338">self</a>
+    </span>}
 
-    <span class="doccomment">/// Return the `ExtendedKeyUsage` extension as an `X509Extension`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">critical</span>, <span class="string">&quot;critical&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">server_auth</span>, <span class="string">&quot;serverAuth&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">client_auth</span>, <span class="string">&quot;clientAuth&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">code_signing</span>, <span class="string">&quot;codeSigning&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>,
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>,
-            <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">email_protection</span>,
+    <span class="doccomment">/// Return the `ExtendedKeyUsage` extension as an `X509Extension`.
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.server_auth, <span class="string">&quot;serverAuth&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.client_auth, <span class="string">&quot;clientAuth&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.code_signing, <span class="string">&quot;codeSigning&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>,
+            <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>,
+            <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.email_protection,
             <span class="string">&quot;emailProtection&quot;</span>,
         );
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">time_stamping</span>, <span class="string">&quot;timeStamping&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">ms_code_ind</span>, <span class="string">&quot;msCodeInd&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">ms_code_com</span>, <span class="string">&quot;msCodeCom&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">ms_ctl_sign</span>, <span class="string">&quot;msCTLSign&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">ms_sgc</span>, <span class="string">&quot;msSGC&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">ms_efs</span>, <span class="string">&quot;msEFS&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.<span class="ident">ns_sgc</span>, <span class="string">&quot;nsSGC&quot;</span>);
-        <span class="kw">for</span> <span class="ident">other</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">other</span> {
-            <span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">value</span>, <span class="kw-2">&amp;mut</span> <span class="ident">first</span>, <span class="bool-val">true</span>, <span class="ident">other</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.time_stamping, <span class="string">&quot;timeStamping&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.ms_code_ind, <span class="string">&quot;msCodeInd&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.ms_code_com, <span class="string">&quot;msCodeCom&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.ms_ctl_sign, <span class="string">&quot;msCTLSign&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.ms_sgc, <span class="string">&quot;msSGC&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.ms_efs, <span class="string">&quot;msEFS&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#346">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#344">self</a>.ns_sgc, <span class="string">&quot;nsSGC&quot;</span>);
+        <span class="kw">for </span>other <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.other {
+            append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, other);
         }
-        <span class="ident">X509Extension::new_nid</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="ident">Nid::EXT_KEY_USAGE</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/extension.rs.html#345">value</a>)
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Nid::EXT_KEY_USAGE, <span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/extension.rs.html#345">value</a>)
     }
 }
 
-<span class="doccomment">/// An extension that provides a means of identifying certificates that contain a</span>
-<span class="doccomment">/// particular public key.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubjectKeyIdentifier</span> {
-    <span class="ident">critical</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// An extension that provides a means of identifying certificates that contain a
+/// particular public key.
+</span><span class="kw">pub struct </span>SubjectKeyIdentifier {
+    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
-        <span class="ident">SubjectKeyIdentifier::new</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
-    <span class="doccomment">/// Construct a new `SubjectKeyIdentifier` extension.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> { <span class="ident">critical</span>: <span class="bool-val">false</span> }
-    }
-
-    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">critical</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#390">self</a>.<span class="ident">critical</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#390">self</a>
-    }
-
-    <span class="doccomment">/// Return a `SubjectKeyIdentifier` extension as an `X509Extension`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">X509v3Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#397">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#398">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#396">self</a>.<span class="ident">critical</span>, <span class="string">&quot;critical&quot;</span>);
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#397">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#398">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;hash&quot;</span>);
-        <span class="ident">X509Extension::new_nid</span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#396">ctx</a>), <span class="ident">Nid::SUBJECT_KEY_IDENTIFIER</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/extension.rs.html#397">value</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
+        SubjectKeyIdentifier::new()
     }
 }
 
-<span class="doccomment">/// An extension that provides a means of identifying the public key corresponding</span>
-<span class="doccomment">/// to the private key used to sign a CRL.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AuthorityKeyIdentifier</span> {
-    <span class="ident">critical</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">keyid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
-    <span class="ident">issuer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
-}
+<span class="kw">impl </span><a href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
+    <span class="doccomment">/// Construct a new `SubjectKeyIdentifier` extension.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
+        <a href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> { critical: <span class="bool-val">false </span>}
+    }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
-        <span class="ident">AuthorityKeyIdentifier::new</span>()
+    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#373">SubjectKeyIdentifier</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#390">self</a>.critical = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#390">self</a>
+    </span>}
+
+    <span class="doccomment">/// Return a `SubjectKeyIdentifier` extension as an `X509Extension`.
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#397">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#398">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#396">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#397">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#398">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;hash&quot;</span>);
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="../../../src/openssl/x509/extension.rs.html#396">ctx</a>), Nid::SUBJECT_KEY_IDENTIFIER, <span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/extension.rs.html#397">value</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
-    <span class="doccomment">/// Construct a new `AuthorityKeyIdentifier` extension.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
-            <span class="ident">critical</span>: <span class="bool-val">false</span>,
-            <span class="ident">keyid</span>: <span class="prelude-val">None</span>,
-            <span class="ident">issuer</span>: <span class="prelude-val">None</span>,
-        }
-    }
+<span class="doccomment">/// An extension that provides a means of identifying the public key corresponding
+/// to the private key used to sign a CRL.
+</span><span class="kw">pub struct </span>AuthorityKeyIdentifier {
+    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    keyid: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+    issuer: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+}
 
-    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">critical</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#430">self</a>.<span class="ident">critical</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#430">self</a>
-    }
-
-    <span class="doccomment">/// Sets the `keyid` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keyid</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">always</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#436">self</a>.<span class="ident">keyid</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#436">always</a>);
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#436">self</a>
-    }
-
-    <span class="doccomment">/// Sets the `issuer` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">issuer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">always</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#442">self</a>.<span class="ident">issuer</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#442">always</a>);
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#442">self</a>
-    }
-
-    <span class="doccomment">/// Return a `AuthorityKeyIdentifier` extension as an `X509Extension`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">X509v3Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#448">self</a>.<span class="ident">critical</span>, <span class="string">&quot;critical&quot;</span>);
-        <span class="kw">match</span> <a class="self" href="../../../src/openssl/x509/extension.rs.html#448">self</a>.<span class="ident">keyid</span> {
-            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;keyid:always&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;keyid&quot;</span>),
-            <span class="prelude-val">None</span> =&gt; {}
-        }
-        <span class="kw">match</span> <a class="self" href="../../../src/openssl/x509/extension.rs.html#448">self</a>.<span class="ident">issuer</span> {
-            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;issuer:always&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;issuer&quot;</span>),
-            <span class="prelude-val">None</span> =&gt; {}
-        }
-        <span class="ident">X509Extension::new_nid</span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#448">ctx</a>), <span class="ident">Nid::AUTHORITY_KEY_IDENTIFIER</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/extension.rs.html#449">value</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
+        AuthorityKeyIdentifier::new()
     }
 }
 
-<span class="doccomment">/// An extension that allows additional identities to be bound to the subject</span>
-<span class="doccomment">/// of the certificate.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubjectAlternativeName</span> {
-    <span class="ident">critical</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <span class="ident">SubjectAlternativeName::new</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-    <span class="doccomment">/// Construct a new `SubjectAlternativeName` extension.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-            <span class="ident">critical</span>: <span class="bool-val">false</span>,
-            <span class="ident">names</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+<span class="kw">impl </span><a href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
+    <span class="doccomment">/// Construct a new `AuthorityKeyIdentifier` extension.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
+        <a href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
+            critical: <span class="bool-val">false</span>,
+            keyid: <span class="prelude-val">None</span>,
+            issuer: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">critical</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#489">self</a>.<span class="ident">critical</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#489">self</a>
-    }
+    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#430">self</a>.critical = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#430">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `email` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">email</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">email</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#495">self</a>.<span class="ident">names</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;email:{}&quot;</span>, <span class="ident">email</span>));
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#495">self</a>
-    }
+    <span class="doccomment">/// Sets the `keyid` flag.
+    </span><span class="kw">pub fn </span>keyid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, always: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#436">self</a>.keyid = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/x509/extension.rs.html#436">always</a>);
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#436">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `uri` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">uri</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#501">self</a>.<span class="ident">names</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;URI:{}&quot;</span>, <span class="ident">uri</span>));
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#501">self</a>
-    }
+    <span class="doccomment">/// Sets the `issuer` flag.
+    </span><span class="kw">pub fn </span>issuer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, always: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#407">AuthorityKeyIdentifier</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#442">self</a>.issuer = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/x509/extension.rs.html#442">always</a>);
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#442">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `dns` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dns</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dns</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#507">self</a>.<span class="ident">names</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;DNS:{}&quot;</span>, <span class="ident">dns</span>));
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#507">self</a>
-    }
-
-    <span class="doccomment">/// Sets the `rid` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rid</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rid</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#513">self</a>.<span class="ident">names</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;RID:{}&quot;</span>, <span class="ident">rid</span>));
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#513">self</a>
-    }
-
-    <span class="doccomment">/// Sets the `ip` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ip</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ip</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#519">self</a>.<span class="ident">names</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;IP:{}&quot;</span>, <span class="ident">ip</span>));
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#519">self</a>
-    }
-
-    <span class="doccomment">/// Sets the `dirName` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dir_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dir_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#525">self</a>.<span class="ident">names</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;dirName:{}&quot;</span>, <span class="ident">dir_name</span>));
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#525">self</a>
-    }
-
-    <span class="doccomment">/// Sets the `otherName` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">other_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#531">self</a>.<span class="ident">names</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;otherName:{}&quot;</span>, <span class="ident">other_name</span>));
-        <a class="self" href="../../../src/openssl/x509/extension.rs.html#531">self</a>
-    }
-
-    <span class="doccomment">/// Return a `SubjectAlternativeName` extension as an `X509Extension`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">X509v3Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#538">value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/extension.rs.html#539">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#537">self</a>.<span class="ident">critical</span>, <span class="string">&quot;critical&quot;</span>);
-        <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">names</span> {
-            <span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">value</span>, <span class="kw-2">&amp;mut</span> <span class="ident">first</span>, <span class="bool-val">true</span>, <span class="ident">name</span>);
+    <span class="doccomment">/// Return a `AuthorityKeyIdentifier` extension as an `X509Extension`.
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#448">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
+        <span class="kw">match </span><a class="self" href="../../../src/openssl/x509/extension.rs.html#448">self</a>.keyid {
+            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;keyid:always&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;keyid&quot;</span>),
+            <span class="prelude-val">None </span>=&gt; {}
         }
-        <span class="ident">X509Extension::new_nid</span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#537">ctx</a>), <span class="ident">Nid::SUBJECT_ALT_NAME</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/extension.rs.html#538">value</a>)
+        <span class="kw">match </span><a class="self" href="../../../src/openssl/x509/extension.rs.html#448">self</a>.issuer {
+            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;issuer:always&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#449">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#450">first</a>, <span class="bool-val">true</span>, <span class="string">&quot;issuer&quot;</span>),
+            <span class="prelude-val">None </span>=&gt; {}
+        }
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="../../../src/openssl/x509/extension.rs.html#448">ctx</a>), Nid::AUTHORITY_KEY_IDENTIFIER, <span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/extension.rs.html#449">value</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">append</span>(<span class="ident">value</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">first</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">should</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">element</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">should</span> {
+<span class="doccomment">/// An extension that allows additional identities to be bound to the subject
+/// of the certificate.
+</span><span class="kw">pub struct </span>SubjectAlternativeName {
+    critical: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    names: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        SubjectAlternativeName::new()
+    }
+}
+
+<span class="kw">impl </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+    <span class="doccomment">/// Construct a new `SubjectAlternativeName` extension.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+            critical: <span class="bool-val">false</span>,
+            names: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+        }
+    }
+
+    <span class="doccomment">/// Sets the `critical` flag to `true`. The extension will be critical.
+    </span><span class="kw">pub fn </span>critical(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#489">self</a>.critical = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#489">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `email` flag.
+    </span><span class="kw">pub fn </span>email(<span class="kw-2">&amp;mut </span><span class="self">self</span>, email: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#495">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;email:{}&quot;</span>, email));
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#495">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `uri` flag.
+    </span><span class="kw">pub fn </span>uri(<span class="kw-2">&amp;mut </span><span class="self">self</span>, uri: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#501">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;URI:{}&quot;</span>, uri));
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#501">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `dns` flag.
+    </span><span class="kw">pub fn </span>dns(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dns: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#507">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;DNS:{}&quot;</span>, dns));
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#507">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `rid` flag.
+    </span><span class="kw">pub fn </span>rid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rid: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#513">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;RID:{}&quot;</span>, rid));
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#513">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `ip` flag.
+    </span><span class="kw">pub fn </span>ip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ip: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#519">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;IP:{}&quot;</span>, ip));
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#519">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `dirName` flag.
+    </span><span class="kw">pub fn </span>dir_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dir_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#525">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;dirName:{}&quot;</span>, dir_name));
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#525">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the `otherName` flag.
+    </span><span class="kw">pub fn </span>other_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#468">SubjectAlternativeName</a> {
+        <a class="self" href="../../../src/openssl/x509/extension.rs.html#531">self</a>.names.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;otherName:{}&quot;</span>, other_name));
+        <span class="self"><a href="../../../src/openssl/x509/extension.rs.html#531">self</a>
+    </span>}
+
+    <span class="doccomment">/// Return a `SubjectAlternativeName` extension as an `X509Extension`.
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>X509v3Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/x509/mod.rs.html#780-788">X509Extension</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>value = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
+        <a href="../../../src/openssl/x509/extension.rs.html#548">append</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#538">value</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/extension.rs.html#539">first</a>, <a class="self" href="../../../src/openssl/x509/extension.rs.html#537">self</a>.critical, <span class="string">&quot;critical&quot;</span>);
+        <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.names {
+            append(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>first, <span class="bool-val">true</span>, name);
+        }
+        X509Extension::new_nid(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a href="../../../src/openssl/x509/extension.rs.html#537">ctx</a>), Nid::SUBJECT_ALT_NAME, <span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/extension.rs.html#538">value</a>)
+    }
+}
+
+<span class="kw">fn </span>append(value: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, first: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, should: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, element: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">if </span>!should {
         <span class="kw">return</span>;
     }
 
-    <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">first</span> {
-        <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">value</a>.<span class="ident">push</span>(<span class="string">&#39;,&#39;</span>);
+    <span class="kw">if </span>!<span class="kw-2">*</span>first {
+        <a href="../../../src/openssl/x509/extension.rs.html#548">value</a>.push(<span class="string">&#39;,&#39;</span>);
     }
-    <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">first</a> <span class="op">=</span> <span class="bool-val">false</span>;
-    <a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">value</a>.<span class="ident">push_str</span>(<a class="ident" href="../../../src/openssl/x509/extension.rs.html#548">element</a>);
+    <span class="kw-2">*</span><a href="../../../src/openssl/x509/extension.rs.html#548">first</a> = <span class="bool-val">false</span>;
+    <a href="../../../src/openssl/x509/extension.rs.html#548">value</a>.push_str(<a href="../../../src/openssl/x509/extension.rs.html#548">element</a>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

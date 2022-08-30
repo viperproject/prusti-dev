@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/proto/h1/dispatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/proto/h1/dispatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -748,755 +748,755 @@
 <span id="748">748</span>
 <span id="749">749</span>
 <span id="750">750</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>, <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../hyper/struct.Request.html">http::Request</a>;
-<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
-<span class="kw">use</span> <span class="ident">tracing</span>::{<a class="ident" href="../../../../tracing/macro.debug.html">debug</a>, <a class="ident" href="../../../../tracing/macro.trace.html">trace</a>};
+<span class="kw">use </span>bytes::{<a href="../../../../hyper/body/trait.Buf.html">Buf</a>, <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>};
+<span class="kw">use </span><a href="../../../../hyper/struct.Request.html">http::Request</a>;
+<span class="kw">use </span>tokio::io::{<a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span>tracing::{<a href="../../../../tracing/macro.debug.html">debug</a>, <a href="../../../../tracing/macro.trace.html">trace</a>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35">Http1Transaction</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#107">Wants</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::body</span>::{<a class="ident" href="../../../../src/hyper/body/body.rs.html#36">Body</a>, <a class="ident" href="../../../../src/hyper/body/length.rs.html#4">DecodedLength</a>, <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::proto</span>::{
-    <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#46">BodyLength</a>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#32">Conn</a>, <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#54">Dispatched</a>, <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#21">MessageHead</a>, <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#34">RequestHead</a>,
+<span class="kw">use super</span>::{<a href="../../../../src/hyper/proto/h1/mod.rs.html#35">Http1Transaction</a>, <a href="../../../../src/hyper/proto/h1/mod.rs.html#107">Wants</a>};
+<span class="kw">use </span><span class="kw">crate</span>::body::{<a href="../../../../src/hyper/body/body.rs.html#36">Body</a>, <a href="../../../../src/hyper/body/length.rs.html#4">DecodedLength</a>, <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
+<span class="kw">use </span><span class="kw">crate</span>::proto::{
+    <a href="../../../../src/hyper/proto/mod.rs.html#46">BodyLength</a>, <a href="../../../../src/hyper/proto/h1/conn.rs.html#32">Conn</a>, <a href="../../../../src/hyper/proto/mod.rs.html#54">Dispatched</a>, <a href="../../../../src/hyper/proto/mod.rs.html#21">MessageHead</a>, <a href="../../../../src/hyper/proto/mod.rs.html#34">RequestHead</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../../src/hyper/upgrade.rs.html#72"><span class="kw">crate</span>::upgrade::OnUpgrade</a>;
+<span class="kw">use </span><a href="../../../../src/hyper/upgrade.rs.html#72"><span class="kw">crate</span>::upgrade::OnUpgrade</a>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Dispatcher</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">Bs</span>: <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>, <span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">conn</span>: <span class="ident">Conn</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Bs::Data</span>, <span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">dispatch</span>: <span class="ident">D</span>,
-    <span class="ident">body_tx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/body/body.rs.html#109"><span class="kw">crate</span>::body::Sender</a><span class="op">&gt;</span>,
-    <span class="ident">body_rx</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bs</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">is_closing</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Dispatcher&lt;D, Bs: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>, I, T&gt; {
+    conn: Conn&lt;I, Bs::Data, T&gt;,
+    dispatch: D,
+    body_tx: <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/hyper/body/body.rs.html#109"><span class="kw">crate</span>::body::Sender</a>&gt;,
+    body_rx: Pin&lt;Box&lt;<span class="prelude-ty">Option</span>&lt;Bs&gt;&gt;&gt;,
+    is_closing: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">Dispatch</span> {
-    <span class="kw">type</span> <span class="ident">PollItem</span>;
-    <span class="kw">type</span> <span class="ident">PollBody</span>;
-    <span class="kw">type</span> <span class="ident">PollError</span>;
-    <span class="kw">type</span> <span class="ident">RecvItem</span>;
-    <span class="kw">fn</span> <span class="ident">poll_msg</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::PollItem</span>, <span class="ident"><span class="self">Self</span>::PollBody</span>), <span class="ident"><span class="self">Self</span>::PollError</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">recv_msg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::RecvItem</span>, <a class="ident" href="../../../../src/hyper/body/body.rs.html#36">Body</a>)<span class="op">&gt;</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">should_poll</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Dispatch {
+    <span class="kw">type </span>PollItem;
+    <span class="kw">type </span>PollBody;
+    <span class="kw">type </span>PollError;
+    <span class="kw">type </span>RecvItem;
+    <span class="kw">fn </span>poll_msg(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>::PollItem, <span class="self">Self</span>::PollBody), <span class="self">Self</span>::PollError&gt;&gt;&gt;;
+    <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, <a href="../../../../src/hyper/body/body.rs.html#36">Body</a>)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt;;
+    <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), ()&gt;&gt;;
+    <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 }
 
-<span class="macro">cfg_server!</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../../src/hyper/service/http.rs.html#8"><span class="kw">crate</span>::service::HttpService</a>;
+<span class="macro">cfg_server! </span>{
+    <span class="kw">use </span><a href="../../../../src/hyper/service/http.rs.html#8"><span class="kw">crate</span>::service::HttpService</a>;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-        <span class="ident">in_flight</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S::Future</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">service</span>: <span class="ident">S</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Server&lt;S: HttpService&lt;B&gt;, B&gt; {
+        in_flight: Pin&lt;Box&lt;<span class="prelude-ty">Option</span>&lt;S::Future&gt;&gt;&gt;,
+        <span class="kw">pub</span>(<span class="kw">crate</span>) service: S,
     }
 }
 
-<span class="macro">cfg_client!</span> {
-    <a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project!</a> {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Client</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-            <span class="ident">callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::client::dispatch::Callback</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">http::Response</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/body/body.rs.html#36">Body</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-            <span class="attribute">#[<span class="ident">pin</span>]</span>
-            <span class="ident">rx</span>: <span class="ident">ClientRx</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-            <span class="ident">rx_closed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="macro">cfg_client! </span>{
+    <a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project! </a>{
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Client&lt;B&gt; {
+            callback: <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::client::dispatch::Callback&lt;Request&lt;B&gt;, http::Response&lt;<a href="../../../../src/hyper/body/body.rs.html#36">Body</a>&gt;&gt;&gt;,
+            <span class="attribute">#[pin]
+            </span>rx: ClientRx&lt;B&gt;,
+            rx_closed: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         }
     }
 
-    <span class="kw">type</span> <span class="ident">ClientRx</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::client::dispatch::Receiver</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">http::Response</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/body/body.rs.html#36">Body</a><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>ClientRx&lt;B&gt; = <span class="kw">crate</span>::client::dispatch::Receiver&lt;Request&lt;B&gt;, http::Response&lt;<a href="../../../../src/hyper/body/body.rs.html#36">Body</a>&gt;&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">Bs</span>, <span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Dispatcher</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">Bs</span>, <span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Dispatch</span><span class="op">&lt;</span>
-        <span class="ident">PollItem</span> <span class="op">=</span> <span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T::Outgoing</span><span class="op">&gt;</span>,
-        <span class="ident">PollBody</span> <span class="op">=</span> <span class="ident">Bs</span>,
-        <span class="ident">RecvItem</span> <span class="op">=</span> <span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T::Incoming</span><span class="op">&gt;</span>,
-    <span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">D::PollError</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">I</span>: <a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">T</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35">Http1Transaction</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">Bs</span>: <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">Bs::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;D, Bs, I, T&gt; Dispatcher&lt;D, Bs, I, T&gt;
+<span class="kw">where
+    </span>D: Dispatch&lt;
+        PollItem = MessageHead&lt;T::Outgoing&gt;,
+        PollBody = Bs,
+        RecvItem = MessageHead&lt;T::Incoming&gt;,
+    &gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    D::PollError: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    I: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    T: <a href="../../../../src/hyper/proto/h1/mod.rs.html#35">Http1Transaction</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    Bs: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a> + <span class="lifetime">&#39;static</span>,
+    Bs::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dispatch</span>: <span class="ident">D</span>, <span class="ident">conn</span>: <span class="ident">Conn</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Bs::Data</span>, <span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#16">Dispatcher</a> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#73">conn</a>,
-            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#73">dispatch</a>,
-            <span class="ident">body_tx</span>: <span class="prelude-val">None</span>,
-            <span class="ident">body_rx</span>: <span class="ident">Box::pin</span>(<span class="prelude-val">None</span>),
-            <span class="ident">is_closing</span>: <span class="bool-val">false</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(dispatch: D, conn: Conn&lt;I, Bs::Data, T&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#16">Dispatcher</a> {
+            <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#73">conn</a>,
+            <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#73">dispatch</a>,
+            body_tx: <span class="prelude-val">None</span>,
+            body_rx: Box::pin(<span class="prelude-val">None</span>),
+            is_closing: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">disable_keep_alive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#84">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#769">disable_keep_alive</a>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">is_write_closed</span>() {
-            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#84">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;server&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>disable_keep_alive(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#84">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#769">disable_keep_alive</a>();
+        <span class="kw">if </span><span class="self">self</span>.conn.is_write_closed() {
+            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#84">self</a>.<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; (<span class="ident">I</span>, <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>, <span class="ident">D</span>) {
-        <span class="kw">let</span> (<span class="ident">io</span>, <span class="ident">buf</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#91">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#141">into_inner</a>();
-        (<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#92">io</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#92">buf</a>, <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#91">self</a>.<span class="ident">dispatch</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; (I, <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>, D) {
+        <span class="kw">let </span>(io, buf) = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#91">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#141">into_inner</a>();
+        (<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#92">io</a>, <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#92">buf</a>, <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#91">self</a>.dispatch)
     }
 
-    <span class="doccomment">/// Run this dispatcher until HTTP says this connection is done,</span>
-    <span class="doccomment">/// but don&#39;t call `AsyncWrite::shutdown` on the underlying IO.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful for old-style HTTP upgrades, but ignores</span>
-    <span class="doccomment">/// newer-style upgrade API.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_without_shutdown</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    <span class="doccomment">/// Run this dispatcher until HTTP says this connection is done,
+    /// but don&#39;t call `AsyncWrite::shutdown` on the underlying IO.
+    ///
+    /// This is useful for old-style HTTP upgrades, but ignores
+    /// newer-style upgrade API.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_without_shutdown(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     {
-        <span class="ident">Pin::new</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#102">self</a>).<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#115-119">poll_catch</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#103">cx</a>, <span class="bool-val">false</span>).<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">ds</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#59">Dispatched::Upgrade</a>(<span class="ident">pending</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#108">ds</a> {
-                <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#109">pending</a>.<a class="ident" href="../../../../src/hyper/upgrade.rs.html#243">manual</a>();
+        Pin::new(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#102">self</a>).<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#115-119">poll_catch</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#103">cx</a>, <span class="bool-val">false</span>).map_ok(|ds| {
+            <span class="kw">if let </span><a href="../../../../src/hyper/proto/mod.rs.html#59">Dispatched::Upgrade</a>(pending) = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#108">ds</a> {
+                <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#109">pending</a>.<a href="../../../../src/hyper/upgrade.rs.html#243">manual</a>();
             }
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_catch</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">should_shutdown</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#54">Dispatched</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">poll_inner</span>(<span class="ident">cx</span>, <span class="ident">should_shutdown</span>)).<span class="ident">or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="comment">// An error means we&#39;re shutting down either way.</span>
-            <span class="comment">// We just try to give the error to the user,</span>
-            <span class="comment">// and close the connection with an Ok. If we</span>
-            <span class="comment">// cannot give it to the user, then return the Err.</span>
-            <span class="self">self</span>.<span class="ident">dispatch</span>.<span class="ident">recv_msg</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#56">Dispatched::Shutdown</a>)
+    <span class="kw">fn </span>poll_catch(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        should_shutdown: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;<a href="../../../../src/hyper/proto/mod.rs.html#54">Dispatched</a>&gt;&gt; {
+        Poll::Ready(<a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.poll_inner(cx, should_shutdown)).or_else(|e| {
+            <span class="comment">// An error means we&#39;re shutting down either way.
+            // We just try to give the error to the user,
+            // and close the connection with an Ok. If we
+            // cannot give it to the user, then return the Err.
+            </span><span class="self">self</span>.dispatch.recv_msg(<span class="prelude-val">Err</span>(e))<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<a href="../../../../src/hyper/proto/mod.rs.html#56">Dispatched::Shutdown</a>)
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_inner</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">should_shutdown</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#54">Dispatched</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">T::update_date</span>();
+    <span class="kw">fn </span>poll_inner(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        should_shutdown: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;<a href="../../../../src/hyper/proto/mod.rs.html#54">Dispatched</a>&gt;&gt; {
+        T::update_date();
 
-        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">poll_loop</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.poll_loop(cx))<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_done</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pending</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#145">pending_upgrade</a>() {
-                <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">take_error</span>()<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#59">Dispatched::Upgrade</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#140">pending</a>)));
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">should_shutdown</span> {
-                <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">poll_shutdown</span>(<span class="ident">cx</span>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_shutdown</span>)<span class="question-mark">?</span>;
+        <span class="kw">if </span><span class="self">self</span>.is_done() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(pending) = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#145">pending_upgrade</a>() {
+                <span class="self">self</span>.conn.take_error()<span class="question-mark">?</span>;
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/hyper/proto/mod.rs.html#59">Dispatched::Upgrade</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#140">pending</a>)));
+            } <span class="kw">else if </span>should_shutdown {
+                <span class="macro">ready!</span>(<span class="self">self</span>.conn.poll_shutdown(cx)).map_err(<span class="kw">crate</span>::Error::new_shutdown)<span class="question-mark">?</span>;
             }
-            <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">take_error</span>()<span class="question-mark">?</span>;
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#56">Dispatched::Shutdown</a>))
-        } <span class="kw">else</span> {
-            <span class="ident">Poll::Pending</span>
+            <span class="self">self</span>.conn.take_error()<span class="question-mark">?</span>;
+            Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/hyper/proto/mod.rs.html#56">Dispatched::Shutdown</a>))
+        } <span class="kw">else </span>{
+            Poll::Pending
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_loop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Limit the looping on this connection, in case it is ready far too</span>
-        <span class="comment">// often, so that other futures don&#39;t starve.</span>
-        <span class="comment">//</span>
-        <span class="comment">// 16 was chosen arbitrarily, as that is number of pipelined requests</span>
-        <span class="comment">// benchmarks often use. Perhaps it should be a config option instead.</span>
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_read</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_write</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_flush</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>poll_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
+        <span class="comment">// Limit the looping on this connection, in case it is ready far too
+        // often, so that other futures don&#39;t starve.
+        //
+        // 16 was chosen arbitrarily, as that is number of pipelined requests
+        // benchmarks often use. Perhaps it should be a config option instead.
+        </span><span class="kw">for _ in </span><span class="number">0</span>..<span class="number">16 </span>{
+            <span class="kw">let _ </span>= <span class="self">self</span>.poll_read(cx)<span class="question-mark">?</span>;
+            <span class="kw">let _ </span>= <span class="self">self</span>.poll_write(cx)<span class="question-mark">?</span>;
+            <span class="kw">let _ </span>= <span class="self">self</span>.poll_flush(cx)<span class="question-mark">?</span>;
 
-            <span class="comment">// This could happen if reading paused before blocking on IO,</span>
-            <span class="comment">// such as getting to the end of a framed message, but then</span>
-            <span class="comment">// writing/flushing set the state back to Init. In that case,</span>
-            <span class="comment">// if the read buffer still had bytes, we&#39;d want to try poll_read</span>
-            <span class="comment">// again, or else we wouldn&#39;t ever be woken up again.</span>
-            <span class="comment">//</span>
-            <span class="comment">// Using this instead of task::current() and notify() inside</span>
-            <span class="comment">// the Conn is noticeably faster in pipelined benchmarks.</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">wants_read_again</span>() {
-                <span class="comment">//break;</span>
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
+            <span class="comment">// This could happen if reading paused before blocking on IO,
+            // such as getting to the end of a framed message, but then
+            // writing/flushing set the state back to Init. In that case,
+            // if the read buffer still had bytes, we&#39;d want to try poll_read
+            // again, or else we wouldn&#39;t ever be woken up again.
+            //
+            // Using this instead of task::current() and notify() inside
+            // the Conn is noticeably faster in pipelined benchmarks.
+            </span><span class="kw">if </span>!<span class="self">self</span>.conn.wants_read_again() {
+                <span class="comment">//break;
+                </span><span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             }
         }
 
         <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;poll_loop yielding (self = {:p})&quot;</span>, <span class="self">self</span>);
 
-        <a class="ident" href="../../../../src/hyper/common/task.rs.html#9">task::yield_now</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#153">cx</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">never</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#180">never</a> {})
+        <a href="../../../../src/hyper/common/task.rs.html#9">task::yield_now</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#153">cx</a>).map(|never| <span class="kw">match </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#180">never</a> {})
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_closing</span> {
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">can_read_head</span>() {
-                <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">poll_read_head</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">body</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">body_tx</span>.<span class="ident">take</span>() {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">can_read_body</span>() {
-                    <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>.<a class="ident" href="../../../../src/hyper/body/body.rs.html#548">poll_ready</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>) {
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())) =&gt; (),
-                        <span class="ident">Poll::Pending</span> =&gt; {
-                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">body_tx</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>);
-                            <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+    <span class="kw">fn </span>poll_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">if </span><span class="self">self</span>.is_closing {
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
+            } <span class="kw">else if </span><span class="self">self</span>.conn.can_read_head() {
+                <span class="macro">ready!</span>(<span class="self">self</span>.poll_read_head(cx))<span class="question-mark">?</span>;
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>body) = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.body_tx.take() {
+                <span class="kw">if </span><span class="self">self</span>.conn.can_read_body() {
+                    <span class="kw">match </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>.<a href="../../../../src/hyper/body/body.rs.html#548">poll_ready</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>) {
+                        Poll::Ready(<span class="prelude-val">Ok</span>(())) =&gt; (),
+                        Poll::Pending =&gt; {
+                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.body_tx = <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>);
+                            <span class="kw">return </span>Poll::Pending;
                         }
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">_canceled</span>)) =&gt; {
-                            <span class="comment">// user doesn&#39;t care about the body</span>
-                            <span class="comment">// so we should stop reading</span>
-                            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;body receiver dropped before eof, draining or closing&quot;</span>);
-                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#750">poll_drain_or_close_read</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>);
+                        Poll::Ready(<span class="prelude-val">Err</span>(_canceled)) =&gt; {
+                            <span class="comment">// user doesn&#39;t care about the body
+                            // so we should stop reading
+                            </span><a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;body receiver dropped before eof, draining or closing&quot;</span>);
+                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#750">poll_drain_or_close_read</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>);
                             <span class="kw">continue</span>;
                         }
                     }
-                    <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#287-290">poll_read_body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>) {
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">chunk</span>))) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>.<a class="ident" href="../../../../src/hyper/body/body.rs.html#598">try_send_data</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#206">chunk</a>) {
+                    <span class="kw">match </span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#287-290">poll_read_body</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>) {
+                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(chunk))) =&gt; <span class="kw">match </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>.<a href="../../../../src/hyper/body/body.rs.html#598">try_send_data</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#206">chunk</a>) {
                             <span class="prelude-val">Ok</span>(()) =&gt; {
-                                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">body_tx</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>);
+                                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.body_tx = <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>);
                             }
-                            <span class="prelude-val">Err</span>(<span class="ident">_canceled</span>) =&gt; {
-                                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">can_read_body</span>() {
+                            <span class="prelude-val">Err</span>(_canceled) =&gt; {
+                                <span class="kw">if </span><span class="self">self</span>.conn.can_read_body() {
                                     <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;body receiver dropped before eof, closing&quot;</span>);
-                                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#760">close_read</a>();
+                                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#760">close_read</a>();
                                 }
                             }
                         },
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; {
-                            <span class="comment">// just drop, the body will close automatically</span>
+                        Poll::Ready(<span class="prelude-val">None</span>) =&gt; {
+                            <span class="comment">// just drop, the body will close automatically
+                        </span>}
+                        Poll::Pending =&gt; {
+                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.body_tx = <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>);
+                            <span class="kw">return </span>Poll::Pending;
                         }
-                        <span class="ident">Poll::Pending</span> =&gt; {
-                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">body_tx</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>);
-                            <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
-                        }
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))) =&gt; {
-                            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>.<a class="ident" href="../../../../src/hyper/body/body.rs.html#614">send_error</a>(<span class="ident"><span class="kw">crate</span>::Error::new_body</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#224">e</a>));
+                        Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e))) =&gt; {
+                            <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>.<a href="../../../../src/hyper/body/body.rs.html#614">send_error</a>(<span class="kw">crate</span>::Error::new_body(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#224">e</a>));
                         }
                     }
-                } <span class="kw">else</span> {
-                    <span class="comment">// just drop, the body will close automatically</span>
-                }
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#350-353">poll_read_keep_alive</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>);
+                } <span class="kw">else </span>{
+                    <span class="comment">// just drop, the body will close automatically
+                </span>}
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#350-353">poll_read_keep_alive</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>);
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_read_head</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// can dispatch receive, or does it still care about, an incoming message?</span>
-        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">dispatch</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>)) {
+    <span class="kw">fn </span>poll_read_head(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
+        <span class="comment">// can dispatch receive, or does it still care about, an incoming message?
+        </span><span class="kw">match </span><a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.dispatch.poll_ready(cx)) {
             <span class="prelude-val">Ok</span>(()) =&gt; (),
             <span class="prelude-val">Err</span>(()) =&gt; {
                 <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;dispatch no longer receiving messages&quot;</span>);
-                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
+                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             }
         }
-        <span class="comment">// dispatch is ready for a message, try to read one</span>
-        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">poll_read_head</span>(<span class="ident">cx</span>)) {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<span class="kw-2">mut</span> <span class="ident">head</span>, <span class="ident">body_len</span>, <span class="ident">wants</span>))) =&gt; {
-                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">body_len</a> {
-                    <span class="ident">DecodedLength::ZERO</span> =&gt; <span class="ident">Body::empty</span>(),
-                    <span class="ident">other</span> =&gt; {
-                        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">Body::new_channel</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#252">other</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">wants</a>.<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#119">contains</a>(<span class="ident">Wants::EXPECT</span>));
-                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">body_tx</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#253">tx</a>);
-                        <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#253">rx</a>
+        <span class="comment">// dispatch is ready for a message, try to read one
+        </span><span class="kw">match </span><a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.conn.poll_read_head(cx)) {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<span class="kw-2">mut </span>head, body_len, wants))) =&gt; {
+                <span class="kw">let </span>body = <span class="kw">match </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">body_len</a> {
+                    DecodedLength::ZERO =&gt; Body::empty(),
+                    other =&gt; {
+                        <span class="kw">let </span>(tx, rx) = Body::new_channel(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#252">other</a>, <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">wants</a>.<a href="../../../../src/hyper/proto/h1/mod.rs.html#119">contains</a>(Wants::EXPECT));
+                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.body_tx = <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#253">tx</a>);
+                        <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#253">rx</a>
                     }
                 };
-                <span class="kw">if</span> <span class="ident">wants</span>.<span class="ident">contains</span>(<span class="ident">Wants::UPGRADE</span>) {
-                    <span class="kw">let</span> <span class="ident">upgrade</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#787">on_upgrade</a>();
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="ident">upgrade</span>.<span class="ident">is_none</span>(), <span class="string">&quot;empty upgrade&quot;</span>);
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">head</span>.<span class="ident">extensions</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">OnUpgrade</span><span class="op">&gt;</span>().<span class="ident">is_none</span>(), <span class="string">&quot;OnUpgrade already set&quot;</span>);
-                    <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">head</a>.<span class="ident">extensions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#259">upgrade</a>);
+                <span class="kw">if </span>wants.contains(Wants::UPGRADE) {
+                    <span class="kw">let </span>upgrade = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#787">on_upgrade</a>();
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!upgrade.is_none(), <span class="string">&quot;empty upgrade&quot;</span>);
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(head.extensions.get::&lt;OnUpgrade&gt;().is_none(), <span class="string">&quot;OnUpgrade already set&quot;</span>);
+                    <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">head</a>.extensions.insert(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#259">upgrade</a>);
                 }
-                <span class="self">self</span>.<span class="ident">dispatch</span>.<span class="ident">recv_msg</span>(<span class="prelude-val">Ok</span>((<span class="ident">head</span>, <span class="ident">body</span>)))<span class="question-mark">?</span>;
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+                <span class="self">self</span>.dispatch.recv_msg(<span class="prelude-val">Ok</span>((head, body)))<span class="question-mark">?</span>;
+                Poll::Ready(<span class="prelude-val">Ok</span>(()))
             }
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; {
-                <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;read_head error: {}&quot;</span>, <span class="ident">err</span>);
-                <span class="self">self</span>.<span class="ident">dispatch</span>.<span class="ident">recv_msg</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>))<span class="question-mark">?</span>;
-                <span class="comment">// if here, the dispatcher gave the user the error</span>
-                <span class="comment">// somewhere else. we still need to shutdown, but</span>
-                <span class="comment">// not as a second error.</span>
-                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
+                <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;read_head error: {}&quot;</span>, err);
+                <span class="self">self</span>.dispatch.recv_msg(<span class="prelude-val">Err</span>(err))<span class="question-mark">?</span>;
+                <span class="comment">// if here, the dispatcher gave the user the error
+                // somewhere else. we still need to shutdown, but
+                // not as a second error.
+                </span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
+                Poll::Ready(<span class="prelude-val">Ok</span>(()))
             }
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="comment">// read eof, the write side will have been closed too unless</span>
-                <span class="comment">// allow_read_close was set to true, in which case just do</span>
-                <span class="comment">// nothing...</span>
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">is_read_closed</span>());
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">is_write_closed</span>() {
-                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// read eof, the write side will have been closed too unless
+                // allow_read_close was set to true, in which case just do
+                // nothing...
+                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.conn.is_read_closed());
+                <span class="kw">if </span><span class="self">self</span>.conn.is_write_closed() {
+                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
                 }
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+                Poll::Ready(<span class="prelude-val">Ok</span>(()))
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_closing</span> {
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">body_rx</span>.<span class="ident">is_none</span>()
-                <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">can_write_head</span>()
-                <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">dispatch</span>.<span class="ident">should_poll</span>()
+    <span class="kw">fn </span>poll_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">if </span><span class="self">self</span>.is_closing {
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
+            } <span class="kw">else if </span><span class="self">self</span>.body_rx.is_none()
+                &amp;&amp; <span class="self">self</span>.conn.can_write_head()
+                &amp;&amp; <span class="self">self</span>.dispatch.should_poll()
             {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">dispatch</span>).<span class="ident">poll_msg</span>(<span class="ident">cx</span>)) {
-                    <span class="kw">let</span> (<span class="ident">head</span>, <span class="kw-2">mut</span> <span class="ident">body</span>) <span class="op">=</span> <span class="ident">msg</span>.<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_user_service</span>)<span class="question-mark">?</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.dispatch).poll_msg(cx)) {
+                    <span class="kw">let </span>(head, <span class="kw-2">mut </span>body) = msg.map_err(<span class="kw">crate</span>::Error::new_user_service)<span class="question-mark">?</span>;
 
-                    <span class="comment">// Check if the body knows its full data immediately.</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// If so, we can skip a bit of bookkeeping that streaming</span>
-                    <span class="comment">// bodies need to do.</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">full</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/body/mod.rs.html#36"><span class="kw">crate</span>::body::take_full_data</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">body</a>) {
-                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#525">write_full_msg</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#304">full</a>);
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
+                    <span class="comment">// Check if the body knows its full data immediately.
+                    //
+                    // If so, we can skip a bit of bookkeeping that streaming
+                    // bodies need to do.
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(full) = <a href="../../../../src/hyper/body/mod.rs.html#36"><span class="kw">crate</span>::body::take_full_data</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">body</a>) {
+                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#525">write_full_msg</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">head</a>, <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#304">full</a>);
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                     }
 
-                    <span class="kw">let</span> <span class="ident">body_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">is_end_stream</span>() {
-                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">body_rx</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
-                        <span class="prelude-val">None</span>
-                    } <span class="kw">else</span> {
-                        <span class="kw">let</span> <span class="ident">btype</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">body</a>
-                            .<a class="ident" href="../../../../hyper/body/trait.HttpBody.html">size_hint</a>()
-                            .<span class="ident">exact</span>()
-                            .<span class="ident">map</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#48">BodyLength::Known</a>)
-                            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#50">BodyLength::Unknown</a>));
-                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">body_rx</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">body</a>));
-                        <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#313">btype</a>
+                    <span class="kw">let </span>body_type = <span class="kw">if </span>body.is_end_stream() {
+                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.body_rx.set(<span class="prelude-val">None</span>);
+                        <span class="prelude-val">None
+                    </span>} <span class="kw">else </span>{
+                        <span class="kw">let </span>btype = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">body</a>
+                            .<a href="../../../../hyper/body/trait.HttpBody.html">size_hint</a>()
+                            .exact()
+                            .map(<a href="../../../../src/hyper/proto/mod.rs.html#48">BodyLength::Known</a>)
+                            .or_else(|| <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/mod.rs.html#50">BodyLength::Unknown</a>));
+                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.body_rx.set(<span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">body</a>));
+                        <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#313">btype</a>
                     };
-                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#513">write_head</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#309">body_type</a>);
-                } <span class="kw">else</span> {
-                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
+                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#513">write_head</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">head</a>, <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#309">body_type</a>);
+                } <span class="kw">else </span>{
+                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">can_buffer_body</span>() {
-                <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-            } <span class="kw">else</span> {
-                <span class="comment">// A new scope is needed :(</span>
-                <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">body</span>), <span class="ident">clear_body</span>) <span class="op">=</span>
-                    <span class="ident">OptGuard::new</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">body_rx</span>.<span class="ident">as_mut</span>()).<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#439">guard_mut</a>()
+            } <span class="kw">else if </span>!<span class="self">self</span>.conn.can_buffer_body() {
+                <span class="macro">ready!</span>(<span class="self">self</span>.poll_flush(cx))<span class="question-mark">?</span>;
+            } <span class="kw">else </span>{
+                <span class="comment">// A new scope is needed :(
+                </span><span class="kw">if let </span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>body), clear_body) =
+                    OptGuard::new(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.body_rx.as_mut()).<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#439">guard_mut</a>()
                 {
-                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="kw-2">*</span><span class="ident">clear_body</span>, <span class="string">&quot;opt guard defaults to keeping body&quot;</span>);
-                    <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">can_write_body</span>() {
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!<span class="kw-2">*</span>clear_body, <span class="string">&quot;opt guard defaults to keeping body&quot;</span>);
+                    <span class="kw">if </span>!<span class="self">self</span>.conn.can_write_body() {
                         <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(
                             <span class="string">&quot;no more write body allowed, user body is_end_stream = {}&quot;</span>,
-                            <span class="ident">body</span>.<span class="ident">is_end_stream</span>(),
+                            body.is_end_stream(),
                         );
-                        <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                        <span class="kw-2">*</span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a> = <span class="bool-val">true</span>;
                         <span class="kw">continue</span>;
                     }
 
-                    <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">body</span>.<span class="ident">as_mut</span>().<span class="ident">poll_data</span>(<span class="ident">cx</span>));
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#343">item</a> {
-                        <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                            <span class="kw-2">*</span><span class="ident">clear_body</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                            <span class="ident"><span class="kw">crate</span>::Error::new_user_body</span>(<span class="ident">e</span>)
+                    <span class="kw">let </span>item = <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(body.as_mut().poll_data(cx));
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(item) = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#343">item</a> {
+                        <span class="kw">let </span>chunk = item.map_err(|e| {
+                            <span class="kw-2">*</span>clear_body = <span class="bool-val">true</span>;
+                            <span class="kw">crate</span>::Error::new_user_body(e)
                         })<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="ident">eos</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">body</a>.<a class="ident" href="../../../../hyper/body/trait.HttpBody.html">is_end_stream</a>();
-                        <span class="kw">if</span> <span class="ident">eos</span> {
-                            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a> <span class="op">=</span> <span class="bool-val">true</span>;
-                            <span class="kw">if</span> <span class="ident">chunk</span>.<span class="ident">remaining</span>() <span class="op">==</span> <span class="number">0</span> {
+                        <span class="kw">let </span>eos = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">body</a>.<a href="../../../../hyper/body/trait.HttpBody.html">is_end_stream</a>();
+                        <span class="kw">if </span>eos {
+                            <span class="kw-2">*</span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a> = <span class="bool-val">true</span>;
+                            <span class="kw">if </span>chunk.remaining() == <span class="number">0 </span>{
                                 <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;discarding empty chunk&quot;</span>);
-                                <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">end_body</span>()<span class="question-mark">?</span>;
-                            } <span class="kw">else</span> {
-                                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#655">write_body_and_end</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>);
+                                <span class="self">self</span>.conn.end_body()<span class="question-mark">?</span>;
+                            } <span class="kw">else </span>{
+                                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#655">write_body_and_end</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>);
                             }
-                        } <span class="kw">else</span> {
-                            <span class="kw">if</span> <span class="ident">chunk</span>.<span class="ident">remaining</span>() <span class="op">==</span> <span class="number">0</span> {
+                        } <span class="kw">else </span>{
+                            <span class="kw">if </span>chunk.remaining() == <span class="number">0 </span>{
                                 <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;discarding empty chunk&quot;</span>);
                                 <span class="kw">continue</span>;
                             }
-                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#630">write_body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>);
+                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#630">write_body</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>);
                         }
-                    } <span class="kw">else</span> {
-                        <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a> <span class="op">=</span> <span class="bool-val">true</span>;
-                        <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">end_body</span>()<span class="question-mark">?</span>;
+                    } <span class="kw">else </span>{
+                        <span class="kw-2">*</span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a> = <span class="bool-val">true</span>;
+                        <span class="self">self</span>.conn.end_body()<span class="question-mark">?</span>;
                     }
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span>Poll::Pending;
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#729">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">cx</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;error writing: {}&quot;</span>, <span class="ident">err</span>);
-            <span class="ident"><span class="kw">crate</span>::Error::new_body_write</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#377">err</a>)
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt; {
+        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#729">poll_flush</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">cx</a>).map_err(|err| {
+            <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;error writing: {}&quot;</span>, err);
+            <span class="kw">crate</span>::Error::new_body_write(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#377">err</a>)
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">self</a>.<span class="ident">is_closing</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#760">close_read</a>();
-        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#764">close_write</a>();
+    <span class="kw">fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">self</a>.is_closing = <span class="bool-val">true</span>;
+        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#760">close_read</a>();
+        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#764">close_write</a>();
     }
 
-    <span class="kw">fn</span> <span class="ident">is_done</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_closing</span> {
-            <span class="kw">return</span> <span class="bool-val">true</span>;
+    <span class="kw">fn </span>is_done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_closing {
+            <span class="kw">return </span><span class="bool-val">true</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">read_done</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#149">is_read_closed</a>();
+        <span class="kw">let </span>read_done = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#149">is_read_closed</a>();
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">T::should_read_first</span>() <span class="op">&amp;&amp;</span> <span class="ident">read_done</span> {
-            <span class="comment">// a client that cannot read may was well be done.</span>
-            <span class="bool-val">true</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">write_done</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#153">is_write_closed</a>()
-                <span class="op">|</span><span class="op">|</span> (<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">dispatch</span>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#35">should_poll</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">body_rx</span>.<span class="ident">is_none</span>());
-            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#394">read_done</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#400">write_done</a>
+        <span class="kw">if </span>!T::should_read_first() &amp;&amp; read_done {
+            <span class="comment">// a client that cannot read may was well be done.
+            </span><span class="bool-val">true
+        </span>} <span class="kw">else </span>{
+            <span class="kw">let </span>write_done = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.conn.<a href="../../../../src/hyper/proto/h1/conn.rs.html#153">is_write_closed</a>()
+                || (!<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.dispatch.<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#35">should_poll</a>() &amp;&amp; <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.body_rx.is_none());
+            <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#394">read_done</a> &amp;&amp; <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#400">write_done</a>
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">Bs</span>, <span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Dispatcher</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">Bs</span>, <span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Dispatch</span><span class="op">&lt;</span>
-        <span class="ident">PollItem</span> <span class="op">=</span> <span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T::Outgoing</span><span class="op">&gt;</span>,
-        <span class="ident">PollBody</span> <span class="op">=</span> <span class="ident">Bs</span>,
-        <span class="ident">RecvItem</span> <span class="op">=</span> <span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T::Incoming</span><span class="op">&gt;</span>,
-    <span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">D::PollError</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">I</span>: <a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">T</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35">Http1Transaction</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">Bs</span>: <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">Bs::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;D, Bs, I, T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Dispatcher&lt;D, Bs, I, T&gt;
+<span class="kw">where
+    </span>D: Dispatch&lt;
+        PollItem = MessageHead&lt;T::Outgoing&gt;,
+        PollBody = Bs,
+        RecvItem = MessageHead&lt;T::Incoming&gt;,
+    &gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    D::PollError: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    I: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    T: <a href="../../../../src/hyper/proto/h1/mod.rs.html#35">Http1Transaction</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    Bs: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a> + <span class="lifetime">&#39;static</span>,
+    Bs::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#54">Dispatched</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = <span class="kw">crate</span>::Result&lt;<a href="../../../../src/hyper/proto/mod.rs.html#54">Dispatched</a>&gt;;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#423">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#115-119">poll_catch</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#423">cx</a>, <span class="bool-val">true</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#423">self</a>.<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#115-119">poll_catch</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#423">cx</a>, <span class="bool-val">true</span>)
     }
 }
 
-<span class="comment">// ===== impl OptGuard =====</span>
+<span class="comment">// ===== impl OptGuard =====
 
-<span class="doccomment">/// A drop guard to allow a mutable borrow of an Option while being able to</span>
-<span class="doccomment">/// set whether the `Option` should be cleared on drop.</span>
-<span class="kw">struct</span> <span class="ident">OptGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
+</span><span class="doccomment">/// A drop guard to allow a mutable borrow of an Option while being able to
+/// set whether the `Option` should be cleared on drop.
+</span><span class="kw">struct </span>OptGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;(Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;T&gt;&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OptGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pin</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#432">OptGuard</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#435">pin</a>, <span class="bool-val">false</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; OptGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>new(pin: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#432">OptGuard</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#435">pin</a>, <span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">guard_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        (<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#439">self</a>.<span class="number">0</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#439">self</a>.<span class="number">1</span>)
+    <span class="kw">fn </span>guard_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span>&lt;Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;&gt;, <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        (<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#439">self</a>.<span class="number">0</span>.as_mut().as_pin_mut(), <span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#439">self</a>.<span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">OptGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">1</span> {
-            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#445">self</a>.<span class="number">0</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>OptGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">1 </span>{
+            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#445">self</a>.<span class="number">0</span>.set(<span class="prelude-val">None</span>);
         }
     }
 }
 
-<span class="comment">// ===== impl Server =====</span>
+<span class="comment">// ===== impl Server =====
 
-<span class="macro">cfg_server!</span> {
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">B</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+</span><span class="macro">cfg_server! </span>{
+    <span class="kw">impl</span>&lt;S, B&gt; Server&lt;S, B&gt;
+    <span class="kw">where
+        </span>S: HttpService&lt;B&gt;,
     {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">service</span>: <span class="ident">S</span>) -&gt; <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#41">Server</a> {
-                <span class="ident">in_flight</span>: <span class="ident">Box::pin</span>(<span class="prelude-val">None</span>),
-                <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#459">service</a>,
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(service: S) -&gt; Server&lt;S, B&gt; {
+            <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#41">Server</a> {
+                in_flight: Box::pin(<span class="prelude-val">None</span>),
+                <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#459">service</a>,
             }
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_service</span>(<span class="self">self</span>) -&gt; <span class="ident">S</span> {
-            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#466">self</a>.<span class="ident">service</span>
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_service(<span class="self">self</span>) -&gt; S {
+            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#466">self</a>.service
         }
     }
 
-    <span class="comment">// Service is never pinned</span>
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">B</span><span class="op">&gt;</span> {}
+    <span class="comment">// Service is never pinned
+    </span><span class="kw">impl</span>&lt;S: HttpService&lt;B&gt;, B&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>Server&lt;S, B&gt; {}
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Bs</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#24">Dispatch</a> <span class="kw">for</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">S</span>, <a class="ident" href="../../../../src/hyper/body/body.rs.html#36">Body</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/body/body.rs.html#36">Body</a>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">Bs</span><span class="op">&gt;</span>,
-        <span class="ident">S::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">Bs</span>: <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
+    <span class="kw">impl</span>&lt;S, Bs&gt; <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#24">Dispatch</a> <span class="kw">for </span>Server&lt;S, <a href="../../../../src/hyper/body/body.rs.html#36">Body</a>&gt;
+    <span class="kw">where
+        </span>S: HttpService&lt;<a href="../../../../src/hyper/body/body.rs.html#36">Body</a>, ResBody = Bs&gt;,
+        S::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+        Bs: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
     {
-        <span class="kw">type</span> <span class="ident">PollItem</span> <span class="op">=</span> <span class="ident">MessageHead</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/struct.StatusCode.html">http::StatusCode</a><span class="op">&gt;</span>;
-        <span class="kw">type</span> <span class="ident">PollBody</span> <span class="op">=</span> <span class="ident">Bs</span>;
-        <span class="kw">type</span> <span class="ident">PollError</span> <span class="op">=</span> <span class="ident">S::Error</span>;
-        <span class="kw">type</span> <span class="ident">RecvItem</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#34">RequestHead</a>;
+        <span class="kw">type </span>PollItem = MessageHead&lt;<a href="../../../../hyper/struct.StatusCode.html">http::StatusCode</a>&gt;;
+        <span class="kw">type </span>PollBody = Bs;
+        <span class="kw">type </span>PollError = S::Error;
+        <span class="kw">type </span>RecvItem = <a href="../../../../src/hyper/proto/mod.rs.html#34">RequestHead</a>;
 
-        <span class="kw">fn</span> <span class="ident">poll_msg</span>(
-            <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::PollItem</span>, <span class="ident"><span class="self">Self</span>::PollBody</span>), <span class="ident"><span class="self">Self</span>::PollError</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#486">self</a>.<span class="ident">as_mut</span>();
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">fut</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#489">this</a>.<span class="ident">in_flight</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-                <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">fut</span>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>);
-                <span class="kw">let</span> (<span class="ident">parts</span>, <span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#491">resp</a>.<span class="ident">into_parts</span>();
-                <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#21">MessageHead</a> {
-                    <span class="ident">version</span>: <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">parts</a>.<span class="ident">version</span>,
-                    <span class="ident">subject</span>: <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">parts</a>.<span class="ident">status</span>,
-                    <span class="ident">headers</span>: <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">parts</a>.<span class="ident">headers</span>,
-                    <span class="ident">extensions</span>: <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">parts</a>.<span class="ident">extensions</span>,
+        <span class="kw">fn </span>poll_msg(
+            <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>::PollItem, <span class="self">Self</span>::PollBody), <span class="self">Self</span>::PollError&gt;&gt;&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#486">self</a>.as_mut();
+            <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>fut) = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#489">this</a>.in_flight.as_mut().as_pin_mut() {
+                <span class="kw">let </span>resp = <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(fut.as_mut().poll(cx)<span class="question-mark">?</span>);
+                <span class="kw">let </span>(parts, body) = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#491">resp</a>.into_parts();
+                <span class="kw">let </span>head = <a href="../../../../src/hyper/proto/mod.rs.html#21">MessageHead</a> {
+                    version: <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">parts</a>.version,
+                    subject: <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">parts</a>.status,
+                    headers: <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">parts</a>.headers,
+                    extensions: <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">parts</a>.extensions,
                 };
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#493">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">body</a>))))
-            } <span class="kw">else</span> {
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#493">head</a>, <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#492">body</a>))))
+            } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;poll_msg shouldn&#39;t be called if no inflight&quot;</span>);
             };
 
-            <span class="comment">// Since in_flight finished, remove it</span>
-            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#489">this</a>.<span class="ident">in_flight</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
-            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#490">ret</a>
+            <span class="comment">// Since in_flight finished, remove it
+            </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#489">this</a>.in_flight.set(<span class="prelude-val">None</span>);
+            <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#490">ret</a>
         }
 
-        <span class="kw">fn</span> <span class="ident">recv_msg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::RecvItem</span>, <a class="ident" href="../../../../src/hyper/body/body.rs.html#36">Body</a>)<span class="op">&gt;</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">let</span> (<span class="ident">msg</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="ident">msg</span><span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">Request::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">body</a>);
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.<span class="ident">method_mut</span>() <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.<span class="ident">subject</span>.<span class="number">0</span>;
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.<span class="ident">uri_mut</span>() <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.<span class="ident">subject</span>.<span class="number">1</span>;
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.<span class="ident">headers_mut</span>() <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.<span class="ident">headers</span>;
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.<span class="ident">version_mut</span>() <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.<span class="ident">version</span>;
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.<span class="ident">extensions_mut</span>() <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.<span class="ident">extensions</span>;
-            <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#509">self</a>.<span class="ident">service</span>.<a class="ident" href="../../../../src/hyper/service/http.rs.html#26">call</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>);
-            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#509">self</a>.<span class="ident">in_flight</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#517">fut</a>));
+        <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, <a href="../../../../src/hyper/body/body.rs.html#36">Body</a>)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+            <span class="kw">let </span>(msg, body) = msg<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>req = Request::new(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">body</a>);
+            <span class="kw-2">*</span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.method_mut() = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.subject.<span class="number">0</span>;
+            <span class="kw-2">*</span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.uri_mut() = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.subject.<span class="number">1</span>;
+            <span class="kw-2">*</span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.headers_mut() = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.headers;
+            <span class="kw-2">*</span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.version_mut() = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.version;
+            <span class="kw-2">*</span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>.extensions_mut() = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#510">msg</a>.extensions;
+            <span class="kw">let </span>fut = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#509">self</a>.service.<a href="../../../../src/hyper/service/http.rs.html#26">call</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#511">req</a>);
+            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#509">self</a>.in_flight.set(<span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#517">fut</a>));
             <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_flight</span>.<span class="ident">is_some</span>() {
-                <span class="ident">Poll::Pending</span>
-            } <span class="kw">else</span> {
-                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#522">self</a>.<span class="ident">service</span>.<a class="ident" href="../../../../src/hyper/service/http.rs.html#23">poll_ready</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#522">cx</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> {
-                    <span class="comment">// FIXME: return error value.</span>
-                    <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;service closed&quot;</span>);
+        <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), ()&gt;&gt; {
+            <span class="kw">if </span><span class="self">self</span>.in_flight.is_some() {
+                Poll::Pending
+            } <span class="kw">else </span>{
+                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#522">self</a>.service.<a href="../../../../src/hyper/service/http.rs.html#23">poll_ready</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#522">cx</a>).map_err(|_e| {
+                    <span class="comment">// FIXME: return error value.
+                    </span><a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;service closed&quot;</span>);
                 })
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">should_poll</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#533">self</a>.<span class="ident">in_flight</span>.<span class="ident">is_some</span>()
+        <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#533">self</a>.in_flight.is_some()
         }
     }
 }
 
-<span class="comment">// ===== impl Client =====</span>
+<span class="comment">// ===== impl Client =====
 
-<span class="macro">cfg_client!</span> {
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Client</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">rx</span>: <span class="ident">ClientRx</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="ident">Client</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#48-55">Client</a> {
-                <span class="ident">callback</span>: <span class="prelude-val">None</span>,
-                <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#543">rx</a>,
-                <span class="ident">rx_closed</span>: <span class="bool-val">false</span>,
+</span><span class="macro">cfg_client! </span>{
+    <span class="kw">impl</span>&lt;B&gt; Client&lt;B&gt; {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(rx: ClientRx&lt;B&gt;) -&gt; Client&lt;B&gt; {
+            <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#48-55">Client</a> {
+                callback: <span class="prelude-val">None</span>,
+                <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#543">rx</a>,
+                rx_closed: <span class="bool-val">false</span>,
             }
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#24">Dispatch</a> <span class="kw">for</span> <span class="ident">Client</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
+    <span class="kw">impl</span>&lt;B&gt; <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#24">Dispatch</a> <span class="kw">for </span>Client&lt;B&gt;
+    <span class="kw">where
+        </span>B: <a href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
     {
-        <span class="kw">type</span> <span class="ident">PollItem</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#34">RequestHead</a>;
-        <span class="kw">type</span> <span class="ident">PollBody</span> <span class="op">=</span> <span class="ident">B</span>;
-        <span class="kw">type</span> <span class="ident">PollError</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>;
-        <span class="kw">type</span> <span class="ident">RecvItem</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#42"><span class="kw">crate</span>::proto::ResponseHead</a>;
+        <span class="kw">type </span>PollItem = <a href="../../../../src/hyper/proto/mod.rs.html#34">RequestHead</a>;
+        <span class="kw">type </span>PollBody = B;
+        <span class="kw">type </span>PollError = <a href="../../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>;
+        <span class="kw">type </span>RecvItem = <a href="../../../../src/hyper/proto/mod.rs.html#42"><span class="kw">crate</span>::proto::ResponseHead</a>;
 
-        <span class="kw">fn</span> <span class="ident">poll_msg</span>(
-            <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::PollItem</span>, <span class="ident"><span class="self">Self</span>::PollBody</span>), <a class="ident" href="../../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#562">self</a>.<span class="ident">as_mut</span>();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="ident">this</span>.<span class="ident">rx_closed</span>);
-            <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#565">this</a>.<span class="ident">rx</span>.<a class="ident" href="../../../../src/hyper/client/dispatch.rs.html#149-152">poll_recv</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#563">cx</a>) {
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>((<span class="ident">req</span>, <span class="kw-2">mut</span> <span class="ident">cb</span>))) =&gt; {
-                    <span class="comment">// check that future hasn&#39;t been canceled already</span>
-                    <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#568">cb</a>.<a class="ident" href="../../../../src/hyper/client/dispatch.rs.html#214">poll_canceled</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#563">cx</a>) {
-                        <span class="ident">Poll::Ready</span>(()) =&gt; {
+        <span class="kw">fn </span>poll_msg(
+            <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+            cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>::PollItem, <span class="self">Self</span>::PollBody), <a href="../../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a>&gt;&gt;&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#562">self</a>.as_mut();
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!this.rx_closed);
+            <span class="kw">match </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#565">this</a>.rx.<a href="../../../../src/hyper/client/dispatch.rs.html#149-152">poll_recv</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#563">cx</a>) {
+                Poll::Ready(<span class="prelude-val">Some</span>((req, <span class="kw-2">mut </span>cb))) =&gt; {
+                    <span class="comment">// check that future hasn&#39;t been canceled already
+                    </span><span class="kw">match </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#568">cb</a>.<a href="../../../../src/hyper/client/dispatch.rs.html#214">poll_canceled</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#563">cx</a>) {
+                        Poll::Ready(()) =&gt; {
                             <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;request canceled&quot;</span>);
-                            <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
+                            Poll::Ready(<span class="prelude-val">None</span>)
                         }
-                        <span class="ident">Poll::Pending</span> =&gt; {
-                            <span class="kw">let</span> (<span class="ident">parts</span>, <span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#568">req</a>.<span class="ident">into_parts</span>();
-                            <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#34">RequestHead</a> {
-                                <span class="ident">version</span>: <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.<span class="ident">version</span>,
-                                <span class="ident">subject</span>: <a class="ident" href="../../../../src/hyper/proto/mod.rs.html#38"><span class="kw">crate</span>::proto::RequestLine</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.<span class="ident">method</span>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.<span class="ident">uri</span>),
-                                <span class="ident">headers</span>: <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.<span class="ident">headers</span>,
-                                <span class="ident">extensions</span>: <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.<span class="ident">extensions</span>,
+                        Poll::Pending =&gt; {
+                            <span class="kw">let </span>(parts, body) = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#568">req</a>.into_parts();
+                            <span class="kw">let </span>head = <a href="../../../../src/hyper/proto/mod.rs.html#34">RequestHead</a> {
+                                version: <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.version,
+                                subject: <a href="../../../../src/hyper/proto/mod.rs.html#38"><span class="kw">crate</span>::proto::RequestLine</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.method, <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.uri),
+                                headers: <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.headers,
+                                extensions: <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">parts</a>.extensions,
                             };
-                            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#565">this</a>.<span class="ident">callback</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#568">cb</a>);
-                            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#577">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">body</a>))))
+                            <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#565">this</a>.callback = <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#568">cb</a>);
+                            Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#577">head</a>, <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#576">body</a>))))
                         }
                     }
                 }
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; {
-                    <span class="comment">// user has dropped sender handle</span>
-                    <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;client tx closed&quot;</span>);
-                    <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#565">this</a>.<span class="ident">rx_closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
+                Poll::Ready(<span class="prelude-val">None</span>) =&gt; {
+                    <span class="comment">// user has dropped sender handle
+                    </span><a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;client tx closed&quot;</span>);
+                    <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#565">this</a>.rx_closed = <span class="bool-val">true</span>;
+                    Poll::Ready(<span class="prelude-val">None</span>)
                 }
-                <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
+                Poll::Pending =&gt; Poll::Pending,
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">recv_msg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::RecvItem</span>, <a class="ident" href="../../../../src/hyper/body/body.rs.html#36">Body</a>)<span class="op">&gt;</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">msg</a> {
-                <span class="prelude-val">Ok</span>((<span class="ident">msg</span>, <span class="ident">body</span>)) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cb</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">self</a>.<span class="ident">callback</span>.<span class="ident">take</span>() {
-                        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#600">msg</a>.<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#63">into_response</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#600">body</a>);
-                        <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#601">cb</a>.<a class="ident" href="../../../../src/hyper/client/dispatch.rs.html#221">send</a>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#602">res</a>));
+        <span class="kw">fn </span>recv_msg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">crate</span>::Result&lt;(<span class="self">Self</span>::RecvItem, <a href="../../../../src/hyper/body/body.rs.html#36">Body</a>)&gt;) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+            <span class="kw">match </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">msg</a> {
+                <span class="prelude-val">Ok</span>((msg, body)) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cb) = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">self</a>.callback.take() {
+                        <span class="kw">let </span>res = <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#600">msg</a>.<a href="../../../../src/hyper/proto/mod.rs.html#63">into_response</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#600">body</a>);
+                        <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#601">cb</a>.<a href="../../../../src/hyper/client/dispatch.rs.html#221">send</a>(<span class="prelude-val">Ok</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#602">res</a>));
                         <span class="prelude-val">Ok</span>(())
-                    } <span class="kw">else</span> {
-                        <span class="comment">// Getting here is likely a bug! An error should have happened</span>
-                        <span class="comment">// in Conn::require_empty_read() before ever parsing a</span>
-                        <span class="comment">// full message!</span>
-                        <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_unexpected_message</span>())
+                    } <span class="kw">else </span>{
+                        <span class="comment">// Getting here is likely a bug! An error should have happened
+                        // in Conn::require_empty_read() before ever parsing a
+                        // full message!
+                        </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::new_unexpected_message())
                     }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cb</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">self</a>.<span class="ident">callback</span>.<span class="ident">take</span>() {
-                        <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#613">cb</a>.<a class="ident" href="../../../../src/hyper/client/dispatch.rs.html#221">send</a>(<span class="prelude-val">Err</span>((<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#612">err</a>, <span class="prelude-val">None</span>)));
+                <span class="prelude-val">Err</span>(err) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cb) = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">self</a>.callback.take() {
+                        <a href="../../../../src/hyper/proto/h1/dispatch.rs.html#613">cb</a>.<a href="../../../../src/hyper/client/dispatch.rs.html#221">send</a>(<span class="prelude-val">Err</span>((<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#612">err</a>, <span class="prelude-val">None</span>)));
                         <span class="prelude-val">Ok</span>(())
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">rx_closed</span> {
-                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">self</a>.<span class="ident">rx</span>.<a class="ident" href="../../../../src/hyper/client/dispatch.rs.html#165">close</a>();
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">req</span>, <span class="ident">cb</span>)) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">self</a>.<span class="ident">rx</span>.<a class="ident" href="../../../../src/hyper/client/dispatch.rs.html#171">try_recv</a>() {
-                            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;canceling queued request with connection error: {}&quot;</span>, <span class="ident">err</span>);
-                            <span class="comment">// in this case, the message was never even started, so it&#39;s safe to tell</span>
-                            <span class="comment">// the user that the request was completely canceled</span>
-                            <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#618">cb</a>.<a class="ident" href="../../../../src/hyper/client/dispatch.rs.html#221">send</a>(<span class="prelude-val">Err</span>((<span class="ident"><span class="kw">crate</span>::Error::new_canceled</span>().<a class="ident" href="../../../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#612">err</a>), <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#618">req</a>))));
+                    } <span class="kw">else if </span>!<span class="self">self</span>.rx_closed {
+                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">self</a>.rx.<a href="../../../../src/hyper/client/dispatch.rs.html#165">close</a>();
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((req, cb)) = <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#598">self</a>.rx.<a href="../../../../src/hyper/client/dispatch.rs.html#171">try_recv</a>() {
+                            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;canceling queued request with connection error: {}&quot;</span>, err);
+                            <span class="comment">// in this case, the message was never even started, so it&#39;s safe to tell
+                            // the user that the request was completely canceled
+                            </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#618">cb</a>.<a href="../../../../src/hyper/client/dispatch.rs.html#221">send</a>(<span class="prelude-val">Err</span>((<span class="kw">crate</span>::Error::new_canceled().<a href="../../../../src/hyper/error.rs.html#215">with</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#612">err</a>), <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#618">req</a>))));
                             <span class="prelude-val">Ok</span>(())
-                        } <span class="kw">else</span> {
-                            <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#612">err</a>)
+                        } <span class="kw">else </span>{
+                            <span class="prelude-val">Err</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#612">err</a>)
                         }
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#612">err</a>)
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">Err</span>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#612">err</a>)
                     }
                 }
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#634">self</a>.<span class="ident">callback</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">cb</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#636">cb</a>.<a class="ident" href="../../../../src/hyper/client/dispatch.rs.html#214">poll_canceled</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#634">cx</a>) {
-                    <span class="ident">Poll::Ready</span>(()) =&gt; {
+        <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), ()&gt;&gt; {
+            <span class="kw">match </span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#634">self</a>.callback {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>cb) =&gt; <span class="kw">match </span><a href="../../../../src/hyper/proto/h1/dispatch.rs.html#636">cb</a>.<a href="../../../../src/hyper/client/dispatch.rs.html#214">poll_canceled</a>(<a href="../../../../src/hyper/proto/h1/dispatch.rs.html#634">cx</a>) {
+                    Poll::Ready(()) =&gt; {
                         <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;callback receiver has dropped&quot;</span>);
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(()))
+                        Poll::Ready(<span class="prelude-val">Err</span>(()))
                     }
-                    <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
+                    Poll::Pending =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(())),
                 },
-                <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(())),
+                <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">Err</span>(())),
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">should_poll</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#647">self</a>.<span class="ident">callback</span>.<span class="ident">is_none</span>()
+        <span class="kw">fn </span>should_poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#647">self</a>.callback.is_none()
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::proto::h1::ClientTransaction</span>;
-    <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::proto::h1::ClientTransaction;
+    <span class="kw">use </span>std::time::Duration;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">client_read_bytes_before_writing_request</span>() {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">pretty_env_logger::try_init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>client_read_bytes_before_writing_request() {
+        <span class="kw">let _ </span>= pretty_env_logger::try_init();
 
-        <span class="ident">tokio_test::task::spawn</span>(()).<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> {
-            <span class="kw">let</span> (<span class="ident">io</span>, <span class="kw-2">mut</span> <span class="ident">handle</span>) <span class="op">=</span> <span class="ident">tokio_test::io::Builder::new</span>().<span class="ident">build_with_handle</span>();
+        tokio_test::task::spawn(()).enter(|cx, <span class="kw">_</span>| {
+            <span class="kw">let </span>(io, <span class="kw-2">mut </span>handle) = tokio_test::io::Builder::new().build_with_handle();
 
-            <span class="comment">// Block at 0 for now, but we will release this response before</span>
-            <span class="comment">// the request is ready to write later...</span>
-            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::client::dispatch::channel</span>();
-            <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="ident">Conn</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">bytes::Bytes</span>, <span class="ident">ClientTransaction</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">io</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dispatcher</span> <span class="op">=</span> <span class="ident">Dispatcher::new</span>(<span class="ident">Client::new</span>(<span class="ident">rx</span>), <span class="ident">conn</span>);
+            <span class="comment">// Block at 0 for now, but we will release this response before
+            // the request is ready to write later...
+            </span><span class="kw">let </span>(<span class="kw-2">mut </span>tx, rx) = <span class="kw">crate</span>::client::dispatch::channel();
+            <span class="kw">let </span>conn = Conn::&lt;<span class="kw">_</span>, bytes::Bytes, ClientTransaction&gt;::new(io);
+            <span class="kw">let </span><span class="kw-2">mut </span>dispatcher = Dispatcher::new(Client::new(rx), conn);
 
-            <span class="comment">// First poll is needed to allow tx to send...</span>
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dispatcher</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>());
+            <span class="comment">// First poll is needed to allow tx to send...
+            </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>dispatcher).poll(cx).is_pending());
 
-            <span class="comment">// Unblock our IO, which has a response before we&#39;ve sent request!</span>
-            <span class="comment">//</span>
-            <span class="ident">handle</span>.<span class="ident">read</span>(<span class="string">b&quot;HTTP/1.1 200 OK\r\n\r\n&quot;</span>);
+            <span class="comment">// Unblock our IO, which has a response before we&#39;ve sent request!
+            //
+            </span>handle.read(<span class="string">b&quot;HTTP/1.1 200 OK\r\n\r\n&quot;</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res_rx</span> <span class="op">=</span> <span class="ident">tx</span>
-                .<span class="ident">try_send</span>(<span class="ident"><span class="kw">crate</span>::Request::new</span>(<span class="ident"><span class="kw">crate</span>::Body::empty</span>()))
-                .<span class="ident">unwrap</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>res_rx = tx
+                .try_send(<span class="kw">crate</span>::Request::new(<span class="kw">crate</span>::Body::empty()))
+                .unwrap();
 
-            <span class="macro">tokio_test::assert_ready_ok!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dispatcher</span>).<span class="ident">poll</span>(<span class="ident">cx</span>));
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="macro">tokio_test::assert_ready_ok!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">res_rx</span>).<span class="ident">poll</span>(<span class="ident">cx</span>))
-                .<span class="ident">expect_err</span>(<span class="string">&quot;callback should send error&quot;</span>);
+            <span class="macro">tokio_test::assert_ready_ok!</span>(Pin::new(<span class="kw-2">&amp;mut </span>dispatcher).poll(cx));
+            <span class="kw">let </span>err = <span class="macro">tokio_test::assert_ready_ok!</span>(Pin::new(<span class="kw-2">&amp;mut </span>res_rx).poll(cx))
+                .expect_err(<span class="string">&quot;callback should send error&quot;</span>);
 
-            <span class="kw">match</span> (<span class="ident">err</span>.<span class="number">0</span>.<span class="ident">kind</span>(), <span class="ident">err</span>.<span class="number">1</span>) {
-                (<span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::error::Kind::Canceled</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; (),
-                <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected Canceled, got {:?}&quot;</span>, <span class="ident">other</span>),
+            <span class="kw">match </span>(err.<span class="number">0</span>.kind(), err.<span class="number">1</span>) {
+                (<span class="kw-2">&amp;</span><span class="kw">crate</span>::error::Kind::Canceled, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; (),
+                other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected Canceled, got {:?}&quot;</span>, other),
             }
         });
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">client_flushing_is_not_ready_for_next_request</span>() {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">pretty_env_logger::try_init</span>();
+    <span class="attribute">#[tokio::test]
+    </span><span class="kw">async fn </span>client_flushing_is_not_ready_for_next_request() {
+        <span class="kw">let _ </span>= pretty_env_logger::try_init();
 
-        <span class="kw">let</span> (<span class="ident">io</span>, <span class="ident">_handle</span>) <span class="op">=</span> <span class="ident">tokio_test::io::Builder::new</span>()
-            .<span class="ident">write</span>(<span class="string">b&quot;POST / HTTP/1.1\r\ncontent-length: 4\r\n\r\n&quot;</span>)
-            .<span class="ident">read</span>(<span class="string">b&quot;HTTP/1.1 200 OK\r\ncontent-length: 0\r\n\r\n&quot;</span>)
-            .<span class="ident">wait</span>(<span class="ident">std::time::Duration::from_secs</span>(<span class="number">2</span>))
-            .<span class="ident">build_with_handle</span>();
+        <span class="kw">let </span>(io, _handle) = tokio_test::io::Builder::new()
+            .write(<span class="string">b&quot;POST / HTTP/1.1\r\ncontent-length: 4\r\n\r\n&quot;</span>)
+            .read(<span class="string">b&quot;HTTP/1.1 200 OK\r\ncontent-length: 0\r\n\r\n&quot;</span>)
+            .wait(std::time::Duration::from_secs(<span class="number">2</span>))
+            .build_with_handle();
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::client::dispatch::channel</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conn</span> <span class="op">=</span> <span class="ident">Conn</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">bytes::Bytes</span>, <span class="ident">ClientTransaction</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">io</span>);
-        <span class="ident">conn</span>.<span class="ident">set_write_strategy_queue</span>();
+        <span class="kw">let </span>(<span class="kw-2">mut </span>tx, rx) = <span class="kw">crate</span>::client::dispatch::channel();
+        <span class="kw">let </span><span class="kw-2">mut </span>conn = Conn::&lt;<span class="kw">_</span>, bytes::Bytes, ClientTransaction&gt;::new(io);
+        conn.set_write_strategy_queue();
 
-        <span class="kw">let</span> <span class="ident">dispatcher</span> <span class="op">=</span> <span class="ident">Dispatcher::new</span>(<span class="ident">Client::new</span>(<span class="ident">rx</span>), <span class="ident">conn</span>);
-        <span class="kw">let</span> <span class="ident">_dispatcher</span> <span class="op">=</span> <span class="ident">tokio::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> { <span class="ident">dispatcher</span>.<span class="kw">await</span> });
+        <span class="kw">let </span>dispatcher = Dispatcher::new(Client::new(rx), conn);
+        <span class="kw">let </span>_dispatcher = tokio::spawn(<span class="kw">async move </span>{ dispatcher.<span class="kw">await </span>});
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Request::builder</span>()
-            .<span class="ident">method</span>(<span class="string">&quot;POST&quot;</span>)
-            .<span class="ident">body</span>(<span class="ident"><span class="kw">crate</span>::Body::from</span>(<span class="string">&quot;reee&quot;</span>))
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let </span>req = <span class="kw">crate</span>::Request::builder()
+            .method(<span class="string">&quot;POST&quot;</span>)
+            .body(<span class="kw">crate</span>::Body::from(<span class="string">&quot;reee&quot;</span>))
+            .unwrap();
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">try_send</span>(<span class="ident">req</span>).<span class="ident">unwrap</span>().<span class="kw">await</span>.<span class="ident">expect</span>(<span class="string">&quot;response&quot;</span>);
-        <span class="ident">drop</span>(<span class="ident">res</span>);
+        <span class="kw">let </span>res = tx.try_send(req).unwrap().<span class="kw">await</span>.expect(<span class="string">&quot;response&quot;</span>);
+        drop(res);
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">tx</span>.<span class="ident">is_ready</span>());
+        <span class="macro">assert!</span>(!tx.is_ready());
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">body_empty_chunks_ignored</span>() {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">pretty_env_logger::try_init</span>();
+    <span class="attribute">#[tokio::test]
+    </span><span class="kw">async fn </span>body_empty_chunks_ignored() {
+        <span class="kw">let _ </span>= pretty_env_logger::try_init();
 
-        <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">tokio_test::io::Builder::new</span>()
-            <span class="comment">// no reading or writing, just be blocked for the test...</span>
-            .<span class="ident">wait</span>(<span class="ident">Duration::from_secs</span>(<span class="number">5</span>))
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>io = tokio_test::io::Builder::new()
+            <span class="comment">// no reading or writing, just be blocked for the test...
+            </span>.wait(Duration::from_secs(<span class="number">5</span>))
+            .build();
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::client::dispatch::channel</span>();
-        <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="ident">Conn</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">bytes::Bytes</span>, <span class="ident">ClientTransaction</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">io</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dispatcher</span> <span class="op">=</span> <span class="ident">tokio_test::task::spawn</span>(<span class="ident">Dispatcher::new</span>(<span class="ident">Client::new</span>(<span class="ident">rx</span>), <span class="ident">conn</span>));
+        <span class="kw">let </span>(<span class="kw-2">mut </span>tx, rx) = <span class="kw">crate</span>::client::dispatch::channel();
+        <span class="kw">let </span>conn = Conn::&lt;<span class="kw">_</span>, bytes::Bytes, ClientTransaction&gt;::new(io);
+        <span class="kw">let </span><span class="kw-2">mut </span>dispatcher = tokio_test::task::spawn(Dispatcher::new(Client::new(rx), conn));
 
-        <span class="comment">// First poll is needed to allow tx to send...</span>
-        <span class="macro">assert!</span>(<span class="ident">dispatcher</span>.<span class="ident">poll</span>().<span class="ident">is_pending</span>());
+        <span class="comment">// First poll is needed to allow tx to send...
+        </span><span class="macro">assert!</span>(dispatcher.poll().is_pending());
 
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> {
-            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Body::channel</span>();
-            <span class="ident">tx</span>.<span class="ident">try_send_data</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>()).<span class="ident">unwrap</span>();
-            <span class="ident">body</span>
+        <span class="kw">let </span>body = {
+            <span class="kw">let </span>(<span class="kw-2">mut </span>tx, body) = <span class="kw">crate</span>::Body::channel();
+            tx.try_send_data(<span class="string">&quot;&quot;</span>.into()).unwrap();
+            body
         };
 
-        <span class="kw">let</span> <span class="ident">_res_rx</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">try_send</span>(<span class="ident"><span class="kw">crate</span>::Request::new</span>(<span class="ident">body</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>_res_rx = tx.try_send(<span class="kw">crate</span>::Request::new(body)).unwrap();
 
-        <span class="comment">// Ensure conn.write_body wasn&#39;t called with the empty chunk.</span>
-        <span class="comment">// If it is, it will trigger an assertion.</span>
-        <span class="macro">assert!</span>(<span class="ident">dispatcher</span>.<span class="ident">poll</span>().<span class="ident">is_pending</span>());
+        <span class="comment">// Ensure conn.write_body wasn&#39;t called with the empty chunk.
+        // If it is, it will trigger an assertion.
+        </span><span class="macro">assert!</span>(dispatcher.poll().is_pending());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/methods/quantifier_fixer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>quantifier_fixer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/methods/quantifier_fixer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>quantifier_fixer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -334,341 +334,341 @@
 <span id="334">334</span>
 <span id="335">335</span>
 <span id="336">336</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/index.html"><span class="kw">crate</span>::vir::polymorphic_vir</a> <span class="kw">as</span> <span class="ident">vir</span>;
-<span class="kw">use</span> <a class="ident" href="../../../../../itertools/trait.Itertools.html">itertools::Itertools</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+</span><span class="kw">use </span><a href="../../../../../prusti_common/vir/polymorphic_vir/index.html"><span class="kw">crate</span>::vir::polymorphic_vir</a> <span class="kw">as </span>vir;
+<span class="kw">use </span><a href="../../../../../itertools/trait.Itertools.html">itertools::Itertools</a>;
+<span class="kw">use </span><a href="../../../../../log/macro.debug.html">log::debug</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-<span class="doccomment">/// Optimizations currently done:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// 1.  Replace all `old(...)` inside `forall ..` with `let tmp == (old(..)) in forall ..`.</span>
-<span class="doccomment">/// 2.  Pull out all `unfolding ... in` that are inside `forall` to outside of `forall`.</span>
-<span class="doccomment">/// 3.  Replace all arithmetic expressions inside `forall` that do not depend on bound variables</span>
-<span class="doccomment">///     with `let tmp == (...) in forall ..`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note: this seems to be required to workaround some Silicon incompleteness.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fix_quantifiers</span>(<span class="ident">cfg</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">optimizer</span> <span class="op">=</span> <span class="ident">Optimizer::new</span>();
-    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#21">optimizer</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#34">replace_cfg</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#20">cfg</a>)
+<span class="doccomment">/// Optimizations currently done:
+///
+/// 1.  Replace all `old(...)` inside `forall ..` with `let tmp == (old(..)) in forall ..`.
+/// 2.  Pull out all `unfolding ... in` that are inside `forall` to outside of `forall`.
+/// 3.  Replace all arithmetic expressions inside `forall` that do not depend on bound variables
+///     with `let tmp == (...) in forall ..`.
+///
+/// Note: this seems to be required to workaround some Silicon incompleteness.
+</span><span class="kw">pub fn </span>fix_quantifiers(cfg: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>optimizer = Optimizer::new();
+    <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#21">optimizer</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#34">replace_cfg</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#20">cfg</a>)
 }
 
-<span class="kw">struct</span> <span class="ident">Optimizer</span> {
-    <span class="ident">counter</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+<span class="kw">struct </span>Optimizer {
+    counter: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#25">Optimizer</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">counter</span>: <span class="number">0</span> }
+<span class="kw">impl </span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#25">Optimizer</a> {
+    <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ counter: <span class="number">0 </span>}
     }
 
-    <span class="kw">fn</span> <span class="ident">replace_cfg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cfg</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sentinel_stmt</span> <span class="op">=</span> <span class="ident">vir::Stmt::comment</span>(<span class="string">&quot;moved out stmt&quot;</span>);
-        <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">cfg</span>.<span class="ident">basic_blocks</span> {
-            <span class="kw">for</span> <span class="ident">stmt</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">block</span>.<span class="ident">stmts</span> {
-                <span class="ident">mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sentinel_stmt</span>, <span class="ident">stmt</span>);
-                <span class="ident">sentinel_stmt</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">replace_stmt</span>(<span class="ident">sentinel_stmt</span>);
-                <span class="ident">mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sentinel_stmt</span>, <span class="ident">stmt</span>);
+    <span class="kw">fn </span>replace_cfg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cfg: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">vir::CfgMethod</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>sentinel_stmt = vir::Stmt::comment(<span class="string">&quot;moved out stmt&quot;</span>);
+        <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span>cfg.basic_blocks {
+            <span class="kw">for </span>stmt <span class="kw">in </span><span class="kw-2">&amp;mut </span>block.stmts {
+                mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
+                sentinel_stmt = <span class="self">self</span>.replace_stmt(sentinel_stmt);
+                mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
             }
         }
-        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#34">cfg</a>
+        <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#34">cfg</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">replace_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
-        <span class="kw">use</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html"><span class="self">self</span>::vir::StmtFolder</a>;
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#46">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#46">stmt</a>)
+    <span class="kw">fn </span>replace_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
+        <span class="kw">use </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html"><span class="self">self</span>::vir::StmtFolder</a>;
+        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#46">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">fold</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#46">stmt</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">replace_expr_old</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">use</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html"><span class="self">self</span>::vir::ExprFolder</a>;
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#51">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#51">expr</a>)
+    <span class="kw">fn </span>replace_expr_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">use </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html"><span class="self">self</span>::vir::ExprFolder</a>;
+        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#51">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#51">expr</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">replace_expr_unfolding</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unfolding_extractor</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#256">UnfoldingExtractor</a> {
-            <span class="ident">unfoldings</span>: <span class="ident">HashMap::new</span>(),
-            <span class="ident">in_quantifier</span>: <span class="bool-val">false</span>,
+    <span class="kw">fn </span>replace_expr_unfolding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>unfolding_extractor = <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#256">UnfoldingExtractor</a> {
+            unfoldings: HashMap::new(),
+            in_quantifier: <span class="bool-val">false</span>,
         };
-        <span class="kw">use</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html"><span class="self">self</span>::vir::ExprFolder</a>;
-        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#57">unfolding_extractor</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#56">expr</a>)
+        <span class="kw">use </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html"><span class="self">self</span>::vir::ExprFolder</a>;
+        <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#57">unfolding_extractor</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#56">expr</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">vir::StmtFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#25">Optimizer</a> {
-    <span class="kw">fn</span> <span class="ident">fold_assert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a> { <span class="ident">expr</span>, <span class="ident">position</span> }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
-        <span class="kw">let</span> <span class="ident">pulled_unfodling</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#67">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#56">replace_expr_unfolding</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#67">expr</a>);
-        <span class="kw">let</span> <span class="ident">replaced_old</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#67">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#51">replace_expr_old</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#68">pulled_unfodling</a>);
-        <span class="ident">vir::Stmt::Assert</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a> {
-            <span class="ident">expr</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#69">replaced_old</a>,
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#67">position</a>,
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">vir::StmtFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#25">Optimizer</a> {
+    <span class="kw">fn </span>fold_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a> { expr, position }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
+        <span class="kw">let </span>pulled_unfodling = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#67">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#56">replace_expr_unfolding</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#67">expr</a>);
+        <span class="kw">let </span>replaced_old = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#67">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#51">replace_expr_old</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#68">pulled_unfodling</a>);
+        vir::Stmt::Assert(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Assert.html">vir::Assert</a> {
+            expr: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#69">replaced_old</a>,
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#67">position</a>,
         })
     }
-    <span class="kw">fn</span> <span class="ident">fold_inhale</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a> { <span class="ident">expr</span> }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
-        <span class="kw">let</span> <span class="ident">pulled_unfolding</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#75">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#56">replace_expr_unfolding</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#75">expr</a>);
-        <span class="kw">let</span> <span class="ident">replaced_old</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#75">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#51">replace_expr_old</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#76">pulled_unfolding</a>);
-        <span class="ident">vir::Stmt::Inhale</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a> { <span class="ident">expr</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#77">replaced_old</a> })
+    <span class="kw">fn </span>fold_inhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a> { expr }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Stmt.html">vir::Stmt</a> {
+        <span class="kw">let </span>pulled_unfolding = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#75">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#56">replace_expr_unfolding</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#75">expr</a>);
+        <span class="kw">let </span>replaced_old = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#75">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#51">replace_expr_old</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#76">pulled_unfolding</a>);
+        vir::Stmt::Inhale(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Inhale.html">vir::Inhale</a> { expr: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#77">replaced_old</a> })
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#25">Optimizer</a> {
-    <span class="kw">fn</span> <span class="ident">fold_magic_wand</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">magic_wand</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.MagicWand.html">vir::MagicWand</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="ident">vir::Expr::MagicWand</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#83">magic_wand</a>)
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#25">Optimizer</a> {
+    <span class="kw">fn </span>fold_magic_wand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, magic_wand: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.MagicWand.html">vir::MagicWand</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        vir::Expr::MagicWand(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#83">magic_wand</a>)
     }
-    <span class="kw">fn</span> <span class="ident">fold_forall</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
-            <span class="ident">variables</span>,
-            <span class="ident">triggers</span>,
-            <span class="ident">body</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;original body: {}&quot;</span>, <span class="ident">body</span>);
-        <span class="kw">let</span> <span class="ident">folded_body</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#87">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#91">body</a>);
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Folded body: {}&quot;</span>, <span class="ident">folded_body</span>);
-        <span class="kw">let</span> <span class="ident">old_counter</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#87">self</a>.<span class="ident">counter</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">Replacer::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#89">variables</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#87">self</a>.<span class="ident">counter</span>);
-        <span class="kw">let</span> <span class="ident">replaced_body</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#99">replacer</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#96">folded_body</a>);
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;replaced body: {}&quot;</span>, <span class="ident">replaced_body</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">forall</span> <span class="op">=</span> <span class="ident">vir::Expr::ForAll</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#89">variables</a>,
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#90">triggers</a>,
-            <span class="ident">body</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#100">replaced_body</a>,
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#92">position</a>,
+    <span class="kw">fn </span>fold_forall(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
+            variables,
+            triggers,
+            body,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;original body: {}&quot;</span>, body);
+        <span class="kw">let </span>folded_body = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#87">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#91">body</a>);
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Folded body: {}&quot;</span>, folded_body);
+        <span class="kw">let </span>old_counter = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#87">self</a>.counter;
+        <span class="kw">let </span><span class="kw-2">mut </span>replacer = Replacer::new(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#89">variables</a>, <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#87">self</a>.counter);
+        <span class="kw">let </span>replaced_body = <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#99">replacer</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#96">folded_body</a>);
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;replaced body: {}&quot;</span>, replaced_body);
+        <span class="kw">let </span><span class="kw-2">mut </span>forall = vir::Expr::ForAll(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#89">variables</a>,
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#90">triggers</a>,
+            body: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#100">replaced_body</a>,
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#92">position</a>,
         });
 
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">replacer</span>.<span class="ident">counter</span> <span class="op">&gt;</span> <span class="ident">old_counter</span> {
-            <span class="kw">for</span> (<span class="ident">expr</span>, <span class="ident">variable</span>) <span class="kw">in</span> <span class="ident">replacer</span>.<span class="ident">map</span>.<span class="ident">into_iter</span>().<span class="ident">sorted</span>() {
-                <span class="ident">forall</span> <span class="op">=</span> <span class="ident">vir::Expr::LetExpr</span>(<span class="ident">vir::LetExpr</span> {
-                    <span class="ident">variable</span>,
-                    <span class="ident">def</span>: <span class="kw">box</span> <span class="ident">expr</span>,
-                    <span class="ident">body</span>: <span class="kw">box</span> <span class="ident">forall</span>,
-                    <span class="ident">position</span>,
+        <span class="kw">if </span><span class="kw-2">*</span>replacer.counter &gt; old_counter {
+            <span class="kw">for </span>(expr, variable) <span class="kw">in </span>replacer.map.into_iter().sorted() {
+                forall = vir::Expr::LetExpr(vir::LetExpr {
+                    variable,
+                    def: <span class="kw">box </span>expr,
+                    body: <span class="kw">box </span>forall,
+                    position,
                 });
             }
-            <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;replaced quantifier: {}&quot;</span>, <span class="ident">forall</span>);
+            <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;replaced quantifier: {}&quot;</span>, forall);
         }
 
-        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#102">forall</a>
+        <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#102">forall</a>
     }
 }
 
-<span class="kw">struct</span> <span class="ident">Replacer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">counter</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    <span class="ident">map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">vir::LocalVar</a><span class="op">&gt;</span>,
-    <span class="ident">bound_vars</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span>,
+<span class="kw">struct </span>Replacer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    counter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    map: HashMap&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">vir::LocalVar</a>&gt;,
+    bound_vars: Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Replacer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bound_vars</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">vir::LocalVar</a>], <span class="ident">counter</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#132">counter</a>,
-            <span class="ident">map</span>: <span class="ident">HashMap::new</span>(),
-            <span class="ident">bound_vars</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#132">bound_vars</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#136">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>new(bound_vars: <span class="kw-2">&amp;</span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">vir::LocalVar</a>], counter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#132">counter</a>,
+            map: HashMap::new(),
+            bound_vars: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#132">bound_vars</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#136">v</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">construct_fresh_local</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">vir::Type</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">vir::LocalVar</a> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_LET_{}&quot;</span>, <span class="self">self</span>.<span class="ident">counter</span>);
-        (<span class="kw-2">*</span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#140">self</a>.<span class="ident">counter</span>) <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">vir::LocalVar</a> {
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#141">name</a>,
-            <span class="ident">typ</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#140">ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">fn </span>construct_fresh_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">vir::Type</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">vir::LocalVar</a> {
+        <span class="kw">let </span>name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_LET_{}&quot;</span>, <span class="self">self</span>.counter);
+        (<span class="kw-2">*</span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#140">self</a>.counter) += <span class="number">1</span>;
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">vir::LocalVar</a> {
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#141">name</a>,
+            typ: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#140">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">replace_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">original_expr</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>, <span class="ident">pos</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Position.html">vir::Position</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">self</a>.<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">original_expr</a>) {
-            <span class="ident">vir::Expr::Local</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">vir::Local</a> {
-                <span class="ident">variable</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#150">local</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">position</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">pos</a>,
+    <span class="kw">fn </span>replace_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, original_expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>, pos: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Position.html">vir::Position</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(local) = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">self</a>.map.get(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">original_expr</a>) {
+            vir::Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">vir::Local</a> {
+                variable: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#150">local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                position: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">pos</a>,
             })
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">original_expr</a>.<span class="ident">get_type</span>();
-            <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#140">construct_fresh_local</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#156">typ</a>);
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">self</a>.<span class="ident">map</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">original_expr</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#157">local</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <span class="ident">vir::Expr::Local</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">vir::Local</a> {
-                <span class="ident">variable</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#157">local</a>,
-                <span class="ident">position</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">pos</a>,
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>typ = <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">original_expr</a>.get_type();
+            <span class="kw">let </span>local = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#140">construct_fresh_local</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#156">typ</a>);
+            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">self</a>.map.insert(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">original_expr</a>, <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#157">local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            vir::Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">vir::Local</a> {
+                variable: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#157">local</a>,
+                position: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">pos</a>,
             })
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for</span> <span class="ident">Replacer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fold_labelled_old</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a> {
-            <span class="ident">label</span>,
-            <span class="ident">base</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let</span> <span class="ident">original_expr</span> <span class="op">=</span> <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a> {
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#171">label</a>,
-            <span class="ident">base</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#172">base</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#173">position</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for </span>Replacer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fold_labelled_old(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a> {
+            label,
+            base,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">let </span>original_expr = vir::Expr::LabelledOld(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a> {
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#171">label</a>,
+            base: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#172">base</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#173">position</a>,
         });
-        <span class="kw">if</span> <span class="ident">base</span>.<span class="ident">is_place</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#169">self</a>.<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#176">original_expr</a>) {
-                <span class="ident">vir::Expr::local_with_pos</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#182">local</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#173">position</a>)
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#172">base</a>.<span class="ident">get_type</span>();
-                <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#169">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#140">construct_fresh_local</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#185">ty</a>);
-                <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#169">self</a>.<span class="ident">map</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#176">original_expr</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#186">local</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <span class="ident">vir::Expr::local_with_pos</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#186">local</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#173">position</a>)
+        <span class="kw">if </span>base.is_place() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(local) = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#169">self</a>.map.get(<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#176">original_expr</a>) {
+                vir::Expr::local_with_pos(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#182">local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#173">position</a>)
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>ty = <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#172">base</a>.get_type();
+                <span class="kw">let </span>local = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#169">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#140">construct_fresh_local</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#185">ty</a>);
+                <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#169">self</a>.map.insert(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#176">original_expr</a>, <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#186">local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                vir::Expr::local_with_pos(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#186">local</a>, <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#173">position</a>)
             }
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#176">original_expr</a>
+        } <span class="kw">else </span>{
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#176">original_expr</a>
         }
     }
-    <span class="kw">fn</span> <span class="ident">fold_bin_op</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
-            <span class="ident">op_kind</span>,
-            <span class="ident">left</span>,
-            <span class="ident">right</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let</span> <span class="ident">first_contains_bounded</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.<span class="ident">bound_vars</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#198">left</a>.<span class="ident">find</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#203">v</a>));
-        <span class="kw">let</span> <span class="ident">second_contains_bounded</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.<span class="ident">bound_vars</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#199">right</a>.<span class="ident">find</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#204">v</a>));
+    <span class="kw">fn </span>fold_bin_op(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
+            op_kind,
+            left,
+            right,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">let </span>first_contains_bounded = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.bound_vars.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|v| <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#198">left</a>.find(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#203">v</a>));
+        <span class="kw">let </span>second_contains_bounded = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.bound_vars.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|v| <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#199">right</a>.find(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#204">v</a>));
 
-        <span class="kw">if</span> <span class="ident">first_contains_bounded</span> <span class="op">|</span><span class="op">|</span> <span class="ident">second_contains_bounded</span> {
-            <span class="comment">// The expression contains bounded variables. Cannot pull it out.</span>
-            <span class="kw">let</span> <span class="ident">folded_first</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#198">left</a>);
-            <span class="kw">let</span> <span class="ident">folded_second</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#199">right</a>);
-            <span class="ident">vir::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#197">op_kind</a>,
-                <span class="ident">left</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#208">folded_first</a>,
-                <span class="ident">right</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#209">folded_second</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#200">position</a>,
+        <span class="kw">if </span>first_contains_bounded || second_contains_bounded {
+            <span class="comment">// The expression contains bounded variables. Cannot pull it out.
+            </span><span class="kw">let </span>folded_first = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#198">left</a>);
+            <span class="kw">let </span>folded_second = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#199">right</a>);
+            vir::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#197">op_kind</a>,
+                left: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#208">folded_first</a>,
+                right: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#209">folded_second</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#200">position</a>,
             })
-        } <span class="kw">else</span> {
-            <span class="comment">// Pull out the expression.</span>
-            <span class="kw">let</span> <span class="ident">original_expr</span> <span class="op">=</span> <span class="ident">vir::Expr::BinOp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#197">op_kind</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#198">left</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#199">right</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#200">position</a>,
+        } <span class="kw">else </span>{
+            <span class="comment">// Pull out the expression.
+            </span><span class="kw">let </span>original_expr = vir::Expr::BinOp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.BinOp.html">vir::BinOp</a> {
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#197">op_kind</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#198">left</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#199">right</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#200">position</a>,
             });
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">replace_expr</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#218">original_expr</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#200">position</a>)
+            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#195">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">replace_expr</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#218">original_expr</a>, <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#200">position</a>)
         }
     }
-    <span class="kw">fn</span> <span class="ident">fold_field</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a> {
-            <span class="ident">base</span>,
-            <span class="ident">field</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#230">base</a> {
-            <span class="ident">vir::Expr::Local</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">original_expr</span> <span class="op">=</span> <span class="ident">vir::Expr::Field</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a> {
-                    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#230">base</a>,
-                    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#231">field</a>,
-                    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#232">position</a>,
+    <span class="kw">fn </span>fold_field(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a> {
+            base,
+            field,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">match </span><span class="kw-2">&amp;*</span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#230">base</a> {
+            vir::Expr::Local(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>original_expr = vir::Expr::Field(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a> {
+                    <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#230">base</a>,
+                    <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#231">field</a>,
+                    <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#232">position</a>,
                 });
-                <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#228">self</a>.<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">replace_expr</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#237">original_expr</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#232">position</a>)
+                <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#228">self</a>.<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#149">replace_expr</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#237">original_expr</a>, <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#232">position</a>)
             }
-            <span class="kw">_</span> =&gt; <span class="ident">vir::Expr::Field</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a> {
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#230">base</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#231">field</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#232">position</a>,
+            <span class="kw">_ </span>=&gt; vir::Expr::Field(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldExpr.html">vir::FieldExpr</a> {
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#230">base</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#231">field</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#232">position</a>,
             }),
         }
     }
-    <span class="kw">fn</span> <span class="ident">fold_forall</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">for_all</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="ident">vir::Expr::ForAll</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#251">for_all</a>)
+    <span class="kw">fn </span>fold_forall(<span class="kw-2">&amp;mut </span><span class="self">self</span>, for_all: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        vir::Expr::ForAll(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#251">for_all</a>)
     }
 }
 
-<span class="kw">struct</span> <span class="ident">UnfoldingExtractor</span> {
-    <span class="ident">unfoldings</span>: <span class="ident">HashMap</span><span class="op">&lt;</span>
-        (<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">vir::Type</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span>),
-        (<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.PermAmount.html">vir::PermAmount</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Position.html">vir::Position</a>),
-    <span class="op">&gt;</span>,
-    <span class="ident">in_quantifier</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="kw">struct </span>UnfoldingExtractor {
+    unfoldings: HashMap&lt;
+        (<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">vir::Type</a>, Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a>&gt;),
+        (<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.PermAmount.html">vir::PermAmount</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Position.html">vir::Position</a>),
+    &gt;,
+    in_quantifier: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#256">UnfoldingExtractor</a> {
-    <span class="kw">fn</span> <span class="ident">fold_forall</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
-            <span class="ident">variables</span>,
-            <span class="ident">triggers</span>,
-            <span class="ident">body</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">vir::ExprFolder</a> <span class="kw">for </span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#256">UnfoldingExtractor</a> {
+    <span class="kw">fn </span>fold_forall(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
+            variables,
+            triggers,
+            body,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">unfoldings</span>.<span class="ident">is_empty</span>(),
-            <span class="string">&quot;Nested quantifiers are not supported.&quot;</span>
-        );
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;original body: {}&quot;</span>, <span class="ident">body</span>);
+            <span class="self">self</span>.unfoldings.is_empty(),
+            <span class="string">&quot;Nested quantifiers are not supported.&quot;
+        </span>);
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;original body: {}&quot;</span>, body);
 
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#266">self</a>.<span class="ident">in_quantifier</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">let</span> <span class="ident">replaced_body</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#266">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#270">body</a>);
-        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#266">self</a>.<span class="ident">in_quantifier</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#266">self</a>.in_quantifier = <span class="bool-val">true</span>;
+        <span class="kw">let </span>replaced_body = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#266">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#270">body</a>);
+        <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#266">self</a>.in_quantifier = <span class="bool-val">false</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">forall</span> <span class="op">=</span> <span class="ident">vir::Expr::ForAll</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#268">variables</a>,
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#269">triggers</a>,
-            <span class="ident">body</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#281">replaced_body</a>,
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#271">position</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>forall = vir::Expr::ForAll(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.ForAll.html">vir::ForAll</a> {
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#268">variables</a>,
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#269">triggers</a>,
+            body: <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#281">replaced_body</a>,
+            <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#271">position</a>,
         });
 
-        <span class="kw">let</span> <span class="ident">unfoldings</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#266">self</a>.<span class="ident">unfoldings</span>);
+        <span class="kw">let </span>unfoldings = mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#266">self</a>.unfoldings);
 
-        <span class="kw">for</span> ((<span class="ident">typ</span>, <span class="ident">args</span>), (<span class="ident">perm_amount</span>, <span class="ident">variant</span>, <span class="kw">_</span>)) <span class="kw">in</span> <span class="ident">unfoldings</span> {
-            <span class="ident">forall</span> <span class="op">=</span> <span class="ident">vir::Expr::Unfolding</span>(<span class="ident">vir::Unfolding</span> {
-                <span class="ident">predicate</span>: <span class="ident">typ</span>,
-                <span class="ident">arguments</span>: <span class="ident">args</span>,
-                <span class="ident">base</span>: <span class="kw">box</span> <span class="ident">forall</span>,
-                <span class="ident">permission</span>: <span class="ident">perm_amount</span>,
-                <span class="ident">variant</span>,
-                <span class="ident">position</span>,
+        <span class="kw">for </span>((typ, args), (perm_amount, variant, <span class="kw">_</span>)) <span class="kw">in </span>unfoldings {
+            forall = vir::Expr::Unfolding(vir::Unfolding {
+                predicate: typ,
+                arguments: args,
+                base: <span class="kw">box </span>forall,
+                permission: perm_amount,
+                variant,
+                position,
             });
         }
-        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;replaced quantifier: {}&quot;</span>, <span class="ident">forall</span>);
+        <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;replaced quantifier: {}&quot;</span>, forall);
 
-        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#284">forall</a>
+        <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#284">forall</a>
     }
-    <span class="kw">fn</span> <span class="ident">fold_unfolding</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a> {
-            <span class="ident">predicate</span>,
-            <span class="ident">arguments</span>,
-            <span class="ident">base</span>,
-            <span class="ident">permission</span>,
-            <span class="ident">variant</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_quantifier</span> {
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#308">self</a>.<span class="ident">unfoldings</span>
-                .<span class="ident">insert</span>((<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#310">predicate</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#311">arguments</a>), (<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#313">permission</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#314">variant</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#315">position</a>));
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#308">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#312">base</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">vir::Expr::Unfolding</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a> {
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#310">predicate</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#311">arguments</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#312">base</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#313">permission</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#314">variant</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#315">position</a>,
+    <span class="kw">fn </span>fold_unfolding(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a> {
+            predicate,
+            arguments,
+            base,
+            permission,
+            variant,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">if </span><span class="self">self</span>.in_quantifier {
+            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#308">self</a>.unfoldings
+                .insert((<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#310">predicate</a>, <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#311">arguments</a>), (<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#313">permission</a>, <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#314">variant</a>, <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#315">position</a>));
+            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#308">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#312">base</a>)
+        } <span class="kw">else </span>{
+            vir::Expr::Unfolding(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">vir::Unfolding</a> {
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#310">predicate</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#311">arguments</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#312">base</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#313">permission</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#314">variant</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#315">position</a>,
             })
         }
     }
-    <span class="kw">fn</span> <span class="ident">fold_labelled_old</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">labelled_old</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
-        <span class="ident">vir::Expr::LabelledOld</span>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#333">labelled_old</a>)
+    <span class="kw">fn </span>fold_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, labelled_old: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LabelledOld.html">vir::LabelledOld</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">vir::Expr</a> {
+        vir::Expr::LabelledOld(<a href="../../../../../src/prusti_common/vir/optimizations/methods/quantifier_fixer.rs.html#333">labelled_old</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

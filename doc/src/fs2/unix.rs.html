@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/fs2-0.4.3/src/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../fs2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../fs2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../fs2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/fs2-0.4.3/src/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../fs2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../fs2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../fs2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -248,255 +248,255 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
-</pre><pre class="rust"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">libc</span>;
+</pre><pre class="rust"><code><span class="kw">extern crate </span>libc;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">std::os::unix::fs::MetadataExt</a>;
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
+<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">std::os::unix::fs::MetadataExt</a>;
+<span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/fs2/lib.rs.html#131">FsStats</a>;
+<span class="kw">use </span><a href="../../src/fs2/lib.rs.html#131">FsStats</a>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">duplicate</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc::dup</span>(<a class="ident" href="../../src/fs2/unix.rs.html#14">file</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>());
+<span class="kw">pub fn </span>duplicate(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>&gt; {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>fd = libc::dup(<a href="../../src/fs2/unix.rs.html#14">file</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>());
 
-        <span class="kw">if</span> <span class="ident">fd</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">File::from_raw_fd</span>(<a class="ident" href="../../src/fs2/unix.rs.html#16">fd</a>))
+        <span class="kw">if </span>fd &lt; <span class="number">0 </span>{
+            <span class="prelude-val">Err</span>(Error::last_os_error())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(File::from_raw_fd(<a href="../../src/fs2/unix.rs.html#16">fd</a>))
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lock_shared</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../src/fs2/unix.rs.html#51">flock</a>(<a class="ident" href="../../src/fs2/unix.rs.html#26">file</a>, <span class="ident">libc::LOCK_SH</span>)
+<span class="kw">pub fn </span>lock_shared(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <a href="../../src/fs2/unix.rs.html#51">flock</a>(<a href="../../src/fs2/unix.rs.html#26">file</a>, libc::LOCK_SH)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lock_exclusive</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../src/fs2/unix.rs.html#51">flock</a>(<a class="ident" href="../../src/fs2/unix.rs.html#30">file</a>, <span class="ident">libc::LOCK_EX</span>)
+<span class="kw">pub fn </span>lock_exclusive(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <a href="../../src/fs2/unix.rs.html#51">flock</a>(<a href="../../src/fs2/unix.rs.html#30">file</a>, libc::LOCK_EX)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock_shared</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../src/fs2/unix.rs.html#51">flock</a>(<a class="ident" href="../../src/fs2/unix.rs.html#34">file</a>, <span class="ident">libc::LOCK_SH</span> <span class="op">|</span> <span class="ident">libc::LOCK_NB</span>)
+<span class="kw">pub fn </span>try_lock_shared(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <a href="../../src/fs2/unix.rs.html#51">flock</a>(<a href="../../src/fs2/unix.rs.html#34">file</a>, libc::LOCK_SH | libc::LOCK_NB)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock_exclusive</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../src/fs2/unix.rs.html#51">flock</a>(<a class="ident" href="../../src/fs2/unix.rs.html#38">file</a>, <span class="ident">libc::LOCK_EX</span> <span class="op">|</span> <span class="ident">libc::LOCK_NB</span>)
+<span class="kw">pub fn </span>try_lock_exclusive(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <a href="../../src/fs2/unix.rs.html#51">flock</a>(<a href="../../src/fs2/unix.rs.html#38">file</a>, libc::LOCK_EX | libc::LOCK_NB)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unlock</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <a class="ident" href="../../src/fs2/unix.rs.html#51">flock</a>(<a class="ident" href="../../src/fs2/unix.rs.html#42">file</a>, <span class="ident">libc::LOCK_UN</span>)
+<span class="kw">pub fn </span>unlock(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <a href="../../src/fs2/unix.rs.html#51">flock</a>(<a href="../../src/fs2/unix.rs.html#42">file</a>, libc::LOCK_UN)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lock_error</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a> {
-    <span class="ident">Error::from_raw_os_error</span>(<span class="ident">libc::EWOULDBLOCK</span>)
+<span class="kw">pub fn </span>lock_error() -&gt; <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a> {
+    Error::from_raw_os_error(libc::EWOULDBLOCK)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
-<span class="kw">fn</span> <span class="ident">flock</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>, <span class="ident">flag</span>: <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::flock</span>(<a class="ident" href="../../src/fs2/unix.rs.html#51">file</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a class="ident" href="../../src/fs2/unix.rs.html#51">flag</a>) };
-    <span class="kw">if</span> <span class="ident">ret</span> <span class="op">&lt;</span> <span class="number">0</span> { <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>()) } <span class="kw">else</span> { <span class="prelude-val">Ok</span>(()) }
+<span class="attribute">#[cfg(not(target_os = <span class="string">&quot;solaris&quot;</span>))]
+</span><span class="kw">fn </span>flock(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>, flag: <a href="../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::flock(<a href="../../src/fs2/unix.rs.html#51">file</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a href="../../src/fs2/unix.rs.html#51">flag</a>) };
+    <span class="kw">if </span>ret &lt; <span class="number">0 </span>{ <span class="prelude-val">Err</span>(Error::last_os_error()) } <span class="kw">else </span>{ <span class="prelude-val">Ok</span>(()) }
 }
 
-<span class="doccomment">/// Simulate flock() using fcntl(); primarily for Oracle Solaris.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">flock</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>, <span class="ident">flag</span>: <span class="ident">libc::c_int</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fl</span> <span class="op">=</span> <span class="ident">libc::flock</span> {
-        <span class="ident">l_whence</span>: <span class="number">0</span>,
-        <span class="ident">l_start</span>: <span class="number">0</span>,
-        <span class="ident">l_len</span>: <span class="number">0</span>,
-        <span class="ident">l_type</span>: <span class="number">0</span>,
-        <span class="ident">l_pad</span>: [<span class="number">0</span>; <span class="number">4</span>],
-        <span class="ident">l_pid</span>: <span class="number">0</span>,
-        <span class="ident">l_sysid</span>: <span class="number">0</span>,
+<span class="doccomment">/// Simulate flock() using fcntl(); primarily for Oracle Solaris.
+</span><span class="attribute">#[cfg(target_os = <span class="string">&quot;solaris&quot;</span>)]
+</span><span class="kw">fn </span>flock(file: <span class="kw-2">&amp;</span>File, flag: libc::c_int) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>fl = libc::flock {
+        l_whence: <span class="number">0</span>,
+        l_start: <span class="number">0</span>,
+        l_len: <span class="number">0</span>,
+        l_type: <span class="number">0</span>,
+        l_pad: [<span class="number">0</span>; <span class="number">4</span>],
+        l_pid: <span class="number">0</span>,
+        l_sysid: <span class="number">0</span>,
     };
 
-    <span class="comment">// In non-blocking mode, use F_SETLK for cmd, F_SETLKW otherwise, and don&#39;t forget to clear</span>
-    <span class="comment">// LOCK_NB.</span>
-    <span class="kw">let</span> (<span class="ident">cmd</span>, <span class="ident">operation</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">flag</span> <span class="op">&amp;</span> <span class="ident">libc::LOCK_NB</span> {
-        <span class="number">0</span> =&gt; (<span class="ident">libc::F_SETLKW</span>, <span class="ident">flag</span>),
-        <span class="kw">_</span> =&gt; (<span class="ident">libc::F_SETLK</span>, <span class="ident">flag</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">libc::LOCK_NB</span>),
+    <span class="comment">// In non-blocking mode, use F_SETLK for cmd, F_SETLKW otherwise, and don&#39;t forget to clear
+    // LOCK_NB.
+    </span><span class="kw">let </span>(cmd, operation) = <span class="kw">match </span>flag &amp; libc::LOCK_NB {
+        <span class="number">0 </span>=&gt; (libc::F_SETLKW, flag),
+        <span class="kw">_ </span>=&gt; (libc::F_SETLK, flag &amp; !libc::LOCK_NB),
     };
 
-    <span class="kw">match</span> <span class="ident">operation</span> {
-        <span class="ident">libc::LOCK_SH</span> =&gt; <span class="ident">fl</span>.<span class="ident">l_type</span> <span class="op">|</span><span class="op">=</span> <span class="ident">libc::F_RDLCK</span>,
-        <span class="ident">libc::LOCK_EX</span> =&gt; <span class="ident">fl</span>.<span class="ident">l_type</span> <span class="op">|</span><span class="op">=</span> <span class="ident">libc::F_WRLCK</span>,
-        <span class="ident">libc::LOCK_UN</span> =&gt; <span class="ident">fl</span>.<span class="ident">l_type</span> <span class="op">|</span><span class="op">=</span> <span class="ident">libc::F_UNLCK</span>,
-        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from_raw_os_error</span>(<span class="ident">libc::EINVAL</span>)),
+    <span class="kw">match </span>operation {
+        libc::LOCK_SH =&gt; fl.l_type |= libc::F_RDLCK,
+        libc::LOCK_EX =&gt; fl.l_type |= libc::F_WRLCK,
+        libc::LOCK_UN =&gt; fl.l_type |= libc::F_UNLCK,
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::from_raw_os_error(libc::EINVAL)),
     }
 
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::fcntl</span>(<span class="ident">file</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">cmd</span>, <span class="kw-2">&amp;</span><span class="ident">fl</span>) };
-    <span class="kw">match</span> <span class="ident">ret</span> {
-        <span class="comment">// Translate EACCES to EWOULDBLOCK</span>
-        <span class="op">-</span><span class="number">1</span> =&gt; <span class="kw">match</span> <span class="ident">Error::last_os_error</span>().<span class="ident">raw_os_error</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">libc::EACCES</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lock_error</span>()),
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>())
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::fcntl(file.as_raw_fd(), cmd, <span class="kw-2">&amp;</span>fl) };
+    <span class="kw">match </span>ret {
+        <span class="comment">// Translate EACCES to EWOULDBLOCK
+        </span>-<span class="number">1 </span>=&gt; <span class="kw">match </span>Error::last_os_error().raw_os_error() {
+            <span class="prelude-val">Some</span>(libc::EACCES) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(lock_error()),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error())
         },
-        <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(())
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allocated_size</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/fs2/unix.rs.html#94">file</a>.<span class="ident">metadata</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <a class="ident" href="../../src/fs2/unix.rs.html#95">m</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">blocks</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">*</span> <span class="number">512</span>)
+<span class="kw">pub fn </span>allocated_size(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+    <a href="../../src/fs2/unix.rs.html#94">file</a>.metadata().map(|m| <a href="../../src/fs2/unix.rs.html#95">m</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">blocks</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <span class="number">512</span>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nacl&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::posix_fallocate</span>(<a class="ident" href="../../src/fs2/unix.rs.html#102">file</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <span class="number">0</span>, <a class="ident" href="../../src/fs2/unix.rs.html#102">len</a> <span class="kw">as</span> <span class="ident">libc::off_t</span>) };
-    <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="number">0</span> { <span class="prelude-val">Ok</span>(()) } <span class="kw">else</span> { <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>()) }
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>,
+          target_os = <span class="string">&quot;freebsd&quot;</span>,
+          target_os = <span class="string">&quot;android&quot;</span>,
+          target_os = <span class="string">&quot;nacl&quot;</span>))]
+</span><span class="kw">pub fn </span>allocate(file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::posix_fallocate(<a href="../../src/fs2/unix.rs.html#102">file</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <span class="number">0</span>, <a href="../../src/fs2/unix.rs.html#102">len</a> <span class="kw">as </span>libc::off_t) };
+    <span class="kw">if </span>ret == <span class="number">0 </span>{ <span class="prelude-val">Ok</span>(()) } <span class="kw">else </span>{ <span class="prelude-val">Err</span>(Error::last_os_error()) }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>, <span class="ident">len</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">stat</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">file</span>.<span class="ident">metadata</span>());
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>))]
+</span><span class="kw">pub fn </span>allocate(file: <span class="kw-2">&amp;</span>File, len: u64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>stat = <span class="macro">try!</span>(file.metadata());
 
-    <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="ident">stat</span>.<span class="ident">blocks</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="number">512</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fstore</span> <span class="op">=</span> <span class="ident">libc::fstore_t</span> {
-            <span class="ident">fst_flags</span>: <span class="ident">libc::F_ALLOCATECONTIG</span>,
-            <span class="ident">fst_posmode</span>: <span class="ident">libc::F_PEOFPOSMODE</span>,
-            <span class="ident">fst_offset</span>: <span class="number">0</span>,
-            <span class="ident">fst_length</span>: <span class="ident">len</span> <span class="kw">as</span> <span class="ident">libc::off_t</span>,
-            <span class="ident">fst_bytesalloc</span>: <span class="number">0</span>,
+    <span class="kw">if </span>len &gt; stat.blocks() <span class="kw">as </span>u64 * <span class="number">512 </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>fstore = libc::fstore_t {
+            fst_flags: libc::F_ALLOCATECONTIG,
+            fst_posmode: libc::F_PEOFPOSMODE,
+            fst_offset: <span class="number">0</span>,
+            fst_length: len <span class="kw">as </span>libc::off_t,
+            fst_bytesalloc: <span class="number">0</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::fcntl</span>(<span class="ident">file</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">libc::F_PREALLOCATE</span>, <span class="kw-2">&amp;</span><span class="ident">fstore</span>) };
-        <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
-            <span class="comment">// Unable to allocate contiguous disk space; attempt to allocate non-contiguously.</span>
-            <span class="ident">fstore</span>.<span class="ident">fst_flags</span> <span class="op">=</span> <span class="ident">libc::F_ALLOCATEALL</span>;
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::fcntl</span>(<span class="ident">file</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">libc::F_PREALLOCATE</span>, <span class="kw-2">&amp;</span><span class="ident">fstore</span>) };
-            <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>());
+        <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::fcntl(file.as_raw_fd(), libc::F_PREALLOCATE, <span class="kw-2">&amp;</span>fstore) };
+        <span class="kw">if </span>ret == -<span class="number">1 </span>{
+            <span class="comment">// Unable to allocate contiguous disk space; attempt to allocate non-contiguously.
+            </span>fstore.fst_flags = libc::F_ALLOCATEALL;
+            <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::fcntl(file.as_raw_fd(), libc::F_PREALLOCATE, <span class="kw-2">&amp;</span>fstore) };
+            <span class="kw">if </span>ret == -<span class="number">1 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error());
             }
         }
     }
 
-    <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="ident">stat</span>.<span class="ident">size</span>() <span class="kw">as</span> <span class="ident">u64</span> {
-        <span class="ident">file</span>.<span class="ident">set_len</span>(<span class="ident">len</span>)
-    } <span class="kw">else</span> {
+    <span class="kw">if </span>len &gt; stat.size() <span class="kw">as </span>u64 {
+        file.set_len(len)
+    } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>, <span class="ident">len</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="comment">// No file allocation API available, just set the length if necessary.</span>
-    <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="macro">try!</span>(<span class="ident">file</span>.<span class="ident">metadata</span>()).<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> {
-        <span class="ident">file</span>.<span class="ident">set_len</span>(<span class="ident">len</span>)
-    } <span class="kw">else</span> {
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;openbsd&quot;</span>,
+          target_os = <span class="string">&quot;netbsd&quot;</span>,
+          target_os = <span class="string">&quot;dragonfly&quot;</span>,
+          target_os = <span class="string">&quot;solaris&quot;</span>,
+          target_os = <span class="string">&quot;haiku&quot;</span>))]
+</span><span class="kw">pub fn </span>allocate(file: <span class="kw-2">&amp;</span>File, len: u64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="comment">// No file allocation API available, just set the length if necessary.
+    </span><span class="kw">if </span>len &gt; <span class="macro">try!</span>(file.metadata()).len() <span class="kw">as </span>u64 {
+        file.set_len(len)
+    } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statvfs</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/fs2/lib.rs.html#131">FsStats</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">cstr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/fs2/unix.rs.html#152">path</a>.<span class="ident">as_os_str</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()) {
-        <span class="prelude-val">Ok</span>(<span class="ident">cstr</span>) =&gt; <a class="ident" href="../../src/fs2/unix.rs.html#154">cstr</a>,
-        <span class="prelude-val">Err</span>(..) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::InvalidInput</span>, <span class="string">&quot;path contained a null&quot;</span>)),
+<span class="kw">pub fn </span>statvfs(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/fs2/lib.rs.html#131">FsStats</a>&gt; {
+    <span class="kw">let </span>cstr = <span class="kw">match </span>CString::new(<a href="../../src/fs2/unix.rs.html#152">path</a>.as_os_str().<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()) {
+        <span class="prelude-val">Ok</span>(cstr) =&gt; <a href="../../src/fs2/unix.rs.html#154">cstr</a>,
+        <span class="prelude-val">Err</span>(..) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::InvalidInput, <span class="string">&quot;path contained a null&quot;</span>)),
     };
 
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stat</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/struct.statvfs.html">libc::statvfs</a> <span class="op">=</span> <span class="ident">mem::zeroed</span>();
-        <span class="comment">// danburkert/fs2-rs#1: cast is necessary for platforms where c_char != u8.</span>
-        <span class="kw">if</span> <span class="ident">libc::statvfs</span>(<span class="ident">cstr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <span class="kw-2">&amp;mut</span> <span class="ident">stat</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/fs2/lib.rs.html#131">FsStats</a> {
-                <span class="ident">free_space</span>: <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_frsize</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">*</span> <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_bfree</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-                <span class="ident">available_space</span>: <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_frsize</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">*</span> <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_bavail</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-                <span class="ident">total_space</span>: <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_frsize</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">*</span> <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_blocks</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-                <span class="ident">allocation_granularity</span>: <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_frsize</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>stat: <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/struct.statvfs.html">libc::statvfs</a> = mem::zeroed();
+        <span class="comment">// danburkert/fs2-rs#1: cast is necessary for platforms where c_char != u8.
+        </span><span class="kw">if </span>libc::statvfs(cstr.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, <span class="kw-2">&amp;mut </span>stat) != <span class="number">0 </span>{
+            <span class="prelude-val">Err</span>(Error::last_os_error())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<a href="../../src/fs2/lib.rs.html#131">FsStats</a> {
+                free_space: <a href="../../src/fs2/unix.rs.html#159">stat</a>.f_frsize <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a href="../../src/fs2/unix.rs.html#159">stat</a>.f_bfree <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+                available_space: <a href="../../src/fs2/unix.rs.html#159">stat</a>.f_frsize <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a href="../../src/fs2/unix.rs.html#159">stat</a>.f_bavail <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+                total_space: <a href="../../src/fs2/unix.rs.html#159">stat</a>.f_frsize <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> * <a href="../../src/fs2/unix.rs.html#159">stat</a>.f_blocks <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+                allocation_granularity: <a href="../../src/fs2/unix.rs.html#159">stat</a>.f_frsize <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
             })
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tempdir</span>;
-    <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">libc</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">extern crate </span>tempdir;
+    <span class="kw">extern crate </span>libc;
 
-    <span class="kw">use</span> <span class="ident">std::fs</span>::{<span class="self">self</span>, <span class="ident">File</span>};
-    <span class="kw">use</span> <span class="ident">std::os::unix::io::AsRawFd</span>;
+    <span class="kw">use </span>std::fs::{<span class="self">self</span>, File};
+    <span class="kw">use </span>std::os::unix::io::AsRawFd;
 
-    <span class="kw">use</span> {<span class="ident">FileExt</span>, <span class="ident">lock_contended_error</span>};
+    <span class="kw">use </span>{FileExt, lock_contended_error};
 
-    <span class="doccomment">/// The duplicate method returns a file with a new file descriptor.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">duplicate_new_fd</span>() {
-        <span class="kw">let</span> <span class="ident">tempdir</span> <span class="op">=</span> <span class="ident">tempdir::TempDir::new</span>(<span class="string">&quot;fs2&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">tempdir</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;fs2&quot;</span>);
-        <span class="kw">let</span> <span class="ident">file1</span> <span class="op">=</span> <span class="ident">fs::OpenOptions::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">create</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">file2</span> <span class="op">=</span> <span class="ident">file1</span>.<span class="ident">duplicate</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">file1</span>.<span class="ident">as_raw_fd</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">file2</span>.<span class="ident">as_raw_fd</span>());
+    <span class="doccomment">/// The duplicate method returns a file with a new file descriptor.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>duplicate_new_fd() {
+        <span class="kw">let </span>tempdir = tempdir::TempDir::new(<span class="string">&quot;fs2&quot;</span>).unwrap();
+        <span class="kw">let </span>path = tempdir.path().join(<span class="string">&quot;fs2&quot;</span>);
+        <span class="kw">let </span>file1 = fs::OpenOptions::new().write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>).open(<span class="kw-2">&amp;</span>path).unwrap();
+        <span class="kw">let </span>file2 = file1.duplicate().unwrap();
+        <span class="macro">assert!</span>(file1.as_raw_fd() != file2.as_raw_fd());
     }
 
-    <span class="doccomment">/// The duplicate method should preservesthe close on exec flag.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">duplicate_cloexec</span>() {
+    <span class="doccomment">/// The duplicate method should preservesthe close on exec flag.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>duplicate_cloexec() {
 
-        <span class="kw">fn</span> <span class="ident">flags</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>) -&gt; <span class="ident">libc::c_int</span> {
-            <span class="kw">unsafe</span> { <span class="ident">libc::fcntl</span>(<span class="ident">file</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">libc::F_GETFL</span>, <span class="number">0</span>) }
+        <span class="kw">fn </span>flags(file: <span class="kw-2">&amp;</span>File) -&gt; libc::c_int {
+            <span class="kw">unsafe </span>{ libc::fcntl(file.as_raw_fd(), libc::F_GETFL, <span class="number">0</span>) }
         }
 
-        <span class="kw">let</span> <span class="ident">tempdir</span> <span class="op">=</span> <span class="ident">tempdir::TempDir::new</span>(<span class="string">&quot;fs2&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">tempdir</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;fs2&quot;</span>);
-        <span class="kw">let</span> <span class="ident">file1</span> <span class="op">=</span> <span class="ident">fs::OpenOptions::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">create</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">file2</span> <span class="op">=</span> <span class="ident">file1</span>.<span class="ident">duplicate</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>tempdir = tempdir::TempDir::new(<span class="string">&quot;fs2&quot;</span>).unwrap();
+        <span class="kw">let </span>path = tempdir.path().join(<span class="string">&quot;fs2&quot;</span>);
+        <span class="kw">let </span>file1 = fs::OpenOptions::new().write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>).open(<span class="kw-2">&amp;</span>path).unwrap();
+        <span class="kw">let </span>file2 = file1.duplicate().unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="ident">file1</span>), <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="ident">file2</span>));
+        <span class="macro">assert_eq!</span>(flags(<span class="kw-2">&amp;</span>file1), flags(<span class="kw-2">&amp;</span>file2));
     }
 
-    <span class="doccomment">/// Tests that locking a file descriptor will replace any existing locks</span>
-    <span class="doccomment">/// held on the file descriptor.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lock_replace</span>() {
-        <span class="kw">let</span> <span class="ident">tempdir</span> <span class="op">=</span> <span class="ident">tempdir::TempDir::new</span>(<span class="string">&quot;fs2&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">tempdir</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;fs2&quot;</span>);
-        <span class="kw">let</span> <span class="ident">file1</span> <span class="op">=</span> <span class="ident">fs::OpenOptions::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">create</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">file2</span> <span class="op">=</span> <span class="ident">fs::OpenOptions::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">create</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
+    <span class="doccomment">/// Tests that locking a file descriptor will replace any existing locks
+    /// held on the file descriptor.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>lock_replace() {
+        <span class="kw">let </span>tempdir = tempdir::TempDir::new(<span class="string">&quot;fs2&quot;</span>).unwrap();
+        <span class="kw">let </span>path = tempdir.path().join(<span class="string">&quot;fs2&quot;</span>);
+        <span class="kw">let </span>file1 = fs::OpenOptions::new().write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>).open(<span class="kw-2">&amp;</span>path).unwrap();
+        <span class="kw">let </span>file2 = fs::OpenOptions::new().write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>).open(<span class="kw-2">&amp;</span>path).unwrap();
 
-        <span class="comment">// Creating a shared lock will drop an exclusive lock.</span>
-        <span class="ident">file1</span>.<span class="ident">lock_exclusive</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file1</span>.<span class="ident">lock_shared</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file2</span>.<span class="ident">lock_shared</span>().<span class="ident">unwrap</span>();
+        <span class="comment">// Creating a shared lock will drop an exclusive lock.
+        </span>file1.lock_exclusive().unwrap();
+        file1.lock_shared().unwrap();
+        file2.lock_shared().unwrap();
 
-        <span class="comment">// Attempting to replace a shared lock with an exclusive lock will fail</span>
-        <span class="comment">// with multiple lock holders, and remove the original shared lock.</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">file2</span>.<span class="ident">try_lock_exclusive</span>().<span class="ident">unwrap_err</span>().<span class="ident">raw_os_error</span>(),
-                   <span class="ident">lock_contended_error</span>().<span class="ident">raw_os_error</span>());
-        <span class="ident">file1</span>.<span class="ident">lock_shared</span>().<span class="ident">unwrap</span>();
+        <span class="comment">// Attempting to replace a shared lock with an exclusive lock will fail
+        // with multiple lock holders, and remove the original shared lock.
+        </span><span class="macro">assert_eq!</span>(file2.try_lock_exclusive().unwrap_err().raw_os_error(),
+                   lock_contended_error().raw_os_error());
+        file1.lock_shared().unwrap();
     }
 
-    <span class="doccomment">/// Tests that locks are shared among duplicated file descriptors.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lock_duplicate</span>() {
-        <span class="kw">let</span> <span class="ident">tempdir</span> <span class="op">=</span> <span class="ident">tempdir::TempDir::new</span>(<span class="string">&quot;fs2&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">tempdir</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;fs2&quot;</span>);
-        <span class="kw">let</span> <span class="ident">file1</span> <span class="op">=</span> <span class="ident">fs::OpenOptions::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">create</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">file2</span> <span class="op">=</span> <span class="ident">file1</span>.<span class="ident">duplicate</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">file3</span> <span class="op">=</span> <span class="ident">fs::OpenOptions::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">create</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
+    <span class="doccomment">/// Tests that locks are shared among duplicated file descriptors.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>lock_duplicate() {
+        <span class="kw">let </span>tempdir = tempdir::TempDir::new(<span class="string">&quot;fs2&quot;</span>).unwrap();
+        <span class="kw">let </span>path = tempdir.path().join(<span class="string">&quot;fs2&quot;</span>);
+        <span class="kw">let </span>file1 = fs::OpenOptions::new().write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>).open(<span class="kw-2">&amp;</span>path).unwrap();
+        <span class="kw">let </span>file2 = file1.duplicate().unwrap();
+        <span class="kw">let </span>file3 = fs::OpenOptions::new().write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>).open(<span class="kw-2">&amp;</span>path).unwrap();
 
-        <span class="comment">// Create a lock through fd1, then replace it through fd2.</span>
-        <span class="ident">file1</span>.<span class="ident">lock_shared</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file2</span>.<span class="ident">lock_exclusive</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">file3</span>.<span class="ident">try_lock_shared</span>().<span class="ident">unwrap_err</span>().<span class="ident">raw_os_error</span>(),
-                   <span class="ident">lock_contended_error</span>().<span class="ident">raw_os_error</span>());
+        <span class="comment">// Create a lock through fd1, then replace it through fd2.
+        </span>file1.lock_shared().unwrap();
+        file2.lock_exclusive().unwrap();
+        <span class="macro">assert_eq!</span>(file3.try_lock_shared().unwrap_err().raw_os_error(),
+                   lock_contended_error().raw_os_error());
 
-        <span class="comment">// Either of the file descriptors should be able to unlock.</span>
-        <span class="ident">file1</span>.<span class="ident">unlock</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file3</span>.<span class="ident">lock_shared</span>().<span class="ident">unwrap</span>();
+        <span class="comment">// Either of the file descriptors should be able to unlock.
+        </span>file1.unlock().unwrap();
+        file3.lock_shared().unwrap();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="fs2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="fs2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

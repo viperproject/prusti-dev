@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/dispatcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/dispatcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
                         <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -909,914 +909,914 @@
 <span id="907">907</span>
 <span id="908">908</span>
 <span id="909">909</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Dispatches trace events to [`Subscriber`]s.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The _dispatcher_ is the component of the tracing system which is responsible</span>
-<span class="doccomment">//! for forwarding trace data from the instrumentation points that generate it</span>
-<span class="doccomment">//! to the subscriber that collects it.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Using the Trace Dispatcher</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Every thread in a program using `tracing` has a _default subscriber_. When</span>
-<span class="doccomment">//! events occur, or spans are created, they are dispatched to the thread&#39;s</span>
-<span class="doccomment">//! current subscriber.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Setting the Default Subscriber</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! By default, the current subscriber is an empty implementation that does</span>
-<span class="doccomment">//! nothing. To use a subscriber implementation, it must be set as the default.</span>
-<span class="doccomment">//! There are two methods for doing so: [`with_default`] and</span>
-<span class="doccomment">//! [`set_global_default`]. `with_default` sets the default subscriber for the</span>
-<span class="doccomment">//! duration of a scope, while `set_global_default` sets a default subscriber</span>
-<span class="doccomment">//! for the entire process.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! To use either of these functions, we must first wrap our subscriber in a</span>
-<span class="doccomment">//! [`Dispatch`], a cloneable, type-erased reference to a subscriber. For</span>
-<span class="doccomment">//! example:</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # pub struct FooSubscriber;</span>
-<span class="doccomment">//! # use tracing_core::{</span>
-<span class="doccomment">//! #   dispatcher, Event, Metadata,</span>
-<span class="doccomment">//! #   span::{Attributes, Id, Record}</span>
-<span class="doccomment">//! # };</span>
-<span class="doccomment">//! # impl tracing_core::Subscriber for FooSubscriber {</span>
-<span class="doccomment">//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }</span>
-<span class="doccomment">//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}</span>
-<span class="doccomment">//! #   fn event(&amp;self, _: &amp;Event) {}</span>
-<span class="doccomment">//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }</span>
-<span class="doccomment">//! #   fn enter(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn exit(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }</span>
-<span class="doccomment">//! use dispatcher::Dispatch;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let my_subscriber = FooSubscriber::new();</span>
-<span class="doccomment">//! let my_dispatch = Dispatch::new(my_subscriber);</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! Then, we can use [`with_default`] to set our `Dispatch` as the default for</span>
-<span class="doccomment">//! the duration of a block:</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # pub struct FooSubscriber;</span>
-<span class="doccomment">//! # use tracing_core::{</span>
-<span class="doccomment">//! #   dispatcher, Event, Metadata,</span>
-<span class="doccomment">//! #   span::{Attributes, Id, Record}</span>
-<span class="doccomment">//! # };</span>
-<span class="doccomment">//! # impl tracing_core::Subscriber for FooSubscriber {</span>
-<span class="doccomment">//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }</span>
-<span class="doccomment">//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}</span>
-<span class="doccomment">//! #   fn event(&amp;self, _: &amp;Event) {}</span>
-<span class="doccomment">//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }</span>
-<span class="doccomment">//! #   fn enter(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn exit(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }</span>
-<span class="doccomment">//! # let my_subscriber = FooSubscriber::new();</span>
-<span class="doccomment">//! # let my_dispatch = dispatcher::Dispatch::new(my_subscriber);</span>
-<span class="doccomment">//! // no default subscriber</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # #[cfg(feature = &quot;std&quot;)]</span>
-<span class="doccomment">//! dispatcher::with_default(&amp;my_dispatch, || {</span>
-<span class="doccomment">//!     // my_subscriber is the default</span>
-<span class="doccomment">//! });</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // no default subscriber again</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! It&#39;s important to note that `with_default` will not propagate the current</span>
-<span class="doccomment">//! thread&#39;s default subscriber to any threads spawned within the `with_default`</span>
-<span class="doccomment">//! block. To propagate the default subscriber to new threads, either use</span>
-<span class="doccomment">//! `with_default` from the new thread, or use `set_global_default`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! As an alternative to `with_default`, we can use [`set_global_default`] to</span>
-<span class="doccomment">//! set a `Dispatch` as the default for all threads, for the lifetime of the</span>
-<span class="doccomment">//! program. For example:</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # pub struct FooSubscriber;</span>
-<span class="doccomment">//! # use tracing_core::{</span>
-<span class="doccomment">//! #   dispatcher, Event, Metadata,</span>
-<span class="doccomment">//! #   span::{Attributes, Id, Record}</span>
-<span class="doccomment">//! # };</span>
-<span class="doccomment">//! # impl tracing_core::Subscriber for FooSubscriber {</span>
-<span class="doccomment">//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }</span>
-<span class="doccomment">//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}</span>
-<span class="doccomment">//! #   fn event(&amp;self, _: &amp;Event) {}</span>
-<span class="doccomment">//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }</span>
-<span class="doccomment">//! #   fn enter(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn exit(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }</span>
-<span class="doccomment">//! # let my_subscriber = FooSubscriber::new();</span>
-<span class="doccomment">//! # let my_dispatch = dispatcher::Dispatch::new(my_subscriber);</span>
-<span class="doccomment">//! // no default subscriber</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! dispatcher::set_global_default(my_dispatch)</span>
-<span class="doccomment">//!     // `set_global_default` will return an error if the global default</span>
-<span class="doccomment">//!     // subscriber has already been set.</span>
-<span class="doccomment">//!     .expect(&quot;global default was already set!&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // `my_subscriber` is now the default</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
-<span class="doccomment">//!     &lt;strong&gt;Note&lt;/strong&gt;:the thread-local scoped dispatcher</span>
-<span class="doccomment">//!     (&lt;a href=&quot;#fn.with_default&quot;&gt;&lt;code&gt;with_default&lt;/code&gt;&lt;/a&gt;) requires the</span>
-<span class="doccomment">//!     Rust standard library. &lt;code&gt;no_std&lt;/code&gt; users should use</span>
-<span class="doccomment">//!     &lt;a href=&quot;#fn.set_global_default&quot;&gt;&lt;code&gt;set_global_default&lt;/code&gt;&lt;/a&gt;</span>
-<span class="doccomment">//!     instead.</span>
-<span class="doccomment">//! &lt;/pre&gt;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Accessing the Default Subscriber</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A thread&#39;s current default subscriber can be accessed using the</span>
-<span class="doccomment">//! [`get_default`] function, which executes a closure with a reference to the</span>
-<span class="doccomment">//! currently default `Dispatch`. This is used primarily by `tracing`</span>
-<span class="doccomment">//! instrumentation.</span>
-<span class="doccomment">//!</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../src/tracing_core/lib.rs.html#271">callsite</a>, <a class="ident" href="../../src/tracing_core/lib.rs.html#277">span</a>,
-    <span class="ident">subscriber</span>::{<a class="self" href="../../src/tracing_core/lib.rs.html#279">self</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#654">NoSubscriber</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a>},
-    <a class="ident" href="../../src/tracing_core/event.rs.html#23">Event</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>,
+</pre><pre class="rust"><code><span class="doccomment">//! Dispatches trace events to [`Subscriber`]s.
+//!
+//! The _dispatcher_ is the component of the tracing system which is responsible
+//! for forwarding trace data from the instrumentation points that generate it
+//! to the subscriber that collects it.
+//!
+//! # Using the Trace Dispatcher
+//!
+//! Every thread in a program using `tracing` has a _default subscriber_. When
+//! events occur, or spans are created, they are dispatched to the thread&#39;s
+//! current subscriber.
+//!
+//! ## Setting the Default Subscriber
+//!
+//! By default, the current subscriber is an empty implementation that does
+//! nothing. To use a subscriber implementation, it must be set as the default.
+//! There are two methods for doing so: [`with_default`] and
+//! [`set_global_default`]. `with_default` sets the default subscriber for the
+//! duration of a scope, while `set_global_default` sets a default subscriber
+//! for the entire process.
+//!
+//! To use either of these functions, we must first wrap our subscriber in a
+//! [`Dispatch`], a cloneable, type-erased reference to a subscriber. For
+//! example:
+//! ```rust
+//! # pub struct FooSubscriber;
+//! # use tracing_core::{
+//! #   dispatcher, Event, Metadata,
+//! #   span::{Attributes, Id, Record}
+//! # };
+//! # impl tracing_core::Subscriber for FooSubscriber {
+//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }
+//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}
+//! #   fn event(&amp;self, _: &amp;Event) {}
+//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}
+//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }
+//! #   fn enter(&amp;self, _: &amp;Id) {}
+//! #   fn exit(&amp;self, _: &amp;Id) {}
+//! # }
+//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }
+//! use dispatcher::Dispatch;
+//!
+//! let my_subscriber = FooSubscriber::new();
+//! let my_dispatch = Dispatch::new(my_subscriber);
+//! ```
+//! Then, we can use [`with_default`] to set our `Dispatch` as the default for
+//! the duration of a block:
+//! ```rust
+//! # pub struct FooSubscriber;
+//! # use tracing_core::{
+//! #   dispatcher, Event, Metadata,
+//! #   span::{Attributes, Id, Record}
+//! # };
+//! # impl tracing_core::Subscriber for FooSubscriber {
+//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }
+//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}
+//! #   fn event(&amp;self, _: &amp;Event) {}
+//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}
+//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }
+//! #   fn enter(&amp;self, _: &amp;Id) {}
+//! #   fn exit(&amp;self, _: &amp;Id) {}
+//! # }
+//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }
+//! # let my_subscriber = FooSubscriber::new();
+//! # let my_dispatch = dispatcher::Dispatch::new(my_subscriber);
+//! // no default subscriber
+//!
+//! # #[cfg(feature = &quot;std&quot;)]
+//! dispatcher::with_default(&amp;my_dispatch, || {
+//!     // my_subscriber is the default
+//! });
+//!
+//! // no default subscriber again
+//! ```
+//! It&#39;s important to note that `with_default` will not propagate the current
+//! thread&#39;s default subscriber to any threads spawned within the `with_default`
+//! block. To propagate the default subscriber to new threads, either use
+//! `with_default` from the new thread, or use `set_global_default`.
+//!
+//! As an alternative to `with_default`, we can use [`set_global_default`] to
+//! set a `Dispatch` as the default for all threads, for the lifetime of the
+//! program. For example:
+//! ```rust
+//! # pub struct FooSubscriber;
+//! # use tracing_core::{
+//! #   dispatcher, Event, Metadata,
+//! #   span::{Attributes, Id, Record}
+//! # };
+//! # impl tracing_core::Subscriber for FooSubscriber {
+//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }
+//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}
+//! #   fn event(&amp;self, _: &amp;Event) {}
+//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}
+//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }
+//! #   fn enter(&amp;self, _: &amp;Id) {}
+//! #   fn exit(&amp;self, _: &amp;Id) {}
+//! # }
+//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }
+//! # let my_subscriber = FooSubscriber::new();
+//! # let my_dispatch = dispatcher::Dispatch::new(my_subscriber);
+//! // no default subscriber
+//!
+//! dispatcher::set_global_default(my_dispatch)
+//!     // `set_global_default` will return an error if the global default
+//!     // subscriber has already been set.
+//!     .expect(&quot;global default was already set!&quot;);
+//!
+//! // `my_subscriber` is now the default
+//! ```
+//!
+//! &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;
+//!     &lt;strong&gt;Note&lt;/strong&gt;:the thread-local scoped dispatcher
+//!     (&lt;a href=&quot;#fn.with_default&quot;&gt;&lt;code&gt;with_default&lt;/code&gt;&lt;/a&gt;) requires the
+//!     Rust standard library. &lt;code&gt;no_std&lt;/code&gt; users should use
+//!     &lt;a href=&quot;#fn.set_global_default&quot;&gt;&lt;code&gt;set_global_default&lt;/code&gt;&lt;/a&gt;
+//!     instead.
+//! &lt;/pre&gt;
+//!
+//! ## Accessing the Default Subscriber
+//!
+//! A thread&#39;s current default subscriber can be accessed using the
+//! [`get_default`] function, which executes a closure with a reference to the
+//! currently default `Dispatch`. This is used primarily by `tracing`
+//! instrumentation.
+//!
+</span><span class="kw">use crate</span>::{
+    <a href="../../src/tracing_core/lib.rs.html#271">callsite</a>, <a href="../../src/tracing_core/lib.rs.html#277">span</a>,
+    subscriber::{<a class="self" href="../../src/tracing_core/lib.rs.html#279">self</a>, <a href="../../src/tracing_core/subscriber.rs.html#654">NoSubscriber</a>, <a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a>},
+    <a href="../../src/tracing_core/event.rs.html#23">Event</a>, <a href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>, <a href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">any::Any</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
-    <span class="ident">sync</span>::{
-        <span class="ident">atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
-        <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>,
+<span class="kw">use </span><span class="kw">crate</span>::stdlib::{
+    <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">any::Any</a>,
+    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
+    sync::{
+        atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
+        <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>,
     },
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib</span>::{
-    <span class="ident">cell</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefMut.html">RefMut</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/index.html">error</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">sync::Weak</a>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::stdlib::{
+    cell::{<a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>, <a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefMut.html">RefMut</a>},
+    <a href="https://doc.rust-lang.org/nightly/std/error/index.html">error</a>,
+    <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">sync::Weak</a>,
 };
 
-<span class="doccomment">/// `Dispatch` trace data to a [`Subscriber`].</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Dispatch</span> {
-    <span class="ident">subscriber</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span>,
+<span class="doccomment">/// `Dispatch` trace data to a [`Subscriber`].
+///
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Dispatch {
+    subscriber: Arc&lt;<span class="kw">dyn </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local!</a> {
-    <span class="kw">static</span> <span class="ident">CURRENT_STATE</span>: <span class="ident">State</span> <span class="op">=</span> <span class="ident">State</span> {
-        <span class="ident">default</span>: <span class="ident">RefCell::new</span>(<span class="prelude-val">None</span>),
-        <span class="ident">can_enter</span>: <span class="ident">Cell::new</span>(<span class="bool-val">true</span>),
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
+    <span class="kw">static </span>CURRENT_STATE: State = State {
+        default: RefCell::new(<span class="prelude-val">None</span>),
+        can_enter: Cell::new(<span class="bool-val">true</span>),
     };
 }
 
-<span class="kw">static</span> <span class="ident">EXISTS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> <span class="op">=</span> <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>);
-<span class="kw">static</span> <span class="ident">GLOBAL_INIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#166">UNINITIALIZED</a>);
+<span class="kw">static </span>EXISTS: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a> = AtomicBool::new(<span class="bool-val">false</span>);
+<span class="kw">static </span>GLOBAL_INIT: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> = AtomicUsize::new(<a href="../../src/tracing_core/dispatcher.rs.html#166">UNINITIALIZED</a>);
 
-<span class="kw">const</span> <span class="ident">UNINITIALIZED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
-<span class="kw">const</span> <span class="ident">INITIALIZING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">INITIALIZED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">const </span>UNINITIALIZED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
+<span class="kw">const </span>INITIALIZING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1</span>;
+<span class="kw">const </span>INITIALIZED: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">2</span>;
 
-<span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">GLOBAL_DISPATCH</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+<span class="kw">static </span><span class="kw-2">mut </span>GLOBAL_DISPATCH: <span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>&gt; = <span class="prelude-val">None</span>;
 
-<span class="doccomment">/// The dispatch state of a thread.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">struct</span> <span class="ident">State</span> {
-    <span class="doccomment">/// This thread&#39;s current default dispatcher.</span>
-    <span class="ident">default</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Whether or not we can currently begin dispatching a trace event.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is set to `false` when functions such as `enter`, `exit`, `event`,</span>
-    <span class="doccomment">/// and `new_span` are called on this thread&#39;s default dispatcher, to</span>
-    <span class="doccomment">/// prevent further trace events triggered inside those functions from</span>
-    <span class="doccomment">/// creating an infinite recursion. When we finish handling a dispatch, this</span>
-    <span class="doccomment">/// is set back to `true`.</span>
-    <span class="ident">can_enter</span>: <span class="ident">Cell</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
+<span class="doccomment">/// The dispatch state of a thread.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">struct </span>State {
+    <span class="doccomment">/// This thread&#39;s current default dispatcher.
+    </span>default: RefCell&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>&gt;&gt;,
+    <span class="doccomment">/// Whether or not we can currently begin dispatching a trace event.
+    ///
+    /// This is set to `false` when functions such as `enter`, `exit`, `event`,
+    /// and `new_span` are called on this thread&#39;s default dispatcher, to
+    /// prevent further trace events triggered inside those functions from
+    /// creating an infinite recursion. When we finish handling a dispatch, this
+    /// is set back to `true`.
+    </span>can_enter: Cell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
 }
 
-<span class="doccomment">/// While this guard is active, additional calls to subscriber functions on</span>
-<span class="doccomment">/// the default dispatcher will not be able to access the dispatch context.</span>
-<span class="doccomment">/// Dropping the guard will allow the dispatch context to be re-entered.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#174">State</a>);
+<span class="doccomment">/// While this guard is active, additional calls to subscriber functions on
+/// the default dispatcher will not be able to access the dispatch context.
+/// Dropping the guard will allow the dispatch context to be re-entered.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">struct </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../src/tracing_core/dispatcher.rs.html#174">State</a>);
 
-<span class="doccomment">/// A guard that resets the current default dispatcher to the prior</span>
-<span class="doccomment">/// default dispatcher when dropped.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DefaultGuard</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a><span class="op">&gt;</span>);
+<span class="doccomment">/// A guard that resets the current default dispatcher to the prior
+/// default dispatcher when dropped.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+#[derive(Debug)]
+</span><span class="kw">pub struct </span>DefaultGuard(<span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>&gt;);
 
-<span class="doccomment">/// Sets this dispatch as the default for the duration of a closure.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The default dispatcher is used when creating a new [span] or</span>
-<span class="doccomment">/// [`Event`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
-<span class="doccomment">///     &lt;strong&gt;Note&lt;/strong&gt;: This function required the Rust standard library.</span>
-<span class="doccomment">///     &lt;code&gt;no_std&lt;/code&gt; users should use &lt;a href=&quot;../fn.set_global_default.html&quot;&gt;</span>
-<span class="doccomment">///     &lt;code&gt;set_global_default&lt;/code&gt;&lt;/a&gt; instead.</span>
-<span class="doccomment">/// &lt;/pre&gt;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [span]: super::span</span>
-<span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-<span class="doccomment">/// [`Event`]: super::event::Event</span>
-<span class="doccomment">/// [`set_global_default`]: super::set_global_default</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_default</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">dispatcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
-    <span class="comment">// When this guard is dropped, the default dispatcher will be reset to the</span>
-    <span class="comment">// prior default. Using this (rather than simply resetting after calling</span>
-    <span class="comment">// `f`) ensures that we always reset to the prior dispatcher even if `f`</span>
-    <span class="comment">// panics.</span>
-    <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#239">set_default</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#217">dispatcher</a>);
-    <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#217">f</a>()
+<span class="doccomment">/// Sets this dispatch as the default for the duration of a closure.
+///
+/// The default dispatcher is used when creating a new [span] or
+/// [`Event`].
+///
+/// &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;
+///     &lt;strong&gt;Note&lt;/strong&gt;: This function required the Rust standard library.
+///     &lt;code&gt;no_std&lt;/code&gt; users should use &lt;a href=&quot;../fn.set_global_default.html&quot;&gt;
+///     &lt;code&gt;set_global_default&lt;/code&gt;&lt;/a&gt; instead.
+/// &lt;/pre&gt;
+///
+/// [span]: super::span
+/// [`Subscriber`]: super::subscriber::Subscriber
+/// [`Event`]: super::event::Event
+/// [`set_global_default`]: super::set_global_default
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">pub fn </span>with_default&lt;T&gt;(dispatcher: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>, f: <span class="kw">impl </span>FnOnce() -&gt; T) -&gt; T {
+    <span class="comment">// When this guard is dropped, the default dispatcher will be reset to the
+    // prior default. Using this (rather than simply resetting after calling
+    // `f`) ensures that we always reset to the prior dispatcher even if `f`
+    // panics.
+    </span><span class="kw">let </span>_guard = <a href="../../src/tracing_core/dispatcher.rs.html#239">set_default</a>(<a href="../../src/tracing_core/dispatcher.rs.html#217">dispatcher</a>);
+    <a href="../../src/tracing_core/dispatcher.rs.html#217">f</a>()
 }
 
-<span class="doccomment">/// Sets the dispatch as the default dispatch for the duration of the lifetime</span>
-<span class="doccomment">/// of the returned DefaultGuard</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
-<span class="doccomment">///     &lt;strong&gt;Note&lt;/strong&gt;: This function required the Rust standard library.</span>
-<span class="doccomment">///     &lt;code&gt;no_std&lt;/code&gt; users should use &lt;a href=&quot;../fn.set_global_default.html&quot;&gt;</span>
-<span class="doccomment">///     &lt;code&gt;set_global_default&lt;/code&gt;&lt;/a&gt; instead.</span>
-<span class="doccomment">/// &lt;/pre&gt;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`set_global_default`]: super::set_global_default</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;Dropping the guard unregisters the dispatcher.&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="ident">dispatcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a> {
-    <span class="comment">// When this guard is dropped, the default dispatcher will be reset to the</span>
-    <span class="comment">// prior default. Using this ensures that we always reset to the prior</span>
-    <span class="comment">// dispatcher even if the thread calling this function panics.</span>
-    <span class="ident">State::set_default</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#239">dispatcher</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+<span class="doccomment">/// Sets the dispatch as the default dispatch for the duration of the lifetime
+/// of the returned DefaultGuard
+///
+/// &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;
+///     &lt;strong&gt;Note&lt;/strong&gt;: This function required the Rust standard library.
+///     &lt;code&gt;no_std&lt;/code&gt; users should use &lt;a href=&quot;../fn.set_global_default.html&quot;&gt;
+///     &lt;code&gt;set_global_default&lt;/code&gt;&lt;/a&gt; instead.
+/// &lt;/pre&gt;
+///
+/// [`set_global_default`]: super::set_global_default
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+#[must_use = <span class="string">&quot;Dropping the guard unregisters the dispatcher.&quot;</span>]
+</span><span class="kw">pub fn </span>set_default(dispatcher: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <a href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a> {
+    <span class="comment">// When this guard is dropped, the default dispatcher will be reset to the
+    // prior default. Using this ensures that we always reset to the prior
+    // dispatcher even if the thread calling this function panics.
+    </span>State::set_default(<a href="../../src/tracing_core/dispatcher.rs.html#239">dispatcher</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
 }
 
-<span class="doccomment">/// Sets this dispatch as the global default for the duration of the entire program.</span>
-<span class="doccomment">/// Will be used as a fallback if no thread-local dispatch has been set in a thread</span>
-<span class="doccomment">/// (using `with_default`.)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Can only be set once; subsequent attempts to set the global default will fail.</span>
-<span class="doccomment">/// Returns `Err` if the global default has already been set.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &lt;div class=&quot;example-wrap&quot; style=&quot;display:inline-block&quot;&gt;&lt;pre class=&quot;compile_fail&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
-<span class="doccomment">///     &lt;strong&gt;Warning&lt;/strong&gt;: In general, libraries should &lt;em&gt;not&lt;/em&gt; call</span>
-<span class="doccomment">///     &lt;code&gt;set_global_default()&lt;/code&gt;! Doing so will cause conflicts when</span>
-<span class="doccomment">///     executables that depend on the library try to set the default later.</span>
-<span class="doccomment">/// &lt;/pre&gt;&lt;/div&gt;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [span]: super::span</span>
-<span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-<span class="doccomment">/// [`Event`]: super::event::Event</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_global_default</span>(<span class="ident">dispatcher</span>: <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a><span class="op">&gt;</span> {
-    <span class="comment">// if `compare_exchange` returns Result::Ok(_), then `new` has been set and</span>
-    <span class="comment">// `current`—now the prior value—has been returned in the `Ok()` branch.</span>
-    <span class="kw">if</span> <span class="ident">GLOBAL_INIT</span>
-        .<span class="ident">compare_exchange</span>(
-            <span class="ident">UNINITIALIZED</span>,
-            <span class="ident">INITIALIZING</span>,
-            <span class="ident">Ordering::SeqCst</span>,
-            <span class="ident">Ordering::SeqCst</span>,
+<span class="doccomment">/// Sets this dispatch as the global default for the duration of the entire program.
+/// Will be used as a fallback if no thread-local dispatch has been set in a thread
+/// (using `with_default`.)
+///
+/// Can only be set once; subsequent attempts to set the global default will fail.
+/// Returns `Err` if the global default has already been set.
+///
+/// &lt;div class=&quot;example-wrap&quot; style=&quot;display:inline-block&quot;&gt;&lt;pre class=&quot;compile_fail&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;
+///     &lt;strong&gt;Warning&lt;/strong&gt;: In general, libraries should &lt;em&gt;not&lt;/em&gt; call
+///     &lt;code&gt;set_global_default()&lt;/code&gt;! Doing so will cause conflicts when
+///     executables that depend on the library try to set the default later.
+/// &lt;/pre&gt;&lt;/div&gt;
+///
+/// [span]: super::span
+/// [`Subscriber`]: super::subscriber::Subscriber
+/// [`Event`]: super::event::Event
+</span><span class="kw">pub fn </span>set_global_default(dispatcher: <a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a>&gt; {
+    <span class="comment">// if `compare_exchange` returns Result::Ok(_), then `new` has been set and
+    // `current`—now the prior value—has been returned in the `Ok()` branch.
+    </span><span class="kw">if </span>GLOBAL_INIT
+        .compare_exchange(
+            UNINITIALIZED,
+            INITIALIZING,
+            Ordering::SeqCst,
+            Ordering::SeqCst,
         )
-        .<span class="ident">is_ok</span>()
+        .is_ok()
     {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#170">GLOBAL_DISPATCH</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#262">dispatcher</a>);
+        <span class="kw">unsafe </span>{
+            <a href="../../src/tracing_core/dispatcher.rs.html#170">GLOBAL_DISPATCH</a> = <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/dispatcher.rs.html#262">dispatcher</a>);
         }
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#164">GLOBAL_INIT</a>.<span class="ident">store</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#168">INITIALIZED</a>, <span class="ident">Ordering::SeqCst</span>);
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#163">EXISTS</a>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Release</span>);
+        <a href="../../src/tracing_core/dispatcher.rs.html#164">GLOBAL_INIT</a>.store(<a href="../../src/tracing_core/dispatcher.rs.html#168">INITIALIZED</a>, Ordering::SeqCst);
+        <a href="../../src/tracing_core/dispatcher.rs.html#163">EXISTS</a>.store(<span class="bool-val">true</span>, Ordering::Release);
         <span class="prelude-val">Ok</span>(())
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> { <span class="ident">_no_construct</span>: () })
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(<a href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> { _no_construct: () })
     }
 }
 
-<span class="doccomment">/// Returns true if a `tracing` dispatcher has ever been set.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This may be used to completely elide trace points if tracing is not in use</span>
-<span class="doccomment">/// at all or has yet to be initialized.</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_been_set</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#163">EXISTS</a>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>)
+<span class="doccomment">/// Returns true if a `tracing` dispatcher has ever been set.
+///
+/// This may be used to completely elide trace points if tracing is not in use
+/// at all or has yet to be initialized.
+</span><span class="attribute">#[doc(hidden)]
+#[inline(always)]
+</span><span class="kw">pub fn </span>has_been_set() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="../../src/tracing_core/dispatcher.rs.html#163">EXISTS</a>.load(Ordering::Relaxed)
 }
 
-<span class="doccomment">/// Returned if setting the global dispatcher fails.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SetGlobalDefaultError</span> {
-    <span class="ident">_no_construct</span>: (),
+<span class="doccomment">/// Returned if setting the global dispatcher fails.
+</span><span class="kw">pub struct </span>SetGlobalDefaultError {
+    _no_construct: (),
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#301">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;SetGlobalDefaultError&quot;</span>)
-            .<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::MESSAGE</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/tracing_core/dispatcher.rs.html#301">f</a>.debug_tuple(<span class="string">&quot;SetGlobalDefaultError&quot;</span>)
+            .field(<span class="kw-2">&amp;</span><span class="self">Self</span>::MESSAGE)
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#309">f</a>.<span class="ident">pad</span>(<span class="ident"><span class="self">Self</span>::MESSAGE</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/tracing_core/dispatcher.rs.html#309">f</a>.pad(<span class="self">Self</span>::MESSAGE)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {}
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">error::Error</a> <span class="kw">for </span><a href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
-    <span class="kw">const</span> <span class="ident">MESSAGE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;a global default trace dispatcher has already been set&quot;</span>;
+<span class="kw">impl </span><a href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
+    <span class="kw">const </span>MESSAGE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;a global default trace dispatcher has already been set&quot;</span>;
 }
 
-<span class="doccomment">/// Executes a closure with a reference to this thread&#39;s current [dispatcher].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that calls to `get_default` should not be nested; if this function is</span>
-<span class="doccomment">/// called while inside of another `get_default`, that closure will be provided</span>
-<span class="doccomment">/// with `Dispatch::none` rather than the previously set dispatcher.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [dispatcher]: super::dispatcher::Dispatch</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_default</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <span class="ident">T</span>,
+<span class="doccomment">/// Executes a closure with a reference to this thread&#39;s current [dispatcher].
+///
+/// Note that calls to `get_default` should not be nested; if this function is
+/// called while inside of another `get_default`, that closure will be provided
+/// with `Dispatch::none` rather than the previously set dispatcher.
+///
+/// [dispatcher]: super::dispatcher::Dispatch
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">pub fn </span>get_default&lt;T, F&gt;(<span class="kw-2">mut </span>f: F) -&gt; T
+<span class="kw">where
+    </span>F: FnMut(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; T,
 {
-    <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>
-        .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">entered</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#335">state</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#700">enter</a>() {
-                <span class="kw">return</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#336">entered</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#714">current</a>());
+    <a href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>
+        .try_with(|state| {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(entered) = <a href="../../src/tracing_core/dispatcher.rs.html#335">state</a>.<a href="../../src/tracing_core/dispatcher.rs.html#700">enter</a>() {
+                <span class="kw">return </span><a href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;*</span><a href="../../src/tracing_core/dispatcher.rs.html#336">entered</a>.<a href="../../src/tracing_core/dispatcher.rs.html#714">current</a>());
             }
 
-            <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::none</span>())
+            <a href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;</span>Dispatch::none())
         })
-        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::none</span>()))
+        .unwrap_or_else(|<span class="kw">_</span>| <a href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;</span>Dispatch::none()))
 }
 
-<span class="doccomment">/// Executes a closure with a reference to this thread&#39;s current [dispatcher].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that calls to `get_default` should not be nested; if this function is</span>
-<span class="doccomment">/// called while inside of another `get_default`, that closure will be provided</span>
-<span class="doccomment">/// with `Dispatch::none` rather than the previously set dispatcher.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [dispatcher]: super::dispatcher::Dispatch</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_current</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <span class="ident">T</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">CURRENT_STATE</span>
-        .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">entered</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">enter</span>()<span class="question-mark">?</span>;
-            <span class="prelude-val">Some</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">entered</span>.<span class="ident">current</span>()))
+<span class="doccomment">/// Executes a closure with a reference to this thread&#39;s current [dispatcher].
+///
+/// Note that calls to `get_default` should not be nested; if this function is
+/// called while inside of another `get_default`, that closure will be provided
+/// with `Dispatch::none` rather than the previously set dispatcher.
+///
+/// [dispatcher]: super::dispatcher::Dispatch
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[doc(hidden)]
+#[inline(never)]
+</span><span class="kw">pub fn </span>get_current&lt;T&gt;(f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+    CURRENT_STATE
+        .try_with(|state| {
+            <span class="kw">let </span>entered = state.enter()<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>(f(<span class="kw-2">&amp;*</span>entered.current()))
         })
-        .<span class="ident">ok</span>()<span class="question-mark">?</span>
+        .ok()<span class="question-mark">?
+</span>}
+
+<span class="doccomment">/// Executes a closure with a reference to the current [dispatcher].
+///
+/// [dispatcher]: super::dispatcher::Dispatch
+</span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+#[doc(hidden)]
+</span><span class="kw">pub fn </span>get_current&lt;T&gt;(f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Dispatch) -&gt; T) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+    <span class="kw">let </span>dispatch = get_global()<span class="question-mark">?</span>;
+    <span class="prelude-val">Some</span>(f(<span class="kw-2">&amp;</span>dispatch))
 }
 
-<span class="doccomment">/// Executes a closure with a reference to the current [dispatcher].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [dispatcher]: super::dispatcher::Dispatch</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_current</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Dispatch</span>) -&gt; <span class="ident">T</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">dispatch</span> <span class="op">=</span> <span class="ident">get_global</span>()<span class="question-mark">?</span>;
-    <span class="prelude-val">Some</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">dispatch</span>))
-}
-
-<span class="doccomment">/// Executes a closure with a reference to the current [dispatcher].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [dispatcher]: super::dispatcher::Dispatch</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_default</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Dispatch</span>) -&gt; <span class="ident">T</span>,
+<span class="doccomment">/// Executes a closure with a reference to the current [dispatcher].
+///
+/// [dispatcher]: super::dispatcher::Dispatch
+</span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="kw">pub fn </span>get_default&lt;T, F&gt;(<span class="kw-2">mut </span>f: F) -&gt; T
+<span class="kw">where
+    </span>F: FnMut(<span class="kw-2">&amp;</span>Dispatch) -&gt; T,
 {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">d</span>) <span class="op">=</span> <span class="ident">get_global</span>() {
-        <span class="ident">f</span>(<span class="ident">d</span>)
-    } <span class="kw">else</span> {
-        <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::none</span>())
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(d) = get_global() {
+        f(d)
+    } <span class="kw">else </span>{
+        f(<span class="kw-2">&amp;</span>Dispatch::none())
     }
 }
 
-<span class="kw">fn</span> <span class="ident">get_global</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">GLOBAL_INIT</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">INITIALIZED</span> {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
+<span class="kw">fn </span>get_global() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>&gt; {
+    <span class="kw">if </span>GLOBAL_INIT.load(Ordering::SeqCst) != INITIALIZED {
+        <span class="kw">return </span><span class="prelude-val">None</span>;
     }
-    <span class="kw">unsafe</span> {
-        <span class="comment">// This is safe given the invariant that setting the global dispatcher</span>
-        <span class="comment">// also sets `GLOBAL_INIT` to `INITIALIZED`.</span>
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#170">GLOBAL_DISPATCH</a>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(
+    <span class="kw">unsafe </span>{
+        <span class="comment">// This is safe given the invariant that setting the global dispatcher
+        // also sets `GLOBAL_INIT` to `INITIALIZED`.
+        </span><span class="prelude-val">Some</span>(<a href="../../src/tracing_core/dispatcher.rs.html#170">GLOBAL_DISPATCH</a>.as_ref().expect(
             <span class="string">&quot;invariant violated: GLOBAL_DISPATCH must be initialized before GLOBAL_INIT is set&quot;</span>,
         ))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Registrar</span>(<span class="ident">Weak</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span>);
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Registrar(Weak&lt;<span class="kw">dyn </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
-    <span class="doccomment">/// Returns a new `Dispatch` that discards events and spans.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
-            <span class="ident">subscriber</span>: <span class="ident">Arc::new</span>(<span class="ident">NoSubscriber::default</span>()),
+<span class="kw">impl </span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
+    <span class="doccomment">/// Returns a new `Dispatch` that discards events and spans.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>none() -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
+            subscriber: Arc::new(NoSubscriber::default()),
         }
     }
 
-    <span class="doccomment">/// Returns a `Dispatch` that forwards to the given [`Subscriber`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">subscriber</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Returns a `Dispatch` that forwards to the given [`Subscriber`].
+    ///
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    </span><span class="kw">pub fn </span>new&lt;S&gt;(subscriber: S) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>S: <a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
-            <span class="ident">subscriber</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#417">subscriber</a>),
+        <span class="kw">let </span>me = <a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
+            subscriber: Arc::new(<a href="../../src/tracing_core/dispatcher.rs.html#417">subscriber</a>),
         };
-        <a class="ident" href="../../src/tracing_core/callsite.rs.html#488">callsite::register_dispatch</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#421">me</a>);
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#421">me</a>
+        <a href="../../src/tracing_core/callsite.rs.html#488">callsite::register_dispatch</a>(<span class="kw-2">&amp;</span><a href="../../src/tracing_core/dispatcher.rs.html#421">me</a>);
+        <a href="../../src/tracing_core/dispatcher.rs.html#421">me</a>
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">registrar</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a>(<span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#429">self</a>.<span class="ident">subscriber</span>))
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>registrar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a> {
+        <a href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a>(Arc::downgrade(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#429">self</a>.subscriber))
     }
 
-    <span class="doccomment">/// Registers a new callsite with this subscriber, returning whether or not</span>
-    <span class="doccomment">/// the subscriber is interested in being notified about the callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`register_callsite`] function on the [`Subscriber`]</span>
-    <span class="doccomment">/// that this `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`register_callsite`]: super::subscriber::Subscriber::register_callsite</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">subscriber::Interest</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#442">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#157">register_callsite</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#442">metadata</a>)
+    <span class="doccomment">/// Registers a new callsite with this subscriber, returning whether or not
+    /// the subscriber is interested in being notified about the callsite.
+    ///
+    /// This calls the [`register_callsite`] function on the [`Subscriber`]
+    /// that this `Dispatch` forwards to.
+    ///
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`register_callsite`]: super::subscriber::Subscriber::register_callsite
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="../../src/tracing_core/subscriber.rs.html#571">subscriber::Interest</a> {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#442">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#157">register_callsite</a>(<a href="../../src/tracing_core/dispatcher.rs.html#442">metadata</a>)
     }
 
-    <span class="doccomment">/// Returns the highest [verbosity level][level] that this [`Subscriber`] will</span>
-    <span class="doccomment">/// enable, or `None`, if the subscriber does not implement level-based</span>
-    <span class="doccomment">/// filtering or chooses not to implement this method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`max_level_hint`] function on the [`Subscriber`]</span>
-    <span class="doccomment">/// that this `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [level]: super::Level</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`register_callsite`]: super::subscriber::Subscriber::max_level_hint</span>
-    <span class="comment">// TODO(eliza): consider making this a public API?</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">max_level_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#458">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#209">max_level_hint</a>()
+    <span class="doccomment">/// Returns the highest [verbosity level][level] that this [`Subscriber`] will
+    /// enable, or `None`, if the subscriber does not implement level-based
+    /// filtering or chooses not to implement this method.
+    ///
+    /// This calls the [`max_level_hint`] function on the [`Subscriber`]
+    /// that this `Dispatch` forwards to.
+    ///
+    /// [level]: super::Level
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`register_callsite`]: super::subscriber::Subscriber::max_level_hint
+    </span><span class="comment">// TODO(eliza): consider making this a public API?
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_level_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>&gt; {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#458">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#209">max_level_hint</a>()
     }
 
-    <span class="doccomment">/// Record the construction of a new span, returning a new [ID] for the</span>
-    <span class="doccomment">/// span being constructed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`new_span`] function on the [`Subscriber`] that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [ID]: super::span::Id</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`new_span`]: super::subscriber::Subscriber::new_span</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#472">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#237">new_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#472">span</a>)
+    <span class="doccomment">/// Record the construction of a new span, returning a new [ID] for the
+    /// span being constructed.
+    ///
+    /// This calls the [`new_span`] function on the [`Subscriber`] that this
+    /// `Dispatch` forwards to.
+    ///
+    /// [ID]: super::span::Id
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`new_span`]: super::subscriber::Subscriber::new_span
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#472">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#237">new_span</a>(<a href="../../src/tracing_core/dispatcher.rs.html#472">span</a>)
     }
 
-    <span class="doccomment">/// Record a set of values on a span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`record`] function on the [`Subscriber`] that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`record`]: super::subscriber::Subscriber::record</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#484">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#277">record</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#484">span</a>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#484">values</a>)
+    <span class="doccomment">/// Record a set of values on a span.
+    ///
+    /// This calls the [`record`] function on the [`Subscriber`] that this
+    /// `Dispatch` forwards to.
+    ///
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`record`]: super::subscriber::Subscriber::record
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#484">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#277">record</a>(<a href="../../src/tracing_core/dispatcher.rs.html#484">span</a>, <a href="../../src/tracing_core/dispatcher.rs.html#484">values</a>)
     }
 
-    <span class="doccomment">/// Adds an indication that `span` follows from the span with the id</span>
-    <span class="doccomment">/// `follows`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`record_follows_from`] function on the [`Subscriber`]</span>
-    <span class="doccomment">/// that this `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`record_follows_from`]: super::subscriber::Subscriber::record_follows_from</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">follows</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#497">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#297">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#497">span</a>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#497">follows</a>)
+    <span class="doccomment">/// Adds an indication that `span` follows from the span with the id
+    /// `follows`.
+    ///
+    /// This calls the [`record_follows_from`] function on the [`Subscriber`]
+    /// that this `Dispatch` forwards to.
+    ///
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`record_follows_from`]: super::subscriber::Subscriber::record_follows_from
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, follows: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#497">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#297">record_follows_from</a>(<a href="../../src/tracing_core/dispatcher.rs.html#497">span</a>, <a href="../../src/tracing_core/dispatcher.rs.html#497">follows</a>)
     }
 
-    <span class="doccomment">/// Returns true if a span with the specified [metadata] would be</span>
-    <span class="doccomment">/// recorded.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`enabled`] function on the [`Subscriber`] that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [metadata]: super::metadata::Metadata</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`enabled`]: super::subscriber::Subscriber::enabled</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#511">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#185">enabled</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#511">metadata</a>)
+    <span class="doccomment">/// Returns true if a span with the specified [metadata] would be
+    /// recorded.
+    ///
+    /// This calls the [`enabled`] function on the [`Subscriber`] that this
+    /// `Dispatch` forwards to.
+    ///
+    /// [metadata]: super::metadata::Metadata
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`enabled`]: super::subscriber::Subscriber::enabled
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#511">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#185">enabled</a>(<a href="../../src/tracing_core/dispatcher.rs.html#511">metadata</a>)
     }
 
-    <span class="doccomment">/// Records that an [`Event`] has occurred.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`event`] function on the [`Subscriber`] that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Event`]: super::event::Event</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`event`]: super::subscriber::Subscriber::event</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">subscriber</span>.<span class="ident">event_enabled</span>(<span class="ident">event</span>) {
-            <a class="self" href="../../src/tracing_core/dispatcher.rs.html#524">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">event</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#524">event</a>);
+    <span class="doccomment">/// Records that an [`Event`] has occurred.
+    ///
+    /// This calls the [`event`] function on the [`Subscriber`] that this
+    /// `Dispatch` forwards to.
+    ///
+    /// [`Event`]: super::event::Event
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`event`]: super::subscriber::Subscriber::event
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="kw">if </span><span class="self">self</span>.subscriber.event_enabled(event) {
+            <a class="self" href="../../src/tracing_core/dispatcher.rs.html#524">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#328">event</a>(<a href="../../src/tracing_core/dispatcher.rs.html#524">event</a>);
         }
     }
 
-    <span class="doccomment">/// Records that a span has been can_enter.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`enter`] function on the [`Subscriber`] that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`enter`]: super::subscriber::Subscriber::enter</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#537">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#338">enter</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#537">span</a>);
+    <span class="doccomment">/// Records that a span has been can_enter.
+    ///
+    /// This calls the [`enter`] function on the [`Subscriber`] that this
+    /// `Dispatch` forwards to.
+    ///
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`enter`]: super::subscriber::Subscriber::enter
+    </span><span class="kw">pub fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#537">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#338">enter</a>(<a href="../../src/tracing_core/dispatcher.rs.html#537">span</a>);
     }
 
-    <span class="doccomment">/// Records that a span has been exited.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`exit`] function on the [`Subscriber`] that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`exit`]: super::subscriber::Subscriber::exit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#548">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">exit</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#548">span</a>);
+    <span class="doccomment">/// Records that a span has been exited.
+    ///
+    /// This calls the [`exit`] function on the [`Subscriber`] that this
+    /// `Dispatch` forwards to.
+    ///
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`exit`]: super::subscriber::Subscriber::exit
+    </span><span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#548">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#350">exit</a>(<a href="../../src/tracing_core/dispatcher.rs.html#548">span</a>);
     }
 
-    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been cloned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function must only be called with span IDs that were returned by</span>
-    <span class="doccomment">/// this `Dispatch`&#39;s [`new_span`] function. The `tracing` crate upholds</span>
-    <span class="doccomment">/// this guarantee and any other libraries implementing instrumentation APIs</span>
-    <span class="doccomment">/// must as well.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`clone_span`] function on the `Subscriber` that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [span ID]: super::span::Id</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`clone_span`]: super::subscriber::Subscriber::clone_span</span>
-    <span class="doccomment">/// [`new_span`]: super::subscriber::Subscriber::new_span</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#567">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#372">clone_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#567">id</a>)
+    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been cloned.
+    ///
+    /// This function must only be called with span IDs that were returned by
+    /// this `Dispatch`&#39;s [`new_span`] function. The `tracing` crate upholds
+    /// this guarantee and any other libraries implementing instrumentation APIs
+    /// must as well.
+    ///
+    /// This calls the [`clone_span`] function on the `Subscriber` that this
+    /// `Dispatch` forwards to.
+    ///
+    /// [span ID]: super::span::Id
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`clone_span`]: super::subscriber::Subscriber::clone_span
+    /// [`new_span`]: super::subscriber::Subscriber::new_span
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#567">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#372">clone_span</a>(<a href="../../src/tracing_core/dispatcher.rs.html#567">id</a>)
     }
 
-    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function must only be called with span IDs that were returned by</span>
-    <span class="doccomment">/// this `Dispatch`&#39;s [`new_span`] function. The `tracing` crate upholds</span>
-    <span class="doccomment">/// this guarantee and any other libraries implementing instrumentation APIs</span>
-    <span class="doccomment">/// must as well.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`drop_span`] function on the [`Subscriber`] that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &lt;pre class=&quot;compile_fail&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
-    <span class="doccomment">///     &lt;strong&gt;Deprecated&lt;/strong&gt;: The &lt;a href=&quot;#method.try_close&quot;&gt;&lt;code&gt;</span>
-    <span class="doccomment">///     try_close&lt;/code&gt;&lt;/a&gt; method is functionally identical, but returns</span>
-    <span class="doccomment">///     &lt;code&gt;true&lt;/code&gt; if the span is now closed. It should be used</span>
-    <span class="doccomment">///     instead of this method.</span>
-    <span class="doccomment">/// &lt;/pre&gt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [span ID]: super::span::Id</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`drop_span`]: super::subscriber::Subscriber::drop_span</span>
-    <span class="doccomment">/// [`new_span`]: super::subscriber::Subscriber::new_span</span>
-    <span class="doccomment">/// [`try_close`]: Entered::try_close()</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.1.2&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use `Dispatch::try_close` instead&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drop_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#595">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#386">drop_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#595">id</a>);
+    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped.
+    ///
+    /// This function must only be called with span IDs that were returned by
+    /// this `Dispatch`&#39;s [`new_span`] function. The `tracing` crate upholds
+    /// this guarantee and any other libraries implementing instrumentation APIs
+    /// must as well.
+    ///
+    /// This calls the [`drop_span`] function on the [`Subscriber`] that this
+    /// `Dispatch` forwards to.
+    ///
+    /// &lt;pre class=&quot;compile_fail&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;
+    ///     &lt;strong&gt;Deprecated&lt;/strong&gt;: The &lt;a href=&quot;#method.try_close&quot;&gt;&lt;code&gt;
+    ///     try_close&lt;/code&gt;&lt;/a&gt; method is functionally identical, but returns
+    ///     &lt;code&gt;true&lt;/code&gt; if the span is now closed. It should be used
+    ///     instead of this method.
+    /// &lt;/pre&gt;
+    ///
+    /// [span ID]: super::span::Id
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`drop_span`]: super::subscriber::Subscriber::drop_span
+    /// [`new_span`]: super::subscriber::Subscriber::new_span
+    /// [`try_close`]: Entered::try_close()
+    </span><span class="attribute">#[inline]
+    #[deprecated(since = <span class="string">&quot;0.1.2&quot;</span>, note = <span class="string">&quot;use `Dispatch::try_close` instead&quot;</span>)]
+    </span><span class="kw">pub fn </span>drop_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <span class="attribute">#[allow(deprecated)]
+        </span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#595">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#386">drop_span</a>(<a href="../../src/tracing_core/dispatcher.rs.html#595">id</a>);
     }
 
-    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped, and returns</span>
-    <span class="doccomment">/// `true` if there are now 0 IDs referring to that span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function must only be called with span IDs that were returned by</span>
-    <span class="doccomment">/// this `Dispatch`&#39;s [`new_span`] function. The `tracing` crate upholds</span>
-    <span class="doccomment">/// this guarantee and any other libraries implementing instrumentation APIs</span>
-    <span class="doccomment">/// must as well.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`try_close`] function on the [`Subscriber`] that this</span>
-    <span class="doccomment">///  `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [span ID]: super::span::Id</span>
-    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
-    <span class="doccomment">/// [`try_close`]: super::subscriber::Subscriber::try_close</span>
-    <span class="doccomment">/// [`new_span`]: super::subscriber::Subscriber::new_span</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#615">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#615">id</a>)
+    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped, and returns
+    /// `true` if there are now 0 IDs referring to that span.
+    ///
+    /// This function must only be called with span IDs that were returned by
+    /// this `Dispatch`&#39;s [`new_span`] function. The `tracing` crate upholds
+    /// this guarantee and any other libraries implementing instrumentation APIs
+    /// must as well.
+    ///
+    /// This calls the [`try_close`] function on the [`Subscriber`] that this
+    ///  `Dispatch` forwards to.
+    ///
+    /// [span ID]: super::span::Id
+    /// [`Subscriber`]: super::subscriber::Subscriber
+    /// [`try_close`]: super::subscriber::Subscriber::try_close
+    /// [`new_span`]: super::subscriber::Subscriber::new_span
+    </span><span class="kw">pub fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#615">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a href="../../src/tracing_core/dispatcher.rs.html#615">id</a>)
     }
 
-    <span class="doccomment">/// Returns a type representing this subscriber&#39;s view of the current span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This calls the [`current`] function on the `Subscriber` that this</span>
-    <span class="doccomment">/// `Dispatch` forwards to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`current`]: super::subscriber::Subscriber::current_span</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#626">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#443">current_span</a>()
+    <span class="doccomment">/// Returns a type representing this subscriber&#39;s view of the current span.
+    ///
+    /// This calls the [`current`] function on the `Subscriber` that this
+    /// `Dispatch` forwards to.
+    ///
+    /// [`current`]: super::subscriber::Subscriber::current_span
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>current_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#626">self</a>.subscriber.<a href="../../src/tracing_core/subscriber.rs.html#443">current_span</a>()
     }
 
-    <span class="doccomment">/// Returns `true` if this `Dispatch` forwards to a `Subscriber` of type</span>
-    <span class="doccomment">/// `T`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a><span class="op">&gt;</span><span class="ident">::is</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#633">self</a>.<span class="ident">subscriber</span>)
+    <span class="doccomment">/// Returns `true` if this `Dispatch` forwards to a `Subscriber` of type
+    /// `T`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        &lt;<span class="kw">dyn </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a>&gt;::is::&lt;T&gt;(<span class="kw-2">&amp;*</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#633">self</a>.subscriber)
     }
 
-    <span class="doccomment">/// Returns some reference to the `Subscriber` this `Dispatch` forwards to</span>
-    <span class="doccomment">/// if it is of type `T`, or `None` if it isn&#39;t.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a><span class="op">&gt;</span><span class="ident">::downcast_ref</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#640">self</a>.<span class="ident">subscriber</span>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
-    <span class="doccomment">/// Returns the current default dispatcher</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330-332">get_default</a>(<span class="op">|</span><span class="ident">default</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#648">default</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="doccomment">/// Returns some reference to the `Subscriber` this `Dispatch` forwards to
+    /// if it is of type `T`, or `None` if it isn&#39;t.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        &lt;<span class="kw">dyn </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a>&gt;::downcast_ref(<span class="kw-2">&amp;*</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#640">self</a>.subscriber)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#653">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Dispatch&quot;</span>)
-            .<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.<span class="ident">subscriber</span>))
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
+    <span class="doccomment">/// Returns the current default dispatcher
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/dispatcher.rs.html#330-332">get_default</a>(|default| <a href="../../src/tracing_core/dispatcher.rs.html#648">default</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/tracing_core/dispatcher.rs.html#653">f</a>.debug_tuple(<span class="string">&quot;Dispatch&quot;</span>)
+            .field(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.subscriber))
+            .finish()
+    }
+}
+
+<span class="kw">impl</span>&lt;S&gt; From&lt;S&gt; <span class="kw">for </span><a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>
+<span class="kw">where
+    </span>S: <a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">subscriber</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Dispatch::new</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#665">subscriber</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(subscriber: S) -&gt; <span class="self">Self </span>{
+        Dispatch::new(<a href="../../src/tracing_core/dispatcher.rs.html#665">subscriber</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#672">self</a>.<span class="number">0</span>.<span class="ident">upgrade</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">subscriber</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> { <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#673">subscriber</a> })
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span><a href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>&gt; {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#672">self</a>.<span class="number">0</span>.upgrade().map(|subscriber| <a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> { <a href="../../src/tracing_core/dispatcher.rs.html#673">subscriber</a> })
     }
 }
 
-<span class="comment">// ===== impl State =====</span>
+<span class="comment">// ===== impl State =====
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#174">State</a> {
-    <span class="doccomment">/// Replaces the current default dispatcher on this thread with the provided</span>
-    <span class="doccomment">/// dispatcher.Any</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Dropping the returned `ResetGuard` will reset the default dispatcher to</span>
-    <span class="doccomment">/// the previous value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="ident">new_dispatch</span>: <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a> {
-        <span class="kw">let</span> <span class="ident">prior</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>
-            .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-                <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#689">state</a>.<span class="ident">can_enter</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
-                <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#689">state</a>.<span class="ident">default</span>.<span class="ident">replace</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#687">new_dispatch</a>))
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span><a href="../../src/tracing_core/dispatcher.rs.html#174">State</a> {
+    <span class="doccomment">/// Replaces the current default dispatcher on this thread with the provided
+    /// dispatcher.Any
+    ///
+    /// Dropping the returned `ResetGuard` will reset the default dispatcher to
+    /// the previous value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>set_default(new_dispatch: <a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <a href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a> {
+        <span class="kw">let </span>prior = <a href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>
+            .try_with(|state| {
+                <a href="../../src/tracing_core/dispatcher.rs.html#689">state</a>.can_enter.set(<span class="bool-val">true</span>);
+                <a href="../../src/tracing_core/dispatcher.rs.html#689">state</a>.default.replace(<span class="prelude-val">Some</span>(<a href="../../src/tracing_core/dispatcher.rs.html#687">new_dispatch</a>))
             })
-            .<span class="ident">ok</span>()
-            .<span class="ident">flatten</span>();
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#163">EXISTS</a>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Release</span>);
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#688">prior</a>)
+            .ok()
+            .flatten();
+        <a href="../../src/tracing_core/dispatcher.rs.html#163">EXISTS</a>.store(<span class="bool-val">true</span>, Ordering::Release);
+        <a href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a>(<a href="../../src/tracing_core/dispatcher.rs.html#688">prior</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">can_enter</span>.<span class="ident">replace</span>(<span class="bool-val">false</span>) {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#191">Entered</a>(<a class="self" href="../../src/tracing_core/dispatcher.rs.html#700">self</a>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Entered&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.can_enter.replace(<span class="bool-val">false</span>) {
+            <span class="prelude-val">Some</span>(<a href="../../src/tracing_core/dispatcher.rs.html#191">Entered</a>(<a class="self" href="../../src/tracing_core/dispatcher.rs.html#700">self</a>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="comment">// ===== impl Entered =====</span>
+<span class="comment">// ===== impl Entered =====
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">current</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/dispatcher.rs.html#714">self</a>.<span class="number">0</span>.<span class="ident">default</span>.<span class="ident">borrow_mut</span>();
-        <span class="ident">RefMut::map</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#715">default</a>, <span class="op">|</span><span class="ident">default</span><span class="op">|</span> {
-            <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#716">default</a>.<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#389">get_global</a>().<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Dispatch::none</span>))
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Entered&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">&#39;a</span>, <a href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>&gt; {
+        <span class="kw">let </span>default = <a class="self" href="../../src/tracing_core/dispatcher.rs.html#714">self</a>.<span class="number">0</span>.default.borrow_mut();
+        RefMut::map(<a href="../../src/tracing_core/dispatcher.rs.html#715">default</a>, |default| {
+            <a href="../../src/tracing_core/dispatcher.rs.html#716">default</a>.get_or_insert_with(|| <a href="../../src/tracing_core/dispatcher.rs.html#389">get_global</a>().cloned().unwrap_or_else(Dispatch::none))
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#725">self</a>.<span class="number">0</span>.<span class="ident">can_enter</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Entered&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#725">self</a>.<span class="number">0</span>.can_enter.set(<span class="bool-val">true</span>);
     }
 }
 
-<span class="comment">// ===== impl DefaultGuard =====</span>
+<span class="comment">// ===== impl DefaultGuard =====
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// Replace the dispatcher and then drop the old one outside</span>
-        <span class="comment">// of the thread-local context. Dropping the dispatch may</span>
-        <span class="comment">// lead to the drop of a subscriber which, in the process,</span>
-        <span class="comment">// could then also attempt to access the same thread local</span>
-        <span class="comment">// state -- causing a clash.</span>
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#741">state</a>.<span class="ident">default</span>.<span class="ident">replace</span>(<a class="self" href="../../src/tracing_core/dispatcher.rs.html#735">self</a>.<span class="number">0</span>.<span class="ident">take</span>()));
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#741">prev</a>)
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// Replace the dispatcher and then drop the old one outside
+        // of the thread-local context. Dropping the dispatch may
+        // lead to the drop of a subscriber which, in the process,
+        // could then also attempt to access the same thread local
+        // state -- causing a clash.
+        </span><span class="kw">let </span>prev = <a href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>.try_with(|state| <a href="../../src/tracing_core/dispatcher.rs.html#741">state</a>.default.replace(<a class="self" href="../../src/tracing_core/dispatcher.rs.html#735">self</a>.<span class="number">0</span>.take()));
+        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../src/tracing_core/dispatcher.rs.html#741">prev</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib::sync::atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::{
-        <span class="ident">callsite::Callsite</span>,
-        <span class="ident">metadata</span>::{<span class="ident">Kind</span>, <span class="ident">Level</span>, <span class="ident">Metadata</span>},
-        <span class="ident">subscriber::Interest</span>,
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">use </span><span class="kw">crate</span>::stdlib::sync::atomic::{AtomicUsize, Ordering};
+    <span class="kw">use crate</span>::{
+        callsite::Callsite,
+        metadata::{Kind, Level, Metadata},
+        subscriber::Interest,
     };
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dispatch_is</span>() {
-        <span class="kw">let</span> <span class="ident">dispatcher</span> <span class="op">=</span> <span class="ident">Dispatch::new</span>(<span class="ident">NoSubscriber::default</span>());
-        <span class="macro">assert!</span>(<span class="ident">dispatcher</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">NoSubscriber</span><span class="op">&gt;</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>dispatch_is() {
+        <span class="kw">let </span>dispatcher = Dispatch::new(NoSubscriber::default());
+        <span class="macro">assert!</span>(dispatcher.is::&lt;NoSubscriber&gt;());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dispatch_downcasts</span>() {
-        <span class="kw">let</span> <span class="ident">dispatcher</span> <span class="op">=</span> <span class="ident">Dispatch::new</span>(<span class="ident">NoSubscriber::default</span>());
-        <span class="macro">assert!</span>(<span class="ident">dispatcher</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">NoSubscriber</span><span class="op">&gt;</span>().<span class="ident">is_some</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>dispatch_downcasts() {
+        <span class="kw">let </span>dispatcher = Dispatch::new(NoSubscriber::default());
+        <span class="macro">assert!</span>(dispatcher.downcast_ref::&lt;NoSubscriber&gt;().is_some());
     }
 
-    <span class="kw">struct</span> <span class="ident">TestCallsite</span>;
-    <span class="kw">static</span> <span class="ident">TEST_CALLSITE</span>: <span class="ident">TestCallsite</span> <span class="op">=</span> <span class="ident">TestCallsite</span>;
-    <span class="kw">static</span> <span class="ident">TEST_META</span>: <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">metadata!</span> {
-        <span class="ident">name</span>: <span class="string">&quot;test&quot;</span>,
-        <span class="ident">target</span>: <span class="macro">module_path!</span>(),
-        <span class="ident">level</span>: <span class="ident">Level::DEBUG</span>,
-        <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[],
-        <span class="ident">callsite</span>: <span class="kw-2">&amp;</span><span class="ident">TEST_CALLSITE</span>,
-        <span class="ident">kind</span>: <span class="ident">Kind::EVENT</span>
+    <span class="kw">struct </span>TestCallsite;
+    <span class="kw">static </span>TEST_CALLSITE: TestCallsite = TestCallsite;
+    <span class="kw">static </span>TEST_META: Metadata&lt;<span class="lifetime">&#39;static</span>&gt; = <span class="macro">metadata! </span>{
+        name: <span class="string">&quot;test&quot;</span>,
+        target: <span class="macro">module_path!</span>(),
+        level: Level::DEBUG,
+        fields: <span class="kw-2">&amp;</span>[],
+        callsite: <span class="kw-2">&amp;</span>TEST_CALLSITE,
+        kind: Kind::EVENT
     };
 
-    <span class="kw">impl</span> <span class="ident">Callsite</span> <span class="kw">for</span> <span class="ident">TestCallsite</span> {
-        <span class="kw">fn</span> <span class="ident">set_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="ident">Interest</span>) {}
-        <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-            <span class="kw-2">&amp;</span><span class="ident">TEST_META</span>
+    <span class="kw">impl </span>Callsite <span class="kw">for </span>TestCallsite {
+        <span class="kw">fn </span>set_interest(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Interest) {}
+        <span class="kw">fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt; {
+            <span class="kw-2">&amp;</span>TEST_META
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">events_dont_infinite_loop</span>() {
-        <span class="comment">// This test ensures that an event triggered within a subscriber</span>
-        <span class="comment">// won&#39;t cause an infinite loop of events.</span>
-        <span class="kw">struct</span> <span class="ident">TestSubscriber</span>;
-        <span class="kw">impl</span> <span class="ident">Subscriber</span> <span class="kw">for</span> <span class="ident">TestSubscriber</span> {
-            <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-                <span class="bool-val">true</span>
+    <span class="attribute">#[test]
+    #[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">fn </span>events_dont_infinite_loop() {
+        <span class="comment">// This test ensures that an event triggered within a subscriber
+        // won&#39;t cause an infinite loop of events.
+        </span><span class="kw">struct </span>TestSubscriber;
+        <span class="kw">impl </span>Subscriber <span class="kw">for </span>TestSubscriber {
+            <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+                <span class="bool-val">true
+            </span>}
+
+            <span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; span::Id {
+                span::Id::from_u64(<span class="number">0xAAAA</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">span::Id</span> {
-                <span class="ident">span::Id::from_u64</span>(<span class="number">0xAAAA</span>)
-            }
+            <span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 
-            <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {}
+            <span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
 
-            <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
-
-            <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-                <span class="kw">static</span> <span class="ident">EVENTS</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>);
+            <span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {
+                <span class="kw">static </span>EVENTS: AtomicUsize = AtomicUsize::new(<span class="number">0</span>);
                 <span class="macro">assert_eq!</span>(
-                    <span class="ident">EVENTS</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>),
+                    EVENTS.fetch_add(<span class="number">1</span>, Ordering::Relaxed),
                     <span class="number">0</span>,
-                    <span class="string">&quot;event method called twice!&quot;</span>
-                );
-                <span class="ident">Event::dispatch</span>(<span class="kw-2">&amp;</span><span class="ident">TEST_META</span>, <span class="kw-2">&amp;</span><span class="ident">TEST_META</span>.<span class="ident">fields</span>().<span class="ident">value_set</span>(<span class="kw-2">&amp;</span>[]))
+                    <span class="string">&quot;event method called twice!&quot;
+                </span>);
+                Event::dispatch(<span class="kw-2">&amp;</span>TEST_META, <span class="kw-2">&amp;</span>TEST_META.fields().value_set(<span class="kw-2">&amp;</span>[]))
             }
 
-            <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
+            <span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
 
-            <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
+            <span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
         }
 
-        <span class="ident">with_default</span>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::new</span>(<span class="ident">TestSubscriber</span>), <span class="op">|</span><span class="op">|</span> {
-            <span class="ident">Event::dispatch</span>(<span class="kw-2">&amp;</span><span class="ident">TEST_META</span>, <span class="kw-2">&amp;</span><span class="ident">TEST_META</span>.<span class="ident">fields</span>().<span class="ident">value_set</span>(<span class="kw-2">&amp;</span>[]))
+        with_default(<span class="kw-2">&amp;</span>Dispatch::new(TestSubscriber), || {
+            Event::dispatch(<span class="kw-2">&amp;</span>TEST_META, <span class="kw-2">&amp;</span>TEST_META.fields().value_set(<span class="kw-2">&amp;</span>[]))
         })
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">spans_dont_infinite_loop</span>() {
-        <span class="comment">// This test ensures that a span created within a subscriber</span>
-        <span class="comment">// won&#39;t cause an infinite loop of new spans.</span>
+    <span class="attribute">#[test]
+    #[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">fn </span>spans_dont_infinite_loop() {
+        <span class="comment">// This test ensures that a span created within a subscriber
+        // won&#39;t cause an infinite loop of new spans.
 
-        <span class="kw">fn</span> <span class="ident">mk_span</span>() {
-            <span class="ident">get_default</span>(<span class="op">|</span><span class="ident">current</span><span class="op">|</span> {
-                <span class="ident">current</span>.<span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="ident">span::Attributes::new</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">TEST_META</span>,
-                    <span class="kw-2">&amp;</span><span class="ident">TEST_META</span>.<span class="ident">fields</span>().<span class="ident">value_set</span>(<span class="kw-2">&amp;</span>[]),
+        </span><span class="kw">fn </span>mk_span() {
+            get_default(|current| {
+                current.new_span(<span class="kw-2">&amp;</span>span::Attributes::new(
+                    <span class="kw-2">&amp;</span>TEST_META,
+                    <span class="kw-2">&amp;</span>TEST_META.fields().value_set(<span class="kw-2">&amp;</span>[]),
                 ))
             });
         }
 
-        <span class="kw">struct</span> <span class="ident">TestSubscriber</span>;
-        <span class="kw">impl</span> <span class="ident">Subscriber</span> <span class="kw">for</span> <span class="ident">TestSubscriber</span> {
-            <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-                <span class="bool-val">true</span>
-            }
+        <span class="kw">struct </span>TestSubscriber;
+        <span class="kw">impl </span>Subscriber <span class="kw">for </span>TestSubscriber {
+            <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+                <span class="bool-val">true
+            </span>}
 
-            <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">span::Id</span> {
-                <span class="kw">static</span> <span class="ident">NEW_SPANS</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>);
+            <span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; span::Id {
+                <span class="kw">static </span>NEW_SPANS: AtomicUsize = AtomicUsize::new(<span class="number">0</span>);
                 <span class="macro">assert_eq!</span>(
-                    <span class="ident">NEW_SPANS</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>),
+                    NEW_SPANS.fetch_add(<span class="number">1</span>, Ordering::Relaxed),
                     <span class="number">0</span>,
-                    <span class="string">&quot;new_span method called twice!&quot;</span>
-                );
-                <span class="ident">mk_span</span>();
-                <span class="ident">span::Id::from_u64</span>(<span class="number">0xAAAA</span>)
+                    <span class="string">&quot;new_span method called twice!&quot;
+                </span>);
+                mk_span();
+                span::Id::from_u64(<span class="number">0xAAAA</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {}
+            <span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 
-            <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
+            <span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
 
-            <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {}
+            <span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 
-            <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
+            <span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
 
-            <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
+            <span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
         }
 
-        <span class="ident">with_default</span>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::new</span>(<span class="ident">TestSubscriber</span>), <span class="ident">mk_span</span>)
+        with_default(<span class="kw-2">&amp;</span>Dispatch::new(TestSubscriber), mk_span)
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default_no_subscriber</span>() {
-        <span class="kw">let</span> <span class="ident">default_dispatcher</span> <span class="op">=</span> <span class="ident">Dispatch::default</span>();
-        <span class="macro">assert!</span>(<span class="ident">default_dispatcher</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">NoSubscriber</span><span class="op">&gt;</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>default_no_subscriber() {
+        <span class="kw">let </span>default_dispatcher = Dispatch::default();
+        <span class="macro">assert!</span>(default_dispatcher.is::&lt;NoSubscriber&gt;());
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default_dispatch</span>() {
-        <span class="kw">struct</span> <span class="ident">TestSubscriber</span>;
-        <span class="kw">impl</span> <span class="ident">Subscriber</span> <span class="kw">for</span> <span class="ident">TestSubscriber</span> {
-            <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-                <span class="bool-val">true</span>
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    #[test]
+    </span><span class="kw">fn </span>default_dispatch() {
+        <span class="kw">struct </span>TestSubscriber;
+        <span class="kw">impl </span>Subscriber <span class="kw">for </span>TestSubscriber {
+            <span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+                <span class="bool-val">true
+            </span>}
+
+            <span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; span::Id {
+                span::Id::from_u64(<span class="number">0xAAAA</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">span::Id</span> {
-                <span class="ident">span::Id::from_u64</span>(<span class="number">0xAAAA</span>)
-            }
+            <span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 
-            <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {}
+            <span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
 
-            <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
+            <span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 
-            <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {}
+            <span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
 
-            <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
-
-            <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Id</span>) {}
+            <span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Id) {}
         }
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">set_default</span>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::new</span>(<span class="ident">TestSubscriber</span>));
-        <span class="kw">let</span> <span class="ident">default_dispatcher</span> <span class="op">=</span> <span class="ident">Dispatch::default</span>();
-        <span class="macro">assert!</span>(<span class="ident">default_dispatcher</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">TestSubscriber</span><span class="op">&gt;</span>());
+        <span class="kw">let </span>guard = set_default(<span class="kw-2">&amp;</span>Dispatch::new(TestSubscriber));
+        <span class="kw">let </span>default_dispatcher = Dispatch::default();
+        <span class="macro">assert!</span>(default_dispatcher.is::&lt;TestSubscriber&gt;());
 
-        <span class="ident">drop</span>(<span class="ident">guard</span>);
-        <span class="kw">let</span> <span class="ident">default_dispatcher</span> <span class="op">=</span> <span class="ident">Dispatch::default</span>();
-        <span class="macro">assert!</span>(<span class="ident">default_dispatcher</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">NoSubscriber</span><span class="op">&gt;</span>());
+        drop(guard);
+        <span class="kw">let </span>default_dispatcher = Dispatch::default();
+        <span class="macro">assert!</span>(default_dispatcher.is::&lt;NoSubscriber&gt;());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

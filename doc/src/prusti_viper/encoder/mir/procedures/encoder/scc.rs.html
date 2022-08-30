@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/scc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/scc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -125,132 +125,132 @@
 <span id="125">125</span>
 <span id="126">126</span>
 <span id="127">127</span>
-</pre><pre class="rust"><code><span class="comment">// source: https://rosettacode.org/wiki/Tarjan#Rust</span>
-<span class="comment">// license: GNU Free Documentation License 1.2</span>
-<span class="comment">// TODO: use rust&#39;s scc? https://doc.rust-lang.org/beta/nightly-rustc/rustc_data_structures/graph/scc/index.html</span>
+</pre><pre class="rust"><code><span class="comment">// source: https://rosettacode.org/wiki/Tarjan#Rust
+// license: GNU Free Documentation License 1.2
+// TODO: use rust&#39;s scc? https://doc.rust-lang.org/beta/nightly-rustc/rustc_data_structures/graph/scc/index.html
 
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
+</span><span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
 
-<span class="comment">// Using a naked BTreeMap would not be very nice, so let&#39;s make a simple graph representation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Graph</span> {
-    <span class="ident">neighbors</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="comment">// Using a naked BTreeMap would not be very nice, so let&#39;s make a simple graph representation
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Graph {
+    neighbors: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#9">Graph</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">neighbors</span>: (<span class="number">0</span>..<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#14">size</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="ident">BTreeMap::new</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">acc</span>, <span class="ident">x</span><span class="op">|</span> {
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#16">acc</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#16">x</a>, <span class="ident">BTreeSet::new</span>());
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#16">acc</a>
+<span class="kw">impl </span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#9">Graph</a> {
+    <span class="kw">pub fn </span>new(size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            neighbors: (<span class="number">0</span>..<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#14">size</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(BTreeMap::new(), |<span class="kw-2">mut </span>acc, x| {
+                <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#16">acc</a>.insert(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#16">x</a>, BTreeSet::new());
+                <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#16">acc</a>
             }),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">edges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">vertex</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#23">self</a>.<span class="ident">neighbors</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#23">vertex</a>].<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+    <span class="kw">pub fn </span>edges(<span class="kw-2">&amp;</span><span class="self">self</span>, vertex: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; + <span class="lifetime">&#39;_ </span>{
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#23">self</a>.neighbors[<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#23">vertex</a>].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_edge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">from</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">to</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">to</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">len</span>());
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#27">self</a>.<span class="ident">neighbors</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#27">from</a>).<span class="ident">unwrap</span>().<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#27">to</a>);
+    <span class="kw">pub fn </span>add_edge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, to: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(to &lt; <span class="self">self</span>.len());
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#27">self</a>.neighbors.get_mut(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#27">from</a>).unwrap().insert(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#27">to</a>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#32">self</a>.<span class="ident">neighbors</span>.<span class="ident">len</span>()
+    <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#32">self</a>.neighbors.len()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">VertexState</span> {
-    <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">low_link</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">on_stack</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">struct </span>VertexState {
+    index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    low_link: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    on_stack: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="comment">// The easy way not to fight with Rust&#39;s borrow checker is moving the state in</span>
-<span class="comment">// a structure and simply invoke methods on that structure.</span>
+<span class="comment">// The easy way not to fight with Rust&#39;s borrow checker is moving the state in
+// a structure and simply invoke methods on that structure.
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tarjan</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">graph</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#9">Graph</a>,
-    <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="ident">state</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#38">VertexState</a><span class="op">&gt;</span>,
-    <span class="ident">components</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+</span><span class="kw">pub struct </span>Tarjan&lt;<span class="lifetime">&#39;a</span>&gt; {
+    graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#9">Graph</a>,
+    index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    stack: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    state: Vec&lt;<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#38">VertexState</a>&gt;,
+    components: Vec&lt;BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Tarjan</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="comment">// Having index: Option&lt;usize&gt; would look nicer, but requires just</span>
-    <span class="comment">// some unwraps and Vec has actual len limit isize::MAX anyway, so</span>
-    <span class="comment">// we can reserve this large value as the invalid one.</span>
-    <span class="kw">const</span> <span class="ident">INVALID_INDEX</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="ident">usize::MAX</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Tarjan&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="comment">// Having index: Option&lt;usize&gt; would look nicer, but requires just
+    // some unwraps and Vec has actual len limit isize::MAX anyway, so
+    // we can reserve this large value as the invalid one.
+    </span><span class="kw">const </span>INVALID_INDEX: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = usize::MAX;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk</span>(<span class="ident">graph</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#9">Graph</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">Self</span> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#61">graph</a>,
-            <span class="ident">index</span>: <span class="number">0</span>,
-            <span class="ident">stack</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">state</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
-                <span class="ident">VertexState</span> {
-                    <span class="ident">index</span>: <span class="ident"><span class="self">Self</span>::INVALID_INDEX</span>,
-                    <span class="ident">low_link</span>: <span class="ident"><span class="self">Self</span>::INVALID_INDEX</span>,
-                    <span class="ident">on_stack</span>: <span class="bool-val">false</span>
-                };
-                <span class="ident">graph</span>.<span class="ident">len</span>()
+    <span class="kw">pub fn </span>walk(graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#9">Graph</a>) -&gt; Vec&lt;BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="self">Self </span>{
+            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#61">graph</a>,
+            index: <span class="number">0</span>,
+            stack: Vec::new(),
+            state: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+                VertexState {
+                    index: <span class="self">Self</span>::INVALID_INDEX,
+                    low_link: <span class="self">Self</span>::INVALID_INDEX,
+                    on_stack: <span class="bool-val">false
+                </span>};
+                graph.len()
             ],
-            <span class="ident">components</span>: <span class="ident">Vec::new</span>(),
+            components: Vec::new(),
         }
-        .<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#79">visit_all</a>()
+        .<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#79">visit_all</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">vertex</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">graph</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>[<span class="ident">vertex</span>].<span class="ident">index</span> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::INVALID_INDEX</span> {
-                <span class="self">self</span>.<span class="ident">visit</span>(<span class="ident">vertex</span>);
+    <span class="kw">fn </span>visit_all(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Vec&lt;BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="kw">for </span>vertex <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.graph.len() {
+            <span class="kw">if </span><span class="self">self</span>.state[vertex].index == <span class="self">Self</span>::INVALID_INDEX {
+                <span class="self">self</span>.visit(vertex);
             }
         }
 
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#79">self</a>.<span class="ident">components</span>
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#79">self</a>.components
     }
 
-    <span class="kw">fn</span> <span class="ident">visit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">v</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">v_ref</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">state</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">v</a>];
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#90">v_ref</a>.<span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">index</span>;
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#90">v_ref</a>.<span class="ident">low_link</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">index</span>;
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">stack</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">v</a>);
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#90">v_ref</a>.<span class="ident">on_stack</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="kw">fn </span>visit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>v_ref = <span class="kw-2">&amp;mut </span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.state[<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">v</a>];
+        <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#90">v_ref</a>.index = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.index;
+        <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#90">v_ref</a>.low_link = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.index;
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.index += <span class="number">1</span>;
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.stack.push(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">v</a>);
+        <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#90">v_ref</a>.on_stack = <span class="bool-val">true</span>;
 
-        <span class="kw">for</span> <span class="ident">w</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">graph</span>.<span class="ident">edges</span>(<span class="ident">v</span>) {
-            <span class="kw">let</span> <span class="ident">w_ref</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>[<span class="ident">w</span>];
-            <span class="kw">if</span> <span class="ident">w_ref</span>.<span class="ident">index</span> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::INVALID_INDEX</span> {
-                <span class="self">self</span>.<span class="ident">visit</span>(<span class="ident">w</span>);
-                <span class="kw">let</span> <span class="ident">w_low_link</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>[<span class="ident">w</span>].<span class="ident">low_link</span>;
-                <span class="kw">let</span> <span class="ident">v_ref</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>[<span class="ident">v</span>];
-                <span class="ident">v_ref</span>.<span class="ident">low_link</span> <span class="op">=</span> <span class="ident">v_ref</span>.<span class="ident">low_link</span>.<span class="ident">min</span>(<span class="ident">w_low_link</span>);
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">w_ref</span>.<span class="ident">on_stack</span> {
-                <span class="kw">let</span> <span class="ident">w_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>[<span class="ident">w</span>].<span class="ident">index</span>;
-                <span class="kw">let</span> <span class="ident">v_ref</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>[<span class="ident">v</span>];
-                <span class="ident">v_ref</span>.<span class="ident">low_link</span> <span class="op">=</span> <span class="ident">v_ref</span>.<span class="ident">low_link</span>.<span class="ident">min</span>(<span class="ident">w_index</span>);
+        <span class="kw">for </span>w <span class="kw">in </span><span class="self">self</span>.graph.edges(v) {
+            <span class="kw">let </span>w_ref = <span class="kw-2">&amp;</span><span class="self">self</span>.state[w];
+            <span class="kw">if </span>w_ref.index == <span class="self">Self</span>::INVALID_INDEX {
+                <span class="self">self</span>.visit(w);
+                <span class="kw">let </span>w_low_link = <span class="self">self</span>.state[w].low_link;
+                <span class="kw">let </span>v_ref = <span class="kw-2">&amp;mut </span><span class="self">self</span>.state[v];
+                v_ref.low_link = v_ref.low_link.min(w_low_link);
+            } <span class="kw">else if </span>w_ref.on_stack {
+                <span class="kw">let </span>w_index = <span class="self">self</span>.state[w].index;
+                <span class="kw">let </span>v_ref = <span class="kw-2">&amp;mut </span><span class="self">self</span>.state[v];
+                v_ref.low_link = v_ref.low_link.min(w_index);
             }
         }
 
-        <span class="kw">let</span> <span class="ident">v_ref</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">state</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">v</a>];
-        <span class="kw">if</span> <span class="ident">v_ref</span>.<span class="ident">low_link</span> <span class="op">==</span> <span class="ident">v_ref</span>.<span class="ident">index</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">component</span> <span class="op">=</span> <span class="ident">BTreeSet::new</span>();
+        <span class="kw">let </span>v_ref = <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.state[<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">v</a>];
+        <span class="kw">if </span>v_ref.low_link == v_ref.index {
+            <span class="kw">let </span><span class="kw-2">mut </span>component = BTreeSet::new();
 
-            <span class="kw">loop</span> {
-                <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">state</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#116">w</a>].<span class="ident">on_stack</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#113">component</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#116">w</a>);
-                <span class="kw">if</span> <span class="ident">w</span> <span class="op">==</span> <span class="ident">v</span> {
+            <span class="kw">loop </span>{
+                <span class="kw">let </span>w = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.stack.pop().unwrap();
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.state[<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#116">w</a>].on_stack = <span class="bool-val">false</span>;
+                <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#113">component</a>.insert(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#116">w</a>);
+                <span class="kw">if </span>w == v {
                     <span class="kw">break</span>;
                 }
             }
 
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.<span class="ident">components</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#113">component</a>);
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#89">self</a>.components.push(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/scc.rs.html#113">component</a>);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.4/src/stream/position.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>position.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../combine/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../combine/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/combine-4.6.6/src/stream/position.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>position.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../combine/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../combine/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../combine/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -463,470 +463,470 @@
 <span id="463">463</span>
 <span id="464">464</span>
 <span id="465">465</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::{<a class="ident" href="../../../src/combine/error.rs.html#456">ParseError</a>, <a class="ident" href="../../../src/combine/error.rs.html#946">ParseResult</a>, <a class="ident" href="../../../src/combine/error.rs.html#367">StreamError</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">lib::fmt</a>,
-    <span class="ident">stream</span>::{
-        <a class="ident" href="../../../src/combine/stream/mod.rs.html#1172">IteratorStream</a>, <a class="ident" href="../../../src/combine/stream/mod.rs.html#76">Positioned</a>, <a class="ident" href="../../../src/combine/stream/mod.rs.html#184">RangeStreamOnce</a>, <a class="ident" href="../../../src/combine/stream/mod.rs.html#143">ResetStream</a>, <a class="ident" href="../../../src/combine/stream/mod.rs.html#1034">SliceStream</a>, <a class="ident" href="../../../src/combine/stream/mod.rs.html#109">StreamErrorFor</a>,
-        <a class="ident" href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    error::{<a href="../../../src/combine/error.rs.html#456">ParseError</a>, <a href="../../../src/combine/error.rs.html#946">ParseResult</a>, <a href="../../../src/combine/error.rs.html#367">StreamError</a>},
+    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">lib::fmt</a>,
+    stream::{
+        <a href="../../../src/combine/stream/mod.rs.html#1172">IteratorStream</a>, <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a>, <a href="../../../src/combine/stream/mod.rs.html#184">RangeStreamOnce</a>, <a href="../../../src/combine/stream/mod.rs.html#143">ResetStream</a>, <a href="../../../src/combine/stream/mod.rs.html#1034">SliceStream</a>, <a href="../../../src/combine/stream/mod.rs.html#109">StreamErrorFor</a>,
+        <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>,
     },
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/combine/stream/mod.rs.html#66"><span class="kw">crate</span>::stream::read</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../src/combine/stream/mod.rs.html#66"><span class="kw">crate</span>::stream::read</a>;
 
-<span class="doccomment">/// Trait for tracking the current position of a `Stream`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The type which keeps track of the position</span>
-    <span class="kw">type</span> <span class="ident">Position</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>;
+<span class="doccomment">/// Trait for tracking the current position of a `Stream`.
+</span><span class="kw">pub trait </span>Positioner&lt;Item&gt; {
+    <span class="doccomment">/// The type which keeps track of the position
+    </span><span class="kw">type </span>Position: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>;
 
-    <span class="kw">type</span> <span class="ident">Checkpoint</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>;
+    <span class="kw">type </span>Checkpoint: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>;
 
-    <span class="doccomment">/// Returns the current position</span>
-    <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Position</span>;
-    <span class="doccomment">/// Updates the position given that `token` has been taken from the stream</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">Item</span>);
+    <span class="doccomment">/// Returns the current position
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Position;
+    <span class="doccomment">/// Updates the position given that `token` has been taken from the stream
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span>Item);
 
-    <span class="kw">fn</span> <span class="ident">checkpoint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Checkpoint</span>;
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">checkpoint</span>: <span class="ident"><span class="self">Self</span>::Checkpoint</span>);
+    <span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint;
+    <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint);
 }
 
-<span class="doccomment">/// Trait for tracking the current position of a `RangeStream`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">RangePositioner</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Range</span><span class="op">&gt;</span>: <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Updates the position given that `range` has been taken from the stream</span>
-    <span class="kw">fn</span> <span class="ident">update_range</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span>);
+<span class="doccomment">/// Trait for tracking the current position of a `RangeStream`.
+</span><span class="kw">pub trait </span>RangePositioner&lt;Item, Range&gt;: Positioner&lt;Item&gt; {
+    <span class="doccomment">/// Updates the position given that `range` has been taken from the stream
+    </span><span class="kw">fn </span>update_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: <span class="kw-2">&amp;</span>Range);
 }
 
-<span class="doccomment">/// Defines a default `Positioner` type for a particular `Stream` type.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DefaultPositioned</span> {
-    <span class="kw">type</span> <span class="ident">Positioner</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>;
+<span class="doccomment">/// Defines a default `Positioner` type for a particular `Stream` type.
+</span><span class="kw">pub trait </span>DefaultPositioned {
+    <span class="kw">type </span>Positioner: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">type</span> <span class="ident">Positioner</span> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">type </span>Positioner = <a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">T</span>] {
-    <span class="kw">type</span> <span class="ident">Positioner</span> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T] {
+    <span class="kw">type </span>Positioner = <a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for</span> <span class="ident">SliceStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Positioner</span> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for </span>SliceStream&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Positioner = <a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for</span> <span class="ident">IteratorStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Positioner</span> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>;
+<span class="kw">impl</span>&lt;T&gt; <a href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for </span>IteratorStream&lt;T&gt; {
+    <span class="kw">type </span>Positioner = <a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>;
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for</span> <span class="ident">read::Stream</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Positioner</span> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R&gt; <a href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a> <span class="kw">for </span>read::Stream&lt;R&gt; {
+    <span class="kw">type </span>Positioner = <a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>;
 }
 
-<span class="doccomment">/// The `Stream&lt;Input&gt;` struct maintains the current position in the stream `Input` using</span>
-<span class="doccomment">/// the `Positioner` trait to track the position.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # #![cfg(feature = &quot;std&quot;)]</span>
-<span class="doccomment">/// # extern crate combine;</span>
-<span class="doccomment">/// # use combine::*;</span>
-<span class="doccomment">/// # use combine::stream::easy;</span>
-<span class="doccomment">/// # use combine::stream::position;</span>
-<span class="doccomment">/// # fn main() {</span>
-<span class="doccomment">///     let result = token(b&#39;9&#39;)</span>
-<span class="doccomment">///         .message(&quot;Not a nine&quot;)</span>
-<span class="doccomment">///         .easy_parse(position::Stream::new(&amp;b&quot;8&quot;[..]));</span>
-<span class="doccomment">///     assert_eq!(result, Err(easy::Errors {</span>
-<span class="doccomment">///         position: 0,</span>
-<span class="doccomment">///         errors: vec![</span>
-<span class="doccomment">///             easy::Error::Unexpected(b&#39;8&#39;.into()),</span>
-<span class="doccomment">///             easy::Error::Expected(b&#39;9&#39;.into()),</span>
-<span class="doccomment">///             easy::Error::Message(&quot;Not a nine&quot;.into())</span>
-<span class="doccomment">///         ]</span>
-<span class="doccomment">///     }));</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The input stream used when items are requested</span>
-    <span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">Input</span>,
-    <span class="doccomment">/// The positioner used to update the current position</span>
-    <span class="kw">pub</span> <span class="ident">positioner</span>: <span class="ident">X</span>,
+<span class="doccomment">/// The `Stream&lt;Input&gt;` struct maintains the current position in the stream `Input` using
+/// the `Positioner` trait to track the position.
+///
+/// ```
+/// # #![cfg(feature = &quot;std&quot;)]
+/// # extern crate combine;
+/// # use combine::*;
+/// # use combine::stream::easy;
+/// # use combine::stream::position;
+/// # fn main() {
+///     let result = token(b&#39;9&#39;)
+///         .message(&quot;Not a nine&quot;)
+///         .easy_parse(position::Stream::new(&amp;b&quot;8&quot;[..]));
+///     assert_eq!(result, Err(easy::Errors {
+///         position: 0,
+///         errors: vec![
+///             easy::Error::Unexpected(b&#39;8&#39;.into()),
+///             easy::Error::Expected(b&#39;9&#39;.into()),
+///             easy::Error::Message(&quot;Not a nine&quot;.into())
+///         ]
+///     }));
+/// # }
+/// ```
+</span><span class="attribute">#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Stream&lt;Input, X&gt; {
+    <span class="doccomment">/// The input stream used when items are requested
+    </span><span class="kw">pub </span>input: Input,
+    <span class="doccomment">/// The positioner used to update the current position
+    </span><span class="kw">pub </span>positioner: X,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Input</span>: <a class="ident" href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>,
-    <span class="ident">X</span>: <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Input::Token</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Input, X&gt; Stream&lt;Input, X&gt;
+<span class="kw">where
+    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>,
+    X: Positioner&lt;Input::Token&gt;,
 {
-    <span class="doccomment">/// Creates a new `Stream&lt;Input, X&gt;` from an input stream and a positioner.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_positioner</span>(<span class="ident">input</span>: <span class="ident">Input</span>, <span class="ident">positioner</span>: <span class="ident">X</span>) -&gt; <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/combine/stream/position.rs.html#85">Stream</a> { <a class="ident" href="../../../src/combine/stream/position.rs.html#98">input</a>, <a class="ident" href="../../../src/combine/stream/position.rs.html#98">positioner</a> }
+    <span class="doccomment">/// Creates a new `Stream&lt;Input, X&gt;` from an input stream and a positioner.
+    </span><span class="kw">pub fn </span>with_positioner(input: Input, positioner: X) -&gt; Stream&lt;Input, X&gt; {
+        <a href="../../../src/combine/stream/position.rs.html#85">Stream</a> { <a href="../../../src/combine/stream/position.rs.html#98">input</a>, <a href="../../../src/combine/stream/position.rs.html#98">positioner</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input::Positioner</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Input</span>: <a class="ident" href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> <span class="op">+</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a>,
-    <span class="ident">Input::Positioner</span>: <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Input::Token</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Input&gt; Stream&lt;Input, Input::Positioner&gt;
+<span class="kw">where
+    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> + <a href="../../../src/combine/stream/position.rs.html#36">DefaultPositioned</a>,
+    Input::Positioner: Positioner&lt;Input::Token&gt;,
 {
-    <span class="doccomment">/// Creates a new `Stream&lt;Input, X&gt;` from an input stream and its default positioner.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">input</span>: <span class="ident">Input</span>) -&gt; <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input::Positioner</span><span class="op">&gt;</span> {
-        <span class="ident">Stream::with_positioner</span>(<a class="ident" href="../../../src/combine/stream/position.rs.html#109">input</a>, <span class="ident">Input::Positioner::default</span>())
+    <span class="doccomment">/// Creates a new `Stream&lt;Input, X&gt;` from an input stream and its default positioner.
+    </span><span class="kw">pub fn </span>new(input: Input) -&gt; Stream&lt;Input, Input::Positioner&gt; {
+        Stream::with_positioner(<a href="../../../src/combine/stream/position.rs.html#109">input</a>, Input::Positioner::default())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span>, <span class="ident">E</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/mod.rs.html#76">Positioned</a> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Input</span>: <a class="ident" href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>,
-    <span class="ident">X</span>: <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Input::Token</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">StreamError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span><span class="op">&gt;</span>,
-    <span class="ident">Input::Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span>, <span class="ident">X::Position</span>, <span class="ident">StreamError</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">Input::Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span>, <span class="ident">Input::Position</span>, <span class="ident">StreamError</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Input, X, E&gt; <a href="../../../src/combine/stream/mod.rs.html#76">Positioned</a> <span class="kw">for </span>Stream&lt;Input, X&gt;
+<span class="kw">where
+    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>,
+    X: Positioner&lt;Input::Token&gt;,
+    E: StreamError&lt;Input::Token, Input::Range&gt;,
+    Input::Error: ParseError&lt;Input::Token, Input::Range, X::Position, StreamError = E&gt;,
+    Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position, StreamError = E&gt;,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Position</span> {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#123">self</a>.<span class="ident">positioner</span>.<a class="ident" href="../../../src/combine/stream/position.rs.html#21">position</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Position {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#123">self</a>.positioner.<a href="../../../src/combine/stream/position.rs.html#21">position</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Input</span>: <a class="ident" href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>,
-    <span class="ident">X</span>: <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Input::Token</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>: <span class="ident">StreamError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span><span class="op">&gt;</span>,
-    <span class="ident">Input::Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span>, <span class="ident">X::Position</span>, <span class="ident">StreamError</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span>, <span class="ident">Input::Position</span>, <span class="ident">StreamError</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Input, X, S&gt; <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a> <span class="kw">for </span>Stream&lt;Input, X&gt;
+<span class="kw">where
+    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#116">StreamOnce</a>,
+    X: Positioner&lt;Input::Token&gt;,
+    S: StreamError&lt;Input::Token, Input::Range&gt;,
+    Input::Error: ParseError&lt;Input::Token, Input::Range, X::Position, StreamError = S&gt;
+        + ParseError&lt;Input::Token, Input::Range, Input::Position, StreamError = S&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Token</span> <span class="op">=</span> <span class="ident">Input::Token</span>;
-    <span class="kw">type</span> <span class="ident">Range</span> <span class="op">=</span> <span class="ident">Input::Range</span>;
-    <span class="kw">type</span> <span class="ident">Position</span> <span class="op">=</span> <span class="ident">X::Position</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Input::Error</span>;
+    <span class="kw">type </span>Token = Input::Token;
+    <span class="kw">type </span>Range = Input::Range;
+    <span class="kw">type </span>Position = X::Position;
+    <span class="kw">type </span>Error = Input::Error;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">uncons</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">StreamErrorFor</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#142">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#132">uncons</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
-            <a class="self" href="../../../src/combine/stream/position.rs.html#142">self</a>.<span class="ident">positioner</span>.<a class="ident" href="../../../src/combine/stream/position.rs.html#23">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/combine/stream/position.rs.html#143">c</a>);
-            <a class="ident" href="../../../src/combine/stream/position.rs.html#143">c</a>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>uncons(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Input::Token, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt; {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#142">self</a>.input.<a href="../../../src/combine/stream/mod.rs.html#132">uncons</a>().map(|c| {
+            <a class="self" href="../../../src/combine/stream/position.rs.html#142">self</a>.positioner.<a href="../../../src/combine/stream/position.rs.html#23">update</a>(<span class="kw-2">&amp;</span><a href="../../../src/combine/stream/position.rs.html#143">c</a>);
+            <a href="../../../src/combine/stream/position.rs.html#143">c</a>
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">is_partial</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#149">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#137">is_partial</a>()
+    <span class="kw">fn </span>is_partial(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#149">self</a>.input.<a href="../../../src/combine/stream/mod.rs.html#137">is_partial</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw-2">mut</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">Item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Item, T&gt; Positioner&lt;Item&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>T
+<span class="kw">where
+    </span>Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Positioner&lt;Item&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Position</span> <span class="op">=</span> <span class="ident">T::Position</span>;
-    <span class="kw">type</span> <span class="ident">Checkpoint</span> <span class="op">=</span> <span class="ident">T::Checkpoint</span>;
+    <span class="kw">type </span>Position = T::Position;
+    <span class="kw">type </span>Checkpoint = T::Checkpoint;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">T::Position</span> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#163">self</a>).<a class="ident" href="../../../src/combine/stream/position.rs.html#21">position</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; T::Position {
+        (<span class="kw-2">**</span><a class="self" href="../../../src/combine/stream/position.rs.html#163">self</a>).<a href="../../../src/combine/stream/position.rs.html#21">position</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">Item</span>) {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#168">self</a>).<a class="ident" href="../../../src/combine/stream/position.rs.html#23">update</a>(<a class="ident" href="../../../src/combine/stream/position.rs.html#168">item</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>Item) {
+        (<span class="kw-2">**</span><a class="self" href="../../../src/combine/stream/position.rs.html#168">self</a>).<a href="../../../src/combine/stream/position.rs.html#23">update</a>(<a href="../../../src/combine/stream/position.rs.html#168">item</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checkpoint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Checkpoint</span> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#173">self</a>).<a class="ident" href="../../../src/combine/stream/position.rs.html#25">checkpoint</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
+        (<span class="kw-2">**</span><a class="self" href="../../../src/combine/stream/position.rs.html#173">self</a>).<a href="../../../src/combine/stream/position.rs.html#25">checkpoint</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">checkpoint</span>: <span class="ident"><span class="self">Self</span>::Checkpoint</span>) {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#178">self</a>).<a class="ident" href="../../../src/combine/stream/position.rs.html#26">reset</a>(<a class="ident" href="../../../src/combine/stream/position.rs.html#178">checkpoint</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) {
+        (<span class="kw-2">**</span><a class="self" href="../../../src/combine/stream/position.rs.html#178">self</a>).<a href="../../../src/combine/stream/position.rs.html#26">reset</a>(<a href="../../../src/combine/stream/position.rs.html#178">checkpoint</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Range</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">RangePositioner</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Range</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw-2">mut</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">Item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    <span class="ident">Range</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="../../../src/combine/stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
-    <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">RangePositioner</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Range</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Item, Range, T&gt; RangePositioner&lt;Item, Range&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>T
+<span class="kw">where
+    </span>Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    Range: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="../../../src/combine/stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+    T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + RangePositioner&lt;Item, Range&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">update_range</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span>) {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#189">self</a>).<a class="ident" href="../../../src/combine/stream/position.rs.html#32">update_range</a>(<a class="ident" href="../../../src/combine/stream/position.rs.html#189">range</a>);
+    <span class="kw">fn </span>update_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: <span class="kw-2">&amp;</span>Range) {
+        (<span class="kw-2">**</span><a class="self" href="../../../src/combine/stream/position.rs.html#189">self</a>).<a href="../../../src/combine/stream/position.rs.html#32">update_range</a>(<a href="../../../src/combine/stream/position.rs.html#189">range</a>);
     }
 }
 
-<span class="doccomment">/// The `IndexPositioner&lt;Item, Range&gt;` struct maintains the current index into the stream `Input`.  The</span>
-<span class="doccomment">/// initial index is index 0.  Each `Item` committed increments the index by 1; each `range` committed</span>
-<span class="doccomment">/// increments the position by `range.len()`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexPositioner</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="doccomment">/// The `IndexPositioner&lt;Item, Range&gt;` struct maintains the current index into the stream `Input`.  The
+/// initial index is index 0.  Each `Item` committed increments the index by 1; each `range` committed
+/// increments the position by `range.len()`.
+</span><span class="attribute">#[derive(Clone, Debug, Default, PartialEq)]
+</span><span class="kw">pub struct </span>IndexPositioner(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>
-<span class="kw">where</span>
-    <span class="ident">Item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+<span class="kw">impl</span>&lt;Item&gt; Positioner&lt;Item&gt; <span class="kw">for </span><a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>
+<span class="kw">where
+    </span>Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
-    <span class="kw">type</span> <span class="ident">Position</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">type</span> <span class="ident">Checkpoint</span> <span class="op">=</span> <span class="self">Self</span>;
+    <span class="kw">type </span>Position = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">type </span>Checkpoint = <span class="self">Self</span>;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#208">self</a>.<span class="number">0</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#208">self</a>.<span class="number">0
+    </span>}
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _item: <span class="kw-2">&amp;</span>Item) {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#213">self</a>.<span class="number">0 </span>+= <span class="number">1
+    </span>}
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#218">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_item</span>: <span class="kw-2">&amp;</span><span class="ident">Item</span>) {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#213">self</a>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checkpoint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Checkpoint</span> {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#218">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">checkpoint</span>: <span class="ident"><span class="self">Self</span>::Checkpoint</span>) {
-        <span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#223">self</a> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#223">checkpoint</a>;
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a> {
-        <span class="ident">IndexPositioner::new_with_position</span>(<span class="number">0</span>)
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_position</span>(<span class="ident">position</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a> {
-        <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>(<a class="ident" href="../../../src/combine/stream/position.rs.html#233">position</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/combine/stream/position.rs.html#223">self</a> </span>= <a href="../../../src/combine/stream/position.rs.html#223">checkpoint</a>;
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Range</span><span class="op">&gt;</span> <span class="ident">RangePositioner</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">Range</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>
-<span class="kw">where</span>
-    <span class="ident">Item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    <span class="ident">Range</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="../../../src/combine/stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
+<span class="kw">impl </span><a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a> {
+    <span class="kw">pub fn </span>new() -&gt; <a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a> {
+        IndexPositioner::new_with_position(<span class="number">0</span>)
+    }
+
+    <span class="kw">pub fn </span>new_with_position(position: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a> {
+        <a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>(<a href="../../../src/combine/stream/position.rs.html#233">position</a>)
+    }
+}
+
+<span class="kw">impl</span>&lt;Item, Range&gt; RangePositioner&lt;Item, Range&gt; <span class="kw">for </span><a href="../../../src/combine/stream/position.rs.html#198">IndexPositioner</a>
+<span class="kw">where
+    </span>Item: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    Range: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="../../../src/combine/stream/mod.rs.html#382"><span class="kw">crate</span>::stream::Range</a>,
 {
-    <span class="kw">fn</span> <span class="ident">update_range</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span>) {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#243">self</a>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#243">range</a>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#385">len</a>()
+    <span class="kw">fn </span>update_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: <span class="kw-2">&amp;</span>Range) {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#243">self</a>.<span class="number">0 </span>+= <a href="../../../src/combine/stream/position.rs.html#243">range</a>.<a href="../../../src/combine/stream/mod.rs.html#385">len</a>()
     }
 }
 
-<span class="doccomment">/// Struct which represents a position in a source file.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SourcePosition</span> {
-    <span class="doccomment">/// Current line of the input</span>
-    <span class="kw">pub</span> <span class="ident">line</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-    <span class="doccomment">/// Current column of the input</span>
-    <span class="kw">pub</span> <span class="ident">column</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+<span class="doccomment">/// Struct which represents a position in a source file.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+</span><span class="kw">pub struct </span>SourcePosition {
+    <span class="doccomment">/// Current line of the input
+    </span><span class="kw">pub </span>line: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+    <span class="doccomment">/// Current column of the input
+    </span><span class="kw">pub </span>column: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> { <span class="ident">line</span>: <span class="number">1</span>, <span class="ident">column</span>: <span class="number">1</span> }
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> { line: <span class="number">1</span>, column: <span class="number">1 </span>}
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/combine/stream/position.rs.html#264">f</a>, <span class="string">&quot;line: {}, column: {}&quot;</span>, <span class="self">self</span>.<span class="ident">line</span>, <span class="self">self</span>.<span class="ident">column</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/combine/stream/position.rs.html#264">f</a>, <span class="string">&quot;line: {}, column: {}&quot;</span>, <span class="self">self</span>.line, <span class="self">self</span>.column)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">SourcePosition::default</span>()
+<span class="kw">impl </span><a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        SourcePosition::default()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Positioner</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
-    <span class="kw">type</span> <span class="ident">Position</span> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a>;
-    <span class="kw">type</span> <span class="ident">Checkpoint</span> <span class="op">=</span> <span class="self">Self</span>;
+<span class="kw">impl </span>Positioner&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>&gt; <span class="kw">for </span><a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
+    <span class="kw">type </span>Position = <a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a>;
+    <span class="kw">type </span>Checkpoint = <span class="self">Self</span>;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
-        <span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#280">self</a>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/combine/stream/position.rs.html#280">self</a>
+    </span>}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#285">self</a>.<span class="ident">column</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">token</span> <span class="op">==</span> <span class="string">&#39;\n&#39;</span> {
-            <a class="self" href="../../../src/combine/stream/position.rs.html#285">self</a>.<span class="ident">column</span> <span class="op">=</span> <span class="number">1</span>;
-            <a class="self" href="../../../src/combine/stream/position.rs.html#285">self</a>.<span class="ident">line</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#285">self</a>.column += <span class="number">1</span>;
+        <span class="kw">if </span><span class="kw-2">*</span>token == <span class="string">&#39;\n&#39; </span>{
+            <a class="self" href="../../../src/combine/stream/position.rs.html#285">self</a>.column = <span class="number">1</span>;
+            <a class="self" href="../../../src/combine/stream/position.rs.html#285">self</a>.line += <span class="number">1</span>;
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checkpoint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Checkpoint</span> {
-        <span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#294">self</a>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/combine/stream/position.rs.html#294">self</a>
+    </span>}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">checkpoint</span>: <span class="ident"><span class="self">Self</span>::Checkpoint</span>) {
-        <span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#299">self</a> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#299">checkpoint</a>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/combine/stream/position.rs.html#299">self</a> </span>= <a href="../../../src/combine/stream/position.rs.html#299">checkpoint</a>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Positioner</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
-    <span class="kw">type</span> <span class="ident">Position</span> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a>;
-    <span class="kw">type</span> <span class="ident">Checkpoint</span> <span class="op">=</span> <span class="self">Self</span>;
+<span class="kw">impl </span>Positioner&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; <span class="kw">for </span><a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
+    <span class="kw">type </span>Position = <a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a>;
+    <span class="kw">type </span>Checkpoint = <span class="self">Self</span>;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
-        <span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#309">self</a>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/combine/stream/position.rs.html#309">self</a>
+    </span>}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#314">self</a>.<span class="ident">column</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">token</span> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span> {
-            <a class="self" href="../../../src/combine/stream/position.rs.html#314">self</a>.<span class="ident">column</span> <span class="op">=</span> <span class="number">1</span>;
-            <a class="self" href="../../../src/combine/stream/position.rs.html#314">self</a>.<span class="ident">line</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#314">self</a>.column += <span class="number">1</span>;
+        <span class="kw">if </span><span class="kw-2">*</span>token == <span class="string">b&#39;\n&#39; </span>{
+            <a class="self" href="../../../src/combine/stream/position.rs.html#314">self</a>.column = <span class="number">1</span>;
+            <a class="self" href="../../../src/combine/stream/position.rs.html#314">self</a>.line += <span class="number">1</span>;
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checkpoint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Checkpoint</span> {
-        <span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#323">self</a>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/combine/stream/position.rs.html#323">self</a>
+    </span>}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">checkpoint</span>: <span class="ident"><span class="self">Self</span>::Checkpoint</span>) {
-        <span class="kw-2">*</span><a class="self" href="../../../src/combine/stream/position.rs.html#328">self</a> <span class="op">=</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#328">checkpoint</a>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/combine/stream/position.rs.html#328">self</a> </span>= <a href="../../../src/combine/stream/position.rs.html#328">checkpoint</a>;
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">RangePositioner</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
-    <span class="kw">fn</span> <span class="ident">update_range</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-        <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">range</span>.<span class="ident">chars</span>() {
-            <span class="self">self</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; RangePositioner&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/combine/stream/position.rs.html#250">SourcePosition</a> {
+    <span class="kw">fn </span>update_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: &amp;&amp;<span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+        <span class="kw">for </span>c <span class="kw">in </span>range.chars() {
+            <span class="self">self</span>.update(<span class="kw-2">&amp;</span>c);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/mod.rs.html#184">RangeStreamOnce</a> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Input</span>: <a class="ident" href="../../../src/combine/stream/mod.rs.html#184">RangeStreamOnce</a>,
-    <span class="ident">X</span>: <span class="ident">RangePositioner</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>: <span class="ident">StreamError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span><span class="op">&gt;</span>,
-    <span class="ident">Input::Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span>, <span class="ident">X::Position</span>, <span class="ident">StreamError</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">Input::Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span>, <span class="ident">Input::Position</span>, <span class="ident">StreamError</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">Input::Position</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
+<span class="kw">impl</span>&lt;Input, X, S&gt; <a href="../../../src/combine/stream/mod.rs.html#184">RangeStreamOnce</a> <span class="kw">for </span>Stream&lt;Input, X&gt;
+<span class="kw">where
+    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#184">RangeStreamOnce</a>,
+    X: RangePositioner&lt;Input::Token, Input::Range&gt;,
+    S: StreamError&lt;Input::Token, Input::Range&gt;,
+    Input::Error: ParseError&lt;Input::Token, Input::Range, X::Position, StreamError = S&gt;,
+    Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position, StreamError = S&gt;,
+    Input::Position: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">uncons_range</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input::Range</span>, <span class="ident">StreamErrorFor</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#351">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#187">uncons_range</a>(<a class="ident" href="../../../src/combine/stream/position.rs.html#351">size</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">range</span><span class="op">|</span> {
-            <a class="self" href="../../../src/combine/stream/position.rs.html#351">self</a>.<span class="ident">positioner</span>.<a class="ident" href="../../../src/combine/stream/position.rs.html#32">update_range</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/combine/stream/position.rs.html#352">range</a>);
-            <a class="ident" href="../../../src/combine/stream/position.rs.html#352">range</a>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>uncons_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Input::Range, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt; {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#351">self</a>.input.<a href="../../../src/combine/stream/mod.rs.html#187">uncons_range</a>(<a href="../../../src/combine/stream/position.rs.html#351">size</a>).map(|range| {
+            <a class="self" href="../../../src/combine/stream/position.rs.html#351">self</a>.positioner.<a href="../../../src/combine/stream/position.rs.html#32">update_range</a>(<span class="kw-2">&amp;</span><a href="../../../src/combine/stream/position.rs.html#352">range</a>);
+            <a href="../../../src/combine/stream/position.rs.html#352">range</a>
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">uncons_while</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">predicate</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input::Range</span>, <span class="ident">StreamErrorFor</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">Input::Token</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>uncons_while&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>predicate: F) -&gt; <span class="prelude-ty">Result</span>&lt;Input::Range, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt;
+    <span class="kw">where
+        </span>F: FnMut(Input::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
-        <span class="kw">let</span> <span class="ident">positioner</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/combine/stream/position.rs.html#359">self</a>.<span class="ident">positioner</span>;
-        <a class="self" href="../../../src/combine/stream/position.rs.html#359">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#191-193">uncons_while</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">predicate</span>(<span class="ident">t</span>.<span class="ident">clone</span>()) {
-                <a class="ident" href="../../../src/combine/stream/position.rs.html#363">positioner</a>.<a class="ident" href="../../../src/combine/stream/position.rs.html#23">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/combine/stream/position.rs.html#364">t</a>);
-                <span class="bool-val">true</span>
-            } <span class="kw">else</span> {
-                <span class="bool-val">false</span>
-            }
+        <span class="kw">let </span>positioner = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/combine/stream/position.rs.html#359">self</a>.positioner;
+        <a class="self" href="../../../src/combine/stream/position.rs.html#359">self</a>.input.<a href="../../../src/combine/stream/mod.rs.html#191-193">uncons_while</a>(|t| {
+            <span class="kw">if </span>predicate(t.clone()) {
+                <a href="../../../src/combine/stream/position.rs.html#363">positioner</a>.<a href="../../../src/combine/stream/position.rs.html#23">update</a>(<span class="kw-2">&amp;</span><a href="../../../src/combine/stream/position.rs.html#364">t</a>);
+                <span class="bool-val">true
+            </span>} <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>}
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">uncons_while1</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="kw-2">mut</span> <span class="ident">predicate</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Range</span>, <span class="ident">StreamErrorFor</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident"><span class="self">Self</span>::Token</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>uncons_while1&lt;F&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <span class="kw-2">mut </span>predicate: F,
+    ) -&gt; ParseResult&lt;<span class="self">Self</span>::Range, StreamErrorFor&lt;<span class="self">Self</span>&gt;&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="self">Self</span>::Token) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
-        <span class="kw">let</span> <span class="ident">positioner</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/combine/stream/position.rs.html#376">self</a>.<span class="ident">positioner</span>;
-        <a class="self" href="../../../src/combine/stream/position.rs.html#376">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#202-204">uncons_while1</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">predicate</span>(<span class="ident">t</span>.<span class="ident">clone</span>()) {
-                <a class="ident" href="../../../src/combine/stream/position.rs.html#382">positioner</a>.<a class="ident" href="../../../src/combine/stream/position.rs.html#23">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/combine/stream/position.rs.html#383">t</a>);
-                <span class="bool-val">true</span>
-            } <span class="kw">else</span> {
-                <span class="bool-val">false</span>
-            }
+        <span class="kw">let </span>positioner = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/combine/stream/position.rs.html#376">self</a>.positioner;
+        <a class="self" href="../../../src/combine/stream/position.rs.html#376">self</a>.input.<a href="../../../src/combine/stream/mod.rs.html#202-204">uncons_while1</a>(|t| {
+            <span class="kw">if </span>predicate(t.clone()) {
+                <a href="../../../src/combine/stream/position.rs.html#382">positioner</a>.<a href="../../../src/combine/stream/position.rs.html#23">update</a>(<span class="kw-2">&amp;</span><a href="../../../src/combine/stream/position.rs.html#383">t</a>);
+                <span class="bool-val">true
+            </span>} <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>}
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">distance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">end</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Checkpoint</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#394">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/combine/stream/position.rs.html#394">end</a>.<span class="ident">input</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>distance(<span class="kw-2">&amp;</span><span class="self">self</span>, end: <span class="kw-2">&amp;</span><span class="self">Self</span>::Checkpoint) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#394">self</a>.input.<a href="../../../src/combine/stream/mod.rs.html#235">distance</a>(<span class="kw-2">&amp;</span><a href="../../../src/combine/stream/position.rs.html#394">end</a>.input)
     }
 
-    <span class="kw">fn</span> <span class="ident">range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Range</span> {
-        <a class="self" href="../../../src/combine/stream/position.rs.html#398">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#238">range</a>()
+    <span class="kw">fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Range {
+        <a class="self" href="../../../src/combine/stream/position.rs.html#398">self</a>.input.<a href="../../../src/combine/stream/mod.rs.html#238">range</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../../src/combine/stream/mod.rs.html#143">ResetStream</a> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">X</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Input</span>: <a class="ident" href="../../../src/combine/stream/mod.rs.html#143">ResetStream</a>,
-    <span class="ident">X</span>: <span class="ident">Positioner</span><span class="op">&lt;</span><span class="ident">Input::Token</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>: <span class="ident">StreamError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span><span class="op">&gt;</span>,
-    <span class="ident">Input::Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span>, <span class="ident">X::Position</span>, <span class="ident">StreamError</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">Input::Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input::Token</span>, <span class="ident">Input::Range</span>, <span class="ident">Input::Position</span>, <span class="ident">StreamError</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Input, X, S&gt; <a href="../../../src/combine/stream/mod.rs.html#143">ResetStream</a> <span class="kw">for </span>Stream&lt;Input, X&gt;
+<span class="kw">where
+    </span>Input: <a href="../../../src/combine/stream/mod.rs.html#143">ResetStream</a>,
+    X: Positioner&lt;Input::Token&gt;,
+    S: StreamError&lt;Input::Token, Input::Range&gt;,
+    Input::Error: ParseError&lt;Input::Token, Input::Range, X::Position, StreamError = S&gt;,
+    Input::Error: ParseError&lt;Input::Token, Input::Range, Input::Position, StreamError = S&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Checkpoint</span> <span class="op">=</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Input::Checkpoint</span>, <span class="ident">X::Checkpoint</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">checkpoint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Checkpoint</span> {
-        <a class="ident" href="../../../src/combine/stream/position.rs.html#85">Stream</a> {
-            <span class="ident">input</span>: <a class="self" href="../../../src/combine/stream/position.rs.html#412">self</a>.<span class="ident">input</span>.<a class="ident" href="../../../src/combine/stream/mod.rs.html#148">checkpoint</a>(),
-            <span class="ident">positioner</span>: <a class="self" href="../../../src/combine/stream/position.rs.html#412">self</a>.<span class="ident">positioner</span>.<a class="ident" href="../../../src/combine/stream/position.rs.html#25">checkpoint</a>(),
+    <span class="kw">type </span>Checkpoint = Stream&lt;Input::Checkpoint, X::Checkpoint&gt;;
+    <span class="kw">fn </span>checkpoint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Checkpoint {
+        <a href="../../../src/combine/stream/position.rs.html#85">Stream</a> {
+            input: <a class="self" href="../../../src/combine/stream/position.rs.html#412">self</a>.input.<a href="../../../src/combine/stream/mod.rs.html#148">checkpoint</a>(),
+            positioner: <a class="self" href="../../../src/combine/stream/position.rs.html#412">self</a>.positioner.<a href="../../../src/combine/stream/position.rs.html#25">checkpoint</a>(),
         }
     }
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">checkpoint</span>: <span class="ident"><span class="self">Self</span>::Checkpoint</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">reset</span>(<span class="ident">checkpoint</span>.<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/combine/stream/position.rs.html#418">self</a>.<span class="ident">positioner</span>.<a class="ident" href="../../../src/combine/stream/position.rs.html#26">reset</a>(<a class="ident" href="../../../src/combine/stream/position.rs.html#418">checkpoint</a>.<span class="ident">positioner</span>);
+    <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, checkpoint: <span class="self">Self</span>::Checkpoint) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.input.reset(checkpoint.input)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/combine/stream/position.rs.html#418">self</a>.positioner.<a href="../../../src/combine/stream/position.rs.html#26">reset</a>(<a href="../../../src/combine/stream/position.rs.html#418">checkpoint</a>.positioner);
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, test))]
+</span><span class="kw">mod </span>tests {
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Parser</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::Parser;
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_positioner</span>() {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> [<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;b&quot;</span>.<span class="ident">to_string</span>()];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::any</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">parse</span>(<span class="ident">Stream::new</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..]));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_positioner() {
+        <span class="kw">let </span>input = [<span class="string">&quot;a&quot;</span>.to_string(), <span class="string">&quot;b&quot;</span>.to_string()];
+        <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">crate</span>::any();
+        <span class="kw">let </span>result = parser.parse(Stream::new(<span class="kw-2">&amp;</span>input[..]));
         <span class="macro">assert_eq!</span>(
-            <span class="ident">result</span>,
+            result,
             <span class="prelude-val">Ok</span>((
-                <span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident">Stream::with_positioner</span>(
-                    <span class="kw-2">&amp;</span>[<span class="string">&quot;b&quot;</span>.<span class="ident">to_string</span>()][..],
-                    <span class="ident">IndexPositioner::new_with_position</span>(<span class="number">1</span>)
+                <span class="string">&quot;a&quot;</span>.to_string(),
+                Stream::with_positioner(
+                    <span class="kw-2">&amp;</span>[<span class="string">&quot;b&quot;</span>.to_string()][..],
+                    IndexPositioner::new_with_position(<span class="number">1</span>)
                 )
             ))
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_range_positioner</span>() {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> [<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;b&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;c&quot;</span>.<span class="ident">to_string</span>()];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::parser::range::take</span>(<span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">parse</span>(<span class="ident">Stream::new</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..]));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_range_positioner() {
+        <span class="kw">let </span>input = [<span class="string">&quot;a&quot;</span>.to_string(), <span class="string">&quot;b&quot;</span>.to_string(), <span class="string">&quot;c&quot;</span>.to_string()];
+        <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">crate</span>::parser::range::take(<span class="number">2</span>);
+        <span class="kw">let </span>result = parser.parse(Stream::new(<span class="kw-2">&amp;</span>input[..]));
         <span class="macro">assert_eq!</span>(
-            <span class="ident">result</span>,
+            result,
             <span class="prelude-val">Ok</span>((
-                <span class="kw-2">&amp;</span>[<span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;b&quot;</span>.<span class="ident">to_string</span>()][..],
-                <span class="ident">Stream::with_positioner</span>(
-                    <span class="kw-2">&amp;</span>[<span class="string">&quot;c&quot;</span>.<span class="ident">to_string</span>()][..],
-                    <span class="ident">IndexPositioner::new_with_position</span>(<span class="number">2</span>)
+                <span class="kw-2">&amp;</span>[<span class="string">&quot;a&quot;</span>.to_string(), <span class="string">&quot;b&quot;</span>.to_string()][..],
+                Stream::with_positioner(
+                    <span class="kw-2">&amp;</span>[<span class="string">&quot;c&quot;</span>.to_string()][..],
+                    IndexPositioner::new_with_position(<span class="number">2</span>)
                 )
             ))
         );
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="combine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="combine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

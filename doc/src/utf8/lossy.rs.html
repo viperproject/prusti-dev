@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/utf-8-0.7.6/src/lossy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lossy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../utf8/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../utf8/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../utf8/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/utf-8-0.7.6/src/lossy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lossy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../utf8/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../utf8/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../utf8/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -90,97 +90,97 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// A push-based, lossy decoder for UTF-8.</span>
-<span class="doccomment">/// Errors are replaced with the U+FFFD replacement character.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Users “push” bytes into the decoder, which in turn “pushes” `&amp;str` slices into a callback.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// For example, `String::from_utf8_lossy` (but returning `String` instead of `Cow`)</span>
-<span class="doccomment">/// can be rewritten as:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// fn string_from_utf8_lossy(input: &amp;[u8]) -&gt; String {</span>
-<span class="doccomment">///     let mut string = String::new();</span>
-<span class="doccomment">///     utf8::LossyDecoder::new(|s| string.push_str(s)).feed(input);</span>
-<span class="doccomment">///     string</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// **Note:** Dropping the decoder signals the end of the input:</span>
-<span class="doccomment">/// If the last input chunk ended with an incomplete byte sequence for a code point,</span>
-<span class="doccomment">/// this is an error and a replacement character is emitted.</span>
-<span class="doccomment">/// Use `std::mem::forget` to inhibit this behavior.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LossyDecoder</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)<span class="op">&gt;</span> {
-    <span class="ident">push_str</span>: <span class="ident">F</span>,
-    <span class="ident">incomplete</span>: <a class="ident" href="../../src/utf8/lib.rs.html#66">Incomplete</a>,
+<span class="doccomment">/// A push-based, lossy decoder for UTF-8.
+/// Errors are replaced with the U+FFFD replacement character.
+///
+/// Users “push” bytes into the decoder, which in turn “pushes” `&amp;str` slices into a callback.
+///
+/// For example, `String::from_utf8_lossy` (but returning `String` instead of `Cow`)
+/// can be rewritten as:
+///
+/// ```rust
+/// fn string_from_utf8_lossy(input: &amp;[u8]) -&gt; String {
+///     let mut string = String::new();
+///     utf8::LossyDecoder::new(|s| string.push_str(s)).feed(input);
+///     string
+/// }
+/// ```
+///
+/// **Note:** Dropping the decoder signals the end of the input:
+/// If the last input chunk ended with an incomplete byte sequence for a code point,
+/// this is an error and a replacement character is emitted.
+/// Use `std::mem::forget` to inhibit this behavior.
+</span><span class="kw">pub struct </span>LossyDecoder&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)&gt; {
+    push_str: F,
+    incomplete: <a href="../../src/utf8/lib.rs.html#66">Incomplete</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)<span class="op">&gt;</span> <span class="ident">LossyDecoder</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new decoder from a callback.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">push_str</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/utf8/lossy.rs.html#23">LossyDecoder</a> {
-            <span class="ident">push_str</span>: <a class="ident" href="../../src/utf8/lossy.rs.html#31">push_str</a>,
-            <span class="ident">incomplete</span>: <a class="ident" href="../../src/utf8/lib.rs.html#66">Incomplete</a> {
-                <span class="ident">buffer</span>: [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],
-                <span class="ident">buffer_len</span>: <span class="number">0</span>,
+<span class="kw">impl</span>&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)&gt; LossyDecoder&lt;F&gt; {
+    <span class="doccomment">/// Create a new decoder from a callback.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(push_str: F) -&gt; <span class="self">Self </span>{
+        <a href="../../src/utf8/lossy.rs.html#23">LossyDecoder</a> {
+            push_str: <a href="../../src/utf8/lossy.rs.html#31">push_str</a>,
+            incomplete: <a href="../../src/utf8/lib.rs.html#66">Incomplete</a> {
+                buffer: [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],
+                buffer_len: <span class="number">0</span>,
             },
         }
     }
 
-    <span class="doccomment">/// Feed one chunk of input into the decoder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The input is decoded lossily</span>
-    <span class="doccomment">/// and the callback called once or more with `&amp;str` string slices.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the UTF-8 byte sequence for one code point was split into this bytes chunk</span>
-    <span class="doccomment">/// and previous bytes chunks, it will be correctly pieced back together.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">feed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">incomplete</span>.<span class="ident">buffer_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">match</span> <a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.<span class="ident">incomplete</span>.<a class="ident" href="../../src/utf8/lib.rs.html#127-128">try_complete</a>(<a class="ident" href="../../src/utf8/lossy.rs.html#48">input</a>) {
-                <span class="prelude-val">Some</span>((<span class="prelude-val">Ok</span>(<span class="ident">s</span>), <span class="ident">remaining</span>)) =&gt; {
-                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.<span class="ident">push_str</span>)(<a class="ident" href="../../src/utf8/lossy.rs.html#51">s</a>);
-                    <a class="ident" href="../../src/utf8/lossy.rs.html#48">input</a> <span class="op">=</span> <a class="ident" href="../../src/utf8/lossy.rs.html#51">remaining</a>
+    <span class="doccomment">/// Feed one chunk of input into the decoder.
+    ///
+    /// The input is decoded lossily
+    /// and the callback called once or more with `&amp;str` string slices.
+    ///
+    /// If the UTF-8 byte sequence for one code point was split into this bytes chunk
+    /// and previous bytes chunks, it will be correctly pieced back together.
+    </span><span class="kw">pub fn </span>feed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+        <span class="kw">if </span><span class="self">self</span>.incomplete.buffer_len &gt; <span class="number">0 </span>{
+            <span class="kw">match </span><a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.incomplete.<a href="../../src/utf8/lib.rs.html#127-128">try_complete</a>(<a href="../../src/utf8/lossy.rs.html#48">input</a>) {
+                <span class="prelude-val">Some</span>((<span class="prelude-val">Ok</span>(s), remaining)) =&gt; {
+                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.push_str)(<a href="../../src/utf8/lossy.rs.html#51">s</a>);
+                    <a href="../../src/utf8/lossy.rs.html#48">input</a> = <a href="../../src/utf8/lossy.rs.html#51">remaining</a>
                 }
-                <span class="prelude-val">Some</span>((<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="ident">remaining</span>)) =&gt; {
-                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.<span class="ident">push_str</span>)(<a class="ident" href="../../src/utf8/lib.rs.html#13">REPLACEMENT_CHARACTER</a>);
-                    <a class="ident" href="../../src/utf8/lossy.rs.html#48">input</a> <span class="op">=</span> <a class="ident" href="../../src/utf8/lossy.rs.html#55">remaining</a>
+                <span class="prelude-val">Some</span>((<span class="prelude-val">Err</span>(<span class="kw">_</span>), remaining)) =&gt; {
+                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.push_str)(<a href="../../src/utf8/lib.rs.html#13">REPLACEMENT_CHARACTER</a>);
+                    <a href="../../src/utf8/lossy.rs.html#48">input</a> = <a href="../../src/utf8/lossy.rs.html#55">remaining</a>
                 }
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="kw">return</span>
-                }
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="kw">return
+                </span>}
             }
         }
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="ident" href="../../src/utf8/lib.rs.html#71">decode</a>(<a class="ident" href="../../src/utf8/lossy.rs.html#48">input</a>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; {
-                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.<span class="ident">push_str</span>)(<a class="ident" href="../../src/utf8/lossy.rs.html#66">s</a>);
-                    <span class="kw">return</span>
-                }
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/utf8/lib.rs.html#27">DecodeError::Incomplete</a> { <span class="ident">valid_prefix</span>, <span class="ident">incomplete_suffix</span> }) =&gt; {
-                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.<span class="ident">push_str</span>)(<a class="ident" href="../../src/utf8/lossy.rs.html#70">valid_prefix</a>);
-                    <a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.<span class="ident">incomplete</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/lossy.rs.html#70">incomplete_suffix</a>;
-                    <span class="kw">return</span>
-                }
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/utf8/lib.rs.html#19">DecodeError::Invalid</a> { <span class="ident">valid_prefix</span>, <span class="ident">remaining_input</span>, .. }) =&gt; {
-                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.<span class="ident">push_str</span>)(<a class="ident" href="../../src/utf8/lossy.rs.html#75">valid_prefix</a>);
-                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.<span class="ident">push_str</span>)(<a class="ident" href="../../src/utf8/lib.rs.html#13">REPLACEMENT_CHARACTER</a>);
-                    <a class="ident" href="../../src/utf8/lossy.rs.html#48">input</a> <span class="op">=</span> <a class="ident" href="../../src/utf8/lossy.rs.html#75">remaining_input</a>
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a href="../../src/utf8/lib.rs.html#71">decode</a>(<a href="../../src/utf8/lossy.rs.html#48">input</a>) {
+                <span class="prelude-val">Ok</span>(s) =&gt; {
+                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.push_str)(<a href="../../src/utf8/lossy.rs.html#66">s</a>);
+                    <span class="kw">return
+                </span>}
+                <span class="prelude-val">Err</span>(<a href="../../src/utf8/lib.rs.html#27">DecodeError::Incomplete</a> { valid_prefix, incomplete_suffix }) =&gt; {
+                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.push_str)(<a href="../../src/utf8/lossy.rs.html#70">valid_prefix</a>);
+                    <a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.incomplete = <a href="../../src/utf8/lossy.rs.html#70">incomplete_suffix</a>;
+                    <span class="kw">return
+                </span>}
+                <span class="prelude-val">Err</span>(<a href="../../src/utf8/lib.rs.html#19">DecodeError::Invalid</a> { valid_prefix, remaining_input, .. }) =&gt; {
+                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.push_str)(<a href="../../src/utf8/lossy.rs.html#75">valid_prefix</a>);
+                    (<a class="self" href="../../src/utf8/lossy.rs.html#48">self</a>.push_str)(<a href="../../src/utf8/lib.rs.html#13">REPLACEMENT_CHARACTER</a>);
+                    <a href="../../src/utf8/lossy.rs.html#48">input</a> = <a href="../../src/utf8/lossy.rs.html#75">remaining_input</a>
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)<span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">LossyDecoder</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">incomplete</span>.<span class="ident">buffer_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            (<a class="self" href="../../src/utf8/lossy.rs.html#87">self</a>.<span class="ident">push_str</span>)(<a class="ident" href="../../src/utf8/lib.rs.html#13">REPLACEMENT_CHARACTER</a>)
+<span class="kw">impl</span>&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>LossyDecoder&lt;F&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.incomplete.buffer_len &gt; <span class="number">0 </span>{
+            (<a class="self" href="../../src/utf8/lossy.rs.html#87">self</a>.push_str)(<a href="../../src/utf8/lib.rs.html#13">REPLACEMENT_CHARACTER</a>)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="utf8" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="utf8" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

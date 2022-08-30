@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-automata-0.1.10/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex_automata/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex_automata/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex_automata/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-automata-0.1.10/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex_automata/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex_automata/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex_automata/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -361,368 +361,368 @@
 <span id="361">361</span>
 <span id="362">362</span>
 <span id="363">363</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/regex_automata/state_id.rs.html#115-116">state_id::StateID</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/regex_automata/state_id.rs.html#115-116">state_id::StateID</a>;
 
-<span class="doccomment">/// A trait describing the interface of a deterministic finite automaton (DFA).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Every DFA has exactly one start state and at least one dead state (which</span>
-<span class="doccomment">/// may be the same, as in the case of an empty DFA). In all cases, a state</span>
-<span class="doccomment">/// identifier of `0` must be a dead state such that `DFA::is_dead_state(0)`</span>
-<span class="doccomment">/// always returns `true`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Every DFA also has zero or more match states, such that</span>
-<span class="doccomment">/// `DFA::is_match_state(id)` returns `true` if and only if `id` corresponds to</span>
-<span class="doccomment">/// a match state.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In general, users of this trait likely will only need to use the search</span>
-<span class="doccomment">/// routines such as `is_match`, `shortest_match`, `find` or `rfind`. The other</span>
-<span class="doccomment">/// methods are lower level and are used for walking the transitions of a DFA</span>
-<span class="doccomment">/// manually. In particular, the aforementioned search routines are implemented</span>
-<span class="doccomment">/// generically in terms of the lower level transition walking routines.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DFA</span> {
-    <span class="doccomment">/// The representation used for state identifiers in this DFA.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Typically, this is one of `u8`, `u16`, `u32`, `u64` or `usize`.</span>
-    <span class="kw">type</span> <span class="ident">ID</span>: <a class="ident" href="../../src/regex_automata/state_id.rs.html#115-116">StateID</a>;
+<span class="doccomment">/// A trait describing the interface of a deterministic finite automaton (DFA).
+///
+/// Every DFA has exactly one start state and at least one dead state (which
+/// may be the same, as in the case of an empty DFA). In all cases, a state
+/// identifier of `0` must be a dead state such that `DFA::is_dead_state(0)`
+/// always returns `true`.
+///
+/// Every DFA also has zero or more match states, such that
+/// `DFA::is_match_state(id)` returns `true` if and only if `id` corresponds to
+/// a match state.
+///
+/// In general, users of this trait likely will only need to use the search
+/// routines such as `is_match`, `shortest_match`, `find` or `rfind`. The other
+/// methods are lower level and are used for walking the transitions of a DFA
+/// manually. In particular, the aforementioned search routines are implemented
+/// generically in terms of the lower level transition walking routines.
+</span><span class="kw">pub trait </span>DFA {
+    <span class="doccomment">/// The representation used for state identifiers in this DFA.
+    ///
+    /// Typically, this is one of `u8`, `u16`, `u32`, `u64` or `usize`.
+    </span><span class="kw">type </span>ID: <a href="../../src/regex_automata/state_id.rs.html#115-116">StateID</a>;
 
-    <span class="doccomment">/// Return the identifier of this DFA&#39;s start state.</span>
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ID</span>;
+    <span class="doccomment">/// Return the identifier of this DFA&#39;s start state.
+    </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::ID;
 
-    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a match</span>
-    <span class="doccomment">/// state.</span>
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a match
+    /// state.
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
 
-    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a dead</span>
-    <span class="doccomment">/// state. When a DFA enters a dead state, it is impossible to leave and</span>
-    <span class="doccomment">/// thus can never lead to a match.</span>
-    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a dead
+    /// state. When a DFA enters a dead state, it is impossible to leave and
+    /// thus can never lead to a match.
+    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
 
-    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to either</span>
-    <span class="doccomment">/// a dead state or a match state, such that one of `is_match_state(id)`</span>
-    <span class="doccomment">/// or `is_dead_state(id)` must return true.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Depending on the implementation of the DFA, this routine can be used</span>
-    <span class="doccomment">/// to save a branch in the core matching loop. Nevertheless,</span>
-    <span class="doccomment">/// `is_match_state(id) || is_dead_state(id)` is always a valid</span>
-    <span class="doccomment">/// implementation.</span>
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to either
+    /// a dead state or a match state, such that one of `is_match_state(id)`
+    /// or `is_dead_state(id)` must return true.
+    ///
+    /// Depending on the implementation of the DFA, this routine can be used
+    /// to save a branch in the core matching loop. Nevertheless,
+    /// `is_match_state(id) || is_dead_state(id)` is always a valid
+    /// implementation.
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
 
-    <span class="doccomment">/// Returns true if and only if this DFA is anchored.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When a DFA is anchored, it is only allowed to report matches that</span>
-    <span class="doccomment">/// start at index `0`.</span>
-    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Returns true if and only if this DFA is anchored.
+    ///
+    /// When a DFA is anchored, it is only allowed to report matches that
+    /// start at index `0`.
+    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>;
 
-    <span class="doccomment">/// Given the current state that this DFA is in and the next input byte,</span>
-    <span class="doccomment">/// this method returns the identifier of the next state. The identifier</span>
-    <span class="doccomment">/// returned is always valid, but it may correspond to a dead state.</span>
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident"><span class="self">Self</span>::ID</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident"><span class="self">Self</span>::ID</span>;
+    <span class="doccomment">/// Given the current state that this DFA is in and the next input byte,
+    /// this method returns the identifier of the next state. The identifier
+    /// returned is always valid, but it may correspond to a dead state.
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: <span class="self">Self</span>::ID, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span>::ID;
 
-    <span class="doccomment">/// Like `next_state`, but its implementation may look up the next state</span>
-    <span class="doccomment">/// without memory safety checks such as bounds checks. As such, callers</span>
-    <span class="doccomment">/// must ensure that the given identifier corresponds to a valid DFA</span>
-    <span class="doccomment">/// state. Implementors must, in turn, ensure that this routine is safe</span>
-    <span class="doccomment">/// for all valid state identifiers and for all possible `u8` values.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_state_unchecked</span>(
+    <span class="doccomment">/// Like `next_state`, but its implementation may look up the next state
+    /// without memory safety checks such as bounds checks. As such, callers
+    /// must ensure that the given identifier corresponds to a valid DFA
+    /// state. Implementors must, in turn, ensure that this routine is safe
+    /// for all valid state identifiers and for all possible `u8` values.
+    </span><span class="kw">unsafe fn </span>next_state_unchecked(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">current</span>: <span class="ident"><span class="self">Self</span>::ID</span>,
-        <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
-    ) -&gt; <span class="ident"><span class="self">Self</span>::ID</span>;
+        current: <span class="self">Self</span>::ID,
+        input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+    ) -&gt; <span class="self">Self</span>::ID;
 
-    <span class="doccomment">/// Returns true if and only if the given bytes match this DFA.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This routine may short circuit if it knows that scanning future input</span>
-    <span class="doccomment">/// will never lead to a different result. In particular, if a DFA enters</span>
-    <span class="doccomment">/// a match state or a dead state, then this routine will return `true` or</span>
-    <span class="doccomment">/// `false`, respectively, without inspecting any future input.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This example shows how to use this method with a</span>
-    <span class="doccomment">/// [`DenseDFA`](enum.DenseDFA.html).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use regex_automata::{DFA, DenseDFA};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn example() -&gt; Result&lt;(), regex_automata::Error&gt; {</span>
-    <span class="doccomment">/// let dfa = DenseDFA::new(&quot;foo[0-9]+bar&quot;)?;</span>
-    <span class="doccomment">/// assert_eq!(true, dfa.is_match(b&quot;foo12345bar&quot;));</span>
-    <span class="doccomment">/// assert_eq!(false, dfa.is_match(b&quot;foobar&quot;));</span>
-    <span class="doccomment">/// # Ok(()) }; example().unwrap()</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex_automata/dfa.rs.html#91">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#210">is_match_at</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#91">bytes</a>, <span class="number">0</span>)
+    <span class="doccomment">/// Returns true if and only if the given bytes match this DFA.
+    ///
+    /// This routine may short circuit if it knows that scanning future input
+    /// will never lead to a different result. In particular, if a DFA enters
+    /// a match state or a dead state, then this routine will return `true` or
+    /// `false`, respectively, without inspecting any future input.
+    ///
+    /// # Example
+    ///
+    /// This example shows how to use this method with a
+    /// [`DenseDFA`](enum.DenseDFA.html).
+    ///
+    /// ```
+    /// use regex_automata::{DFA, DenseDFA};
+    ///
+    /// # fn example() -&gt; Result&lt;(), regex_automata::Error&gt; {
+    /// let dfa = DenseDFA::new(&quot;foo[0-9]+bar&quot;)?;
+    /// assert_eq!(true, dfa.is_match(b&quot;foo12345bar&quot;));
+    /// assert_eq!(false, dfa.is_match(b&quot;foobar&quot;));
+    /// # Ok(()) }; example().unwrap()
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/regex_automata/dfa.rs.html#91">self</a>.<a href="../../src/regex_automata/dfa.rs.html#210">is_match_at</a>(<a href="../../src/regex_automata/dfa.rs.html#91">bytes</a>, <span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Returns the first position at which a match is found.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This routine stops scanning input in precisely the same circumstances</span>
-    <span class="doccomment">/// as `is_match`. The key difference is that this routine returns the</span>
-    <span class="doccomment">/// position at which it stopped scanning input if and only if a match</span>
-    <span class="doccomment">/// was found. If no match is found, then `None` is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This example shows how to use this method with a</span>
-    <span class="doccomment">/// [`DenseDFA`](enum.DenseDFA.html).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use regex_automata::{DFA, DenseDFA};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn example() -&gt; Result&lt;(), regex_automata::Error&gt; {</span>
-    <span class="doccomment">/// let dfa = DenseDFA::new(&quot;foo[0-9]+&quot;)?;</span>
-    <span class="doccomment">/// assert_eq!(Some(4), dfa.shortest_match(b&quot;foo12345&quot;));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Normally, the end of the leftmost first match here would be 3,</span>
-    <span class="doccomment">/// // but the shortest match semantics detect a match earlier.</span>
-    <span class="doccomment">/// let dfa = DenseDFA::new(&quot;abc|a&quot;)?;</span>
-    <span class="doccomment">/// assert_eq!(Some(1), dfa.shortest_match(b&quot;abc&quot;));</span>
-    <span class="doccomment">/// # Ok(()) }; example().unwrap()</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">shortest_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/regex_automata/dfa.rs.html#121">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#235">shortest_match_at</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#121">bytes</a>, <span class="number">0</span>)
+    <span class="doccomment">/// Returns the first position at which a match is found.
+    ///
+    /// This routine stops scanning input in precisely the same circumstances
+    /// as `is_match`. The key difference is that this routine returns the
+    /// position at which it stopped scanning input if and only if a match
+    /// was found. If no match is found, then `None` is returned.
+    ///
+    /// # Example
+    ///
+    /// This example shows how to use this method with a
+    /// [`DenseDFA`](enum.DenseDFA.html).
+    ///
+    /// ```
+    /// use regex_automata::{DFA, DenseDFA};
+    ///
+    /// # fn example() -&gt; Result&lt;(), regex_automata::Error&gt; {
+    /// let dfa = DenseDFA::new(&quot;foo[0-9]+&quot;)?;
+    /// assert_eq!(Some(4), dfa.shortest_match(b&quot;foo12345&quot;));
+    ///
+    /// // Normally, the end of the leftmost first match here would be 3,
+    /// // but the shortest match semantics detect a match earlier.
+    /// let dfa = DenseDFA::new(&quot;abc|a&quot;)?;
+    /// assert_eq!(Some(1), dfa.shortest_match(b&quot;abc&quot;));
+    /// # Ok(()) }; example().unwrap()
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>shortest_match(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../src/regex_automata/dfa.rs.html#121">self</a>.<a href="../../src/regex_automata/dfa.rs.html#235">shortest_match_at</a>(<a href="../../src/regex_automata/dfa.rs.html#121">bytes</a>, <span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Returns the end offset of the longest match. If no match exists,</span>
-    <span class="doccomment">/// then `None` is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Implementors of this trait are not required to implement any particular</span>
-    <span class="doccomment">/// match semantics (such as leftmost-first), which are instead manifest in</span>
-    <span class="doccomment">/// the DFA&#39;s topology itself.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In particular, this method must continue searching even after it</span>
-    <span class="doccomment">/// enters a match state. The search should only terminate once it has</span>
-    <span class="doccomment">/// reached the end of the input or when it has entered a dead state. Upon</span>
-    <span class="doccomment">/// termination, the position of the last byte seen while still in a match</span>
-    <span class="doccomment">/// state is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This example shows how to use this method with a</span>
-    <span class="doccomment">/// [`DenseDFA`](enum.DenseDFA.html). By default, a dense DFA uses</span>
-    <span class="doccomment">/// &quot;leftmost first&quot; match semantics.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Leftmost first match semantics corresponds to the match with the</span>
-    <span class="doccomment">/// smallest starting offset, but where the end offset is determined by</span>
-    <span class="doccomment">/// preferring earlier branches in the original regular expression. For</span>
-    <span class="doccomment">/// example, `Sam|Samwise` will match `Sam` in `Samwise`, but `Samwise|Sam`</span>
-    <span class="doccomment">/// will match `Samwise` in `Samwise`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Generally speaking, the &quot;leftmost first&quot; match is how most backtracking</span>
-    <span class="doccomment">/// regular expressions tend to work. This is in contrast to POSIX-style</span>
-    <span class="doccomment">/// regular expressions that yield &quot;leftmost longest&quot; matches. Namely,</span>
-    <span class="doccomment">/// both `Sam|Samwise` and `Samwise|Sam` match `Samwise` when using</span>
-    <span class="doccomment">/// leftmost longest semantics.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use regex_automata::{DFA, DenseDFA};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn example() -&gt; Result&lt;(), regex_automata::Error&gt; {</span>
-    <span class="doccomment">/// let dfa = DenseDFA::new(&quot;foo[0-9]+&quot;)?;</span>
-    <span class="doccomment">/// assert_eq!(Some(8), dfa.find(b&quot;foo12345&quot;));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Even though a match is found after reading the first byte (`a`),</span>
-    <span class="doccomment">/// // the leftmost first match semantics demand that we find the earliest</span>
-    <span class="doccomment">/// // match that prefers earlier parts of the pattern over latter parts.</span>
-    <span class="doccomment">/// let dfa = DenseDFA::new(&quot;abc|a&quot;)?;</span>
-    <span class="doccomment">/// assert_eq!(Some(3), dfa.find(b&quot;abc&quot;));</span>
-    <span class="doccomment">/// # Ok(()) }; example().unwrap()</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/regex_automata/dfa.rs.html#171">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#264">find_at</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#171">bytes</a>, <span class="number">0</span>)
+    <span class="doccomment">/// Returns the end offset of the longest match. If no match exists,
+    /// then `None` is returned.
+    ///
+    /// Implementors of this trait are not required to implement any particular
+    /// match semantics (such as leftmost-first), which are instead manifest in
+    /// the DFA&#39;s topology itself.
+    ///
+    /// In particular, this method must continue searching even after it
+    /// enters a match state. The search should only terminate once it has
+    /// reached the end of the input or when it has entered a dead state. Upon
+    /// termination, the position of the last byte seen while still in a match
+    /// state is returned.
+    ///
+    /// # Example
+    ///
+    /// This example shows how to use this method with a
+    /// [`DenseDFA`](enum.DenseDFA.html). By default, a dense DFA uses
+    /// &quot;leftmost first&quot; match semantics.
+    ///
+    /// Leftmost first match semantics corresponds to the match with the
+    /// smallest starting offset, but where the end offset is determined by
+    /// preferring earlier branches in the original regular expression. For
+    /// example, `Sam|Samwise` will match `Sam` in `Samwise`, but `Samwise|Sam`
+    /// will match `Samwise` in `Samwise`.
+    ///
+    /// Generally speaking, the &quot;leftmost first&quot; match is how most backtracking
+    /// regular expressions tend to work. This is in contrast to POSIX-style
+    /// regular expressions that yield &quot;leftmost longest&quot; matches. Namely,
+    /// both `Sam|Samwise` and `Samwise|Sam` match `Samwise` when using
+    /// leftmost longest semantics.
+    ///
+    /// ```
+    /// use regex_automata::{DFA, DenseDFA};
+    ///
+    /// # fn example() -&gt; Result&lt;(), regex_automata::Error&gt; {
+    /// let dfa = DenseDFA::new(&quot;foo[0-9]+&quot;)?;
+    /// assert_eq!(Some(8), dfa.find(b&quot;foo12345&quot;));
+    ///
+    /// // Even though a match is found after reading the first byte (`a`),
+    /// // the leftmost first match semantics demand that we find the earliest
+    /// // match that prefers earlier parts of the pattern over latter parts.
+    /// let dfa = DenseDFA::new(&quot;abc|a&quot;)?;
+    /// assert_eq!(Some(3), dfa.find(b&quot;abc&quot;));
+    /// # Ok(()) }; example().unwrap()
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../src/regex_automata/dfa.rs.html#171">self</a>.<a href="../../src/regex_automata/dfa.rs.html#264">find_at</a>(<a href="../../src/regex_automata/dfa.rs.html#171">bytes</a>, <span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Returns the start offset of the longest match in reverse, by searching</span>
-    <span class="doccomment">/// from the end of the input towards the start of the input. If no match</span>
-    <span class="doccomment">/// exists, then `None` is returned. In other words, this has the same</span>
-    <span class="doccomment">/// match semantics as `find`, but in reverse.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This example shows how to use this method with a</span>
-    <span class="doccomment">/// [`DenseDFA`](enum.DenseDFA.html). In particular, this routine</span>
-    <span class="doccomment">/// is principally useful when used in conjunction with the</span>
-    <span class="doccomment">/// [`dense::Builder::reverse`](dense/struct.Builder.html#method.reverse)</span>
-    <span class="doccomment">/// configuration knob. In general, it&#39;s unlikely to be correct to use both</span>
-    <span class="doccomment">/// `find` and `rfind` with the same DFA since any particular DFA will only</span>
-    <span class="doccomment">/// support searching in one direction.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use regex_automata::{dense, DFA};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn example() -&gt; Result&lt;(), regex_automata::Error&gt; {</span>
-    <span class="doccomment">/// let dfa = dense::Builder::new().reverse(true).build(&quot;foo[0-9]+&quot;)?;</span>
-    <span class="doccomment">/// assert_eq!(Some(0), dfa.rfind(b&quot;foo12345&quot;));</span>
-    <span class="doccomment">/// # Ok(()) }; example().unwrap()</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">rfind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/regex_automata/dfa.rs.html#199">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#296">rfind_at</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#199">bytes</a>, <a class="ident" href="../../src/regex_automata/dfa.rs.html#199">bytes</a>.<span class="ident">len</span>())
+    <span class="doccomment">/// Returns the start offset of the longest match in reverse, by searching
+    /// from the end of the input towards the start of the input. If no match
+    /// exists, then `None` is returned. In other words, this has the same
+    /// match semantics as `find`, but in reverse.
+    ///
+    /// # Example
+    ///
+    /// This example shows how to use this method with a
+    /// [`DenseDFA`](enum.DenseDFA.html). In particular, this routine
+    /// is principally useful when used in conjunction with the
+    /// [`dense::Builder::reverse`](dense/struct.Builder.html#method.reverse)
+    /// configuration knob. In general, it&#39;s unlikely to be correct to use both
+    /// `find` and `rfind` with the same DFA since any particular DFA will only
+    /// support searching in one direction.
+    ///
+    /// ```
+    /// use regex_automata::{dense, DFA};
+    ///
+    /// # fn example() -&gt; Result&lt;(), regex_automata::Error&gt; {
+    /// let dfa = dense::Builder::new().reverse(true).build(&quot;foo[0-9]+&quot;)?;
+    /// assert_eq!(Some(0), dfa.rfind(b&quot;foo12345&quot;));
+    /// # Ok(()) }; example().unwrap()
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>rfind(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../src/regex_automata/dfa.rs.html#199">self</a>.<a href="../../src/regex_automata/dfa.rs.html#296">rfind_at</a>(<a href="../../src/regex_automata/dfa.rs.html#199">bytes</a>, <a href="../../src/regex_automata/dfa.rs.html#199">bytes</a>.len())
     }
 
-    <span class="doccomment">/// Returns the same as `is_match`, but starts the search at the given</span>
-    <span class="doccomment">/// offset.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The significance of the starting point is that it takes the surrounding</span>
-    <span class="doccomment">/// context into consideration. For example, if the DFA is anchored, then</span>
-    <span class="doccomment">/// a match can only occur when `start == 0`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_anchored</span>() <span class="op">&amp;&amp;</span> <span class="ident">start</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="doccomment">/// Returns the same as `is_match`, but starts the search at the given
+    /// offset.
+    ///
+    /// The significance of the starting point is that it takes the surrounding
+    /// context into consideration. For example, if the DFA is anchored, then
+    /// a match can only occur when `start == 0`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        <span class="kw">if </span><span class="self">self</span>.is_anchored() &amp;&amp; start &gt; <span class="number">0 </span>{
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/regex_automata/dfa.rs.html#210">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#26">start_state</a>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="ident">state</span>) {
-            <span class="kw">return</span> <a class="self" href="../../src/regex_automata/dfa.rs.html#210">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#30">is_match_state</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#215">state</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../src/regex_automata/dfa.rs.html#210">self</a>.<a href="../../src/regex_automata/dfa.rs.html#26">start_state</a>();
+        <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(state) {
+            <span class="kw">return </span><a class="self" href="../../src/regex_automata/dfa.rs.html#210">self</a>.<a href="../../src/regex_automata/dfa.rs.html#30">is_match_state</a>(<a href="../../src/regex_automata/dfa.rs.html#215">state</a>);
         }
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">b</span> <span class="kw">in</span> <span class="ident">bytes</span>[<span class="ident">start</span>..].<span class="ident">iter</span>() {
-            <span class="ident">state</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_state_unchecked</span>(<span class="ident">state</span>, <span class="ident">b</span>) };
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="ident">state</span>) {
-                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">is_match_state</span>(<span class="ident">state</span>);
+        <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>bytes[start..].iter() {
+            state = <span class="kw">unsafe </span>{ <span class="self">self</span>.next_state_unchecked(state, b) };
+            <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(state) {
+                <span class="kw">return </span><span class="self">self</span>.is_match_state(state);
             }
         }
-        <span class="bool-val">false</span>
-    }
+        <span class="bool-val">false
+    </span>}
 
-    <span class="doccomment">/// Returns the same as `shortest_match`, but starts the search at the</span>
-    <span class="doccomment">/// given offset.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The significance of the starting point is that it takes the surrounding</span>
-    <span class="doccomment">/// context into consideration. For example, if the DFA is anchored, then</span>
-    <span class="doccomment">/// a match can only occur when `start == 0`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">shortest_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_anchored</span>() <span class="op">&amp;&amp;</span> <span class="ident">start</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="doccomment">/// Returns the same as `shortest_match`, but starts the search at the
+    /// given offset.
+    ///
+    /// The significance of the starting point is that it takes the surrounding
+    /// context into consideration. For example, if the DFA is anchored, then
+    /// a match can only occur when `start == 0`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>shortest_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_anchored() &amp;&amp; start &gt; <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/regex_automata/dfa.rs.html#235">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#26">start_state</a>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="ident">state</span>) {
-            <span class="kw">return</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_dead_state</span>(<span class="ident">state</span>) { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#235">start</a>) };
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../src/regex_automata/dfa.rs.html#235">self</a>.<a href="../../src/regex_automata/dfa.rs.html#26">start_state</a>();
+        <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(state) {
+            <span class="kw">return if </span><span class="self">self</span>.is_dead_state(state) { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(<a href="../../src/regex_automata/dfa.rs.html#235">start</a>) };
         }
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="kw">in</span> <span class="ident">bytes</span>[<span class="ident">start</span>..].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">state</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_state_unchecked</span>(<span class="ident">state</span>, <span class="ident">b</span>) };
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="ident">state</span>) {
-                <span class="kw">return</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_dead_state</span>(<span class="ident">state</span>) {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>)
+        <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>bytes[start..].iter().enumerate() {
+            state = <span class="kw">unsafe </span>{ <span class="self">self</span>.next_state_unchecked(state, b) };
+            <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(state) {
+                <span class="kw">return if </span><span class="self">self</span>.is_dead_state(state) {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(start + i + <span class="number">1</span>)
                 };
             }
         }
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="doccomment">/// Returns the same as `find`, but starts the search at the given</span>
-    <span class="doccomment">/// offset.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The significance of the starting point is that it takes the surrounding</span>
-    <span class="doccomment">/// context into consideration. For example, if the DFA is anchored, then</span>
-    <span class="doccomment">/// a match can only occur when `start == 0`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">find_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_anchored</span>() <span class="op">&amp;&amp;</span> <span class="ident">start</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="doccomment">/// Returns the same as `find`, but starts the search at the given
+    /// offset.
+    ///
+    /// The significance of the starting point is that it takes the surrounding
+    /// context into consideration. For example, if the DFA is anchored, then
+    /// a match can only occur when `start == 0`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>find_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_anchored() &amp;&amp; start &gt; <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/regex_automata/dfa.rs.html#264">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#26">start_state</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_match</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_dead_state</span>(<span class="ident">state</span>) {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_state</span>(<span class="ident">state</span>) {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#264">start</a>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="kw">in</span> <span class="ident">bytes</span>[<span class="ident">start</span>..].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">state</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_state_unchecked</span>(<span class="ident">state</span>, <span class="ident">b</span>) };
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="ident">state</span>) {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_dead_state</span>(<span class="ident">state</span>) {
-                    <span class="kw">return</span> <span class="ident">last_match</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../src/regex_automata/dfa.rs.html#264">self</a>.<a href="../../src/regex_automata/dfa.rs.html#26">start_state</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>last_match = <span class="kw">if </span><span class="self">self</span>.is_dead_state(state) {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        } <span class="kw">else if </span><span class="self">self</span>.is_match_state(state) {
+            <span class="prelude-val">Some</span>(<a href="../../src/regex_automata/dfa.rs.html#264">start</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>bytes[start..].iter().enumerate() {
+            state = <span class="kw">unsafe </span>{ <span class="self">self</span>.next_state_unchecked(state, b) };
+            <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(state) {
+                <span class="kw">if </span><span class="self">self</span>.is_dead_state(state) {
+                    <span class="kw">return </span>last_match;
                 }
-                <span class="ident">last_match</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+                last_match = <span class="prelude-val">Some</span>(start + i + <span class="number">1</span>);
             }
         }
-        <a class="ident" href="../../src/regex_automata/dfa.rs.html#270">last_match</a>
+        <a href="../../src/regex_automata/dfa.rs.html#270">last_match</a>
     }
 
-    <span class="doccomment">/// Returns the same as `rfind`, but starts the search at the given</span>
-    <span class="doccomment">/// offset.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The significance of the starting point is that it takes the surrounding</span>
-    <span class="doccomment">/// context into consideration. For example, if the DFA is anchored, then</span>
-    <span class="doccomment">/// a match can only occur when `start == bytes.len()`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">rfind_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_anchored</span>() <span class="op">&amp;&amp;</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">bytes</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="doccomment">/// Returns the same as `rfind`, but starts the search at the given
+    /// offset.
+    ///
+    /// The significance of the starting point is that it takes the surrounding
+    /// context into consideration. For example, if the DFA is anchored, then
+    /// a match can only occur when `start == bytes.len()`.
+    </span><span class="attribute">#[inline(never)]
+    </span><span class="kw">fn </span>rfind_at(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>], start: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_anchored() &amp;&amp; start &lt; bytes.len() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../src/regex_automata/dfa.rs.html#296">self</a>.<a class="ident" href="../../src/regex_automata/dfa.rs.html#26">start_state</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_match</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_dead_state</span>(<span class="ident">state</span>) {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_state</span>(<span class="ident">state</span>) {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#296">start</a>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="kw">in</span> <span class="ident">bytes</span>[..<span class="ident">start</span>].<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>() {
-            <span class="ident">state</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_state_unchecked</span>(<span class="ident">state</span>, <span class="ident">b</span>) };
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="ident">state</span>) {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_dead_state</span>(<span class="ident">state</span>) {
-                    <span class="kw">return</span> <span class="ident">last_match</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="../../src/regex_automata/dfa.rs.html#296">self</a>.<a href="../../src/regex_automata/dfa.rs.html#26">start_state</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>last_match = <span class="kw">if </span><span class="self">self</span>.is_dead_state(state) {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        } <span class="kw">else if </span><span class="self">self</span>.is_match_state(state) {
+            <span class="prelude-val">Some</span>(<a href="../../src/regex_automata/dfa.rs.html#296">start</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>bytes[..start].iter().enumerate().rev() {
+            state = <span class="kw">unsafe </span>{ <span class="self">self</span>.next_state_unchecked(state, b) };
+            <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(state) {
+                <span class="kw">if </span><span class="self">self</span>.is_dead_state(state) {
+                    <span class="kw">return </span>last_match;
                 }
-                <span class="ident">last_match</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
+                last_match = <span class="prelude-val">Some</span>(i);
             }
         }
-        <a class="ident" href="../../src/regex_automata/dfa.rs.html#302">last_match</a>
+        <a href="../../src/regex_automata/dfa.rs.html#302">last_match</a>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="../../src/regex_automata/dfa.rs.html#19">DFA</a><span class="op">&gt;</span> <a class="ident" href="../../src/regex_automata/dfa.rs.html#19">DFA</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
-    <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">T::ID</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="../../src/regex_automata/dfa.rs.html#19">DFA</a>&gt; <a href="../../src/regex_automata/dfa.rs.html#19">DFA</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T {
+    <span class="kw">type </span>ID = T::ID;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ID</span> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/regex_automata/dfa.rs.html#326">self</a>).<a class="ident" href="../../src/regex_automata/dfa.rs.html#26">start_state</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::ID {
+        (<span class="kw-2">**</span><a class="self" href="../../src/regex_automata/dfa.rs.html#326">self</a>).<a href="../../src/regex_automata/dfa.rs.html#26">start_state</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/regex_automata/dfa.rs.html#331">self</a>).<a class="ident" href="../../src/regex_automata/dfa.rs.html#30">is_match_state</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#331">id</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        (<span class="kw-2">**</span><a class="self" href="../../src/regex_automata/dfa.rs.html#331">self</a>).<a href="../../src/regex_automata/dfa.rs.html#30">is_match_state</a>(<a href="../../src/regex_automata/dfa.rs.html#331">id</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/regex_automata/dfa.rs.html#336">self</a>).<a class="ident" href="../../src/regex_automata/dfa.rs.html#45">is_match_or_dead_state</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#336">id</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        (<span class="kw-2">**</span><a class="self" href="../../src/regex_automata/dfa.rs.html#336">self</a>).<a href="../../src/regex_automata/dfa.rs.html#45">is_match_or_dead_state</a>(<a href="../../src/regex_automata/dfa.rs.html#336">id</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/regex_automata/dfa.rs.html#341">self</a>).<a class="ident" href="../../src/regex_automata/dfa.rs.html#35">is_dead_state</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#341">id</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        (<span class="kw-2">**</span><a class="self" href="../../src/regex_automata/dfa.rs.html#341">self</a>).<a href="../../src/regex_automata/dfa.rs.html#35">is_dead_state</a>(<a href="../../src/regex_automata/dfa.rs.html#341">id</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/regex_automata/dfa.rs.html#346">self</a>).<a class="ident" href="../../src/regex_automata/dfa.rs.html#51">is_anchored</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
+        (<span class="kw-2">**</span><a class="self" href="../../src/regex_automata/dfa.rs.html#346">self</a>).<a href="../../src/regex_automata/dfa.rs.html#51">is_anchored</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident"><span class="self">Self</span>::ID</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="ident"><span class="self">Self</span>::ID</span> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/regex_automata/dfa.rs.html#351">self</a>).<a class="ident" href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#351">current</a>, <a class="ident" href="../../src/regex_automata/dfa.rs.html#351">input</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: <span class="self">Self</span>::ID, input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span>::ID {
+        (<span class="kw-2">**</span><a class="self" href="../../src/regex_automata/dfa.rs.html#351">self</a>).<a href="../../src/regex_automata/dfa.rs.html#56">next_state</a>(<a href="../../src/regex_automata/dfa.rs.html#351">current</a>, <a href="../../src/regex_automata/dfa.rs.html#351">input</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_state_unchecked</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">unsafe fn </span>next_state_unchecked(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">current</span>: <span class="ident"><span class="self">Self</span>::ID</span>,
-        <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
-    ) -&gt; <span class="ident"><span class="self">Self</span>::ID</span> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/regex_automata/dfa.rs.html#357">self</a>).<a class="ident" href="../../src/regex_automata/dfa.rs.html#63-67">next_state_unchecked</a>(<a class="ident" href="../../src/regex_automata/dfa.rs.html#358">current</a>, <a class="ident" href="../../src/regex_automata/dfa.rs.html#359">input</a>)
+        current: <span class="self">Self</span>::ID,
+        input: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+    ) -&gt; <span class="self">Self</span>::ID {
+        (<span class="kw-2">**</span><a class="self" href="../../src/regex_automata/dfa.rs.html#357">self</a>).<a href="../../src/regex_automata/dfa.rs.html#63-67">next_state_unchecked</a>(<a href="../../src/regex_automata/dfa.rs.html#358">current</a>, <a href="../../src/regex_automata/dfa.rs.html#359">input</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex_automata" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex_automata" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/stream/flatten_unordered.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flatten_unordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/stream/flatten_unordered.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flatten_unordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -507,444 +507,444 @@
 <span id="507">507</span>
 <span id="508">508</span>
 <span id="509">509</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
-<span class="kw">use</span> <span class="ident">core</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">cell::UnsafeCell</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/fn.identity.html">convert::identity</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">num::NonZeroUsize</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
-    <span class="ident">sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">alloc::sync::Arc</a>;
+<span class="kw">use </span>core::{
+    <a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">cell::UnsafeCell</a>,
+    <a href="https://doc.rust-lang.org/nightly/core/convert/fn.identity.html">convert::identity</a>,
+    <a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>,
+    <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">num::NonZeroUsize</a>,
+    <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
+    sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>},
 };
 
-<span class="kw">use</span> <a class="ident" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="kw">use</span> <span class="ident">futures_core</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">future::Future</a>,
-    <a class="ident" href="../../../../futures_util/macro.ready.html">ready</a>,
-    <span class="ident">stream</span>::{<a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>},
-    <span class="ident">task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>},
+<span class="kw">use </span>futures_core::{
+    <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">future::Future</a>,
+    <a href="../../../../futures_util/macro.ready.html">ready</a>,
+    stream::{<a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>},
+    task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>},
 };
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use</span> <span class="ident">futures_task</span>::{<a class="ident" href="../../../../futures_util/task/fn.waker.html">waker</a>, <a class="ident" href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
+<span class="kw">use </span>futures_task::{<a href="../../../../futures_util/task/fn.waker.html">waker</a>, <a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#54"><span class="kw">crate</span>::stream::FuturesUnordered</a>;
+<span class="kw">use </span><a href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#54"><span class="kw">crate</span>::stream::FuturesUnordered</a>;
 
-<span class="doccomment">/// There is nothing to poll and stream isn&#39;t being</span>
-<span class="doccomment">/// polled or waking at the moment.</span>
-<span class="kw">const</span> <span class="ident">NONE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0</span>;
+<span class="doccomment">/// There is nothing to poll and stream isn&#39;t being
+/// polled or waking at the moment.
+</span><span class="kw">const </span>NONE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0</span>;
 
-<span class="doccomment">/// Inner streams need to be polled.</span>
-<span class="kw">const</span> <span class="ident">NEED_TO_POLL_INNER_STREAMS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">1</span>;
+<span class="doccomment">/// Inner streams need to be polled.
+</span><span class="kw">const </span>NEED_TO_POLL_INNER_STREAMS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">1</span>;
 
-<span class="doccomment">/// The base stream needs to be polled.</span>
-<span class="kw">const</span> <span class="ident">NEED_TO_POLL_STREAM</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b10</span>;
+<span class="doccomment">/// The base stream needs to be polled.
+</span><span class="kw">const </span>NEED_TO_POLL_STREAM: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b10</span>;
 
-<span class="doccomment">/// It needs to poll base stream and inner streams.</span>
-<span class="kw">const</span> <span class="ident">NEED_TO_POLL_ALL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a> <span class="op">|</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a>;
+<span class="doccomment">/// It needs to poll base stream and inner streams.
+</span><span class="kw">const </span>NEED_TO_POLL_ALL: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a> | <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a>;
 
-<span class="doccomment">/// The current stream is being polled at the moment.</span>
-<span class="kw">const</span> <span class="ident">POLLING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b100</span>;
+<span class="doccomment">/// The current stream is being polled at the moment.
+</span><span class="kw">const </span>POLLING: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b100</span>;
 
-<span class="doccomment">/// Inner streams are being woken at the moment.</span>
-<span class="kw">const</span> <span class="ident">WAKING_INNER_STREAMS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b1000</span>;
+<span class="doccomment">/// Inner streams are being woken at the moment.
+</span><span class="kw">const </span>WAKING_INNER_STREAMS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1000</span>;
 
-<span class="doccomment">/// The base stream is being woken at the moment.</span>
-<span class="kw">const</span> <span class="ident">WAKING_STREAM</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b10000</span>;
+<span class="doccomment">/// The base stream is being woken at the moment.
+</span><span class="kw">const </span>WAKING_STREAM: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b10000</span>;
 
-<span class="doccomment">/// The base stream and inner streams are being woken at the moment.</span>
-<span class="kw">const</span> <span class="ident">WAKING_ALL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#45">WAKING_STREAM</a> <span class="op">|</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#42">WAKING_INNER_STREAMS</a>;
+<span class="doccomment">/// The base stream and inner streams are being woken at the moment.
+</span><span class="kw">const </span>WAKING_ALL: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#45">WAKING_STREAM</a> | <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#42">WAKING_INNER_STREAMS</a>;
 
-<span class="doccomment">/// The stream was waked and will be polled.</span>
-<span class="kw">const</span> <span class="ident">WOKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b100000</span>;
+<span class="doccomment">/// The stream was waked and will be polled.
+</span><span class="kw">const </span>WOKEN: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b100000</span>;
 
-<span class="doccomment">/// Determines what needs to be polled, and is stream being polled at the</span>
-<span class="doccomment">/// moment or not.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">SharedPollState</span> {
-    <span class="ident">state</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Determines what needs to be polled, and is stream being polled at the
+/// moment or not.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">struct </span>SharedPollState {
+    state: Arc&lt;<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a> {
-    <span class="doccomment">/// Constructs new `SharedPollState` with the given state.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a> {
-        <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a> { <span class="ident">state</span>: <span class="ident">Arc::new</span>(<span class="ident">AtomicU8::new</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#62">value</a>)) }
+<span class="kw">impl </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a> {
+    <span class="doccomment">/// Constructs new `SharedPollState` with the given state.
+    </span><span class="kw">fn </span>new(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a> {
+        <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a> { state: Arc::new(AtomicU8::new(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#62">value</a>)) }
     }
 
-    <span class="doccomment">/// Attempts to start polling, returning stored state in case of success.</span>
-    <span class="doccomment">/// Returns `None` if some waker is waking at the moment.</span>
-    <span class="kw">fn</span> <span class="ident">start_polling</span>(
+    <span class="doccomment">/// Attempts to start polling, returning stored state in case of success.
+    /// Returns `None` if some waker is waking at the moment.
+    </span><span class="kw">fn </span>start_polling(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">PollStateBomb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">state</span>
-            .<span class="ident">fetch_update</span>(<span class="ident">Ordering::SeqCst</span>, <span class="ident">Ordering::SeqCst</span>, <span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="ident">value</span> <span class="op">&amp;</span> <span class="ident">WAKING_ALL</span> <span class="op">==</span> <span class="ident">NONE</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">POLLING</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                }
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, PollStateBomb&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;)&gt; {
+        <span class="kw">let </span>value = <span class="self">self
+            </span>.state
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
+                <span class="kw">if </span>value &amp; WAKING_ALL == NONE {
+                    <span class="prelude-val">Some</span>(POLLING)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
             })
-            .<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">bomb</span> <span class="op">=</span> <span class="ident">PollStateBomb::new</span>(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#69">self</a>, <span class="ident">SharedPollState::reset</span>);
+            .ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span>bomb = PollStateBomb::new(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#69">self</a>, SharedPollState::reset);
 
-        <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#71">value</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#81">bomb</a>))
+        <span class="prelude-val">Some</span>((<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#71">value</a>, <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#81">bomb</a>))
     }
 
-    <span class="doccomment">/// Starts the waking process and performs bitwise or with the given value.</span>
-    <span class="kw">fn</span> <span class="ident">start_waking</span>(
+    <span class="doccomment">/// Starts the waking process and performs bitwise or with the given value.
+    </span><span class="kw">fn </span>start_waking(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">to_poll</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">waking</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">PollStateBomb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">state</span>
-            .<span class="ident">fetch_update</span>(<span class="ident">Ordering::SeqCst</span>, <span class="ident">Ordering::SeqCst</span>, <span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
-                <span class="comment">// Waking process for this waker already started</span>
-                <span class="kw">if</span> <span class="ident">value</span> <span class="op">&amp;</span> <span class="ident">waking</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NONE</span> {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+        to_poll: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        waking: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, PollStateBomb&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;)&gt; {
+        <span class="kw">let </span>value = <span class="self">self
+            </span>.state
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
+                <span class="comment">// Waking process for this waker already started
+                </span><span class="kw">if </span>value &amp; waking != NONE {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_value</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">|</span> <span class="ident">to_poll</span>;
-                <span class="comment">// Only start the waking process if we&#39;re not in the polling phase and the stream isn&#39;t woken already</span>
-                <span class="kw">if</span> <span class="ident">value</span> <span class="op">&amp;</span> (<span class="ident">WOKEN</span> <span class="op">|</span> <span class="ident">POLLING</span>) <span class="op">==</span> <span class="ident">NONE</span> {
-                    <span class="ident">next_value</span> <span class="op">|</span><span class="op">=</span> <span class="ident">waking</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>next_value = value | to_poll;
+                <span class="comment">// Only start the waking process if we&#39;re not in the polling phase and the stream isn&#39;t woken already
+                </span><span class="kw">if </span>value &amp; (WOKEN | POLLING) == NONE {
+                    next_value |= waking;
                 }
 
-                <span class="kw">if</span> <span class="ident">next_value</span> <span class="op">!</span><span class="op">=</span> <span class="ident">value</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">next_value</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                }
+                <span class="kw">if </span>next_value != value {
+                    <span class="prelude-val">Some</span>(next_value)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
             })
-            .<span class="ident">ok</span>()<span class="question-mark">?</span>;
+            .ok()<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">value</span> <span class="op">&amp;</span> (<span class="ident">WOKEN</span> <span class="op">|</span> <span class="ident">POLLING</span>) <span class="op">==</span> <span class="ident">NONE</span> {
-            <span class="kw">let</span> <span class="ident">bomb</span> <span class="op">=</span> <span class="ident">PollStateBomb::new</span>(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#88">self</a>, <span class="kw">move</span> <span class="op">|</span><span class="ident">state</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#114">state</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#147">stop_waking</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#90">waking</a>));
+        <span class="kw">if </span>value &amp; (WOKEN | POLLING) == NONE {
+            <span class="kw">let </span>bomb = PollStateBomb::new(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#88">self</a>, <span class="kw">move </span>|state| <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#114">state</a>.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#147">stop_waking</a>(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#90">waking</a>));
 
-            <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#92">value</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#114">bomb</a>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
+            <span class="prelude-val">Some</span>((<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#92">value</a>, <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#114">bomb</a>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Sets current state to
+    /// - `!POLLING` allowing to use wakers
+    /// - `WOKEN` if the state was changed during `POLLING` phase as waker will be called,
+    ///   or `will_be_woken` flag supplied
+    /// - `!WAKING_ALL` as
+    ///   * Wakers called during the `POLLING` phase won&#39;t propagate their calls
+    ///   * `POLLING` phase can&#39;t start if some of the wakers are active
+    ///   So no wrapped waker can touch the inner waker&#39;s cell, it&#39;s safe to poll again.
+    </span><span class="kw">fn </span>stop_polling(<span class="kw-2">&amp;</span><span class="self">self</span>, to_poll: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, will_be_woken: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#130">self</a>.state
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |<span class="kw-2">mut </span>value| {
+                <span class="kw">let </span><span class="kw-2">mut </span>next_value = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#130">to_poll</a>;
+
+                <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#132">value</a> &amp;= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#36">NEED_TO_POLL_ALL</a>;
+                <span class="kw">if </span>value != NONE || will_be_woken {
+                    <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#133">next_value</a> |= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#51">WOKEN</a>;
+                }
+                <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#133">next_value</a> |= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#132">value</a>;
+
+                <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#133">next_value</a> &amp; !<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#39">POLLING</a> &amp; !<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#48">WAKING_ALL</a>)
+            })
+            .unwrap()
+    }
+
+    <span class="doccomment">/// Toggles state to non-waking, allowing to start polling.
+    </span><span class="kw">fn </span>stop_waking(<span class="kw-2">&amp;</span><span class="self">self</span>, waking: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#147">self</a>.state
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
+                <span class="kw">let </span><span class="kw-2">mut </span>next_value = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#149">value</a> &amp; !<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#147">waking</a>;
+                <span class="comment">// Waker will be called only if the current waking state is the same as the specified waker state
+                </span><span class="kw">if </span>value &amp; WAKING_ALL == waking {
+                    <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#150">next_value</a> |= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#51">WOKEN</a>;
+                }
+
+                <span class="kw">if </span>next_value != value {
+                    <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#150">next_value</a>)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
+            })
+            .unwrap_or_else(<a href="https://doc.rust-lang.org/nightly/core/convert/fn.identity.html">identity</a>)
+    }
+
+    <span class="doccomment">/// Resets current state allowing to poll the stream and wake up wakers.
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#166">self</a>.state.swap(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#36">NEED_TO_POLL_ALL</a>, Ordering::AcqRel)
+    }
+}
+
+<span class="doccomment">/// Used to execute some function on the given state when dropped.
+</span><span class="kw">struct </span>PollStateBomb&lt;<span class="lifetime">&#39;a</span>, F: FnOnce(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>,
+    drop: <span class="prelude-ty">Option</span>&lt;F&gt;,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, F: FnOnce(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; PollStateBomb&lt;<span class="lifetime">&#39;a</span>, F&gt; {
+    <span class="doccomment">/// Constructs new bomb with the given state.
+    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>, drop: F) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#179">state</a>, drop: <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#179">drop</a>) }
+    }
+
+    <span class="doccomment">/// Deactivates bomb, forces it to not call provided function when dropped.
+    </span><span class="kw">fn </span>deactivate(<span class="kw-2">mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#184">self</a>.drop.take();
+    }
+
+    <span class="doccomment">/// Manually fires the bomb, returning supplied state.
+    </span><span class="kw">fn </span>fire(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#189">self</a>.drop.take().map(|drop| (<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#190">drop</a>)(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#189">self</a>.state))
+    }
+}
+
+<span class="kw">impl</span>&lt;F: FnOnce(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>PollStateBomb&lt;<span class="lifetime">&#39;_</span>, F&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(drop) = <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#195">self</a>.drop.take() {
+            (<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#196">drop</a>)(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#195">self</a>.state);
         }
     }
-
-    <span class="doccomment">/// Sets current state to</span>
-    <span class="doccomment">/// - `!POLLING` allowing to use wakers</span>
-    <span class="doccomment">/// - `WOKEN` if the state was changed during `POLLING` phase as waker will be called,</span>
-    <span class="doccomment">///   or `will_be_woken` flag supplied</span>
-    <span class="doccomment">/// - `!WAKING_ALL` as</span>
-    <span class="doccomment">///   * Wakers called during the `POLLING` phase won&#39;t propagate their calls</span>
-    <span class="doccomment">///   * `POLLING` phase can&#39;t start if some of the wakers are active</span>
-    <span class="doccomment">///   So no wrapped waker can touch the inner waker&#39;s cell, it&#39;s safe to poll again.</span>
-    <span class="kw">fn</span> <span class="ident">stop_polling</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">to_poll</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">will_be_woken</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#130">self</a>.<span class="ident">state</span>
-            .<span class="ident">fetch_update</span>(<span class="ident">Ordering::SeqCst</span>, <span class="ident">Ordering::SeqCst</span>, <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">value</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_value</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#130">to_poll</a>;
-
-                <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#132">value</a> <span class="op">&amp;=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#36">NEED_TO_POLL_ALL</a>;
-                <span class="kw">if</span> <span class="ident">value</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NONE</span> <span class="op">|</span><span class="op">|</span> <span class="ident">will_be_woken</span> {
-                    <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#133">next_value</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#51">WOKEN</a>;
-                }
-                <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#133">next_value</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#132">value</a>;
-
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#133">next_value</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#39">POLLING</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#48">WAKING_ALL</a>)
-            })
-            .<span class="ident">unwrap</span>()
-    }
-
-    <span class="doccomment">/// Toggles state to non-waking, allowing to start polling.</span>
-    <span class="kw">fn</span> <span class="ident">stop_waking</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waking</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#147">self</a>.<span class="ident">state</span>
-            .<span class="ident">fetch_update</span>(<span class="ident">Ordering::SeqCst</span>, <span class="ident">Ordering::SeqCst</span>, <span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_value</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#149">value</a> <span class="op">&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#147">waking</a>;
-                <span class="comment">// Waker will be called only if the current waking state is the same as the specified waker state</span>
-                <span class="kw">if</span> <span class="ident">value</span> <span class="op">&amp;</span> <span class="ident">WAKING_ALL</span> <span class="op">==</span> <span class="ident">waking</span> {
-                    <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#150">next_value</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#51">WOKEN</a>;
-                }
-
-                <span class="kw">if</span> <span class="ident">next_value</span> <span class="op">!</span><span class="op">=</span> <span class="ident">value</span> {
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#150">next_value</a>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                }
-            })
-            .<span class="ident">unwrap_or_else</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/fn.identity.html">identity</a>)
-    }
-
-    <span class="doccomment">/// Resets current state allowing to poll the stream and wake up wakers.</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#166">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#36">NEED_TO_POLL_ALL</a>, <span class="ident">Ordering::AcqRel</span>)
-    }
 }
 
-<span class="doccomment">/// Used to execute some function on the given state when dropped.</span>
-<span class="kw">struct</span> <span class="ident">PollStateBomb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>,
-    <span class="ident">drop</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Will update state with the provided value on `wake_by_ref` call
+/// and then, if there is a need, call `inner_waker`.
+</span><span class="kw">struct </span>InnerWaker {
+    inner_waker: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
+    poll_state: <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>,
+    need_to_poll: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="ident">PollStateBomb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs new bomb with the given state.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>, <span class="ident">drop</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#179">state</a>, <span class="ident">drop</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#179">drop</a>) }
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {}
+
+<span class="kw">impl </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {
+    <span class="doccomment">/// Replaces given waker&#39;s inner_waker for polling stream/futures which will
+    /// update poll state on `wake_by_ref` call. Use only if you need several
+    /// contexts.
+    ///
+    /// ## Safety
+    ///
+    /// This function will modify waker&#39;s `inner_waker` via `UnsafeCell`, so
+    /// it should be used only during `POLLING` phase.
+    </span><span class="kw">unsafe fn </span>replace_waker(self_arc: <span class="kw-2">&amp;mut </span>Arc&lt;<span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
+        <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#222">self_arc</a>.inner_waker.get() = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#222">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <a href="../../../../futures_util/task/fn.waker.html">waker</a>(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#222">self_arc</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
-    <span class="doccomment">/// Deactivates bomb, forces it to not call provided function when dropped.</span>
-    <span class="kw">fn</span> <span class="ident">deactivate</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#184">self</a>.<span class="ident">drop</span>.<span class="ident">take</span>();
+    <span class="doccomment">/// Attempts to start the waking process for the waker with the given value.
+    /// If succeeded, then the stream isn&#39;t yet woken and not being polled at the moment.
+    </span><span class="kw">fn </span>start_waking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, PollStateBomb&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;)&gt; {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#229">self</a>.poll_state.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#87-91">start_waking</a>(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#229">self</a>.need_to_poll, <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#229">self</a>.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#234">waking_state</a>())
     }
 
-    <span class="doccomment">/// Manually fires the bomb, returning supplied state.</span>
-    <span class="kw">fn</span> <span class="ident">fire</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#189">self</a>.<span class="ident">drop</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">drop</span><span class="op">|</span> (<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#190">drop</a>)(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#189">self</a>.<span class="ident">state</span>))
-    }
+    <span class="doccomment">/// Returns the corresponding waking state toggled by this waker.
+    </span><span class="kw">fn </span>waking_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#234">self</a>.need_to_poll &lt;&lt; <span class="number">3
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">PollStateBomb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">drop</span>) <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#195">self</a>.<span class="ident">drop</span>.<span class="ident">take</span>() {
-            (<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#196">drop</a>)(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#195">self</a>.<span class="ident">state</span>);
-        }
-    }
-}
+<span class="kw">impl </span><a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a> <span class="kw">for </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {
+    <span class="kw">fn </span>wake_by_ref(self_arc: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, state_bomb)) = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#240">self_arc</a>.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#229">start_waking</a>() {
+            <span class="comment">// Safety: now state is not `POLLING`
+            </span><span class="kw">let </span>waker_opt = <span class="kw">unsafe </span>{ <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#240">self_arc</a>.inner_waker.get().as_ref().unwrap() };
 
-<span class="doccomment">/// Will update state with the provided value on `wake_by_ref` call</span>
-<span class="doccomment">/// and then, if there is a need, call `inner_waker`.</span>
-<span class="kw">struct</span> <span class="ident">InnerWaker</span> {
-    <span class="ident">inner_waker</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">poll_state</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>,
-    <span class="ident">need_to_poll</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-}
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(inner_waker) = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#243">waker_opt</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
+                <span class="comment">// Stop waking to allow polling stream
+                </span><span class="kw">let </span>poll_state_value = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#241">state_bomb</a>.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#189">fire</a>().unwrap();
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {
-    <span class="doccomment">/// Replaces given waker&#39;s inner_waker for polling stream/futures which will</span>
-    <span class="doccomment">/// update poll state on `wake_by_ref` call. Use only if you need several</span>
-    <span class="doccomment">/// contexts.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will modify waker&#39;s `inner_waker` via `UnsafeCell`, so</span>
-    <span class="doccomment">/// it should be used only during `POLLING` phase.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">replace_waker</span>(<span class="ident">self_arc</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-        <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#222">self_arc</a>.<span class="ident">inner_waker</span>.<span class="ident">get</span>() <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#222">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a class="ident" href="../../../../futures_util/task/fn.waker.html">waker</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#222">self_arc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-    }
-
-    <span class="doccomment">/// Attempts to start the waking process for the waker with the given value.</span>
-    <span class="doccomment">/// If succeeded, then the stream isn&#39;t yet woken and not being polled at the moment.</span>
-    <span class="kw">fn</span> <span class="ident">start_waking</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">PollStateBomb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#229">self</a>.<span class="ident">poll_state</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#87-91">start_waking</a>(<a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#229">self</a>.<span class="ident">need_to_poll</span>, <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#229">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#234">waking_state</a>())
-    }
-
-    <span class="doccomment">/// Returns the corresponding waking state toggled by this waker.</span>
-    <span class="kw">fn</span> <span class="ident">waking_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#234">self</a>.<span class="ident">need_to_poll</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {
-    <span class="kw">fn</span> <span class="ident">wake_by_ref</span>(<span class="ident">self_arc</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">state_bomb</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#240">self_arc</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#229">start_waking</a>() {
-            <span class="comment">// Safety: now state is not `POLLING`</span>
-            <span class="kw">let</span> <span class="ident">waker_opt</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#240">self_arc</a>.<span class="ident">inner_waker</span>.<span class="ident">get</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() };
-
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner_waker</span>) <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#243">waker_opt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-                <span class="comment">// Stop waking to allow polling stream</span>
-                <span class="kw">let</span> <span class="ident">poll_state_value</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#241">state_bomb</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#189">fire</a>().<span class="ident">unwrap</span>();
-
-                <span class="comment">// Here we want to call waker only if stream isn&#39;t woken yet and</span>
-                <span class="comment">// also to optimize the case when two wakers are called at the same time.</span>
-                <span class="comment">//</span>
-                <span class="comment">// In this case the best strategy will be to propagate only the latest waker&#39;s awake,</span>
-                <span class="comment">// and then poll both entities in a single `poll_next` call</span>
-                <span class="kw">if</span> <span class="ident">poll_state_value</span> <span class="op">&amp;</span> (<span class="ident">WOKEN</span> <span class="op">|</span> <span class="ident">WAKING_ALL</span>) <span class="op">==</span> <span class="ident">self_arc</span>.<span class="ident">waking_state</span>() {
-                    <span class="comment">// Wake up inner waker</span>
-                    <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#245">inner_waker</a>.<span class="ident">wake</span>();
+                <span class="comment">// Here we want to call waker only if stream isn&#39;t woken yet and
+                // also to optimize the case when two wakers are called at the same time.
+                //
+                // In this case the best strategy will be to propagate only the latest waker&#39;s awake,
+                // and then poll both entities in a single `poll_next` call
+                </span><span class="kw">if </span>poll_state_value &amp; (WOKEN | WAKING_ALL) == self_arc.waking_state() {
+                    <span class="comment">// Wake up inner waker
+                    </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#245">inner_waker</a>.wake();
                 }
             }
         }
     }
 }
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Future which contains optional stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If it&#39;s `Some`, it will attempt to call `poll_next` on it,</span>
-    <span class="doccomment">/// returning `Some((item, next_item_fut))` in case of `Poll::Ready(Some(...))`</span>
-    <span class="doccomment">/// or `None` in case of `Poll::Ready(None)`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `poll_next` will return `Poll::Pending`, it will be forwarded to</span>
-    <span class="doccomment">/// the future and current task will be notified by waker.</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-    <span class="kw">struct</span> <span class="ident">PollStreamFut</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">stream</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>,
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Future which contains optional stream.
+    ///
+    /// If it&#39;s `Some`, it will attempt to call `poll_next` on it,
+    /// returning `Some((item, next_item_fut))` in case of `Poll::Ready(Some(...))`
+    /// or `None` in case of `Poll::Ready(None)`.
+    ///
+    /// If `poll_next` will return `Poll::Pending`, it will be forwarded to
+    /// the future and current task will be notified by waker.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="kw">struct </span>PollStreamFut&lt;St&gt; {
+        <span class="attribute">#[pin]
+        </span>stream: <span class="prelude-ty">Option</span>&lt;St&gt;,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <span class="ident">PollStreamFut</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs new `PollStreamFut` using given `stream`.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">stream</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#281">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }
+<span class="kw">impl</span>&lt;St&gt; PollStreamFut&lt;St&gt; {
+    <span class="doccomment">/// Constructs new `PollStreamFut` using given `stream`.
+    </span><span class="kw">fn </span>new(stream: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;St&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ stream: <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#281">stream</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">PollStreamFut</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">St::Item</span>, <span class="ident">PollStreamFut</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>)<span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>PollStreamFut&lt;St&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;(St::Item, PollStreamFut&lt;St&gt;)&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#289">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#263-277">project</a>().<span class="ident">stream</span>;
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>stream = <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#289">self</a>.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#263-277">project</a>().stream;
 
-        <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stream</span>) <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#290">stream</a>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-            <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
-        <span class="kw">let</span> <span class="ident">next_item_fut</span> <span class="op">=</span> <span class="ident">PollStreamFut::new</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#290">stream</a>.<span class="ident">get_mut</span>().<span class="ident">take</span>());
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#292">item</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> (<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#298">item</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#297">next_item_fut</a>));
+        <span class="kw">let </span>item = <span class="kw">if let </span><span class="prelude-val">Some</span>(stream) = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#290">stream</a>.as_mut().as_pin_mut() {
+            <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(stream.poll_next(cx))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="kw">let </span>next_item_fut = PollStreamFut::new(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#290">stream</a>.get_mut().take());
+        <span class="kw">let </span>out = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#292">item</a>.map(|item| (<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#298">item</a>, <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#297">next_item_fut</a>));
 
-        <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#298">out</a>)
+        Poll::Ready(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#298">out</a>)
     }
 }
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Stream for the [`flatten_unordered`](super::StreamExt::flatten_unordered)</span>
-    <span class="doccomment">/// method.</span>
-    <span class="attribute">#[<span class="ident">project</span> <span class="op">=</span> <span class="ident">FlattenUnorderedProj</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FlattenUnordered</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">inner_streams</span>: <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">PollStreamFut</span><span class="op">&lt;</span><span class="ident">St::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">stream</span>: <span class="ident">St</span>,
-        <span class="ident">poll_state</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>,
-        <span class="ident">limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a><span class="op">&gt;</span>,
-        <span class="ident">is_stream_done</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="ident">inner_streams_waker</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a><span class="op">&gt;</span>,
-        <span class="ident">stream_waker</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a><span class="op">&gt;</span>,
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Stream for the [`flatten_unordered`](super::StreamExt::flatten_unordered)
+    /// method.
+    </span><span class="attribute">#[project = FlattenUnorderedProj]
+    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>FlattenUnordered&lt;St&gt; <span class="kw">where </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> {
+        <span class="attribute">#[pin]
+        </span>inner_streams: FuturesUnordered&lt;PollStreamFut&lt;St::Item&gt;&gt;,
+        <span class="attribute">#[pin]
+        </span>stream: St,
+        poll_state: <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#56">SharedPollState</a>,
+        limit: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>&gt;,
+        is_stream_done: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        inner_streams_waker: Arc&lt;<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a>&gt;,
+        stream_waker: Arc&lt;<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a>&gt;,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">FlattenUnordered</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    <span class="ident">St::Item</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;St&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>FlattenUnordered&lt;St&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    St::Item: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;FlattenUnordered&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;poll_state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.<span class="ident">poll_state</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;inner_streams&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.<span class="ident">inner_streams</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;limit&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.<span class="ident">limit</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.<span class="ident">stream</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;is_stream_done&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.<span class="ident">is_stream_done</span>)
-            .<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">f</a>.debug_struct(<span class="string">&quot;FlattenUnordered&quot;</span>)
+            .field(<span class="string">&quot;poll_state&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.poll_state)
+            .field(<span class="string">&quot;inner_streams&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.inner_streams)
+            .field(<span class="string">&quot;limit&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.limit)
+            .field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.stream)
+            .field(<span class="string">&quot;is_stream_done&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#327">self</a>.is_stream_done)
+            .finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <span class="ident">FlattenUnordered</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">St::Item</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;St&gt; FlattenUnordered&lt;St&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    St::Item: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">St</span>, <span class="ident">limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) -&gt; <span class="ident">FlattenUnordered</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">poll_state</span> <span class="op">=</span> <span class="ident">SharedPollState::new</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, limit: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; FlattenUnordered&lt;St&gt; {
+        <span class="kw">let </span>poll_state = SharedPollState::new(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a>);
 
-        <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#304-320">FlattenUnordered</a> {
-            <span class="ident">inner_streams</span>: <span class="ident">FuturesUnordered::new</span>(),
-            <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#343">stream</a>,
-            <span class="ident">is_stream_done</span>: <span class="bool-val">false</span>,
-            <span class="ident">limit</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#343">limit</a>.<span class="ident">and_then</span>(<span class="ident">NonZeroUsize::new</span>),
-            <span class="ident">inner_streams_waker</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {
-                <span class="ident">inner_waker</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
-                <span class="ident">poll_state</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#344">poll_state</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">need_to_poll</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a>,
+        <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#304-320">FlattenUnordered</a> {
+            inner_streams: FuturesUnordered::new(),
+            <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#343">stream</a>,
+            is_stream_done: <span class="bool-val">false</span>,
+            limit: <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#343">limit</a>.and_then(NonZeroUsize::new),
+            inner_streams_waker: Arc::new(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {
+                inner_waker: UnsafeCell::new(<span class="prelude-val">None</span>),
+                poll_state: <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#344">poll_state</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                need_to_poll: <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a>,
             }),
-            <span class="ident">stream_waker</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {
-                <span class="ident">inner_waker</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
-                <span class="ident">poll_state</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#344">poll_state</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">need_to_poll</span>: <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a>,
+            stream_waker: Arc::new(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#204">InnerWaker</a> {
+                inner_waker: UnsafeCell::new(<span class="prelude-val">None</span>),
+                poll_state: <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#344">poll_state</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                need_to_poll: <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a>,
             }),
-            <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#344">poll_state</a>,
+            <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#344">poll_state</a>,
         }
     }
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(<span class="ident">stream</span>, <span class="ident">St</span>, ());
+    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, ());
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <span class="ident">FlattenUnorderedProj</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+<span class="kw">impl</span>&lt;St&gt; FlattenUnorderedProj&lt;<span class="lifetime">&#39;_</span>, St&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
 {
-    <span class="doccomment">/// Checks if current `inner_streams` size is less than optional limit.</span>
-    <span class="kw">fn</span> <span class="ident">is_exceeded_limit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#373">self</a>.<span class="ident">limit</span>.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">limit</span><span class="op">|</span> <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#373">self</a>.<span class="ident">inner_streams</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">len</a>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#374">limit</a>.<span class="ident">get</span>())
+    <span class="doccomment">/// Checks if current `inner_streams` size is less than optional limit.
+    </span><span class="kw">fn </span>is_exceeded_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#373">self</a>.limit.map_or(<span class="bool-val">false</span>, |limit| <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#373">self</a>.inner_streams.<a href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#144">len</a>() &gt;= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#374">limit</a>.get())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">FlattenUnordered</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>,
-    <span class="ident">St::Item</span>: <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;St&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>FlattenUnordered&lt;St&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>,
+    St::Item: <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#383">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#383">self</a>.<span class="ident">inner_streams</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>()
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#383">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#383">self</a>.inner_streams.<a href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">FlattenUnordered</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">St::Item</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;St&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>FlattenUnordered&lt;St&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    St::Item: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">St::Item</span> <span class="kw">as</span> <span class="ident">Stream</span><span class="op">&gt;</span><span class="ident">::Item</span>;
+    <span class="kw">type </span>Item = &lt;St::Item <span class="kw">as </span>Stream&gt;::Item;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_item</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">need_to_poll_next</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#27">NONE</a>;
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>next_item = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>need_to_poll_next = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#27">NONE</a>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#395">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#304-320">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#395">self</a>.as_mut().<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#304-320">project</a>();
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">poll_state_value</span>, <span class="ident">state_bomb</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">poll_state</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#68-70">start_polling</a>() {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#402">value</a>,
-            <span class="kw">_</span> =&gt; {
-                <span class="comment">// Waker was called, just wait for the next poll</span>
-                <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+        <span class="kw">let </span>(<span class="kw-2">mut </span>poll_state_value, state_bomb) = <span class="kw">match </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.poll_state.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#68-70">start_polling</a>() {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#402">value</a>,
+            <span class="kw">_ </span>=&gt; {
+                <span class="comment">// Waker was called, just wait for the next poll
+                </span><span class="kw">return </span>Poll::Pending;
             }
         };
 
-        <span class="kw">if</span> <span class="ident">poll_state_value</span> <span class="op">&amp;</span> <span class="ident">NEED_TO_POLL_STREAM</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NONE</span> {
-            <span class="comment">// Safety: now state is `POLLING`.</span>
-            <span class="kw">let</span> <span class="ident">stream_waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">InnerWaker::replace_waker</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">stream_waker</span>, <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#395">cx</a>) };
+        <span class="kw">if </span>poll_state_value &amp; NEED_TO_POLL_STREAM != NONE {
+            <span class="comment">// Safety: now state is `POLLING`.
+            </span><span class="kw">let </span>stream_waker = <span class="kw">unsafe </span>{ InnerWaker::replace_waker(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.stream_waker, <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#395">cx</a>) };
 
-            <span class="comment">// Here we need to poll the base stream.</span>
-            <span class="comment">//</span>
-            <span class="comment">// To improve performance, we will attempt to place as many items as we can</span>
-            <span class="comment">// to the `FuturesUnordered` bucket before polling inner streams</span>
-            <span class="kw">loop</span> {
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_exceeded_limit</span>() <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">is_stream_done</span> {
-                    <span class="comment">// We either exceeded the limit or the stream is exhausted</span>
-                    <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">is_stream_done</span> {
-                        <span class="comment">// The stream needs to be polled in the next iteration</span>
-                        <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a>;
+            <span class="comment">// Here we need to poll the base stream.
+            //
+            // To improve performance, we will attempt to place as many items as we can
+            // to the `FuturesUnordered` bucket before polling inner streams
+            </span><span class="kw">loop </span>{
+                <span class="kw">if </span>this.is_exceeded_limit() || <span class="kw-2">*</span>this.is_stream_done {
+                    <span class="comment">// We either exceeded the limit or the stream is exhausted
+                    </span><span class="kw">if </span>!<span class="kw-2">*</span>this.is_stream_done {
+                        <span class="comment">// The stream needs to be polled in the next iteration
+                        </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> |= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a>;
                     }
 
                     <span class="kw">break</span>;
-                } <span class="kw">else</span> {
-                    <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<span class="kw-2">&amp;mut</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#411">stream_waker</a>)) {
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">inner_stream</span>)) =&gt; {
-                            <span class="comment">// Add new stream to the inner streams bucket</span>
-                            <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">inner_streams</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<span class="ident">PollStreamFut::new</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#428">inner_stream</a>));
-                            <span class="comment">// Inner streams must be polled afterward</span>
-                            <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#401">poll_state_value</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a>;
+                } <span class="kw">else </span>{
+                    <span class="kw">match </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.stream.as_mut().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#411">stream_waker</a>)) {
+                        Poll::Ready(<span class="prelude-val">Some</span>(inner_stream)) =&gt; {
+                            <span class="comment">// Add new stream to the inner streams bucket
+                            </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.inner_streams.as_mut().<a href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(PollStreamFut::new(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#428">inner_stream</a>));
+                            <span class="comment">// Inner streams must be polled afterward
+                            </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#401">poll_state_value</a> |= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a>;
                         }
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; {
-                            <span class="comment">// Mark the stream as done</span>
-                            <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">is_stream_done</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        Poll::Ready(<span class="prelude-val">None</span>) =&gt; {
+                            <span class="comment">// Mark the stream as done
+                            </span><span class="kw-2">*</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.is_stream_done = <span class="bool-val">true</span>;
                         }
-                        <span class="ident">Poll::Pending</span> =&gt; {
+                        Poll::Pending =&gt; {
                             <span class="kw">break</span>;
                         }
                     }
@@ -952,69 +952,69 @@
             }
         }
 
-        <span class="kw">if</span> <span class="ident">poll_state_value</span> <span class="op">&amp;</span> <span class="ident">NEED_TO_POLL_INNER_STREAMS</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NONE</span> {
-            <span class="comment">// Safety: now state is `POLLING`.</span>
-            <span class="kw">let</span> <span class="ident">inner_streams_waker</span> <span class="op">=</span>
-                <span class="kw">unsafe</span> { <span class="ident">InnerWaker::replace_waker</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">inner_streams_waker</span>, <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#395">cx</a>) };
+        <span class="kw">if </span>poll_state_value &amp; NEED_TO_POLL_INNER_STREAMS != NONE {
+            <span class="comment">// Safety: now state is `POLLING`.
+            </span><span class="kw">let </span>inner_streams_waker =
+                <span class="kw">unsafe </span>{ InnerWaker::replace_waker(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.inner_streams_waker, <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#395">cx</a>) };
 
-            <span class="kw">match</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>
-                .<span class="ident">inner_streams</span>
-                .<span class="ident">as_mut</span>()
-                .<a class="ident" href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<span class="kw-2">&amp;mut</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#448">inner_streams_waker</a>))
+            <span class="kw">match </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>
+                .inner_streams
+                .as_mut()
+                .<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#448">inner_streams_waker</a>))
             {
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>((<span class="ident">item</span>, <span class="ident">next_item_fut</span>)))) =&gt; {
-                    <span class="comment">// Push next inner stream item future to the list of inner streams futures</span>
-                    <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">inner_streams</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#456">next_item_fut</a>);
-                    <span class="comment">// Take the received item</span>
-                    <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#396">next_item</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#456">item</a>);
-                    <span class="comment">// On the next iteration, inner streams must be polled again</span>
-                    <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a>;
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>((item, next_item_fut)))) =&gt; {
+                    <span class="comment">// Push next inner stream item future to the list of inner streams futures
+                    </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.inner_streams.as_mut().<a href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#162">push</a>(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#456">next_item_fut</a>);
+                    <span class="comment">// Take the received item
+                    </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#396">next_item</a> = <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#456">item</a>);
+                    <span class="comment">// On the next iteration, inner streams must be polled again
+                    </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> |= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a>;
                 }
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">None</span>)) =&gt; {
-                    <span class="comment">// On the next iteration, inner streams must be polled again</span>
-                    <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a>;
+                Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">None</span>)) =&gt; {
+                    <span class="comment">// On the next iteration, inner streams must be polled again
+                    </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> |= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a>;
                 }
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             }
         }
 
-        <span class="comment">// We didn&#39;t have any `poll_next` panic, so it&#39;s time to deactivate the bomb</span>
-        <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#401">state_bomb</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#184">deactivate</a>();
+        <span class="comment">// We didn&#39;t have any `poll_next` panic, so it&#39;s time to deactivate the bomb
+        </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#401">state_bomb</a>.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#184">deactivate</a>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">force_wake</span> <span class="op">=</span>
-            <span class="comment">// we need to poll the stream and didn&#39;t reach the limit yet</span>
-            <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#27">NONE</a> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#373">is_exceeded_limit</a>()
-            <span class="comment">// or we need to poll inner streams again</span>
-            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#27">NONE</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>force_wake =
+            <span class="comment">// we need to poll the stream and didn&#39;t reach the limit yet
+            </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> &amp; <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#33">NEED_TO_POLL_STREAM</a> != <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#27">NONE</a> &amp;&amp; !<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#373">is_exceeded_limit</a>()
+            <span class="comment">// or we need to poll inner streams again
+            </span>|| <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a> &amp; <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#30">NEED_TO_POLL_INNER_STREAMS</a> != <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#27">NONE</a>;
 
-        <span class="comment">// Stop polling and swap the latest state</span>
-        <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#401">poll_state_value</a> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">poll_state</span>.<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#130">stop_polling</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#475">force_wake</a>);
-        <span class="comment">// If state was changed during `POLLING` phase, need to manually call a waker</span>
-        <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#475">force_wake</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#401">poll_state_value</a> <span class="op">&amp;</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#36">NEED_TO_POLL_ALL</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#27">NONE</a>;
+        <span class="comment">// Stop polling and swap the latest state
+        </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#401">poll_state_value</a> = <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.poll_state.<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#130">stop_polling</a>(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#397">need_to_poll_next</a>, <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#475">force_wake</a>);
+        <span class="comment">// If state was changed during `POLLING` phase, need to manually call a waker
+        </span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#475">force_wake</a> |= <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#401">poll_state_value</a> &amp; <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#36">NEED_TO_POLL_ALL</a> != <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#27">NONE</a>;
 
-        <span class="kw">let</span> <span class="ident">is_done</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">is_stream_done</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.<span class="ident">inner_streams</span>.<a class="ident" href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>();
+        <span class="kw">let </span>is_done = <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.is_stream_done &amp;&amp; <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#399">this</a>.inner_streams.<a href="../../../../src/futures_util/stream/futures_unordered/mod.rs.html#150">is_empty</a>();
 
-        <span class="kw">if</span> <span class="ident">next_item</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">is_done</span> {
-            <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#396">next_item</a>)
-        } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="ident">force_wake</span> {
-                <a class="ident" href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#395">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
+        <span class="kw">if </span>next_item.is_some() || is_done {
+            Poll::Ready(<a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#396">next_item</a>)
+        } <span class="kw">else </span>{
+            <span class="kw">if </span>force_wake {
+                <a href="../../../../src/futures_util/stream/stream/flatten_unordered.rs.html#395">cx</a>.waker().wake_by_ref();
             }
 
-            <span class="ident">Poll::Pending</span>
+            Poll::Pending
         }
     }
 }
 
-<span class="comment">// Forwarding impl of Sink from the underlying stream</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FlattenUnordered</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
+<span class="comment">// Forwarding impl of Sink from the underlying stream
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
+</span><span class="kw">impl</span>&lt;St, Item&gt; Sink&lt;Item&gt; <span class="kw">for </span>FlattenUnordered&lt;St&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + Sink&lt;Item&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">St::Error</span>;
+    <span class="kw">type </span>Error = St::Error;
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#56-83">delegate_sink!</a>(<span class="ident">stream</span>, <span class="ident">Item</span>);
+    <a class="macro" href="../../../../src/futures_util/lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

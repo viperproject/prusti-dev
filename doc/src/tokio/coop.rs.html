@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/coop.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>coop.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tokio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/coop.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>coop.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tokio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -282,289 +282,289 @@
 <span id="282">282</span>
 <span id="283">283</span>
 <span id="284">284</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;full&quot;</span>), allow(dead_code))]
 
-<span class="doccomment">//! Yield points for improved cooperative scheduling.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Documentation for this can be found in the [`tokio::task`] module.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`tokio::task`]: crate::task.</span>
+</span><span class="doccomment">//! Yield points for improved cooperative scheduling.
+//!
+//! Documentation for this can be found in the [`tokio::task`] module.
+//!
+//! [`tokio::task`]: crate::task.
 
-<span class="comment">// ```ignore</span>
-<span class="comment">// # use tokio_stream::{Stream, StreamExt};</span>
-<span class="comment">// async fn drop_all&lt;I: Stream + Unpin&gt;(mut input: I) {</span>
-<span class="comment">//     while let Some(_) = input.next().await {</span>
-<span class="comment">//         tokio::coop::proceed().await;</span>
-<span class="comment">//     }</span>
-<span class="comment">// }</span>
-<span class="comment">// ```</span>
-<span class="comment">//</span>
-<span class="comment">// The `proceed` future will coordinate with the executor to make sure that</span>
-<span class="comment">// every so often control is yielded back to the executor so it can run other</span>
-<span class="comment">// tasks.</span>
-<span class="comment">//</span>
-<span class="comment">// # Placing yield points</span>
-<span class="comment">//</span>
-<span class="comment">// Voluntary yield points should be placed _after_ at least some work has been</span>
-<span class="comment">// done. If they are not, a future sufficiently deep in the task hierarchy may</span>
-<span class="comment">// end up _never_ getting to run because of the number of yield points that</span>
-<span class="comment">// inevitably appear before it is reached. In general, you will want yield</span>
-<span class="comment">// points to only appear in &quot;leaf&quot; futures -- those that do not themselves poll</span>
-<span class="comment">// other futures. By doing this, you avoid double-counting each iteration of</span>
-<span class="comment">// the outer future against the cooperating budget.</span>
+</span><span class="comment">// ```ignore
+// # use tokio_stream::{Stream, StreamExt};
+// async fn drop_all&lt;I: Stream + Unpin&gt;(mut input: I) {
+//     while let Some(_) = input.next().await {
+//         tokio::coop::proceed().await;
+//     }
+// }
+// ```
+//
+// The `proceed` future will coordinate with the executor to make sure that
+// every so often control is yielded back to the executor so it can run other
+// tasks.
+//
+// # Placing yield points
+//
+// Voluntary yield points should be placed _after_ at least some work has been
+// done. If they are not, a future sufficiently deep in the task hierarchy may
+// end up _never_ getting to run because of the number of yield points that
+// inevitably appear before it is reached. In general, you will want yield
+// points to only appear in &quot;leaf&quot; futures -- those that do not themselves poll
+// other futures. By doing this, you avoid double-counting each iteration of
+// the outer future against the cooperating budget.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">std::cell::Cell</a>;
 
-<a class="macro" href="../../src/tokio/macros/thread_local.rs.html#15-17">thread_local!</a> {
-    <span class="kw">static</span> <span class="ident">CURRENT</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">Budget</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">const</span> { <span class="ident">Cell::new</span>(<span class="ident">Budget::unconstrained</span>()) };
+<a class="macro" href="../../src/tokio/macros/thread_local.rs.html#15-17">thread_local! </a>{
+    <span class="kw">static </span>CURRENT: Cell&lt;Budget&gt; = <span class="kw">const </span>{ Cell::new(Budget::unconstrained()) };
 }
 
-<span class="doccomment">/// Opaque type tracking the amount of &quot;work&quot; a task may still do before</span>
-<span class="doccomment">/// yielding back to the scheduler.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Budget</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>);
+<span class="doccomment">/// Opaque type tracking the amount of &quot;work&quot; a task may still do before
+/// yielding back to the scheduler.
+</span><span class="attribute">#[derive(Debug, Copy, Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Budget(<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a> {
-    <span class="doccomment">/// Budget assigned to a task on each poll.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The value itself is chosen somewhat arbitrarily. It needs to be high</span>
-    <span class="doccomment">/// enough to amortize wakeup and scheduling costs, but low enough that we</span>
-    <span class="doccomment">/// do not starve other tasks for too long. The value also needs to be high</span>
-    <span class="doccomment">/// enough that particularly deep tasks are able to do at least some useful</span>
-    <span class="doccomment">/// work at all.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that as more yield points are added in the ecosystem, this value</span>
-    <span class="doccomment">/// will probably also have to be raised.</span>
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">initial</span>() -&gt; <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a> {
-        <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a>(<span class="prelude-val">Some</span>(<span class="number">128</span>))
+<span class="kw">impl </span><a href="../../src/tokio/coop.rs.html#41">Budget</a> {
+    <span class="doccomment">/// Budget assigned to a task on each poll.
+    ///
+    /// The value itself is chosen somewhat arbitrarily. It needs to be high
+    /// enough to amortize wakeup and scheduling costs, but low enough that we
+    /// do not starve other tasks for too long. The value also needs to be high
+    /// enough that particularly deep tasks are able to do at least some useful
+    /// work at all.
+    ///
+    /// Note that as more yield points are added in the ecosystem, this value
+    /// will probably also have to be raised.
+    </span><span class="kw">const fn </span>initial() -&gt; <a href="../../src/tokio/coop.rs.html#41">Budget</a> {
+        <a href="../../src/tokio/coop.rs.html#41">Budget</a>(<span class="prelude-val">Some</span>(<span class="number">128</span>))
     }
 
-    <span class="doccomment">/// Returns an unconstrained budget. Operations will not be limited.</span>
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">unconstrained</span>() -&gt; <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a> {
-        <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a>(<span class="prelude-val">None</span>)
+    <span class="doccomment">/// Returns an unconstrained budget. Operations will not be limited.
+    </span><span class="kw">const fn </span>unconstrained() -&gt; <a href="../../src/tokio/coop.rs.html#41">Budget</a> {
+        <a href="../../src/tokio/coop.rs.html#41">Budget</a>(<span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">has_remaining</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tokio/coop.rs.html#63">self</a>.<span class="number">0</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">budget</span><span class="op">|</span> <a class="ident" href="../../src/tokio/coop.rs.html#64">budget</a> <span class="op">&gt;</span> <span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
+    <span class="kw">fn </span>has_remaining(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tokio/coop.rs.html#63">self</a>.<span class="number">0</span>.map(|budget| <a href="../../src/tokio/coop.rs.html#64">budget</a> &gt; <span class="number">0</span>).unwrap_or(<span class="bool-val">true</span>)
     }
 }
 
-<span class="doccomment">/// Runs the given closure with a cooperative task budget. When the function</span>
-<span class="doccomment">/// returns, the budget is reset to the value prior to calling the function.</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">budget</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
-    <a class="ident" href="../../src/tokio/coop.rs.html#83">with_budget</a>(<span class="ident">Budget::initial</span>(), <a class="ident" href="../../src/tokio/coop.rs.html#71">f</a>)
+<span class="doccomment">/// Runs the given closure with a cooperative task budget. When the function
+/// returns, the budget is reset to the value prior to calling the function.
+</span><span class="attribute">#[inline(always)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>budget&lt;R&gt;(f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; R {
+    <a href="../../src/tokio/coop.rs.html#83">with_budget</a>(Budget::initial(), <a href="../../src/tokio/coop.rs.html#71">f</a>)
 }
 
-<span class="doccomment">/// Runs the given closure with an unconstrained task budget. When the function returns, the budget</span>
-<span class="doccomment">/// is reset to the value prior to calling the function.</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_unconstrained</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
-    <a class="ident" href="../../src/tokio/coop.rs.html#83">with_budget</a>(<span class="ident">Budget::unconstrained</span>(), <a class="ident" href="../../src/tokio/coop.rs.html#78">f</a>)
+<span class="doccomment">/// Runs the given closure with an unconstrained task budget. When the function returns, the budget
+/// is reset to the value prior to calling the function.
+</span><span class="attribute">#[inline(always)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_unconstrained&lt;R&gt;(f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; R {
+    <a href="../../src/tokio/coop.rs.html#83">with_budget</a>(Budget::unconstrained(), <a href="../../src/tokio/coop.rs.html#78">f</a>)
 }
 
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">fn</span> <span class="ident">with_budget</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">budget</span>: <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
-    <span class="kw">struct</span> <span class="ident">ResetGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Cell</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a><span class="op">&gt;</span>,
-        <span class="ident">prev</span>: <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a>,
+<span class="attribute">#[inline(always)]
+</span><span class="kw">fn </span>with_budget&lt;R&gt;(budget: <a href="../../src/tokio/coop.rs.html#41">Budget</a>, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; R {
+    <span class="kw">struct </span>ResetGuard&lt;<span class="lifetime">&#39;a</span>&gt; {
+        cell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cell&lt;<a href="../../src/tokio/coop.rs.html#41">Budget</a>&gt;,
+        prev: <a href="../../src/tokio/coop.rs.html#41">Budget</a>,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">ResetGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <a class="self" href="../../src/tokio/coop.rs.html#90">self</a>.<span class="ident">cell</span>.<span class="ident">set</span>(<a class="self" href="../../src/tokio/coop.rs.html#90">self</a>.<span class="ident">prev</span>);
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ResetGuard&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+            <a class="self" href="../../src/tokio/coop.rs.html#90">self</a>.cell.set(<a class="self" href="../../src/tokio/coop.rs.html#90">self</a>.prev);
         }
     }
 
-    <a class="ident" href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.<span class="ident">with</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cell</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/tokio/coop.rs.html#95">cell</a>.<span class="ident">get</span>();
+    <a href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.with(<span class="kw">move </span>|cell| {
+        <span class="kw">let </span>prev = <a href="../../src/tokio/coop.rs.html#95">cell</a>.get();
 
-        <a class="ident" href="../../src/tokio/coop.rs.html#95">cell</a>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio/coop.rs.html#83">budget</a>);
+        <a href="../../src/tokio/coop.rs.html#95">cell</a>.set(<a href="../../src/tokio/coop.rs.html#83">budget</a>);
 
-        <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <a class="ident" href="../../src/tokio/coop.rs.html#84">ResetGuard</a> { <a class="ident" href="../../src/tokio/coop.rs.html#95">cell</a>, <a class="ident" href="../../src/tokio/coop.rs.html#96">prev</a> };
+        <span class="kw">let </span>_guard = <a href="../../src/tokio/coop.rs.html#84">ResetGuard</a> { <a href="../../src/tokio/coop.rs.html#95">cell</a>, <a href="../../src/tokio/coop.rs.html#96">prev</a> };
 
-        <a class="ident" href="../../src/tokio/coop.rs.html#83">f</a>()
+        <a href="../../src/tokio/coop.rs.html#83">f</a>()
     })
 }
 
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_budget_remaining</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> <a class="ident" href="../../src/tokio/coop.rs.html#108">cell</a>.<span class="ident">get</span>().<a class="ident" href="../../src/tokio/coop.rs.html#63">has_remaining</a>())
+<span class="attribute">#[inline(always)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_budget_remaining() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.with(|cell| <a href="../../src/tokio/coop.rs.html#108">cell</a>.get().<a href="../../src/tokio/coop.rs.html#63">has_remaining</a>())
 }
 
-<span class="macro">cfg_rt_multi_thread!</span> {
-    <span class="doccomment">/// Sets the current task&#39;s budget.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="ident">budget</span>: <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a>) {
-        <a class="ident" href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> <a class="ident" href="../../src/tokio/coop.rs.html#114">cell</a>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio/coop.rs.html#113">budget</a>))
+<span class="macro">cfg_rt_multi_thread! </span>{
+    <span class="doccomment">/// Sets the current task&#39;s budget.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(budget: <a href="../../src/tokio/coop.rs.html#41">Budget</a>) {
+        <a href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.with(|cell| <a href="../../src/tokio/coop.rs.html#114">cell</a>.set(<a href="../../src/tokio/coop.rs.html#113">budget</a>))
     }
 }
 
-<span class="macro">cfg_rt!</span> {
-    <span class="doccomment">/// Forcibly removes the budgeting constraints early.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the remaining budget</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stop</span>() -&gt; <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a> {
-        <a class="ident" href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/tokio/coop.rs.html#123">cell</a>.<span class="ident">get</span>();
-            <a class="ident" href="../../src/tokio/coop.rs.html#123">cell</a>.<span class="ident">set</span>(<span class="ident">Budget::unconstrained</span>());
-            <a class="ident" href="../../src/tokio/coop.rs.html#124">prev</a>
+<span class="macro">cfg_rt! </span>{
+    <span class="doccomment">/// Forcibly removes the budgeting constraints early.
+    ///
+    /// Returns the remaining budget
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stop() -&gt; <a href="../../src/tokio/coop.rs.html#41">Budget</a> {
+        <a href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.with(|cell| {
+            <span class="kw">let </span>prev = <a href="../../src/tokio/coop.rs.html#123">cell</a>.get();
+            <a href="../../src/tokio/coop.rs.html#123">cell</a>.set(Budget::unconstrained());
+            <a href="../../src/tokio/coop.rs.html#124">prev</a>
         })
     }
 }
 
-<span class="macro">cfg_coop!</span> {
-    <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="macro">cfg_coop! </span>{
+    <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">RestoreOnPending</span>(<span class="ident">Cell</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a><span class="op">&gt;</span>);
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RestoreOnPending(Cell&lt;<a href="../../src/tokio/coop.rs.html#41">Budget</a>&gt;);
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/tokio/coop.rs.html#135">RestoreOnPending</a> {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">made_progress</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <a class="self" href="../../src/tokio/coop.rs.html#138">self</a>.<span class="number">0</span>.<span class="ident">set</span>(<span class="ident">Budget::unconstrained</span>());
+    <span class="kw">impl </span><a href="../../src/tokio/coop.rs.html#135">RestoreOnPending</a> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>made_progress(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+            <a class="self" href="../../src/tokio/coop.rs.html#138">self</a>.<span class="number">0</span>.set(Budget::unconstrained());
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/tokio/coop.rs.html#135">RestoreOnPending</a> {
-        <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <span class="comment">// Don&#39;t reset if budget was unconstrained or if we made progress.</span>
-            <span class="comment">// They are both represented as the remembered budget being unconstrained.</span>
-            <span class="kw">let</span> <span class="ident">budget</span> <span class="op">=</span> <a class="self" href="../../src/tokio/coop.rs.html#144">self</a>.<span class="number">0</span>.<span class="ident">get</span>();
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">budget</span>.<span class="ident">is_unconstrained</span>() {
-                <a class="ident" href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/tokio/coop.rs.html#149">cell</a>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio/coop.rs.html#147">budget</a>);
+    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/tokio/coop.rs.html#135">RestoreOnPending</a> {
+        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+            <span class="comment">// Don&#39;t reset if budget was unconstrained or if we made progress.
+            // They are both represented as the remembered budget being unconstrained.
+            </span><span class="kw">let </span>budget = <a class="self" href="../../src/tokio/coop.rs.html#144">self</a>.<span class="number">0</span>.get();
+            <span class="kw">if </span>!budget.is_unconstrained() {
+                <a href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.with(|cell| {
+                    <a href="../../src/tokio/coop.rs.html#149">cell</a>.set(<a href="../../src/tokio/coop.rs.html#147">budget</a>);
                 });
             }
         }
     }
 
-    <span class="doccomment">/// Returns `Poll::Pending` if the current task has exceeded its budget and should yield.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When you call this method, the current budget is decremented. However, to ensure that</span>
-    <span class="doccomment">/// progress is made every time a task is polled, the budget is automatically restored to its</span>
-    <span class="doccomment">/// former value if the returned `RestoreOnPending` is dropped. It is the caller&#39;s</span>
-    <span class="doccomment">/// responsibility to call `RestoreOnPending::made_progress` if it made progress, to ensure</span>
-    <span class="doccomment">/// that the budget empties appropriately.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that `RestoreOnPending` restores the budget **as it was before `poll_proceed`**.</span>
-    <span class="doccomment">/// Therefore, if the budget is _further_ adjusted between when `poll_proceed` returns and</span>
-    <span class="doccomment">/// `RestRestoreOnPending` is dropped, those adjustments are erased unless the caller indicates</span>
-    <span class="doccomment">/// that progress was made.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_proceed</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><a class="ident" href="../../src/tokio/coop.rs.html#135">RestoreOnPending</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">budget</span> <span class="op">=</span> <a class="ident" href="../../src/tokio/coop.rs.html#170">cell</a>.<span class="ident">get</span>();
+    <span class="doccomment">/// Returns `Poll::Pending` if the current task has exceeded its budget and should yield.
+    ///
+    /// When you call this method, the current budget is decremented. However, to ensure that
+    /// progress is made every time a task is polled, the budget is automatically restored to its
+    /// former value if the returned `RestoreOnPending` is dropped. It is the caller&#39;s
+    /// responsibility to call `RestoreOnPending::made_progress` if it made progress, to ensure
+    /// that the budget empties appropriately.
+    ///
+    /// Note that `RestoreOnPending` restores the budget **as it was before `poll_proceed`**.
+    /// Therefore, if the budget is _further_ adjusted between when `poll_proceed` returns and
+    /// `RestRestoreOnPending` is dropped, those adjustments are erased unless the caller indicates
+    /// that progress was made.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_proceed(cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<a href="../../src/tokio/coop.rs.html#135">RestoreOnPending</a>&gt; {
+        <a href="../../src/tokio/coop.rs.html#34-36">CURRENT</a>.with(|cell| {
+            <span class="kw">let </span><span class="kw-2">mut </span>budget = <a href="../../src/tokio/coop.rs.html#170">cell</a>.get();
 
-            <span class="kw">if</span> <span class="ident">budget</span>.<span class="ident">decrement</span>() {
-                <span class="kw">let</span> <span class="ident">restore</span> <span class="op">=</span> <a class="ident" href="../../src/tokio/coop.rs.html#135">RestoreOnPending</a>(<span class="ident">Cell::new</span>(<a class="ident" href="../../src/tokio/coop.rs.html#170">cell</a>.<span class="ident">get</span>()));
-                <a class="ident" href="../../src/tokio/coop.rs.html#170">cell</a>.<span class="ident">set</span>(<a class="ident" href="../../src/tokio/coop.rs.html#171">budget</a>);
-                <span class="ident">Poll::Ready</span>(<a class="ident" href="../../src/tokio/coop.rs.html#174">restore</a>)
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../src/tokio/coop.rs.html#169">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
-                <span class="ident">Poll::Pending</span>
+            <span class="kw">if </span>budget.decrement() {
+                <span class="kw">let </span>restore = <a href="../../src/tokio/coop.rs.html#135">RestoreOnPending</a>(Cell::new(<a href="../../src/tokio/coop.rs.html#170">cell</a>.get()));
+                <a href="../../src/tokio/coop.rs.html#170">cell</a>.set(<a href="../../src/tokio/coop.rs.html#171">budget</a>);
+                Poll::Ready(<a href="../../src/tokio/coop.rs.html#174">restore</a>)
+            } <span class="kw">else </span>{
+                <a href="../../src/tokio/coop.rs.html#169">cx</a>.waker().wake_by_ref();
+                Poll::Pending
             }
         })
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/tokio/coop.rs.html#41">Budget</a> {
-        <span class="doccomment">/// Decrements the budget. Returns `true` if successful. Decrementing fails</span>
-        <span class="doccomment">/// when there is not enough remaining budget.</span>
-        <span class="kw">fn</span> <span class="ident">decrement</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">num</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/tokio/coop.rs.html#187">self</a>.<span class="number">0</span> {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">num</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <span class="kw-2">*</span><a class="ident" href="../../src/tokio/coop.rs.html#188">num</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
-            } <span class="kw">else</span> {
-                <span class="bool-val">true</span>
-            }
+    <span class="kw">impl </span><a href="../../src/tokio/coop.rs.html#41">Budget</a> {
+        <span class="doccomment">/// Decrements the budget. Returns `true` if successful. Decrementing fails
+        /// when there is not enough remaining budget.
+        </span><span class="kw">fn </span>decrement(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(num) = <span class="kw-2">&amp;mut </span><a class="self" href="../../src/tokio/coop.rs.html#187">self</a>.<span class="number">0 </span>{
+                <span class="kw">if </span><span class="kw-2">*</span>num &gt; <span class="number">0 </span>{
+                    <span class="kw-2">*</span><a href="../../src/tokio/coop.rs.html#188">num</a> -= <span class="number">1</span>;
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
+            } <span class="kw">else </span>{
+                <span class="bool-val">true
+            </span>}
         }
 
-        <span class="kw">fn</span> <span class="ident">is_unconstrained</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="self" href="../../src/tokio/coop.rs.html#200">self</a>.<span class="number">0</span>.<span class="ident">is_none</span>()
+        <span class="kw">fn </span>is_unconstrained(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+            <a class="self" href="../../src/tokio/coop.rs.html#200">self</a>.<span class="number">0</span>.is_none()
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">not</span>(<span class="ident">loom</span>)))]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(all(test, not(loom)))]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="ident">wasm_bindgen_test::wasm_bindgen_test</span> <span class="kw">as</span> <span class="ident">test</span>;
+    <span class="attribute">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+    </span><span class="kw">use </span>wasm_bindgen_test::wasm_bindgen_test <span class="kw">as </span>test;
 
-    <span class="kw">fn</span> <span class="ident">get</span>() -&gt; <span class="ident">Budget</span> {
-        <span class="ident">CURRENT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> <span class="ident">cell</span>.<span class="ident">get</span>())
+    <span class="kw">fn </span>get() -&gt; Budget {
+        CURRENT.with(|cell| cell.get())
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">bugeting</span>() {
-        <span class="kw">use</span> <span class="ident">futures::future::poll_fn</span>;
-        <span class="kw">use</span> <span class="ident">tokio_test</span>::<span class="kw-2">*</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>bugeting() {
+        <span class="kw">use </span>futures::future::poll_fn;
+        <span class="kw">use </span>tokio_test::<span class="kw-2">*</span>;
 
-        <span class="macro">assert!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">is_none</span>());
+        <span class="macro">assert!</span>(get().<span class="number">0</span>.is_none());
 
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">assert_ready!</span>(<span class="ident">task::spawn</span>(()).<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">poll_proceed</span>(<span class="ident">cx</span>)));
+        <span class="kw">let </span>coop = <span class="macro">assert_ready!</span>(task::spawn(()).enter(|cx, <span class="kw">_</span>| poll_proceed(cx)));
 
-        <span class="macro">assert!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">is_none</span>());
-        <span class="ident">drop</span>(<span class="ident">coop</span>);
-        <span class="macro">assert!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">is_none</span>());
+        <span class="macro">assert!</span>(get().<span class="number">0</span>.is_none());
+        drop(coop);
+        <span class="macro">assert!</span>(get().<span class="number">0</span>.is_none());
 
-        <span class="ident">budget</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>, <span class="ident">Budget::initial</span>().<span class="number">0</span>);
+        budget(|| {
+            <span class="macro">assert_eq!</span>(get().<span class="number">0</span>, Budget::initial().<span class="number">0</span>);
 
-            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">assert_ready!</span>(<span class="ident">task::spawn</span>(()).<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">poll_proceed</span>(<span class="ident">cx</span>)));
-            <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>(), <span class="ident">Budget::initial</span>().<span class="number">0</span>.<span class="ident">unwrap</span>() <span class="op">-</span> <span class="number">1</span>);
-            <span class="ident">drop</span>(<span class="ident">coop</span>);
-            <span class="comment">// we didn&#39;t make progress</span>
-            <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>, <span class="ident">Budget::initial</span>().<span class="number">0</span>);
+            <span class="kw">let </span>coop = <span class="macro">assert_ready!</span>(task::spawn(()).enter(|cx, <span class="kw">_</span>| poll_proceed(cx)));
+            <span class="macro">assert_eq!</span>(get().<span class="number">0</span>.unwrap(), Budget::initial().<span class="number">0</span>.unwrap() - <span class="number">1</span>);
+            drop(coop);
+            <span class="comment">// we didn&#39;t make progress
+            </span><span class="macro">assert_eq!</span>(get().<span class="number">0</span>, Budget::initial().<span class="number">0</span>);
 
-            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">assert_ready!</span>(<span class="ident">task::spawn</span>(()).<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">poll_proceed</span>(<span class="ident">cx</span>)));
-            <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>(), <span class="ident">Budget::initial</span>().<span class="number">0</span>.<span class="ident">unwrap</span>() <span class="op">-</span> <span class="number">1</span>);
-            <span class="ident">coop</span>.<span class="ident">made_progress</span>();
-            <span class="ident">drop</span>(<span class="ident">coop</span>);
-            <span class="comment">// we _did_ make progress</span>
-            <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>(), <span class="ident">Budget::initial</span>().<span class="number">0</span>.<span class="ident">unwrap</span>() <span class="op">-</span> <span class="number">1</span>);
+            <span class="kw">let </span>coop = <span class="macro">assert_ready!</span>(task::spawn(()).enter(|cx, <span class="kw">_</span>| poll_proceed(cx)));
+            <span class="macro">assert_eq!</span>(get().<span class="number">0</span>.unwrap(), Budget::initial().<span class="number">0</span>.unwrap() - <span class="number">1</span>);
+            coop.made_progress();
+            drop(coop);
+            <span class="comment">// we _did_ make progress
+            </span><span class="macro">assert_eq!</span>(get().<span class="number">0</span>.unwrap(), Budget::initial().<span class="number">0</span>.unwrap() - <span class="number">1</span>);
 
-            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">assert_ready!</span>(<span class="ident">task::spawn</span>(()).<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">poll_proceed</span>(<span class="ident">cx</span>)));
-            <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>(), <span class="ident">Budget::initial</span>().<span class="number">0</span>.<span class="ident">unwrap</span>() <span class="op">-</span> <span class="number">2</span>);
-            <span class="ident">coop</span>.<span class="ident">made_progress</span>();
-            <span class="ident">drop</span>(<span class="ident">coop</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>(), <span class="ident">Budget::initial</span>().<span class="number">0</span>.<span class="ident">unwrap</span>() <span class="op">-</span> <span class="number">2</span>);
+            <span class="kw">let </span>coop = <span class="macro">assert_ready!</span>(task::spawn(()).enter(|cx, <span class="kw">_</span>| poll_proceed(cx)));
+            <span class="macro">assert_eq!</span>(get().<span class="number">0</span>.unwrap(), Budget::initial().<span class="number">0</span>.unwrap() - <span class="number">2</span>);
+            coop.made_progress();
+            drop(coop);
+            <span class="macro">assert_eq!</span>(get().<span class="number">0</span>.unwrap(), Budget::initial().<span class="number">0</span>.unwrap() - <span class="number">2</span>);
 
-            <span class="ident">budget</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>, <span class="ident">Budget::initial</span>().<span class="number">0</span>);
+            budget(|| {
+                <span class="macro">assert_eq!</span>(get().<span class="number">0</span>, Budget::initial().<span class="number">0</span>);
 
-                <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">assert_ready!</span>(<span class="ident">task::spawn</span>(()).<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">poll_proceed</span>(<span class="ident">cx</span>)));
-                <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>(), <span class="ident">Budget::initial</span>().<span class="number">0</span>.<span class="ident">unwrap</span>() <span class="op">-</span> <span class="number">1</span>);
-                <span class="ident">coop</span>.<span class="ident">made_progress</span>();
-                <span class="ident">drop</span>(<span class="ident">coop</span>);
-                <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>(), <span class="ident">Budget::initial</span>().<span class="number">0</span>.<span class="ident">unwrap</span>() <span class="op">-</span> <span class="number">1</span>);
+                <span class="kw">let </span>coop = <span class="macro">assert_ready!</span>(task::spawn(()).enter(|cx, <span class="kw">_</span>| poll_proceed(cx)));
+                <span class="macro">assert_eq!</span>(get().<span class="number">0</span>.unwrap(), Budget::initial().<span class="number">0</span>.unwrap() - <span class="number">1</span>);
+                coop.made_progress();
+                drop(coop);
+                <span class="macro">assert_eq!</span>(get().<span class="number">0</span>.unwrap(), Budget::initial().<span class="number">0</span>.unwrap() - <span class="number">1</span>);
             });
 
-            <span class="macro">assert_eq!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>(), <span class="ident">Budget::initial</span>().<span class="number">0</span>.<span class="ident">unwrap</span>() <span class="op">-</span> <span class="number">2</span>);
+            <span class="macro">assert_eq!</span>(get().<span class="number">0</span>.unwrap(), Budget::initial().<span class="number">0</span>.unwrap() - <span class="number">2</span>);
         });
 
-        <span class="macro">assert!</span>(<span class="ident">get</span>().<span class="number">0</span>.<span class="ident">is_none</span>());
+        <span class="macro">assert!</span>(get().<span class="number">0</span>.is_none());
 
-        <span class="ident">budget</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">get</span>().<span class="number">0</span>.<span class="ident">unwrap</span>();
+        budget(|| {
+            <span class="kw">let </span>n = get().<span class="number">0</span>.unwrap();
 
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
-                <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">assert_ready!</span>(<span class="ident">task::spawn</span>(()).<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">poll_proceed</span>(<span class="ident">cx</span>)));
-                <span class="ident">coop</span>.<span class="ident">made_progress</span>();
+            <span class="kw">for _ in </span><span class="number">0</span>..n {
+                <span class="kw">let </span>coop = <span class="macro">assert_ready!</span>(task::spawn(()).enter(|cx, <span class="kw">_</span>| poll_proceed(cx)));
+                coop.made_progress();
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">task::spawn</span>(<span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">poll_proceed</span>(<span class="ident">cx</span>));
-                <span class="ident">coop</span>.<span class="ident">made_progress</span>();
-                <span class="ident">Poll::Ready</span>(())
+            <span class="kw">let </span><span class="kw-2">mut </span>task = task::spawn(poll_fn(|cx| {
+                <span class="kw">let </span>coop = <span class="macro">ready!</span>(poll_proceed(cx));
+                coop.made_progress();
+                Poll::Ready(())
             }));
 
-            <span class="macro">assert_pending!</span>(<span class="ident">task</span>.<span class="ident">poll</span>());
+            <span class="macro">assert_pending!</span>(task.poll());
         });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

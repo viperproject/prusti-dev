@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mime-0.3.16/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../mime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mime/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mime-0.3.16/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../mime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mime/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -361,314 +361,314 @@
 <span id="361">361</span>
 <span id="362">362</span>
 <span id="363">363</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>, <span class="ident">deprecated</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ascii/trait.AsciiExt.html">std::ascii::AsciiExt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/adapters/enumerate/struct.Enumerate.html">std::iter::Enumerate</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Bytes.html">std::str::Bytes</a>;
+</pre><pre class="rust"><code><span class="attribute">#[allow(unused, deprecated)]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ascii/trait.AsciiExt.html">std::ascii::AsciiExt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/adapters/enumerate/struct.Enumerate.html">std::iter::Enumerate</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Bytes.html">std::str::Bytes</a>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../src/mime/lib.rs.html#43">Mime</a>, <a class="ident" href="../../src/mime/lib.rs.html#97">Source</a>, <a class="ident" href="../../src/mime/lib.rs.html#112">ParamSource</a>, <a class="ident" href="../../src/mime/lib.rs.html#119">Indexed</a>, <a class="ident" href="../../src/mime/lib.rs.html#589-643">CHARSET</a>, <a class="ident" href="../../src/mime/lib.rs.html#589-643">UTF_8</a>};
+<span class="kw">use super</span>::{<a href="../../src/mime/lib.rs.html#43">Mime</a>, <a href="../../src/mime/lib.rs.html#97">Source</a>, <a href="../../src/mime/lib.rs.html#112">ParamSource</a>, <a href="../../src/mime/lib.rs.html#119">Indexed</a>, <a href="../../src/mime/lib.rs.html#589-643">CHARSET</a>, <a href="../../src/mime/lib.rs.html#589-643">UTF_8</a>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ParseError</span> {
-    <span class="ident">MissingSlash</span>,
-    <span class="ident">MissingEqual</span>,
-    <span class="ident">MissingQuote</span>,
-    <span class="ident">InvalidToken</span> {
-        <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ParseError {
+    MissingSlash,
+    MissingEqual,
+    MissingQuote,
+    InvalidToken {
+        pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     },
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/mime/parse.rs.html#11">ParseError</a> {
-    <span class="kw">fn</span> <span class="ident">s</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">use</span> <a class="ident" href="../../src/mime/parse.rs.html#11"><span class="self">self</span>::ParseError</a>::<span class="kw-2">*</span>;
+<span class="kw">impl </span><a href="../../src/mime/parse.rs.html#11">ParseError</a> {
+    <span class="kw">fn </span>s(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw">use </span><a href="../../src/mime/parse.rs.html#11"><span class="self">self</span>::ParseError</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/mime/parse.rs.html#22">self</a> {
-            <a class="ident" href="../../src/mime/parse.rs.html#12">MissingSlash</a> =&gt; <span class="string">&quot;a slash (/) was missing between the type and subtype&quot;</span>,
-            <a class="ident" href="../../src/mime/parse.rs.html#13">MissingEqual</a> =&gt; <span class="string">&quot;an equals sign (=) was missing between a parameter and its value&quot;</span>,
-            <a class="ident" href="../../src/mime/parse.rs.html#14">MissingQuote</a> =&gt; <span class="string">&quot;a quote (\&quot;) was missing from a parameter value&quot;</span>,
-            <a class="ident" href="../../src/mime/parse.rs.html#15">InvalidToken</a> { .. } =&gt; <span class="string">&quot;an invalid token was encountered&quot;</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/mime/parse.rs.html#22">self</a> </span>{
+            <a href="../../src/mime/parse.rs.html#12">MissingSlash</a> =&gt; <span class="string">&quot;a slash (/) was missing between the type and subtype&quot;</span>,
+            <a href="../../src/mime/parse.rs.html#13">MissingEqual</a> =&gt; <span class="string">&quot;an equals sign (=) was missing between a parameter and its value&quot;</span>,
+            <a href="../../src/mime/parse.rs.html#14">MissingQuote</a> =&gt; <span class="string">&quot;a quote (\&quot;) was missing from a parameter value&quot;</span>,
+            <a href="../../src/mime/parse.rs.html#15">InvalidToken</a> { .. } =&gt; <span class="string">&quot;an invalid token was encountered&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/mime/parse.rs.html#11">ParseError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/mime/parse.rs.html#15">ParseError::InvalidToken</a> { <span class="ident">pos</span>, <span class="ident">byte</span> } <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../src/mime/parse.rs.html#35">self</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/mime/parse.rs.html#35">f</a>, <span class="string">&quot;{}, {:X} at position {}&quot;</span>, <span class="self">self</span>.<span class="ident">s</span>(), <span class="ident">byte</span>, <span class="ident">pos</span>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../src/mime/parse.rs.html#35">f</a>.<span class="ident">write_str</span>(<a class="self" href="../../src/mime/parse.rs.html#35">self</a>.<a class="ident" href="../../src/mime/parse.rs.html#22">s</a>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/mime/parse.rs.html#11">ParseError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">if let </span><a href="../../src/mime/parse.rs.html#15">ParseError::InvalidToken</a> { pos, byte } = <span class="kw-2">*</span><span class="self"><a href="../../src/mime/parse.rs.html#35">self</a> </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/mime/parse.rs.html#35">f</a>, <span class="string">&quot;{}, {:X} at position {}&quot;</span>, <span class="self">self</span>.s(), byte, pos)
+        } <span class="kw">else </span>{
+            <a href="../../src/mime/parse.rs.html#35">f</a>.write_str(<a class="self" href="../../src/mime/parse.rs.html#35">self</a>.<a href="../../src/mime/parse.rs.html#22">s</a>())
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../src/mime/parse.rs.html#11">ParseError</a> {
-    <span class="comment">// Minimum Rust is 1.15, Error::description was still required then</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <a class="self" href="../../src/mime/parse.rs.html#47">self</a>.<a class="ident" href="../../src/mime/parse.rs.html#22">s</a>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="../../src/mime/parse.rs.html#11">ParseError</a> {
+    <span class="comment">// Minimum Rust is 1.15, Error::description was still required then
+    </span><span class="attribute">#[allow(deprecated)]
+    </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <a class="self" href="../../src/mime/parse.rs.html#47">self</a>.<a href="../../src/mime/parse.rs.html#22">s</a>()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/mime/lib.rs.html#43">Mime</a>, <a class="ident" href="../../src/mime/parse.rs.html#11">ParseError</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;*/*&quot;</span> {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/mime/lib.rs.html#739-777">::STAR_STAR</a>);
+<span class="kw">pub fn </span>parse(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/mime/lib.rs.html#43">Mime</a>, <a href="../../src/mime/parse.rs.html#11">ParseError</a>&gt; {
+    <span class="kw">if </span>s == <span class="string">&quot;*/*&quot; </span>{
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/mime/lib.rs.html#739-777">::STAR_STAR</a>);
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../src/mime/parse.rs.html#52">s</a>.<span class="ident">bytes</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>();
-    <span class="comment">// toplevel</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span>;
-    <span class="kw">let</span> <span class="ident">slash</span>;
-    <span class="kw">loop</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/mime/parse.rs.html#57">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">c</span>)) <span class="kw">if</span> <a class="ident" href="../../src/mime/parse.rs.html#327">is_token</a>(<a class="ident" href="../../src/mime/parse.rs.html#63">c</a>) =&gt; (),
-            <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39;/&#39;</span>)) <span class="kw">if</span> <a class="ident" href="../../src/mime/parse.rs.html#64">i</a> <span class="op">&gt;</span> <span class="number">0</span> =&gt; {
-                <a class="ident" href="../../src/mime/parse.rs.html#60">slash</a> <span class="op">=</span> <a class="ident" href="../../src/mime/parse.rs.html#64">i</a>;
-                <a class="ident" href="../../src/mime/parse.rs.html#59">start</a> <span class="op">=</span> <a class="ident" href="../../src/mime/parse.rs.html#64">i</a> <span class="op">+</span> <span class="number">1</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="../../src/mime/parse.rs.html#52">s</a>.bytes().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>();
+    <span class="comment">// toplevel
+    </span><span class="kw">let </span><span class="kw-2">mut </span>start;
+    <span class="kw">let </span>slash;
+    <span class="kw">loop </span>{
+        <span class="kw">match </span><a href="../../src/mime/parse.rs.html#57">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span><a href="../../src/mime/parse.rs.html#327">is_token</a>(<a href="../../src/mime/parse.rs.html#63">c</a>) =&gt; (),
+            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;/&#39;</span>)) <span class="kw">if </span><a href="../../src/mime/parse.rs.html#64">i</a> &gt; <span class="number">0 </span>=&gt; {
+                <a href="../../src/mime/parse.rs.html#60">slash</a> = <a href="../../src/mime/parse.rs.html#64">i</a>;
+                <a href="../../src/mime/parse.rs.html#59">start</a> = <a href="../../src/mime/parse.rs.html#64">i</a> + <span class="number">1</span>;
                 <span class="kw">break</span>;
             },
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/mime/parse.rs.html#12">ParseError::MissingSlash</a>), <span class="comment">// EOF and no toplevel is no Mime</span>
-            <span class="prelude-val">Some</span>((<span class="ident">pos</span>, <span class="ident">byte</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/mime/parse.rs.html#15">ParseError::InvalidToken</a> {
-                <span class="ident">pos</span>: <a class="ident" href="../../src/mime/parse.rs.html#70">pos</a>,
-                <span class="ident">byte</span>: <a class="ident" href="../../src/mime/parse.rs.html#70">byte</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/mime/parse.rs.html#12">ParseError::MissingSlash</a>), <span class="comment">// EOF and no toplevel is no Mime
+            </span><span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/mime/parse.rs.html#15">ParseError::InvalidToken</a> {
+                pos: <a href="../../src/mime/parse.rs.html#70">pos</a>,
+                byte: <a href="../../src/mime/parse.rs.html#70">byte</a>,
             })
         };
 
     }
 
-    <span class="comment">// sublevel</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">plus</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-    <span class="kw">loop</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/mime/parse.rs.html#57">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39;+&#39;</span>)) <span class="kw">if</span> <a class="ident" href="../../src/mime/parse.rs.html#82">i</a> <span class="op">&gt;</span> <a class="ident" href="../../src/mime/parse.rs.html#59">start</a> =&gt; {
-                <a class="ident" href="../../src/mime/parse.rs.html#79">plus</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/mime/parse.rs.html#82">i</a>);
+    <span class="comment">// sublevel
+    </span><span class="kw">let </span><span class="kw-2">mut </span>plus = <span class="prelude-val">None</span>;
+    <span class="kw">loop </span>{
+        <span class="kw">match </span><a href="../../src/mime/parse.rs.html#57">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;+&#39;</span>)) <span class="kw">if </span><a href="../../src/mime/parse.rs.html#82">i</a> &gt; <a href="../../src/mime/parse.rs.html#59">start</a> =&gt; {
+                <a href="../../src/mime/parse.rs.html#79">plus</a> = <span class="prelude-val">Some</span>(<a href="../../src/mime/parse.rs.html#82">i</a>);
             },
-            <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39;;&#39;</span>)) <span class="kw">if</span> <a class="ident" href="../../src/mime/parse.rs.html#85">i</a> <span class="op">&gt;</span> <a class="ident" href="../../src/mime/parse.rs.html#59">start</a> =&gt; {
-                <a class="ident" href="../../src/mime/parse.rs.html#59">start</a> <span class="op">=</span> <a class="ident" href="../../src/mime/parse.rs.html#85">i</a>;
+            <span class="prelude-val">Some</span>((i, <span class="string">b&#39;;&#39;</span>)) <span class="kw">if </span><a href="../../src/mime/parse.rs.html#85">i</a> &gt; <a href="../../src/mime/parse.rs.html#59">start</a> =&gt; {
+                <a href="../../src/mime/parse.rs.html#59">start</a> = <a href="../../src/mime/parse.rs.html#85">i</a>;
                 <span class="kw">break</span>;
             },
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">c</span>)) <span class="kw">if</span> <a class="ident" href="../../src/mime/parse.rs.html#327">is_token</a>(<a class="ident" href="../../src/mime/parse.rs.html#89">c</a>) =&gt; (),
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/mime/lib.rs.html#43">Mime</a> {
-                    <span class="ident">source</span>: <a class="ident" href="../../src/mime/lib.rs.html#99">Source::Dynamic</a>(<a class="ident" href="../../src/mime/parse.rs.html#52">s</a>.<span class="ident">to_ascii_lowercase</span>()),
-                    <span class="ident">slash</span>: <a class="ident" href="../../src/mime/parse.rs.html#60">slash</a>,
-                    <span class="ident">plus</span>: <a class="ident" href="../../src/mime/parse.rs.html#79">plus</a>,
-                    <span class="ident">params</span>: <a class="ident" href="../../src/mime/lib.rs.html#115">ParamSource::None</a>,
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span><a href="../../src/mime/parse.rs.html#327">is_token</a>(<a href="../../src/mime/parse.rs.html#89">c</a>) =&gt; (),
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/mime/lib.rs.html#43">Mime</a> {
+                    source: <a href="../../src/mime/lib.rs.html#99">Source::Dynamic</a>(<a href="../../src/mime/parse.rs.html#52">s</a>.to_ascii_lowercase()),
+                    slash: <a href="../../src/mime/parse.rs.html#60">slash</a>,
+                    plus: <a href="../../src/mime/parse.rs.html#79">plus</a>,
+                    params: <a href="../../src/mime/lib.rs.html#115">ParamSource::None</a>,
                 });
             },
-            <span class="prelude-val">Some</span>((<span class="ident">pos</span>, <span class="ident">byte</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/mime/parse.rs.html#15">ParseError::InvalidToken</a> {
-                <span class="ident">pos</span>: <a class="ident" href="../../src/mime/parse.rs.html#98">pos</a>,
-                <span class="ident">byte</span>: <a class="ident" href="../../src/mime/parse.rs.html#98">byte</a>,
+            <span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../src/mime/parse.rs.html#15">ParseError::InvalidToken</a> {
+                pos: <a href="../../src/mime/parse.rs.html#98">pos</a>,
+                byte: <a href="../../src/mime/parse.rs.html#98">byte</a>,
             })
         };
     }
 
-    <span class="comment">// params</span>
-    <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">params_from_str</span>(<span class="ident">s</span>, <span class="kw-2">&amp;mut</span> <span class="ident">iter</span>, <span class="ident">start</span>)<span class="question-mark">?</span>;
+    <span class="comment">// params
+    </span><span class="kw">let </span>params = params_from_str(s, <span class="kw-2">&amp;mut </span>iter, start)<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/mime/parse.rs.html#106">params</a> {
-        <a class="ident" href="../../src/mime/lib.rs.html#113">ParamSource::Utf8</a>(<span class="kw">_</span>)  =&gt; <a class="ident" href="../../src/mime/parse.rs.html#52">s</a>.<span class="ident">to_ascii_lowercase</span>(),
-        <a class="ident" href="../../src/mime/lib.rs.html#114">ParamSource::Custom</a>(<span class="ident">semicolon</span>, <span class="kw-2">ref</span> <span class="ident">indices</span>) =&gt; <a class="ident" href="../../src/mime/parse.rs.html#248">lower_ascii_with_params</a>(<a class="ident" href="../../src/mime/parse.rs.html#52">s</a>, <a class="ident" href="../../src/mime/parse.rs.html#110">semicolon</a>, <a class="ident" href="../../src/mime/parse.rs.html#110">indices</a>),
-        <a class="ident" href="../../src/mime/lib.rs.html#115">ParamSource::None</a> =&gt; {
-            <span class="comment">// Chop off the empty list</span>
-            <a class="ident" href="../../src/mime/parse.rs.html#52">s</a>[..<a class="ident" href="../../src/mime/parse.rs.html#59">start</a>].<span class="ident">to_ascii_lowercase</span>()
+    <span class="kw">let </span>src = <span class="kw">match </span><a href="../../src/mime/parse.rs.html#106">params</a> {
+        <a href="../../src/mime/lib.rs.html#113">ParamSource::Utf8</a>(<span class="kw">_</span>)  =&gt; <a href="../../src/mime/parse.rs.html#52">s</a>.to_ascii_lowercase(),
+        <a href="../../src/mime/lib.rs.html#114">ParamSource::Custom</a>(semicolon, <span class="kw-2">ref </span>indices) =&gt; <a href="../../src/mime/parse.rs.html#248">lower_ascii_with_params</a>(<a href="../../src/mime/parse.rs.html#52">s</a>, <a href="../../src/mime/parse.rs.html#110">semicolon</a>, <a href="../../src/mime/parse.rs.html#110">indices</a>),
+        <a href="../../src/mime/lib.rs.html#115">ParamSource::None</a> =&gt; {
+            <span class="comment">// Chop off the empty list
+            </span><a href="../../src/mime/parse.rs.html#52">s</a>[..<a href="../../src/mime/parse.rs.html#59">start</a>].to_ascii_lowercase()
         }
     };
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/mime/lib.rs.html#43">Mime</a> {
-        <span class="ident">source</span>: <a class="ident" href="../../src/mime/lib.rs.html#99">Source::Dynamic</a>(<a class="ident" href="../../src/mime/parse.rs.html#108">src</a>),
-        <span class="ident">slash</span>: <a class="ident" href="../../src/mime/parse.rs.html#60">slash</a>,
-        <span class="ident">plus</span>: <a class="ident" href="../../src/mime/parse.rs.html#79">plus</a>,
-        <span class="ident">params</span>: <a class="ident" href="../../src/mime/parse.rs.html#106">params</a>,
+    <span class="prelude-val">Ok</span>(<a href="../../src/mime/lib.rs.html#43">Mime</a> {
+        source: <a href="../../src/mime/lib.rs.html#99">Source::Dynamic</a>(<a href="../../src/mime/parse.rs.html#108">src</a>),
+        slash: <a href="../../src/mime/parse.rs.html#60">slash</a>,
+        plus: <a href="../../src/mime/parse.rs.html#79">plus</a>,
+        params: <a href="../../src/mime/parse.rs.html#106">params</a>,
     })
 }
 
 
-<span class="kw">fn</span> <span class="ident">params_from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">iter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Enumerate</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/mime/lib.rs.html#112">ParamSource</a>, <a class="ident" href="../../src/mime/parse.rs.html#11">ParseError</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">semicolon</span> <span class="op">=</span> <a class="ident" href="../../src/mime/parse.rs.html#126">start</a>;
-    <a class="ident" href="../../src/mime/parse.rs.html#126">start</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <a class="ident" href="../../src/mime/lib.rs.html#115">ParamSource::None</a>;
-    <span class="lifetime">&#39;params</span>: <span class="kw">while</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">s</span>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">name</span>;
-        <span class="comment">// name</span>
-        <span class="lifetime">&#39;name</span>: <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39; &#39;</span>)) <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">start</span> =&gt; {
-                    <span class="ident">start</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
-                    <span class="kw">continue</span> <span class="lifetime">&#39;params</span>;
+<span class="kw">fn </span>params_from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, iter: <span class="kw-2">&amp;mut </span>Enumerate&lt;<a href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Bytes.html">Bytes</a>&gt;, <span class="kw-2">mut </span>start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/mime/lib.rs.html#112">ParamSource</a>, <a href="../../src/mime/parse.rs.html#11">ParseError</a>&gt; {
+    <span class="kw">let </span>semicolon = <a href="../../src/mime/parse.rs.html#126">start</a>;
+    <a href="../../src/mime/parse.rs.html#126">start</a> += <span class="number">1</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>params = <a href="../../src/mime/lib.rs.html#115">ParamSource::None</a>;
+    <span class="lifetime">&#39;params</span>: <span class="kw">while </span>start &lt; s.len() {
+        <span class="kw">let </span>name;
+        <span class="comment">// name
+        </span><span class="lifetime">&#39;name</span>: <span class="kw">loop </span>{
+            <span class="kw">match </span>iter.next() {
+                <span class="prelude-val">Some</span>((i, <span class="string">b&#39; &#39;</span>)) <span class="kw">if </span>i == start =&gt; {
+                    start = i + <span class="number">1</span>;
+                    <span class="kw">continue </span><span class="lifetime">&#39;params</span>;
                 },
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">c</span>)) <span class="kw">if</span> <span class="ident">is_token</span>(<span class="ident">c</span>) =&gt; (),
-                <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39;=&#39;</span>)) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="ident">start</span> =&gt; {
-                    <span class="ident">name</span> <span class="op">=</span> <span class="ident">Indexed</span>(<span class="ident">start</span>, <span class="ident">i</span>);
-                    <span class="ident">start</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
-                    <span class="kw">break</span> <span class="lifetime">&#39;name</span>;
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span>is_token(c) =&gt; (),
+                <span class="prelude-val">Some</span>((i, <span class="string">b&#39;=&#39;</span>)) <span class="kw">if </span>i &gt; start =&gt; {
+                    name = Indexed(start, i);
+                    start = i + <span class="number">1</span>;
+                    <span class="kw">break </span><span class="lifetime">&#39;name</span>;
                 },
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::MissingEqual</span>),
-                <span class="prelude-val">Some</span>((<span class="ident">pos</span>, <span class="ident">byte</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::InvalidToken</span> {
-                    <span class="ident">pos</span>: <span class="ident">pos</span>,
-                    <span class="ident">byte</span>: <span class="ident">byte</span>,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::MissingEqual),
+                <span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::InvalidToken {
+                    pos: pos,
+                    byte: byte,
                 }),
             }
         }
 
-        <span class="kw">let</span> <span class="ident">value</span>;
-        <span class="comment">// values must be restrict-name-char or &quot;anything goes&quot;</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_quoted</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let </span>value;
+        <span class="comment">// values must be restrict-name-char or &quot;anything goes&quot;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>is_quoted = <span class="bool-val">false</span>;
 
-        <span class="lifetime">&#39;value</span>: <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="ident">is_quoted</span> {
-                <span class="kw">match</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-                    <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39;&quot;&#39;</span>)) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="ident">start</span> =&gt; {
-                        <span class="ident">value</span> <span class="op">=</span> <span class="ident">Indexed</span>(<span class="ident">start</span>, <span class="ident">i</span>);
-                        <span class="kw">break</span> <span class="lifetime">&#39;value</span>;
+        <span class="lifetime">&#39;value</span>: <span class="kw">loop </span>{
+            <span class="kw">if </span>is_quoted {
+                <span class="kw">match </span>iter.next() {
+                    <span class="prelude-val">Some</span>((i, <span class="string">b&#39;&quot;&#39;</span>)) <span class="kw">if </span>i &gt; start =&gt; {
+                        value = Indexed(start, i);
+                        <span class="kw">break </span><span class="lifetime">&#39;value</span>;
                     },
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">c</span>)) <span class="kw">if</span> <span class="ident">is_restricted_quoted_char</span>(<span class="ident">c</span>) =&gt; (),
-                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::MissingQuote</span>),
-                    <span class="prelude-val">Some</span>((<span class="ident">pos</span>, <span class="ident">byte</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::InvalidToken</span> {
-                        <span class="ident">pos</span>: <span class="ident">pos</span>,
-                        <span class="ident">byte</span>: <span class="ident">byte</span>,
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span>is_restricted_quoted_char(c) =&gt; (),
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::MissingQuote),
+                    <span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::InvalidToken {
+                        pos: pos,
+                        byte: byte,
                     }),
                 }
-            } <span class="kw">else</span> {
-                <span class="kw">match</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-                    <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39;&quot;&#39;</span>)) <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">start</span> =&gt; {
-                        <span class="ident">is_quoted</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                        <span class="ident">start</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
+            } <span class="kw">else </span>{
+                <span class="kw">match </span>iter.next() {
+                    <span class="prelude-val">Some</span>((i, <span class="string">b&#39;&quot;&#39;</span>)) <span class="kw">if </span>i == start =&gt; {
+                        is_quoted = <span class="bool-val">true</span>;
+                        start = i + <span class="number">1</span>;
                     },
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">c</span>)) <span class="kw">if</span> <span class="ident">is_token</span>(<span class="ident">c</span>) =&gt; (),
-                    <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39;;&#39;</span>)) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="ident">start</span> =&gt; {
-                        <span class="ident">value</span> <span class="op">=</span> <span class="ident">Indexed</span>(<span class="ident">start</span>, <span class="ident">i</span>);
-                        <span class="ident">start</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
-                        <span class="kw">break</span> <span class="lifetime">&#39;value</span>;
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, c)) <span class="kw">if </span>is_token(c) =&gt; (),
+                    <span class="prelude-val">Some</span>((i, <span class="string">b&#39;;&#39;</span>)) <span class="kw">if </span>i &gt; start =&gt; {
+                        value = Indexed(start, i);
+                        start = i + <span class="number">1</span>;
+                        <span class="kw">break </span><span class="lifetime">&#39;value</span>;
                     }
-                    <span class="prelude-val">None</span> =&gt; {
-                        <span class="ident">value</span> <span class="op">=</span> <span class="ident">Indexed</span>(<span class="ident">start</span>, <span class="ident">s</span>.<span class="ident">len</span>());
-                        <span class="ident">start</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>();
-                        <span class="kw">break</span> <span class="lifetime">&#39;value</span>;
+                    <span class="prelude-val">None </span>=&gt; {
+                        value = Indexed(start, s.len());
+                        start = s.len();
+                        <span class="kw">break </span><span class="lifetime">&#39;value</span>;
                     },
 
-                    <span class="prelude-val">Some</span>((<span class="ident">pos</span>, <span class="ident">byte</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::InvalidToken</span> {
-                        <span class="ident">pos</span>: <span class="ident">pos</span>,
-                        <span class="ident">byte</span>: <span class="ident">byte</span>,
+                    <span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::InvalidToken {
+                        pos: pos,
+                        byte: byte,
                     }),
                 }
             }
         }
 
-        <span class="kw">if</span> <span class="ident">is_quoted</span> {
-            <span class="lifetime">&#39;ws</span>: <span class="kw">loop</span> {
-                <span class="kw">match</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-                    <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="string">b&#39;;&#39;</span>)) =&gt; {
-                        <span class="comment">// next param</span>
-                        <span class="ident">start</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
-                        <span class="kw">break</span> <span class="lifetime">&#39;ws</span>;
+        <span class="kw">if </span>is_quoted {
+            <span class="lifetime">&#39;ws</span>: <span class="kw">loop </span>{
+                <span class="kw">match </span>iter.next() {
+                    <span class="prelude-val">Some</span>((i, <span class="string">b&#39;;&#39;</span>)) =&gt; {
+                        <span class="comment">// next param
+                        </span>start = i + <span class="number">1</span>;
+                        <span class="kw">break </span><span class="lifetime">&#39;ws</span>;
                     },
                     <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39; &#39;</span>)) =&gt; {
-                        <span class="comment">// skip whitespace</span>
+                        <span class="comment">// skip whitespace
+                    </span>},
+                    <span class="prelude-val">None </span>=&gt; {
+                        <span class="comment">// eof
+                        </span>start = s.len();
+                        <span class="kw">break </span><span class="lifetime">&#39;ws</span>;
                     },
-                    <span class="prelude-val">None</span> =&gt; {
-                        <span class="comment">// eof</span>
-                        <span class="ident">start</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>();
-                        <span class="kw">break</span> <span class="lifetime">&#39;ws</span>;
-                    },
-                    <span class="prelude-val">Some</span>((<span class="ident">pos</span>, <span class="ident">byte</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::InvalidToken</span> {
-                        <span class="ident">pos</span>: <span class="ident">pos</span>,
-                        <span class="ident">byte</span>: <span class="ident">byte</span>,
+                    <span class="prelude-val">Some</span>((pos, byte)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::InvalidToken {
+                        pos: pos,
+                        byte: byte,
                     }),
                 }
             }
         }
 
-        <span class="kw">match</span> <span class="ident">params</span> {
-            <span class="ident">ParamSource::Utf8</span>(<span class="ident">i</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">2</span>;
-                <span class="kw">let</span> <span class="ident">charset</span> <span class="op">=</span> <span class="ident">Indexed</span>(<span class="ident">i</span>, <span class="string">&quot;charset&quot;</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">i</span>);
-                <span class="kw">let</span> <span class="ident">utf8</span> <span class="op">=</span> <span class="ident">Indexed</span>(<span class="ident">charset</span>.<span class="number">1</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">charset</span>.<span class="number">1</span> <span class="op">+</span> <span class="string">&quot;utf-8&quot;</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>);
-                <span class="ident">params</span> <span class="op">=</span> <span class="ident">ParamSource::Custom</span>(<span class="ident">semicolon</span>, <span class="macro">vec!</span>[
-                    (<span class="ident">charset</span>, <span class="ident">utf8</span>),
-                    (<span class="ident">name</span>, <span class="ident">value</span>),
+        <span class="kw">match </span>params {
+            ParamSource::Utf8(i) =&gt; {
+                <span class="kw">let </span>i = i + <span class="number">2</span>;
+                <span class="kw">let </span>charset = Indexed(i, <span class="string">&quot;charset&quot;</span>.len() + i);
+                <span class="kw">let </span>utf8 = Indexed(charset.<span class="number">1 </span>+ <span class="number">1</span>, charset.<span class="number">1 </span>+ <span class="string">&quot;utf-8&quot;</span>.len() + <span class="number">1</span>);
+                params = ParamSource::Custom(semicolon, <span class="macro">vec!</span>[
+                    (charset, utf8),
+                    (name, value),
                 ]);
             },
-            <span class="ident">ParamSource::Custom</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) =&gt; {
-                <span class="ident">vec</span>.<span class="ident">push</span>((<span class="ident">name</span>, <span class="ident">value</span>));
+            ParamSource::Custom(<span class="kw">_</span>, <span class="kw-2">ref mut </span>vec) =&gt; {
+                vec.push((name, value));
             },
-            <span class="ident">ParamSource::None</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">semicolon</span> <span class="op">+</span> <span class="number">2</span> <span class="op">==</span> <span class="ident">name</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">CHARSET</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">name</span>.<span class="number">0</span>..<span class="ident">name</span>.<span class="number">1</span>] {
-                    <span class="kw">if</span> <span class="ident">UTF_8</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">value</span>.<span class="number">0</span>..<span class="ident">value</span>.<span class="number">1</span>] {
-                        <span class="ident">params</span> <span class="op">=</span> <span class="ident">ParamSource::Utf8</span>(<span class="ident">semicolon</span>);
-                        <span class="kw">continue</span> <span class="lifetime">&#39;params</span>;
+            ParamSource::None =&gt; {
+                <span class="kw">if </span>semicolon + <span class="number">2 </span>== name.<span class="number">0 </span>&amp;&amp; CHARSET == <span class="kw-2">&amp;</span>s[name.<span class="number">0</span>..name.<span class="number">1</span>] {
+                    <span class="kw">if </span>UTF_8 == <span class="kw-2">&amp;</span>s[value.<span class="number">0</span>..value.<span class="number">1</span>] {
+                        params = ParamSource::Utf8(semicolon);
+                        <span class="kw">continue </span><span class="lifetime">&#39;params</span>;
                     }
                 }
-                <span class="ident">params</span> <span class="op">=</span> <span class="ident">ParamSource::Custom</span>(<span class="ident">semicolon</span>, <span class="macro">vec!</span>[(<span class="ident">name</span>, <span class="ident">value</span>)]);
+                params = ParamSource::Custom(semicolon, <span class="macro">vec!</span>[(name, value)]);
             },
         }
     }
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/mime/parse.rs.html#129">params</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../src/mime/parse.rs.html#129">params</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">lower_ascii_with_params</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">semi</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">params</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="../../src/mime/lib.rs.html#119">Indexed</a>, <a class="ident" href="../../src/mime/lib.rs.html#119">Indexed</a>)]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">owned</span> <span class="op">=</span> <a class="ident" href="../../src/mime/parse.rs.html#248">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
-    <a class="ident" href="../../src/mime/parse.rs.html#249">owned</a>[..<a class="ident" href="../../src/mime/parse.rs.html#248">semi</a>].<span class="ident">make_ascii_lowercase</span>();
+<span class="kw">fn </span>lower_ascii_with_params(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, semi: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, params: <span class="kw-2">&amp;</span>[(<a href="../../src/mime/lib.rs.html#119">Indexed</a>, <a href="../../src/mime/lib.rs.html#119">Indexed</a>)]) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>owned = <a href="../../src/mime/parse.rs.html#248">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
+    <a href="../../src/mime/parse.rs.html#249">owned</a>[..<a href="../../src/mime/parse.rs.html#248">semi</a>].make_ascii_lowercase();
 
-    <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">params</span> {
-        <span class="ident">owned</span>[<span class="ident">name</span>.<span class="number">0</span>..<span class="ident">name</span>.<span class="number">1</span>].<span class="ident">make_ascii_lowercase</span>();
-        <span class="comment">// Since we just converted this part of the string to lowercase,</span>
-        <span class="comment">// we can skip the `Name == &amp;str` unicase check and do a faster</span>
-        <span class="comment">// memcmp instead.</span>
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">owned</span>[<span class="ident">name</span>.<span class="number">0</span>..<span class="ident">name</span>.<span class="number">1</span>] <span class="op">==</span> <span class="ident">CHARSET</span>.<span class="ident">source</span> {
-            <span class="ident">owned</span>[<span class="ident">value</span>.<span class="number">0</span>..<span class="ident">value</span>.<span class="number">1</span>].<span class="ident">make_ascii_lowercase</span>();
+    <span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>name, <span class="kw-2">ref </span>value) <span class="kw">in </span>params {
+        owned[name.<span class="number">0</span>..name.<span class="number">1</span>].make_ascii_lowercase();
+        <span class="comment">// Since we just converted this part of the string to lowercase,
+        // we can skip the `Name == &amp;str` unicase check and do a faster
+        // memcmp instead.
+        </span><span class="kw">if </span><span class="kw-2">&amp;</span>owned[name.<span class="number">0</span>..name.<span class="number">1</span>] == CHARSET.source {
+            owned[value.<span class="number">0</span>..value.<span class="number">1</span>].make_ascii_lowercase();
         }
     }
 
-    <a class="ident" href="../../src/mime/parse.rs.html#249">owned</a>
+    <a href="../../src/mime/parse.rs.html#249">owned</a>
 }
 
-<span class="comment">// From [RFC6838](http://tools.ietf.org/html/rfc6838#section-4.2):</span>
-<span class="comment">//</span>
-<span class="comment">// &gt; All registered media types MUST be assigned top-level type and</span>
-<span class="comment">// &gt; subtype names.  The combination of these names serves to uniquely</span>
-<span class="comment">// &gt; identify the media type, and the subtype name facet (or the absence</span>
-<span class="comment">// &gt; of one) identifies the registration tree.  Both top-level type and</span>
-<span class="comment">// &gt; subtype names are case-insensitive.</span>
-<span class="comment">// &gt;</span>
-<span class="comment">// &gt; Type and subtype names MUST conform to the following ABNF:</span>
-<span class="comment">// &gt;</span>
-<span class="comment">// &gt;     type-name = restricted-name</span>
-<span class="comment">// &gt;     subtype-name = restricted-name</span>
-<span class="comment">// &gt;</span>
-<span class="comment">// &gt;     restricted-name = restricted-name-first *126restricted-name-chars</span>
-<span class="comment">// &gt;     restricted-name-first  = ALPHA / DIGIT</span>
-<span class="comment">// &gt;     restricted-name-chars  = ALPHA / DIGIT / &quot;!&quot; / &quot;#&quot; /</span>
-<span class="comment">// &gt;                              &quot;$&quot; / &quot;&amp;&quot; / &quot;-&quot; / &quot;^&quot; / &quot;_&quot;</span>
-<span class="comment">// &gt;     restricted-name-chars =/ &quot;.&quot; ; Characters before first dot always</span>
-<span class="comment">// &gt;                                  ; specify a facet name</span>
-<span class="comment">// &gt;     restricted-name-chars =/ &quot;+&quot; ; Characters after last plus always</span>
-<span class="comment">// &gt;                                  ; specify a structured syntax suffix</span>
+<span class="comment">// From [RFC6838](http://tools.ietf.org/html/rfc6838#section-4.2):
+//
+// &gt; All registered media types MUST be assigned top-level type and
+// &gt; subtype names.  The combination of these names serves to uniquely
+// &gt; identify the media type, and the subtype name facet (or the absence
+// &gt; of one) identifies the registration tree.  Both top-level type and
+// &gt; subtype names are case-insensitive.
+// &gt;
+// &gt; Type and subtype names MUST conform to the following ABNF:
+// &gt;
+// &gt;     type-name = restricted-name
+// &gt;     subtype-name = restricted-name
+// &gt;
+// &gt;     restricted-name = restricted-name-first *126restricted-name-chars
+// &gt;     restricted-name-first  = ALPHA / DIGIT
+// &gt;     restricted-name-chars  = ALPHA / DIGIT / &quot;!&quot; / &quot;#&quot; /
+// &gt;                              &quot;$&quot; / &quot;&amp;&quot; / &quot;-&quot; / &quot;^&quot; / &quot;_&quot;
+// &gt;     restricted-name-chars =/ &quot;.&quot; ; Characters before first dot always
+// &gt;                                  ; specify a facet name
+// &gt;     restricted-name-chars =/ &quot;+&quot; ; Characters after last plus always
+// &gt;                                  ; specify a structured syntax suffix
 
-<span class="comment">// However, [HTTP](https://tools.ietf.org/html/rfc7231#section-3.1.1.1):</span>
-<span class="comment">//</span>
-<span class="comment">// &gt;     media-type = type &quot;/&quot; subtype *( OWS &quot;;&quot; OWS parameter )</span>
-<span class="comment">// &gt;     type       = token</span>
-<span class="comment">// &gt;     subtype    = token</span>
-<span class="comment">// &gt;     parameter  = token &quot;=&quot; ( token / quoted-string )</span>
-<span class="comment">//</span>
-<span class="comment">// Where token is defined as:</span>
-<span class="comment">//</span>
-<span class="comment">// &gt;     token = 1*tchar</span>
-<span class="comment">// &gt;     tchar = &quot;!&quot; / &quot;#&quot; / &quot;$&quot; / &quot;%&quot; / &quot;&amp;&quot; / &quot;&#39;&quot; / &quot;*&quot; / &quot;+&quot; / &quot;-&quot; / &quot;.&quot; /</span>
-<span class="comment">// &gt;        &quot;^&quot; / &quot;_&quot; / &quot;`&quot; / &quot;|&quot; / &quot;~&quot; / DIGIT / ALPHA</span>
-<span class="comment">//</span>
-<span class="comment">// So, clearly, ¯\_(Ä_/¯</span>
+// However, [HTTP](https://tools.ietf.org/html/rfc7231#section-3.1.1.1):
+//
+// &gt;     media-type = type &quot;/&quot; subtype *( OWS &quot;;&quot; OWS parameter )
+// &gt;     type       = token
+// &gt;     subtype    = token
+// &gt;     parameter  = token &quot;=&quot; ( token / quoted-string )
+//
+// Where token is defined as:
+//
+// &gt;     token = 1*tchar
+// &gt;     tchar = &quot;!&quot; / &quot;#&quot; / &quot;$&quot; / &quot;%&quot; / &quot;&amp;&quot; / &quot;&#39;&quot; / &quot;*&quot; / &quot;+&quot; / &quot;-&quot; / &quot;.&quot; /
+// &gt;        &quot;^&quot; / &quot;_&quot; / &quot;`&quot; / &quot;|&quot; / &quot;~&quot; / DIGIT / ALPHA
+//
+// So, clearly, ¯\_(Ä_/¯
 
-<span class="macro">macro_rules!</span> <span class="ident">byte_map</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">flag</span>:<span class="ident">expr</span>,)<span class="kw-2">*</span>) =&gt; ([
-        $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">flag</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,)<span class="op">*</span>
+</span><span class="macro">macro_rules! </span>byte_map {
+    ($(<span class="macro-nonterminal">$flag</span>:expr,)<span class="kw-2">*</span>) =&gt; ([
+        $(<span class="macro-nonterminal">$flag </span>!= <span class="number">0</span>,)*
     ])
 }
 
-<span class="kw">static</span> <span class="ident">TOKEN_MAP</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>; <span class="number">256</span>] <span class="op">=</span> <a class="macro" href="../../src/mime/parse.rs.html#302-306">byte_map!</a>[
+<span class="kw">static </span>TOKEN_MAP: [<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>; <span class="number">256</span>] = <a class="macro" href="../../src/mime/parse.rs.html#302-306">byte_map!</a>[
     <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
     <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
     <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>,
@@ -687,42 +687,42 @@
     <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
 ];
 
-<span class="kw">fn</span> <span class="ident">is_token</span>(<span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/mime/parse.rs.html#308">TOKEN_MAP</a>[<a class="ident" href="../../src/mime/parse.rs.html#327">c</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
+<span class="kw">fn </span>is_token(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="../../src/mime/parse.rs.html#308">TOKEN_MAP</a>[<a href="../../src/mime/parse.rs.html#327">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>]
 }
 
-<span class="kw">fn</span> <span class="ident">is_restricted_quoted_char</span>(<span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/mime/parse.rs.html#331">c</a> <span class="op">&gt;</span> <span class="number">31</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/mime/parse.rs.html#331">c</a> <span class="op">!</span><span class="op">=</span> <span class="number">127</span>
-}
+<span class="kw">fn </span>is_restricted_quoted_char(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="../../src/mime/parse.rs.html#331">c</a> &gt; <span class="number">31 </span>&amp;&amp; <a href="../../src/mime/parse.rs.html#331">c</a> != <span class="number">127
+</span>}
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">warnings</span>)]</span> <span class="comment">// ... ranges deprecated</span>
-<span class="kw">fn</span> <span class="ident">test_lookup_tables</span>() {
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">valid</span>) <span class="kw">in</span> <span class="ident">TOKEN_MAP</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">let</span> <span class="ident">should</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">i</span> {
-            <span class="string">b&#39;a&#39;</span>...<span class="string">b&#39;z&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;A&#39;</span>...<span class="string">b&#39;Z&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;0&#39;</span>...<span class="string">b&#39;9&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;!&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;#&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;$&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;%&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;&amp;&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;\&#39;&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;*&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;+&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;-&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;.&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;^&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;_&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;`&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;|&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;~&#39;</span> =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>
-        };
-        <span class="macro">assert_eq!</span>(<span class="ident">valid</span>, <span class="ident">should</span>, <span class="string">&quot;{:?} ({}) should be {}&quot;</span>, <span class="ident">i</span> <span class="kw">as</span> <span class="ident">char</span>, <span class="ident">i</span>, <span class="ident">should</span>);
+<span class="attribute">#[test]
+#[allow(warnings)] </span><span class="comment">// ... ranges deprecated
+</span><span class="kw">fn </span>test_lookup_tables() {
+    <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>valid) <span class="kw">in </span>TOKEN_MAP.iter().enumerate() {
+        <span class="kw">let </span>i = i <span class="kw">as </span>u8;
+        <span class="kw">let </span>should = <span class="kw">match </span>i {
+            <span class="string">b&#39;a&#39;</span>...<span class="string">b&#39;z&#39; </span>|
+            <span class="string">b&#39;A&#39;</span>...<span class="string">b&#39;Z&#39; </span>|
+            <span class="string">b&#39;0&#39;</span>...<span class="string">b&#39;9&#39; </span>|
+            <span class="string">b&#39;!&#39; </span>|
+            <span class="string">b&#39;#&#39; </span>|
+            <span class="string">b&#39;$&#39; </span>|
+            <span class="string">b&#39;%&#39; </span>|
+            <span class="string">b&#39;&amp;&#39; </span>|
+            <span class="string">b&#39;\&#39;&#39; </span>|
+            <span class="string">b&#39;*&#39; </span>|
+            <span class="string">b&#39;+&#39; </span>|
+            <span class="string">b&#39;-&#39; </span>|
+            <span class="string">b&#39;.&#39; </span>|
+            <span class="string">b&#39;^&#39; </span>|
+            <span class="string">b&#39;_&#39; </span>|
+            <span class="string">b&#39;`&#39; </span>|
+            <span class="string">b&#39;|&#39; </span>|
+            <span class="string">b&#39;~&#39; </span>=&gt; <span class="bool-val">true</span>,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false
+        </span>};
+        <span class="macro">assert_eq!</span>(valid, should, <span class="string">&quot;{:?} ({}) should be {}&quot;</span>, i <span class="kw">as </span>char, i, should);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

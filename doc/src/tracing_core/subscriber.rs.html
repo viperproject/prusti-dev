@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/subscriber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>subscriber.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/subscriber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>subscriber.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
                         <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -849,854 +849,854 @@
 <span id="847">847</span>
 <span id="848">848</span>
 <span id="849">849</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Subscribers collect and record trace data.</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/tracing_core/lib.rs.html#277">span</a>, <a class="ident" href="../../src/tracing_core/event.rs.html#23">Event</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>};
+</pre><pre class="rust"><code><span class="doccomment">//! Subscribers collect and record trace data.
+</span><span class="kw">use crate</span>::{<a href="../../src/tracing_core/lib.rs.html#277">span</a>, <a href="../../src/tracing_core/event.rs.html#23">Event</a>, <a href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>, <a href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib</span>::{
-    <span class="ident">any</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">boxed::Box</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">sync::Arc</a>,
+<span class="kw">use </span><span class="kw">crate</span>::stdlib::{
+    any::{<a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>, <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>},
+    <a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">boxed::Box</a>,
+    <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">sync::Arc</a>,
 };
 
-<span class="doccomment">/// Trait representing the functions required to collect trace data.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Crates that provide implementations of methods for collecting or recording</span>
-<span class="doccomment">/// trace data should implement the `Subscriber` interface. This trait is</span>
-<span class="doccomment">/// intended to represent fundamental primitives for collecting trace events and</span>
-<span class="doccomment">/// spans — other libraries may offer utility functions and types to make</span>
-<span class="doccomment">/// subscriber implementations more modular or improve the ergonomics of writing</span>
-<span class="doccomment">/// subscribers.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A subscriber is responsible for the following:</span>
-<span class="doccomment">/// - Registering new spans as they are created, and providing them with span</span>
-<span class="doccomment">///   IDs. Implicitly, this means the subscriber may determine the strategy for</span>
-<span class="doccomment">///   determining span equality.</span>
-<span class="doccomment">/// - Recording the attachment of field values and follows-from annotations to</span>
-<span class="doccomment">///   spans.</span>
-<span class="doccomment">/// - Filtering spans and events, and determining when those filters must be</span>
-<span class="doccomment">///   invalidated.</span>
-<span class="doccomment">/// - Observing spans as they are entered, exited, and closed, and events as</span>
-<span class="doccomment">///   they occur.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When a span is entered or exited, the subscriber is provided only with the</span>
-<span class="doccomment">/// [ID] with which it tagged that span when it was created. This means</span>
-<span class="doccomment">/// that it is up to the subscriber to determine whether and how span _data_ —</span>
-<span class="doccomment">/// the fields and metadata describing the span — should be stored. The</span>
-<span class="doccomment">/// [`new_span`] function is called when a new span is created, and at that</span>
-<span class="doccomment">/// point, the subscriber _may_ choose to store the associated data if it will</span>
-<span class="doccomment">/// be referenced again. However, if the data has already been recorded and will</span>
-<span class="doccomment">/// not be needed by the implementations of `enter` and `exit`, the subscriber</span>
-<span class="doccomment">/// may freely discard that data without allocating space to store it.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Overriding default impls</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Some trait methods on `Subscriber` have default implementations, either in</span>
-<span class="doccomment">/// order to reduce the surface area of implementing `Subscriber`, or for</span>
-<span class="doccomment">/// backward-compatibility reasons. However, many subscribers will likely want</span>
-<span class="doccomment">/// to override these default implementations.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The following methods are likely of interest:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - [`register_callsite`] is called once for each callsite from which a span</span>
-<span class="doccomment">///   event may originate, and returns an [`Interest`] value describing whether or</span>
-<span class="doccomment">///   not the subscriber wishes to see events or spans from that callsite. By</span>
-<span class="doccomment">///   default, it calls [`enabled`], and returns `Interest::always()` if</span>
-<span class="doccomment">///   `enabled` returns true, or `Interest::never()` if enabled returns false.</span>
-<span class="doccomment">///   However, if the subscriber&#39;s interest can change dynamically at runtime,</span>
-<span class="doccomment">///   it may want to override this function to return `Interest::sometimes()`.</span>
-<span class="doccomment">///   Additionally, subscribers which wish to perform a behaviour once for each</span>
-<span class="doccomment">///   callsite, such as allocating storage for data related to that callsite,</span>
-<span class="doccomment">///   can perform it in `register_callsite`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///   See also the [documentation on the callsite registry][cs-reg] for details</span>
-<span class="doccomment">///   on [`register_callsite`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - [`event_enabled`] is called once before every call to the [`event`]</span>
-<span class="doccomment">///   method. This can be used to implement filtering on events once their field</span>
-<span class="doccomment">///   values are known, but before any processing is done in the `event` method.</span>
-<span class="doccomment">/// - [`clone_span`] is called every time a span ID is cloned, and [`try_close`]</span>
-<span class="doccomment">///   is called when a span ID is dropped. By default, these functions do</span>
-<span class="doccomment">///   nothing. However, they can be used to implement reference counting for</span>
-<span class="doccomment">///   spans, allowing subscribers to free storage for span data and to determine</span>
-<span class="doccomment">///   when a span has _closed_ permanently (rather than being exited).</span>
-<span class="doccomment">///   Subscribers which store per-span data or which need to track span closures</span>
-<span class="doccomment">///   should override these functions together.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [ID]: super::span::Id</span>
-<span class="doccomment">/// [`new_span`]: Subscriber::new_span</span>
-<span class="doccomment">/// [`register_callsite`]: Subscriber::register_callsite</span>
-<span class="doccomment">/// [`enabled`]: Subscriber::enabled</span>
-<span class="doccomment">/// [`clone_span`]: Subscriber::clone_span</span>
-<span class="doccomment">/// [`try_close`]: Subscriber::try_close</span>
-<span class="doccomment">/// [cs-reg]: crate::callsite#registering-callsites</span>
-<span class="doccomment">/// [`event`]: Subscriber::event</span>
-<span class="doccomment">/// [`event_enabled`]: Subscriber::event_enabled</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Subscriber</span>: <span class="lifetime">&#39;static</span> {
-    <span class="comment">// === Span registry methods ==============================================</span>
+<span class="doccomment">/// Trait representing the functions required to collect trace data.
+///
+/// Crates that provide implementations of methods for collecting or recording
+/// trace data should implement the `Subscriber` interface. This trait is
+/// intended to represent fundamental primitives for collecting trace events and
+/// spans — other libraries may offer utility functions and types to make
+/// subscriber implementations more modular or improve the ergonomics of writing
+/// subscribers.
+///
+/// A subscriber is responsible for the following:
+/// - Registering new spans as they are created, and providing them with span
+///   IDs. Implicitly, this means the subscriber may determine the strategy for
+///   determining span equality.
+/// - Recording the attachment of field values and follows-from annotations to
+///   spans.
+/// - Filtering spans and events, and determining when those filters must be
+///   invalidated.
+/// - Observing spans as they are entered, exited, and closed, and events as
+///   they occur.
+///
+/// When a span is entered or exited, the subscriber is provided only with the
+/// [ID] with which it tagged that span when it was created. This means
+/// that it is up to the subscriber to determine whether and how span _data_ —
+/// the fields and metadata describing the span — should be stored. The
+/// [`new_span`] function is called when a new span is created, and at that
+/// point, the subscriber _may_ choose to store the associated data if it will
+/// be referenced again. However, if the data has already been recorded and will
+/// not be needed by the implementations of `enter` and `exit`, the subscriber
+/// may freely discard that data without allocating space to store it.
+///
+/// ## Overriding default impls
+///
+/// Some trait methods on `Subscriber` have default implementations, either in
+/// order to reduce the surface area of implementing `Subscriber`, or for
+/// backward-compatibility reasons. However, many subscribers will likely want
+/// to override these default implementations.
+///
+/// The following methods are likely of interest:
+///
+/// - [`register_callsite`] is called once for each callsite from which a span
+///   event may originate, and returns an [`Interest`] value describing whether or
+///   not the subscriber wishes to see events or spans from that callsite. By
+///   default, it calls [`enabled`], and returns `Interest::always()` if
+///   `enabled` returns true, or `Interest::never()` if enabled returns false.
+///   However, if the subscriber&#39;s interest can change dynamically at runtime,
+///   it may want to override this function to return `Interest::sometimes()`.
+///   Additionally, subscribers which wish to perform a behaviour once for each
+///   callsite, such as allocating storage for data related to that callsite,
+///   can perform it in `register_callsite`.
+///
+///   See also the [documentation on the callsite registry][cs-reg] for details
+///   on [`register_callsite`].
+///
+/// - [`event_enabled`] is called once before every call to the [`event`]
+///   method. This can be used to implement filtering on events once their field
+///   values are known, but before any processing is done in the `event` method.
+/// - [`clone_span`] is called every time a span ID is cloned, and [`try_close`]
+///   is called when a span ID is dropped. By default, these functions do
+///   nothing. However, they can be used to implement reference counting for
+///   spans, allowing subscribers to free storage for span data and to determine
+///   when a span has _closed_ permanently (rather than being exited).
+///   Subscribers which store per-span data or which need to track span closures
+///   should override these functions together.
+///
+/// [ID]: super::span::Id
+/// [`new_span`]: Subscriber::new_span
+/// [`register_callsite`]: Subscriber::register_callsite
+/// [`enabled`]: Subscriber::enabled
+/// [`clone_span`]: Subscriber::clone_span
+/// [`try_close`]: Subscriber::try_close
+/// [cs-reg]: crate::callsite#registering-callsites
+/// [`event`]: Subscriber::event
+/// [`event_enabled`]: Subscriber::event_enabled
+</span><span class="kw">pub trait </span>Subscriber: <span class="lifetime">&#39;static </span>{
+    <span class="comment">// === Span registry methods ==============================================
 
-    <span class="doccomment">/// Registers a new [callsite] with this subscriber, returning whether or not</span>
-    <span class="doccomment">/// the subscriber is interested in being notified about the callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, this function assumes that the subscriber&#39;s [filter]</span>
-    <span class="doccomment">/// represents an unchanging view of its interest in the callsite. However,</span>
-    <span class="doccomment">/// if this is not the case, subscribers may override this function to</span>
-    <span class="doccomment">/// indicate different interests, or to implement behaviour that should run</span>
-    <span class="doccomment">/// once for every callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is guaranteed to be called at least once per callsite on</span>
-    <span class="doccomment">/// every active subscriber. The subscriber may store the keys to fields it</span>
-    <span class="doccomment">/// cares about in order to reduce the cost of accessing fields by name,</span>
-    <span class="doccomment">/// preallocate storage for that callsite, or perform any other actions it</span>
-    <span class="doccomment">/// wishes to perform once for each callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The subscriber should then return an [`Interest`], indicating</span>
-    <span class="doccomment">/// whether it is interested in being notified about that callsite in the</span>
-    <span class="doccomment">/// future. This may be `Always` indicating that the subscriber always</span>
-    <span class="doccomment">/// wishes to be notified about the callsite, and its filter need not be</span>
-    <span class="doccomment">/// re-evaluated; `Sometimes`, indicating that the subscriber may sometimes</span>
-    <span class="doccomment">/// care about the callsite but not always (such as when sampling), or</span>
-    <span class="doccomment">/// `Never`, indicating that the subscriber never wishes to be notified about</span>
-    <span class="doccomment">/// that callsite. If all active subscribers return `Never`, a callsite will</span>
-    <span class="doccomment">/// never be enabled unless a new subscriber expresses interest in it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `Subscriber`s which require their filters to be run every time an event</span>
-    <span class="doccomment">/// occurs or a span is entered/exited should return `Interest::sometimes`.</span>
-    <span class="doccomment">/// If a subscriber returns `Interest::sometimes`, then its [`enabled`] method</span>
-    <span class="doccomment">/// will be called every time an event or span is created from that callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For example, suppose a sampling subscriber is implemented by</span>
-    <span class="doccomment">/// incrementing a counter every time `enabled` is called and only returning</span>
-    <span class="doccomment">/// `true` when the counter is divisible by a specified sampling rate. If</span>
-    <span class="doccomment">/// that subscriber returns `Interest::always` from `register_callsite`, then</span>
-    <span class="doccomment">/// the filter will not be re-evaluated once it has been applied to a given</span>
-    <span class="doccomment">/// set of metadata. Thus, the counter will not be incremented, and the span</span>
-    <span class="doccomment">/// or event that corresponds to the metadata will never be `enabled`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `Subscriber`s that need to change their filters occasionally should call</span>
-    <span class="doccomment">/// [`rebuild_interest_cache`] to re-evaluate `register_callsite` for all</span>
-    <span class="doccomment">/// callsites.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Similarly, if a `Subscriber` has a filtering strategy that can be</span>
-    <span class="doccomment">/// changed dynamically at runtime, it would need to re-evaluate that filter</span>
-    <span class="doccomment">/// if the cached results have changed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A subscriber which manages fanout to multiple other subscribers</span>
-    <span class="doccomment">/// should proxy this decision to all of its child subscribers,</span>
-    <span class="doccomment">/// returning `Interest::never` only if _all_ such children return</span>
-    <span class="doccomment">/// `Interest::never`. If the set of subscribers to which spans are</span>
-    <span class="doccomment">/// broadcast may change dynamically, the subscriber should also never</span>
-    <span class="doccomment">/// return `Interest::Never`, as a new subscriber may be added that _is_</span>
-    <span class="doccomment">/// interested.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See the [documentation on the callsite registry][cs-reg] for more</span>
-    <span class="doccomment">/// details on how and when the `register_callsite` method is called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">/// This function may be called again when a new subscriber is created or</span>
-    <span class="doccomment">/// when the registry is invalidated.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If a subscriber returns `Interest::never` for a particular callsite, it</span>
-    <span class="doccomment">/// _may_ still see spans and events originating from that callsite, if</span>
-    <span class="doccomment">/// another subscriber expressed interest in it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [callsite]: crate::callsite</span>
-    <span class="doccomment">/// [filter]: Self::enabled</span>
-    <span class="doccomment">/// [metadata]: super::metadata::Metadata</span>
-    <span class="doccomment">/// [`enabled`]: Subscriber::enabled()</span>
-    <span class="doccomment">/// [`rebuild_interest_cache`]: super::callsite::rebuild_interest_cache</span>
-    <span class="doccomment">/// [cs-reg]: crate::callsite#registering-callsites</span>
-    <span class="kw">fn</span> <span class="ident">register_callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">enabled</span>(<span class="ident">metadata</span>) {
-            <span class="ident">Interest::always</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">Interest::never</span>()
+    </span><span class="doccomment">/// Registers a new [callsite] with this subscriber, returning whether or not
+    /// the subscriber is interested in being notified about the callsite.
+    ///
+    /// By default, this function assumes that the subscriber&#39;s [filter]
+    /// represents an unchanging view of its interest in the callsite. However,
+    /// if this is not the case, subscribers may override this function to
+    /// indicate different interests, or to implement behaviour that should run
+    /// once for every callsite.
+    ///
+    /// This function is guaranteed to be called at least once per callsite on
+    /// every active subscriber. The subscriber may store the keys to fields it
+    /// cares about in order to reduce the cost of accessing fields by name,
+    /// preallocate storage for that callsite, or perform any other actions it
+    /// wishes to perform once for each callsite.
+    ///
+    /// The subscriber should then return an [`Interest`], indicating
+    /// whether it is interested in being notified about that callsite in the
+    /// future. This may be `Always` indicating that the subscriber always
+    /// wishes to be notified about the callsite, and its filter need not be
+    /// re-evaluated; `Sometimes`, indicating that the subscriber may sometimes
+    /// care about the callsite but not always (such as when sampling), or
+    /// `Never`, indicating that the subscriber never wishes to be notified about
+    /// that callsite. If all active subscribers return `Never`, a callsite will
+    /// never be enabled unless a new subscriber expresses interest in it.
+    ///
+    /// `Subscriber`s which require their filters to be run every time an event
+    /// occurs or a span is entered/exited should return `Interest::sometimes`.
+    /// If a subscriber returns `Interest::sometimes`, then its [`enabled`] method
+    /// will be called every time an event or span is created from that callsite.
+    ///
+    /// For example, suppose a sampling subscriber is implemented by
+    /// incrementing a counter every time `enabled` is called and only returning
+    /// `true` when the counter is divisible by a specified sampling rate. If
+    /// that subscriber returns `Interest::always` from `register_callsite`, then
+    /// the filter will not be re-evaluated once it has been applied to a given
+    /// set of metadata. Thus, the counter will not be incremented, and the span
+    /// or event that corresponds to the metadata will never be `enabled`.
+    ///
+    /// `Subscriber`s that need to change their filters occasionally should call
+    /// [`rebuild_interest_cache`] to re-evaluate `register_callsite` for all
+    /// callsites.
+    ///
+    /// Similarly, if a `Subscriber` has a filtering strategy that can be
+    /// changed dynamically at runtime, it would need to re-evaluate that filter
+    /// if the cached results have changed.
+    ///
+    /// A subscriber which manages fanout to multiple other subscribers
+    /// should proxy this decision to all of its child subscribers,
+    /// returning `Interest::never` only if _all_ such children return
+    /// `Interest::never`. If the set of subscribers to which spans are
+    /// broadcast may change dynamically, the subscriber should also never
+    /// return `Interest::Never`, as a new subscriber may be added that _is_
+    /// interested.
+    ///
+    /// See the [documentation on the callsite registry][cs-reg] for more
+    /// details on how and when the `register_callsite` method is called.
+    ///
+    /// # Notes
+    /// This function may be called again when a new subscriber is created or
+    /// when the registry is invalidated.
+    ///
+    /// If a subscriber returns `Interest::never` for a particular callsite, it
+    /// _may_ still see spans and events originating from that callsite, if
+    /// another subscriber expressed interest in it.
+    ///
+    /// [callsite]: crate::callsite
+    /// [filter]: Self::enabled
+    /// [metadata]: super::metadata::Metadata
+    /// [`enabled`]: Subscriber::enabled()
+    /// [`rebuild_interest_cache`]: super::callsite::rebuild_interest_cache
+    /// [cs-reg]: crate::callsite#registering-callsites
+    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
+        <span class="kw">if </span><span class="self">self</span>.enabled(metadata) {
+            Interest::always()
+        } <span class="kw">else </span>{
+            Interest::never()
         }
     }
 
-    <span class="doccomment">/// Returns true if a span or event with the specified [metadata] would be</span>
-    <span class="doccomment">/// recorded.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it is assumed that this filter needs only be evaluated once</span>
-    <span class="doccomment">/// for each callsite, so it is called by [`register_callsite`] when each</span>
-    <span class="doccomment">/// callsite is registered. The result is used to determine if the subscriber</span>
-    <span class="doccomment">/// is always [interested] or never interested in that callsite. This is intended</span>
-    <span class="doccomment">/// primarily as an optimization, so that expensive filters (such as those</span>
-    <span class="doccomment">/// involving string search, et cetera) need not be re-evaluated.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// However, if the subscriber&#39;s interest in a particular span or event may</span>
-    <span class="doccomment">/// change, or depends on contexts only determined dynamically at runtime,</span>
-    <span class="doccomment">/// then the `register_callsite` method should be overridden to return</span>
-    <span class="doccomment">/// [`Interest::sometimes`]. In that case, this function will be called every</span>
-    <span class="doccomment">/// time that span or event occurs.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [metadata]: super::metadata::Metadata</span>
-    <span class="doccomment">/// [interested]: Interest</span>
-    <span class="doccomment">/// [`Interest::sometimes`]: Interest::sometimes</span>
-    <span class="doccomment">/// [`register_callsite`]: Subscriber::register_callsite()</span>
-    <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Returns true if a span or event with the specified [metadata] would be
+    /// recorded.
+    ///
+    /// By default, it is assumed that this filter needs only be evaluated once
+    /// for each callsite, so it is called by [`register_callsite`] when each
+    /// callsite is registered. The result is used to determine if the subscriber
+    /// is always [interested] or never interested in that callsite. This is intended
+    /// primarily as an optimization, so that expensive filters (such as those
+    /// involving string search, et cetera) need not be re-evaluated.
+    ///
+    /// However, if the subscriber&#39;s interest in a particular span or event may
+    /// change, or depends on contexts only determined dynamically at runtime,
+    /// then the `register_callsite` method should be overridden to return
+    /// [`Interest::sometimes`]. In that case, this function will be called every
+    /// time that span or event occurs.
+    ///
+    /// [metadata]: super::metadata::Metadata
+    /// [interested]: Interest
+    /// [`Interest::sometimes`]: Interest::sometimes
+    /// [`register_callsite`]: Subscriber::register_callsite()
+    </span><span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
-    <span class="doccomment">/// Returns the highest [verbosity level][level] that this `Subscriber` will</span>
-    <span class="doccomment">/// enable, or `None`, if the subscriber does not implement level-based</span>
-    <span class="doccomment">/// filtering or chooses not to implement this method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this method returns a [`Level`][level], it will be used as a hint to</span>
-    <span class="doccomment">/// determine the most verbose level that will be enabled. This will allow</span>
-    <span class="doccomment">/// spans and events which are more verbose than that level to be skipped</span>
-    <span class="doccomment">/// more efficiently. Subscribers which perform filtering are strongly</span>
-    <span class="doccomment">/// encouraged to provide an implementation of this method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the maximum level the subscriber will enable can change over the</span>
-    <span class="doccomment">/// course of its lifetime, it is free to return a different value from</span>
-    <span class="doccomment">/// multiple invocations of this method. However, note that changes in the</span>
-    <span class="doccomment">/// maximum level will **only** be reflected after the callsite [`Interest`]</span>
-    <span class="doccomment">/// cache is rebuilt, by calling the [`callsite::rebuild_interest_cache`][rebuild]</span>
-    <span class="doccomment">/// function. Therefore, if the subscriber will change the value returned by</span>
-    <span class="doccomment">/// this method, it is responsible for ensuring that</span>
-    <span class="doccomment">/// [`rebuild_interest_cache`][rebuild] is called after the value of the max</span>
-    <span class="doccomment">/// level changes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [level]: super::Level</span>
-    <span class="doccomment">/// [rebuild]: super::callsite::rebuild_interest_cache</span>
-    <span class="kw">fn</span> <span class="ident">max_level_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
+    <span class="doccomment">/// Returns the highest [verbosity level][level] that this `Subscriber` will
+    /// enable, or `None`, if the subscriber does not implement level-based
+    /// filtering or chooses not to implement this method.
+    ///
+    /// If this method returns a [`Level`][level], it will be used as a hint to
+    /// determine the most verbose level that will be enabled. This will allow
+    /// spans and events which are more verbose than that level to be skipped
+    /// more efficiently. Subscribers which perform filtering are strongly
+    /// encouraged to provide an implementation of this method.
+    ///
+    /// If the maximum level the subscriber will enable can change over the
+    /// course of its lifetime, it is free to return a different value from
+    /// multiple invocations of this method. However, note that changes in the
+    /// maximum level will **only** be reflected after the callsite [`Interest`]
+    /// cache is rebuilt, by calling the [`callsite::rebuild_interest_cache`][rebuild]
+    /// function. Therefore, if the subscriber will change the value returned by
+    /// this method, it is responsible for ensuring that
+    /// [`rebuild_interest_cache`][rebuild] is called after the value of the max
+    /// level changes.
+    ///
+    /// [level]: super::Level
+    /// [rebuild]: super::callsite::rebuild_interest_cache
+    </span><span class="kw">fn </span>max_level_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>&gt; {
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="doccomment">/// Visit the construction of a new span, returning a new [span ID] for the
+    /// span being constructed.
+    ///
+    /// The provided [`Attributes`] contains any field values that were provided
+    /// when the span was created. The subscriber may pass a [visitor] to the
+    /// `Attributes`&#39; [`record` method] to record these values.
+    ///
+    /// IDs are used to uniquely identify spans and events within the context of a
+    /// subscriber, so span equality will be based on the returned ID. Thus, if
+    /// the subscriber wishes for all spans with the same metadata to be
+    /// considered equal, it should return the same ID every time it is given a
+    /// particular set of metadata. Similarly, if it wishes for two separate
+    /// instances of a span with the same metadata to *not* be equal, it should
+    /// return a distinct ID every time this function is called, regardless of
+    /// the metadata.
+    ///
+    /// Note that the subscriber is free to assign span IDs based on whatever
+    /// scheme it sees fit. Any guarantees about uniqueness, ordering, or ID
+    /// reuse are left up to the subscriber implementation to determine.
+    ///
+    /// [span ID]: super::span::Id
+    /// [`Attributes`]: super::span::Attributes
+    /// [visitor]: super::field::Visit
+    /// [`record` method]: super::span::Attributes::record
+    </span><span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>;
+
+    <span class="comment">// === Notification methods ===============================================
+
+    </span><span class="doccomment">/// Record a set of values on a span.
+    ///
+    /// This method will be invoked when value is recorded on a span.
+    /// Recording multiple values for the same field is possible,
+    /// but the actual behaviour is defined by the subscriber implementation.
+    ///
+    /// Keep in mind that a span might not provide a value
+    /// for each field it declares.
+    ///
+    /// The subscriber is expected to provide a [visitor] to the `Record`&#39;s
+    /// [`record` method] in order to record the added values.
+    ///
+    /// # Example
+    ///  &quot;foo = 3&quot; will be recorded when [`record`] is called on the
+    /// `Attributes` passed to `new_span`.
+    /// Since values are not provided for the `bar` and `baz` fields,
+    /// the span&#39;s `Metadata` will indicate that it _has_ those fields,
+    /// but values for them won&#39;t be recorded at this time.
+    ///
+    /// ```rust,ignore
+    /// # use tracing::span;
+    ///
+    /// let mut span = span!(&quot;my_span&quot;, foo = 3, bar, baz);
+    ///
+    /// // `Subscriber::record` will be called with a `Record`
+    /// // containing &quot;bar = false&quot;
+    /// span.record(&quot;bar&quot;, &amp;false);
+    ///
+    /// // `Subscriber::record` will be called with a `Record`
+    /// // containing &quot;baz = &quot;a string&quot;&quot;
+    /// span.record(&quot;baz&quot;, &amp;&quot;a string&quot;);
+    /// ```
+    ///
+    /// [visitor]: super::field::Visit
+    /// [`record`]: super::span::Attributes::record
+    /// [`record` method]: super::span::Record::record
+    </span><span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;);
+
+    <span class="doccomment">/// Adds an indication that `span` follows from the span with the id
+    /// `follows`.
+    ///
+    /// This relationship differs somewhat from the parent-child relationship: a
+    /// span may have any number of prior spans, rather than a single one; and
+    /// spans are not considered to be executing _inside_ of the spans they
+    /// follow from. This means that a span may close even if subsequent spans
+    /// that follow from it are still open, and time spent inside of a
+    /// subsequent span should not be included in the time its precedents were
+    /// executing. This is used to model causal relationships such as when a
+    /// single future spawns several related background tasks, et cetera.
+    ///
+    /// If the subscriber has spans corresponding to the given IDs, it should
+    /// record this relationship in whatever way it deems necessary. Otherwise,
+    /// if one or both of the given span IDs do not correspond to spans that the
+    /// subscriber knows about, or if a cyclical relationship would be created
+    /// (i.e., some span _a_ which proceeds some other span _b_ may not also
+    /// follow from _b_), it may silently do nothing.
+    </span><span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, follows: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>);
+
+    <span class="doccomment">/// Determine if an [`Event`] should be recorded.
+    ///
+    /// By default, this returns `true` and `Subscriber`s can filter events in
+    /// [`event`][Self::event] without any penalty. However, when `event` is
+    /// more complicated, this can be used to determine if `event` should be
+    /// called at all, separating out the decision from the processing.
+    </span><span class="kw">fn </span>event_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let _ </span>= <a href="../../src/tracing_core/subscriber.rs.html#305">event</a>;
+        <span class="bool-val">true
+    </span>}
+
+    <span class="doccomment">/// Records that an [`Event`] has occurred.
+    ///
+    /// This method will be invoked when an Event is constructed by
+    /// the `Event`&#39;s [`dispatch` method]. For example, this happens internally
+    /// when an event macro from `tracing` is called.
+    ///
+    /// The key difference between this method and `record` is that `record` is
+    /// called when a value is recorded for a field defined by a span,
+    /// while `event` is called when a new event occurs.
+    ///
+    /// The provided `Event` struct contains any field values attached to the
+    /// event. The subscriber may pass a [visitor] to the `Event`&#39;s
+    /// [`record` method] to record these values.
+    ///
+    /// [`Event`]: super::event::Event
+    /// [visitor]: super::field::Visit
+    /// [`record` method]: super::event::Event::record
+    /// [`dispatch` method]: super::event::Event::dispatch
+    </span><span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;);
+
+    <span class="doccomment">/// Records that a span has been entered.
+    ///
+    /// When entering a span, this method is called to notify the subscriber
+    /// that the span has been entered. The subscriber is provided with the
+    /// [span ID] of the entered span, and should update any internal state
+    /// tracking the current span accordingly.
+    ///
+    /// [span ID]: super::span::Id
+    </span><span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>);
+
+    <span class="doccomment">/// Records that a span has been exited.
+    ///
+    /// When exiting a span, this method is called to notify the subscriber
+    /// that the span has been exited. The subscriber is provided with the
+    /// [span ID] of the exited span, and should update any internal state
+    /// tracking the current span accordingly.
+    ///
+    /// Exiting a span does not imply that the span will not be re-entered.
+    ///
+    /// [span ID]: super::span::Id
+    </span><span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>);
+
+    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been cloned.
+    ///
+    /// This function is guaranteed to only be called with span IDs that were
+    /// returned by this subscriber&#39;s `new_span` function.
+    ///
+    /// Note that the default implementation of this function this is just the
+    /// identity function, passing through the identifier. However, it can be
+    /// used in conjunction with [`try_close`] to track the number of handles
+    /// capable of `enter`ing a span. When all the handles have been dropped
+    /// (i.e., `try_close` has been called one more time than `clone_span` for a
+    /// given ID), the subscriber may assume that the span will not be entered
+    /// again. It is then free to deallocate storage for data associated with
+    /// that span, write data from that span to IO, and so on.
+    ///
+    /// For more unsafe situations, however, if `id` is itself a pointer of some
+    /// kind this can be used as a hook to &quot;clone&quot; the pointer, depending on
+    /// what that means for the specified pointer.
+    ///
+    /// [span ID]: super::span::Id
+    /// [`try_close`]: Subscriber::try_close
+    </span><span class="kw">fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
+        <a href="../../src/tracing_core/subscriber.rs.html#372">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
-    <span class="doccomment">/// Visit the construction of a new span, returning a new [span ID] for the</span>
-    <span class="doccomment">/// span being constructed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The provided [`Attributes`] contains any field values that were provided</span>
-    <span class="doccomment">/// when the span was created. The subscriber may pass a [visitor] to the</span>
-    <span class="doccomment">/// `Attributes`&#39; [`record` method] to record these values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// IDs are used to uniquely identify spans and events within the context of a</span>
-    <span class="doccomment">/// subscriber, so span equality will be based on the returned ID. Thus, if</span>
-    <span class="doccomment">/// the subscriber wishes for all spans with the same metadata to be</span>
-    <span class="doccomment">/// considered equal, it should return the same ID every time it is given a</span>
-    <span class="doccomment">/// particular set of metadata. Similarly, if it wishes for two separate</span>
-    <span class="doccomment">/// instances of a span with the same metadata to *not* be equal, it should</span>
-    <span class="doccomment">/// return a distinct ID every time this function is called, regardless of</span>
-    <span class="doccomment">/// the metadata.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that the subscriber is free to assign span IDs based on whatever</span>
-    <span class="doccomment">/// scheme it sees fit. Any guarantees about uniqueness, ordering, or ID</span>
-    <span class="doccomment">/// reuse are left up to the subscriber implementation to determine.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [span ID]: super::span::Id</span>
-    <span class="doccomment">/// [`Attributes`]: super::span::Attributes</span>
-    <span class="doccomment">/// [visitor]: super::field::Visit</span>
-    <span class="doccomment">/// [`record` method]: super::span::Attributes::record</span>
-    <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>;
+    <span class="doccomment">/// **This method is deprecated.**
+    ///
+    /// Using `drop_span` may result in subscribers composed using
+    /// `tracing-subscriber` crate&#39;s `Layer` trait from observing close events.
+    /// Use [`try_close`] instead.
+    ///
+    /// The default implementation of this function does nothing.
+    ///
+    /// [`try_close`]: Subscriber::try_close
+    </span><span class="attribute">#[deprecated(since = <span class="string">&quot;0.1.2&quot;</span>, note = <span class="string">&quot;use `Subscriber::try_close` instead&quot;</span>)]
+    </span><span class="kw">fn </span>drop_span(<span class="kw-2">&amp;</span><span class="self">self</span>, _id: <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {}
 
-    <span class="comment">// === Notification methods ===============================================</span>
+    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped, and returns
+    /// `true` if there are now 0 IDs that refer to that span.
+    ///
+    /// Higher-level libraries providing functionality for composing multiple
+    /// subscriber implementations may use this return value to notify any
+    /// &quot;layered&quot; subscribers that this subscriber considers the span closed.
+    ///
+    /// The default implementation of this method calls the subscriber&#39;s
+    /// [`drop_span`] method and returns `false`. This means that, unless the
+    /// subscriber overrides the default implementation, close notifications
+    /// will never be sent to any layered subscribers. In general, if the
+    /// subscriber tracks reference counts, this method should be implemented,
+    /// rather than `drop_span`.
+    ///
+    /// This function is guaranteed to only be called with span IDs that were
+    /// returned by this subscriber&#39;s `new_span` function.
+    ///
+    /// It&#39;s guaranteed that if this function has been called once more than the
+    /// number of times `clone_span` was called with the same `id`, then no more
+    /// handles that can enter the span with that `id` exist. This means that it
+    /// can be used in conjunction with [`clone_span`] to track the number of
+    /// handles capable of `enter`ing a span. When all the handles have been
+    /// dropped (i.e., `try_close` has been called one more time than
+    /// `clone_span` for a given ID), the subscriber may assume that the span
+    /// will not be entered again, and should return `true`. It is then free to
+    /// deallocate storage for data associated with that span, write data from
+    /// that span to IO, and so on.
+    ///
+    /// **Note**: since this function is called when spans are dropped,
+    /// implementations should ensure that they are unwind-safe. Panicking from
+    /// inside of a `try_close` function may cause a double panic, if the span
+    /// was dropped due to a thread unwinding.
+    ///
+    /// [span ID]: super::span::Id
+    /// [`clone_span`]: Subscriber::clone_span
+    /// [`drop_span`]: Subscriber::drop_span
+    </span><span class="kw">fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="attribute">#[allow(deprecated)]
+        </span><a class="self" href="../../src/tracing_core/subscriber.rs.html#424">self</a>.<a href="../../src/tracing_core/subscriber.rs.html#386">drop_span</a>(<a href="../../src/tracing_core/subscriber.rs.html#424">id</a>);
+        <span class="bool-val">false
+    </span>}
 
-    <span class="doccomment">/// Record a set of values on a span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will be invoked when value is recorded on a span.</span>
-    <span class="doccomment">/// Recording multiple values for the same field is possible,</span>
-    <span class="doccomment">/// but the actual behaviour is defined by the subscriber implementation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Keep in mind that a span might not provide a value</span>
-    <span class="doccomment">/// for each field it declares.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The subscriber is expected to provide a [visitor] to the `Record`&#39;s</span>
-    <span class="doccomment">/// [`record` method] in order to record the added values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///  &quot;foo = 3&quot; will be recorded when [`record`] is called on the</span>
-    <span class="doccomment">/// `Attributes` passed to `new_span`.</span>
-    <span class="doccomment">/// Since values are not provided for the `bar` and `baz` fields,</span>
-    <span class="doccomment">/// the span&#39;s `Metadata` will indicate that it _has_ those fields,</span>
-    <span class="doccomment">/// but values for them won&#39;t be recorded at this time.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,ignore</span>
-    <span class="doccomment">/// # use tracing::span;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut span = span!(&quot;my_span&quot;, foo = 3, bar, baz);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // `Subscriber::record` will be called with a `Record`</span>
-    <span class="doccomment">/// // containing &quot;bar = false&quot;</span>
-    <span class="doccomment">/// span.record(&quot;bar&quot;, &amp;false);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // `Subscriber::record` will be called with a `Record`</span>
-    <span class="doccomment">/// // containing &quot;baz = &quot;a string&quot;&quot;</span>
-    <span class="doccomment">/// span.record(&quot;baz&quot;, &amp;&quot;a string&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [visitor]: super::field::Visit</span>
-    <span class="doccomment">/// [`record`]: super::span::Attributes::record</span>
-    <span class="doccomment">/// [`record` method]: super::span::Record::record</span>
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-
-    <span class="doccomment">/// Adds an indication that `span` follows from the span with the id</span>
-    <span class="doccomment">/// `follows`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This relationship differs somewhat from the parent-child relationship: a</span>
-    <span class="doccomment">/// span may have any number of prior spans, rather than a single one; and</span>
-    <span class="doccomment">/// spans are not considered to be executing _inside_ of the spans they</span>
-    <span class="doccomment">/// follow from. This means that a span may close even if subsequent spans</span>
-    <span class="doccomment">/// that follow from it are still open, and time spent inside of a</span>
-    <span class="doccomment">/// subsequent span should not be included in the time its precedents were</span>
-    <span class="doccomment">/// executing. This is used to model causal relationships such as when a</span>
-    <span class="doccomment">/// single future spawns several related background tasks, et cetera.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the subscriber has spans corresponding to the given IDs, it should</span>
-    <span class="doccomment">/// record this relationship in whatever way it deems necessary. Otherwise,</span>
-    <span class="doccomment">/// if one or both of the given span IDs do not correspond to spans that the</span>
-    <span class="doccomment">/// subscriber knows about, or if a cyclical relationship would be created</span>
-    <span class="doccomment">/// (i.e., some span _a_ which proceeds some other span _b_ may not also</span>
-    <span class="doccomment">/// follow from _b_), it may silently do nothing.</span>
-    <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">follows</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>);
-
-    <span class="doccomment">/// Determine if an [`Event`] should be recorded.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, this returns `true` and `Subscriber`s can filter events in</span>
-    <span class="doccomment">/// [`event`][Self::event] without any penalty. However, when `event` is</span>
-    <span class="doccomment">/// more complicated, this can be used to determine if `event` should be</span>
-    <span class="doccomment">/// called at all, separating out the decision from the processing.</span>
-    <span class="kw">fn</span> <span class="ident">event_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#305">event</a>;
-        <span class="bool-val">true</span>
+    <span class="doccomment">/// Returns a type representing this subscriber&#39;s view of the current span.
+    ///
+    /// If subscribers track a current span, they should override this function
+    /// to return [`Current::new`] if the thread from which this method is
+    /// called is inside a span, or [`Current::none`] if the thread is not
+    /// inside a span.
+    ///
+    /// By default, this returns a value indicating that the subscriber
+    /// does **not** track what span is current. If the subscriber does not
+    /// implement a current span, it should not override this method.
+    ///
+    /// [`Current::new`]: super::span::Current#tymethod.new
+    /// [`Current::none`]: super::span::Current#tymethod.none
+    </span><span class="kw">fn </span>current_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
+        span::Current::unknown()
     }
 
-    <span class="doccomment">/// Records that an [`Event`] has occurred.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will be invoked when an Event is constructed by</span>
-    <span class="doccomment">/// the `Event`&#39;s [`dispatch` method]. For example, this happens internally</span>
-    <span class="doccomment">/// when an event macro from `tracing` is called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The key difference between this method and `record` is that `record` is</span>
-    <span class="doccomment">/// called when a value is recorded for a field defined by a span,</span>
-    <span class="doccomment">/// while `event` is called when a new event occurs.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The provided `Event` struct contains any field values attached to the</span>
-    <span class="doccomment">/// event. The subscriber may pass a [visitor] to the `Event`&#39;s</span>
-    <span class="doccomment">/// [`record` method] to record these values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Event`]: super::event::Event</span>
-    <span class="doccomment">/// [visitor]: super::field::Visit</span>
-    <span class="doccomment">/// [`record` method]: super::event::Event::record</span>
-    <span class="doccomment">/// [`dispatch` method]: super::event::Event::dispatch</span>
-    <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
+    <span class="comment">// === Downcasting methods ================================================
 
-    <span class="doccomment">/// Records that a span has been entered.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When entering a span, this method is called to notify the subscriber</span>
-    <span class="doccomment">/// that the span has been entered. The subscriber is provided with the</span>
-    <span class="doccomment">/// [span ID] of the entered span, and should update any internal state</span>
-    <span class="doccomment">/// tracking the current span accordingly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [span ID]: super::span::Id</span>
-    <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>);
-
-    <span class="doccomment">/// Records that a span has been exited.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When exiting a span, this method is called to notify the subscriber</span>
-    <span class="doccomment">/// that the span has been exited. The subscriber is provided with the</span>
-    <span class="doccomment">/// [span ID] of the exited span, and should update any internal state</span>
-    <span class="doccomment">/// tracking the current span accordingly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Exiting a span does not imply that the span will not be re-entered.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [span ID]: super::span::Id</span>
-    <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>);
-
-    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been cloned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is guaranteed to only be called with span IDs that were</span>
-    <span class="doccomment">/// returned by this subscriber&#39;s `new_span` function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that the default implementation of this function this is just the</span>
-    <span class="doccomment">/// identity function, passing through the identifier. However, it can be</span>
-    <span class="doccomment">/// used in conjunction with [`try_close`] to track the number of handles</span>
-    <span class="doccomment">/// capable of `enter`ing a span. When all the handles have been dropped</span>
-    <span class="doccomment">/// (i.e., `try_close` has been called one more time than `clone_span` for a</span>
-    <span class="doccomment">/// given ID), the subscriber may assume that the span will not be entered</span>
-    <span class="doccomment">/// again. It is then free to deallocate storage for data associated with</span>
-    <span class="doccomment">/// that span, write data from that span to IO, and so on.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more unsafe situations, however, if `id` is itself a pointer of some</span>
-    <span class="doccomment">/// kind this can be used as a hook to &quot;clone&quot; the pointer, depending on</span>
-    <span class="doccomment">/// what that means for the specified pointer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [span ID]: super::span::Id</span>
-    <span class="doccomment">/// [`try_close`]: Subscriber::try_close</span>
-    <span class="kw">fn</span> <span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="ident" href="../../src/tracing_core/subscriber.rs.html#372">id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-    }
-
-    <span class="doccomment">/// **This method is deprecated.**</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Using `drop_span` may result in subscribers composed using</span>
-    <span class="doccomment">/// `tracing-subscriber` crate&#39;s `Layer` trait from observing close events.</span>
-    <span class="doccomment">/// Use [`try_close`] instead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default implementation of this function does nothing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`try_close`]: Subscriber::try_close</span>
-    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.1.2&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use `Subscriber::try_close` instead&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">drop_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {}
-
-    <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped, and returns</span>
-    <span class="doccomment">/// `true` if there are now 0 IDs that refer to that span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Higher-level libraries providing functionality for composing multiple</span>
-    <span class="doccomment">/// subscriber implementations may use this return value to notify any</span>
-    <span class="doccomment">/// &quot;layered&quot; subscribers that this subscriber considers the span closed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default implementation of this method calls the subscriber&#39;s</span>
-    <span class="doccomment">/// [`drop_span`] method and returns `false`. This means that, unless the</span>
-    <span class="doccomment">/// subscriber overrides the default implementation, close notifications</span>
-    <span class="doccomment">/// will never be sent to any layered subscribers. In general, if the</span>
-    <span class="doccomment">/// subscriber tracks reference counts, this method should be implemented,</span>
-    <span class="doccomment">/// rather than `drop_span`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is guaranteed to only be called with span IDs that were</span>
-    <span class="doccomment">/// returned by this subscriber&#39;s `new_span` function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It&#39;s guaranteed that if this function has been called once more than the</span>
-    <span class="doccomment">/// number of times `clone_span` was called with the same `id`, then no more</span>
-    <span class="doccomment">/// handles that can enter the span with that `id` exist. This means that it</span>
-    <span class="doccomment">/// can be used in conjunction with [`clone_span`] to track the number of</span>
-    <span class="doccomment">/// handles capable of `enter`ing a span. When all the handles have been</span>
-    <span class="doccomment">/// dropped (i.e., `try_close` has been called one more time than</span>
-    <span class="doccomment">/// `clone_span` for a given ID), the subscriber may assume that the span</span>
-    <span class="doccomment">/// will not be entered again, and should return `true`. It is then free to</span>
-    <span class="doccomment">/// deallocate storage for data associated with that span, write data from</span>
-    <span class="doccomment">/// that span to IO, and so on.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: since this function is called when spans are dropped,</span>
-    <span class="doccomment">/// implementations should ensure that they are unwind-safe. Panicking from</span>
-    <span class="doccomment">/// inside of a `try_close` function may cause a double panic, if the span</span>
-    <span class="doccomment">/// was dropped due to a thread unwinding.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [span ID]: super::span::Id</span>
-    <span class="doccomment">/// [`clone_span`]: Subscriber::clone_span</span>
-    <span class="doccomment">/// [`drop_span`]: Subscriber::drop_span</span>
-    <span class="kw">fn</span> <span class="ident">try_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#424">self</a>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#386">drop_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#424">id</a>);
-        <span class="bool-val">false</span>
-    }
-
-    <span class="doccomment">/// Returns a type representing this subscriber&#39;s view of the current span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If subscribers track a current span, they should override this function</span>
-    <span class="doccomment">/// to return [`Current::new`] if the thread from which this method is</span>
-    <span class="doccomment">/// called is inside a span, or [`Current::none`] if the thread is not</span>
-    <span class="doccomment">/// inside a span.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, this returns a value indicating that the subscriber</span>
-    <span class="doccomment">/// does **not** track what span is current. If the subscriber does not</span>
-    <span class="doccomment">/// implement a current span, it should not override this method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Current::new`]: super::span::Current#tymethod.new</span>
-    <span class="doccomment">/// [`Current::none`]: super::span::Current#tymethod.none</span>
-    <span class="kw">fn</span> <span class="ident">current_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
-        <span class="ident">span::Current::unknown</span>()
-    }
-
-    <span class="comment">// === Downcasting methods ================================================</span>
-
-    <span class="doccomment">/// If `self` is the same type as the provided `TypeId`, returns an untyped</span>
-    <span class="doccomment">/// `*const` pointer to that type. Otherwise, returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you wish to downcast a `Subscriber`, it is strongly advised to use</span>
-    <span class="doccomment">/// the safe API provided by [`downcast_ref`] instead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This API is required for `downcast_raw` to be a trait method; a method</span>
-    <span class="doccomment">/// signature like [`downcast_ref`] (with a generic type parameter) is not</span>
-    <span class="doccomment">/// object-safe, and thus cannot be a trait method for `Subscriber`. This</span>
-    <span class="doccomment">/// means that if we only exposed `downcast_ref`, `Subscriber`</span>
-    <span class="doccomment">/// implementations could not override the downcasting behavior</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method may be overridden by &quot;fan out&quot; or &quot;chained&quot; subscriber</span>
-    <span class="doccomment">/// implementations which consist of multiple composed types. Such</span>
-    <span class="doccomment">/// subscribers might allow `downcast_raw` by returning references to those</span>
-    <span class="doccomment">/// component if they contain components with the given `TypeId`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`downcast_ref`] method expects that the pointer returned by</span>
-    <span class="doccomment">/// `downcast_raw` is non-null and points to a valid instance of the type</span>
-    <span class="doccomment">/// with the provided `TypeId`. Failure to ensure this will result in</span>
-    <span class="doccomment">/// undefined behaviour, so implementing `downcast_raw` is unsafe.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`downcast_ref`]: #method.downcast_ref</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">downcast_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>() {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../src/tracing_core/subscriber.rs.html#474">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="self">Self</span> <span class="kw">as</span> <span class="kw-2">*const</span> ())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    </span><span class="doccomment">/// If `self` is the same type as the provided `TypeId`, returns an untyped
+    /// `*const` pointer to that type. Otherwise, returns `None`.
+    ///
+    /// If you wish to downcast a `Subscriber`, it is strongly advised to use
+    /// the safe API provided by [`downcast_ref`] instead.
+    ///
+    /// This API is required for `downcast_raw` to be a trait method; a method
+    /// signature like [`downcast_ref`] (with a generic type parameter) is not
+    /// object-safe, and thus cannot be a trait method for `Subscriber`. This
+    /// means that if we only exposed `downcast_ref`, `Subscriber`
+    /// implementations could not override the downcasting behavior
+    ///
+    /// This method may be overridden by &quot;fan out&quot; or &quot;chained&quot; subscriber
+    /// implementations which consist of multiple composed types. Such
+    /// subscribers might allow `downcast_raw` by returning references to those
+    /// component if they contain components with the given `TypeId`.
+    ///
+    /// # Safety
+    ///
+    /// The [`downcast_ref`] method expects that the pointer returned by
+    /// `downcast_raw` is non-null and points to a valid instance of the type
+    /// with the provided `TypeId`. Failure to ensure this will result in
+    /// undefined behaviour, so implementing `downcast_raw` is unsafe.
+    ///
+    /// [`downcast_ref`]: #method.downcast_ref
+    </span><span class="kw">unsafe fn </span>downcast_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*const </span>()&gt; {
+        <span class="kw">if </span>id == TypeId::of::&lt;<span class="self">Self</span>&gt;() {
+            <span class="prelude-val">Some</span>(<span class="self"><a href="../../src/tracing_core/subscriber.rs.html#474">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span>())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> {
-    <span class="doccomment">/// Returns `true` if this `Subscriber` is the same type as `T`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#485">self</a>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#491">downcast_ref</a>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>().<span class="ident">is_some</span>()
+<span class="kw">impl dyn </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> {
+    <span class="doccomment">/// Returns `true` if this `Subscriber` is the same type as `T`.
+    </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#485">self</a>.<a href="../../src/tracing_core/subscriber.rs.html#491">downcast_ref</a>::&lt;T&gt;().is_some()
     }
 
-    <span class="doccomment">/// Returns some reference to this `Subscriber` value if it is of type `T`,</span>
-    <span class="doccomment">/// or `None` if it isn&#39;t.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">downcast_raw</span>(<span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#493">raw</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
+    <span class="doccomment">/// Returns some reference to this `Subscriber` value if it is of type `T`,
+    /// or `None` if it isn&#39;t.
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw = <span class="self">self</span>.downcast_raw(TypeId::of::&lt;T&gt;())<span class="question-mark">?</span>;
+            <span class="kw">if </span>raw.is_null() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="../../src/tracing_core/subscriber.rs.html#493">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
-    <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#505">self</a>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#511">downcast_ref</a>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>().<span class="ident">is_some</span>()
+<span class="kw">impl dyn </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
+    <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.
+    </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#505">self</a>.<a href="../../src/tracing_core/subscriber.rs.html#511">downcast_ref</a>::&lt;T&gt;().is_some()
     }
 
-    <span class="doccomment">/// Returns some reference to this [`Subscriber`] value if it is of type `T`,</span>
-    <span class="doccomment">/// or `None` if it isn&#39;t.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">downcast_raw</span>(<span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#513">raw</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
+    <span class="doccomment">/// Returns some reference to this [`Subscriber`] value if it is of type `T`,
+    /// or `None` if it isn&#39;t.
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw = <span class="self">self</span>.downcast_raw(TypeId::of::&lt;T&gt;())<span class="question-mark">?</span>;
+            <span class="kw">if </span>raw.is_null() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="../../src/tracing_core/subscriber.rs.html#513">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
-    <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#525">self</a>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#531">downcast_ref</a>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>().<span class="ident">is_some</span>()
+<span class="kw">impl dyn </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
+    <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.
+    </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#525">self</a>.<a href="../../src/tracing_core/subscriber.rs.html#531">downcast_ref</a>::&lt;T&gt;().is_some()
     }
 
-    <span class="doccomment">/// Returns some reference to this `[`Subscriber`] value if it is of type `T`,</span>
-    <span class="doccomment">/// or `None` if it isn&#39;t.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">downcast_raw</span>(<span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#533">raw</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
+    <span class="doccomment">/// Returns some reference to this `[`Subscriber`] value if it is of type `T`,
+    /// or `None` if it isn&#39;t.
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw = <span class="self">self</span>.downcast_raw(TypeId::of::&lt;T&gt;())<span class="question-mark">?</span>;
+            <span class="kw">if </span>raw.is_null() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="../../src/tracing_core/subscriber.rs.html#533">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
-    <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#545">self</a>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#551">downcast_ref</a>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>().<span class="ident">is_some</span>()
+<span class="kw">impl dyn </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
+    <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.
+    </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#545">self</a>.<a href="../../src/tracing_core/subscriber.rs.html#551">downcast_ref</a>::&lt;T&gt;().is_some()
     }
 
-    <span class="doccomment">/// Returns some reference to this [`Subscriber`] value if it is of type `T`,</span>
-    <span class="doccomment">/// or `None` if it isn&#39;t.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">downcast_raw</span>(<span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#553">raw</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
+    <span class="doccomment">/// Returns some reference to this [`Subscriber`] value if it is of type `T`,
+    /// or `None` if it isn&#39;t.
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>raw = <span class="self">self</span>.downcast_raw(TypeId::of::&lt;T&gt;())<span class="question-mark">?</span>;
+            <span class="kw">if </span>raw.is_null() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="../../src/tracing_core/subscriber.rs.html#553">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
             }
         }
     }
 }
 
-<span class="doccomment">/// Indicates a [`Subscriber`]&#39;s interest in a particular callsite.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Subscriber`s return an `Interest` from their [`register_callsite`] methods</span>
-<span class="doccomment">/// in order to determine whether that span should be enabled or disabled.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Subscriber`]: super::Subscriber</span>
-<span class="doccomment">/// [`register_callsite`]: super::Subscriber::register_callsite</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interest</span>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#574">InterestKind</a>);
+<span class="doccomment">/// Indicates a [`Subscriber`]&#39;s interest in a particular callsite.
+///
+/// `Subscriber`s return an `Interest` from their [`register_callsite`] methods
+/// in order to determine whether that span should be enabled or disabled.
+///
+/// [`Subscriber`]: super::Subscriber
+/// [`register_callsite`]: super::Subscriber::register_callsite
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Interest(<a href="../../src/tracing_core/subscriber.rs.html#574">InterestKind</a>);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="kw">enum</span> <span class="ident">InterestKind</span> {
-    <span class="ident">Never</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">Sometimes</span> <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">Always</span> <span class="op">=</span> <span class="number">2</span>,
+<span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+</span><span class="kw">enum </span>InterestKind {
+    Never = <span class="number">0</span>,
+    Sometimes = <span class="number">1</span>,
+    Always = <span class="number">2</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
-    <span class="doccomment">/// Returns an `Interest` indicating that the subscriber is never interested</span>
-    <span class="doccomment">/// in being notified about a callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If all active subscribers are `never()` interested in a callsite, it will</span>
-    <span class="doccomment">/// be completely disabled unless a new subscriber becomes active.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">never</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#575">InterestKind::Never</a>)
+<span class="kw">impl </span><a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
+    <span class="doccomment">/// Returns an `Interest` indicating that the subscriber is never interested
+    /// in being notified about a callsite.
+    ///
+    /// If all active subscribers are `never()` interested in a callsite, it will
+    /// be completely disabled unless a new subscriber becomes active.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>never() -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>(<a href="../../src/tracing_core/subscriber.rs.html#575">InterestKind::Never</a>)
     }
 
-    <span class="doccomment">/// Returns an `Interest` indicating the subscriber is sometimes interested</span>
-    <span class="doccomment">/// in being notified about a callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If all active subscribers are `sometimes` or `never` interested in a</span>
-    <span class="doccomment">/// callsite, the currently active subscriber will be asked to filter that</span>
-    <span class="doccomment">/// callsite every time it creates a span. This will be the case until a new</span>
-    <span class="doccomment">/// subscriber expresses that it is `always` interested in the callsite.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sometimes</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#576">InterestKind::Sometimes</a>)
+    <span class="doccomment">/// Returns an `Interest` indicating the subscriber is sometimes interested
+    /// in being notified about a callsite.
+    ///
+    /// If all active subscribers are `sometimes` or `never` interested in a
+    /// callsite, the currently active subscriber will be asked to filter that
+    /// callsite every time it creates a span. This will be the case until a new
+    /// subscriber expresses that it is `always` interested in the callsite.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sometimes() -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>(<a href="../../src/tracing_core/subscriber.rs.html#576">InterestKind::Sometimes</a>)
     }
 
-    <span class="doccomment">/// Returns an `Interest` indicating the subscriber is always interested in</span>
-    <span class="doccomment">/// being notified about a callsite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If any subscriber expresses that it is `always()` interested in a given</span>
-    <span class="doccomment">/// callsite, then the callsite will always be enabled.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">always</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#577">InterestKind::Always</a>)
+    <span class="doccomment">/// Returns an `Interest` indicating the subscriber is always interested in
+    /// being notified about a callsite.
+    ///
+    /// If any subscriber expresses that it is `always()` interested in a given
+    /// callsite, then the callsite will always be enabled.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>always() -&gt; <span class="self">Self </span>{
+        <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>(<a href="../../src/tracing_core/subscriber.rs.html#577">InterestKind::Always</a>)
     }
 
-    <span class="doccomment">/// Returns `true` if the subscriber is never interested in being notified</span>
-    <span class="doccomment">/// about this callsite.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_never</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="number">0</span>, <span class="ident">InterestKind::Never</span>)
+    <span class="doccomment">/// Returns `true` if the subscriber is never interested in being notified
+    /// about this callsite.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_never(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="number">0</span>, InterestKind::Never)
     }
 
-    <span class="doccomment">/// Returns `true` if the subscriber is sometimes interested in being notified</span>
-    <span class="doccomment">/// about this callsite.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_sometimes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="number">0</span>, <span class="ident">InterestKind::Sometimes</span>)
+    <span class="doccomment">/// Returns `true` if the subscriber is sometimes interested in being notified
+    /// about this callsite.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_sometimes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="number">0</span>, InterestKind::Sometimes)
     }
 
-    <span class="doccomment">/// Returns `true` if the subscriber is always interested in being notified</span>
-    <span class="doccomment">/// about this callsite.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_always</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="number">0</span>, <span class="ident">InterestKind::Always</span>)
+    <span class="doccomment">/// Returns `true` if the subscriber is always interested in being notified
+    /// about this callsite.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_always(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="number">0</span>, InterestKind::Always)
     }
 
-    <span class="doccomment">/// Returns the common interest between these two Interests.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If both interests are the same, this propagates that interest.</span>
-    <span class="doccomment">/// Otherwise, if they differ, the result must always be</span>
-    <span class="doccomment">/// `Interest::sometimes` --- if the two subscribers differ in opinion, we</span>
-    <span class="doccomment">/// will have to ask the current subscriber what it thinks, no matter what.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">and</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">==</span> <span class="ident">rhs</span>.<span class="number">0</span> {
-            <a class="self" href="../../src/tracing_core/subscriber.rs.html#640">self</a>
-        } <span class="kw">else</span> {
-            <span class="ident">Interest::sometimes</span>()
+    <span class="doccomment">/// Returns the common interest between these two Interests.
+    ///
+    /// If both interests are the same, this propagates that interest.
+    /// Otherwise, if they differ, the result must always be
+    /// `Interest::sometimes` --- if the two subscribers differ in opinion, we
+    /// will have to ask the current subscriber what it thinks, no matter what.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>and(<span class="self">self</span>, rhs: <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== rhs.<span class="number">0 </span>{
+            <span class="self"><a href="../../src/tracing_core/subscriber.rs.html#640">self</a>
+        </span>} <span class="kw">else </span>{
+            Interest::sometimes()
         }
     }
 }
 
-<span class="doccomment">/// A no-op [`Subscriber`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`NoSubscriber`] implements the [`Subscriber`] trait by never being enabled,</span>
-<span class="doccomment">/// never being interested in any callsite, and dropping all spans and events.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoSubscriber</span>(());
+<span class="doccomment">/// A no-op [`Subscriber`].
+///
+/// [`NoSubscriber`] implements the [`Subscriber`] trait by never being enabled,
+/// never being interested in any callsite, and dropping all spans and events.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Default)]
+</span><span class="kw">pub struct </span>NoSubscriber(());
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#654">NoSubscriber</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">register_callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
-        <span class="ident">Interest::never</span>()
+<span class="kw">impl </span><a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="kw">for </span><a href="../../src/tracing_core/subscriber.rs.html#654">NoSubscriber</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
+        Interest::never()
     }
 
-    <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <span class="ident">span::Id::from_u64</span>(<span class="number">0xDEAD</span>)
+    <span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
+        span::Id::from_u64(<span class="number">0xDEAD</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {}
+    <span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, _event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">_values</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {}
+    <span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, _span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, _values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 
-    <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">_follows</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {}
+    <span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, _span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, _follows: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="bool-val">false</span>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, _metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="bool-val">false
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {}
-    <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {}
+    <span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, _span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {}
+    <span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, _span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+<span class="kw">impl</span>&lt;S&gt; <a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="kw">for </span>Box&lt;S&gt;
+<span class="kw">where
+    </span>S: <a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">register_callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#686">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#157">register_callsite</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#686">metadata</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#686">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#157">register_callsite</a>(<a href="../../src/tracing_core/subscriber.rs.html#686">metadata</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#691">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#185">enabled</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#691">metadata</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#691">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#185">enabled</a>(<a href="../../src/tracing_core/subscriber.rs.html#691">metadata</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_level_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#696">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#209">max_level_hint</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>max_level_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>&gt; {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#696">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#209">max_level_hint</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#701">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#237">new_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#701">span</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#701">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#237">new_span</a>(<a href="../../src/tracing_core/subscriber.rs.html#701">span</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#706">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#277">record</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#706">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#706">values</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#706">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#277">record</a>(<a href="../../src/tracing_core/subscriber.rs.html#706">span</a>, <a href="../../src/tracing_core/subscriber.rs.html#706">values</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">follows</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#711">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#297">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#711">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#711">follows</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, follows: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#711">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#297">record_follows_from</a>(<a href="../../src/tracing_core/subscriber.rs.html#711">span</a>, <a href="../../src/tracing_core/subscriber.rs.html#711">follows</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">event_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#716">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#305">event_enabled</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#716">event</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>event_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#716">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#305">event_enabled</a>(<a href="../../src/tracing_core/subscriber.rs.html#716">event</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#721">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">event</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#721">event</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#721">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#328">event</a>(<a href="../../src/tracing_core/subscriber.rs.html#721">event</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#726">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#338">enter</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#726">span</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#726">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#338">enter</a>(<a href="../../src/tracing_core/subscriber.rs.html#726">span</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#731">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">exit</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#731">span</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#731">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#350">exit</a>(<a href="../../src/tracing_core/subscriber.rs.html#731">span</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#736">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#372">clone_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#736">id</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#736">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#372">clone_span</a>(<a href="../../src/tracing_core/subscriber.rs.html#736">id</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#741">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#741">id</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#741">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a href="../../src/tracing_core/subscriber.rs.html#741">id</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">drop_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#747">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#747">id</a>);
+    <span class="attribute">#[inline]
+    #[allow(deprecated)]
+    </span><span class="kw">fn </span>drop_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#747">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a href="../../src/tracing_core/subscriber.rs.html#747">id</a>);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">current_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#752">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#443">current_span</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>current_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#752">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#443">current_span</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">downcast_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="self" href="../../src/tracing_core/subscriber.rs.html#757">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="self">Self</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">unsafe fn </span>downcast_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*const </span>()&gt; {
+        <span class="kw">if </span>id == TypeId::of::&lt;<span class="self">Self</span>&gt;() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self"><a href="../../src/tracing_core/subscriber.rs.html#757">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
         }
 
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#757">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#474">downcast_raw</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#757">id</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#757">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#474">downcast_raw</a>(<a href="../../src/tracing_core/subscriber.rs.html#757">id</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+<span class="kw">impl</span>&lt;S&gt; <a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="kw">for </span>Arc&lt;S&gt;
+<span class="kw">where
+    </span>S: <a href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">register_callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#771">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#157">register_callsite</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#771">metadata</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="../../src/tracing_core/subscriber.rs.html#571">Interest</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#771">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#157">register_callsite</a>(<a href="../../src/tracing_core/subscriber.rs.html#771">metadata</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#776">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#185">enabled</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#776">metadata</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#776">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#185">enabled</a>(<a href="../../src/tracing_core/subscriber.rs.html#776">metadata</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_level_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#781">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#209">max_level_hint</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>max_level_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>&gt; {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#781">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#209">max_level_hint</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#786">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#237">new_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#786">span</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#786">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#237">new_span</a>(<a href="../../src/tracing_core/subscriber.rs.html#786">span</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#791">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#277">record</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#791">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#791">values</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#791">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#277">record</a>(<a href="../../src/tracing_core/subscriber.rs.html#791">span</a>, <a href="../../src/tracing_core/subscriber.rs.html#791">values</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">follows</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#796">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#297">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#796">span</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#796">follows</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>, follows: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#796">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#297">record_follows_from</a>(<a href="../../src/tracing_core/subscriber.rs.html#796">span</a>, <a href="../../src/tracing_core/subscriber.rs.html#796">follows</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">event_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#801">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#305">event_enabled</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#801">event</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>event_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#801">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#305">event_enabled</a>(<a href="../../src/tracing_core/subscriber.rs.html#801">event</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#806">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">event</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#806">event</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#806">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#328">event</a>(<a href="../../src/tracing_core/subscriber.rs.html#806">event</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#811">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#338">enter</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#811">span</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#811">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#338">enter</a>(<a href="../../src/tracing_core/subscriber.rs.html#811">span</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#816">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">exit</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#816">span</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#816">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#350">exit</a>(<a href="../../src/tracing_core/subscriber.rs.html#816">span</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#821">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#372">clone_span</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#821">id</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#821">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#372">clone_span</a>(<a href="../../src/tracing_core/subscriber.rs.html#821">id</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#826">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#826">id</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#826">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a href="../../src/tracing_core/subscriber.rs.html#826">id</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">drop_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#832">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#832">id</a>);
+    <span class="attribute">#[inline]
+    #[allow(deprecated)]
+    </span><span class="kw">fn </span>drop_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#832">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a href="../../src/tracing_core/subscriber.rs.html#832">id</a>);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">current_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#837">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#443">current_span</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>current_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#837">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#443">current_span</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">downcast_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="self" href="../../src/tracing_core/subscriber.rs.html#842">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="self">Self</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">unsafe fn </span>downcast_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*const </span>()&gt; {
+        <span class="kw">if </span>id == TypeId::of::&lt;<span class="self">Self</span>&gt;() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self"><a href="../../src/tracing_core/subscriber.rs.html#842">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
         }
 
-        <a class="self" href="../../src/tracing_core/subscriber.rs.html#842">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a class="ident" href="../../src/tracing_core/subscriber.rs.html#474">downcast_raw</a>(<a class="ident" href="../../src/tracing_core/subscriber.rs.html#842">id</a>)
+        <a class="self" href="../../src/tracing_core/subscriber.rs.html#842">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="../../src/tracing_core/subscriber.rs.html#474">downcast_raw</a>(<a href="../../src/tracing_core/subscriber.rs.html#842">id</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

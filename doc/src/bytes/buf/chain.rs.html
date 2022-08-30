@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/chain.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chain.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/chain.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chain.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -240,247 +240,247 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::buf</span>::{<a class="ident" href="../../../src/bytes/buf/iter.rs.html#26">IntoIter</a>, <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>, <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>, <a class="ident" href="../../../src/bytes/bytes.rs.html#100">Bytes</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::buf::{<a href="../../../src/bytes/buf/iter.rs.html#26">IntoIter</a>, <a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a>};
+<span class="kw">use crate</span>::{<a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>, <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>, <a href="../../../src/bytes/bytes.rs.html#100">Bytes</a>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
 
-<span class="doccomment">/// A `Chain` sequences two buffers.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Chain` is an adapter that links two underlying buffers and provides a</span>
-<span class="doccomment">/// continuous view across both buffers. It is able to sequence either immutable</span>
-<span class="doccomment">/// buffers ([`Buf`] values) or mutable buffers ([`BufMut`] values).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct is generally created by calling [`Buf::chain`]. Please see that</span>
-<span class="doccomment">/// function&#39;s documentation for more detail.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use bytes::{Bytes, Buf};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut buf = (&amp;b&quot;hello &quot;[..])</span>
-<span class="doccomment">///     .chain(&amp;b&quot;world&quot;[..]);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let full: Bytes = buf.copy_to_bytes(11);</span>
-<span class="doccomment">/// assert_eq!(full[..], b&quot;hello world&quot;[..]);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Buf::chain`]: trait.Buf.html#method.chain</span>
-<span class="doccomment">/// [`Buf`]: trait.Buf.html</span>
-<span class="doccomment">/// [`BufMut`]: trait.BufMut.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-    <span class="ident">a</span>: <span class="ident">T</span>,
-    <span class="ident">b</span>: <span class="ident">U</span>,
+<span class="doccomment">/// A `Chain` sequences two buffers.
+///
+/// `Chain` is an adapter that links two underlying buffers and provides a
+/// continuous view across both buffers. It is able to sequence either immutable
+/// buffers ([`Buf`] values) or mutable buffers ([`BufMut`] values).
+///
+/// This struct is generally created by calling [`Buf::chain`]. Please see that
+/// function&#39;s documentation for more detail.
+///
+/// # Examples
+///
+/// ```
+/// use bytes::{Bytes, Buf};
+///
+/// let mut buf = (&amp;b&quot;hello &quot;[..])
+///     .chain(&amp;b&quot;world&quot;[..]);
+///
+/// let full: Bytes = buf.copy_to_bytes(11);
+/// assert_eq!(full[..], b&quot;hello world&quot;[..]);
+/// ```
+///
+/// [`Buf::chain`]: trait.Buf.html#method.chain
+/// [`Buf`]: trait.Buf.html
+/// [`BufMut`]: trait.BufMut.html
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Chain&lt;T, U&gt; {
+    a: T,
+    b: U,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `Chain` sequencing the provided values.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">a</span>: <span class="ident">T</span>, <span class="ident">b</span>: <span class="ident">U</span>) -&gt; <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/bytes/buf/chain.rs.html#32">Chain</a> { <a class="ident" href="../../../src/bytes/buf/chain.rs.html#39">a</a>, <a class="ident" href="../../../src/bytes/buf/chain.rs.html#39">b</a> }
+<span class="kw">impl</span>&lt;T, U&gt; Chain&lt;T, U&gt; {
+    <span class="doccomment">/// Creates a new `Chain` sequencing the provided values.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(a: T, b: U) -&gt; Chain&lt;T, U&gt; {
+        <a href="../../../src/bytes/buf/chain.rs.html#32">Chain</a> { <a href="../../../src/bytes/buf/chain.rs.html#39">a</a>, <a href="../../../src/bytes/buf/chain.rs.html#39">b</a> }
     }
 
-    <span class="doccomment">/// Gets a reference to the first underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::Buf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = (&amp;b&quot;hello&quot;[..])</span>
-    <span class="doccomment">///     .chain(&amp;b&quot;world&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(buf.first_ref()[..], b&quot;hello&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/chain.rs.html#55">self</a>.<span class="ident">a</span>
+    <span class="doccomment">/// Gets a reference to the first underlying `Buf`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let buf = (&amp;b&quot;hello&quot;[..])
+    ///     .chain(&amp;b&quot;world&quot;[..]);
+    ///
+    /// assert_eq!(buf.first_ref()[..], b&quot;hello&quot;[..]);
+    /// ```
+    </span><span class="kw">pub fn </span>first_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/chain.rs.html#55">self</a>.a
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the first underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::Buf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = (&amp;b&quot;hello&quot;[..])</span>
-    <span class="doccomment">///     .chain(&amp;b&quot;world&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buf.first_mut().advance(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let full = buf.copy_to_bytes(9);</span>
-    <span class="doccomment">/// assert_eq!(full, b&quot;elloworld&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#74">self</a>.<span class="ident">a</span>
+    <span class="doccomment">/// Gets a mutable reference to the first underlying `Buf`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf = (&amp;b&quot;hello&quot;[..])
+    ///     .chain(&amp;b&quot;world&quot;[..]);
+    ///
+    /// buf.first_mut().advance(1);
+    ///
+    /// let full = buf.copy_to_bytes(9);
+    /// assert_eq!(full, b&quot;elloworld&quot;[..]);
+    /// ```
+    </span><span class="kw">pub fn </span>first_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/bytes/buf/chain.rs.html#74">self</a>.a
     }
 
-    <span class="doccomment">/// Gets a reference to the last underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::Buf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = (&amp;b&quot;hello&quot;[..])</span>
-    <span class="doccomment">///     .chain(&amp;b&quot;world&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(buf.last_ref()[..], b&quot;world&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">U</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/chain.rs.html#90">self</a>.<span class="ident">b</span>
+    <span class="doccomment">/// Gets a reference to the last underlying `Buf`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let buf = (&amp;b&quot;hello&quot;[..])
+    ///     .chain(&amp;b&quot;world&quot;[..]);
+    ///
+    /// assert_eq!(buf.last_ref()[..], b&quot;world&quot;[..]);
+    /// ```
+    </span><span class="kw">pub fn </span>last_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>U {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/chain.rs.html#90">self</a>.b
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the last underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::Buf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = (&amp;b&quot;hello &quot;[..])</span>
-    <span class="doccomment">///     .chain(&amp;b&quot;world&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buf.last_mut().advance(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let full = buf.copy_to_bytes(10);</span>
-    <span class="doccomment">/// assert_eq!(full, b&quot;hello orld&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">U</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#109">self</a>.<span class="ident">b</span>
+    <span class="doccomment">/// Gets a mutable reference to the last underlying `Buf`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let mut buf = (&amp;b&quot;hello &quot;[..])
+    ///     .chain(&amp;b&quot;world&quot;[..]);
+    ///
+    /// buf.last_mut().advance(1);
+    ///
+    /// let full = buf.copy_to_bytes(10);
+    /// assert_eq!(full, b&quot;hello orld&quot;[..]);
+    /// ```
+    </span><span class="kw">pub fn </span>last_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>U {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/bytes/buf/chain.rs.html#109">self</a>.b
     }
 
-    <span class="doccomment">/// Consumes this `Chain`, returning the underlying values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::Buf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let chain = (&amp;b&quot;hello&quot;[..])</span>
-    <span class="doccomment">///     .chain(&amp;b&quot;world&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let (first, last) = chain.into_inner();</span>
-    <span class="doccomment">/// assert_eq!(first[..], b&quot;hello&quot;[..]);</span>
-    <span class="doccomment">/// assert_eq!(last[..], b&quot;world&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; (<span class="ident">T</span>, <span class="ident">U</span>) {
-        (<a class="self" href="../../../src/bytes/buf/chain.rs.html#127">self</a>.<span class="ident">a</span>, <a class="self" href="../../../src/bytes/buf/chain.rs.html#127">self</a>.<span class="ident">b</span>)
+    <span class="doccomment">/// Consumes this `Chain`, returning the underlying values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::Buf;
+    ///
+    /// let chain = (&amp;b&quot;hello&quot;[..])
+    ///     .chain(&amp;b&quot;world&quot;[..]);
+    ///
+    /// let (first, last) = chain.into_inner();
+    /// assert_eq!(first[..], b&quot;hello&quot;[..]);
+    /// assert_eq!(last[..], b&quot;world&quot;[..]);
+    /// ```
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; (T, U) {
+        (<a class="self" href="../../../src/bytes/buf/chain.rs.html#127">self</a>.a, <a class="self" href="../../../src/bytes/buf/chain.rs.html#127">self</a>.b)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a> <span class="kw">for</span> <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>,
-    <span class="ident">U</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>,
+<span class="kw">impl</span>&lt;T, U&gt; <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a> <span class="kw">for </span>Chain&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>,
+    U: <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>,
 {
-    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/bytes/buf/chain.rs.html#137">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>().<span class="ident">checked_add</span>(<a class="self" href="../../../src/bytes/buf/chain.rs.html#137">self</a>.<span class="ident">b</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>()).<span class="ident">unwrap</span>()
+    <span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/bytes/buf/chain.rs.html#137">self</a>.a.<a href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>().checked_add(<a class="self" href="../../../src/bytes/buf/chain.rs.html#137">self</a>.b.<a href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>()).unwrap()
     }
 
-    <span class="kw">fn</span> <span class="ident">chunk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">a</span>.<span class="ident">has_remaining</span>() {
-            <a class="self" href="../../../src/bytes/buf/chain.rs.html#141">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>()
-        } <span class="kw">else</span> {
-            <a class="self" href="../../../src/bytes/buf/chain.rs.html#141">self</a>.<span class="ident">b</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>()
+    <span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">if </span><span class="self">self</span>.a.has_remaining() {
+            <a class="self" href="../../../src/bytes/buf/chain.rs.html#141">self</a>.a.<a href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>()
+        } <span class="kw">else </span>{
+            <a class="self" href="../../../src/bytes/buf/chain.rs.html#141">self</a>.b.<a href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>()
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">a_rem</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#149">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>();
+    <span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>a_rem = <a class="self" href="../../../src/bytes/buf/chain.rs.html#149">self</a>.a.<a href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>();
 
-        <span class="kw">if</span> <span class="ident">a_rem</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">if</span> <span class="ident">a_rem</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">cnt</span> {
-                <a class="self" href="../../../src/bytes/buf/chain.rs.html#149">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#149">cnt</a>);
+        <span class="kw">if </span>a_rem != <span class="number">0 </span>{
+            <span class="kw">if </span>a_rem &gt;= cnt {
+                <a class="self" href="../../../src/bytes/buf/chain.rs.html#149">self</a>.a.<a href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<a href="../../../src/bytes/buf/chain.rs.html#149">cnt</a>);
                 <span class="kw">return</span>;
             }
 
-            <span class="comment">// Consume what is left of a</span>
-            <a class="self" href="../../../src/bytes/buf/chain.rs.html#149">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#150">a_rem</a>);
+            <span class="comment">// Consume what is left of a
+            </span><a class="self" href="../../../src/bytes/buf/chain.rs.html#149">self</a>.a.<a href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<a href="../../../src/bytes/buf/chain.rs.html#150">a_rem</a>);
 
-            <a class="ident" href="../../../src/bytes/buf/chain.rs.html#149">cnt</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/chain.rs.html#150">a_rem</a>;
+            <a href="../../../src/bytes/buf/chain.rs.html#149">cnt</a> -= <a href="../../../src/bytes/buf/chain.rs.html#150">a_rem</a>;
         }
 
-        <a class="self" href="../../../src/bytes/buf/chain.rs.html#149">self</a>.<span class="ident">b</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#149">cnt</a>);
+        <a class="self" href="../../../src/bytes/buf/chain.rs.html#149">self</a>.b.<a href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<a href="../../../src/bytes/buf/chain.rs.html#149">cnt</a>);
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">chunks_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#168">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#163">chunks_vectored</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#168">dst</a>);
-        <a class="ident" href="../../../src/bytes/buf/chain.rs.html#169">n</a> <span class="op">+</span><span class="op">=</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#168">self</a>.<span class="ident">b</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#163">chunks_vectored</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/bytes/buf/chain.rs.html#168">dst</a>[<a class="ident" href="../../../src/bytes/buf/chain.rs.html#169">n</a>..]);
-        <a class="ident" href="../../../src/bytes/buf/chain.rs.html#169">n</a>
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">fn </span>chunks_vectored&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[IoSlice&lt;<span class="lifetime">&#39;a</span>&gt;]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>n = <a class="self" href="../../../src/bytes/buf/chain.rs.html#168">self</a>.a.<a href="../../../src/bytes/buf/buf_impl.rs.html#163">chunks_vectored</a>(<a href="../../../src/bytes/buf/chain.rs.html#168">dst</a>);
+        <a href="../../../src/bytes/buf/chain.rs.html#169">n</a> += <a class="self" href="../../../src/bytes/buf/chain.rs.html#168">self</a>.b.<a href="../../../src/bytes/buf/buf_impl.rs.html#163">chunks_vectored</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/bytes/buf/chain.rs.html#168">dst</a>[<a href="../../../src/bytes/buf/chain.rs.html#169">n</a>..]);
+        <a href="../../../src/bytes/buf/chain.rs.html#169">n</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">copy_to_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/bytes/bytes.rs.html#100">Bytes</a> {
-        <span class="kw">let</span> <span class="ident">a_rem</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>();
-        <span class="kw">if</span> <span class="ident">a_rem</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span> {
-            <a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#816">copy_to_bytes</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#174">len</a>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">a_rem</span> <span class="op">==</span> <span class="number">0</span> {
-            <a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.<span class="ident">b</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#816">copy_to_bytes</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#174">len</a>)
-        } <span class="kw">else</span> {
+    <span class="kw">fn </span>copy_to_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/bytes/bytes.rs.html#100">Bytes</a> {
+        <span class="kw">let </span>a_rem = <a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.a.<a href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>();
+        <span class="kw">if </span>a_rem &gt;= len {
+            <a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.a.<a href="../../../src/bytes/buf/buf_impl.rs.html#816">copy_to_bytes</a>(<a href="../../../src/bytes/buf/chain.rs.html#174">len</a>)
+        } <span class="kw">else if </span>a_rem == <span class="number">0 </span>{
+            <a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.b.<a href="../../../src/bytes/buf/buf_impl.rs.html#816">copy_to_bytes</a>(<a href="../../../src/bytes/buf/chain.rs.html#174">len</a>)
+        } <span class="kw">else </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-                <span class="ident">len</span> <span class="op">-</span> <span class="ident">a_rem</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">remaining</span>(),
-                <span class="string">&quot;`len` greater than remaining&quot;</span>
-            );
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::BytesMut::with_capacity</span>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#174">len</a>);
-            <a class="ident" href="../../../src/bytes/buf/chain.rs.html#185">ret</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#197-199">put</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.<span class="ident">a</span>);
-            <a class="ident" href="../../../src/bytes/buf/chain.rs.html#185">ret</a>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#197-199">put</a>((<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.<span class="ident">b</span>).<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#847-849">take</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#174">len</a> <span class="op">-</span> <a class="ident" href="../../../src/bytes/buf/chain.rs.html#175">a_rem</a>));
-            <a class="ident" href="../../../src/bytes/buf/chain.rs.html#185">ret</a>.<a class="ident" href="../../../src/bytes/bytes_mut.rs.html#240">freeze</a>()
+                len - a_rem &lt;= <span class="self">self</span>.b.remaining(),
+                <span class="string">&quot;`len` greater than remaining&quot;
+            </span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="kw">crate</span>::BytesMut::with_capacity(<a href="../../../src/bytes/buf/chain.rs.html#174">len</a>);
+            <a href="../../../src/bytes/buf/chain.rs.html#185">ret</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#197-199">put</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.a);
+            <a href="../../../src/bytes/buf/chain.rs.html#185">ret</a>.<a href="../../../src/bytes/buf/buf_mut.rs.html#197-199">put</a>((<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/bytes/buf/chain.rs.html#174">self</a>.b).<a href="../../../src/bytes/buf/buf_impl.rs.html#847-849">take</a>(<a href="../../../src/bytes/buf/chain.rs.html#174">len</a> - <a href="../../../src/bytes/buf/chain.rs.html#175">a_rem</a>));
+            <a href="../../../src/bytes/buf/chain.rs.html#185">ret</a>.<a href="../../../src/bytes/bytes_mut.rs.html#240">freeze</a>()
         }
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for</span> <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>,
-    <span class="ident">U</span>: <a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>,
+<span class="kw">unsafe impl</span>&lt;T, U&gt; <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a> <span class="kw">for </span>Chain&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>,
+    U: <a href="../../../src/bytes/buf/buf_mut.rs.html#29">BufMut</a>,
 {
-    <span class="kw">fn</span> <span class="ident">remaining_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/bytes/buf/chain.rs.html#198">self</a>.<span class="ident">a</span>
-            .<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>()
-            .<span class="ident">saturating_add</span>(<a class="self" href="../../../src/bytes/buf/chain.rs.html#198">self</a>.<span class="ident">b</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>())
+    <span class="kw">fn </span>remaining_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/bytes/buf/chain.rs.html#198">self</a>.a
+            .<a href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>()
+            .saturating_add(<a class="self" href="../../../src/bytes/buf/chain.rs.html#198">self</a>.b.<a href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>())
     }
 
-    <span class="kw">fn</span> <span class="ident">chunk_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">a</span>.<span class="ident">has_remaining_mut</span>() {
-            <a class="self" href="../../../src/bytes/buf/chain.rs.html#204">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#175">chunk_mut</a>()
-        } <span class="kw">else</span> {
-            <a class="self" href="../../../src/bytes/buf/chain.rs.html#204">self</a>.<span class="ident">b</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#175">chunk_mut</a>()
+    <span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
+        <span class="kw">if </span><span class="self">self</span>.a.has_remaining_mut() {
+            <a class="self" href="../../../src/bytes/buf/chain.rs.html#204">self</a>.a.<a href="../../../src/bytes/buf/buf_mut.rs.html#175">chunk_mut</a>()
+        } <span class="kw">else </span>{
+            <a class="self" href="../../../src/bytes/buf/chain.rs.html#204">self</a>.b.<a href="../../../src/bytes/buf/buf_mut.rs.html#175">chunk_mut</a>()
         }
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">advance_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">a_rem</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/chain.rs.html#212">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>();
+    <span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>a_rem = <a class="self" href="../../../src/bytes/buf/chain.rs.html#212">self</a>.a.<a href="../../../src/bytes/buf/buf_mut.rs.html#63">remaining_mut</a>();
 
-        <span class="kw">if</span> <span class="ident">a_rem</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">if</span> <span class="ident">a_rem</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">cnt</span> {
-                <a class="self" href="../../../src/bytes/buf/chain.rs.html#212">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#212">cnt</a>);
+        <span class="kw">if </span>a_rem != <span class="number">0 </span>{
+            <span class="kw">if </span>a_rem &gt;= cnt {
+                <a class="self" href="../../../src/bytes/buf/chain.rs.html#212">self</a>.a.<a href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a href="../../../src/bytes/buf/chain.rs.html#212">cnt</a>);
                 <span class="kw">return</span>;
             }
 
-            <span class="comment">// Consume what is left of a</span>
-            <a class="self" href="../../../src/bytes/buf/chain.rs.html#212">self</a>.<span class="ident">a</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#213">a_rem</a>);
+            <span class="comment">// Consume what is left of a
+            </span><a class="self" href="../../../src/bytes/buf/chain.rs.html#212">self</a>.a.<a href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a href="../../../src/bytes/buf/chain.rs.html#213">a_rem</a>);
 
-            <a class="ident" href="../../../src/bytes/buf/chain.rs.html#212">cnt</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/chain.rs.html#213">a_rem</a>;
+            <a href="../../../src/bytes/buf/chain.rs.html#212">cnt</a> -= <a href="../../../src/bytes/buf/chain.rs.html#213">a_rem</a>;
         }
 
-        <a class="self" href="../../../src/bytes/buf/chain.rs.html#212">self</a>.<span class="ident">b</span>.<a class="ident" href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a class="ident" href="../../../src/bytes/buf/chain.rs.html#212">cnt</a>);
+        <a class="self" href="../../../src/bytes/buf/chain.rs.html#212">self</a>.b.<a href="../../../src/bytes/buf/buf_mut.rs.html#104">advance_mut</a>(<a href="../../../src/bytes/buf/chain.rs.html#212">cnt</a>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for</span> <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>,
-    <span class="ident">U</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>,
+<span class="kw">impl</span>&lt;T, U&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span>Chain&lt;T, U&gt;
+<span class="kw">where
+    </span>T: <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>,
+    U: <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+    <span class="kw">type </span>IntoIter = IntoIter&lt;Chain&lt;T, U&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <span class="ident">IntoIter::new</span>(<a class="self" href="../../../src/bytes/buf/chain.rs.html#239">self</a>)
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
+        IntoIter::new(<a class="self" href="../../../src/bytes/buf/chain.rs.html#239">self</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

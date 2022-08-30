@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -66,73 +66,73 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Methods to accept an incoming WebSocket connection on a server.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Methods to accept an incoming WebSocket connection on a server.
 
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/tungstenite/handshake/server.rs.html#196"><span class="kw">crate</span>::handshake::server::ServerHandshake</a>;
+</span><span class="kw">pub use </span><a href="../../src/tungstenite/handshake/server.rs.html#196"><span class="kw">crate</span>::handshake::server::ServerHandshake</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::handshake</span>::{
-    <span class="ident">server</span>::{<a class="ident" href="../../src/tungstenite/handshake/server.rs.html#155">Callback</a>, <a class="ident" href="../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a>},
-    <a class="ident" href="../../src/tungstenite/handshake/mod.rs.html#57">HandshakeError</a>,
+<span class="kw">use </span><span class="kw">crate</span>::handshake::{
+    server::{<a href="../../src/tungstenite/handshake/server.rs.html#155">Callback</a>, <a href="../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a>},
+    <a href="../../src/tungstenite/handshake/mod.rs.html#57">HandshakeError</a>,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::protocol</span>::{<a class="ident" href="../../src/tungstenite/protocol/mod.rs.html#77">WebSocket</a>, <a class="ident" href="../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>};
+<span class="kw">use </span><span class="kw">crate</span>::protocol::{<a href="../../src/tungstenite/protocol/mod.rs.html#77">WebSocket</a>, <a href="../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>};
 
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 
-<span class="doccomment">/// Accept the given Stream as a WebSocket.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Uses a configuration provided as an argument. Calling it with `None` will use the default one</span>
-<span class="doccomment">/// used by `accept()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function starts a server WebSocket handshake over the given stream.</span>
-<span class="doccomment">/// If you want TLS support, use `native_tls::TlsStream`, `rustls::Stream` or</span>
-<span class="doccomment">/// `openssl::ssl::SslStream` for the stream here. Any `Read + Write` streams are supported,</span>
-<span class="doccomment">/// including those from `Mio` and others.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept_with_config</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span>(
-    <span class="ident">stream</span>: <span class="ident">S</span>,
-    <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">S</span>, <a class="ident" href="../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/tungstenite/server.rs.html#50-54">accept_hdr_with_config</a>(<a class="ident" href="../../src/tungstenite/server.rs.html#24">stream</a>, <a class="ident" href="../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a>, <a class="ident" href="../../src/tungstenite/server.rs.html#25">config</a>)
+<span class="doccomment">/// Accept the given Stream as a WebSocket.
+///
+/// Uses a configuration provided as an argument. Calling it with `None` will use the default one
+/// used by `accept()`.
+///
+/// This function starts a server WebSocket handshake over the given stream.
+/// If you want TLS support, use `native_tls::TlsStream`, `rustls::Stream` or
+/// `openssl::ssl::SslStream` for the stream here. Any `Read + Write` streams are supported,
+/// including those from `Mio` and others.
+</span><span class="kw">pub fn </span>accept_with_config&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(
+    stream: S,
+    config: <span class="prelude-ty">Option</span>&lt;<a href="../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;WebSocket&lt;S&gt;, HandshakeError&lt;ServerHandshake&lt;S, <a href="../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a>&gt;&gt;&gt; {
+    <a href="../../src/tungstenite/server.rs.html#50-54">accept_hdr_with_config</a>(<a href="../../src/tungstenite/server.rs.html#24">stream</a>, <a href="../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a>, <a href="../../src/tungstenite/server.rs.html#25">config</a>)
 }
 
-<span class="doccomment">/// Accept the given Stream as a WebSocket.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function starts a server WebSocket handshake over the given stream.</span>
-<span class="doccomment">/// If you want TLS support, use `native_tls::TlsStream`, `rustls::Stream` or</span>
-<span class="doccomment">/// `openssl::ssl::SslStream` for the stream here. Any `Read + Write` streams are supported,</span>
-<span class="doccomment">/// including those from `Mio` and others.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span>(
-    <span class="ident">stream</span>: <span class="ident">S</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">S</span>, <a class="ident" href="../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/tungstenite/server.rs.html#23-26">accept_with_config</a>(<a class="ident" href="../../src/tungstenite/server.rs.html#37">stream</a>, <span class="prelude-val">None</span>)
+<span class="doccomment">/// Accept the given Stream as a WebSocket.
+///
+/// This function starts a server WebSocket handshake over the given stream.
+/// If you want TLS support, use `native_tls::TlsStream`, `rustls::Stream` or
+/// `openssl::ssl::SslStream` for the stream here. Any `Read + Write` streams are supported,
+/// including those from `Mio` and others.
+</span><span class="kw">pub fn </span>accept&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;(
+    stream: S,
+) -&gt; <span class="prelude-ty">Result</span>&lt;WebSocket&lt;S&gt;, HandshakeError&lt;ServerHandshake&lt;S, <a href="../../src/tungstenite/handshake/server.rs.html#181">NoCallback</a>&gt;&gt;&gt; {
+    <a href="../../src/tungstenite/server.rs.html#23-26">accept_with_config</a>(<a href="../../src/tungstenite/server.rs.html#37">stream</a>, <span class="prelude-val">None</span>)
 }
 
-<span class="doccomment">/// Accept the given Stream as a WebSocket.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Uses a configuration provided as an argument. Calling it with `None` will use the default one</span>
-<span class="doccomment">/// used by `accept_hdr()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function does the same as `accept()` but accepts an extra callback</span>
-<span class="doccomment">/// for header processing. The callback receives headers of the incoming</span>
-<span class="doccomment">/// requests and is able to add extra headers to the reply.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept_hdr_with_config</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, <span class="ident">C</span>: <a class="ident" href="../../src/tungstenite/handshake/server.rs.html#155">Callback</a><span class="op">&gt;</span>(
-    <span class="ident">stream</span>: <span class="ident">S</span>,
-    <span class="ident">callback</span>: <span class="ident">C</span>,
-    <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">C</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="ident">ServerHandshake::start</span>(<a class="ident" href="../../src/tungstenite/server.rs.html#51">stream</a>, <a class="ident" href="../../src/tungstenite/server.rs.html#52">callback</a>, <a class="ident" href="../../src/tungstenite/server.rs.html#53">config</a>).<a class="ident" href="../../src/tungstenite/handshake/mod.rs.html#39">handshake</a>()
+<span class="doccomment">/// Accept the given Stream as a WebSocket.
+///
+/// Uses a configuration provided as an argument. Calling it with `None` will use the default one
+/// used by `accept_hdr()`.
+///
+/// This function does the same as `accept()` but accepts an extra callback
+/// for header processing. The callback receives headers of the incoming
+/// requests and is able to add extra headers to the reply.
+</span><span class="kw">pub fn </span>accept_hdr_with_config&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, C: <a href="../../src/tungstenite/handshake/server.rs.html#155">Callback</a>&gt;(
+    stream: S,
+    callback: C,
+    config: <span class="prelude-ty">Option</span>&lt;<a href="../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;WebSocket&lt;S&gt;, HandshakeError&lt;ServerHandshake&lt;S, C&gt;&gt;&gt; {
+    ServerHandshake::start(<a href="../../src/tungstenite/server.rs.html#51">stream</a>, <a href="../../src/tungstenite/server.rs.html#52">callback</a>, <a href="../../src/tungstenite/server.rs.html#53">config</a>).<a href="../../src/tungstenite/handshake/mod.rs.html#39">handshake</a>()
 }
 
-<span class="doccomment">/// Accept the given Stream as a WebSocket.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function does the same as `accept()` but accepts an extra callback</span>
-<span class="doccomment">/// for header processing. The callback receives headers of the incoming</span>
-<span class="doccomment">/// requests and is able to add extra headers to the reply.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept_hdr</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, <span class="ident">C</span>: <a class="ident" href="../../src/tungstenite/handshake/server.rs.html#155">Callback</a><span class="op">&gt;</span>(
-    <span class="ident">stream</span>: <span class="ident">S</span>,
-    <span class="ident">callback</span>: <span class="ident">C</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">ServerHandshake</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">C</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/tungstenite/server.rs.html#50-54">accept_hdr_with_config</a>(<a class="ident" href="../../src/tungstenite/server.rs.html#64">stream</a>, <a class="ident" href="../../src/tungstenite/server.rs.html#65">callback</a>, <span class="prelude-val">None</span>)
+<span class="doccomment">/// Accept the given Stream as a WebSocket.
+///
+/// This function does the same as `accept()` but accepts an extra callback
+/// for header processing. The callback receives headers of the incoming
+/// requests and is able to add extra headers to the reply.
+</span><span class="kw">pub fn </span>accept_hdr&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, C: <a href="../../src/tungstenite/handshake/server.rs.html#155">Callback</a>&gt;(
+    stream: S,
+    callback: C,
+) -&gt; <span class="prelude-ty">Result</span>&lt;WebSocket&lt;S&gt;, HandshakeError&lt;ServerHandshake&lt;S, C&gt;&gt;&gt; {
+    <a href="../../src/tungstenite/server.rs.html#50-54">accept_hdr_with_config</a>(<a href="../../src/tungstenite/server.rs.html#64">stream</a>, <a href="../../src/tungstenite/server.rs.html#65">callback</a>, <span class="prelude-val">None</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

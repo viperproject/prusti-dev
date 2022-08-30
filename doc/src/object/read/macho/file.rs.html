@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -727,734 +727,734 @@
 <span id="727">727</span>
 <span id="728">728</span>
 <span id="729">729</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
-<span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
+<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{
-    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/common.rs.html#5">Architecture</a>, <a class="ident" href="../../../../src/object/common.rs.html#195">ComdatKind</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#478">Export</a>, <a class="ident" href="../../../../src/object/common.rs.html#351">FileFlags</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#456">Import</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#460">NoDynamicRelocationIterator</a>,
-    <a class="ident" href="../../../../src/object/read/traits.rs.html#13">Object</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#353">ObjectComdat</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#248">ObjectKind</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#378">ObjectMap</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#270">ObjectSection</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>,
-    <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
+<span class="kw">use </span><span class="kw">crate</span>::read::{
+    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a href="../../../../src/object/common.rs.html#5">Architecture</a>, <a href="../../../../src/object/common.rs.html#195">ComdatKind</a>, <a href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a href="../../../../src/object/read/mod.rs.html#478">Export</a>, <a href="../../../../src/object/common.rs.html#351">FileFlags</a>, <a href="../../../../src/object/read/mod.rs.html#456">Import</a>, <a href="../../../../src/object/read/traits.rs.html#460">NoDynamicRelocationIterator</a>,
+    <a href="../../../../src/object/read/traits.rs.html#13">Object</a>, <a href="../../../../src/object/read/traits.rs.html#353">ObjectComdat</a>, <a href="../../../../src/object/read/mod.rs.html#248">ObjectKind</a>, <a href="../../../../src/object/read/mod.rs.html#378">ObjectMap</a>, <a href="../../../../src/object/read/traits.rs.html#270">ObjectSection</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>,
+    <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/object/lib.rs.html#90">endian</a>, <a class="ident" href="../../../../src/object/lib.rs.html#110">macho</a>, <a class="ident" href="../../../../src/object/endian.rs.html#344">BigEndian</a>, <a class="ident" href="../../../../src/object/read/util.rs.html#202">ByteString</a>, <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a>, <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a>};
+<span class="kw">use crate</span>::{<a href="../../../../src/object/lib.rs.html#90">endian</a>, <a href="../../../../src/object/lib.rs.html#110">macho</a>, <a href="../../../../src/object/endian.rs.html#344">BigEndian</a>, <a href="../../../../src/object/read/util.rs.html#202">ByteString</a>, <a href="../../../../src/object/endian.rs.html#13">Endian</a>, <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, <a href="../../../../src/object/pod.rs.html#21">Pod</a>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <a class="ident" href="../../../../src/object/read/macho/dyld_cache.rs.html#177">DyldCacheImage</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#11">LoadCommandIterator</a>, <a class="ident" href="../../../../src/object/read/macho/section.rs.html#67">MachOSection</a>, <a class="ident" href="../../../../src/object/read/macho/section.rs.html#205">MachOSectionInternal</a>, <a class="ident" href="../../../../src/object/read/macho/section.rs.html#22">MachOSectionIterator</a>,
-    <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#54">MachOSegment</a>, <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#151">MachOSegmentInternal</a>, <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#20">MachOSegmentIterator</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#246">MachOSymbol</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#199">MachOSymbolIterator</a>,
-    <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#155">MachOSymbolTable</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#399">Nlist</a>, <a class="ident" href="../../../../src/object/read/macho/section.rs.html#249">Section</a>, <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#158">Segment</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#21">SymbolTable</a>,
+<span class="kw">use super</span>::{
+    <a href="../../../../src/object/read/macho/dyld_cache.rs.html#177">DyldCacheImage</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#11">LoadCommandIterator</a>, <a href="../../../../src/object/read/macho/section.rs.html#67">MachOSection</a>, <a href="../../../../src/object/read/macho/section.rs.html#205">MachOSectionInternal</a>, <a href="../../../../src/object/read/macho/section.rs.html#22">MachOSectionIterator</a>,
+    <a href="../../../../src/object/read/macho/segment.rs.html#54">MachOSegment</a>, <a href="../../../../src/object/read/macho/segment.rs.html#151">MachOSegmentInternal</a>, <a href="../../../../src/object/read/macho/segment.rs.html#20">MachOSegmentIterator</a>, <a href="../../../../src/object/read/macho/symbol.rs.html#246">MachOSymbol</a>, <a href="../../../../src/object/read/macho/symbol.rs.html#199">MachOSymbolIterator</a>,
+    <a href="../../../../src/object/read/macho/symbol.rs.html#155">MachOSymbolTable</a>, <a href="../../../../src/object/read/macho/symbol.rs.html#399">Nlist</a>, <a href="../../../../src/object/read/macho/section.rs.html#249">Section</a>, <a href="../../../../src/object/read/macho/segment.rs.html#158">Segment</a>, <a href="../../../../src/object/read/macho/symbol.rs.html#21">SymbolTable</a>,
 };
 
-<span class="doccomment">/// A 32-bit Mach-O object file.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOFile32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// A 64-bit Mach-O object file.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOFile64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A 32-bit Mach-O object file.
+</span><span class="kw">pub type </span>MachOFile32&lt;<span class="lifetime">&#39;data</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOFile&lt;<span class="lifetime">&#39;data</span>, macho::MachHeader32&lt;Endian&gt;, R&gt;;
+<span class="doccomment">/// A 64-bit Mach-O object file.
+</span><span class="kw">pub type </span>MachOFile64&lt;<span class="lifetime">&#39;data</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOFile&lt;<span class="lifetime">&#39;data</span>, macho::MachHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// A partially parsed Mach-O file.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Most of the functionality of this type is provided by the `Object` trait implementation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A partially parsed Mach-O file.
+///
+/// Most of the functionality of this type is provided by the `Object` trait implementation.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">endian</span>: <span class="ident">Mach::Endian</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">data</span>: <span class="ident">R</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">header_offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">Mach</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">segments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MachOSegmentInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">sections</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MachOSectionInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">symbols</span>: <span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) endian: Mach::Endian,
+    <span class="kw">pub</span>(<span class="kw">super</span>) data: R,
+    <span class="kw">pub</span>(<span class="kw">super</span>) header_offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>Mach,
+    <span class="kw">pub</span>(<span class="kw">super</span>) segments: Vec&lt;MachOSegmentInternal&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) sections: Vec&lt;MachOSectionInternal&lt;<span class="lifetime">&#39;data</span>, Mach&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) symbols: SymbolTable&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt; MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="doccomment">/// Parse the raw Mach-O file data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">data</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Mach::parse</span>(<span class="ident">data</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">endian</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">endian</span>()<span class="question-mark">?</span>;
+    <span class="doccomment">/// Parse the raw Mach-O file data.
+    </span><span class="kw">pub fn </span>parse(data: R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>header = Mach::parse(data, <span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>endian = header.endian()<span class="question-mark">?</span>;
 
-        <span class="comment">// Build a list of segments and sections to make some operations more efficient.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sections</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">symbols</span> <span class="op">=</span> <span class="ident">SymbolTable::default</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">commands</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#50">header</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#603-608">load_commands</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#51">endian</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#49">data</a>, <span class="number">0</span>) {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">command</span>)) <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">next</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">segment</span>, <span class="ident">section_data</span>)) <span class="op">=</span> <span class="ident">Mach::Segment::from_command</span>(<span class="ident">command</span>)<span class="question-mark">?</span> {
-                    <span class="kw">let</span> <span class="ident">segment_index</span> <span class="op">=</span> <span class="ident">segments</span>.<span class="ident">len</span>();
-                    <span class="ident">segments</span>.<span class="ident">push</span>(<span class="ident">MachOSegmentInternal</span> { <span class="ident">segment</span>, <span class="ident">data</span> });
-                    <span class="kw">for</span> <span class="ident">section</span> <span class="kw">in</span> <span class="ident">segment</span>.<span class="ident">sections</span>(<span class="ident">endian</span>, <span class="ident">section_data</span>)<span class="question-mark">?</span> {
-                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">SectionIndex</span>(<span class="ident">sections</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>);
-                        <span class="ident">sections</span>.<span class="ident">push</span>(<span class="ident">MachOSectionInternal::parse</span>(<span class="ident">index</span>, <span class="ident">segment_index</span>, <span class="ident">section</span>));
+        <span class="comment">// Build a list of segments and sections to make some operations more efficient.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>segments = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>sections = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>symbols = SymbolTable::default();
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>commands) = <a href="../../../../src/object/read/macho/file.rs.html#50">header</a>.<a href="../../../../src/object/read/macho/file.rs.html#603-608">load_commands</a>(<a href="../../../../src/object/read/macho/file.rs.html#51">endian</a>, <a href="../../../../src/object/read/macho/file.rs.html#49">data</a>, <span class="number">0</span>) {
+            <span class="kw">while let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(command)) = commands.next() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((segment, section_data)) = Mach::Segment::from_command(command)<span class="question-mark">? </span>{
+                    <span class="kw">let </span>segment_index = segments.len();
+                    segments.push(MachOSegmentInternal { segment, data });
+                    <span class="kw">for </span>section <span class="kw">in </span>segment.sections(endian, section_data)<span class="question-mark">? </span>{
+                        <span class="kw">let </span>index = SectionIndex(sections.len() + <span class="number">1</span>);
+                        sections.push(MachOSectionInternal::parse(index, segment_index, section));
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">symtab</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">symtab</span>()<span class="question-mark">?</span> {
-                    <span class="ident">symbols</span> <span class="op">=</span> <span class="ident">symtab</span>.<span class="ident">symbols</span>(<span class="ident">endian</span>, <span class="ident">data</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(symtab) = command.symtab()<span class="question-mark">? </span>{
+                    symbols = symtab.symbols(endian, data)<span class="question-mark">?</span>;
                 }
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a> {
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#51">endian</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#49">data</a>,
-            <span class="ident">header_offset</span>: <span class="number">0</span>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#50">header</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#54">segments</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#55">sections</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#56">symbols</a>,
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a> {
+            <a href="../../../../src/object/read/macho/file.rs.html#51">endian</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#49">data</a>,
+            header_offset: <span class="number">0</span>,
+            <a href="../../../../src/object/read/macho/file.rs.html#50">header</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#54">segments</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#55">sections</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#56">symbols</a>,
         })
     }
 
-    <span class="doccomment">/// Parse the Mach-O file for the given image from the dyld shared cache.</span>
-    <span class="doccomment">/// This will read different sections from different subcaches, if necessary.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_dyld_cache_image</span><span class="op">&lt;</span><span class="lifetime">&#39;cache</span>, <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>(
-        <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">DyldCacheImage</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, <span class="ident">E</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">data</span>, <span class="ident">header_offset</span>) <span class="op">=</span> <span class="ident">image</span>.<span class="ident">image_data_and_offset</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Mach::parse</span>(<span class="ident">data</span>, <span class="ident">header_offset</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">endian</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">endian</span>()<span class="question-mark">?</span>;
+    <span class="doccomment">/// Parse the Mach-O file for the given image from the dyld shared cache.
+    /// This will read different sections from different subcaches, if necessary.
+    </span><span class="kw">pub fn </span>parse_dyld_cache_image&lt;<span class="lifetime">&#39;cache</span>, E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt;(
+        image: <span class="kw-2">&amp;</span>DyldCacheImage&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;cache</span>, E, R&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>(data, header_offset) = image.image_data_and_offset()<span class="question-mark">?</span>;
+        <span class="kw">let </span>header = Mach::parse(data, header_offset)<span class="question-mark">?</span>;
+        <span class="kw">let </span>endian = header.endian()<span class="question-mark">?</span>;
 
-        <span class="comment">// Build a list of sections to make some operations more efficient.</span>
-        <span class="comment">// Also build a list of segments, because we need to remember which ReadRef</span>
-        <span class="comment">// to read each section&#39;s data from. Only the DyldCache knows this information,</span>
-        <span class="comment">// and we won&#39;t have access to it once we&#39;ve exited this function.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sections</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">linkedit_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">symtab</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">commands</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#89">header</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#603-608">load_commands</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#90">endian</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#88">data</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#88">header_offset</a>) {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">command</span>)) <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">next</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">segment</span>, <span class="ident">section_data</span>)) <span class="op">=</span> <span class="ident">Mach::Segment::from_command</span>(<span class="ident">command</span>)<span class="question-mark">?</span> {
-                    <span class="comment">// Each segment can be stored in a different subcache. Get the segment&#39;s</span>
-                    <span class="comment">// address and look it up in the cache mappings, to find the correct cache data.</span>
-                    <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">segment</span>.<span class="ident">vmaddr</span>(<span class="ident">endian</span>).<span class="ident">into</span>();
-                    <span class="kw">let</span> (<span class="ident">data</span>, <span class="ident">_offset</span>) <span class="op">=</span> <span class="ident">image</span>
-                        .<span class="ident">cache</span>
-                        .<span class="ident">data_and_offset_for_address</span>(<span class="ident">addr</span>)
-                        .<span class="ident">read_error</span>(<span class="string">&quot;Could not find segment data in dyld shared cache&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="ident">segment</span>.<span class="ident">name</span>() <span class="op">==</span> <span class="ident">macho::SEG_LINKEDIT</span>.<span class="ident">as_bytes</span>() {
-                        <span class="ident">linkedit_data</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>);
+        <span class="comment">// Build a list of sections to make some operations more efficient.
+        // Also build a list of segments, because we need to remember which ReadRef
+        // to read each section&#39;s data from. Only the DyldCache knows this information,
+        // and we won&#39;t have access to it once we&#39;ve exited this function.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>segments = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>sections = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>linkedit_data: <span class="prelude-ty">Option</span>&lt;R&gt; = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>symtab = <span class="prelude-val">None</span>;
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>commands) = <a href="../../../../src/object/read/macho/file.rs.html#89">header</a>.<a href="../../../../src/object/read/macho/file.rs.html#603-608">load_commands</a>(<a href="../../../../src/object/read/macho/file.rs.html#90">endian</a>, <a href="../../../../src/object/read/macho/file.rs.html#88">data</a>, <a href="../../../../src/object/read/macho/file.rs.html#88">header_offset</a>) {
+            <span class="kw">while let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(command)) = commands.next() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((segment, section_data)) = Mach::Segment::from_command(command)<span class="question-mark">? </span>{
+                    <span class="comment">// Each segment can be stored in a different subcache. Get the segment&#39;s
+                    // address and look it up in the cache mappings, to find the correct cache data.
+                    </span><span class="kw">let </span>addr = segment.vmaddr(endian).into();
+                    <span class="kw">let </span>(data, _offset) = image
+                        .cache
+                        .data_and_offset_for_address(addr)
+                        .read_error(<span class="string">&quot;Could not find segment data in dyld shared cache&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="kw">if </span>segment.name() == macho::SEG_LINKEDIT.as_bytes() {
+                        linkedit_data = <span class="prelude-val">Some</span>(data);
                     }
-                    <span class="kw">let</span> <span class="ident">segment_index</span> <span class="op">=</span> <span class="ident">segments</span>.<span class="ident">len</span>();
-                    <span class="ident">segments</span>.<span class="ident">push</span>(<span class="ident">MachOSegmentInternal</span> { <span class="ident">segment</span>, <span class="ident">data</span> });
+                    <span class="kw">let </span>segment_index = segments.len();
+                    segments.push(MachOSegmentInternal { segment, data });
 
-                    <span class="kw">for</span> <span class="ident">section</span> <span class="kw">in</span> <span class="ident">segment</span>.<span class="ident">sections</span>(<span class="ident">endian</span>, <span class="ident">section_data</span>)<span class="question-mark">?</span> {
-                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">SectionIndex</span>(<span class="ident">sections</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>);
-                        <span class="ident">sections</span>.<span class="ident">push</span>(<span class="ident">MachOSectionInternal::parse</span>(<span class="ident">index</span>, <span class="ident">segment_index</span>, <span class="ident">section</span>));
+                    <span class="kw">for </span>section <span class="kw">in </span>segment.sections(endian, section_data)<span class="question-mark">? </span>{
+                        <span class="kw">let </span>index = SectionIndex(sections.len() + <span class="number">1</span>);
+                        sections.push(MachOSectionInternal::parse(index, segment_index, section));
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">st</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">symtab</span>()<span class="question-mark">?</span> {
-                    <span class="ident">symtab</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">st</span>);
+                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(st) = command.symtab()<span class="question-mark">? </span>{
+                    symtab = <span class="prelude-val">Some</span>(st);
                 }
             }
         }
 
-        <span class="comment">// The symbols are found in the __LINKEDIT segment, so make sure to read them from the</span>
-        <span class="comment">// correct subcache.</span>
-        <span class="kw">let</span> <span class="ident">symbols</span> <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../../../src/object/read/macho/file.rs.html#99">symtab</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#98">linkedit_data</a>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">symtab</span>), <span class="prelude-val">Some</span>(<span class="ident">linkedit_data</span>)) =&gt; <span class="ident">symtab</span>.<span class="ident">symbols</span>(<span class="ident">endian</span>, <span class="ident">linkedit_data</span>)<span class="question-mark">?</span>,
-            <span class="kw">_</span> =&gt; <span class="ident">SymbolTable::default</span>(),
+        <span class="comment">// The symbols are found in the __LINKEDIT segment, so make sure to read them from the
+        // correct subcache.
+        </span><span class="kw">let </span>symbols = <span class="kw">match </span>(<a href="../../../../src/object/read/macho/file.rs.html#99">symtab</a>, <a href="../../../../src/object/read/macho/file.rs.html#98">linkedit_data</a>) {
+            (<span class="prelude-val">Some</span>(symtab), <span class="prelude-val">Some</span>(linkedit_data)) =&gt; symtab.symbols(endian, linkedit_data)<span class="question-mark">?</span>,
+            <span class="kw">_ </span>=&gt; SymbolTable::default(),
         };
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a> {
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#90">endian</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#88">data</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#88">header_offset</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#89">header</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#96">segments</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#97">sections</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#128">symbols</a>,
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a> {
+            <a href="../../../../src/object/read/macho/file.rs.html#90">endian</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#88">data</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#88">header_offset</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#89">header</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#96">segments</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#97">sections</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#128">symbols</a>,
         })
     }
 
-    <span class="doccomment">/// Return the section at the given index.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">section_internal</span>(
+    <span class="doccomment">/// Return the section at the given index.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>section_internal(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MachOSectionInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/file.rs.html#148">index</a>
-            .<span class="number">0</span>
-            .<span class="ident">checked_sub</span>(<span class="number">1</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">index</span><span class="op">|</span> <a class="self" href="../../../../src/object/read/macho/file.rs.html#147">self</a>.<span class="ident">sections</span>.<span class="ident">get</span>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#153">index</a>))
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O section index&quot;</span>)
+        index: <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>MachOSectionInternal&lt;<span class="lifetime">&#39;data</span>, Mach&gt;&gt; {
+        <a href="../../../../src/object/read/macho/file.rs.html#148">index</a>
+            .<span class="number">0
+            </span>.checked_sub(<span class="number">1</span>)
+            .and_then(|index| <a class="self" href="../../../../src/object/read/macho/file.rs.html#147">self</a>.sections.get(<a href="../../../../src/object/read/macho/file.rs.html#153">index</a>))
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O section index&quot;</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">segment_internal</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>segment_internal(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MachOSegmentInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#158">self</a>.<span class="ident">segments</span>
-            .<span class="ident">get</span>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#159">index</a>)
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O segment index&quot;</span>)
+        index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>MachOSegmentInternal&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;&gt; {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#158">self</a>.segments
+            .get(<a href="../../../../src/object/read/macho/file.rs.html#159">index</a>)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O segment index&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt; <a href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="lifetime">&#39;file</span> <span class="op">+</span> <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; Object&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>&gt; <span class="kw">for </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;
+<span class="kw">where
+    </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
+    Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: <span class="lifetime">&#39;file </span>+ ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Segment</span> <span class="op">=</span> <span class="ident">MachOSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SegmentIterator</span> <span class="op">=</span> <span class="ident">MachOSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Section</span> <span class="op">=</span> <span class="ident">MachOSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SectionIterator</span> <span class="op">=</span> <span class="ident">MachOSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Comdat</span> <span class="op">=</span> <span class="ident">MachOComdat</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">ComdatIterator</span> <span class="op">=</span> <span class="ident">MachOComdatIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Symbol</span> <span class="op">=</span> <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SymbolIterator</span> <span class="op">=</span> <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SymbolTable</span> <span class="op">=</span> <span class="ident">MachOSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">DynamicRelocationIterator</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/traits.rs.html#460">NoDynamicRelocationIterator</a>;
+    <span class="kw">type </span>Segment = MachOSegment&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>SegmentIterator = MachOSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>Section = MachOSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>SectionIterator = MachOSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>Comdat = MachOComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>ComdatIterator = MachOComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>Symbol = MachOSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>SymbolIterator = MachOSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>SymbolTable = MachOSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
+    <span class="kw">type </span>DynamicRelocationIterator = <a href="../../../../src/object/read/traits.rs.html#460">NoDynamicRelocationIterator</a>;
 
-    <span class="kw">fn</span> <span class="ident">architecture</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#5">Architecture</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/macho/file.rs.html#191">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#573">cputype</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#191">self</a>.<span class="ident">endian</span>) {
-            <a class="ident" href="../../../../src/object/macho.rs.html#39">macho::CPU_TYPE_ARM</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>,
-            <a class="ident" href="../../../../src/object/macho.rs.html#40">macho::CPU_TYPE_ARM64</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#7">Architecture::Aarch64</a>,
-            <a class="ident" href="../../../../src/object/macho.rs.html#34">macho::CPU_TYPE_X86</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#11">Architecture::I386</a>,
-            <a class="ident" href="../../../../src/object/macho.rs.html#35">macho::CPU_TYPE_X86_64</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#12">Architecture::X86_64</a>,
-            <a class="ident" href="../../../../src/object/macho.rs.html#36">macho::CPU_TYPE_MIPS</a> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#17">Architecture::Mips</a>,
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/common.rs.html#6">Architecture::Unknown</a>,
+    <span class="kw">fn </span>architecture(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/common.rs.html#5">Architecture</a> {
+        <span class="kw">match </span><a class="self" href="../../../../src/object/read/macho/file.rs.html#191">self</a>.header.<a href="../../../../src/object/read/macho/file.rs.html#573">cputype</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#191">self</a>.endian) {
+            <a href="../../../../src/object/macho.rs.html#39">macho::CPU_TYPE_ARM</a> =&gt; <a href="../../../../src/object/common.rs.html#8">Architecture::Arm</a>,
+            <a href="../../../../src/object/macho.rs.html#40">macho::CPU_TYPE_ARM64</a> =&gt; <a href="../../../../src/object/common.rs.html#7">Architecture::Aarch64</a>,
+            <a href="../../../../src/object/macho.rs.html#34">macho::CPU_TYPE_X86</a> =&gt; <a href="../../../../src/object/common.rs.html#11">Architecture::I386</a>,
+            <a href="../../../../src/object/macho.rs.html#35">macho::CPU_TYPE_X86_64</a> =&gt; <a href="../../../../src/object/common.rs.html#12">Architecture::X86_64</a>,
+            <a href="../../../../src/object/macho.rs.html#36">macho::CPU_TYPE_MIPS</a> =&gt; <a href="../../../../src/object/common.rs.html#17">Architecture::Mips</a>,
+            <span class="kw">_ </span>=&gt; <a href="../../../../src/object/common.rs.html#6">Architecture::Unknown</a>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#203">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#570">is_little_endian</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#203">self</a>.header.<a href="../../../../src/object/read/macho/file.rs.html#570">is_little_endian</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#208">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#564">is_type_64</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#208">self</a>.header.<a href="../../../../src/object/read/macho/file.rs.html#564">is_type_64</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#248">ObjectKind</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/macho/file.rs.html#212">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#575">filetype</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#212">self</a>.<span class="ident">endian</span>) {
-            <a class="ident" href="../../../../src/object/macho.rs.html#550">macho::MH_OBJECT</a> =&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#252">ObjectKind::Relocatable</a>,
-            <a class="ident" href="../../../../src/object/macho.rs.html#552">macho::MH_EXECUTE</a> =&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#254">ObjectKind::Executable</a>,
-            <a class="ident" href="../../../../src/object/macho.rs.html#556">macho::MH_CORE</a> =&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#258">ObjectKind::Core</a>,
-            <a class="ident" href="../../../../src/object/macho.rs.html#560">macho::MH_DYLIB</a> =&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#256">ObjectKind::Dynamic</a>,
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#250">ObjectKind::Unknown</a>,
+    <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/read/mod.rs.html#248">ObjectKind</a> {
+        <span class="kw">match </span><a class="self" href="../../../../src/object/read/macho/file.rs.html#212">self</a>.header.<a href="../../../../src/object/read/macho/file.rs.html#575">filetype</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#212">self</a>.endian) {
+            <a href="../../../../src/object/macho.rs.html#550">macho::MH_OBJECT</a> =&gt; <a href="../../../../src/object/read/mod.rs.html#252">ObjectKind::Relocatable</a>,
+            <a href="../../../../src/object/macho.rs.html#552">macho::MH_EXECUTE</a> =&gt; <a href="../../../../src/object/read/mod.rs.html#254">ObjectKind::Executable</a>,
+            <a href="../../../../src/object/macho.rs.html#556">macho::MH_CORE</a> =&gt; <a href="../../../../src/object/read/mod.rs.html#258">ObjectKind::Core</a>,
+            <a href="../../../../src/object/macho.rs.html#560">macho::MH_DYLIB</a> =&gt; <a href="../../../../src/object/read/mod.rs.html#256">ObjectKind::Dynamic</a>,
+            <span class="kw">_ </span>=&gt; <a href="../../../../src/object/read/mod.rs.html#250">ObjectKind::Unknown</a>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">segments</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">MachOSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/segment.rs.html#20">MachOSegmentIterator</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#222">self</a>,
-            <span class="ident">iter</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#222">self</a>.<span class="ident">segments</span>.<span class="ident">iter</span>(),
+    <span class="kw">fn </span>segments(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; MachOSegmentIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; {
+        <a href="../../../../src/object/read/macho/segment.rs.html#20">MachOSegmentIterator</a> {
+            file: <a class="self" href="../../../../src/object/read/macho/file.rs.html#222">self</a>,
+            iter: <a class="self" href="../../../../src/object/read/macho/file.rs.html#222">self</a>.segments.iter(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">section_by_name_bytes</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>,
-        <span class="ident">section_name</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MachOSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Translate the &quot;.&quot; prefix to the &quot;__&quot; prefix used by OSX/Mach-O, eg</span>
-        <span class="comment">// &quot;.debug_info&quot; to &quot;__debug_info&quot;, and limit to 16 bytes total.</span>
-        <span class="kw">let</span> <span class="ident">system_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">section_name</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;.&quot;</span>) {
-            <span class="kw">if</span> <span class="ident">section_name</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">15</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/object/read/macho/file.rs.html#231">section_name</a>[<span class="number">1</span>..<span class="number">15</span>])
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/object/read/macho/file.rs.html#231">section_name</a>[<span class="number">1</span>..])
+    <span class="kw">fn </span>section_by_name_bytes(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>,
+        section_name: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;MachOSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;&gt; {
+        <span class="comment">// Translate the &quot;.&quot; prefix to the &quot;__&quot; prefix used by OSX/Mach-O, eg
+        // &quot;.debug_info&quot; to &quot;__debug_info&quot;, and limit to 16 bytes total.
+        </span><span class="kw">let </span>system_name = <span class="kw">if </span>section_name.starts_with(<span class="string">b&quot;.&quot;</span>) {
+            <span class="kw">if </span>section_name.len() &gt; <span class="number">15 </span>{
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../../../src/object/read/macho/file.rs.html#231">section_name</a>[<span class="number">1</span>..<span class="number">15</span>])
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../../../src/object/read/macho/file.rs.html#231">section_name</a>[<span class="number">1</span>..])
             }
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
-        <span class="kw">let</span> <span class="ident">cmp_section_name</span> <span class="op">=</span> <span class="op">|</span><span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="ident">MachOSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">|</span> {
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#244">section</a>
-                .<a class="ident" href="../../../../src/object/read/traits.rs.html#327">name_bytes</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> {
-                    <a class="ident" href="../../../../src/object/read/macho/file.rs.html#231">section_name</a> <span class="op">==</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#247">name</a>
-                        <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#235">system_name</a>
-                            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">system_name</span><span class="op">|</span> {
-                                <a class="ident" href="../../../../src/object/read/macho/file.rs.html#247">name</a>.<span class="ident">starts_with</span>(<span class="string">b&quot;__&quot;</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#247">name</a>[<span class="number">2</span>..] <span class="op">==</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../../src/object/read/macho/file.rs.html#250">system_name</a>
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="kw">let </span>cmp_section_name = |section: <span class="kw-2">&amp;</span>MachOSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;| {
+            <a href="../../../../src/object/read/macho/file.rs.html#244">section</a>
+                .<a href="../../../../src/object/read/traits.rs.html#327">name_bytes</a>()
+                .map(|name| {
+                    <a href="../../../../src/object/read/macho/file.rs.html#231">section_name</a> == <a href="../../../../src/object/read/macho/file.rs.html#247">name</a>
+                        || <a href="../../../../src/object/read/macho/file.rs.html#235">system_name</a>
+                            .filter(|system_name| {
+                                <a href="../../../../src/object/read/macho/file.rs.html#247">name</a>.starts_with(<span class="string">b&quot;__&quot;</span>) &amp;&amp; <a href="../../../../src/object/read/macho/file.rs.html#247">name</a>[<span class="number">2</span>..] == <span class="kw-2">**</span><a href="../../../../src/object/read/macho/file.rs.html#250">system_name</a>
                             })
-                            .<span class="ident">is_some</span>()
+                            .is_some()
                 })
-                .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+                .unwrap_or(<span class="bool-val">false</span>)
         };
 
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#230">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#107">sections</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#244">cmp_section_name</a>)
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#230">self</a>.<a href="../../../../src/object/read/traits.rs.html#107">sections</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<a href="../../../../src/object/read/macho/file.rs.html#244">cmp_section_name</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">section_by_index</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>,
-        <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MachOSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">internal</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">section_internal</span>(<span class="ident">index</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/macho/section.rs.html#67">MachOSection</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#262">self</a>,
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#265">internal</a>,
+    <span class="kw">fn </span>section_by_index(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>,
+        index: <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;MachOSection&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;&gt; {
+        <span class="kw">let </span>internal = <span class="kw-2">*</span><span class="self">self</span>.section_internal(index)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/macho/section.rs.html#67">MachOSection</a> {
+            file: <a class="self" href="../../../../src/object/read/macho/file.rs.html#262">self</a>,
+            <a href="../../../../src/object/read/macho/file.rs.html#265">internal</a>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">sections</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">MachOSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/section.rs.html#22">MachOSectionIterator</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#272">self</a>,
-            <span class="ident">iter</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#272">self</a>.<span class="ident">sections</span>.<span class="ident">iter</span>(),
+    <span class="kw">fn </span>sections(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; MachOSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; {
+        <a href="../../../../src/object/read/macho/section.rs.html#22">MachOSectionIterator</a> {
+            file: <a class="self" href="../../../../src/object/read/macho/file.rs.html#272">self</a>,
+            iter: <a class="self" href="../../../../src/object/read/macho/file.rs.html#272">self</a>.sections.iter(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">comdats</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">MachOComdatIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/file.rs.html#440">MachOComdatIterator</a> { <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#279">self</a> }
+    <span class="kw">fn </span>comdats(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; MachOComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; {
+        <a href="../../../../src/object/read/macho/file.rs.html#440">MachOComdatIterator</a> { file: <span class="self"><a href="../../../../src/object/read/macho/file.rs.html#279">self</a> </span>}
     }
 
-    <span class="kw">fn</span> <span class="ident">symbol_by_index</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>,
-        <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">nlist</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">symbol</span>(<span class="ident">index</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="ident">MachOSymbol::new</span>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#284">self</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#285">index</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#287">nlist</a>).<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Unsupported Mach-O symbol index&quot;</span>)
+    <span class="kw">fn </span>symbol_by_index(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>,
+        index: <a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;MachOSymbol&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;&gt; {
+        <span class="kw">let </span>nlist = <span class="self">self</span>.symbols.symbol(index.<span class="number">0</span>)<span class="question-mark">?</span>;
+        MachOSymbol::new(<a class="self" href="../../../../src/object/read/macho/file.rs.html#284">self</a>, <a href="../../../../src/object/read/macho/file.rs.html#285">index</a>, <a href="../../../../src/object/read/macho/file.rs.html#287">nlist</a>).<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Unsupported Mach-O symbol index&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">symbols</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#199">MachOSymbolIterator</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#291">self</a>,
-            <span class="ident">index</span>: <span class="number">0</span>,
+    <span class="kw">fn </span>symbols(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; MachOSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; {
+        <a href="../../../../src/object/read/macho/symbol.rs.html#199">MachOSymbolIterator</a> {
+            file: <a class="self" href="../../../../src/object/read/macho/file.rs.html#291">self</a>,
+            index: <span class="number">0</span>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">symbol_table</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MachOSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#155">MachOSymbolTable</a> { <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#299">self</a> })
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>symbol_table(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;MachOSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;&gt; {
+        <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/macho/symbol.rs.html#155">MachOSymbolTable</a> { file: <span class="self"><a href="../../../../src/object/read/macho/file.rs.html#299">self</a> </span>})
     }
 
-    <span class="kw">fn</span> <span class="ident">dynamic_symbols</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#199">MachOSymbolIterator</a> {
-            <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#303">self</a>,
-            <span class="ident">index</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#303">self</a>.<span class="ident">symbols</span>.<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#64">len</a>(),
+    <span class="kw">fn </span>dynamic_symbols(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; MachOSymbolIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; {
+        <a href="../../../../src/object/read/macho/symbol.rs.html#199">MachOSymbolIterator</a> {
+            file: <a class="self" href="../../../../src/object/read/macho/file.rs.html#303">self</a>,
+            index: <a class="self" href="../../../../src/object/read/macho/file.rs.html#303">self</a>.symbols.<a href="../../../../src/object/read/macho/symbol.rs.html#64">len</a>(),
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dynamic_symbol_table</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MachOSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>dynamic_symbol_table(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;MachOSymbolTable&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;&gt; {
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="kw">fn </span>object_map(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; ObjectMap&lt;<span class="lifetime">&#39;data</span>&gt; {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#315">self</a>.symbols.<a href="../../../../src/object/read/macho/symbol.rs.html#93">object_map</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#315">self</a>.endian)
     }
 
-    <span class="kw">fn</span> <span class="ident">object_map</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="ident">ObjectMap</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#315">self</a>.<span class="ident">symbols</span>.<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#93">object_map</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#315">self</a>.<span class="ident">endian</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">imports</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Import</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dysymtab</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">libraries</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">twolevel</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/file.rs.html#319">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#578">flags</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#319">self</a>.<span class="ident">endian</span>) <span class="op">&amp;</span> <a class="ident" href="../../../../src/object/macho.rs.html#590">macho::MH_TWOLEVEL</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">if</span> <span class="ident">twolevel</span> {
-            <a class="ident" href="../../../../src/object/read/macho/file.rs.html#321">libraries</a>.<span class="ident">push</span>(<span class="kw-2">&amp;</span>[][..]);
+    <span class="kw">fn </span>imports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Import&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>dysymtab = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>libraries = Vec::new();
+        <span class="kw">let </span>twolevel = <a class="self" href="../../../../src/object/read/macho/file.rs.html#319">self</a>.header.<a href="../../../../src/object/read/macho/file.rs.html#578">flags</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#319">self</a>.endian) &amp; <a href="../../../../src/object/macho.rs.html#590">macho::MH_TWOLEVEL</a> != <span class="number">0</span>;
+        <span class="kw">if </span>twolevel {
+            <a href="../../../../src/object/read/macho/file.rs.html#321">libraries</a>.push(<span class="kw-2">&amp;</span>[][..]);
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">header</span>
-            .<span class="ident">load_commands</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">data</span>, <span class="self">self</span>.<span class="ident">header_offset</span>)<span class="question-mark">?</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">next</span>()<span class="question-mark">?</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">dysymtab</span>()<span class="question-mark">?</span> {
-                <span class="ident">dysymtab</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>commands = <span class="self">self
+            </span>.header
+            .load_commands(<span class="self">self</span>.endian, <span class="self">self</span>.data, <span class="self">self</span>.header_offset)<span class="question-mark">?</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(command) = commands.next()<span class="question-mark">? </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(command) = command.dysymtab()<span class="question-mark">? </span>{
+                dysymtab = <span class="prelude-val">Some</span>(command);
             }
-            <span class="kw">if</span> <span class="ident">twolevel</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dylib</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">dylib</span>()<span class="question-mark">?</span> {
-                    <span class="ident">libraries</span>.<span class="ident">push</span>(<span class="ident">command</span>.<span class="ident">string</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="ident">dylib</span>.<span class="ident">dylib</span>.<span class="ident">name</span>)<span class="question-mark">?</span>);
+            <span class="kw">if </span>twolevel {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(dylib) = command.dylib()<span class="question-mark">? </span>{
+                    libraries.push(command.string(<span class="self">self</span>.endian, dylib.dylib.name)<span class="question-mark">?</span>);
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">imports</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dysymtab</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#320">dysymtab</a> {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#341">dysymtab</a>.<span class="ident">iundefsym</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#319">self</a>.<span class="ident">endian</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#341">dysymtab</a>.<span class="ident">nundefsym</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#319">self</a>.<span class="ident">endian</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">index</span>..(<span class="ident">index</span>.<span class="ident">wrapping_add</span>(<span class="ident">number</span>)) {
-                <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">symbol</span>(<span class="ident">i</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">name</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">strings</span>())<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">library</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">twolevel</span> {
-                    <span class="ident">libraries</span>
-                        .<span class="ident">get</span>(<span class="ident">symbol</span>.<span class="ident">library_ordinal</span>(<span class="self">self</span>.<span class="ident">endian</span>) <span class="kw">as</span> <span class="ident">usize</span>)
-                        .<span class="ident">copied</span>()
-                        .<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O symbol library ordinal&quot;</span>)<span class="question-mark">?</span>
-                } <span class="kw">else</span> {
+        <span class="kw">let </span><span class="kw-2">mut </span>imports = Vec::new();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(dysymtab) = <a href="../../../../src/object/read/macho/file.rs.html#320">dysymtab</a> {
+            <span class="kw">let </span>index = <a href="../../../../src/object/read/macho/file.rs.html#341">dysymtab</a>.iundefsym.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#319">self</a>.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <span class="kw">let </span>number = <a href="../../../../src/object/read/macho/file.rs.html#341">dysymtab</a>.nundefsym.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#319">self</a>.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <span class="kw">for </span>i <span class="kw">in </span>index..(index.wrapping_add(number)) {
+                <span class="kw">let </span>symbol = <span class="self">self</span>.symbols.symbol(i)<span class="question-mark">?</span>;
+                <span class="kw">let </span>name = symbol.name(<span class="self">self</span>.endian, <span class="self">self</span>.symbols.strings())<span class="question-mark">?</span>;
+                <span class="kw">let </span>library = <span class="kw">if </span>twolevel {
+                    libraries
+                        .get(symbol.library_ordinal(<span class="self">self</span>.endian) <span class="kw">as </span>usize)
+                        .copied()
+                        .read_error(<span class="string">&quot;Invalid Mach-O symbol library ordinal&quot;</span>)<span class="question-mark">?
+                </span>} <span class="kw">else </span>{
                     <span class="kw-2">&amp;</span>[]
                 };
-                <span class="ident">imports</span>.<span class="ident">push</span>(<span class="ident">Import</span> {
-                    <span class="ident">name</span>: <span class="ident">ByteString</span>(<span class="ident">name</span>),
-                    <span class="ident">library</span>: <span class="ident">ByteString</span>(<span class="ident">library</span>),
+                imports.push(Import {
+                    name: ByteString(name),
+                    library: ByteString(library),
                 });
             }
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#340">imports</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/macho/file.rs.html#340">imports</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">exports</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Export</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dysymtab</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">header</span>
-            .<span class="ident">load_commands</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">data</span>, <span class="self">self</span>.<span class="ident">header_offset</span>)<span class="question-mark">?</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">next</span>()<span class="question-mark">?</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">dysymtab</span>()<span class="question-mark">?</span> {
-                <span class="ident">dysymtab</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>);
+    <span class="kw">fn </span>exports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Export&lt;<span class="lifetime">&#39;data</span>&gt;&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>dysymtab = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>commands = <span class="self">self
+            </span>.header
+            .load_commands(<span class="self">self</span>.endian, <span class="self">self</span>.data, <span class="self">self</span>.header_offset)<span class="question-mark">?</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(command) = commands.next()<span class="question-mark">? </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(command) = command.dysymtab()<span class="question-mark">? </span>{
+                dysymtab = <span class="prelude-val">Some</span>(command);
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exports</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dysymtab</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#365">dysymtab</a> {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#377">dysymtab</a>.<span class="ident">iextdefsym</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#364">self</a>.<span class="ident">endian</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#377">dysymtab</a>.<span class="ident">nextdefsym</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#364">self</a>.<span class="ident">endian</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">index</span>..(<span class="ident">index</span>.<span class="ident">wrapping_add</span>(<span class="ident">number</span>)) {
-                <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">symbol</span>(<span class="ident">i</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">name</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">strings</span>())<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">n_value</span>(<span class="self">self</span>.<span class="ident">endian</span>).<span class="ident">into</span>();
-                <span class="ident">exports</span>.<span class="ident">push</span>(<span class="ident">Export</span> {
-                    <span class="ident">name</span>: <span class="ident">ByteString</span>(<span class="ident">name</span>),
-                    <span class="ident">address</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>exports = Vec::new();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(dysymtab) = <a href="../../../../src/object/read/macho/file.rs.html#365">dysymtab</a> {
+            <span class="kw">let </span>index = <a href="../../../../src/object/read/macho/file.rs.html#377">dysymtab</a>.iextdefsym.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#364">self</a>.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <span class="kw">let </span>number = <a href="../../../../src/object/read/macho/file.rs.html#377">dysymtab</a>.nextdefsym.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#364">self</a>.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <span class="kw">for </span>i <span class="kw">in </span>index..(index.wrapping_add(number)) {
+                <span class="kw">let </span>symbol = <span class="self">self</span>.symbols.symbol(i)<span class="question-mark">?</span>;
+                <span class="kw">let </span>name = symbol.name(<span class="self">self</span>.endian, <span class="self">self</span>.symbols.strings())<span class="question-mark">?</span>;
+                <span class="kw">let </span>address = symbol.n_value(<span class="self">self</span>.endian).into();
+                exports.push(Export {
+                    name: ByteString(name),
+                    address,
                 });
             }
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#376">exports</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/macho/file.rs.html#376">exports</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dynamic_relocations</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/object/read/traits.rs.html#460">NoDynamicRelocationIterator</a><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>dynamic_relocations(<span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/object/read/traits.rs.html#460">NoDynamicRelocationIterator</a>&gt; {
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="kw">fn </span>has_debug_symbols(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#398">self</a>.<a href="../../../../src/object/read/traits.rs.html#90">section_by_name</a>(<span class="string">&quot;.debug_info&quot;</span>).is_some()
     }
 
-    <span class="kw">fn</span> <span class="ident">has_debug_symbols</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#398">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#90">section_by_name</a>(<span class="string">&quot;.debug_info&quot;</span>).<span class="ident">is_some</span>()
+    <span class="kw">fn </span>mach_uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>]&gt;&gt; {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#402">self</a>.header.<a href="../../../../src/object/read/macho/file.rs.html#619-624">uuid</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#402">self</a>.endian, <a class="self" href="../../../../src/object/read/macho/file.rs.html#402">self</a>.data, <a class="self" href="../../../../src/object/read/macho/file.rs.html#402">self</a>.header_offset)
     }
 
-    <span class="kw">fn</span> <span class="ident">mach_uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#402">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#619-624">uuid</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#402">self</a>.<span class="ident">endian</span>, <a class="self" href="../../../../src/object/read/macho/file.rs.html#402">self</a>.<span class="ident">data</span>, <a class="self" href="../../../../src/object/read/macho/file.rs.html#402">self</a>.<span class="ident">header_offset</span>)
-    }
+    <span class="kw">fn </span>relative_address_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <span class="number">0
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">relative_address_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="number">0</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">entry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">commands</span>) <span class="op">=</span>
-            <a class="self" href="../../../../src/object/read/macho/file.rs.html#410">self</a>.<span class="ident">header</span>
-                .<a class="ident" href="../../../../src/object/read/macho/file.rs.html#603-608">load_commands</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#410">self</a>.<span class="ident">endian</span>, <a class="self" href="../../../../src/object/read/macho/file.rs.html#410">self</a>.<span class="ident">data</span>, <a class="self" href="../../../../src/object/read/macho/file.rs.html#410">self</a>.<span class="ident">header_offset</span>)
+    <span class="kw">fn </span>entry(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>commands) =
+            <a class="self" href="../../../../src/object/read/macho/file.rs.html#410">self</a>.header
+                .<a href="../../../../src/object/read/macho/file.rs.html#603-608">load_commands</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#410">self</a>.endian, <a class="self" href="../../../../src/object/read/macho/file.rs.html#410">self</a>.data, <a class="self" href="../../../../src/object/read/macho/file.rs.html#410">self</a>.header_offset)
         {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">command</span>)) <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">next</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">command</span>)) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">entry_point</span>() {
-                    <span class="kw">return</span> <span class="ident">command</span>.<span class="ident">entryoff</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">endian</span>);
+            <span class="kw">while let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(command)) = commands.next() {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(command)) = command.entry_point() {
+                    <span class="kw">return </span>command.entryoff.get(<span class="self">self</span>.endian);
                 }
             }
         }
-        <span class="number">0</span>
-    }
+        <span class="number">0
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#351">FileFlags</a> {
-        <a class="ident" href="../../../../src/object/common.rs.html#364">FileFlags::MachO</a> {
-            <span class="ident">flags</span>: <a class="self" href="../../../../src/object/read/macho/file.rs.html#424">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#578">flags</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#424">self</a>.<span class="ident">endian</span>),
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/common.rs.html#351">FileFlags</a> {
+        <a href="../../../../src/object/common.rs.html#364">FileFlags::MachO</a> {
+            flags: <a class="self" href="../../../../src/object/read/macho/file.rs.html#424">self</a>.header.<a href="../../../../src/object/read/macho/file.rs.html#578">flags</a>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#424">self</a>.endian),
         }
     }
 }
 
-<span class="doccomment">/// An iterator over the COMDAT section groups of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOComdatIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOComdatIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// An iterator over the COMDAT section groups of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOComdatIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOComdatIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator over the COMDAT section groups of a `MachOFile64`.
+</span><span class="kw">pub type </span>MachOComdatIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader32&lt;Endian&gt;, R&gt;;
+<span class="doccomment">/// An iterator over the COMDAT section groups of a `MachOFile64`.
+</span><span class="kw">pub type </span>MachOComdatIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// An iterator over the COMDAT section groups of a `MachOFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOComdatIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the COMDAT section groups of a `MachOFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>MachOComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-    <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="attribute">#[allow(unused)]
+    </span>file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">MachOComdatIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>MachOComdatIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">MachOComdat</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = MachOComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="doccomment">/// A COMDAT section group of a `MachOFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOComdat32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOComdat</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A COMDAT section group of a `MachOFile32`.
+</span><span class="kw">pub type </span>MachOComdat32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader32&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// A COMDAT section group of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOComdat64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOComdat</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A COMDAT section group of a `MachOFile64`.
+</span><span class="kw">pub type </span>MachOComdat64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// A COMDAT section group of a `MachOFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOComdat</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A COMDAT section group of a `MachOFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>MachOComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-    <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="attribute">#[allow(unused)]
+    </span>file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">MachOComdat</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; <a href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for </span>MachOComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">ObjectComdat</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MachOComdat</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; ObjectComdat&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>MachOComdat&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">SectionIterator</span> <span class="op">=</span> <span class="ident">MachOComdatSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>SectionIterator = MachOComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#195">ComdatKind</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/common.rs.html#195">ComdatKind</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">name_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sections</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::SectionIterator</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>sections(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::SectionIterator {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
     }
 }
 
-<span class="doccomment">/// An iterator over the sections in a COMDAT section group of a `MachOFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOComdatSectionIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOComdatSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// An iterator over the sections in a COMDAT section group of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOComdatSectionIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">MachOComdatSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator over the sections in a COMDAT section group of a `MachOFile32`.
+</span><span class="kw">pub type </span>MachOComdatSectionIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader32&lt;Endian&gt;, R&gt;;
+<span class="doccomment">/// An iterator over the sections in a COMDAT section group of a `MachOFile64`.
+</span><span class="kw">pub type </span>MachOComdatSectionIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    MachOComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, macho::MachHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// An iterator over the sections in a COMDAT section group of a `MachOFile`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOComdatSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the sections in a COMDAT section group of a `MachOFile`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>MachOComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span><span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
+    Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-    <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="attribute">#[allow(unused)]
+    </span>file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>MachOFile&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">MachOComdatSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>MachOComdatSectionIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Mach, R&gt;
+<span class="kw">where
+    </span>Mach: <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>;
+    <span class="kw">type </span>Item = <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="doccomment">/// A trait for generic access to `MachHeader32` and `MachHeader64`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">MachHeader</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a> {
-    <span class="kw">type</span> <span class="ident">Word</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
-    <span class="kw">type</span> <span class="ident">Segment</span>: <span class="ident">Segment</span><span class="op">&lt;</span><span class="ident">Endian</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">Section</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Section</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Section</span>: <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">Endian</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Nlist</span>: <span class="ident">Nlist</span><span class="op">&lt;</span><span class="ident">Endian</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A trait for generic access to `MachHeader32` and `MachHeader64`.
+</span><span class="attribute">#[allow(missing_docs)]
+</span><span class="kw">pub trait </span>MachHeader: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../../../src/object/pod.rs.html#21">Pod</a> {
+    <span class="kw">type </span>Word: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
+    <span class="kw">type </span>Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
+    <span class="kw">type </span>Segment: Segment&lt;Endian = <span class="self">Self</span>::Endian, Section = <span class="self">Self</span>::Section&gt;;
+    <span class="kw">type </span>Section: Section&lt;Endian = <span class="self">Self</span>::Endian&gt;;
+    <span class="kw">type </span>Nlist: Nlist&lt;Endian = <span class="self">Self</span>::Endian&gt;;
 
-    <span class="doccomment">/// Return true if this type is a 64-bit header.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a property of the type, not a value in the header data.</span>
-    <span class="kw">fn</span> <span class="ident">is_type_64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Return true if this type is a 64-bit header.
+    ///
+    /// This is a property of the type, not a value in the header data.
+    </span><span class="kw">fn </span>is_type_64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
-    <span class="doccomment">/// Return true if the `magic` field signifies big-endian.</span>
-    <span class="kw">fn</span> <span class="ident">is_big_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Return true if the `magic` field signifies big-endian.
+    </span><span class="kw">fn </span>is_big_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
-    <span class="doccomment">/// Return true if the `magic` field signifies little-endian.</span>
-    <span class="kw">fn</span> <span class="ident">is_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Return true if the `magic` field signifies little-endian.
+    </span><span class="kw">fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
-    <span class="kw">fn</span> <span class="ident">magic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">cputype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">cpusubtype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">filetype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">ncmds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">sizeofcmds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>magic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>cputype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>cpusubtype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>filetype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>ncmds(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>sizeofcmds(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 
-    <span class="comment">// Provided methods.</span>
+    <span class="comment">// Provided methods.
 
-    <span class="doccomment">/// Read the file header.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Also checks that the magic field in the file header is a supported format.</span>
-    <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="ident">R</span>, <span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">read::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">read_at</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>(<span class="ident">offset</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O header size or alignment&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">header</span>.<span class="ident">is_supported</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Unsupported Mach-O header&quot;</span>));
+    </span><span class="doccomment">/// Read the file header.
+    ///
+    /// Also checks that the magic field in the file header is a supported format.
+    </span><span class="kw">fn </span>parse&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(data: R, offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; read::Result&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="self">Self</span>&gt; {
+        <span class="kw">let </span>header = data
+            .read_at::&lt;<span class="self">Self</span>&gt;(offset)
+            .read_error(<span class="string">&quot;Invalid Mach-O header size or alignment&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!header.is_supported() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/object/read/mod.rs.html#64">Error</a>(<span class="string">&quot;Unsupported Mach-O header&quot;</span>));
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#586">header</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/object/read/macho/file.rs.html#586">header</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_supported</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#595">self</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#570">is_little_endian</a>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../../src/object/read/macho/file.rs.html#595">self</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#567">is_big_endian</a>()
+    <span class="kw">fn </span>is_supported(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#595">self</a>.<a href="../../../../src/object/read/macho/file.rs.html#570">is_little_endian</a>() || <a class="self" href="../../../../src/object/read/macho/file.rs.html#595">self</a>.<a href="../../../../src/object/read/macho/file.rs.html#567">is_big_endian</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::Endian::from_big_endian</span>(<a class="self" href="../../../../src/object/read/macho/file.rs.html#599">self</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#567">is_big_endian</a>()).<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Unsupported Mach-O endian&quot;</span>)
+    <span class="kw">fn </span>endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Endian&gt; {
+        <span class="self">Self</span>::Endian::from_big_endian(<a class="self" href="../../../../src/object/read/macho/file.rs.html#599">self</a>.<a href="../../../../src/object/read/macho/file.rs.html#567">is_big_endian</a>()).<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Unsupported Mach-O endian&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">load_commands</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>load_commands&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-        <span class="ident">header_offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LoadCommandIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident"><span class="self">Self</span>::Endian</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">read_bytes_at</span>(
-                <span class="ident">header_offset</span> <span class="op">+</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u64</span>,
-                <span class="self">self</span>.<span class="ident">sizeofcmds</span>(<span class="ident">endian</span>).<span class="ident">into</span>(),
+        endian: <span class="self">Self</span>::Endian,
+        data: R,
+        header_offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;LoadCommandIterator&lt;<span class="lifetime">&#39;data</span>, <span class="self">Self</span>::Endian&gt;&gt; {
+        <span class="kw">let </span>data = data
+            .read_bytes_at(
+                header_offset + mem::size_of::&lt;<span class="self">Self</span>&gt;() <span class="kw">as </span>u64,
+                <span class="self">self</span>.sizeofcmds(endian).into(),
             )
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O load command table size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">LoadCommandIterator::new</span>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#605">endian</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#609">data</a>, <a class="self" href="../../../../src/object/read/macho/file.rs.html#604">self</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#576">ncmds</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#605">endian</a>)))
+            .read_error(<span class="string">&quot;Invalid Mach-O load command table size&quot;</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(LoadCommandIterator::new(<a href="../../../../src/object/read/macho/file.rs.html#605">endian</a>, <a href="../../../../src/object/read/macho/file.rs.html#609">data</a>, <a class="self" href="../../../../src/object/read/macho/file.rs.html#604">self</a>.<a href="../../../../src/object/read/macho/file.rs.html#576">ncmds</a>(<a href="../../../../src/object/read/macho/file.rs.html#605">endian</a>)))
     }
 
-    <span class="doccomment">/// Return the UUID from the `LC_UUID` load command, if one is present.</span>
-    <span class="kw">fn</span> <span class="ident">uuid</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Return the UUID from the `LC_UUID` load command, if one is present.
+    </span><span class="kw">fn </span>uuid&lt;<span class="lifetime">&#39;data</span>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-        <span class="ident">header_offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">load_commands</span>(<span class="ident">endian</span>, <span class="ident">data</span>, <span class="ident">header_offset</span>)<span class="question-mark">?</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">next</span>()<span class="question-mark">?</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">uuid</span>)) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">uuid</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">uuid</span>.<span class="ident">uuid</span>));
+        endian: <span class="self">Self</span>::Endian,
+        data: R,
+        header_offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>]&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>commands = <span class="self">self</span>.load_commands(endian, data, header_offset)<span class="question-mark">?</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(command) = commands.next()<span class="question-mark">? </span>{
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(uuid)) = command.uuid() {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(uuid.uuid));
             }
         }
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a> <span class="kw">for</span> <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
-    <span class="kw">type</span> <span class="ident">Segment</span> <span class="op">=</span> <span class="ident">macho::SegmentCommand32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Section</span> <span class="op">=</span> <span class="ident">macho::Section32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Nlist</span> <span class="op">=</span> <span class="ident">macho::Nlist32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a> <span class="kw">for </span>macho::MachHeader32&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">type </span>Endian = Endian;
+    <span class="kw">type </span>Segment = macho::SegmentCommand32&lt;Endian&gt;;
+    <span class="kw">type </span>Section = macho::Section32&lt;Endian&gt;;
+    <span class="kw">type </span>Nlist = macho::Nlist32&lt;Endian&gt;;
 
-    <span class="kw">fn</span> <span class="ident">is_type_64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="bool-val">false</span>
+    <span class="kw">fn </span>is_type_64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="bool-val">false
+    </span>}
+
+    <span class="kw">fn </span>is_big_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#646">self</a>.<a href="../../../../src/object/read/macho/file.rs.html#572">magic</a>() == <a href="../../../../src/object/macho.rs.html#492">macho::MH_MAGIC</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_big_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#646">self</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#572">magic</a>() <span class="op">==</span> <a class="ident" href="../../../../src/object/macho.rs.html#492">macho::MH_MAGIC</a>
+    <span class="kw">fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#650">self</a>.<a href="../../../../src/object/read/macho/file.rs.html#572">magic</a>() == <a href="../../../../src/object/macho.rs.html#494">macho::MH_CIGAM</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#650">self</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#572">magic</a>() <span class="op">==</span> <a class="ident" href="../../../../src/object/macho.rs.html#494">macho::MH_CIGAM</a>
+    <span class="kw">fn </span>magic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#654">self</a>.magic.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#344">BigEndian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">magic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#654">self</a>.<span class="ident">magic</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#344">BigEndian</a>)
+    <span class="kw">fn </span>cputype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#658">self</a>.cputype.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#658">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">cputype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#658">self</a>.<span class="ident">cputype</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#658">endian</a>)
+    <span class="kw">fn </span>cpusubtype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#662">self</a>.cpusubtype.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#662">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">cpusubtype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#662">self</a>.<span class="ident">cpusubtype</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#662">endian</a>)
+    <span class="kw">fn </span>filetype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#666">self</a>.filetype.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#666">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">filetype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#666">self</a>.<span class="ident">filetype</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#666">endian</a>)
+    <span class="kw">fn </span>ncmds(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#670">self</a>.ncmds.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#670">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">ncmds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#670">self</a>.<span class="ident">ncmds</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#670">endian</a>)
+    <span class="kw">fn </span>sizeofcmds(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#674">self</a>.sizeofcmds.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#674">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">sizeofcmds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#674">self</a>.<span class="ident">sizeofcmds</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#674">endian</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#678">self</a>.<span class="ident">flags</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#678">endian</a>)
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#678">self</a>.flags.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#678">endian</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a> <span class="kw">for</span> <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
-    <span class="kw">type</span> <span class="ident">Segment</span> <span class="op">=</span> <span class="ident">macho::SegmentCommand64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Section</span> <span class="op">=</span> <span class="ident">macho::Section64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Nlist</span> <span class="op">=</span> <span class="ident">macho::Nlist64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a> <span class="kw">for </span>macho::MachHeader64&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">type </span>Endian = Endian;
+    <span class="kw">type </span>Segment = macho::SegmentCommand64&lt;Endian&gt;;
+    <span class="kw">type </span>Section = macho::Section64&lt;Endian&gt;;
+    <span class="kw">type </span>Nlist = macho::Nlist64&lt;Endian&gt;;
 
-    <span class="kw">fn</span> <span class="ident">is_type_64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="bool-val">true</span>
+    <span class="kw">fn </span>is_type_64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="bool-val">true
+    </span>}
+
+    <span class="kw">fn </span>is_big_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#694">self</a>.<a href="../../../../src/object/read/macho/file.rs.html#572">magic</a>() == <a href="../../../../src/object/macho.rs.html#522">macho::MH_MAGIC_64</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_big_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#694">self</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#572">magic</a>() <span class="op">==</span> <a class="ident" href="../../../../src/object/macho.rs.html#522">macho::MH_MAGIC_64</a>
+    <span class="kw">fn </span>is_little_endian(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#698">self</a>.<a href="../../../../src/object/read/macho/file.rs.html#572">magic</a>() == <a href="../../../../src/object/macho.rs.html#524">macho::MH_CIGAM_64</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_little_endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#698">self</a>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#572">magic</a>() <span class="op">==</span> <a class="ident" href="../../../../src/object/macho.rs.html#524">macho::MH_CIGAM_64</a>
+    <span class="kw">fn </span>magic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#702">self</a>.magic.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/endian.rs.html#344">BigEndian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">magic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#702">self</a>.<span class="ident">magic</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#344">BigEndian</a>)
+    <span class="kw">fn </span>cputype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#706">self</a>.cputype.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#706">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">cputype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#706">self</a>.<span class="ident">cputype</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#706">endian</a>)
+    <span class="kw">fn </span>cpusubtype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#710">self</a>.cpusubtype.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#710">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">cpusubtype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#710">self</a>.<span class="ident">cpusubtype</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#710">endian</a>)
+    <span class="kw">fn </span>filetype(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#714">self</a>.filetype.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#714">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">filetype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#714">self</a>.<span class="ident">filetype</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#714">endian</a>)
+    <span class="kw">fn </span>ncmds(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#718">self</a>.ncmds.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#718">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">ncmds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#718">self</a>.<span class="ident">ncmds</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#718">endian</a>)
+    <span class="kw">fn </span>sizeofcmds(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#722">self</a>.sizeofcmds.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#722">endian</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">sizeofcmds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#722">self</a>.<span class="ident">sizeofcmds</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#722">endian</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/file.rs.html#726">self</a>.<span class="ident">flags</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/file.rs.html#726">endian</a>)
+    <span class="kw">fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/file.rs.html#726">self</a>.flags.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/file.rs.html#726">endian</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

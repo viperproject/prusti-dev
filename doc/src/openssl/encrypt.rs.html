@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/encrypt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encrypt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/encrypt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encrypt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -576,583 +576,583 @@
 <span id="576">576</span>
 <span id="577">577</span>
 <span id="578">578</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Message encryption.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The [`Encrypter`] allows for encryption of data given a public key. The [`Decrypter`] can be</span>
-<span class="doccomment">//! used with the corresponding private key to decrypt the data.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Encrypt and decrypt data given an RSA keypair:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::encrypt::{Encrypter, Decrypter};</span>
-<span class="doccomment">//! use openssl::rsa::{Rsa, Padding};</span>
-<span class="doccomment">//! use openssl::pkey::PKey;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Generate a keypair</span>
-<span class="doccomment">//! let keypair = Rsa::generate(2048).unwrap();</span>
-<span class="doccomment">//! let keypair = PKey::from_rsa(keypair).unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let data = b&quot;hello, world!&quot;;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Encrypt the data with RSA PKCS1</span>
-<span class="doccomment">//! let mut encrypter = Encrypter::new(&amp;keypair).unwrap();</span>
-<span class="doccomment">//! encrypter.set_rsa_padding(Padding::PKCS1).unwrap();</span>
-<span class="doccomment">//! // Create an output buffer</span>
-<span class="doccomment">//! let buffer_len = encrypter.encrypt_len(data).unwrap();</span>
-<span class="doccomment">//! let mut encrypted = vec![0; buffer_len];</span>
-<span class="doccomment">//! // Encrypt and truncate the buffer</span>
-<span class="doccomment">//! let encrypted_len = encrypter.encrypt(data, &amp;mut encrypted).unwrap();</span>
-<span class="doccomment">//! encrypted.truncate(encrypted_len);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Decrypt the data</span>
-<span class="doccomment">//! let mut decrypter = Decrypter::new(&amp;keypair).unwrap();</span>
-<span class="doccomment">//! decrypter.set_rsa_padding(Padding::PKCS1).unwrap();</span>
-<span class="doccomment">//! // Create an output buffer</span>
-<span class="doccomment">//! let buffer_len = decrypter.decrypt_len(&amp;encrypted).unwrap();</span>
-<span class="doccomment">//! let mut decrypted = vec![0; buffer_len];</span>
-<span class="doccomment">//! // Encrypt and truncate the buffer</span>
-<span class="doccomment">//! let decrypted_len = decrypter.decrypt(&amp;encrypted, &amp;mut decrypted).unwrap();</span>
-<span class="doccomment">//! decrypted.truncate(decrypted_len);</span>
-<span class="doccomment">//! assert_eq!(&amp;*decrypted, data);</span>
-<span class="doccomment">//! ```</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">marker::PhantomData</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>};
+</pre><pre class="rust"><code><span class="doccomment">//! Message encryption.
+//!
+//! The [`Encrypter`] allows for encryption of data given a public key. The [`Decrypter`] can be
+//! used with the corresponding private key to decrypt the data.
+//!
+//! # Examples
+//!
+//! Encrypt and decrypt data given an RSA keypair:
+//!
+//! ```rust
+//! use openssl::encrypt::{Encrypter, Decrypter};
+//! use openssl::rsa::{Rsa, Padding};
+//! use openssl::pkey::PKey;
+//!
+//! // Generate a keypair
+//! let keypair = Rsa::generate(2048).unwrap();
+//! let keypair = PKey::from_rsa(keypair).unwrap();
+//!
+//! let data = b&quot;hello, world!&quot;;
+//!
+//! // Encrypt the data with RSA PKCS1
+//! let mut encrypter = Encrypter::new(&amp;keypair).unwrap();
+//! encrypter.set_rsa_padding(Padding::PKCS1).unwrap();
+//! // Create an output buffer
+//! let buffer_len = encrypter.encrypt_len(data).unwrap();
+//! let mut encrypted = vec![0; buffer_len];
+//! // Encrypt and truncate the buffer
+//! let encrypted_len = encrypter.encrypt(data, &amp;mut encrypted).unwrap();
+//! encrypted.truncate(encrypted_len);
+//!
+//! // Decrypt the data
+//! let mut decrypter = Decrypter::new(&amp;keypair).unwrap();
+//! decrypter.set_rsa_padding(Padding::PKCS1).unwrap();
+//! // Create an output buffer
+//! let buffer_len = decrypter.decrypt_len(&amp;encrypted).unwrap();
+//! let mut decrypted = vec![0; buffer_len];
+//! // Encrypt and truncate the buffer
+//! let decrypted_len = decrypter.decrypt(&amp;encrypted, &amp;mut decrypted).unwrap();
+//! decrypted.truncate(decrypted_len);
+//! assert_eq!(&amp;*decrypted, data);
+//! ```
+</span><span class="attribute">#[cfg(any(ossl102, libressl310))]
+</span><span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
+<span class="kw">use </span>std::{marker::PhantomData, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/rsa.rs.html#46"><span class="kw">crate</span>::rsa::Padding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
-<span class="kw">use</span> <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
+<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../../src/openssl/hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
+<span class="kw">use </span><a href="../../src/openssl/rsa.rs.html#46"><span class="kw">crate</span>::rsa::Padding</a>;
+<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
 
-<span class="doccomment">/// A type which encrypts data.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Encrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">pctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
-    <span class="ident">_p</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> ()<span class="op">&gt;</span>,
+<span class="doccomment">/// A type which encrypts data.
+</span><span class="kw">pub struct </span>Encrypter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
+    _p: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Encrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Encrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Encrypter&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Encrypter&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Encrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">ffi::EVP_PKEY_CTX_free</span>(<a class="self" href="../../src/openssl/encrypt.rs.html#63">self</a>.<span class="ident">pctx</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Encrypter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            ffi::EVP_PKEY_CTX_free(<a class="self" href="../../src/openssl/encrypt.rs.html#63">self</a>.pctx);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Encrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `Encrypter`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_PKEY_encrypt_init`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_encrypt_init`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_encrypt_init.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Encrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Encrypter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Creates a new `Encrypter`.
+    ///
+    /// OpenSSL documentation at [`EVP_PKEY_encrypt_init`].
+    ///
+    /// [`EVP_PKEY_encrypt_init`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_encrypt_init.html
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Encrypter&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
     {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <span class="kw">let</span> <span class="ident">pctx</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_CTX_new</span>(<span class="ident">pkey</span>.<span class="ident">as_ptr</span>(), <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EVP_PKEY_encrypt_init</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#83">pctx</a>);
-            <span class="kw">if</span> <span class="ident">r</span> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-                <span class="ident">ffi::EVP_PKEY_CTX_free</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#83">pctx</a>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>());
+            <span class="kw">let </span>pctx = cvt_p(ffi::EVP_PKEY_CTX_new(pkey.as_ptr(), ptr::null_mut()))<span class="question-mark">?</span>;
+            <span class="kw">let </span>r = ffi::EVP_PKEY_encrypt_init(<a href="../../src/openssl/encrypt.rs.html#83">pctx</a>);
+            <span class="kw">if </span>r != <span class="number">1 </span>{
+                ffi::EVP_PKEY_CTX_free(<a href="../../src/openssl/encrypt.rs.html#83">pctx</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorStack::get());
             }
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#54">Encrypter</a> {
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#83">pctx</a>,
-                <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/encrypt.rs.html#54">Encrypter</a> {
+                <a href="../../src/openssl/encrypt.rs.html#83">pctx</a>,
+                _p: PhantomData,
             })
         }
     }
 
-    <span class="doccomment">/// Returns the RSA padding mode in use.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rsa_padding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pad</span> <span class="op">=</span> <span class="number">0</span>;
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_get_rsa_padding</span>(<a class="self" href="../../src/openssl/encrypt.rs.html#102">self</a>.<span class="ident">pctx</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/encrypt.rs.html#104">pad</a>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Padding::from_raw</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#104">pad</a>))
+    <span class="doccomment">/// Returns the RSA padding mode in use.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.
+    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/rsa.rs.html#46">Padding</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>pad = <span class="number">0</span>;
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_get_rsa_padding(<a class="self" href="../../src/openssl/encrypt.rs.html#102">self</a>.pctx, <span class="kw-2">&amp;mut </span><a href="../../src/openssl/encrypt.rs.html#104">pad</a>))
+                .map(|<span class="kw">_</span>| Padding::from_raw(<a href="../../src/openssl/encrypt.rs.html#104">pad</a>))
         }
     }
 
-    <span class="doccomment">/// Sets the RSA padding mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_padding</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_padding</span>(
-                <a class="self" href="../../src/openssl/encrypt.rs.html#117">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#117">padding</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#61">as_raw</a>(),
+    <span class="doccomment">/// Sets the RSA padding mode.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html
+    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="../../src/openssl/rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_padding(
+                <a class="self" href="../../src/openssl/encrypt.rs.html#117">self</a>.pctx,
+                <a href="../../src/openssl/encrypt.rs.html#117">padding</a>.<a href="../../src/openssl/rsa.rs.html#61">as_raw</a>(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA MGF1 algorithm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_mgf1_md</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">md</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_mgf1_md</span>(
-                <a class="self" href="../../src/openssl/encrypt.rs.html#134">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#134">md</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Sets the RSA MGF1 algorithm.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html
+    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
+                <a class="self" href="../../src/openssl/encrypt.rs.html#134">self</a>.pctx,
+                <a href="../../src/openssl/encrypt.rs.html#134">md</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA OAEP algorithm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_oaep_md`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_oaep_md`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set_rsa_oaep_md.html</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_oaep_md</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">md</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_oaep_md</span>(
-                <a class="self" href="../../src/openssl/encrypt.rs.html#152">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#152">md</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Sets the RSA OAEP algorithm.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_oaep_md`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_oaep_md`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set_rsa_oaep_md.html
+    </span><span class="attribute">#[cfg(any(ossl102, libressl310))]
+    </span><span class="kw">pub fn </span>set_rsa_oaep_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_oaep_md(
+                <a class="self" href="../../src/openssl/encrypt.rs.html#152">self</a>.pctx,
+                <a href="../../src/openssl/encrypt.rs.html#152">md</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA OAEP label.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set0_rsa_oaep_label`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set0_rsa_oaep_label`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set0_rsa_oaep_label.html</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_oaep_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::OPENSSL_malloc</span>(<span class="ident">label</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="kw">_</span>))<span class="question-mark">?</span>;
-            <span class="ident">ptr::copy_nonoverlapping</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#170">label</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../src/openssl/encrypt.rs.html#172">p</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/openssl/encrypt.rs.html#170">label</a>.<span class="ident">len</span>());
+    <span class="doccomment">/// Sets the RSA OAEP label.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set0_rsa_oaep_label`].
+    ///
+    /// [`EVP_PKEY_CTX_set0_rsa_oaep_label`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set0_rsa_oaep_label.html
+    </span><span class="attribute">#[cfg(any(ossl102, libressl310))]
+    </span><span class="kw">pub fn </span>set_rsa_oaep_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>p = cvt_p(ffi::OPENSSL_malloc(label.len() <span class="kw">as _</span>))<span class="question-mark">?</span>;
+            ptr::copy_nonoverlapping(<a href="../../src/openssl/encrypt.rs.html#170">label</a>.as_ptr(), <a href="../../src/openssl/encrypt.rs.html#172">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/openssl/encrypt.rs.html#170">label</a>.len());
 
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set0_rsa_oaep_label</span>(
-                <a class="self" href="../../src/openssl/encrypt.rs.html#170">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#172">p</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#170">label</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set0_rsa_oaep_label(
+                <a class="self" href="../../src/openssl/encrypt.rs.html#170">self</a>.pctx,
+                <a href="../../src/openssl/encrypt.rs.html#172">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+                <a href="../../src/openssl/encrypt.rs.html#170">label</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="ident">ffi::OPENSSL_free</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#172">p</a>);
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#181">e</a>
+            .map(|<span class="kw">_</span>| ())
+            .map_err(|e| {
+                ffi::OPENSSL_free(<a href="../../src/openssl/encrypt.rs.html#172">p</a>);
+                <a href="../../src/openssl/encrypt.rs.html#181">e</a>
             })
         }
     }
 
-    <span class="doccomment">/// Performs public key encryption.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In order to know the size needed for the output buffer, use [`encrypt_len`](Encrypter::encrypt_len).</span>
-    <span class="doccomment">/// Note that the length of the output buffer can be greater of the length of the encoded data.</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use openssl::{</span>
-    <span class="doccomment">/// #   encrypt::Encrypter,</span>
-    <span class="doccomment">/// #   pkey::PKey,</span>
-    <span class="doccomment">/// #   rsa::{Rsa, Padding},</span>
-    <span class="doccomment">/// # };</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # let key = include_bytes!(&quot;../test/rsa.pem&quot;);</span>
-    <span class="doccomment">/// # let private_key = Rsa::private_key_from_pem(key).unwrap();</span>
-    <span class="doccomment">/// # let pkey = PKey::from_rsa(private_key).unwrap();</span>
-    <span class="doccomment">/// # let input = b&quot;hello world&quot;.to_vec();</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// let mut encrypter = Encrypter::new(&amp;pkey).unwrap();</span>
-    <span class="doccomment">/// encrypter.set_rsa_padding(Padding::PKCS1).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Get the length of the output buffer</span>
-    <span class="doccomment">/// let buffer_len = encrypter.encrypt_len(&amp;input).unwrap();</span>
-    <span class="doccomment">/// let mut encoded = vec![0u8; buffer_len];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Encode the data and get its length</span>
-    <span class="doccomment">/// let encoded_len = encrypter.encrypt(&amp;input, &amp;mut encoded).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Use only the part of the buffer with the encoded data</span>
-    <span class="doccomment">/// let encoded = &amp;encoded[..encoded_len];</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_encrypt`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_encrypt`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_encrypt.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encrypt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">to</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">written</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/encrypt.rs.html#221">to</a>.<span class="ident">len</span>();
-        <span class="kw">unsafe</span> {
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_encrypt</span>(
-                <span class="self">self</span>.<span class="ident">pctx</span>,
-                <span class="ident">to</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">written</span>,
-                <span class="ident">from</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">from</span>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Performs public key encryption.
+    ///
+    /// In order to know the size needed for the output buffer, use [`encrypt_len`](Encrypter::encrypt_len).
+    /// Note that the length of the output buffer can be greater of the length of the encoded data.
+    /// ```
+    /// # use openssl::{
+    /// #   encrypt::Encrypter,
+    /// #   pkey::PKey,
+    /// #   rsa::{Rsa, Padding},
+    /// # };
+    /// #
+    /// # let key = include_bytes!(&quot;../test/rsa.pem&quot;);
+    /// # let private_key = Rsa::private_key_from_pem(key).unwrap();
+    /// # let pkey = PKey::from_rsa(private_key).unwrap();
+    /// # let input = b&quot;hello world&quot;.to_vec();
+    /// #
+    /// let mut encrypter = Encrypter::new(&amp;pkey).unwrap();
+    /// encrypter.set_rsa_padding(Padding::PKCS1).unwrap();
+    ///
+    /// // Get the length of the output buffer
+    /// let buffer_len = encrypter.encrypt_len(&amp;input).unwrap();
+    /// let mut encoded = vec![0u8; buffer_len];
+    ///
+    /// // Encode the data and get its length
+    /// let encoded_len = encrypter.encrypt(&amp;input, &amp;mut encoded).unwrap();
+    ///
+    /// // Use only the part of the buffer with the encoded data
+    /// let encoded = &amp;encoded[..encoded_len];
+    /// ```
+    ///
+    /// This corresponds to [`EVP_PKEY_encrypt`].
+    ///
+    /// [`EVP_PKEY_encrypt`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_encrypt.html
+    </span><span class="kw">pub fn </span>encrypt(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], to: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>written = <a href="../../src/openssl/encrypt.rs.html#221">to</a>.len();
+        <span class="kw">unsafe </span>{
+            cvt(ffi::EVP_PKEY_encrypt(
+                <span class="self">self</span>.pctx,
+                to.as_mut_ptr(),
+                <span class="kw-2">&amp;mut </span>written,
+                from.as_ptr(),
+                from.len(),
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#222">written</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/encrypt.rs.html#222">written</a>)
     }
 
-    <span class="doccomment">/// Gets the size of the buffer needed to encrypt the input data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_encrypt`] called with a null pointer as output argument.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_encrypt`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_encrypt.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encrypt_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">written</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">unsafe</span> {
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_encrypt</span>(
-                <span class="self">self</span>.<span class="ident">pctx</span>,
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">written</span>,
-                <span class="ident">from</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">from</span>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Gets the size of the buffer needed to encrypt the input data.
+    ///
+    /// This corresponds to [`EVP_PKEY_encrypt`] called with a null pointer as output argument.
+    ///
+    /// [`EVP_PKEY_encrypt`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_encrypt.html
+    </span><span class="kw">pub fn </span>encrypt_len(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>written = <span class="number">0</span>;
+        <span class="kw">unsafe </span>{
+            cvt(ffi::EVP_PKEY_encrypt(
+                <span class="self">self</span>.pctx,
+                ptr::null_mut(),
+                <span class="kw-2">&amp;mut </span>written,
+                from.as_ptr(),
+                from.len(),
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#242">written</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/encrypt.rs.html#242">written</a>)
     }
 }
 
-<span class="doccomment">/// A type which decrypts data.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Decrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">pctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
-    <span class="ident">_p</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> ()<span class="op">&gt;</span>,
+<span class="doccomment">/// A type which decrypts data.
+</span><span class="kw">pub struct </span>Decrypter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    pctx: <span class="kw-2">*mut </span><a href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a>,
+    _p: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Decrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Decrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Decrypter&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Decrypter&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Decrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">ffi::EVP_PKEY_CTX_free</span>(<a class="self" href="../../src/openssl/encrypt.rs.html#267">self</a>.<span class="ident">pctx</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Decrypter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            ffi::EVP_PKEY_CTX_free(<a class="self" href="../../src/openssl/encrypt.rs.html#267">self</a>.pctx);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Decrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `Decrypter`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EVP_PKEY_decrypt_init`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_decrypt_init`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_decrypt_init.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Decrypter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Decrypter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Creates a new `Decrypter`.
+    ///
+    /// OpenSSL documentation at [`EVP_PKEY_decrypt_init`].
+    ///
+    /// [`EVP_PKEY_decrypt_init`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_decrypt_init.html
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(pkey: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Decrypter&lt;<span class="lifetime">&#39;a</span>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
+        <span class="kw">unsafe </span>{
+            <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <span class="kw">let</span> <span class="ident">pctx</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::EVP_PKEY_CTX_new</span>(<span class="ident">pkey</span>.<span class="ident">as_ptr</span>(), <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EVP_PKEY_decrypt_init</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#287">pctx</a>);
-            <span class="kw">if</span> <span class="ident">r</span> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-                <span class="ident">ffi::EVP_PKEY_CTX_free</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#287">pctx</a>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>());
+            <span class="kw">let </span>pctx = cvt_p(ffi::EVP_PKEY_CTX_new(pkey.as_ptr(), ptr::null_mut()))<span class="question-mark">?</span>;
+            <span class="kw">let </span>r = ffi::EVP_PKEY_decrypt_init(<a href="../../src/openssl/encrypt.rs.html#287">pctx</a>);
+            <span class="kw">if </span>r != <span class="number">1 </span>{
+                ffi::EVP_PKEY_CTX_free(<a href="../../src/openssl/encrypt.rs.html#287">pctx</a>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorStack::get());
             }
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#258">Decrypter</a> {
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#287">pctx</a>,
-                <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/encrypt.rs.html#258">Decrypter</a> {
+                <a href="../../src/openssl/encrypt.rs.html#287">pctx</a>,
+                _p: PhantomData,
             })
         }
     }
 
-    <span class="doccomment">/// Returns the RSA padding mode in use.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rsa_padding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pad</span> <span class="op">=</span> <span class="number">0</span>;
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_get_rsa_padding</span>(<a class="self" href="../../src/openssl/encrypt.rs.html#306">self</a>.<span class="ident">pctx</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/encrypt.rs.html#308">pad</a>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Padding::from_raw</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#308">pad</a>))
+    <span class="doccomment">/// Returns the RSA padding mode in use.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to `EVP_PKEY_CTX_get_rsa_padding`.
+    </span><span class="kw">pub fn </span>rsa_padding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/rsa.rs.html#46">Padding</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>pad = <span class="number">0</span>;
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_get_rsa_padding(<a class="self" href="../../src/openssl/encrypt.rs.html#306">self</a>.pctx, <span class="kw-2">&amp;mut </span><a href="../../src/openssl/encrypt.rs.html#308">pad</a>))
+                .map(|<span class="kw">_</span>| Padding::from_raw(<a href="../../src/openssl/encrypt.rs.html#308">pad</a>))
         }
     }
 
-    <span class="doccomment">/// Sets the RSA padding mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_padding</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_padding</span>(
-                <a class="self" href="../../src/openssl/encrypt.rs.html#321">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#321">padding</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#61">as_raw</a>(),
+    <span class="doccomment">/// Sets the RSA padding mode.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_padding`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_padding`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_PKEY_CTX_set_rsa_padding.html
+    </span><span class="kw">pub fn </span>set_rsa_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, padding: <a href="../../src/openssl/rsa.rs.html#46">Padding</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_padding(
+                <a class="self" href="../../src/openssl/encrypt.rs.html#321">self</a>.pctx,
+                <a href="../../src/openssl/encrypt.rs.html#321">padding</a>.<a href="../../src/openssl/rsa.rs.html#61">as_raw</a>(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA MGF1 algorithm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_mgf1_md</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">md</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_mgf1_md</span>(
-                <a class="self" href="../../src/openssl/encrypt.rs.html#338">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#338">md</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Sets the RSA MGF1 algorithm.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_mgf1_md`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_mgf1_md`]: https://www.openssl.org/docs/manmaster/man7/RSA-PSS.html
+    </span><span class="kw">pub fn </span>set_rsa_mgf1_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
+                <a class="self" href="../../src/openssl/encrypt.rs.html#338">self</a>.pctx,
+                <a href="../../src/openssl/encrypt.rs.html#338">md</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA OAEP algorithm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set_rsa_oaep_md`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set_rsa_oaep_md`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set_rsa_oaep_md.html</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_oaep_md</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">md</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set_rsa_oaep_md</span>(
-                <a class="self" href="../../src/openssl/encrypt.rs.html#356">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#356">md</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+    <span class="doccomment">/// Sets the RSA OAEP algorithm.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_oaep_md`].
+    ///
+    /// [`EVP_PKEY_CTX_set_rsa_oaep_md`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set_rsa_oaep_md.html
+    </span><span class="attribute">#[cfg(any(ossl102, libressl310))]
+    </span><span class="kw">pub fn </span>set_rsa_oaep_md(<span class="kw-2">&amp;mut </span><span class="self">self</span>, md: <a href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set_rsa_oaep_md(
+                <a class="self" href="../../src/openssl/encrypt.rs.html#356">self</a>.pctx,
+                <a href="../../src/openssl/encrypt.rs.html#356">md</a>.<a href="../../src/openssl/hash.rs.html#137">as_ptr</a>() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 
-    <span class="doccomment">/// Sets the RSA OAEP label.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only useful for RSA keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_CTX_set0_rsa_oaep_label`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_CTX_set0_rsa_oaep_label`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set0_rsa_oaep_label.html</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_rsa_oaep_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::OPENSSL_malloc</span>(<span class="ident">label</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="kw">_</span>))<span class="question-mark">?</span>;
-            <span class="ident">ptr::copy_nonoverlapping</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#374">label</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../src/openssl/encrypt.rs.html#376">p</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/openssl/encrypt.rs.html#374">label</a>.<span class="ident">len</span>());
+    <span class="doccomment">/// Sets the RSA OAEP label.
+    ///
+    /// This is only useful for RSA keys.
+    ///
+    /// This corresponds to [`EVP_PKEY_CTX_set0_rsa_oaep_label`].
+    ///
+    /// [`EVP_PKEY_CTX_set0_rsa_oaep_label`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set0_rsa_oaep_label.html
+    </span><span class="attribute">#[cfg(any(ossl102, libressl310))]
+    </span><span class="kw">pub fn </span>set_rsa_oaep_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>p = cvt_p(ffi::OPENSSL_malloc(label.len() <span class="kw">as _</span>))<span class="question-mark">?</span>;
+            ptr::copy_nonoverlapping(<a href="../../src/openssl/encrypt.rs.html#374">label</a>.as_ptr(), <a href="../../src/openssl/encrypt.rs.html#376">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/openssl/encrypt.rs.html#374">label</a>.len());
 
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PKEY_CTX_set0_rsa_oaep_label</span>(
-                <a class="self" href="../../src/openssl/encrypt.rs.html#374">self</a>.<span class="ident">pctx</span>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#376">p</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#374">label</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::EVP_PKEY_CTX_set0_rsa_oaep_label(
+                <a class="self" href="../../src/openssl/encrypt.rs.html#374">self</a>.pctx,
+                <a href="../../src/openssl/encrypt.rs.html#376">p</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+                <a href="../../src/openssl/encrypt.rs.html#374">label</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="ident">ffi::OPENSSL_free</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#376">p</a>);
-                <a class="ident" href="../../src/openssl/encrypt.rs.html#385">e</a>
+            .map(|<span class="kw">_</span>| ())
+            .map_err(|e| {
+                ffi::OPENSSL_free(<a href="../../src/openssl/encrypt.rs.html#376">p</a>);
+                <a href="../../src/openssl/encrypt.rs.html#385">e</a>
             })
         }
     }
 
-    <span class="doccomment">/// Performs public key decryption.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In order to know the size needed for the output buffer, use [`decrypt_len`](Decrypter::decrypt_len).</span>
-    <span class="doccomment">/// Note that the length of the output buffer can be greater of the length of the decoded data.</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use openssl::{</span>
-    <span class="doccomment">/// #   encrypt::Decrypter,</span>
-    <span class="doccomment">/// #   pkey::PKey,</span>
-    <span class="doccomment">/// #   rsa::{Rsa, Padding},</span>
-    <span class="doccomment">/// # };</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # const INPUT: &amp;[u8] = b&quot;\</span>
-    <span class="doccomment">/// #     \x26\xa1\xc1\x13\xc5\x7f\xb4\x9f\xa0\xb4\xde\x61\x5e\x2e\xc6\xfb\x76\x5c\xd1\x2b\x5f\</span>
-    <span class="doccomment">/// #     \x1d\x36\x60\xfa\xf8\xe8\xb3\x21\xf4\x9c\x70\xbc\x03\xea\xea\xac\xce\x4b\xb3\xf6\x45\</span>
-    <span class="doccomment">/// #     \xcc\xb3\x80\x9e\xa8\xf7\xc3\x5d\x06\x12\x7a\xa3\x0c\x30\x67\xf1\xe7\x94\x6c\xf6\x26\</span>
-    <span class="doccomment">/// #     \xac\x28\x17\x59\x69\xe1\xdc\xed\x7e\xc0\xe9\x62\x57\x49\xce\xdd\x13\x07\xde\x18\x03\</span>
-    <span class="doccomment">/// #     \x0f\x9d\x61\x65\xb9\x23\x8c\x78\x4b\xad\x23\x49\x75\x47\x64\xa0\xa0\xa2\x90\xc1\x49\</span>
-    <span class="doccomment">/// #     \x1b\x05\x24\xc2\xe9\x2c\x0d\x49\x78\x72\x61\x72\xed\x8b\x6f\x8a\xe8\xca\x05\x5c\x58\</span>
-    <span class="doccomment">/// #     \xd6\x95\xd6\x7b\xe3\x2d\x0d\xaa\x3e\x6d\x3c\x9a\x1c\x1d\xb4\x6c\x42\x9d\x9a\x82\x55\</span>
-    <span class="doccomment">/// #     \xd9\xde\xc8\x08\x7b\x17\xac\xd7\xaf\x86\x7b\x69\x9e\x3c\xf4\x5e\x1c\x39\x52\x6d\x62\</span>
-    <span class="doccomment">/// #     \x50\x51\xbd\xa6\xc8\x4e\xe9\x34\xf0\x37\x0d\xa9\xa9\x77\xe6\xf5\xc2\x47\x2d\xa8\xee\</span>
-    <span class="doccomment">/// #     \x3f\x69\x78\xff\xa9\xdc\x70\x22\x20\x9a\x5c\x9b\x70\x15\x90\xd3\xb4\x0e\x54\x9e\x48\</span>
-    <span class="doccomment">/// #     \xed\xb6\x2c\x88\xfc\xb4\xa9\x37\x10\xfa\x71\xb2\xec\x75\xe7\xe7\x0e\xf4\x60\x2c\x7b\</span>
-    <span class="doccomment">/// #     \x58\xaf\xa0\x53\xbd\x24\xf1\x12\xe3\x2e\x99\x25\x0a\x54\x54\x9d\xa1\xdb\xca\x41\x85\</span>
-    <span class="doccomment">/// #     \xf4\x62\x78\x64&quot;;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # let key = include_bytes!(&quot;../test/rsa.pem&quot;);</span>
-    <span class="doccomment">/// # let private_key = Rsa::private_key_from_pem(key).unwrap();</span>
-    <span class="doccomment">/// # let pkey = PKey::from_rsa(private_key).unwrap();</span>
-    <span class="doccomment">/// # let input = INPUT.to_vec();</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// let mut decrypter = Decrypter::new(&amp;pkey).unwrap();</span>
-    <span class="doccomment">/// decrypter.set_rsa_padding(Padding::PKCS1).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Get the length of the output buffer</span>
-    <span class="doccomment">/// let buffer_len = decrypter.decrypt_len(&amp;input).unwrap();</span>
-    <span class="doccomment">/// let mut decoded = vec![0u8; buffer_len];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Decrypt the data and get its length</span>
-    <span class="doccomment">/// let decoded_len = decrypter.decrypt(&amp;input, &amp;mut decoded).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Use only the part of the buffer with the decrypted data</span>
-    <span class="doccomment">/// let decoded = &amp;decoded[..decoded_len];</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_decrypt`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_decrypt`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_decrypt.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrypt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">to</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">written</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/encrypt.rs.html#440">to</a>.<span class="ident">len</span>();
-        <span class="kw">unsafe</span> {
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_decrypt</span>(
-                <span class="self">self</span>.<span class="ident">pctx</span>,
-                <span class="ident">to</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">written</span>,
-                <span class="ident">from</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">from</span>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Performs public key decryption.
+    ///
+    /// In order to know the size needed for the output buffer, use [`decrypt_len`](Decrypter::decrypt_len).
+    /// Note that the length of the output buffer can be greater of the length of the decoded data.
+    /// ```
+    /// # use openssl::{
+    /// #   encrypt::Decrypter,
+    /// #   pkey::PKey,
+    /// #   rsa::{Rsa, Padding},
+    /// # };
+    /// #
+    /// # const INPUT: &amp;[u8] = b&quot;\
+    /// #     \x26\xa1\xc1\x13\xc5\x7f\xb4\x9f\xa0\xb4\xde\x61\x5e\x2e\xc6\xfb\x76\x5c\xd1\x2b\x5f\
+    /// #     \x1d\x36\x60\xfa\xf8\xe8\xb3\x21\xf4\x9c\x70\xbc\x03\xea\xea\xac\xce\x4b\xb3\xf6\x45\
+    /// #     \xcc\xb3\x80\x9e\xa8\xf7\xc3\x5d\x06\x12\x7a\xa3\x0c\x30\x67\xf1\xe7\x94\x6c\xf6\x26\
+    /// #     \xac\x28\x17\x59\x69\xe1\xdc\xed\x7e\xc0\xe9\x62\x57\x49\xce\xdd\x13\x07\xde\x18\x03\
+    /// #     \x0f\x9d\x61\x65\xb9\x23\x8c\x78\x4b\xad\x23\x49\x75\x47\x64\xa0\xa0\xa2\x90\xc1\x49\
+    /// #     \x1b\x05\x24\xc2\xe9\x2c\x0d\x49\x78\x72\x61\x72\xed\x8b\x6f\x8a\xe8\xca\x05\x5c\x58\
+    /// #     \xd6\x95\xd6\x7b\xe3\x2d\x0d\xaa\x3e\x6d\x3c\x9a\x1c\x1d\xb4\x6c\x42\x9d\x9a\x82\x55\
+    /// #     \xd9\xde\xc8\x08\x7b\x17\xac\xd7\xaf\x86\x7b\x69\x9e\x3c\xf4\x5e\x1c\x39\x52\x6d\x62\
+    /// #     \x50\x51\xbd\xa6\xc8\x4e\xe9\x34\xf0\x37\x0d\xa9\xa9\x77\xe6\xf5\xc2\x47\x2d\xa8\xee\
+    /// #     \x3f\x69\x78\xff\xa9\xdc\x70\x22\x20\x9a\x5c\x9b\x70\x15\x90\xd3\xb4\x0e\x54\x9e\x48\
+    /// #     \xed\xb6\x2c\x88\xfc\xb4\xa9\x37\x10\xfa\x71\xb2\xec\x75\xe7\xe7\x0e\xf4\x60\x2c\x7b\
+    /// #     \x58\xaf\xa0\x53\xbd\x24\xf1\x12\xe3\x2e\x99\x25\x0a\x54\x54\x9d\xa1\xdb\xca\x41\x85\
+    /// #     \xf4\x62\x78\x64&quot;;
+    /// #
+    /// # let key = include_bytes!(&quot;../test/rsa.pem&quot;);
+    /// # let private_key = Rsa::private_key_from_pem(key).unwrap();
+    /// # let pkey = PKey::from_rsa(private_key).unwrap();
+    /// # let input = INPUT.to_vec();
+    /// #
+    /// let mut decrypter = Decrypter::new(&amp;pkey).unwrap();
+    /// decrypter.set_rsa_padding(Padding::PKCS1).unwrap();
+    ///
+    /// // Get the length of the output buffer
+    /// let buffer_len = decrypter.decrypt_len(&amp;input).unwrap();
+    /// let mut decoded = vec![0u8; buffer_len];
+    ///
+    /// // Decrypt the data and get its length
+    /// let decoded_len = decrypter.decrypt(&amp;input, &amp;mut decoded).unwrap();
+    ///
+    /// // Use only the part of the buffer with the decrypted data
+    /// let decoded = &amp;decoded[..decoded_len];
+    /// ```
+    ///
+    /// This corresponds to [`EVP_PKEY_decrypt`].
+    ///
+    /// [`EVP_PKEY_decrypt`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_decrypt.html
+    </span><span class="kw">pub fn </span>decrypt(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], to: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>written = <a href="../../src/openssl/encrypt.rs.html#440">to</a>.len();
+        <span class="kw">unsafe </span>{
+            cvt(ffi::EVP_PKEY_decrypt(
+                <span class="self">self</span>.pctx,
+                to.as_mut_ptr(),
+                <span class="kw-2">&amp;mut </span>written,
+                from.as_ptr(),
+                from.len(),
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#441">written</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/encrypt.rs.html#441">written</a>)
     }
 
-    <span class="doccomment">/// Gets the size of the buffer needed to decrypt the input data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EVP_PKEY_decrypt`] called with a null pointer as output argument.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EVP_PKEY_decrypt`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_decrypt.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrypt_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">written</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">unsafe</span> {
-            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_PKEY_decrypt</span>(
-                <span class="self">self</span>.<span class="ident">pctx</span>,
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">written</span>,
-                <span class="ident">from</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">from</span>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Gets the size of the buffer needed to decrypt the input data.
+    ///
+    /// This corresponds to [`EVP_PKEY_decrypt`] called with a null pointer as output argument.
+    ///
+    /// [`EVP_PKEY_decrypt`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_decrypt.html
+    </span><span class="kw">pub fn </span>decrypt_len(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>written = <span class="number">0</span>;
+        <span class="kw">unsafe </span>{
+            cvt(ffi::EVP_PKEY_decrypt(
+                <span class="self">self</span>.pctx,
+                ptr::null_mut(),
+                <span class="kw-2">&amp;mut </span>written,
+                from.as_ptr(),
+                from.len(),
             ))<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/encrypt.rs.html#461">written</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../src/openssl/encrypt.rs.html#461">written</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident">hex::FromHex</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use </span>hex::FromHex;
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encrypt</span>::{<span class="ident">Decrypter</span>, <span class="ident">Encrypter</span>};
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hash::MessageDigest</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey::PKey</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::rsa</span>::{<span class="ident">Padding</span>, <span class="ident">Rsa</span>};
+    <span class="kw">use </span><span class="kw">crate</span>::encrypt::{Decrypter, Encrypter};
+    <span class="attribute">#[cfg(any(ossl102, libressl310))]
+    </span><span class="kw">use </span><span class="kw">crate</span>::hash::MessageDigest;
+    <span class="kw">use </span><span class="kw">crate</span>::pkey::PKey;
+    <span class="kw">use </span><span class="kw">crate</span>::rsa::{Padding, Rsa};
 
-    <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span>
+    <span class="kw">const </span>INPUT: <span class="kw-2">&amp;</span>str =
         <span class="string">&quot;65794a68624763694f694a53557a49314e694a392e65794a7063334d694f694a71623255694c41304b49434a6c\
          654841694f6a457a4d4441344d546b7a4f44417344516f67496d6830644841364c79396c654746746347786c4c\
          6d4e76625339706331397962323930496a7030636e566c6651&quot;</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">rsa_encrypt_decrypt</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">Rsa::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>rsa_encrypt_decrypt() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
+        <span class="kw">let </span>private_key = Rsa::private_key_from_pem(key).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(private_key).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encrypter</span> <span class="op">=</span> <span class="ident">Encrypter::new</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">encrypter</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="ident">INPUT</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buffer_len</span> <span class="op">=</span> <span class="ident">encrypter</span>.<span class="ident">encrypt_len</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">buffer_len</span>];
-        <span class="kw">let</span> <span class="ident">encoded_len</span> <span class="op">=</span> <span class="ident">encrypter</span>.<span class="ident">encrypt</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>, <span class="kw-2">&amp;mut</span> <span class="ident">encoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[..<span class="ident">encoded_len</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>encrypter = Encrypter::new(<span class="kw-2">&amp;</span>pkey).unwrap();
+        encrypter.set_rsa_padding(Padding::PKCS1).unwrap();
+        <span class="kw">let </span>input = Vec::from_hex(INPUT).unwrap();
+        <span class="kw">let </span>buffer_len = encrypter.encrypt_len(<span class="kw-2">&amp;</span>input).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>encoded = <span class="macro">vec!</span>[<span class="number">0u8</span>; buffer_len];
+        <span class="kw">let </span>encoded_len = encrypter.encrypt(<span class="kw-2">&amp;</span>input, <span class="kw-2">&amp;mut </span>encoded).unwrap();
+        <span class="kw">let </span>encoded = <span class="kw-2">&amp;</span>encoded[..encoded_len];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decrypter</span> <span class="op">=</span> <span class="ident">Decrypter::new</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">decrypter</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buffer_len</span> <span class="op">=</span> <span class="ident">decrypter</span>.<span class="ident">decrypt_len</span>(<span class="ident">encoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">buffer_len</span>];
-        <span class="kw">let</span> <span class="ident">decoded_len</span> <span class="op">=</span> <span class="ident">decrypter</span>.<span class="ident">decrypt</span>(<span class="ident">encoded</span>, <span class="kw-2">&amp;mut</span> <span class="ident">decoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">decoded</span>[..<span class="ident">decoded_len</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>decrypter = Decrypter::new(<span class="kw-2">&amp;</span>pkey).unwrap();
+        decrypter.set_rsa_padding(Padding::PKCS1).unwrap();
+        <span class="kw">let </span>buffer_len = decrypter.decrypt_len(encoded).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>decoded = <span class="macro">vec!</span>[<span class="number">0u8</span>; buffer_len];
+        <span class="kw">let </span>decoded_len = decrypter.decrypt(encoded, <span class="kw-2">&amp;mut </span>decoded).unwrap();
+        <span class="kw">let </span>decoded = <span class="kw-2">&amp;</span>decoded[..decoded_len];
 
-        <span class="macro">assert_eq!</span>(<span class="ident">decoded</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">input</span>);
+        <span class="macro">assert_eq!</span>(decoded, <span class="kw-2">&amp;*</span>input);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">rsa_encrypt_decrypt_with_sha256</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">Rsa::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg(any(ossl102, libressl310))]
+    </span><span class="kw">fn </span>rsa_encrypt_decrypt_with_sha256() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
+        <span class="kw">let </span>private_key = Rsa::private_key_from_pem(key).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(private_key).unwrap();
 
-        <span class="kw">let</span> <span class="ident">md</span> <span class="op">=</span> <span class="ident">MessageDigest::sha256</span>();
+        <span class="kw">let </span>md = MessageDigest::sha256();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encrypter</span> <span class="op">=</span> <span class="ident">Encrypter::new</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">encrypter</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1_OAEP</span>).<span class="ident">unwrap</span>();
-        <span class="ident">encrypter</span>.<span class="ident">set_rsa_oaep_md</span>(<span class="ident">md</span>).<span class="ident">unwrap</span>();
-        <span class="ident">encrypter</span>.<span class="ident">set_rsa_mgf1_md</span>(<span class="ident">md</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="ident">INPUT</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buffer_len</span> <span class="op">=</span> <span class="ident">encrypter</span>.<span class="ident">encrypt_len</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">buffer_len</span>];
-        <span class="kw">let</span> <span class="ident">encoded_len</span> <span class="op">=</span> <span class="ident">encrypter</span>.<span class="ident">encrypt</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>, <span class="kw-2">&amp;mut</span> <span class="ident">encoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[..<span class="ident">encoded_len</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>encrypter = Encrypter::new(<span class="kw-2">&amp;</span>pkey).unwrap();
+        encrypter.set_rsa_padding(Padding::PKCS1_OAEP).unwrap();
+        encrypter.set_rsa_oaep_md(md).unwrap();
+        encrypter.set_rsa_mgf1_md(md).unwrap();
+        <span class="kw">let </span>input = Vec::from_hex(INPUT).unwrap();
+        <span class="kw">let </span>buffer_len = encrypter.encrypt_len(<span class="kw-2">&amp;</span>input).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>encoded = <span class="macro">vec!</span>[<span class="number">0u8</span>; buffer_len];
+        <span class="kw">let </span>encoded_len = encrypter.encrypt(<span class="kw-2">&amp;</span>input, <span class="kw-2">&amp;mut </span>encoded).unwrap();
+        <span class="kw">let </span>encoded = <span class="kw-2">&amp;</span>encoded[..encoded_len];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decrypter</span> <span class="op">=</span> <span class="ident">Decrypter::new</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">decrypter</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1_OAEP</span>).<span class="ident">unwrap</span>();
-        <span class="ident">decrypter</span>.<span class="ident">set_rsa_oaep_md</span>(<span class="ident">md</span>).<span class="ident">unwrap</span>();
-        <span class="ident">decrypter</span>.<span class="ident">set_rsa_mgf1_md</span>(<span class="ident">md</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buffer_len</span> <span class="op">=</span> <span class="ident">decrypter</span>.<span class="ident">decrypt_len</span>(<span class="ident">encoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">buffer_len</span>];
-        <span class="kw">let</span> <span class="ident">decoded_len</span> <span class="op">=</span> <span class="ident">decrypter</span>.<span class="ident">decrypt</span>(<span class="ident">encoded</span>, <span class="kw-2">&amp;mut</span> <span class="ident">decoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">decoded</span>[..<span class="ident">decoded_len</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>decrypter = Decrypter::new(<span class="kw-2">&amp;</span>pkey).unwrap();
+        decrypter.set_rsa_padding(Padding::PKCS1_OAEP).unwrap();
+        decrypter.set_rsa_oaep_md(md).unwrap();
+        decrypter.set_rsa_mgf1_md(md).unwrap();
+        <span class="kw">let </span>buffer_len = decrypter.decrypt_len(encoded).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>decoded = <span class="macro">vec!</span>[<span class="number">0u8</span>; buffer_len];
+        <span class="kw">let </span>decoded_len = decrypter.decrypt(encoded, <span class="kw-2">&amp;mut </span>decoded).unwrap();
+        <span class="kw">let </span>decoded = <span class="kw-2">&amp;</span>decoded[..decoded_len];
 
-        <span class="macro">assert_eq!</span>(<span class="ident">decoded</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">input</span>);
+        <span class="macro">assert_eq!</span>(decoded, <span class="kw-2">&amp;*</span>input);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">rsa_encrypt_decrypt_oaep_label</span>() {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">Rsa::private_key_from_pem</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg(any(ossl102, libressl310))]
+    </span><span class="kw">fn </span>rsa_encrypt_decrypt_oaep_label() {
+        <span class="kw">let </span>key = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/rsa.pem&quot;</span>);
+        <span class="kw">let </span>private_key = Rsa::private_key_from_pem(key).unwrap();
+        <span class="kw">let </span>pkey = PKey::from_rsa(private_key).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encrypter</span> <span class="op">=</span> <span class="ident">Encrypter::new</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">encrypter</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1_OAEP</span>).<span class="ident">unwrap</span>();
-        <span class="ident">encrypter</span>.<span class="ident">set_rsa_oaep_label</span>(<span class="string">b&quot;test_oaep_label&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="ident">INPUT</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buffer_len</span> <span class="op">=</span> <span class="ident">encrypter</span>.<span class="ident">encrypt_len</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">buffer_len</span>];
-        <span class="kw">let</span> <span class="ident">encoded_len</span> <span class="op">=</span> <span class="ident">encrypter</span>.<span class="ident">encrypt</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>, <span class="kw-2">&amp;mut</span> <span class="ident">encoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[..<span class="ident">encoded_len</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>encrypter = Encrypter::new(<span class="kw-2">&amp;</span>pkey).unwrap();
+        encrypter.set_rsa_padding(Padding::PKCS1_OAEP).unwrap();
+        encrypter.set_rsa_oaep_label(<span class="string">b&quot;test_oaep_label&quot;</span>).unwrap();
+        <span class="kw">let </span>input = Vec::from_hex(INPUT).unwrap();
+        <span class="kw">let </span>buffer_len = encrypter.encrypt_len(<span class="kw-2">&amp;</span>input).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>encoded = <span class="macro">vec!</span>[<span class="number">0u8</span>; buffer_len];
+        <span class="kw">let </span>encoded_len = encrypter.encrypt(<span class="kw-2">&amp;</span>input, <span class="kw-2">&amp;mut </span>encoded).unwrap();
+        <span class="kw">let </span>encoded = <span class="kw-2">&amp;</span>encoded[..encoded_len];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decrypter</span> <span class="op">=</span> <span class="ident">Decrypter::new</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="ident">decrypter</span>.<span class="ident">set_rsa_padding</span>(<span class="ident">Padding::PKCS1_OAEP</span>).<span class="ident">unwrap</span>();
-        <span class="ident">decrypter</span>.<span class="ident">set_rsa_oaep_label</span>(<span class="string">b&quot;test_oaep_label&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buffer_len</span> <span class="op">=</span> <span class="ident">decrypter</span>.<span class="ident">decrypt_len</span>(<span class="ident">encoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">buffer_len</span>];
-        <span class="kw">let</span> <span class="ident">decoded_len</span> <span class="op">=</span> <span class="ident">decrypter</span>.<span class="ident">decrypt</span>(<span class="ident">encoded</span>, <span class="kw-2">&amp;mut</span> <span class="ident">decoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">decoded</span>[..<span class="ident">decoded_len</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>decrypter = Decrypter::new(<span class="kw-2">&amp;</span>pkey).unwrap();
+        decrypter.set_rsa_padding(Padding::PKCS1_OAEP).unwrap();
+        decrypter.set_rsa_oaep_label(<span class="string">b&quot;test_oaep_label&quot;</span>).unwrap();
+        <span class="kw">let </span>buffer_len = decrypter.decrypt_len(encoded).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>decoded = <span class="macro">vec!</span>[<span class="number">0u8</span>; buffer_len];
+        <span class="kw">let </span>decoded_len = decrypter.decrypt(encoded, <span class="kw-2">&amp;mut </span>decoded).unwrap();
+        <span class="kw">let </span>decoded = <span class="kw-2">&amp;</span>decoded[..decoded_len];
 
-        <span class="macro">assert_eq!</span>(<span class="ident">decoded</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">input</span>);
+        <span class="macro">assert_eq!</span>(decoded, <span class="kw-2">&amp;*</span>input);
 
-        <span class="ident">decrypter</span>.<span class="ident">set_rsa_oaep_label</span>(<span class="string">b&quot;wrong_oaep_label&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">buffer_len</span> <span class="op">=</span> <span class="ident">decrypter</span>.<span class="ident">decrypt_len</span>(<span class="ident">encoded</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">buffer_len</span>];
+        decrypter.set_rsa_oaep_label(<span class="string">b&quot;wrong_oaep_label&quot;</span>).unwrap();
+        <span class="kw">let </span>buffer_len = decrypter.decrypt_len(encoded).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>decoded = <span class="macro">vec!</span>[<span class="number">0u8</span>; buffer_len];
 
-        <span class="macro">assert!</span>(<span class="ident">decrypter</span>.<span class="ident">decrypt</span>(<span class="ident">encoded</span>, <span class="kw-2">&amp;mut</span> <span class="ident">decoded</span>).<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(decrypter.decrypt(encoded, <span class="kw-2">&amp;mut </span>decoded).is_err());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

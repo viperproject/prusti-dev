@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.0/src/write/encoder_string_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder_string_writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.0/src/write/encoder_string_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encoder_string_writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -174,181 +174,181 @@
 <span id="174">174</span>
 <span id="175">175</span>
 <span id="176">176</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/base64/write/encoder.rs.html#56"><span class="kw">super</span>::encoder::EncoderWriter</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/base64/lib.rs.html#153"><span class="kw">crate</span>::Config</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/base64/write/encoder.rs.html#56"><span class="kw">super</span>::encoder::EncoderWriter</a>;
+<span class="kw">use </span><a href="../../../src/base64/lib.rs.html#153"><span class="kw">crate</span>::Config</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
 
-<span class="doccomment">/// A `Write` implementation that base64-encodes data using the provided config and accumulates the</span>
-<span class="doccomment">/// resulting base64 in memory, which is then exposed as a String via `into_inner()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Buffer base64 in a new String:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use std::io::Write;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut enc = base64::write::EncoderStringWriter::new(base64::STANDARD);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// enc.write_all(b&quot;asdf&quot;).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // get the resulting String</span>
-<span class="doccomment">/// let b64_string = enc.into_inner();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(&quot;YXNkZg==&quot;, &amp;b64_string);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Or, append to an existing String:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use std::io::Write;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut buf = String::from(&quot;base64: &quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut enc = base64::write::EncoderStringWriter::from(&amp;mut buf, base64::STANDARD);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// enc.write_all(b&quot;asdf&quot;).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // release the &amp;mut reference on buf</span>
-<span class="doccomment">/// let _ = enc.into_inner();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(&quot;base64: YXNkZg==&quot;, &amp;buf);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Calling `write()` (or related methods) or `finish()` after `finish()` has completed without</span>
-<span class="doccomment">/// error is invalid and will panic.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Performance</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Because it has to validate that the base64 is UTF-8, it is about 80% as fast as writing plain</span>
-<span class="doccomment">/// bytes to a `io::Write`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EncoderStringWriter</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a><span class="op">&gt;</span> {
-    <span class="ident">encoder</span>: <span class="ident">EncoderWriter</span><span class="op">&lt;</span><span class="ident">Utf8SingleCodeUnitWriter</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A `Write` implementation that base64-encodes data using the provided config and accumulates the
+/// resulting base64 in memory, which is then exposed as a String via `into_inner()`.
+///
+/// # Examples
+///
+/// Buffer base64 in a new String:
+///
+/// ```
+/// use std::io::Write;
+///
+/// let mut enc = base64::write::EncoderStringWriter::new(base64::STANDARD);
+///
+/// enc.write_all(b&quot;asdf&quot;).unwrap();
+///
+/// // get the resulting String
+/// let b64_string = enc.into_inner();
+///
+/// assert_eq!(&quot;YXNkZg==&quot;, &amp;b64_string);
+/// ```
+///
+/// Or, append to an existing String:
+///
+/// ```
+/// use std::io::Write;
+///
+/// let mut buf = String::from(&quot;base64: &quot;);
+///
+/// let mut enc = base64::write::EncoderStringWriter::from(&amp;mut buf, base64::STANDARD);
+///
+/// enc.write_all(b&quot;asdf&quot;).unwrap();
+///
+/// // release the &amp;mut reference on buf
+/// let _ = enc.into_inner();
+///
+/// assert_eq!(&quot;base64: YXNkZg==&quot;, &amp;buf);
+/// ```
+///
+/// # Panics
+///
+/// Calling `write()` (or related methods) or `finish()` after `finish()` has completed without
+/// error is invalid and will panic.
+///
+/// # Performance
+///
+/// Because it has to validate that the base64 is UTF-8, it is about 80% as fast as writing plain
+/// bytes to a `io::Write`.
+</span><span class="kw">pub struct </span>EncoderStringWriter&lt;S: <a href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a>&gt; {
+    encoder: EncoderWriter&lt;Utf8SingleCodeUnitWriter&lt;S&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a><span class="op">&gt;</span> <span class="ident">EncoderStringWriter</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a EncoderStringWriter that will append to the provided `StrConsumer`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">str_consumer</span>: <span class="ident">S</span>, <span class="ident">config</span>: <a class="ident" href="../../../src/base64/lib.rs.html#153">Config</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#52">EncoderStringWriter</a> {
-            <span class="ident">encoder</span>: <span class="ident">EncoderWriter::new</span>(<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#118">Utf8SingleCodeUnitWriter</a> { <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#58">str_consumer</a> }, <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#58">config</a>),
+<span class="kw">impl</span>&lt;S: <a href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a>&gt; EncoderStringWriter&lt;S&gt; {
+    <span class="doccomment">/// Create a EncoderStringWriter that will append to the provided `StrConsumer`.
+    </span><span class="kw">pub fn </span>from(str_consumer: S, config: <a href="../../../src/base64/lib.rs.html#153">Config</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/base64/write/encoder_string_writer.rs.html#52">EncoderStringWriter</a> {
+            encoder: EncoderWriter::new(<a href="../../../src/base64/write/encoder_string_writer.rs.html#118">Utf8SingleCodeUnitWriter</a> { <a href="../../../src/base64/write/encoder_string_writer.rs.html#58">str_consumer</a> }, <a href="../../../src/base64/write/encoder_string_writer.rs.html#58">config</a>),
         }
     }
 
-    <span class="doccomment">/// Encode all remaining buffered data, including any trailing incomplete input triples and</span>
-    <span class="doccomment">/// associated padding.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Once this succeeds, no further writes or calls to this method are allowed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the base64-encoded form of the accumulated written data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">S</span> {
-        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#70">self</a>.<span class="ident">encoder</span>
-            .<a class="ident" href="../../../src/base64/write/encoder.rs.html#119">finish</a>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Writing to a Vec&lt;u8&gt; should never fail&quot;</span>)
-            .<span class="ident">str_consumer</span>
+    <span class="doccomment">/// Encode all remaining buffered data, including any trailing incomplete input triples and
+    /// associated padding.
+    ///
+    /// Once this succeeds, no further writes or calls to this method are allowed.
+    ///
+    /// Returns the base64-encoded form of the accumulated written data.
+    </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; S {
+        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#70">self</a>.encoder
+            .<a href="../../../src/base64/write/encoder.rs.html#119">finish</a>()
+            .expect(<span class="string">&quot;Writing to a Vec&lt;u8&gt; should never fail&quot;</span>)
+            .str_consumer
     }
 }
 
-<span class="kw">impl</span> <span class="ident">EncoderStringWriter</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a EncoderStringWriter that will encode into a new String with the provided config.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <a class="ident" href="../../../src/base64/lib.rs.html#153">Config</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">EncoderStringWriter::from</span>(<span class="ident">String::new</span>(), <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#80">config</a>)
+<span class="kw">impl </span>EncoderStringWriter&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    <span class="doccomment">/// Create a EncoderStringWriter that will encode into a new String with the provided config.
+    </span><span class="kw">pub fn </span>new(config: <a href="../../../src/base64/lib.rs.html#153">Config</a>) -&gt; <span class="self">Self </span>{
+        EncoderStringWriter::from(String::new(), <a href="../../../src/base64/write/encoder_string_writer.rs.html#80">config</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">EncoderStringWriter</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#86">self</a>.<span class="ident">encoder</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#86">buf</a>)
+<span class="kw">impl</span>&lt;S: <a href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>EncoderStringWriter&lt;S&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#86">self</a>.encoder.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../src/base64/write/encoder_string_writer.rs.html#86">buf</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#90">self</a>.<span class="ident">encoder</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
-    }
-}
-
-<span class="doccomment">/// An abstraction around consuming `str`s produced by base64 encoding.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StrConsumer</span> {
-    <span class="doccomment">/// Consume the base64 encoded data in `buf`</span>
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
-}
-
-<span class="doccomment">/// As for io::Write, `StrConsumer` is implemented automatically for `&amp;mut S`.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <span class="ident">S</span> {
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#103">self</a>).<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#98">consume</a>(<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#103">buf</a>)
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#90">self</a>.encoder.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
-<span class="doccomment">/// Pushes the str onto the end of the String</span>
-<span class="kw">impl</span> <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#110">self</a>.<span class="ident">push_str</span>(<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#110">buf</a>)
+<span class="doccomment">/// An abstraction around consuming `str`s produced by base64 encoding.
+</span><span class="kw">pub trait </span>StrConsumer {
+    <span class="doccomment">/// Consume the base64 encoded data in `buf`
+    </span><span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
+}
+
+<span class="doccomment">/// As for io::Write, `StrConsumer` is implemented automatically for `&amp;mut S`.
+</span><span class="kw">impl</span>&lt;S: <a href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>S {
+    <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+        (<span class="kw-2">**</span><a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#103">self</a>).<a href="../../../src/base64/write/encoder_string_writer.rs.html#98">consume</a>(<a href="../../../src/base64/write/encoder_string_writer.rs.html#103">buf</a>)
     }
 }
 
-<span class="doccomment">/// A `Write` that only can handle bytes that are valid single-byte UTF-8 code units.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is safe because we only use it when writing base64, which is always valid UTF-8.</span>
-<span class="kw">struct</span> <span class="ident">Utf8SingleCodeUnitWriter</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a><span class="op">&gt;</span> {
-    <span class="ident">str_consumer</span>: <span class="ident">S</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <span class="ident">Utf8SingleCodeUnitWriter</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="comment">// Because we expect all input to be valid utf-8 individual bytes, we can encode any buffer</span>
-        <span class="comment">// length</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">std::str::from_utf8</a>(<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#123">buf</a>).<span class="ident">expect</span>(<span class="string">&quot;Input must be valid UTF-8&quot;</span>);
-
-        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#123">self</a>.<span class="ident">str_consumer</span>.<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#98">consume</a>(<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#126">s</a>);
-
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/base64/write/encoder_string_writer.rs.html#123">buf</a>.<span class="ident">len</span>())
-    }
-
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// no op</span>
-        <span class="prelude-val">Ok</span>(())
+<span class="doccomment">/// Pushes the str onto the end of the String
+</span><span class="kw">impl </span><a href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#110">self</a>.push_str(<a href="../../../src/base64/write/encoder_string_writer.rs.html#110">buf</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encode_config_buf</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tests::random_config</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::write::encoder_string_writer::EncoderStringWriter</span>;
-    <span class="kw">use</span> <span class="ident">rand::Rng</span>;
-    <span class="kw">use</span> <span class="ident">std::io::Write</span>;
+<span class="doccomment">/// A `Write` that only can handle bytes that are valid single-byte UTF-8 code units.
+///
+/// This is safe because we only use it when writing base64, which is always valid UTF-8.
+</span><span class="kw">struct </span>Utf8SingleCodeUnitWriter&lt;S: <a href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a>&gt; {
+    str_consumer: S,
+}
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">every_possible_split_of_input</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">rand::thread_rng</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">orig_data</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="ident">::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">normal_encoded</span> <span class="op">=</span> <span class="ident">String::new</span>();
+<span class="kw">impl</span>&lt;S: <a href="../../../src/base64/write/encoder_string_writer.rs.html#96">StrConsumer</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for </span>Utf8SingleCodeUnitWriter&lt;S&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="comment">// Because we expect all input to be valid utf-8 individual bytes, we can encode any buffer
+        // length
+        </span><span class="kw">let </span>s = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">std::str::from_utf8</a>(<a href="../../../src/base64/write/encoder_string_writer.rs.html#123">buf</a>).expect(<span class="string">&quot;Input must be valid UTF-8&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">5_000</span>;
+        <a class="self" href="../../../src/base64/write/encoder_string_writer.rs.html#123">self</a>.str_consumer.<a href="../../../src/base64/write/encoder_string_writer.rs.html#98">consume</a>(<a href="../../../src/base64/write/encoder_string_writer.rs.html#126">s</a>);
 
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">size</span> {
-            <span class="ident">orig_data</span>.<span class="ident">clear</span>();
-            <span class="ident">normal_encoded</span>.<span class="ident">clear</span>();
+        <span class="prelude-val">Ok</span>(<a href="../../../src/base64/write/encoder_string_writer.rs.html#123">buf</a>.len())
+    }
 
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">size</span> {
-                <span class="ident">orig_data</span>.<span class="ident">push</span>(<span class="ident">rng</span>.<span class="ident">gen</span>());
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="comment">// no op
+        </span><span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::encode_config_buf;
+    <span class="kw">use </span><span class="kw">crate</span>::tests::random_config;
+    <span class="kw">use </span><span class="kw">crate</span>::write::encoder_string_writer::EncoderStringWriter;
+    <span class="kw">use </span>rand::Rng;
+    <span class="kw">use </span>std::io::Write;
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>every_possible_split_of_input() {
+        <span class="kw">let </span><span class="kw-2">mut </span>rng = rand::thread_rng();
+        <span class="kw">let </span><span class="kw-2">mut </span>orig_data = Vec::&lt;u8&gt;::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>normal_encoded = String::new();
+
+        <span class="kw">let </span>size = <span class="number">5_000</span>;
+
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..size {
+            orig_data.clear();
+            normal_encoded.clear();
+
+            <span class="kw">for _ in </span><span class="number">0</span>..size {
+                orig_data.push(rng.gen());
             }
 
-            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">random_config</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rng</span>);
-            <span class="ident">encode_config_buf</span>(<span class="kw-2">&amp;</span><span class="ident">orig_data</span>, <span class="ident">config</span>, <span class="kw-2">&amp;mut</span> <span class="ident">normal_encoded</span>);
+            <span class="kw">let </span>config = random_config(<span class="kw-2">&amp;mut </span>rng);
+            encode_config_buf(<span class="kw-2">&amp;</span>orig_data, config, <span class="kw-2">&amp;mut </span>normal_encoded);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream_encoder</span> <span class="op">=</span> <span class="ident">EncoderStringWriter::new</span>(<span class="ident">config</span>);
-            <span class="comment">// Write the first i bytes, then the rest</span>
-            <span class="ident">stream_encoder</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">orig_data</span>[<span class="number">0</span>..<span class="ident">i</span>]).<span class="ident">unwrap</span>();
-            <span class="ident">stream_encoder</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">orig_data</span>[<span class="ident">i</span>..]).<span class="ident">unwrap</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>stream_encoder = EncoderStringWriter::new(config);
+            <span class="comment">// Write the first i bytes, then the rest
+            </span>stream_encoder.write_all(<span class="kw-2">&amp;</span>orig_data[<span class="number">0</span>..i]).unwrap();
+            stream_encoder.write_all(<span class="kw-2">&amp;</span>orig_data[i..]).unwrap();
 
-            <span class="kw">let</span> <span class="ident">stream_encoded</span> <span class="op">=</span> <span class="ident">stream_encoder</span>.<span class="ident">into_inner</span>();
+            <span class="kw">let </span>stream_encoded = stream_encoder.into_inner();
 
-            <span class="macro">assert_eq!</span>(<span class="ident">normal_encoded</span>, <span class="ident">stream_encoded</span>);
+            <span class="macro">assert_eq!</span>(normal_encoded, stream_encoded);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="base64" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="base64" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

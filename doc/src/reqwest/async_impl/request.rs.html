@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/async_impl/request.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>request.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/async_impl/request.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>request.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1107,908 +1107,908 @@
 <span id="1107">1107</span>
 <span id="1108">1108</span>
 <span id="1109">1109</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../base64/write/encoder/struct.EncoderWriter.html">base64::write::EncoderWriter</a> <span class="kw">as</span> <span class="ident">Base64Encoder</span>;
-<span class="kw">use</span> <a class="ident" href="../../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;json&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../serde_json/index.html">serde_json</a>;
+<span class="kw">use </span><a href="../../../base64/write/encoder/struct.EncoderWriter.html">base64::write::EncoderWriter</a> <span class="kw">as </span>Base64Encoder;
+<span class="kw">use </span><a href="../../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../serde_json/index.html">serde_json</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17"><span class="kw">super</span>::body::Body</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::client</span>::{<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#59">Client</a>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1743-1748">Pending</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;multipart&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::multipart</span>;
-<span class="kw">use</span> <a class="ident" href="../../../src/reqwest/async_impl/response.rs.html#26"><span class="kw">super</span>::response::Response</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;multipart&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::header::CONTENT_LENGTH</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::header</span>::{<a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, <a class="ident" href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a>, <a class="ident" href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>, <a class="ident" href="../../../reqwest/header/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../reqwest/struct.Method.html">Method</a>, <a class="ident" href="../../../reqwest/struct.Url.html">Url</a>};
-<span class="kw">use</span> <span class="ident">http</span>::{<a class="ident" href="../../../http/request/struct.Parts.html">request::Parts</a>, <a class="ident" href="../../../http/request/struct.Request.html">Request</a> <span class="kw">as</span> <span class="ident">HttpRequest</span>, <a class="ident" href="../../../reqwest/struct.Version.html">Version</a>};
+<span class="kw">use </span><a href="../../../src/reqwest/async_impl/body.rs.html#17"><span class="kw">super</span>::body::Body</a>;
+<span class="kw">use </span><span class="kw">super</span>::client::{<a href="../../../src/reqwest/async_impl/client.rs.html#59">Client</a>, <a href="../../../src/reqwest/async_impl/client.rs.html#1743-1748">Pending</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">super</span>::multipart;
+<span class="kw">use </span><a href="../../../src/reqwest/async_impl/response.rs.html#26"><span class="kw">super</span>::response::Response</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::header::CONTENT_LENGTH;
+<span class="kw">use </span><span class="kw">crate</span>::header::{<a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a>, <a href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>, <a href="../../../reqwest/header/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>};
+<span class="kw">use crate</span>::{<a href="../../../reqwest/struct.Method.html">Method</a>, <a href="../../../reqwest/struct.Url.html">Url</a>};
+<span class="kw">use </span>http::{<a href="../../../http/request/struct.Parts.html">request::Parts</a>, <a href="../../../http/request/struct.Request.html">Request</a> <span class="kw">as </span>HttpRequest, <a href="../../../reqwest/struct.Version.html">Version</a>};
 
-<span class="doccomment">/// A request which can be executed with `Client::execute()`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Request</span> {
-    <span class="ident">method</span>: <a class="ident" href="../../../reqwest/struct.Method.html">Method</a>,
-    <span class="ident">url</span>: <a class="ident" href="../../../reqwest/struct.Url.html">Url</a>,
-    <span class="ident">headers</span>: <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>,
-    <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a><span class="op">&gt;</span>,
-    <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
-    <span class="ident">version</span>: <a class="ident" href="../../../reqwest/struct.Version.html">Version</a>,
+<span class="doccomment">/// A request which can be executed with `Client::execute()`.
+</span><span class="kw">pub struct </span>Request {
+    method: <a href="../../../reqwest/struct.Method.html">Method</a>,
+    url: <a href="../../../reqwest/struct.Url.html">Url</a>,
+    headers: <a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>,
+    body: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a>&gt;,
+    timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
+    version: <a href="../../../reqwest/struct.Version.html">Version</a>,
 }
 
-<span class="doccomment">/// A builder to construct the properties of a `Request`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To construct a `RequestBuilder`, refer to the `Client` documentation.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;RequestBuilder does nothing until you &#39;send&#39; it&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RequestBuilder</span> {
-    <span class="ident">client</span>: <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#59">Client</a>,
-    <span class="ident">request</span>: <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A builder to construct the properties of a `Request`.
+///
+/// To construct a `RequestBuilder`, refer to the `Client` documentation.
+</span><span class="attribute">#[must_use = <span class="string">&quot;RequestBuilder does nothing until you &#39;send&#39; it&quot;</span>]
+</span><span class="kw">pub struct </span>RequestBuilder {
+    client: <a href="../../../src/reqwest/async_impl/client.rs.html#59">Client</a>,
+    request: <span class="kw">crate</span>::Result&lt;<a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
-    <span class="doccomment">/// Constructs a new request.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">method</span>: <a class="ident" href="../../../reqwest/struct.Method.html">Method</a>, <span class="ident">url</span>: <a class="ident" href="../../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#45">method</a>,
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#45">url</a>,
-            <span class="ident">headers</span>: <span class="ident">HeaderMap::new</span>(),
-            <span class="ident">body</span>: <span class="prelude-val">None</span>,
-            <span class="ident">timeout</span>: <span class="prelude-val">None</span>,
-            <span class="ident">version</span>: <span class="ident">Version::default</span>(),
+<span class="kw">impl </span><a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
+    <span class="doccomment">/// Constructs a new request.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(method: <a href="../../../reqwest/struct.Method.html">Method</a>, url: <a href="../../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
+            <a href="../../../src/reqwest/async_impl/request.rs.html#45">method</a>,
+            <a href="../../../src/reqwest/async_impl/request.rs.html#45">url</a>,
+            headers: HeaderMap::new(),
+            body: <span class="prelude-val">None</span>,
+            timeout: <span class="prelude-val">None</span>,
+            version: Version::default(),
         }
     }
 
-    <span class="doccomment">/// Get the method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../reqwest/struct.Method.html">Method</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#58">self</a>.<span class="ident">method</span>
+    <span class="doccomment">/// Get the method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../reqwest/struct.Method.html">Method</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#58">self</a>.method
     }
 
-    <span class="doccomment">/// Get a mutable reference to the method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../reqwest/struct.Method.html">Method</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#64">self</a>.<span class="ident">method</span>
+    <span class="doccomment">/// Get a mutable reference to the method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>method_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../reqwest/struct.Method.html">Method</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#64">self</a>.method
     }
 
-    <span class="doccomment">/// Get the url.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">url</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../reqwest/struct.Url.html">Url</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#70">self</a>.<span class="ident">url</span>
+    <span class="doccomment">/// Get the url.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../reqwest/struct.Url.html">Url</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#70">self</a>.url
     }
 
-    <span class="doccomment">/// Get a mutable reference to the url.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">url_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../reqwest/struct.Url.html">Url</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#76">self</a>.<span class="ident">url</span>
+    <span class="doccomment">/// Get a mutable reference to the url.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>url_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../reqwest/struct.Url.html">Url</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#76">self</a>.url
     }
 
-    <span class="doccomment">/// Get the headers.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#82">self</a>.<span class="ident">headers</span>
+    <span class="doccomment">/// Get the headers.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>headers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#82">self</a>.headers
     }
 
-    <span class="doccomment">/// Get a mutable reference to the headers.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#88">self</a>.<span class="ident">headers</span>
+    <span class="doccomment">/// Get a mutable reference to the headers.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>headers_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#88">self</a>.headers
     }
 
-    <span class="doccomment">/// Get the body.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#94">self</a>.<span class="ident">body</span>.<span class="ident">as_ref</span>()
+    <span class="doccomment">/// Get the body.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a>&gt; {
+        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#94">self</a>.body.as_ref()
     }
 
-    <span class="doccomment">/// Get a mutable reference to the body.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#100">self</a>.<span class="ident">body</span>
+    <span class="doccomment">/// Get a mutable reference to the body.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>body_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a>&gt; {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#100">self</a>.body
     }
 
-    <span class="doccomment">/// Get the timeout.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timeout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#106">self</a>.<span class="ident">timeout</span>.<span class="ident">as_ref</span>()
+    <span class="doccomment">/// Get the timeout.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>timeout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
+        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#106">self</a>.timeout.as_ref()
     }
 
-    <span class="doccomment">/// Get a mutable reference to the timeout.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timeout_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#112">self</a>.<span class="ident">timeout</span>
+    <span class="doccomment">/// Get a mutable reference to the timeout.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>timeout_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#112">self</a>.timeout
     }
 
-    <span class="doccomment">/// Get the http version.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../reqwest/struct.Version.html">Version</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#118">self</a>.<span class="ident">version</span>
+    <span class="doccomment">/// Get the http version.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../reqwest/struct.Version.html">Version</a> {
+        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#118">self</a>.version
     }
 
-    <span class="doccomment">/// Get a mutable reference to the http version.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../reqwest/struct.Version.html">Version</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#124">self</a>.<span class="ident">version</span>
+    <span class="doccomment">/// Get a mutable reference to the http version.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>version_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../reqwest/struct.Version.html">Version</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#124">self</a>.version
     }
 
-    <span class="doccomment">/// Attempt to clone the request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `None` is returned if the request can not be cloned, i.e. if the body is a stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<span class="ident">body</span>.<span class="ident">as_ref</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">body</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">body</span>.<span class="ident">try_clone</span>()<span class="question-mark">?</span>),
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Attempt to clone the request.
+    ///
+    /// `None` is returned if the request can not be cloned, i.e. if the body is a stream.
+    </span><span class="kw">pub fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>&gt; {
+        <span class="kw">let </span>body = <span class="kw">match </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.body.as_ref() {
+            <span class="prelude-val">Some</span>(body) =&gt; <span class="prelude-val">Some</span>(body.try_clone()<span class="question-mark">?</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">Request::new</span>(<a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#58">method</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#70">url</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw-2">*</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#112">timeout_mut</a>() <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#106">timeout</a>().<span class="ident">cloned</span>();
-        <span class="kw-2">*</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>() <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#82">headers</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw-2">*</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#124">version_mut</a>() <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#118">version</a>();
-        <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>.<span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#132">body</a>;
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>req = Request::new(<a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#58">method</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#70">url</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw-2">*</span><a href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#112">timeout_mut</a>() = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#106">timeout</a>().cloned();
+        <span class="kw-2">*</span><a href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>() = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#82">headers</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw-2">*</span><a href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#124">version_mut</a>() = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#131">self</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#118">version</a>();
+        <a href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>.body = <a href="../../../src/reqwest/async_impl/request.rs.html#132">body</a>;
+        <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#136">req</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">pieces</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pieces(
         <span class="self">self</span>,
     ) -&gt; (
-        <a class="ident" href="../../../reqwest/struct.Method.html">Method</a>,
-        <a class="ident" href="../../../reqwest/struct.Url.html">Url</a>,
-        <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>,
-        <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a><span class="op">&gt;</span>,
-        <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../../reqwest/struct.Version.html">Version</a>,
+        <a href="../../../reqwest/struct.Method.html">Method</a>,
+        <a href="../../../reqwest/struct.Url.html">Url</a>,
+        <a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>,
+        <span class="prelude-ty">Option</span>&lt;<a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a>&gt;,
+        <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
+        <a href="../../../reqwest/struct.Version.html">Version</a>,
     ) {
         (
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.<span class="ident">method</span>,
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.<span class="ident">url</span>,
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.<span class="ident">headers</span>,
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.<span class="ident">body</span>,
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.<span class="ident">timeout</span>,
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.<span class="ident">version</span>,
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.method,
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.url,
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.headers,
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.body,
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.timeout,
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#145">self</a>.version,
         )
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">client</span>: <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#59">Client</a>, <span class="ident">request</span>: <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> { <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#166">client</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#166">request</a> };
+<span class="kw">impl </span><a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(client: <a href="../../../src/reqwest/async_impl/client.rs.html#59">Client</a>, request: <span class="kw">crate</span>::Result&lt;<a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>&gt;) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> { <a href="../../../src/reqwest/async_impl/request.rs.html#166">client</a>, <a href="../../../src/reqwest/async_impl/request.rs.html#166">request</a> };
 
-        <span class="kw">let</span> <span class="ident">auth</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#167">builder</a>
-            .<span class="ident">request</span>
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">ok</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">req</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#564">extract_authority</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#173">req</a>.<span class="ident">url</span>));
+        <span class="kw">let </span>auth = <a href="../../../src/reqwest/async_impl/request.rs.html#167">builder</a>
+            .request
+            .as_mut()
+            .ok()
+            .and_then(|req| <a href="../../../src/reqwest/async_impl/request.rs.html#564">extract_authority</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/reqwest/async_impl/request.rs.html#173">req</a>.url));
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">username</span>, <span class="ident">password</span>)) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#169">auth</a> {
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#167">builder</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#249-252">basic_auth</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#175">username</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#175">password</a>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#167">builder</a>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((username, password)) = <a href="../../../src/reqwest/async_impl/request.rs.html#169">auth</a> {
+            <a href="../../../src/reqwest/async_impl/request.rs.html#167">builder</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#249-252">basic_auth</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#175">username</a>, <a href="../../../src/reqwest/async_impl/request.rs.html#175">password</a>)
+        } <span class="kw">else </span>{
+            <a href="../../../src/reqwest/async_impl/request.rs.html#167">builder</a>
         }
     }
 
-    <span class="doccomment">/// Add a `Header` to this Request.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a `Header` to this Request.
+    </span><span class="kw">pub fn </span>header&lt;K, V&gt;(<span class="self">self</span>, key: K, value: V) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>
+    <span class="kw">where
+        </span><a href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
+        &lt;<a href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
+        <a href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
+        &lt;<a href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
     {
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#183">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#194-199">header_sensitive</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#183">key</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#183">value</a>, <span class="bool-val">false</span>)
+        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#183">self</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#194-199">header_sensitive</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#183">key</a>, <a href="../../../src/reqwest/async_impl/request.rs.html#183">value</a>, <span class="bool-val">false</span>)
     }
 
-    <span class="doccomment">/// Add a `Header` to this Request with ability to define if header_value is sensitive.</span>
-    <span class="kw">fn</span> <span class="ident">header_sensitive</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>, <span class="ident">sensitive</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>
-    <span class="kw">where</span>
-        <a class="ident" href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
-        <a class="ident" href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
-        <span class="op">&lt;</span><a class="ident" href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a `Header` to this Request with ability to define if header_value is sensitive.
+    </span><span class="kw">fn </span>header_sensitive&lt;K, V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, key: K, value: V, sensitive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>
+    <span class="kw">where
+        </span><a href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
+        &lt;<a href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
+        <a href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
+        &lt;<a href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#194">self</a>.<span class="ident">request</span> {
-            <span class="kw">match</span> <span class="op">&lt;</span><a class="ident" href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#194">key</a>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">key</span>) =&gt; <span class="kw">match</span> <span class="op">&lt;</span><a class="ident" href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#194">value</a>) {
-                    <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">value</span>) =&gt; {
-                        <span class="comment">// We want to potentially make an unsensitive header</span>
-                        <span class="comment">// to be sensitive, not the reverse. So, don&#39;t turn off</span>
-                        <span class="comment">// a previously sensitive header.</span>
-                        <span class="kw">if</span> <span class="ident">sensitive</span> {
-                            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#205">value</a>.<span class="ident">set_sensitive</span>(<span class="bool-val">true</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>error = <span class="prelude-val">None</span>;
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#194">self</a>.request {
+            <span class="kw">match </span>&lt;<a href="../../../reqwest/header/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(<a href="../../../src/reqwest/async_impl/request.rs.html#194">key</a>) {
+                <span class="prelude-val">Ok</span>(key) =&gt; <span class="kw">match </span>&lt;<a href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(<a href="../../../src/reqwest/async_impl/request.rs.html#194">value</a>) {
+                    <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>value) =&gt; {
+                        <span class="comment">// We want to potentially make an unsensitive header
+                        // to be sensitive, not the reverse. So, don&#39;t turn off
+                        // a previously sensitive header.
+                        </span><span class="kw">if </span>sensitive {
+                            <a href="../../../src/reqwest/async_impl/request.rs.html#205">value</a>.set_sensitive(<span class="bool-val">true</span>);
                         }
-                        <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#202">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>().<span class="ident">append</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#204">key</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#205">value</a>);
+                        <a href="../../../src/reqwest/async_impl/request.rs.html#202">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>().append(<a href="../../../src/reqwest/async_impl/request.rs.html#204">key</a>, <a href="../../../src/reqwest/async_impl/request.rs.html#205">value</a>);
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#201">error</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#214">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+                    <span class="prelude-val">Err</span>(e) =&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#201">error</a> = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#214">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#201">error</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#216">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+                <span class="prelude-val">Err</span>(e) =&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#201">error</a> = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#216">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
             };
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#201">error</a> {
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#194">self</a>.<span class="ident">request</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#219">err</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <a href="../../../src/reqwest/async_impl/request.rs.html#201">error</a> {
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#194">self</a>.request = <span class="prelude-val">Err</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#219">err</a>);
         }
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#194">self</a>
-    }
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#194">self</a>
+    </span>}
 
-    <span class="doccomment">/// Add a set of Headers to the existing ones on this Request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The headers will be merged in to any already set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">headers</span>: <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html"><span class="kw">crate</span>::header::HeaderMap</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#228">self</a>.<span class="ident">request</span> {
-            <a class="ident" href="../../../src/reqwest/util.rs.html#40"><span class="kw">crate</span>::util::replace_headers</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#229">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>(), <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#228">headers</a>);
+    <span class="doccomment">/// Add a set of Headers to the existing ones on this Request.
+    ///
+    /// The headers will be merged in to any already set.
+    </span><span class="kw">pub fn </span>headers(<span class="kw-2">mut </span><span class="self">self</span>, headers: <a href="../../../reqwest/header/struct.HeaderMap.html"><span class="kw">crate</span>::header::HeaderMap</a>) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#228">self</a>.request {
+            <a href="../../../src/reqwest/util.rs.html#40"><span class="kw">crate</span>::util::replace_headers</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#229">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>(), <a href="../../../src/reqwest/async_impl/request.rs.html#228">headers</a>);
         }
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#228">self</a>
-    }
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#228">self</a>
+    </span>}
 
-    <span class="doccomment">/// Enable HTTP basic authentication.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use reqwest::Error;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn run() -&gt; Result&lt;(), Error&gt; {</span>
-    <span class="doccomment">/// let client = reqwest::Client::new();</span>
-    <span class="doccomment">/// let resp = client.delete(&quot;http://httpbin.org/delete&quot;)</span>
-    <span class="doccomment">///     .basic_auth(&quot;admin&quot;, Some(&quot;good password&quot;))</span>
-    <span class="doccomment">///     .send()</span>
-    <span class="doccomment">///     .await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">basic_auth</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">username</span>: <span class="ident">U</span>, <span class="ident">password</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">U</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
-        <span class="ident">P</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
+    <span class="doccomment">/// Enable HTTP basic authentication.
+    ///
+    /// ```rust
+    /// # use reqwest::Error;
+    ///
+    /// # async fn run() -&gt; Result&lt;(), Error&gt; {
+    /// let client = reqwest::Client::new();
+    /// let resp = client.delete(&quot;http://httpbin.org/delete&quot;)
+    ///     .basic_auth(&quot;admin&quot;, Some(&quot;good password&quot;))
+    ///     .send()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>basic_auth&lt;U, P&gt;(<span class="self">self</span>, username: U, password: <span class="prelude-ty">Option</span>&lt;P&gt;) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>
+    <span class="kw">where
+        </span>U: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
+        P: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header_value</span> <span class="op">=</span> <span class="string">b&quot;Basic &quot;</span>.<span class="ident">to_vec</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>header_value = <span class="string">b&quot;Basic &quot;</span>.to_vec();
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">Base64Encoder::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#254">header_value</a>, <span class="ident">base64::STANDARD</span>);
-            <span class="comment">// The unwraps here are fine because Vec::write* is infallible.</span>
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#256">encoder</a>, <span class="string">&quot;{}:&quot;</span>, <span class="ident">username</span>).<span class="ident">unwrap</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">password</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#249">password</a> {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#256">encoder</a>, <span class="string">&quot;{}&quot;</span>, <span class="ident">password</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>encoder = Base64Encoder::new(<span class="kw-2">&amp;mut </span><a href="../../../src/reqwest/async_impl/request.rs.html#254">header_value</a>, base64::STANDARD);
+            <span class="comment">// The unwraps here are fine because Vec::write* is infallible.
+            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#256">encoder</a>, <span class="string">&quot;{}:&quot;</span>, username).unwrap();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(password) = <a href="../../../src/reqwest/async_impl/request.rs.html#249">password</a> {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#256">encoder</a>, <span class="string">&quot;{}&quot;</span>, password).unwrap();
             }
         }
 
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#249">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#194-199">header_sensitive</a>(<a class="ident" href="../../../reqwest/header/constant.AUTHORIZATION.html"><span class="kw">crate</span>::header::AUTHORIZATION</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#254">header_value</a>, <span class="bool-val">true</span>)
+        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#249">self</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#194-199">header_sensitive</a>(<a href="../../../reqwest/header/constant.AUTHORIZATION.html"><span class="kw">crate</span>::header::AUTHORIZATION</a>, <a href="../../../src/reqwest/async_impl/request.rs.html#254">header_value</a>, <span class="bool-val">true</span>)
     }
 
-    <span class="doccomment">/// Enable HTTP bearer authentication.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bearer_auth</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">token</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
+    <span class="doccomment">/// Enable HTTP bearer authentication.
+    </span><span class="kw">pub fn </span>bearer_auth&lt;T&gt;(<span class="self">self</span>, token: T) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>,
     {
-        <span class="kw">let</span> <span class="ident">header_value</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Bearer {}&quot;</span>, <span class="ident">token</span>);
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#268">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#194-199">header_sensitive</a>(<a class="ident" href="../../../reqwest/header/constant.AUTHORIZATION.html"><span class="kw">crate</span>::header::AUTHORIZATION</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#272">header_value</a>, <span class="bool-val">true</span>)
+        <span class="kw">let </span>header_value = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Bearer {}&quot;</span>, token);
+        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#268">self</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#194-199">header_sensitive</a>(<a href="../../../reqwest/header/constant.AUTHORIZATION.html"><span class="kw">crate</span>::header::AUTHORIZATION</a>, <a href="../../../src/reqwest/async_impl/request.rs.html#272">header_value</a>, <span class="bool-val">true</span>)
     }
 
-    <span class="doccomment">/// Set the request body.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">body</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#277">self</a>.<span class="ident">request</span> {
-            <span class="kw-2">*</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#278">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#100">body_mut</a>() <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#277">body</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+    <span class="doccomment">/// Set the request body.
+    </span><span class="kw">pub fn </span>body&lt;T: Into&lt;<a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a>&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, body: T) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#277">self</a>.request {
+            <span class="kw-2">*</span><a href="../../../src/reqwest/async_impl/request.rs.html#278">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#100">body_mut</a>() = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#277">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#277">self</a>
-    }
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#277">self</a>
+    </span>}
 
-    <span class="doccomment">/// Enables a request timeout.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The timeout is applied from when the request starts connecting until the</span>
-    <span class="doccomment">/// response body has finished. It affects only this request and overrides</span>
-    <span class="doccomment">/// the timeout configured using `ClientBuilder::timeout()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timeout</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#289">self</a>.<span class="ident">request</span> {
-            <span class="kw-2">*</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#290">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#112">timeout_mut</a>() <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#289">timeout</a>);
+    <span class="doccomment">/// Enables a request timeout.
+    ///
+    /// The timeout is applied from when the request starts connecting until the
+    /// response body has finished. It affects only this request and overrides
+    /// the timeout configured using `ClientBuilder::timeout()`.
+    </span><span class="kw">pub fn </span>timeout(<span class="kw-2">mut </span><span class="self">self</span>, timeout: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#289">self</a>.request {
+            <span class="kw-2">*</span><a href="../../../src/reqwest/async_impl/request.rs.html#290">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#112">timeout_mut</a>() = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#289">timeout</a>);
         }
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#289">self</a>
-    }
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#289">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sends a multipart/form-data body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use reqwest::Error;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn run() -&gt; Result&lt;(), Error&gt; {</span>
-    <span class="doccomment">/// let client = reqwest::Client::new();</span>
-    <span class="doccomment">/// let form = reqwest::multipart::Form::new()</span>
-    <span class="doccomment">///     .text(&quot;key3&quot;, &quot;value3&quot;)</span>
-    <span class="doccomment">///     .text(&quot;key4&quot;, &quot;value4&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let response = client.post(&quot;your url&quot;)</span>
-    <span class="doccomment">///     .multipart(form)</span>
-    <span class="doccomment">///     .send()</span>
-    <span class="doccomment">///     .await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;multipart&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;multipart&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multipart</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">multipart</span>: <span class="ident">multipart::Form</span>) -&gt; <span class="ident">RequestBuilder</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>(
-            <span class="ident">CONTENT_TYPE</span>,
-            <span class="macro">format!</span>(<span class="string">&quot;multipart/form-data; boundary={}&quot;</span>, <span class="ident">multipart</span>.<span class="ident">boundary</span>()).<span class="ident">as_str</span>(),
+    <span class="doccomment">/// Sends a multipart/form-data body.
+    ///
+    /// ```
+    /// # use reqwest::Error;
+    ///
+    /// # async fn run() -&gt; Result&lt;(), Error&gt; {
+    /// let client = reqwest::Client::new();
+    /// let form = reqwest::multipart::Form::new()
+    ///     .text(&quot;key3&quot;, &quot;value3&quot;)
+    ///     .text(&quot;key4&quot;, &quot;value4&quot;);
+    ///
+    ///
+    /// let response = client.post(&quot;your url&quot;)
+    ///     .multipart(form)
+    ///     .send()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;multipart&quot;</span>)))]
+    </span><span class="kw">pub fn </span>multipart(<span class="self">self</span>, <span class="kw-2">mut </span>multipart: multipart::Form) -&gt; RequestBuilder {
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="self">self</span>.header(
+            CONTENT_TYPE,
+            <span class="macro">format!</span>(<span class="string">&quot;multipart/form-data; boundary={}&quot;</span>, multipart.boundary()).as_str(),
         );
 
-        <span class="ident">builder</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">multipart</span>.<span class="ident">compute_length</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">length</span>) =&gt; <span class="ident">builder</span>.<span class="ident">header</span>(<span class="ident">CONTENT_LENGTH</span>, <span class="ident">length</span>),
-            <span class="prelude-val">None</span> =&gt; <span class="ident">builder</span>,
+        builder = <span class="kw">match </span>multipart.compute_length() {
+            <span class="prelude-val">Some</span>(length) =&gt; builder.header(CONTENT_LENGTH, length),
+            <span class="prelude-val">None </span>=&gt; builder,
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">request</span> {
-            <span class="kw-2">*</span><span class="ident">req</span>.<span class="ident">body_mut</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">multipart</span>.<span class="ident">stream</span>())
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = builder.request {
+            <span class="kw-2">*</span>req.body_mut() = <span class="prelude-val">Some</span>(multipart.stream())
         }
-        <span class="ident">builder</span>
+        builder
     }
 
-    <span class="doccomment">/// Modify the query string of the URL.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Modifies the URL of this request, adding the parameters provided.</span>
-    <span class="doccomment">/// This method appends and does not overwrite. This means that it can</span>
-    <span class="doccomment">/// be called multiple times and that existing query parameters are not</span>
-    <span class="doccomment">/// overwritten if the same key is used. The key will simply show up</span>
-    <span class="doccomment">/// twice in the query string.</span>
-    <span class="doccomment">/// Calling `.query(&amp;[(&quot;foo&quot;, &quot;a&quot;), (&quot;foo&quot;, &quot;b&quot;)])` gives `&quot;foo=a&amp;foo=b&quot;`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">/// This method does not support serializing a single key-value</span>
-    <span class="doccomment">/// pair. Instead of using `.query((&quot;key&quot;, &quot;val&quot;))`, use a sequence, such</span>
-    <span class="doccomment">/// as `.query(&amp;[(&quot;key&quot;, &quot;val&quot;)])`. It&#39;s also possible to serialize structs</span>
-    <span class="doccomment">/// and maps into a key-value pair.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">/// This method will fail if the object you provide cannot be serialized</span>
-    <span class="doccomment">/// into a query string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">query</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#352">self</a>.<span class="ident">request</span> {
-            <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#354">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#76">url_mut</a>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pairs</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#355">url</a>.<span class="ident">query_pairs_mut</span>();
-            <span class="kw">let</span> <span class="ident">serializer</span> <span class="op">=</span> <span class="ident">serde_urlencoded::Serializer::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#356">pairs</a>);
+    <span class="doccomment">/// Modify the query string of the URL.
+    ///
+    /// Modifies the URL of this request, adding the parameters provided.
+    /// This method appends and does not overwrite. This means that it can
+    /// be called multiple times and that existing query parameters are not
+    /// overwritten if the same key is used. The key will simply show up
+    /// twice in the query string.
+    /// Calling `.query(&amp;[(&quot;foo&quot;, &quot;a&quot;), (&quot;foo&quot;, &quot;b&quot;)])` gives `&quot;foo=a&amp;foo=b&quot;`.
+    ///
+    /// # Note
+    /// This method does not support serializing a single key-value
+    /// pair. Instead of using `.query((&quot;key&quot;, &quot;val&quot;))`, use a sequence, such
+    /// as `.query(&amp;[(&quot;key&quot;, &quot;val&quot;)])`. It&#39;s also possible to serialize structs
+    /// and maps into a key-value pair.
+    ///
+    /// # Errors
+    /// This method will fail if the object you provide cannot be serialized
+    /// into a query string.
+    </span><span class="kw">pub fn </span>query&lt;T: <a href="../../../serde/ser/trait.Serialize.html">Serialize</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, query: <span class="kw-2">&amp;</span>T) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>error = <span class="prelude-val">None</span>;
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#352">self</a>.request {
+            <span class="kw">let </span>url = <a href="../../../src/reqwest/async_impl/request.rs.html#354">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#76">url_mut</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>pairs = <a href="../../../src/reqwest/async_impl/request.rs.html#355">url</a>.query_pairs_mut();
+            <span class="kw">let </span>serializer = serde_urlencoded::Serializer::new(<span class="kw-2">&amp;mut </span><a href="../../../src/reqwest/async_impl/request.rs.html#356">pairs</a>);
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#352">query</a>.<a class="ident" href="../../../serde/ser/trait.Serialize.html">serialize</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#357">serializer</a>) {
-                <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#353">error</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#359">err</a>));
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a href="../../../src/reqwest/async_impl/request.rs.html#352">query</a>.<a href="../../../serde/ser/trait.Serialize.html">serialize</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#357">serializer</a>) {
+                <a href="../../../src/reqwest/async_impl/request.rs.html#353">error</a> = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#359">err</a>));
             }
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#352">self</a>.<span class="ident">request</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#363">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#70">url</a>().<span class="ident">query</span>() {
-                <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#363">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#76">url_mut</a>().<span class="ident">set_query</span>(<span class="prelude-val">None</span>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#352">self</a>.request {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) = <a href="../../../src/reqwest/async_impl/request.rs.html#363">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#70">url</a>().query() {
+                <a href="../../../src/reqwest/async_impl/request.rs.html#363">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#76">url_mut</a>().set_query(<span class="prelude-val">None</span>);
             }
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#353">error</a> {
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#352">self</a>.<span class="ident">request</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#368">err</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <a href="../../../src/reqwest/async_impl/request.rs.html#353">error</a> {
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#352">self</a>.request = <span class="prelude-val">Err</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#368">err</a>);
         }
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#352">self</a>
-    }
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#352">self</a>
+    </span>}
 
-    <span class="doccomment">/// Set HTTP version</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">version</span>: <a class="ident" href="../../../reqwest/struct.Version.html">Version</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#375">self</a>.<span class="ident">request</span> {
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#376">req</a>.<span class="ident">version</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#375">version</a>;
+    <span class="doccomment">/// Set HTTP version
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">mut </span><span class="self">self</span>, version: <a href="../../../reqwest/struct.Version.html">Version</a>) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#375">self</a>.request {
+            <a href="../../../src/reqwest/async_impl/request.rs.html#376">req</a>.version = <a href="../../../src/reqwest/async_impl/request.rs.html#375">version</a>;
         }
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#375">self</a>
-    }
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#375">self</a>
+    </span>}
 
-    <span class="doccomment">/// Send a form body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Sets the body to the url encoded serialization of the passed value,</span>
-    <span class="doccomment">/// and also sets the `Content-Type: application/x-www-form-urlencoded`</span>
-    <span class="doccomment">/// header.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use reqwest::Error;</span>
-    <span class="doccomment">/// # use std::collections::HashMap;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # async fn run() -&gt; Result&lt;(), Error&gt; {</span>
-    <span class="doccomment">/// let mut params = HashMap::new();</span>
-    <span class="doccomment">/// params.insert(&quot;lang&quot;, &quot;rust&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let client = reqwest::Client::new();</span>
-    <span class="doccomment">/// let res = client.post(&quot;http://httpbin.org&quot;)</span>
-    <span class="doccomment">///     .form(&amp;params)</span>
-    <span class="doccomment">///     .send()</span>
-    <span class="doccomment">///     .await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method fails if the passed value cannot be serialized into</span>
-    <span class="doccomment">/// url encoded format</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">form</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">form</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#409">self</a>.<span class="ident">request</span> {
-            <span class="kw">match</span> <span class="ident">serde_urlencoded::to_string</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#409">form</a>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">body</span>) =&gt; {
-                    <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#411">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>().<span class="ident">insert</span>(
-                        <a class="ident" href="../../../reqwest/header/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
-                        <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;application/x-www-form-urlencoded&quot;</span>),
+    <span class="doccomment">/// Send a form body.
+    ///
+    /// Sets the body to the url encoded serialization of the passed value,
+    /// and also sets the `Content-Type: application/x-www-form-urlencoded`
+    /// header.
+    ///
+    /// ```rust
+    /// # use reqwest::Error;
+    /// # use std::collections::HashMap;
+    /// #
+    /// # async fn run() -&gt; Result&lt;(), Error&gt; {
+    /// let mut params = HashMap::new();
+    /// params.insert(&quot;lang&quot;, &quot;rust&quot;);
+    ///
+    /// let client = reqwest::Client::new();
+    /// let res = client.post(&quot;http://httpbin.org&quot;)
+    ///     .form(&amp;params)
+    ///     .send()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// This method fails if the passed value cannot be serialized into
+    /// url encoded format
+    </span><span class="kw">pub fn </span>form&lt;T: <a href="../../../serde/ser/trait.Serialize.html">Serialize</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, form: <span class="kw-2">&amp;</span>T) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>error = <span class="prelude-val">None</span>;
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#409">self</a>.request {
+            <span class="kw">match </span>serde_urlencoded::to_string(<a href="../../../src/reqwest/async_impl/request.rs.html#409">form</a>) {
+                <span class="prelude-val">Ok</span>(body) =&gt; {
+                    <a href="../../../src/reqwest/async_impl/request.rs.html#411">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>().insert(
+                        <a href="../../../reqwest/header/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
+                        HeaderValue::from_static(<span class="string">&quot;application/x-www-form-urlencoded&quot;</span>),
                     );
-                    <span class="kw-2">*</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#411">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#100">body_mut</a>() <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#413">body</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                    <span class="kw-2">*</span><a href="../../../src/reqwest/async_impl/request.rs.html#411">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#100">body_mut</a>() = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#413">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#410">error</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#420">err</a>)),
+                <span class="prelude-val">Err</span>(err) =&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#410">error</a> = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#420">err</a>)),
             }
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#410">error</a> {
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#409">self</a>.<span class="ident">request</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#423">err</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <a href="../../../src/reqwest/async_impl/request.rs.html#410">error</a> {
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#409">self</a>.request = <span class="prelude-val">Err</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#423">err</a>);
         }
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#409">self</a>
-    }
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#409">self</a>
+    </span>}
 
-    <span class="doccomment">/// Send a JSON body.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Optional</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires the optional `json` feature enabled.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Serialization can fail if `T`&#39;s implementation of `Serialize` decides to</span>
-    <span class="doccomment">/// fail, or if `T` contains a map with non-string keys.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;json&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;json&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">json</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">json</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">req</span>) <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#441">self</a>.<span class="ident">request</span> {
-            <span class="kw">match</span> <span class="ident">serde_json::to_vec</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#441">json</a>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">body</span>) =&gt; {
-                    <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#443">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>()
-                        .<span class="ident">insert</span>(<a class="ident" href="../../../reqwest/header/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;application/json&quot;</span>));
-                    <span class="kw-2">*</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#443">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#100">body_mut</a>() <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#445">body</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+    <span class="doccomment">/// Send a JSON body.
+    ///
+    /// # Optional
+    ///
+    /// This requires the optional `json` feature enabled.
+    ///
+    /// # Errors
+    ///
+    /// Serialization can fail if `T`&#39;s implementation of `Serialize` decides to
+    /// fail, or if `T` contains a map with non-string keys.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;json&quot;</span>)))]
+    </span><span class="kw">pub fn </span>json&lt;T: <a href="../../../serde/ser/trait.Serialize.html">Serialize</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, json: <span class="kw-2">&amp;</span>T) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>error = <span class="prelude-val">None</span>;
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#441">self</a>.request {
+            <span class="kw">match </span>serde_json::to_vec(<a href="../../../src/reqwest/async_impl/request.rs.html#441">json</a>) {
+                <span class="prelude-val">Ok</span>(body) =&gt; {
+                    <a href="../../../src/reqwest/async_impl/request.rs.html#443">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#88">headers_mut</a>()
+                        .insert(<a href="../../../reqwest/header/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>, HeaderValue::from_static(<span class="string">&quot;application/json&quot;</span>));
+                    <span class="kw-2">*</span><a href="../../../src/reqwest/async_impl/request.rs.html#443">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#100">body_mut</a>() = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#445">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#442">error</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#450">err</a>)),
+                <span class="prelude-val">Err</span>(err) =&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#442">error</a> = <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#450">err</a>)),
             }
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#442">error</a> {
-            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#441">self</a>.<span class="ident">request</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#453">err</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <a href="../../../src/reqwest/async_impl/request.rs.html#442">error</a> {
+            <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#441">self</a>.request = <span class="prelude-val">Err</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#453">err</a>);
         }
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#441">self</a>
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#441">self</a>
+    </span>}
+
+    <span class="doccomment">/// Disable CORS on fetching the request.
+    ///
+    /// # WASM
+    ///
+    /// This option is only effective with WebAssembly target.
+    ///
+    /// The [request mode][mdn] will be set to &#39;no-cors&#39;.
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/mode
+    </span><span class="kw">pub fn </span>fetch_mode_no_cors(<span class="self">self</span>) -&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+        <span class="self"><a href="../../../src/reqwest/async_impl/request.rs.html#468">self</a>
+    </span>}
+
+    <span class="doccomment">/// Build a `Request`, which can be inspected, modified and executed with
+    /// `Client::execute()`.
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>&gt; {
+        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#474">self</a>.request
     }
 
-    <span class="doccomment">/// Disable CORS on fetching the request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # WASM</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This option is only effective with WebAssembly target.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [request mode][mdn] will be set to &#39;no-cors&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/mode</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch_mode_no_cors</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#468">self</a>
-    }
-
-    <span class="doccomment">/// Build a `Request`, which can be inspected, modified and executed with</span>
-    <span class="doccomment">/// `Client::execute()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#474">self</a>.<span class="ident">request</span>
-    }
-
-    <span class="doccomment">/// Constructs the Request and sends it to the target URL, returning a</span>
-    <span class="doccomment">/// future Response.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method fails if there was an error while sending request,</span>
-    <span class="doccomment">/// redirect loop was detected or redirect limit was exhausted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # use reqwest::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # async fn run() -&gt; Result&lt;(), Error&gt; {</span>
-    <span class="doccomment">/// let response = reqwest::Client::new()</span>
-    <span class="doccomment">///     .get(&quot;https://hyper.rs&quot;)</span>
-    <span class="doccomment">///     .send()</span>
-    <span class="doccomment">///     .await?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a>, <a class="ident" href="../../../src/reqwest/error.rs.html#16"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#499">self</a>.<span class="ident">request</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">req</span>) =&gt; <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#499">self</a>.<span class="ident">client</span>.<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1446">execute_request</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#501">req</a>),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">Pending::new_err</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#502">err</a>),
+    <span class="doccomment">/// Constructs the Request and sends it to the target URL, returning a
+    /// future Response.
+    ///
+    /// # Errors
+    ///
+    /// This method fails if there was an error while sending request,
+    /// redirect loop was detected or redirect limit was exhausted.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use reqwest::Error;
+    /// #
+    /// # async fn run() -&gt; Result&lt;(), Error&gt; {
+    /// let response = reqwest::Client::new()
+    ///     .get(&quot;https://hyper.rs&quot;)
+    ///     .send()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>send(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<a href="../../../src/reqwest/async_impl/response.rs.html#26">Response</a>, <a href="../../../src/reqwest/error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#499">self</a>.request {
+            <span class="prelude-val">Ok</span>(req) =&gt; <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#499">self</a>.client.<a href="../../../src/reqwest/async_impl/client.rs.html#1446">execute_request</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#501">req</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; Pending::new_err(<a href="../../../src/reqwest/async_impl/request.rs.html#502">err</a>),
         }
     }
 
-    <span class="doccomment">/// Attempt to clone the RequestBuilder.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `None` is returned if the RequestBuilder can not be cloned,</span>
-    <span class="doccomment">/// i.e. if the request body is a stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use reqwest::Error;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn run() -&gt; Result&lt;(), Error&gt; {</span>
-    <span class="doccomment">/// let client = reqwest::Client::new();</span>
-    <span class="doccomment">/// let builder = client.post(&quot;http://httpbin.org/post&quot;)</span>
-    <span class="doccomment">///     .body(&quot;from a &amp;str!&quot;);</span>
-    <span class="doccomment">/// let clone = builder.try_clone();</span>
-    <span class="doccomment">/// assert!(clone.is_some());</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#525">self</a>.<span class="ident">request</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">ok</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">req</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#529">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#131">try_clone</a>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">req</span><span class="op">|</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-                <span class="ident">client</span>: <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#525">self</a>.<span class="ident">client</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">request</span>: <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#530">req</a>),
+    <span class="doccomment">/// Attempt to clone the RequestBuilder.
+    ///
+    /// `None` is returned if the RequestBuilder can not be cloned,
+    /// i.e. if the request body is a stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use reqwest::Error;
+    /// #
+    /// # fn run() -&gt; Result&lt;(), Error&gt; {
+    /// let client = reqwest::Client::new();
+    /// let builder = client.post(&quot;http://httpbin.org/post&quot;)
+    ///     .body(&quot;from a &amp;str!&quot;);
+    /// let clone = builder.try_clone();
+    /// assert!(clone.is_some());
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a>&gt; {
+        <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#525">self</a>.request
+            .as_ref()
+            .ok()
+            .and_then(|req| <a href="../../../src/reqwest/async_impl/request.rs.html#529">req</a>.<a href="../../../src/reqwest/async_impl/request.rs.html#131">try_clone</a>())
+            .map(|req| <a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+                client: <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#525">self</a>.client.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                request: <span class="prelude-val">Ok</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#530">req</a>),
             })
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#553-556">fmt_request_fields</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#538">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Request&quot;</span>), <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#538">self</a>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/reqwest/async_impl/request.rs.html#553-556">fmt_request_fields</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/reqwest/async_impl/request.rs.html#538">f</a>.debug_struct(<span class="string">&quot;Request&quot;</span>), <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#538">self</a>).finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#544">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;RequestBuilder&quot;</span>);
-        <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/request.rs.html#544">self</a>.<span class="ident">request</span> {
-            <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">req</span>) =&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#553-556">fmt_request_fields</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#545">builder</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#547">req</a>).<span class="ident">finish</span>(),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#545">builder</a>.<span class="ident">field</span>(<span class="string">&quot;error&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#548">err</a>).<span class="ident">finish</span>(),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/reqwest/async_impl/request.rs.html#37">RequestBuilder</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="../../../src/reqwest/async_impl/request.rs.html#544">f</a>.debug_struct(<span class="string">&quot;RequestBuilder&quot;</span>);
+        <span class="kw">match </span><a class="self" href="../../../src/reqwest/async_impl/request.rs.html#544">self</a>.request {
+            <span class="prelude-val">Ok</span>(<span class="kw-2">ref </span>req) =&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#553-556">fmt_request_fields</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/reqwest/async_impl/request.rs.html#545">builder</a>, <a href="../../../src/reqwest/async_impl/request.rs.html#547">req</a>).finish(),
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) =&gt; <a href="../../../src/reqwest/async_impl/request.rs.html#545">builder</a>.field(<span class="string">&quot;error&quot;</span>, <a href="../../../src/reqwest/async_impl/request.rs.html#548">err</a>).finish(),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">fmt_request_fields</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
-    <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">fmt::DebugStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
-    <span class="ident">req</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>,
-) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">fmt::DebugStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#554">f</a>.<span class="ident">field</span>(<span class="string">&quot;method&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#555">req</a>.<span class="ident">method</span>)
-        .<span class="ident">field</span>(<span class="string">&quot;url&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#555">req</a>.<span class="ident">url</span>)
-        .<span class="ident">field</span>(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#555">req</a>.<span class="ident">headers</span>)
+<span class="kw">fn </span>fmt_request_fields&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(
+    f: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::DebugStruct&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;,
+    req: <span class="kw-2">&amp;</span><a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>,
+) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::DebugStruct&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+    <a href="../../../src/reqwest/async_impl/request.rs.html#554">f</a>.field(<span class="string">&quot;method&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../src/reqwest/async_impl/request.rs.html#555">req</a>.method)
+        .field(<span class="string">&quot;url&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../src/reqwest/async_impl/request.rs.html#555">req</a>.url)
+        .field(<span class="string">&quot;headers&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../src/reqwest/async_impl/request.rs.html#555">req</a>.headers)
 }
 
-<span class="doccomment">/// Check the request URL for a &quot;username:password&quot; type authority, and if</span>
-<span class="doccomment">/// found, remove it from the URL and return it.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">extract_authority</span>(<span class="ident">url</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../percent_encoding/fn.percent_decode.html">percent_encoding::percent_decode</a>;
+<span class="doccomment">/// Check the request URL for a &quot;username:password&quot; type authority, and if
+/// found, remove it from the URL and return it.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extract_authority(url: <span class="kw-2">&amp;mut </span><a href="../../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;)&gt; {
+    <span class="kw">use </span><a href="../../../percent_encoding/fn.percent_decode.html">percent_encoding::percent_decode</a>;
 
-    <span class="kw">if</span> <span class="ident">url</span>.<span class="ident">has_authority</span>() {
-        <span class="kw">let</span> <span class="ident">username</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> <span class="op">=</span> <span class="ident">percent_decode</span>(<span class="ident">url</span>.<span class="ident">username</span>().<span class="ident">as_bytes</span>())
-            .<span class="ident">decode_utf8</span>()
-            .<span class="ident">ok</span>()<span class="question-mark">?</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let</span> <span class="ident">password</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#564">url</a>.<span class="ident">password</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pass</span><span class="op">|</span> {
-            <a class="ident" href="../../../percent_encoding/fn.percent_decode.html">percent_decode</a>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#572">pass</a>.<span class="ident">as_bytes</span>())
-                .<span class="ident">decode_utf8</span>()
-                .<span class="ident">ok</span>()
-                .<span class="ident">map</span>(<span class="ident">String::from</span>)
+    <span class="kw">if </span>url.has_authority() {
+        <span class="kw">let </span>username: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> = percent_decode(url.username().as_bytes())
+            .decode_utf8()
+            .ok()<span class="question-mark">?
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>password = <a href="../../../src/reqwest/async_impl/request.rs.html#564">url</a>.password().and_then(|pass| {
+            <a href="../../../percent_encoding/fn.percent_decode.html">percent_decode</a>(<a href="../../../src/reqwest/async_impl/request.rs.html#572">pass</a>.as_bytes())
+                .decode_utf8()
+                .ok()
+                .map(String::from)
         });
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">username</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">password</span>.<span class="ident">is_some</span>() {
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#564">url</a>.<span class="ident">set_username</span>(<span class="string">&quot;&quot;</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;has_authority means set_username shouldn&#39;t fail&quot;</span>);
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#564">url</a>.<span class="ident">set_password</span>(<span class="prelude-val">None</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;has_authority means set_password shouldn&#39;t fail&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#568">username</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#572">password</a>));
+        <span class="kw">if </span>!username.is_empty() || password.is_some() {
+            <a href="../../../src/reqwest/async_impl/request.rs.html#564">url</a>.set_username(<span class="string">&quot;&quot;</span>)
+                .expect(<span class="string">&quot;has_authority means set_username shouldn&#39;t fail&quot;</span>);
+            <a href="../../../src/reqwest/async_impl/request.rs.html#564">url</a>.set_password(<span class="prelude-val">None</span>)
+                .expect(<span class="string">&quot;has_authority means set_password shouldn&#39;t fail&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>((<a href="../../../src/reqwest/async_impl/request.rs.html#568">username</a>, <a href="../../../src/reqwest/async_impl/request.rs.html#572">password</a>));
         }
     }
 
-    <span class="prelude-val">None</span>
-}
+    <span class="prelude-val">None
+</span>}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T&gt; TryFrom&lt;HttpRequest&lt;T&gt;&gt; <span class="kw">for </span><a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>
+<span class="kw">where
+    </span>T: Into&lt;<a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/error.rs.html#16"><span class="kw">crate</span>::Error</a>;
+    <span class="kw">type </span>Error = <a href="../../../src/reqwest/error.rs.html#16"><span class="kw">crate</span>::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">parts</span>, <span class="ident">body</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#596">req</a>.<span class="ident">into_parts</span>();
-        <span class="kw">let</span> <a class="ident" href="../../../http/request/struct.Parts.html">Parts</a> {
-            <span class="ident">method</span>,
-            <span class="ident">uri</span>,
-            <span class="ident">headers</span>,
-            <span class="ident">version</span>,
+    <span class="kw">fn </span>try_from(req: HttpRequest&lt;T&gt;) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>(parts, body) = <a href="../../../src/reqwest/async_impl/request.rs.html#596">req</a>.into_parts();
+        <span class="kw">let </span><a href="../../../http/request/struct.Parts.html">Parts</a> {
+            method,
+            uri,
+            headers,
+            version,
             ..
-        } <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#597">parts</a>;
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">Url::parse</span>(<span class="kw-2">&amp;</span><span class="ident">uri</span>.<span class="ident">to_string</span>()).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#599">method</a>,
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#605">url</a>,
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#601">headers</a>,
-            <span class="ident">body</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#597">body</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <span class="ident">timeout</span>: <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#602">version</a>,
+        } = <a href="../../../src/reqwest/async_impl/request.rs.html#597">parts</a>;
+        <span class="kw">let </span>url = Url::parse(<span class="kw-2">&amp;</span>uri.to_string()).map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
+            <a href="../../../src/reqwest/async_impl/request.rs.html#599">method</a>,
+            <a href="../../../src/reqwest/async_impl/request.rs.html#605">url</a>,
+            <a href="../../../src/reqwest/async_impl/request.rs.html#601">headers</a>,
+            body: <span class="prelude-val">Some</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#597">body</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            timeout: <span class="prelude-val">None</span>,
+            <a href="../../../src/reqwest/async_impl/request.rs.html#602">version</a>,
         })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/error.rs.html#16"><span class="kw">crate</span>::Error</a>;
+<span class="kw">impl </span>TryFrom&lt;<a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>&gt; <span class="kw">for </span>HttpRequest&lt;<a href="../../../src/reqwest/async_impl/body.rs.html#17">Body</a>&gt; {
+    <span class="kw">type </span>Error = <a href="../../../src/reqwest/error.rs.html#16"><span class="kw">crate</span>::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">req</span>: <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
-            <span class="ident">method</span>,
-            <span class="ident">url</span>,
-            <span class="ident">headers</span>,
-            <span class="ident">body</span>,
-            <span class="ident">version</span>,
+    <span class="kw">fn </span>try_from(req: <a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a>) -&gt; <span class="kw">crate</span>::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><a href="../../../src/reqwest/async_impl/request.rs.html#24">Request</a> {
+            method,
+            url,
+            headers,
+            body,
+            version,
             ..
-        } <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#620">req</a>;
+        } = <a href="../../../src/reqwest/async_impl/request.rs.html#620">req</a>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">HttpRequest::builder</span>()
-            .<span class="ident">version</span>(<span class="ident">version</span>)
-            .<span class="ident">method</span>(<span class="ident">method</span>)
-            .<span class="ident">uri</span>(<span class="ident">url</span>.<span class="ident">as_str</span>())
-            .<span class="ident">body</span>(<span class="ident">body</span>.<span class="ident">unwrap_or_else</span>(<span class="ident">Body::empty</span>))
-            .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>req = HttpRequest::builder()
+            .version(version)
+            .method(method)
+            .uri(url.as_str())
+            .body(body.unwrap_or_else(Body::empty))
+            .map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>;
 
-        <span class="kw-2">*</span><a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#630">req</a>.<span class="ident">headers_mut</span>() <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#624">headers</a>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#630">req</a>)
+        <span class="kw-2">*</span><a href="../../../src/reqwest/async_impl/request.rs.html#630">req</a>.headers_mut() = <a href="../../../src/reqwest/async_impl/request.rs.html#624">headers</a>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/reqwest/async_impl/request.rs.html#630">req</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Client</span>, <span class="ident">HttpRequest</span>, <span class="ident">Request</span>, <span class="ident">Version</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Method</span>;
-    <span class="kw">use</span> <span class="ident">serde::Serialize</span>;
-    <span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
-    <span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::{Client, HttpRequest, Request, Version};
+    <span class="kw">use </span><span class="kw">crate</span>::Method;
+    <span class="kw">use </span>serde::Serialize;
+    <span class="kw">use </span>std::collections::BTreeMap;
+    <span class="kw">use </span>std::convert::TryFrom;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add_query_append</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://google.com/&quot;</span>;
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="ident">some_url</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>add_query_append() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>r = client.get(some_url);
 
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">query</span>(<span class="kw-2">&amp;</span>[(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>)]);
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">query</span>(<span class="kw-2">&amp;</span>[(<span class="string">&quot;qux&quot;</span>, <span class="number">3</span>)]);
+        <span class="kw">let </span>r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>)]);
+        <span class="kw">let </span>r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">&quot;qux&quot;</span>, <span class="number">3</span>)]);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">build</span>().<span class="ident">expect</span>(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">query</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=3&quot;</span>));
+        <span class="kw">let </span>req = r.build().expect(<span class="string">&quot;request is valid&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=3&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add_query_append_same</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://google.com/&quot;</span>;
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="ident">some_url</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>add_query_append_same() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>r = client.get(some_url);
 
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">query</span>(<span class="kw-2">&amp;</span>[(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;a&quot;</span>), (<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;b&quot;</span>)]);
+        <span class="kw">let </span>r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;a&quot;</span>), (<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;b&quot;</span>)]);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">build</span>().<span class="ident">expect</span>(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">query</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=a&amp;foo=b&quot;</span>));
+        <span class="kw">let </span>req = r.build().expect(<span class="string">&quot;request is valid&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=a&amp;foo=b&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add_query_struct</span>() {
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">Params</span> {
-            <span class="ident">foo</span>: <span class="ident">String</span>,
-            <span class="ident">qux</span>: <span class="ident">i32</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>add_query_struct() {
+        <span class="attribute">#[derive(Serialize)]
+        </span><span class="kw">struct </span>Params {
+            foo: String,
+            qux: i32,
         }
 
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://google.com/&quot;</span>;
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="ident">some_url</span>);
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>r = client.get(some_url);
 
-        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Params</span> {
-            <span class="ident">foo</span>: <span class="string">&quot;bar&quot;</span>.<span class="ident">into</span>(),
-            <span class="ident">qux</span>: <span class="number">3</span>,
+        <span class="kw">let </span>params = Params {
+            foo: <span class="string">&quot;bar&quot;</span>.into(),
+            qux: <span class="number">3</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>);
+        <span class="kw">let </span>r = r.query(<span class="kw-2">&amp;</span>params);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">build</span>().<span class="ident">expect</span>(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">query</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=3&quot;</span>));
+        <span class="kw">let </span>req = r.build().expect(<span class="string">&quot;request is valid&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=3&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add_query_map</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
-        <span class="ident">params</span>.<span class="ident">insert</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>);
-        <span class="ident">params</span>.<span class="ident">insert</span>(<span class="string">&quot;qux&quot;</span>, <span class="string">&quot;three&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>add_query_map() {
+        <span class="kw">let </span><span class="kw-2">mut </span>params = BTreeMap::new();
+        params.insert(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>);
+        params.insert(<span class="string">&quot;qux&quot;</span>, <span class="string">&quot;three&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://google.com/&quot;</span>;
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="ident">some_url</span>);
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>r = client.get(some_url);
 
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>);
+        <span class="kw">let </span>r = r.query(<span class="kw-2">&amp;</span>params);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">build</span>().<span class="ident">expect</span>(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">query</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=three&quot;</span>));
+        <span class="kw">let </span>req = r.build().expect(<span class="string">&quot;request is valid&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=three&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_replace_headers</span>() {
-        <span class="kw">use</span> <span class="ident">http::HeaderMap</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_replace_headers() {
+        <span class="kw">use </span>http::HeaderMap;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-        <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>());
-        <span class="ident">headers</span>.<span class="ident">append</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;baz&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+        headers.insert(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>.parse().unwrap());
+        headers.append(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;baz&quot;</span>.parse().unwrap());
 
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">client</span>
-            .<span class="ident">get</span>(<span class="string">&quot;https://hyper.rs&quot;</span>)
-            .<span class="ident">header</span>(<span class="string">&quot;im-a&quot;</span>, <span class="string">&quot;keeper&quot;</span>)
-            .<span class="ident">header</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;pop me&quot;</span>)
-            .<span class="ident">headers</span>(<span class="ident">headers</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;request build&quot;</span>);
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>req = client
+            .get(<span class="string">&quot;https://hyper.rs&quot;</span>)
+            .header(<span class="string">&quot;im-a&quot;</span>, <span class="string">&quot;keeper&quot;</span>)
+            .header(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;pop me&quot;</span>)
+            .headers(headers)
+            .build()
+            .expect(<span class="string">&quot;request build&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;im-a&quot;</span>], <span class="string">&quot;keeper&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">&quot;im-a&quot;</span>], <span class="string">&quot;keeper&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">foo</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">headers</span>().<span class="ident">get_all</span>(<span class="string">&quot;foo&quot;</span>).<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">foo</span>.<span class="ident">len</span>(), <span class="number">2</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">foo</span>[<span class="number">0</span>], <span class="string">&quot;bar&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">foo</span>[<span class="number">1</span>], <span class="string">&quot;baz&quot;</span>);
+        <span class="kw">let </span>foo = req.headers().get_all(<span class="string">&quot;foo&quot;</span>).iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="macro">assert_eq!</span>(foo.len(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(foo[<span class="number">0</span>], <span class="string">&quot;bar&quot;</span>);
+        <span class="macro">assert_eq!</span>(foo[<span class="number">1</span>], <span class="string">&quot;baz&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">normalize_empty_query</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://google.com/&quot;</span>;
-        <span class="kw">let</span> <span class="ident">empty_query</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[];
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>normalize_empty_query() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>empty_query: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str)] = <span class="kw-2">&amp;</span>[];
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">client</span>
-            .<span class="ident">get</span>(<span class="ident">some_url</span>)
-            .<span class="ident">query</span>(<span class="ident">empty_query</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;request build&quot;</span>);
+        <span class="kw">let </span>req = client
+            .get(some_url)
+            .query(empty_query)
+            .build()
+            .expect(<span class="string">&quot;request build&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">query</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;https://google.com/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://google.com/&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_clone_reusable</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">client</span>
-            .<span class="ident">post</span>(<span class="string">&quot;http://httpbin.org/post&quot;</span>)
-            .<span class="ident">header</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>)
-            .<span class="ident">body</span>(<span class="string">&quot;from a &amp;str!&quot;</span>);
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">builder</span>
-            .<span class="ident">try_clone</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;clone successful&quot;</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;http://httpbin.org/post&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">method</span>(), <span class="ident">Method::POST</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;foo&quot;</span>], <span class="string">&quot;bar&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>try_clone_reusable() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>builder = client
+            .post(<span class="string">&quot;http://httpbin.org/post&quot;</span>)
+            .header(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>)
+            .body(<span class="string">&quot;from a &amp;str!&quot;</span>);
+        <span class="kw">let </span>req = builder
+            .try_clone()
+            .expect(<span class="string">&quot;clone successful&quot;</span>)
+            .build()
+            .expect(<span class="string">&quot;request is valid&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;http://httpbin.org/post&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.method(), Method::POST);
+        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">&quot;foo&quot;</span>], <span class="string">&quot;bar&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_clone_no_body</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="string">&quot;http://httpbin.org/get&quot;</span>);
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">builder</span>
-            .<span class="ident">try_clone</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;clone successful&quot;</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;http://httpbin.org/get&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">method</span>(), <span class="ident">Method::GET</span>);
-        <span class="macro">assert!</span>(<span class="ident">req</span>.<span class="ident">body</span>().<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>try_clone_no_body() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>builder = client.get(<span class="string">&quot;http://httpbin.org/get&quot;</span>);
+        <span class="kw">let </span>req = builder
+            .try_clone()
+            .expect(<span class="string">&quot;clone successful&quot;</span>)
+            .build()
+            .expect(<span class="string">&quot;request is valid&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;http://httpbin.org/get&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.method(), Method::GET);
+        <span class="macro">assert!</span>(req.body().is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_clone_stream</span>() {
-        <span class="kw">let</span> <span class="ident">chunks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">::std::io::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="prelude-val">Ok</span>(<span class="string">&quot;hello&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot; &quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;world&quot;</span>)];
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">futures_util::stream::iter</span>(<span class="ident">chunks</span>);
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">client</span>
-            .<span class="ident">get</span>(<span class="string">&quot;http://httpbin.org/get&quot;</span>)
-            .<span class="ident">body</span>(<span class="ident"><span class="kw">super</span>::Body::wrap_stream</span>(<span class="ident">stream</span>));
-        <span class="kw">let</span> <span class="ident">clone</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">try_clone</span>();
-        <span class="macro">assert!</span>(<span class="ident">clone</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    #[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
+    </span><span class="kw">fn </span>try_clone_stream() {
+        <span class="kw">let </span>chunks: Vec&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, ::std::io::Error&gt;&gt; = <span class="macro">vec!</span>[<span class="prelude-val">Ok</span>(<span class="string">&quot;hello&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot; &quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;world&quot;</span>)];
+        <span class="kw">let </span>stream = futures_util::stream::iter(chunks);
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>builder = client
+            .get(<span class="string">&quot;http://httpbin.org/get&quot;</span>)
+            .body(<span class="kw">super</span>::Body::wrap_stream(stream));
+        <span class="kw">let </span>clone = builder.try_clone();
+        <span class="macro">assert!</span>(clone.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">convert_url_authority_into_basic_auth</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://Aladdin:open sesame@localhost/&quot;</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>convert_url_authority_into_basic_auth() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://Aladdin:open sesame@localhost/&quot;</span>;
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get</span>(<span class="ident">some_url</span>).<span class="ident">build</span>().<span class="ident">expect</span>(<span class="string">&quot;request build&quot;</span>);
+        <span class="kw">let </span>req = client.get(some_url).build().expect(<span class="string">&quot;request build&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;https://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://localhost/&quot;</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;authorization&quot;</span>],
-            <span class="string">&quot;Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==&quot;</span>
-        );
+            req.headers()[<span class="string">&quot;authorization&quot;</span>],
+            <span class="string">&quot;Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_basic_auth_sensitive_header</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://localhost/&quot;</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_basic_auth_sensitive_header() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://localhost/&quot;</span>;
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">client</span>
-            .<span class="ident">get</span>(<span class="ident">some_url</span>)
-            .<span class="ident">basic_auth</span>(<span class="string">&quot;Aladdin&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;open sesame&quot;</span>))
-            .<span class="ident">build</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;request build&quot;</span>);
+        <span class="kw">let </span>req = client
+            .get(some_url)
+            .basic_auth(<span class="string">&quot;Aladdin&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;open sesame&quot;</span>))
+            .build()
+            .expect(<span class="string">&quot;request build&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;https://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://localhost/&quot;</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;authorization&quot;</span>],
-            <span class="string">&quot;Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==&quot;</span>
-        );
-        <span class="macro">assert!</span>(<span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;authorization&quot;</span>].<span class="ident">is_sensitive</span>());
+            req.headers()[<span class="string">&quot;authorization&quot;</span>],
+            <span class="string">&quot;Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==&quot;
+        </span>);
+        <span class="macro">assert!</span>(req.headers()[<span class="string">&quot;authorization&quot;</span>].is_sensitive());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_bearer_auth_sensitive_header</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://localhost/&quot;</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_bearer_auth_sensitive_header() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://localhost/&quot;</span>;
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">client</span>
-            .<span class="ident">get</span>(<span class="ident">some_url</span>)
-            .<span class="ident">bearer_auth</span>(<span class="string">&quot;Hold my bear&quot;</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;request build&quot;</span>);
+        <span class="kw">let </span>req = client
+            .get(some_url)
+            .bearer_auth(<span class="string">&quot;Hold my bear&quot;</span>)
+            .build()
+            .expect(<span class="string">&quot;request build&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;https://localhost/&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;authorization&quot;</span>], <span class="string">&quot;Bearer Hold my bear&quot;</span>);
-        <span class="macro">assert!</span>(<span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;authorization&quot;</span>].<span class="ident">is_sensitive</span>());
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">&quot;authorization&quot;</span>], <span class="string">&quot;Bearer Hold my bear&quot;</span>);
+        <span class="macro">assert!</span>(req.headers()[<span class="string">&quot;authorization&quot;</span>].is_sensitive());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_explicit_sensitive_header</span>() {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
-        <span class="kw">let</span> <span class="ident">some_url</span> <span class="op">=</span> <span class="string">&quot;https://localhost/&quot;</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_explicit_sensitive_header() {
+        <span class="kw">let </span>client = Client::new();
+        <span class="kw">let </span>some_url = <span class="string">&quot;https://localhost/&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">http::HeaderValue::from_static</span>(<span class="string">&quot;in plain sight&quot;</span>);
-        <span class="ident">header</span>.<span class="ident">set_sensitive</span>(<span class="bool-val">true</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>header = http::HeaderValue::from_static(<span class="string">&quot;in plain sight&quot;</span>);
+        header.set_sensitive(<span class="bool-val">true</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">client</span>
-            .<span class="ident">get</span>(<span class="ident">some_url</span>)
-            .<span class="ident">header</span>(<span class="string">&quot;hiding&quot;</span>, <span class="ident">header</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;request build&quot;</span>);
+        <span class="kw">let </span>req = client
+            .get(some_url)
+            .header(<span class="string">&quot;hiding&quot;</span>, header)
+            .build()
+            .expect(<span class="string">&quot;request build&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;https://localhost/&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;hiding&quot;</span>], <span class="string">&quot;in plain sight&quot;</span>);
-        <span class="macro">assert!</span>(<span class="ident">req</span>.<span class="ident">headers</span>()[<span class="string">&quot;hiding&quot;</span>].<span class="ident">is_sensitive</span>());
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">&quot;hiding&quot;</span>], <span class="string">&quot;in plain sight&quot;</span>);
+        <span class="macro">assert!</span>(req.headers()[<span class="string">&quot;hiding&quot;</span>].is_sensitive());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">convert_from_http_request</span>() {
-        <span class="kw">let</span> <span class="ident">http_request</span> <span class="op">=</span> <span class="ident">HttpRequest::builder</span>()
-            .<span class="ident">method</span>(<span class="string">&quot;GET&quot;</span>)
-            .<span class="ident">uri</span>(<span class="string">&quot;http://localhost/&quot;</span>)
-            .<span class="ident">header</span>(<span class="string">&quot;User-Agent&quot;</span>, <span class="string">&quot;my-awesome-agent/1.0&quot;</span>)
-            .<span class="ident">body</span>(<span class="string">&quot;test test test&quot;</span>)
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">req</span>: <span class="ident">Request</span> <span class="op">=</span> <span class="ident">Request::try_from</span>(<span class="ident">http_request</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">req</span>.<span class="ident">body</span>().<span class="ident">is_some</span>());
-        <span class="kw">let</span> <span class="ident">test_data</span> <span class="op">=</span> <span class="string">b&quot;test test test&quot;</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">body</span>().<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">test_data</span>[..]));
-        <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">headers</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">headers</span>.<span class="ident">get</span>(<span class="string">&quot;User-Agent&quot;</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;my-awesome-agent/1.0&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">method</span>(), <span class="ident">Method::GET</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;http://localhost/&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>convert_from_http_request() {
+        <span class="kw">let </span>http_request = HttpRequest::builder()
+            .method(<span class="string">&quot;GET&quot;</span>)
+            .uri(<span class="string">&quot;http://localhost/&quot;</span>)
+            .header(<span class="string">&quot;User-Agent&quot;</span>, <span class="string">&quot;my-awesome-agent/1.0&quot;</span>)
+            .body(<span class="string">&quot;test test test&quot;</span>)
+            .unwrap();
+        <span class="kw">let </span>req: Request = Request::try_from(http_request).unwrap();
+        <span class="macro">assert!</span>(req.body().is_some());
+        <span class="kw">let </span>test_data = <span class="string">b&quot;test test test&quot;</span>;
+        <span class="macro">assert_eq!</span>(req.body().unwrap().as_bytes(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>test_data[..]));
+        <span class="kw">let </span>headers = req.headers();
+        <span class="macro">assert_eq!</span>(headers.get(<span class="string">&quot;User-Agent&quot;</span>).unwrap(), <span class="string">&quot;my-awesome-agent/1.0&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.method(), Method::GET);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;http://localhost/&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set_http_request_version</span>() {
-        <span class="kw">let</span> <span class="ident">http_request</span> <span class="op">=</span> <span class="ident">HttpRequest::builder</span>()
-            .<span class="ident">method</span>(<span class="string">&quot;GET&quot;</span>)
-            .<span class="ident">uri</span>(<span class="string">&quot;http://localhost/&quot;</span>)
-            .<span class="ident">header</span>(<span class="string">&quot;User-Agent&quot;</span>, <span class="string">&quot;my-awesome-agent/1.0&quot;</span>)
-            .<span class="ident">version</span>(<span class="ident">Version::HTTP_11</span>)
-            .<span class="ident">body</span>(<span class="string">&quot;test test test&quot;</span>)
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">req</span>: <span class="ident">Request</span> <span class="op">=</span> <span class="ident">Request::try_from</span>(<span class="ident">http_request</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">req</span>.<span class="ident">body</span>().<span class="ident">is_some</span>());
-        <span class="kw">let</span> <span class="ident">test_data</span> <span class="op">=</span> <span class="string">b&quot;test test test&quot;</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">body</span>().<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">test_data</span>[..]));
-        <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">headers</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">headers</span>.<span class="ident">get</span>(<span class="string">&quot;User-Agent&quot;</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;my-awesome-agent/1.0&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">method</span>(), <span class="ident">Method::GET</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">url</span>().<span class="ident">as_str</span>(), <span class="string">&quot;http://localhost/&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">req</span>.<span class="ident">version</span>(), <span class="ident">Version::HTTP_11</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>set_http_request_version() {
+        <span class="kw">let </span>http_request = HttpRequest::builder()
+            .method(<span class="string">&quot;GET&quot;</span>)
+            .uri(<span class="string">&quot;http://localhost/&quot;</span>)
+            .header(<span class="string">&quot;User-Agent&quot;</span>, <span class="string">&quot;my-awesome-agent/1.0&quot;</span>)
+            .version(Version::HTTP_11)
+            .body(<span class="string">&quot;test test test&quot;</span>)
+            .unwrap();
+        <span class="kw">let </span>req: Request = Request::try_from(http_request).unwrap();
+        <span class="macro">assert!</span>(req.body().is_some());
+        <span class="kw">let </span>test_data = <span class="string">b&quot;test test test&quot;</span>;
+        <span class="macro">assert_eq!</span>(req.body().unwrap().as_bytes(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>test_data[..]));
+        <span class="kw">let </span>headers = req.headers();
+        <span class="macro">assert_eq!</span>(headers.get(<span class="string">&quot;User-Agent&quot;</span>).unwrap(), <span class="string">&quot;my-awesome-agent/1.0&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.method(), Method::GET);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;http://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.version(), Version::HTTP_11);
     }
 
     <span class="comment">/*
@@ -2214,7 +2214,7 @@
         let json_data = MyStruct{};
         assert!(r.json(&amp;json_data).unwrap_err().is_serialization());
     }
-    */</span>
-}
+    */
+</span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

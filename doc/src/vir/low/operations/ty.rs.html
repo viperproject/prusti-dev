@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/low/operations/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/low/operations/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -282,289 +282,289 @@
 <span id="282">282</span>
 <span id="283">283</span>
 <span id="284">284</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::ast</span>::{
-    <span class="ident">expression</span>::{<a class="self" href="../../../../src/vir/up/gen/vir_gen.rs.html#96021">self</a>, <span class="kw-2">*</span>},
-    <span class="ident">ty</span>::{<a class="self" href="../../../../src/vir/up/gen/vir_gen.rs.html#103353">self</a>, <span class="kw-2">*</span>},
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::ast::{
+    expression::{<a class="self" href="../../../../src/vir/up/gen/vir_gen.rs.html#96021">self</a>, <span class="kw-2">*</span>},
+    ty::{<a class="self" href="../../../../src/vir/up/gen/vir_gen.rs.html#103353">self</a>, <span class="kw-2">*</span>},
 };
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Typed</span> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>;
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>);
+<span class="kw">pub trait </span>Typed {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>;
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>);
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96038">Expression</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#12">self</a> {
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96042">Expression::Local</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#14">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96046">Expression::Field</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#15">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96047">Expression::LabelledOld</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#16">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96048">Expression::Constant</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#17">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96049">Expression::MagicWand</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#18">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96050">Expression::PredicateAccessPredicate</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#19">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96051">Expression::FieldAccessPredicate</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#20">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96052">Expression::Unfolding</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#21">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96053">Expression::UnaryOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#22">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96054">Expression::BinaryOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#23">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96055">Expression::PermBinaryOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#24">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96057">Expression::ContainerOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#25">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96061">Expression::Seq</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#26">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96062">Expression::Conditional</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#27">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96063">Expression::Quantifier</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#28">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96064">Expression::LetExpr</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#29">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96065">Expression::FuncApp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#30">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96066">Expression::DomainFuncApp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#31">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96067">Expression::InhaleExhale</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#32">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96059">Expression::MapOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#33">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96038">Expression</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/vir/low/operations/ty.rs.html#12">self</a> </span>{
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96042">Expression::Local</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#14">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96046">Expression::Field</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#15">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96047">Expression::LabelledOld</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#16">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96048">Expression::Constant</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#17">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96049">Expression::MagicWand</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#18">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96050">Expression::PredicateAccessPredicate</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#19">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96051">Expression::FieldAccessPredicate</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#20">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96052">Expression::Unfolding</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#21">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96053">Expression::UnaryOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#22">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96054">Expression::BinaryOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#23">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96055">Expression::PermBinaryOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#24">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96057">Expression::ContainerOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#25">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96061">Expression::Seq</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#26">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96062">Expression::Conditional</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#27">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96063">Expression::Quantifier</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#28">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96064">Expression::LetExpr</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#29">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96065">Expression::FuncApp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#30">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96066">Expression::DomainFuncApp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#31">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96067">Expression::InhaleExhale</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#32">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96059">Expression::MapOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#33">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
         }
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#36">self</a> {
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96042">Expression::Local</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#38">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96046">Expression::Field</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#39">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96047">Expression::LabelledOld</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#40">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96048">Expression::Constant</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#41">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96049">Expression::MagicWand</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#42">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96050">Expression::PredicateAccessPredicate</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#43">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96051">Expression::FieldAccessPredicate</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#44">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96052">Expression::Unfolding</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#45">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96053">Expression::UnaryOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#46">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96054">Expression::BinaryOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#47">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96055">Expression::PermBinaryOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#48">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96057">Expression::ContainerOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#49">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96061">Expression::Seq</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#50">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96062">Expression::Conditional</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#51">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96063">Expression::Quantifier</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#52">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96064">Expression::LetExpr</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#53">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96065">Expression::FuncApp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#54">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96066">Expression::DomainFuncApp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#55">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96067">Expression::InhaleExhale</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#56">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96059">Expression::MapOp</a>(<span class="ident">expression</span>) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#57">expression</a>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/vir/low/operations/ty.rs.html#36">self</a> </span>{
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96042">Expression::Local</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#38">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96046">Expression::Field</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#39">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96047">Expression::LabelledOld</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#40">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96048">Expression::Constant</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#41">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96049">Expression::MagicWand</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#42">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96050">Expression::PredicateAccessPredicate</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#43">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96051">Expression::FieldAccessPredicate</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#44">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96052">Expression::Unfolding</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#45">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96053">Expression::UnaryOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#46">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96054">Expression::BinaryOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#47">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96055">Expression::PermBinaryOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#48">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96057">Expression::ContainerOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#49">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96061">Expression::Seq</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#50">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96062">Expression::Conditional</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#51">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96063">Expression::Quantifier</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#52">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96064">Expression::LetExpr</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#53">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96065">Expression::FuncApp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#54">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96066">Expression::DomainFuncApp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#55">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96067">Expression::InhaleExhale</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#56">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96059">Expression::MapOp</a>(expression) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#57">expression</a>.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#36">new_type</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96073">Local</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#63">self</a>.<span class="ident">variable</span>.<span class="ident">ty</span>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96073">Local</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#63">self</a>.variable.ty
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#66">self</a>.<span class="ident">variable</span>.<span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#66">new_type</a>;
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96081">Field</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#72">self</a>.<span class="ident">field</span>.<span class="ident">ty</span>
-    }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#75">self</a>.<span class="ident">field</span>.<span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#75">new_type</a>;
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#66">self</a>.variable.ty = <a href="../../../../src/vir/low/operations/ty.rs.html#66">new_type</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96090">LabelledOld</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#81">self</a>.<span class="ident">base</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>()
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96081">Field</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#72">self</a>.field.ty
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#84">self</a>.<span class="ident">base</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#84">new_type</a>);
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96099">Constant</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#90">self</a>.<span class="ident">ty</span>
-    }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#93">self</a>.<span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#93">new_type</a>;
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#75">self</a>.field.ty = <a href="../../../../src/vir/low/operations/ty.rs.html#75">new_type</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96126">MagicWand</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96090">LabelledOld</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#81">self</a>.base.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>()
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#84">self</a>.base.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#84">new_type</a>);
+    }
+}
+
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96099">Constant</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#90">self</a>.ty
+    }
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#93">self</a>.ty = <a href="../../../../src/vir/low/operations/ty.rs.html#93">new_type</a>;
+    }
+}
+
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96126">MagicWand</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
+    }
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;tried to set type for MagicWand&quot;</span>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96135">PredicateAccessPredicate</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96135">PredicateAccessPredicate</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;tried to set type for MagicWand&quot;</span>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96145">FieldAccessPredicate</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96145">FieldAccessPredicate</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;tried to set type for MagicWand&quot;</span>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96160">Unfolding</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#126">self</a>.<span class="ident">base</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>()
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96160">Unfolding</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#126">self</a>.base.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>()
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#129">self</a>.<span class="ident">base</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#129">new_type</a>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96185">UnaryOp</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#135">self</a>.<span class="ident">argument</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>()
-    }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#138">self</a>.<span class="ident">argument</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#138">new_type</a>);
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#129">self</a>.base.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#129">new_type</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96221">BinaryOp</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#144">self</a>.<span class="ident">op_kind</span> {
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96202">BinaryOpKind::EqCmp</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96203">BinaryOpKind::NeCmp</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96204">BinaryOpKind::GtCmp</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96205">BinaryOpKind::GeCmp</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96206">BinaryOpKind::LtCmp</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96207">BinaryOpKind::LeCmp</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96213">BinaryOpKind::And</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96214">BinaryOpKind::Or</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96215">BinaryOpKind::Implies</a> =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>,
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96208">BinaryOpKind::Add</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96209">BinaryOpKind::Sub</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96210">BinaryOpKind::Mul</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96211">BinaryOpKind::Div</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96212">BinaryOpKind::Mod</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">ty1</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#144">self</a>.<span class="ident">left</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>();
-                <span class="kw">let</span> <span class="ident">ty2</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#144">self</a>.<span class="ident">right</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>();
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">ty1</span>, <span class="ident">ty2</span>, <span class="string">&quot;expr: {:?}&quot;</span>, <span class="self">self</span>);
-                <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#160">ty1</a>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96185">UnaryOp</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#135">self</a>.argument.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>()
+    }
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#138">self</a>.argument.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#138">new_type</a>);
+    }
+}
+
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96221">BinaryOp</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw">match </span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#144">self</a>.op_kind {
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96202">BinaryOpKind::EqCmp</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96203">BinaryOpKind::NeCmp</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96204">BinaryOpKind::GtCmp</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96205">BinaryOpKind::GeCmp</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96206">BinaryOpKind::LtCmp</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96207">BinaryOpKind::LeCmp</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96213">BinaryOpKind::And</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96214">BinaryOpKind::Or</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96215">BinaryOpKind::Implies</a> =&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>,
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96208">BinaryOpKind::Add</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96209">BinaryOpKind::Sub</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96210">BinaryOpKind::Mul</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96211">BinaryOpKind::Div</a>
+            | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96212">BinaryOpKind::Mod</a> =&gt; {
+                <span class="kw">let </span>ty1 = <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#144">self</a>.left.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>();
+                <span class="kw">let </span>ty2 = <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#144">self</a>.right.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>();
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(ty1, ty2, <span class="string">&quot;expr: {:?}&quot;</span>, <span class="self">self</span>);
+                <a href="../../../../src/vir/low/operations/ty.rs.html#160">ty1</a>
             }
         }
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#167">self</a>.<span class="ident">left</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#167">new_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#167">self</a>.<span class="ident">right</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#167">new_type</a>);
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#167">self</a>.left.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#167">new_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#167">self</a>.right.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#167">new_type</a>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96248">PermBinaryOp</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103369">Type::Perm</a>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96248">PermBinaryOp</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103369">Type::Perm</a>
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">new_type</span>, <span class="ident">Type::Perm</span>);
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(new_type, Type::Perm);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96258">ContainerOp</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#183">self</a>.<span class="ident">op_kind</span> {
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96276">ContainerOpKind::SeqConcat</a> =&gt; <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#183">self</a>.<span class="ident">left</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96277">ContainerOpKind::SeqLen</a> =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103367">Type::Int</a>,
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96275">ContainerOpKind::SeqIndex</a> =&gt; <span class="kw">match</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#183">self</a>.<span class="ident">left</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>() {
-                <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103372">Type::Seq</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103425">ty::Seq</a> { <span class="ident">element_type</span>, .. }) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#188">element_type</a>,
-                <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Expected Seq type, got {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">left</span>.<span class="ident">get_type</span>()),
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96258">ContainerOp</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw">match </span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#183">self</a>.op_kind {
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96276">ContainerOpKind::SeqConcat</a> =&gt; <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#183">self</a>.left.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>(),
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96277">ContainerOpKind::SeqLen</a> =&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103367">Type::Int</a>,
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96275">ContainerOpKind::SeqIndex</a> =&gt; <span class="kw">match </span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#183">self</a>.left.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>() {
+                <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103372">Type::Seq</a>(<a href="../../../../src/vir/up/gen/vir_gen.rs.html#103425">ty::Seq</a> { element_type, .. }) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#188">element_type</a>,
+                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Expected Seq type, got {:?}&quot;</span>, <span class="self">self</span>.left.get_type()),
             },
         }
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
-            <span class="self">self</span>.<span class="ident">get_type</span>(),
-            <span class="kw-2">&amp;</span><span class="ident">new_type</span>,
-            <span class="string">&quot;Changing the type of ContainerOp.&quot;</span>
-        );
+            <span class="self">self</span>.get_type(),
+            <span class="kw-2">&amp;</span>new_type,
+            <span class="string">&quot;Changing the type of ContainerOp.&quot;
+        </span>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96283">MapOp</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#203">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96300">MapOpKind::Empty</a> <span class="op">|</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96301">MapOpKind::Update</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#203">self</a>.<span class="ident">map_ty</span>,
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96303">MapOpKind::Lookup</a> =&gt; <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#203">self</a>.<span class="ident">map_ty</span> {
-                <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103373">Type::Map</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103438">Map</a> { <span class="ident">val_type</span>, .. }) =&gt; <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#207">val_type</a>,
-                <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96283">MapOp</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw">match </span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#203">self</a>.kind {
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96300">MapOpKind::Empty</a> | <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96301">MapOpKind::Update</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#203">self</a>.map_ty,
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96303">MapOpKind::Lookup</a> =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#203">self</a>.map_ty {
+                <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103373">Type::Map</a>(<a href="../../../../src/vir/up/gen/vir_gen.rs.html#103438">Map</a> { val_type, .. }) =&gt; <a href="../../../../src/vir/low/operations/ty.rs.html#207">val_type</a>,
+                <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
             },
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96304">MapOpKind::Len</a> =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103367">Type::Int</a>,
-            <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96302">MapOpKind::Contains</a> =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>,
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96304">MapOpKind::Len</a> =&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103367">Type::Int</a>,
+            <a href="../../../../src/vir/up/gen/vir_gen.rs.html#96302">MapOpKind::Contains</a> =&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>,
         }
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.<span class="ident">get_type</span>(), <span class="kw-2">&amp;</span><span class="ident">new_type</span>, <span class="string">&quot;Changing the type of MapOp.&quot;</span>);
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.get_type(), <span class="kw-2">&amp;</span>new_type, <span class="string">&quot;Changing the type of MapOp.&quot;</span>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96310">expression::Seq</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#220">self</a>.<span class="ident">ty</span>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96310">expression::Seq</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#220">self</a>.ty
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96319">Conditional</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw">let</span> <span class="ident">ty1</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#229">self</a>.<span class="ident">then_expr</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>();
-        <span class="kw">let</span> <span class="ident">ty2</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#229">self</a>.<span class="ident">else_expr</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>();
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">ty1</span>, <span class="ident">ty2</span>, <span class="string">&quot;expr: {:?}&quot;</span>, <span class="self">self</span>);
-        <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#230">ty1</a>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96319">Conditional</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw">let </span>ty1 = <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#229">self</a>.then_expr.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>();
+        <span class="kw">let </span>ty2 = <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#229">self</a>.else_expr.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>();
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(ty1, ty2, <span class="string">&quot;expr: {:?}&quot;</span>, <span class="self">self</span>);
+        <a href="../../../../src/vir/low/operations/ty.rs.html#230">ty1</a>
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#235">self</a>.<span class="ident">then_expr</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#235">new_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#235">self</a>.<span class="ident">else_expr</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#235">new_type</a>);
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#235">self</a>.then_expr.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#235">new_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#235">self</a>.else_expr.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#235">new_type</a>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96356">Quantifier</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96356">Quantifier</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;tried to set type for Quantifier&quot;</span>);
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96367">LetExpr</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#251">self</a>.<span class="ident">body</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>()
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96367">LetExpr</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#251">self</a>.body.<a href="../../../../src/vir/low/operations/ty.rs.html#7">get_type</a>()
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#254">self</a>.<span class="ident">body</span>.<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#254">new_type</a>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96377">FuncApp</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#260">self</a>.<span class="ident">return_type</span>
-    }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#263">self</a>.<span class="ident">return_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#263">new_type</a>;
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#254">self</a>.body.<a href="../../../../src/vir/low/operations/ty.rs.html#8">set_type</a>(<a href="../../../../src/vir/low/operations/ty.rs.html#254">new_type</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96393">DomainFuncApp</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#269">self</a>.<span class="ident">return_type</span>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96377">FuncApp</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#260">self</a>.return_type
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
-        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#272">self</a>.<span class="ident">return_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#272">new_type</a>;
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#263">self</a>.return_type = <a href="../../../../src/vir/low/operations/ty.rs.html#263">new_type</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#96405">InhaleExhale</a> {
-    <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96393">DomainFuncApp</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/low/operations/ty.rs.html#269">self</a>.return_type
     }
-    <span class="kw">fn</span> <span class="ident">set_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_new_type</span>: <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
+        <a class="self" href="../../../../src/vir/low/operations/ty.rs.html#272">self</a>.return_type = <a href="../../../../src/vir/low/operations/ty.rs.html#272">new_type</a>;
+    }
+}
+
+<span class="kw">impl </span><a href="../../../../src/vir/low/operations/ty.rs.html#6">Typed</a> <span class="kw">for </span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#96405">InhaleExhale</a> {
+    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a> {
+        <span class="kw-2">&amp;</span><a href="../../../../src/vir/up/gen/vir_gen.rs.html#103368">Type::Bool</a>
+    }
+    <span class="kw">fn </span>set_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _new_type: <a href="../../../../src/vir/up/gen/vir_gen.rs.html#103366">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;tried to set type for InhaleExhale&quot;</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

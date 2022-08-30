@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/ecdsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ecdsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/ecdsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ecdsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -222,229 +222,229 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Low level Elliptic Curve Digital Signature Algorithm (ECDSA) functions.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Low level Elliptic Curve Digital Signature Algorithm (ECDSA) functions.
 
-<span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <span class="ident">foreign_types</span>::{<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</span><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
+<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn</span>::{<a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/ec.rs.html#617-625"><span class="kw">crate</span>::ec::EcKeyRef</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#80"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><span class="kw">crate</span>::bn::{<a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>};
+<span class="kw">use </span><a href="../../src/openssl/ec.rs.html#617-625"><span class="kw">crate</span>::ec::EcKeyRef</a>;
+<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>};
+<span class="kw">use </span><a href="../../src/openssl/util.rs.html#80"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
+<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#203">cvt_n</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/ec/enum.ECDSA_SIG.html">ffi::ECDSA_SIG</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::ECDSA_SIG_free</span>;
+<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/ec/enum.ECDSA_SIG.html">ffi::ECDSA_SIG</a>;
+    <span class="kw">fn </span>drop = ffi::ECDSA_SIG_free;
 
-    <span class="doccomment">/// A low level interface to ECDSA.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EcdsaSig</span>;
-    <span class="doccomment">/// A reference to an [`EcdsaSig`].</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EcdsaSigRef</span>;
+    <span class="doccomment">/// A low level interface to ECDSA.
+    </span><span class="kw">pub struct </span>EcdsaSig;
+    <span class="doccomment">/// A reference to an [`EcdsaSig`].
+    </span><span class="kw">pub struct </span>EcdsaSigRef;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSig</a> {
-    <span class="doccomment">/// Computes a digital signature of the hash value `data` using the private EC key eckey.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">ECDSA_do_sign</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">eckey</span>: <span class="kw-2">&amp;</span><span class="ident">EcKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSig</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+<span class="kw">impl </span><a href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSig</a> {
+    <span class="doccomment">/// Computes a digital signature of the hash value `data` using the private EC key eckey.
+    </span><span class="attribute">#[corresponds(ECDSA_do_sign)]
+    </span><span class="kw">pub fn </span>sign&lt;T&gt;(data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], eckey: <span class="kw-2">&amp;</span>EcKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSig</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
-            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::ECDSA_do_sign</span>(
-                <span class="ident">data</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_int</span>,
-                <span class="ident">eckey</span>.<span class="ident">as_ptr</span>(),
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(data.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
+            <span class="kw">let </span>sig = cvt_p(ffi::ECDSA_do_sign(
+                data.as_ptr(),
+                data.len() <span class="kw">as </span>c_int,
+                eckey.as_ptr(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">EcdsaSig::from_ptr</span>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#36">sig</a>))
+            <span class="prelude-val">Ok</span>(EcdsaSig::from_ptr(<a href="../../src/openssl/ecdsa.rs.html#36">sig</a>))
         }
     }
 
-    <span class="doccomment">/// Returns a new `EcdsaSig` by setting the `r` and `s` values associated with an ECDSA signature.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">ECDSA_SIG_set0</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_private_components</span>(<span class="ident">r</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <span class="ident">s</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSig</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::ECDSA_SIG_new</span>())<span class="question-mark">?</span>;
-            <a class="ident" href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_set0.html">ECDSA_SIG_set0</a>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#49">sig</a>, <a class="ident" href="../../src/openssl/ecdsa.rs.html#47">r</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ecdsa.rs.html#47">s</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>());
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/ecdsa.rs.html#47">r</a>, <a class="ident" href="../../src/openssl/ecdsa.rs.html#47">s</a>));
-            <span class="prelude-val">Ok</span>(<span class="ident">EcdsaSig::from_ptr</span>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#49">sig</a>))
+    <span class="doccomment">/// Returns a new `EcdsaSig` by setting the `r` and `s` values associated with an ECDSA signature.
+    </span><span class="attribute">#[corresponds(ECDSA_SIG_set0)]
+    </span><span class="kw">pub fn </span>from_private_components(r: <a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, s: <a href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSig</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>sig = cvt_p(ffi::ECDSA_SIG_new())<span class="question-mark">?</span>;
+            <a href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_set0.html">ECDSA_SIG_set0</a>(<a href="../../src/openssl/ecdsa.rs.html#49">sig</a>, <a href="../../src/openssl/ecdsa.rs.html#47">r</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a href="../../src/openssl/ecdsa.rs.html#47">s</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>());
+            mem::forget((<a href="../../src/openssl/ecdsa.rs.html#47">r</a>, <a href="../../src/openssl/ecdsa.rs.html#47">s</a>));
+            <span class="prelude-val">Ok</span>(EcdsaSig::from_ptr(<a href="../../src/openssl/ecdsa.rs.html#49">sig</a>))
         }
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der!</a> {
-        <span class="doccomment">/// Decodes a DER-encoded ECDSA signature.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_ECDSA_SIG</span>)]</span>
-        <span class="ident">from_der</span>,
-        <span class="ident">EcdsaSig</span>,
-        <span class="ident">ffi::d2i_ECDSA_SIG</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der! </a>{
+        <span class="doccomment">/// Decodes a DER-encoded ECDSA signature.
+        </span><span class="attribute">#[corresponds(d2i_ECDSA_SIG)]
+        </span>from_der,
+        EcdsaSig,
+        ffi::d2i_ECDSA_SIG
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSigRef</a> {
-    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der!</a> {
-        <span class="doccomment">/// Serializes the ECDSA signature into a DER-encoded ECDSASignature structure.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_ECDSA_SIG</span>)]</span>
-        <span class="ident">to_der</span>,
-        <span class="ident">ffi::i2d_ECDSA_SIG</span>
+<span class="kw">impl </span><a href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSigRef</a> {
+    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der! </a>{
+        <span class="doccomment">/// Serializes the ECDSA signature into a DER-encoded ECDSASignature structure.
+        </span><span class="attribute">#[corresponds(i2d_ECDSA_SIG)]
+        </span>to_der,
+        ffi::i2d_ECDSA_SIG
     }
 
-    <span class="doccomment">/// Verifies if the signature is a valid ECDSA signature using the given public key.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">ECDSA_do_verify</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">eckey</span>: <span class="kw-2">&amp;</span><span class="ident">EcKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
+    <span class="doccomment">/// Verifies if the signature is a valid ECDSA signature using the given public key.
+    </span><span class="attribute">#[corresponds(ECDSA_do_verify)]
+    </span><span class="kw">pub fn </span>verify&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], eckey: <span class="kw-2">&amp;</span>EcKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
     {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
-            <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>(<span class="ident">ffi::ECDSA_do_verify</span>(
-                <a class="ident" href="../../src/openssl/ecdsa.rs.html#75">data</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/ecdsa.rs.html#75">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a class="self" href="../../src/openssl/ecdsa.rs.html#75">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ecdsa.rs.html#75">eckey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(data.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
+            <a href="../../src/openssl/lib.rs.html#203">cvt_n</a>(ffi::ECDSA_do_verify(
+                <a href="../../src/openssl/ecdsa.rs.html#75">data</a>.as_ptr(),
+                <a href="../../src/openssl/ecdsa.rs.html#75">data</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a class="self" href="../../src/openssl/ecdsa.rs.html#75">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/ecdsa.rs.html#75">eckey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ecdsa.rs.html#87">x</a> <span class="op">==</span> <span class="number">1</span>)
+            .map(|x| <a href="../../src/openssl/ecdsa.rs.html#87">x</a> == <span class="number">1</span>)
         }
     }
 
-    <span class="doccomment">/// Returns internal component: `r` of an `EcdsaSig`. (See X9.62 or FIPS 186-2)</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">ECDSA_SIG_get0</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_get0.html">ECDSA_SIG_get0</a>(<a class="self" href="../../src/openssl/ecdsa.rs.html#93">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ecdsa.rs.html#95">r</a>, <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#95">r</a>)
+    <span class="doccomment">/// Returns internal component: `r` of an `EcdsaSig`. (See X9.62 or FIPS 186-2)
+    </span><span class="attribute">#[corresponds(ECDSA_SIG_get0)]
+    </span><span class="kw">pub fn </span>r(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>r = ptr::null();
+            <a href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_get0.html">ECDSA_SIG_get0</a>(<a class="self" href="../../src/openssl/ecdsa.rs.html#93">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut </span><a href="../../src/openssl/ecdsa.rs.html#95">r</a>, ptr::null_mut());
+            BigNumRef::from_const_ptr(<a href="../../src/openssl/ecdsa.rs.html#95">r</a>)
         }
     }
 
-    <span class="doccomment">/// Returns internal components: `s` of an `EcdsaSig`. (See X9.62 or FIPS 186-2)</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">ECDSA_SIG_get0</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">s</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_get0.html">ECDSA_SIG_get0</a>(<a class="self" href="../../src/openssl/ecdsa.rs.html#103">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ecdsa.rs.html#105">s</a>);
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#105">s</a>)
+    <span class="doccomment">/// Returns internal components: `s` of an `EcdsaSig`. (See X9.62 or FIPS 186-2)
+    </span><span class="attribute">#[corresponds(ECDSA_SIG_get0)]
+    </span><span class="kw">pub fn </span>s(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>s = ptr::null();
+            <a href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_get0.html">ECDSA_SIG_get0</a>(<a class="self" href="../../src/openssl/ecdsa.rs.html#103">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ptr::null_mut(), <span class="kw-2">&amp;mut </span><a href="../../src/openssl/ecdsa.rs.html#105">s</a>);
+            BigNumRef::from_const_ptr(<a href="../../src/openssl/ecdsa.rs.html#105">s</a>)
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span> {
-        <span class="kw">use</span> <span class="ident">ffi</span>::{<a class="ident" href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_set0.html">ECDSA_SIG_set0</a>, <a class="ident" href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_get0.html">ECDSA_SIG_get0</a>};
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ECDSA_SIG_set0</span>(
-            <span class="ident">sig</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::ECDSA_SIG</span>,
-            <span class="ident">r</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::BIGNUM</span>,
-            <span class="ident">s</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::BIGNUM</span>,
-        ) -&gt; <span class="ident">c_int</span> {
-            <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">is_null</span>() {
-                <span class="kw">return</span> <span class="number">0</span>;
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl273))] </span>{
+        <span class="kw">use </span>ffi::{<a href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_set0.html">ECDSA_SIG_set0</a>, <a href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_get0.html">ECDSA_SIG_get0</a>};
+    } <span class="kw">else </span>{
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>ECDSA_SIG_set0(
+            sig: <span class="kw-2">*mut </span>ffi::ECDSA_SIG,
+            r: <span class="kw-2">*mut </span>ffi::BIGNUM,
+            s: <span class="kw-2">*mut </span>ffi::BIGNUM,
+        ) -&gt; c_int {
+            <span class="kw">if </span>r.is_null() || s.is_null() {
+                <span class="kw">return </span><span class="number">0</span>;
             }
-            <span class="ident">ffi::BN_clear_free</span>((<span class="kw-2">*</span><span class="ident">sig</span>).<span class="ident">r</span>);
-            <span class="ident">ffi::BN_clear_free</span>((<span class="kw-2">*</span><span class="ident">sig</span>).<span class="ident">s</span>);
-            (<span class="kw-2">*</span><span class="ident">sig</span>).<span class="ident">r</span> <span class="op">=</span> <span class="ident">r</span>;
-            (<span class="kw-2">*</span><span class="ident">sig</span>).<span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>;
-            <span class="number">1</span>
-        }
+            ffi::BN_clear_free((<span class="kw-2">*</span>sig).r);
+            ffi::BN_clear_free((<span class="kw-2">*</span>sig).s);
+            (<span class="kw-2">*</span>sig).r = r;
+            (<span class="kw-2">*</span>sig).s = s;
+            <span class="number">1
+        </span>}
 
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ECDSA_SIG_get0</span>(
-            <span class="ident">sig</span>: <span class="kw-2">*const</span> <span class="ident">ffi::ECDSA_SIG</span>,
-            <span class="ident">pr</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <span class="ident">ffi::BIGNUM</span>,
-            <span class="ident">ps</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <span class="ident">ffi::BIGNUM</span>)
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>ECDSA_SIG_get0(
+            sig: <span class="kw-2">*const </span>ffi::ECDSA_SIG,
+            pr: <span class="kw-2">*mut *const </span>ffi::BIGNUM,
+            ps: <span class="kw-2">*mut *const </span>ffi::BIGNUM)
         {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">pr</span>.<span class="ident">is_null</span>() {
-                (<span class="kw-2">*</span><span class="ident">pr</span>) <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">sig</span>).<span class="ident">r</span>;
+            <span class="kw">if </span>!pr.is_null() {
+                (<span class="kw-2">*</span>pr) = (<span class="kw-2">*</span>sig).r;
             }
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">ps</span>.<span class="ident">is_null</span>() {
-                (<span class="kw-2">*</span><span class="ident">ps</span>) <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">sig</span>).<span class="ident">s</span>;
+            <span class="kw">if </span>!ps.is_null() {
+                (<span class="kw-2">*</span>ps) = (<span class="kw-2">*</span>sig).s;
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ec::EcGroup</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ec::EcKey</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::nid::Nid</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<span class="ident">Private</span>, <span class="ident">Public</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::ec::EcGroup;
+    <span class="kw">use </span><span class="kw">crate</span>::ec::EcKey;
+    <span class="kw">use </span><span class="kw">crate</span>::nid::Nid;
+    <span class="kw">use </span><span class="kw">crate</span>::pkey::{Private, Public};
 
-    <span class="kw">fn</span> <span class="ident">get_public_key</span>(<span class="ident">group</span>: <span class="kw-2">&amp;</span><span class="ident">EcGroup</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">Private</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">Public</span><span class="op">&gt;</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span> {
-        <span class="ident">EcKey::from_public_key</span>(<span class="ident">group</span>, <span class="ident">x</span>.<span class="ident">public_key</span>())
+    <span class="kw">fn </span>get_public_key(group: <span class="kw-2">&amp;</span>EcGroup, x: <span class="kw-2">&amp;</span>EcKey&lt;Private&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Public&gt;, ErrorStack&gt; {
+        EcKey::from_public_key(group, x.public_key())
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>, <span class="ident">ignore</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">sign_and_verify</span>() {
-        <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">EcGroup::from_curve_name</span>(<span class="ident">Nid::X9_62_PRIME192V1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">EcKey::generate</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">get_public_key</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>, <span class="kw-2">&amp;</span><span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg_attr(osslconf = <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>, ignore)]
+    </span><span class="kw">fn </span>sign_and_verify() {
+        <span class="kw">let </span>group = EcGroup::from_curve_name(Nid::X9_62_PRIME192V1).unwrap();
+        <span class="kw">let </span>private_key = EcKey::generate(<span class="kw-2">&amp;</span>group).unwrap();
+        <span class="kw">let </span>public_key = get_public_key(<span class="kw-2">&amp;</span>group, <span class="kw-2">&amp;</span>private_key).unwrap();
 
-        <span class="kw">let</span> <span class="ident">private_key2</span> <span class="op">=</span> <span class="ident">EcKey::generate</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">public_key2</span> <span class="op">=</span> <span class="ident">get_public_key</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>, <span class="kw-2">&amp;</span><span class="ident">private_key2</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>private_key2 = EcKey::generate(<span class="kw-2">&amp;</span>group).unwrap();
+        <span class="kw">let </span>public_key2 = get_public_key(<span class="kw-2">&amp;</span>group, <span class="kw-2">&amp;</span>private_key2).unwrap();
 
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;hello&quot;</span>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">EcdsaSig::sign</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>data = String::from(<span class="string">&quot;hello&quot;</span>);
+        <span class="kw">let </span>res = EcdsaSig::sign(data.as_bytes(), <span class="kw-2">&amp;</span>private_key).unwrap();
 
-        <span class="comment">// Signature can be verified using the correct data &amp; correct public key</span>
-        <span class="kw">let</span> <span class="ident">verification</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">verify</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">public_key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">verification</span>);
+        <span class="comment">// Signature can be verified using the correct data &amp; correct public key
+        </span><span class="kw">let </span>verification = res.verify(data.as_bytes(), <span class="kw-2">&amp;</span>public_key).unwrap();
+        <span class="macro">assert!</span>(verification);
 
-        <span class="comment">// Signature will not be verified using the incorrect data but the correct public key</span>
-        <span class="kw">let</span> <span class="ident">verification2</span> <span class="op">=</span> <span class="ident">res</span>
-            .<span class="ident">verify</span>(<span class="ident">String::from</span>(<span class="string">&quot;hello2&quot;</span>).<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">public_key</span>)
-            .<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">verification2</span>);
+        <span class="comment">// Signature will not be verified using the incorrect data but the correct public key
+        </span><span class="kw">let </span>verification2 = res
+            .verify(String::from(<span class="string">&quot;hello2&quot;</span>).as_bytes(), <span class="kw-2">&amp;</span>public_key)
+            .unwrap();
+        <span class="macro">assert!</span>(!verification2);
 
-        <span class="comment">// Signature will not be verified using the correct data but the incorrect public key</span>
-        <span class="kw">let</span> <span class="ident">verification3</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">verify</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">public_key2</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">verification3</span>);
+        <span class="comment">// Signature will not be verified using the correct data but the incorrect public key
+        </span><span class="kw">let </span>verification3 = res.verify(data.as_bytes(), <span class="kw-2">&amp;</span>public_key2).unwrap();
+        <span class="macro">assert!</span>(!verification3);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>, <span class="ident">ignore</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">check_private_components</span>() {
-        <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">EcGroup::from_curve_name</span>(<span class="ident">Nid::X9_62_PRIME192V1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">EcKey::generate</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">get_public_key</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>, <span class="kw-2">&amp;</span><span class="ident">private_key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;hello&quot;</span>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">EcdsaSig::sign</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg_attr(osslconf = <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>, ignore)]
+    </span><span class="kw">fn </span>check_private_components() {
+        <span class="kw">let </span>group = EcGroup::from_curve_name(Nid::X9_62_PRIME192V1).unwrap();
+        <span class="kw">let </span>private_key = EcKey::generate(<span class="kw-2">&amp;</span>group).unwrap();
+        <span class="kw">let </span>public_key = get_public_key(<span class="kw-2">&amp;</span>group, <span class="kw-2">&amp;</span>private_key).unwrap();
+        <span class="kw">let </span>data = String::from(<span class="string">&quot;hello&quot;</span>);
+        <span class="kw">let </span>res = EcdsaSig::sign(data.as_bytes(), <span class="kw-2">&amp;</span>private_key).unwrap();
 
-        <span class="kw">let</span> <span class="ident">verification</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">verify</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">public_key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">verification</span>);
+        <span class="kw">let </span>verification = res.verify(data.as_bytes(), <span class="kw-2">&amp;</span>public_key).unwrap();
+        <span class="macro">assert!</span>(verification);
 
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">r</span>().<span class="ident">to_owned</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">s</span>().<span class="ident">to_owned</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>r = res.r().to_owned().unwrap();
+        <span class="kw">let </span>s = res.s().to_owned().unwrap();
 
-        <span class="kw">let</span> <span class="ident">res2</span> <span class="op">=</span> <span class="ident">EcdsaSig::from_private_components</span>(<span class="ident">r</span>, <span class="ident">s</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">verification2</span> <span class="op">=</span> <span class="ident">res2</span>.<span class="ident">verify</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">public_key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">verification2</span>);
+        <span class="kw">let </span>res2 = EcdsaSig::from_private_components(r, s).unwrap();
+        <span class="kw">let </span>verification2 = res2.verify(data.as_bytes(), <span class="kw-2">&amp;</span>public_key).unwrap();
+        <span class="macro">assert!</span>(verification2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>, <span class="ident">ignore</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">serialize_deserialize</span>() {
-        <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">EcGroup::from_curve_name</span>(<span class="ident">Nid::SECP256K1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">EcKey::generate</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">get_public_key</span>(<span class="kw-2">&amp;</span><span class="ident">group</span>, <span class="kw-2">&amp;</span><span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    #[cfg_attr(osslconf = <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>, ignore)]
+    </span><span class="kw">fn </span>serialize_deserialize() {
+        <span class="kw">let </span>group = EcGroup::from_curve_name(Nid::SECP256K1).unwrap();
+        <span class="kw">let </span>private_key = EcKey::generate(<span class="kw-2">&amp;</span>group).unwrap();
+        <span class="kw">let </span>public_key = get_public_key(<span class="kw-2">&amp;</span>group, <span class="kw-2">&amp;</span>private_key).unwrap();
 
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;hello&quot;</span>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">EcdsaSig::sign</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">private_key</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>data = String::from(<span class="string">&quot;hello&quot;</span>);
+        <span class="kw">let </span>res = EcdsaSig::sign(data.as_bytes(), <span class="kw-2">&amp;</span>private_key).unwrap();
 
-        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">to_der</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">EcdsaSig::from_der</span>(<span class="kw-2">&amp;</span><span class="ident">der</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>der = res.to_der().unwrap();
+        <span class="kw">let </span>sig = EcdsaSig::from_der(<span class="kw-2">&amp;</span>der).unwrap();
 
-        <span class="kw">let</span> <span class="ident">verification</span> <span class="op">=</span> <span class="ident">sig</span>.<span class="ident">verify</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">public_key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">verification</span>);
+        <span class="kw">let </span>verification = sig.verify(data.as_bytes(), <span class="kw-2">&amp;</span>public_key).unwrap();
+        <span class="macro">assert!</span>(verification);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

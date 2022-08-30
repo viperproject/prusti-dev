@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/sha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sha.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/sha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sha.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -461,468 +461,468 @@
 <span id="461">461</span>
 <span id="462">462</span>
 <span id="463">463</span>
-</pre><pre class="rust"><code><span class="doccomment">//! The SHA family of hashes.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! SHA, or Secure Hash Algorithms, are a family of cryptographic hashing algorithms published by</span>
-<span class="doccomment">//! the National Institute of Standards and Technology (NIST).  Hash algorithms such as those in</span>
-<span class="doccomment">//! the SHA family are used to map data of an arbitrary size to a fixed-size string of bytes.</span>
-<span class="doccomment">//! As cryptographic hashing algorithms, these mappings have the property of being irreversible.</span>
-<span class="doccomment">//! This property makes hash algorithms like these excellent for uses such as verifying the</span>
-<span class="doccomment">//! contents of a file- if you know the hash you expect beforehand, then you can verify that the</span>
-<span class="doccomment">//! data you have is correct if it hashes to the same value.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! When dealing with data that becomes available in chunks, such as while buffering data from IO,</span>
-<span class="doccomment">//! you can create a hasher that you can repeatedly update to add bytes to.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::sha;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut hasher = sha::Sha256::new();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! hasher.update(b&quot;Hello, &quot;);</span>
-<span class="doccomment">//! hasher.update(b&quot;world&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let hash = hasher.finish();</span>
-<span class="doccomment">//! println!(&quot;Hashed \&quot;Hello, world\&quot; to {}&quot;, hex::encode(hash));</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! On the other hand, if you already have access to all of the data you would like to hash, you</span>
-<span class="doccomment">//! may prefer to use the slightly simpler method of simply calling the hash function corresponding</span>
-<span class="doccomment">//! to the algorithm you want to use.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::sha::sha256;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let hash = sha256(b&quot;your data or message&quot;);</span>
-<span class="doccomment">//! println!(&quot;Hash = {}&quot;, hex::encode(hash));</span>
-<span class="doccomment">//! ```</span>
-<span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>;
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! The SHA family of hashes.
+//!
+//! SHA, or Secure Hash Algorithms, are a family of cryptographic hashing algorithms published by
+//! the National Institute of Standards and Technology (NIST).  Hash algorithms such as those in
+//! the SHA family are used to map data of an arbitrary size to a fixed-size string of bytes.
+//! As cryptographic hashing algorithms, these mappings have the property of being irreversible.
+//! This property makes hash algorithms like these excellent for uses such as verifying the
+//! contents of a file- if you know the hash you expect beforehand, then you can verify that the
+//! data you have is correct if it hashes to the same value.
+//!
+//! # Examples
+//!
+//! When dealing with data that becomes available in chunks, such as while buffering data from IO,
+//! you can create a hasher that you can repeatedly update to add bytes to.
+//!
+//! ```rust
+//! use openssl::sha;
+//!
+//! let mut hasher = sha::Sha256::new();
+//!
+//! hasher.update(b&quot;Hello, &quot;);
+//! hasher.update(b&quot;world&quot;);
+//!
+//! let hash = hasher.finish();
+//! println!(&quot;Hashed \&quot;Hello, world\&quot; to {}&quot;, hex::encode(hash));
+//! ```
+//!
+//! On the other hand, if you already have access to all of the data you would like to hash, you
+//! may prefer to use the slightly simpler method of simply calling the hash function corresponding
+//! to the algorithm you want to use.
+//!
+//! ```rust
+//! use openssl::sha::sha256;
+//!
+//! let hash = sha256(b&quot;your data or message&quot;);
+//! println!(&quot;Hash = {}&quot;, hex::encode(hash));
+//! ```
+</span><span class="kw">use </span><a href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>;
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
 
-<span class="doccomment">/// Computes the SHA1 hash of some data.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warning</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// SHA1 is known to be insecure - it should not be used unless required for</span>
-<span class="doccomment">/// compatibility with existing systems.</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA1</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha1</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">20</span>] {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">20</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-        <span class="ident">ffi::SHA1</span>(<a class="ident" href="../../src/openssl/sha.rs.html#51">data</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#51">data</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#53">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
-        <a class="ident" href="../../src/openssl/sha.rs.html#53">hash</a>.<span class="ident">assume_init</span>()
+<span class="doccomment">/// Computes the SHA1 hash of some data.
+///
+/// # Warning
+///
+/// SHA1 is known to be insecure - it should not be used unless required for
+/// compatibility with existing systems.
+</span><span class="attribute">#[corresponds(SHA1)]
+#[inline]
+</span><span class="kw">pub fn </span>sha1(data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">20</span>] {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">20</span>]&gt;::uninit();
+        ffi::SHA1(<a href="../../src/openssl/sha.rs.html#51">data</a>.as_ptr(), <a href="../../src/openssl/sha.rs.html#51">data</a>.len(), <a href="../../src/openssl/sha.rs.html#53">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+        <a href="../../src/openssl/sha.rs.html#53">hash</a>.assume_init()
     }
 }
 
-<span class="doccomment">/// Computes the SHA224 hash of some data.</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SH224</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha224</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">28</span>] {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">28</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-        <span class="ident">ffi::SHA224</span>(<a class="ident" href="../../src/openssl/sha.rs.html#62">data</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#62">data</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#64">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
-        <a class="ident" href="../../src/openssl/sha.rs.html#64">hash</a>.<span class="ident">assume_init</span>()
+<span class="doccomment">/// Computes the SHA224 hash of some data.
+</span><span class="attribute">#[corresponds(SH224)]
+#[inline]
+</span><span class="kw">pub fn </span>sha224(data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">28</span>] {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">28</span>]&gt;::uninit();
+        ffi::SHA224(<a href="../../src/openssl/sha.rs.html#62">data</a>.as_ptr(), <a href="../../src/openssl/sha.rs.html#62">data</a>.len(), <a href="../../src/openssl/sha.rs.html#64">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+        <a href="../../src/openssl/sha.rs.html#64">hash</a>.assume_init()
     }
 }
 
-<span class="doccomment">/// Computes the SHA256 hash of some data.</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA256</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha256</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-        <span class="ident">ffi::SHA256</span>(<a class="ident" href="../../src/openssl/sha.rs.html#73">data</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#73">data</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#75">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
-        <a class="ident" href="../../src/openssl/sha.rs.html#75">hash</a>.<span class="ident">assume_init</span>()
+<span class="doccomment">/// Computes the SHA256 hash of some data.
+</span><span class="attribute">#[corresponds(SHA256)]
+#[inline]
+</span><span class="kw">pub fn </span>sha256(data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>]&gt;::uninit();
+        ffi::SHA256(<a href="../../src/openssl/sha.rs.html#73">data</a>.as_ptr(), <a href="../../src/openssl/sha.rs.html#73">data</a>.len(), <a href="../../src/openssl/sha.rs.html#75">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+        <a href="../../src/openssl/sha.rs.html#75">hash</a>.assume_init()
     }
 }
 
-<span class="doccomment">/// Computes the SHA384 hash of some data.</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA384</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha384</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">48</span>] {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">48</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-        <span class="ident">ffi::SHA384</span>(<a class="ident" href="../../src/openssl/sha.rs.html#84">data</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#84">data</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#86">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
-        <a class="ident" href="../../src/openssl/sha.rs.html#86">hash</a>.<span class="ident">assume_init</span>()
+<span class="doccomment">/// Computes the SHA384 hash of some data.
+</span><span class="attribute">#[corresponds(SHA384)]
+#[inline]
+</span><span class="kw">pub fn </span>sha384(data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">48</span>] {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">48</span>]&gt;::uninit();
+        ffi::SHA384(<a href="../../src/openssl/sha.rs.html#84">data</a>.as_ptr(), <a href="../../src/openssl/sha.rs.html#84">data</a>.len(), <a href="../../src/openssl/sha.rs.html#86">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+        <a href="../../src/openssl/sha.rs.html#86">hash</a>.assume_init()
     }
 }
 
-<span class="doccomment">/// Computes the SHA512 hash of some data.</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA512</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sha512</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-        <span class="ident">ffi::SHA512</span>(<a class="ident" href="../../src/openssl/sha.rs.html#95">data</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#95">data</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/openssl/sha.rs.html#97">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
-        <a class="ident" href="../../src/openssl/sha.rs.html#97">hash</a>.<span class="ident">assume_init</span>()
+<span class="doccomment">/// Computes the SHA512 hash of some data.
+</span><span class="attribute">#[corresponds(SHA512)]
+#[inline]
+</span><span class="kw">pub fn </span>sha512(data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>]&gt;::uninit();
+        ffi::SHA512(<a href="../../src/openssl/sha.rs.html#95">data</a>.as_ptr(), <a href="../../src/openssl/sha.rs.html#95">data</a>.len(), <a href="../../src/openssl/sha.rs.html#97">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+        <a href="../../src/openssl/sha.rs.html#97">hash</a>.assume_init()
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span> {
-        <span class="doccomment">/// An object which calculates a SHA1 hash of some data.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Warning</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// SHA1 is known to be insecure - it should not be used unless required for</span>
-        <span class="doccomment">/// compatibility with existing systems.</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sha1</span>(<a class="ident" href="../../openssl_sys/handwritten/sha/struct.SHA_CTX.html">ffi::SHA_CTX</a>);
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))] </span>{
+        <span class="doccomment">/// An object which calculates a SHA1 hash of some data.
+        ///
+        /// # Warning
+        ///
+        /// SHA1 is known to be insecure - it should not be used unless required for
+        /// compatibility with existing systems.
+        </span><span class="attribute">#[derive(Clone)]
+        </span><span class="kw">pub struct </span>Sha1(<a href="../../openssl_sys/handwritten/sha/struct.SHA_CTX.html">ffi::SHA_CTX</a>);
 
-        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/sha.rs.html#112">Sha1</a> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#112">Sha1</a> {
-                <span class="ident">Sha1::new</span>()
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/openssl/sha.rs.html#112">Sha1</a> {
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>default() -&gt; <a href="../../src/openssl/sha.rs.html#112">Sha1</a> {
+                Sha1::new()
             }
         }
 
-        <span class="kw">impl</span> <a class="ident" href="../../src/openssl/sha.rs.html#112">Sha1</a> {
-            <span class="doccomment">/// Creates a new hasher.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA1_Init</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#112">Sha1</a> {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-                    <span class="ident">ffi::SHA1_Init</span>( <a class="ident" href="../../src/openssl/sha.rs.html#127">ctx</a>.<span class="ident">as_mut_ptr</span>());
-                    <a class="ident" href="../../src/openssl/sha.rs.html#112">Sha1</a>(<a class="ident" href="../../src/openssl/sha.rs.html#127">ctx</a>.<span class="ident">assume_init</span>())
+        <span class="kw">impl </span><a href="../../src/openssl/sha.rs.html#112">Sha1</a> {
+            <span class="doccomment">/// Creates a new hasher.
+            </span><span class="attribute">#[corresponds(SHA1_Init)]
+            #[inline]
+            </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/openssl/sha.rs.html#112">Sha1</a> {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>ctx = MaybeUninit::uninit();
+                    ffi::SHA1_Init( <a href="../../src/openssl/sha.rs.html#127">ctx</a>.as_mut_ptr());
+                    <a href="../../src/openssl/sha.rs.html#112">Sha1</a>(<a href="../../src/openssl/sha.rs.html#127">ctx</a>.assume_init())
                 }
             }
 
-            <span class="doccomment">/// Feeds some data into the hasher.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This can be called multiple times.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA1_Update</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">ffi::SHA1_Update</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#138">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/sha.rs.html#138">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../src/openssl/sha.rs.html#138">buf</a>.<span class="ident">len</span>());
+            <span class="doccomment">/// Feeds some data into the hasher.
+            ///
+            /// This can be called multiple times.
+            </span><span class="attribute">#[corresponds(SHA1_Update)]
+            #[inline]
+            </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+                <span class="kw">unsafe </span>{
+                    ffi::SHA1_Update(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#138">self</a>.<span class="number">0</span>, <a href="../../src/openssl/sha.rs.html#138">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../src/openssl/sha.rs.html#138">buf</a>.len());
                 }
             }
 
-            <span class="doccomment">/// Returns the hash of the data.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA1_Final</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">20</span>] {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">20</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-                    <span class="ident">ffi::SHA1_Final</span>(<a class="ident" href="../../src/openssl/sha.rs.html#149">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#147">self</a>.<span class="number">0</span>);
-                    <a class="ident" href="../../src/openssl/sha.rs.html#149">hash</a>.<span class="ident">assume_init</span>()
-                }
-            }
-        }
-
-        <span class="doccomment">/// An object which calculates a SHA224 hash of some data.</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sha224</span>(<a class="ident" href="../../openssl_sys/handwritten/sha/struct.SHA256_CTX.html">ffi::SHA256_CTX</a>);
-
-        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/sha.rs.html#158">Sha224</a> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#158">Sha224</a> {
-                <span class="ident">Sha224::new</span>()
-            }
-        }
-
-        <span class="kw">impl</span> <a class="ident" href="../../src/openssl/sha.rs.html#158">Sha224</a> {
-            <span class="doccomment">/// Creates a new hasher.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA224_Init</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#158">Sha224</a> {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-                    <span class="ident">ffi::SHA224_Init</span>(<a class="ident" href="../../src/openssl/sha.rs.html#173">ctx</a>.<span class="ident">as_mut_ptr</span>());
-                    <a class="ident" href="../../src/openssl/sha.rs.html#158">Sha224</a>(<a class="ident" href="../../src/openssl/sha.rs.html#173">ctx</a>.<span class="ident">assume_init</span>())
-                }
-            }
-
-            <span class="doccomment">/// Feeds some data into the hasher.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This can be called multiple times.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA224_Update</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">ffi::SHA224_Update</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#184">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/sha.rs.html#184">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../src/openssl/sha.rs.html#184">buf</a>.<span class="ident">len</span>());
-                }
-            }
-
-            <span class="doccomment">/// Returns the hash of the data.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA224_Final</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">28</span>] {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">28</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-                    <span class="ident">ffi::SHA224_Final</span>(<a class="ident" href="../../src/openssl/sha.rs.html#195">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#193">self</a>.<span class="number">0</span>);
-                    <a class="ident" href="../../src/openssl/sha.rs.html#195">hash</a>.<span class="ident">assume_init</span>()
+            <span class="doccomment">/// Returns the hash of the data.
+            </span><span class="attribute">#[corresponds(SHA1_Final)]
+            #[inline]
+            </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">20</span>] {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">20</span>]&gt;::uninit();
+                    ffi::SHA1_Final(<a href="../../src/openssl/sha.rs.html#149">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#147">self</a>.<span class="number">0</span>);
+                    <a href="../../src/openssl/sha.rs.html#149">hash</a>.assume_init()
                 }
             }
         }
 
-        <span class="doccomment">/// An object which calculates a SHA256 hash of some data.</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sha256</span>(<a class="ident" href="../../openssl_sys/handwritten/sha/struct.SHA256_CTX.html">ffi::SHA256_CTX</a>);
+        <span class="doccomment">/// An object which calculates a SHA224 hash of some data.
+        </span><span class="attribute">#[derive(Clone)]
+        </span><span class="kw">pub struct </span>Sha224(<a href="../../openssl_sys/handwritten/sha/struct.SHA256_CTX.html">ffi::SHA256_CTX</a>);
 
-        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/sha.rs.html#204">Sha256</a> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#204">Sha256</a> {
-                <span class="ident">Sha256::new</span>()
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/openssl/sha.rs.html#158">Sha224</a> {
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>default() -&gt; <a href="../../src/openssl/sha.rs.html#158">Sha224</a> {
+                Sha224::new()
             }
         }
 
-        <span class="kw">impl</span> <a class="ident" href="../../src/openssl/sha.rs.html#204">Sha256</a> {
-            <span class="doccomment">/// Creates a new hasher.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA256_Init</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#204">Sha256</a> {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-                    <span class="ident">ffi::SHA256_Init</span>(<a class="ident" href="../../src/openssl/sha.rs.html#219">ctx</a>.<span class="ident">as_mut_ptr</span>());
-                    <a class="ident" href="../../src/openssl/sha.rs.html#204">Sha256</a>(<a class="ident" href="../../src/openssl/sha.rs.html#219">ctx</a>.<span class="ident">assume_init</span>())
+        <span class="kw">impl </span><a href="../../src/openssl/sha.rs.html#158">Sha224</a> {
+            <span class="doccomment">/// Creates a new hasher.
+            </span><span class="attribute">#[corresponds(SHA224_Init)]
+            #[inline]
+            </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/openssl/sha.rs.html#158">Sha224</a> {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>ctx = MaybeUninit::uninit();
+                    ffi::SHA224_Init(<a href="../../src/openssl/sha.rs.html#173">ctx</a>.as_mut_ptr());
+                    <a href="../../src/openssl/sha.rs.html#158">Sha224</a>(<a href="../../src/openssl/sha.rs.html#173">ctx</a>.assume_init())
                 }
             }
 
-            <span class="doccomment">/// Feeds some data into the hasher.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This can be called multiple times.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA256_Update</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">ffi::SHA256_Update</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#230">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/sha.rs.html#230">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../src/openssl/sha.rs.html#230">buf</a>.<span class="ident">len</span>());
+            <span class="doccomment">/// Feeds some data into the hasher.
+            ///
+            /// This can be called multiple times.
+            </span><span class="attribute">#[corresponds(SHA224_Update)]
+            #[inline]
+            </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+                <span class="kw">unsafe </span>{
+                    ffi::SHA224_Update(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#184">self</a>.<span class="number">0</span>, <a href="../../src/openssl/sha.rs.html#184">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../src/openssl/sha.rs.html#184">buf</a>.len());
                 }
             }
 
-            <span class="doccomment">/// Returns the hash of the data.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA256_Final</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-                    <span class="ident">ffi::SHA256_Final</span>(<a class="ident" href="../../src/openssl/sha.rs.html#241">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#239">self</a>.<span class="number">0</span>);
-                    <a class="ident" href="../../src/openssl/sha.rs.html#241">hash</a>.<span class="ident">assume_init</span>()
-                }
-            }
-        }
-
-        <span class="doccomment">/// An object which calculates a SHA384 hash of some data.</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sha384</span>(<a class="ident" href="../../openssl_sys/handwritten/sha/struct.SHA512_CTX.html">ffi::SHA512_CTX</a>);
-
-        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/sha.rs.html#250">Sha384</a> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#250">Sha384</a> {
-                <span class="ident">Sha384::new</span>()
-            }
-        }
-
-        <span class="kw">impl</span> <a class="ident" href="../../src/openssl/sha.rs.html#250">Sha384</a> {
-            <span class="doccomment">/// Creates a new hasher.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA384_Init</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#250">Sha384</a> {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-                    <span class="ident">ffi::SHA384_Init</span>(<a class="ident" href="../../src/openssl/sha.rs.html#265">ctx</a>.<span class="ident">as_mut_ptr</span>());
-                    <a class="ident" href="../../src/openssl/sha.rs.html#250">Sha384</a>(<a class="ident" href="../../src/openssl/sha.rs.html#265">ctx</a>.<span class="ident">assume_init</span>())
-                }
-            }
-
-            <span class="doccomment">/// Feeds some data into the hasher.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This can be called multiple times.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA384_Update</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">ffi::SHA384_Update</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#276">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/sha.rs.html#276">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../src/openssl/sha.rs.html#276">buf</a>.<span class="ident">len</span>());
-                }
-            }
-
-            <span class="doccomment">/// Returns the hash of the data.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA384_Final</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">48</span>] {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">48</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-                    <span class="ident">ffi::SHA384_Final</span>(<a class="ident" href="../../src/openssl/sha.rs.html#287">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#285">self</a>.<span class="number">0</span>);
-                    <a class="ident" href="../../src/openssl/sha.rs.html#287">hash</a>.<span class="ident">assume_init</span>()
+            <span class="doccomment">/// Returns the hash of the data.
+            </span><span class="attribute">#[corresponds(SHA224_Final)]
+            #[inline]
+            </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">28</span>] {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">28</span>]&gt;::uninit();
+                    ffi::SHA224_Final(<a href="../../src/openssl/sha.rs.html#195">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#193">self</a>.<span class="number">0</span>);
+                    <a href="../../src/openssl/sha.rs.html#195">hash</a>.assume_init()
                 }
             }
         }
 
-        <span class="doccomment">/// An object which calculates a SHA512 hash of some data.</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sha512</span>(<a class="ident" href="../../openssl_sys/handwritten/sha/struct.SHA512_CTX.html">ffi::SHA512_CTX</a>);
+        <span class="doccomment">/// An object which calculates a SHA256 hash of some data.
+        </span><span class="attribute">#[derive(Clone)]
+        </span><span class="kw">pub struct </span>Sha256(<a href="../../openssl_sys/handwritten/sha/struct.SHA256_CTX.html">ffi::SHA256_CTX</a>);
 
-        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/sha.rs.html#296">Sha512</a> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#296">Sha512</a> {
-                <span class="ident">Sha512::new</span>()
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/openssl/sha.rs.html#204">Sha256</a> {
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>default() -&gt; <a href="../../src/openssl/sha.rs.html#204">Sha256</a> {
+                Sha256::new()
             }
         }
 
-        <span class="kw">impl</span> <a class="ident" href="../../src/openssl/sha.rs.html#296">Sha512</a> {
-            <span class="doccomment">/// Creates a new hasher.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA512_Init</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/openssl/sha.rs.html#296">Sha512</a> {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-                    <span class="ident">ffi::SHA512_Init</span>(<a class="ident" href="../../src/openssl/sha.rs.html#311">ctx</a>.<span class="ident">as_mut_ptr</span>());
-                    <a class="ident" href="../../src/openssl/sha.rs.html#296">Sha512</a>(<a class="ident" href="../../src/openssl/sha.rs.html#311">ctx</a>.<span class="ident">assume_init</span>())
+        <span class="kw">impl </span><a href="../../src/openssl/sha.rs.html#204">Sha256</a> {
+            <span class="doccomment">/// Creates a new hasher.
+            </span><span class="attribute">#[corresponds(SHA256_Init)]
+            #[inline]
+            </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/openssl/sha.rs.html#204">Sha256</a> {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>ctx = MaybeUninit::uninit();
+                    ffi::SHA256_Init(<a href="../../src/openssl/sha.rs.html#219">ctx</a>.as_mut_ptr());
+                    <a href="../../src/openssl/sha.rs.html#204">Sha256</a>(<a href="../../src/openssl/sha.rs.html#219">ctx</a>.assume_init())
                 }
             }
 
-            <span class="doccomment">/// Feeds some data into the hasher.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This can be called multiple times.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA512_Update</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">ffi::SHA512_Update</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#322">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/sha.rs.html#322">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../src/openssl/sha.rs.html#322">buf</a>.<span class="ident">len</span>());
+            <span class="doccomment">/// Feeds some data into the hasher.
+            ///
+            /// This can be called multiple times.
+            </span><span class="attribute">#[corresponds(SHA256_Update)]
+            #[inline]
+            </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+                <span class="kw">unsafe </span>{
+                    ffi::SHA256_Update(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#230">self</a>.<span class="number">0</span>, <a href="../../src/openssl/sha.rs.html#230">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../src/openssl/sha.rs.html#230">buf</a>.len());
                 }
             }
 
-            <span class="doccomment">/// Returns the hash of the data.</span>
-            <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SHA512_Final</span>)]</span>
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span><span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
-                <span class="ident">ffi::SHA512_Final</span>(<a class="ident" href="../../src/openssl/sha.rs.html#333">hash</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/openssl/sha.rs.html#331">self</a>.<span class="number">0</span>);
-                <a class="ident" href="../../src/openssl/sha.rs.html#333">hash</a>.<span class="ident">assume_init</span>()
+            <span class="doccomment">/// Returns the hash of the data.
+            </span><span class="attribute">#[corresponds(SHA256_Final)]
+            #[inline]
+            </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>] {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">32</span>]&gt;::uninit();
+                    ffi::SHA256_Final(<a href="../../src/openssl/sha.rs.html#241">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#239">self</a>.<span class="number">0</span>);
+                    <a href="../../src/openssl/sha.rs.html#241">hash</a>.assume_init()
+                }
+            }
+        }
+
+        <span class="doccomment">/// An object which calculates a SHA384 hash of some data.
+        </span><span class="attribute">#[derive(Clone)]
+        </span><span class="kw">pub struct </span>Sha384(<a href="../../openssl_sys/handwritten/sha/struct.SHA512_CTX.html">ffi::SHA512_CTX</a>);
+
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/openssl/sha.rs.html#250">Sha384</a> {
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>default() -&gt; <a href="../../src/openssl/sha.rs.html#250">Sha384</a> {
+                Sha384::new()
+            }
+        }
+
+        <span class="kw">impl </span><a href="../../src/openssl/sha.rs.html#250">Sha384</a> {
+            <span class="doccomment">/// Creates a new hasher.
+            </span><span class="attribute">#[corresponds(SHA384_Init)]
+            #[inline]
+            </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/openssl/sha.rs.html#250">Sha384</a> {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>ctx = MaybeUninit::uninit();
+                    ffi::SHA384_Init(<a href="../../src/openssl/sha.rs.html#265">ctx</a>.as_mut_ptr());
+                    <a href="../../src/openssl/sha.rs.html#250">Sha384</a>(<a href="../../src/openssl/sha.rs.html#265">ctx</a>.assume_init())
+                }
+            }
+
+            <span class="doccomment">/// Feeds some data into the hasher.
+            ///
+            /// This can be called multiple times.
+            </span><span class="attribute">#[corresponds(SHA384_Update)]
+            #[inline]
+            </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+                <span class="kw">unsafe </span>{
+                    ffi::SHA384_Update(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#276">self</a>.<span class="number">0</span>, <a href="../../src/openssl/sha.rs.html#276">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../src/openssl/sha.rs.html#276">buf</a>.len());
+                }
+            }
+
+            <span class="doccomment">/// Returns the hash of the data.
+            </span><span class="attribute">#[corresponds(SHA384_Final)]
+            #[inline]
+            </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">48</span>] {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>hash = MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">48</span>]&gt;::uninit();
+                    ffi::SHA384_Final(<a href="../../src/openssl/sha.rs.html#287">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#285">self</a>.<span class="number">0</span>);
+                    <a href="../../src/openssl/sha.rs.html#287">hash</a>.assume_init()
+                }
+            }
+        }
+
+        <span class="doccomment">/// An object which calculates a SHA512 hash of some data.
+        </span><span class="attribute">#[derive(Clone)]
+        </span><span class="kw">pub struct </span>Sha512(<a href="../../openssl_sys/handwritten/sha/struct.SHA512_CTX.html">ffi::SHA512_CTX</a>);
+
+        <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/openssl/sha.rs.html#296">Sha512</a> {
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>default() -&gt; <a href="../../src/openssl/sha.rs.html#296">Sha512</a> {
+                Sha512::new()
+            }
+        }
+
+        <span class="kw">impl </span><a href="../../src/openssl/sha.rs.html#296">Sha512</a> {
+            <span class="doccomment">/// Creates a new hasher.
+            </span><span class="attribute">#[corresponds(SHA512_Init)]
+            #[inline]
+            </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/openssl/sha.rs.html#296">Sha512</a> {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>ctx = MaybeUninit::uninit();
+                    ffi::SHA512_Init(<a href="../../src/openssl/sha.rs.html#311">ctx</a>.as_mut_ptr());
+                    <a href="../../src/openssl/sha.rs.html#296">Sha512</a>(<a href="../../src/openssl/sha.rs.html#311">ctx</a>.assume_init())
+                }
+            }
+
+            <span class="doccomment">/// Feeds some data into the hasher.
+            ///
+            /// This can be called multiple times.
+            </span><span class="attribute">#[corresponds(SHA512_Update)]
+            #[inline]
+            </span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+                <span class="kw">unsafe </span>{
+                    ffi::SHA512_Update(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#322">self</a>.<span class="number">0</span>, <a href="../../src/openssl/sha.rs.html#322">buf</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../src/openssl/sha.rs.html#322">buf</a>.len());
+                }
+            }
+
+            <span class="doccomment">/// Returns the hash of the data.
+            </span><span class="attribute">#[corresponds(SHA512_Final)]
+            #[inline]
+            </span><span class="kw">pub fn </span>finish(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>] {
+                <span class="kw">unsafe </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>hash= MaybeUninit::&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">64</span>]&gt;::uninit();
+                ffi::SHA512_Final(<a href="../../src/openssl/sha.rs.html#333">hash</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="kw-2">&amp;mut </span><a class="self" href="../../src/openssl/sha.rs.html#331">self</a>.<span class="number">0</span>);
+                <a href="../../src/openssl/sha.rs.html#333">hash</a>.assume_init()
             }
         }
     }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">standalone_1</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">b&quot;abc&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;a9993e364706816aba3e25717850c26c9cd0d89d&quot;</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>standalone_1() {
+        <span class="kw">let </span>data = <span class="string">b&quot;abc&quot;</span>;
+        <span class="kw">let </span>expected = <span class="string">&quot;a9993e364706816aba3e25717850c26c9cd0d89d&quot;</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="ident">sha1</span>(<span class="ident">data</span>)), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(sha1(data)), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">struct_1</span>() {
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;a9993e364706816aba3e25717850c26c9cd0d89d&quot;</span>;
+    <span class="attribute">#[test]
+    #[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">fn </span>struct_1() {
+        <span class="kw">let </span>expected = <span class="string">&quot;a9993e364706816aba3e25717850c26c9cd0d89d&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Sha1::new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;a&quot;</span>);
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;bc&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="ident">hasher</span>.<span class="ident">finish</span>()), <span class="ident">expected</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = Sha1::new();
+        hasher.update(<span class="string">b&quot;a&quot;</span>);
+        hasher.update(<span class="string">b&quot;bc&quot;</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(hasher.finish()), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">cloning_allows_incremental_hashing</span>() {
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;a9993e364706816aba3e25717850c26c9cd0d89d&quot;</span>;
+    <span class="attribute">#[test]
+    #[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">fn </span>cloning_allows_incremental_hashing() {
+        <span class="kw">let </span>expected = <span class="string">&quot;a9993e364706816aba3e25717850c26c9cd0d89d&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Sha1::new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;a&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = Sha1::new();
+        hasher.update(<span class="string">b&quot;a&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">incr_hasher</span> <span class="op">=</span> <span class="ident">hasher</span>.<span class="ident">clone</span>();
-        <span class="ident">incr_hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;bc&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>incr_hasher = hasher.clone();
+        incr_hasher.update(<span class="string">b&quot;bc&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="ident">incr_hasher</span>.<span class="ident">finish</span>()), <span class="ident">expected</span>);
-        <span class="macro">assert_ne!</span>(<span class="ident">hex::encode</span>(<span class="ident">hasher</span>.<span class="ident">finish</span>()), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(incr_hasher.finish()), expected);
+        <span class="macro">assert_ne!</span>(hex::encode(hasher.finish()), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">standalone_224</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">b&quot;abc&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7&quot;</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>standalone_224() {
+        <span class="kw">let </span>data = <span class="string">b&quot;abc&quot;</span>;
+        <span class="kw">let </span>expected = <span class="string">&quot;23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7&quot;</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="ident">sha224</span>(<span class="ident">data</span>)), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(sha224(data)), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">struct_224</span>() {
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7&quot;</span>;
+    <span class="attribute">#[test]
+    #[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">fn </span>struct_224() {
+        <span class="kw">let </span>expected = <span class="string">&quot;23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Sha224::new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;a&quot;</span>);
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;bc&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="ident">hasher</span>.<span class="ident">finish</span>()), <span class="ident">expected</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = Sha224::new();
+        hasher.update(<span class="string">b&quot;a&quot;</span>);
+        hasher.update(<span class="string">b&quot;bc&quot;</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(hasher.finish()), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">standalone_256</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">b&quot;abc&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad&quot;</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>standalone_256() {
+        <span class="kw">let </span>data = <span class="string">b&quot;abc&quot;</span>;
+        <span class="kw">let </span>expected = <span class="string">&quot;ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad&quot;</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="ident">sha256</span>(<span class="ident">data</span>)), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(sha256(data)), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">struct_256</span>() {
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad&quot;</span>;
+    <span class="attribute">#[test]
+    #[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">fn </span>struct_256() {
+        <span class="kw">let </span>expected = <span class="string">&quot;ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Sha256::new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;a&quot;</span>);
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;bc&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="ident">hasher</span>.<span class="ident">finish</span>()), <span class="ident">expected</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = Sha256::new();
+        hasher.update(<span class="string">b&quot;a&quot;</span>);
+        hasher.update(<span class="string">b&quot;bc&quot;</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(hasher.finish()), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">standalone_384</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">b&quot;abc&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>standalone_384() {
+        <span class="kw">let </span>data = <span class="string">b&quot;abc&quot;</span>;
+        <span class="kw">let </span>expected =
             <span class="string">&quot;cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e\
              7cc2358baeca134c825a7&quot;</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="kw-2">&amp;</span><span class="ident">sha384</span>(<span class="ident">data</span>)[..]), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(<span class="kw-2">&amp;</span>sha384(data)[..]), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">struct_384</span>() {
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
+    <span class="attribute">#[test]
+    #[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">fn </span>struct_384() {
+        <span class="kw">let </span>expected =
             <span class="string">&quot;cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e\
              7cc2358baeca134c825a7&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Sha384::new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;a&quot;</span>);
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;bc&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="kw-2">&amp;</span><span class="ident">hasher</span>.<span class="ident">finish</span>()[..]), <span class="ident">expected</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = Sha384::new();
+        hasher.update(<span class="string">b&quot;a&quot;</span>);
+        hasher.update(<span class="string">b&quot;bc&quot;</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(<span class="kw-2">&amp;</span>hasher.finish()[..]), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">standalone_512</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">b&quot;abc&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>standalone_512() {
+        <span class="kw">let </span>data = <span class="string">b&quot;abc&quot;</span>;
+        <span class="kw">let </span>expected =
             <span class="string">&quot;ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274\
              fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f&quot;</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="kw-2">&amp;</span><span class="ident">sha512</span>(<span class="ident">data</span>)[..]), <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(<span class="kw-2">&amp;</span>sha512(data)[..]), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">struct_512</span>() {
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
+    <span class="attribute">#[test]
+    #[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_DEPRECATED_3_0&quot;</span>))]
+    </span><span class="kw">fn </span>struct_512() {
+        <span class="kw">let </span>expected =
             <span class="string">&quot;ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274\
              fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f&quot;</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Sha512::new</span>();
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;a&quot;</span>);
-        <span class="ident">hasher</span>.<span class="ident">update</span>(<span class="string">b&quot;bc&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">hex::encode</span>(<span class="kw-2">&amp;</span><span class="ident">hasher</span>.<span class="ident">finish</span>()[..]), <span class="ident">expected</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = Sha512::new();
+        hasher.update(<span class="string">b&quot;a&quot;</span>);
+        hasher.update(<span class="string">b&quot;bc&quot;</span>);
+        <span class="macro">assert_eq!</span>(hex::encode(<span class="kw-2">&amp;</span>hasher.finish()[..]), expected);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

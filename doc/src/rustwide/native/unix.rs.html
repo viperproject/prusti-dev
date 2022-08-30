@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustwide-0.15.0/src/native/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../rustwide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../rustwide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../rustwide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustwide-0.15.0/src/native/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../rustwide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../rustwide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../rustwide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -109,116 +109,116 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/rustwide/native/mod.rs.html#12"><span class="kw">super</span>::CurrentUser</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#115"><span class="kw">crate</span>::cmd::KillFailedError</a>;
-<span class="kw">use</span> <a class="ident" href="../../../failure/error/struct.Error.html">failure::Error</a>;
-<span class="kw">use</span> <span class="ident">nix</span>::{
-    <span class="ident">sys::signal</span>::{<a class="ident" href="../../../nix/sys/signal/fn.kill.html">kill</a>, <a class="ident" href="../../../nix/sys/signal/enum.Signal.html">Signal</a>},
-    <span class="ident">unistd</span>::{<a class="ident" href="../../../nix/unistd/struct.Gid.html">Gid</a>, <a class="ident" href="../../../nix/unistd/struct.Pid.html">Pid</a>, <a class="ident" href="../../../nix/unistd/struct.Uid.html">Uid</a>},
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/rustwide/native/mod.rs.html#12"><span class="kw">super</span>::CurrentUser</a>;
+<span class="kw">use </span><a href="../../../src/rustwide/cmd/mod.rs.html#115"><span class="kw">crate</span>::cmd::KillFailedError</a>;
+<span class="kw">use </span><a href="../../../failure/error/struct.Error.html">failure::Error</a>;
+<span class="kw">use </span>nix::{
+    sys::signal::{<a href="../../../nix/sys/signal/fn.kill.html">kill</a>, <a href="../../../nix/sys/signal/enum.Signal.html">Signal</a>},
+    unistd::{<a href="../../../nix/unistd/struct.Gid.html">Gid</a>, <a href="../../../nix/unistd/struct.Pid.html">Pid</a>, <a href="../../../nix/unistd/struct.Uid.html">Uid</a>},
 };
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">std::convert::AsRef</a>;
-<span class="kw">use</span> <span class="ident">std::os::unix::fs</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">MetadataExt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.PermissionsExt.html">PermissionsExt</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">std::convert::AsRef</a>;
+<span class="kw">use </span>std::os::unix::fs::{<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">MetadataExt</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.PermissionsExt.html">PermissionsExt</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 
-<span class="kw">const</span> <span class="ident">EXECUTABLE_BITS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0o5</span>;
+<span class="kw">const </span>EXECUTABLE_BITS: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="number">0o5</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">kill_process</span>(<span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#115">KillFailedError</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../../nix/sys/signal/fn.kill.html">kill</a>(<span class="ident">Pid::from_raw</span>(<a class="ident" href="../../../src/rustwide/native/unix.rs.html#14">id</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>), <span class="ident">Signal::SIGKILL</span>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>kill_process(id: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/rustwide/cmd/mod.rs.html#115">KillFailedError</a>&gt; {
+    <span class="kw">match </span><a href="../../../nix/sys/signal/fn.kill.html">kill</a>(Pid::from_raw(<a href="../../../src/rustwide/native/unix.rs.html#14">id</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>), Signal::SIGKILL) {
         <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(()),
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#115">KillFailedError</a> {
-            <span class="ident">pid</span>: <a class="ident" href="../../../src/rustwide/native/unix.rs.html#14">id</a>,
-            <span class="ident">errno</span>: <span class="kw">if</span> <span class="kw">let</span> <span class="ident">nix::Error::Sys</span>(<span class="ident">errno</span>) <span class="op">=</span> <a class="ident" href="../../../src/rustwide/native/unix.rs.html#17">err</a> {
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/rustwide/native/unix.rs.html#19">errno</a>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            },
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/rustwide/cmd/mod.rs.html#115">KillFailedError</a> {
+            pid: <a href="../../../src/rustwide/native/unix.rs.html#14">id</a>,
+            errno: <span class="kw">if let </span>nix::Error::Sys(errno) = <a href="../../../src/rustwide/native/unix.rs.html#17">err</a> {
+                <span class="prelude-val">Some</span>(<a href="../../../src/rustwide/native/unix.rs.html#19">errno</a>)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>},
         }),
     }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span> <span class="comment">// the API is intentionally the same as `windows::current_user`</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">current_user</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/native/mod.rs.html#12">CurrentUser</a><span class="op">&gt;</span> {
-    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/rustwide/native/mod.rs.html#12">CurrentUser</a> {
-        <span class="ident">user_id</span>: <span class="ident">Uid::effective</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-        <span class="ident">group_id</span>: <span class="ident">Gid::effective</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+<span class="attribute">#[allow(clippy::unnecessary_wraps)] </span><span class="comment">// the API is intentionally the same as `windows::current_user`
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_user() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/rustwide/native/mod.rs.html#12">CurrentUser</a>&gt; {
+    <span class="prelude-val">Some</span>(<a href="../../../src/rustwide/native/mod.rs.html#12">CurrentUser</a> {
+        user_id: Uid::effective().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        group_id: Gid::effective().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
     })
 }
 
-<span class="kw">fn</span> <span class="ident">executable_mode_for</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">metadata</span>()<span class="question-mark">?</span>;
+<span class="kw">fn </span>executable_mode_for(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="../../../failure/error/struct.Error.html">Error</a>&gt; {
+    <span class="kw">let </span>metadata = path.metadata()<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">user</span> <span class="op">=</span> <a class="ident" href="../../../src/rustwide/native/unix.rs.html#29">current_user</a>().<span class="ident">unwrap</span>();
+    <span class="kw">let </span>user = <a href="../../../src/rustwide/native/unix.rs.html#29">current_user</a>().unwrap();
 
-    <span class="kw">if</span> <span class="ident">metadata</span>.<span class="ident">uid</span>() <span class="op">==</span> <span class="ident">user</span>.<span class="ident">user_id</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/rustwide/native/unix.rs.html#12">EXECUTABLE_BITS</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">metadata</span>.<span class="ident">gid</span>() <span class="op">==</span> <span class="ident">user</span>.<span class="ident">group_id</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/rustwide/native/unix.rs.html#12">EXECUTABLE_BITS</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>)
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/rustwide/native/unix.rs.html#12">EXECUTABLE_BITS</a>)
+    <span class="kw">if </span>metadata.uid() == user.user_id {
+        <span class="prelude-val">Ok</span>(<a href="../../../src/rustwide/native/unix.rs.html#12">EXECUTABLE_BITS</a> &lt;&lt; <span class="number">6</span>)
+    } <span class="kw">else if </span>metadata.gid() == user.group_id {
+        <span class="prelude-val">Ok</span>(<a href="../../../src/rustwide/native/unix.rs.html#12">EXECUTABLE_BITS</a> &lt;&lt; <span class="number">3</span>)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(<a href="../../../src/rustwide/native/unix.rs.html#12">EXECUTABLE_BITS</a>)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_executable</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../../src/rustwide/native/unix.rs.html#50">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_executable&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../../failure/error/struct.Error.html">Error</a>&gt; {
+    <span class="kw">let </span>path = <a href="../../../src/rustwide/native/unix.rs.html#50">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
 
-    <span class="kw">let</span> <span class="ident">expected_mode</span> <span class="op">=</span> <span class="ident">executable_mode_for</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">path</span>.<span class="ident">metadata</span>()<span class="question-mark">?</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">mode</a>() <span class="op">&amp;</span> <a class="ident" href="../../../src/rustwide/native/unix.rs.html#53">expected_mode</a> <span class="op">==</span> <a class="ident" href="../../../src/rustwide/native/unix.rs.html#53">expected_mode</a>)
+    <span class="kw">let </span>expected_mode = executable_mode_for(path)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(path.metadata()<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.MetadataExt.html">mode</a>() &amp; <a href="../../../src/rustwide/native/unix.rs.html#53">expected_mode</a> == <a href="../../../src/rustwide/native/unix.rs.html#53">expected_mode</a>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_executable</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../failure/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../../src/rustwide/native/unix.rs.html#57">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_executable&lt;P: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../failure/error/struct.Error.html">Error</a>&gt; {
+    <span class="kw">let </span>path = <a href="../../../src/rustwide/native/unix.rs.html#57">path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
 
-    <span class="comment">// Set the executable and readable bits on the file</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">perms</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">metadata</span>()<span class="question-mark">?</span>.<span class="ident">permissions</span>();
-    <span class="kw">let</span> <span class="ident">new_mode</span> <span class="op">=</span> <a class="ident" href="../../../src/rustwide/native/unix.rs.html#61">perms</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.PermissionsExt.html">mode</a>() <span class="op">|</span> <span class="ident">executable_mode_for</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-    <a class="ident" href="../../../src/rustwide/native/unix.rs.html#61">perms</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.PermissionsExt.html">set_mode</a>(<a class="ident" href="../../../src/rustwide/native/unix.rs.html#62">new_mode</a>);
+    <span class="comment">// Set the executable and readable bits on the file
+    </span><span class="kw">let </span><span class="kw-2">mut </span>perms = path.metadata()<span class="question-mark">?</span>.permissions();
+    <span class="kw">let </span>new_mode = <a href="../../../src/rustwide/native/unix.rs.html#61">perms</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.PermissionsExt.html">mode</a>() | executable_mode_for(path)<span class="question-mark">?</span>;
+    <a href="../../../src/rustwide/native/unix.rs.html#61">perms</a>.<a href="https://doc.rust-lang.org/nightly/std/os/unix/fs/trait.PermissionsExt.html">set_mode</a>(<a href="../../../src/rustwide/native/unix.rs.html#62">new_mode</a>);
 
-    <span class="ident">::std::fs::set_permissions</span>(<span class="ident">path</span>, <span class="ident">perms</span>)<span class="question-mark">?</span>;
+    ::std::fs::set_permissions(path, perms)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::CurrentUser</span>;
-    <span class="kw">use</span> <span class="ident">nix::unistd</span>::{<span class="ident">Gid</span>, <span class="ident">Uid</span>};
-    <span class="kw">use</span> <span class="ident">std::fs::File</span>;
-    <span class="kw">use</span> <span class="ident">std::os::unix::process::ExitStatusExt</span>;
-    <span class="kw">use</span> <span class="ident">std::process::Command</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">super</span>::CurrentUser;
+    <span class="kw">use </span>nix::unistd::{Gid, Uid};
+    <span class="kw">use </span>std::fs::File;
+    <span class="kw">use </span>std::os::unix::process::ExitStatusExt;
+    <span class="kw">use </span>std::process::Command;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_kill_process</span>() {
-        <span class="comment">// Try to kill a sleep command</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="string">&quot;sleep&quot;</span>).<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;2&quot;</span>]).<span class="ident">spawn</span>().<span class="ident">unwrap</span>();
-        <span class="ident"><span class="kw">super</span>::kill_process</span>(<span class="ident">cmd</span>.<span class="ident">id</span>()).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_kill_process() {
+        <span class="comment">// Try to kill a sleep command
+        </span><span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;sleep&quot;</span>).args(<span class="kw-2">&amp;</span>[<span class="string">&quot;2&quot;</span>]).spawn().unwrap();
+        <span class="kw">super</span>::kill_process(cmd.id()).unwrap();
 
-        <span class="comment">// Ensure it was killed with SIGKILL</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">cmd</span>.<span class="ident">wait</span>().<span class="ident">unwrap</span>().<span class="ident">signal</span>(), <span class="prelude-val">Some</span>(<span class="number">9</span>));
+        <span class="comment">// Ensure it was killed with SIGKILL
+        </span><span class="macro">assert_eq!</span>(cmd.wait().unwrap().signal(), <span class="prelude-val">Some</span>(<span class="number">9</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_current_user</span>() {
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_current_user() {
         <span class="macro">assert_eq!</span>(
-            <span class="ident"><span class="kw">super</span>::current_user</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">CurrentUser</span> {
-                <span class="ident">user_id</span>: <span class="ident">u32::from</span>(<span class="ident">Uid::effective</span>()),
-                <span class="ident">group_id</span>: <span class="ident">u32::from</span>(<span class="ident">Gid::effective</span>()),
+            <span class="kw">super</span>::current_user(),
+            <span class="prelude-val">Some</span>(CurrentUser {
+                user_id: u32::from(Uid::effective()),
+                group_id: u32::from(Gid::effective()),
             })
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_executables</span>() {
-        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;test&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_executables() {
+        <span class="kw">let </span>dir = tempfile::tempdir().unwrap();
+        <span class="kw">let </span>path = dir.path().join(<span class="string">&quot;test&quot;</span>);
 
-        <span class="comment">// Create the temp file and make sure it&#39;s not executable</span>
-        <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">super</span>::is_executable</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>());
+        <span class="comment">// Create the temp file and make sure it&#39;s not executable
+        </span>File::create(<span class="kw-2">&amp;</span>path).unwrap();
+        <span class="macro">assert!</span>(!<span class="kw">super</span>::is_executable(<span class="kw-2">&amp;</span>path).unwrap());
 
-        <span class="comment">// And then make it executable</span>
-        <span class="ident"><span class="kw">super</span>::make_executable</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident"><span class="kw">super</span>::is_executable</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>());
+        <span class="comment">// And then make it executable
+        </span><span class="kw">super</span>::make_executable(<span class="kw-2">&amp;</span>path).unwrap();
+        <span class="macro">assert!</span>(<span class="kw">super</span>::is_executable(<span class="kw-2">&amp;</span>path).unwrap());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rustwide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rustwide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

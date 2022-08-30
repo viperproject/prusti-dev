@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/poll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/poll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -701,708 +701,708 @@
 <span id="701">701</span>
 <span id="702">702</span>
 <span id="703">703</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../src/mio/lib.rs.html#49">sys</a>, <a class="ident" href="../../src/mio/event/events.rs.html#42">Events</a>, <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../src/mio/token.rs.html#132">Token</a>};
-<span class="kw">use</span> <a class="ident" href="../../log/macro.trace.html">log::trace</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../src/mio/lib.rs.html#54">event</a>, <a href="../../src/mio/lib.rs.html#49">sys</a>, <a href="../../src/mio/event/events.rs.html#42">Events</a>, <a href="../../src/mio/interest.rs.html#17">Interest</a>, <a href="../../src/mio/token.rs.html#132">Token</a>};
+<span class="kw">use </span><a href="../../log/macro.trace.html">log::trace</a>;
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
 
-<span class="doccomment">/// Polls for readiness events on all registered values.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Poll` allows a program to monitor a large number of [`event::Source`]s,</span>
-<span class="doccomment">/// waiting until one or more become &quot;ready&quot; for some class of operations; e.g.</span>
-<span class="doccomment">/// reading and writing. An event source is considered ready if it is possible</span>
-<span class="doccomment">/// to immediately perform a corresponding operation; e.g. [`read`] or</span>
-<span class="doccomment">/// [`write`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To use `Poll`, an `event::Source` must first be registered with the `Poll`</span>
-<span class="doccomment">/// instance using the [`register`] method on its associated `Register`,</span>
-<span class="doccomment">/// supplying readiness interest. The readiness interest tells `Poll` which</span>
-<span class="doccomment">/// specific operations on the handle to monitor for readiness. A `Token` is</span>
-<span class="doccomment">/// also passed to the [`register`] function. When `Poll` returns a readiness</span>
-<span class="doccomment">/// event, it will include this token.  This associates the event with the</span>
-<span class="doccomment">/// event source that generated the event.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`event::Source`]: ./event/trait.Source.html</span>
-<span class="doccomment">/// [`read`]: ./net/struct.TcpStream.html#method.read</span>
-<span class="doccomment">/// [`write`]: ./net/struct.TcpStream.html#method.write</span>
-<span class="doccomment">/// [`register`]: struct.Registry.html#method.register</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A basic example -- establishing a `TcpStream` connection.</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-<span class="doccomment">/// # use std::error::Error;</span>
-<span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-<span class="doccomment">/// use mio::{Events, Poll, Interest, Token};</span>
-<span class="doccomment">/// use mio::net::TcpStream;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// use std::net::{self, SocketAddr};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Bind a server socket to connect to.</span>
-<span class="doccomment">/// let addr: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;</span>
-<span class="doccomment">/// let server = net::TcpListener::bind(addr)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Construct a new `Poll` handle as well as the `Events` we&#39;ll store into</span>
-<span class="doccomment">/// let mut poll = Poll::new()?;</span>
-<span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Connect the stream</span>
-<span class="doccomment">/// let mut stream = TcpStream::connect(server.local_addr()?)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Register the stream with `Poll`</span>
-<span class="doccomment">/// poll.registry().register(&amp;mut stream, Token(0), Interest::READABLE | Interest::WRITABLE)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Wait for the socket to become ready. This has to happens in a loop to</span>
-<span class="doccomment">/// // handle spurious wakeups.</span>
-<span class="doccomment">/// loop {</span>
-<span class="doccomment">///     poll.poll(&amp;mut events, None)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     for event in &amp;events {</span>
-<span class="doccomment">///         if event.token() == Token(0) &amp;&amp; event.is_writable() {</span>
-<span class="doccomment">///             // The socket connected (probably, it could still be a spurious</span>
-<span class="doccomment">///             // wakeup)</span>
-<span class="doccomment">///             return Ok(());</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Portability</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Using `Poll` provides a portable interface across supported platforms as</span>
-<span class="doccomment">/// long as the caller takes the following into consideration:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Spurious events</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Poll::poll`] may return readiness events even if the associated</span>
-<span class="doccomment">/// event source is not actually ready. Given the same code, this may</span>
-<span class="doccomment">/// happen more on some platforms than others. It is important to never assume</span>
-<span class="doccomment">/// that, just because a readiness event was received, that the associated</span>
-<span class="doccomment">/// operation will succeed as well.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If operation fails with [`WouldBlock`], then the caller should not treat</span>
-<span class="doccomment">/// this as an error, but instead should wait until another readiness event is</span>
-<span class="doccomment">/// received.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Draining readiness</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Once a readiness event is received, the corresponding operation must be</span>
-<span class="doccomment">/// performed repeatedly until it returns [`WouldBlock`]. Unless this is done,</span>
-<span class="doccomment">/// there is no guarantee that another readiness event will be delivered, even</span>
-<span class="doccomment">/// if further data is received for the event source.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`WouldBlock`]: std::io::ErrorKind::WouldBlock</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Readiness operations</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The only readiness operations that are guaranteed to be present on all</span>
-<span class="doccomment">/// supported platforms are [`readable`] and [`writable`]. All other readiness</span>
-<span class="doccomment">/// operations may have false negatives and as such should be considered</span>
-<span class="doccomment">/// **hints**. This means that if a socket is registered with [`readable`]</span>
-<span class="doccomment">/// interest and either an error or close is received, a readiness event will</span>
-<span class="doccomment">/// be generated for the socket, but it **may** only include `readable`</span>
-<span class="doccomment">/// readiness. Also note that, given the potential for spurious events,</span>
-<span class="doccomment">/// receiving a readiness event with `read_closed`, `write_closed`, or `error`</span>
-<span class="doccomment">/// doesn&#39;t actually mean that a `read` on the socket will return a result</span>
-<span class="doccomment">/// matching the readiness event.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In other words, portable programs that explicitly check for [`read_closed`],</span>
-<span class="doccomment">/// [`write_closed`], or [`error`] readiness should be doing so as an</span>
-<span class="doccomment">/// **optimization** and always be able to handle an error or close situation</span>
-<span class="doccomment">/// when performing the actual read operation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`readable`]: ./event/struct.Event.html#method.is_readable</span>
-<span class="doccomment">/// [`writable`]: ./event/struct.Event.html#method.is_writable</span>
-<span class="doccomment">/// [`error`]: ./event/struct.Event.html#method.is_error</span>
-<span class="doccomment">/// [`read_closed`]: ./event/struct.Event.html#method.is_read_closed</span>
-<span class="doccomment">/// [`write_closed`]: ./event/struct.Event.html#method.is_write_closed</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Registering handles</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Unless otherwise noted, it should be assumed that types implementing</span>
-<span class="doccomment">/// [`event::Source`] will never become ready unless they are registered with</span>
-<span class="doccomment">/// `Poll`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// For example:</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-<span class="doccomment">/// # use std::error::Error;</span>
-<span class="doccomment">/// # use std::net;</span>
-<span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-<span class="doccomment">/// use mio::{Poll, Interest, Token};</span>
-<span class="doccomment">/// use mio::net::TcpStream;</span>
-<span class="doccomment">/// use std::net::SocketAddr;</span>
-<span class="doccomment">/// use std::time::Duration;</span>
-<span class="doccomment">/// use std::thread;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let address: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;</span>
-<span class="doccomment">/// let listener = net::TcpListener::bind(address)?;</span>
-<span class="doccomment">/// let mut sock = TcpStream::connect(listener.local_addr()?)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// thread::sleep(Duration::from_secs(1));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let poll = Poll::new()?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // The connect is not guaranteed to have started until it is registered at</span>
-<span class="doccomment">/// // this point</span>
-<span class="doccomment">/// poll.registry().register(&amp;mut sock, Token(0), Interest::READABLE | Interest::WRITABLE)?;</span>
-<span class="doccomment">/// #     Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Dropping `Poll`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When the `Poll` instance is dropped it may cancel in-flight operations for</span>
-<span class="doccomment">/// the registered [event sources], meaning that no further events for them may</span>
-<span class="doccomment">/// be received. It also means operations on the registered event sources may no</span>
-<span class="doccomment">/// longer work. It is up to the user to keep the `Poll` instance alive while</span>
-<span class="doccomment">/// registered event sources are being used.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [event sources]: ./event/trait.Source.html</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Accessing raw fd/socket/handle</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Mio makes it possible for many types to be converted into a raw file</span>
-<span class="doccomment">/// descriptor (fd, Unix), socket (Windows) or handle (Windows). This makes it</span>
-<span class="doccomment">/// possible to support more operations on the type than Mio supports, for</span>
-<span class="doccomment">/// example it makes [mio-aio] possible. However accessing the raw fd is not</span>
-<span class="doccomment">/// without it&#39;s pitfalls.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Specifically performing I/O operations outside of Mio on these types (via</span>
-<span class="doccomment">/// the raw fd) has unspecified behaviour. It could cause no more events to be</span>
-<span class="doccomment">/// generated for the type even though it returned `WouldBlock` (in an operation</span>
-<span class="doccomment">/// directly accessing the fd). The behaviour is OS specific and Mio can only</span>
-<span class="doccomment">/// guarantee cross-platform behaviour if it can control the I/O.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mio-aio]: https://github.com/asomers/mio-aio</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// *The following is **not** guaranteed, just a description of the current</span>
-<span class="doccomment">/// situation!* Mio is allowed to change the following without it being considered</span>
-<span class="doccomment">/// a breaking change, don&#39;t depend on this, it&#39;s just here to inform the user.</span>
-<span class="doccomment">/// Currently the kqueue and epoll implementation support direct I/O operations</span>
-<span class="doccomment">/// on the fd without Mio&#39;s knowledge. Windows however needs **all** I/O</span>
-<span class="doccomment">/// operations to go through Mio otherwise it is not able to update it&#39;s</span>
-<span class="doccomment">/// internal state properly and won&#39;t generate events.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### Polling without registering event sources</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// *The following is **not** guaranteed, just a description of the current</span>
-<span class="doccomment">/// situation!* Mio is allowed to change the following without it being</span>
-<span class="doccomment">/// considered a breaking change, don&#39;t depend on this, it&#39;s just here to inform</span>
-<span class="doccomment">/// the user. On platforms that use epoll, kqueue or IOCP (see implementation</span>
-<span class="doccomment">/// notes below) polling without previously registering [event sources] will</span>
-<span class="doccomment">/// result in sleeping forever, only a process signal will be able to wake up</span>
-<span class="doccomment">/// the thread.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On WASM/WASI this is different as it doesn&#39;t support process signals,</span>
-<span class="doccomment">/// furthermore the WASI specification doesn&#39;t specify a behaviour in this</span>
-<span class="doccomment">/// situation, thus it&#39;s up to the implementation what to do here. As an</span>
-<span class="doccomment">/// example, the wasmtime runtime will return `EINVAL` in this situation, but</span>
-<span class="doccomment">/// different runtimes may return different results. If you have further</span>
-<span class="doccomment">/// insights or thoughts about this situation (and/or how Mio should handle it)</span>
-<span class="doccomment">/// please add you comment to [pull request#1580].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [event sources]: crate::event::Source</span>
-<span class="doccomment">/// [pull request#1580]: https://github.com/tokio-rs/mio/pull/1580</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Implementation notes</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Poll` is backed by the selector provided by the operating system.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// |      OS       |  Selector |</span>
-<span class="doccomment">/// |---------------|-----------|</span>
-<span class="doccomment">/// | Android       | [epoll]   |</span>
-<span class="doccomment">/// | DragonFly BSD | [kqueue]  |</span>
-<span class="doccomment">/// | FreeBSD       | [kqueue]  |</span>
-<span class="doccomment">/// | iOS           | [kqueue]  |</span>
-<span class="doccomment">/// | illumos       | [epoll]   |</span>
-<span class="doccomment">/// | Linux         | [epoll]   |</span>
-<span class="doccomment">/// | NetBSD        | [kqueue]  |</span>
-<span class="doccomment">/// | OpenBSD       | [kqueue]  |</span>
-<span class="doccomment">/// | Windows       | [IOCP]    |</span>
-<span class="doccomment">/// | macOS         | [kqueue]  |</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On all supported platforms, socket operations are handled by using the</span>
-<span class="doccomment">/// system selector. Platform specific extensions (e.g. [`SourceFd`]) allow</span>
-<span class="doccomment">/// accessing other features provided by individual system selectors. For</span>
-<span class="doccomment">/// example, Linux&#39;s [`signalfd`] feature can be used by registering the FD with</span>
-<span class="doccomment">/// `Poll` via [`SourceFd`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On all platforms except windows, a call to [`Poll::poll`] is mostly just a</span>
-<span class="doccomment">/// direct call to the system selector. However, [IOCP] uses a completion model</span>
-<span class="doccomment">/// instead of a readiness model. In this case, `Poll` must adapt the completion</span>
-<span class="doccomment">/// model Mio&#39;s API. While non-trivial, the bridge layer is still quite</span>
-<span class="doccomment">/// efficient. The most expensive part being calls to `read` and `write` require</span>
-<span class="doccomment">/// data to be copied into an intermediate buffer before it is passed to the</span>
-<span class="doccomment">/// kernel.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html</span>
-<span class="doccomment">/// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2</span>
-<span class="doccomment">/// [IOCP]: https://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports</span>
-<span class="doccomment">/// [`signalfd`]: https://man7.org/linux/man-pages/man2/signalfd.2.html</span>
-<span class="doccomment">/// [`SourceFd`]: unix/struct.SourceFd.html</span>
-<span class="doccomment">/// [`Poll::poll`]: struct.Poll.html#method.poll</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Poll</span> {
-    <span class="ident">registry</span>: <a class="ident" href="../../src/mio/poll.rs.html#254">Registry</a>,
+<span class="doccomment">/// Polls for readiness events on all registered values.
+///
+/// `Poll` allows a program to monitor a large number of [`event::Source`]s,
+/// waiting until one or more become &quot;ready&quot; for some class of operations; e.g.
+/// reading and writing. An event source is considered ready if it is possible
+/// to immediately perform a corresponding operation; e.g. [`read`] or
+/// [`write`].
+///
+/// To use `Poll`, an `event::Source` must first be registered with the `Poll`
+/// instance using the [`register`] method on its associated `Register`,
+/// supplying readiness interest. The readiness interest tells `Poll` which
+/// specific operations on the handle to monitor for readiness. A `Token` is
+/// also passed to the [`register`] function. When `Poll` returns a readiness
+/// event, it will include this token.  This associates the event with the
+/// event source that generated the event.
+///
+/// [`event::Source`]: ./event/trait.Source.html
+/// [`read`]: ./net/struct.TcpStream.html#method.read
+/// [`write`]: ./net/struct.TcpStream.html#method.write
+/// [`register`]: struct.Registry.html#method.register
+///
+/// # Examples
+///
+/// A basic example -- establishing a `TcpStream` connection.
+///
+</span><span class="attribute">#[cfg_attr(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>), doc = <span class="string">&quot;```&quot;</span>)]
+#[cfg_attr(not(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>)), doc = <span class="string">&quot;```ignore&quot;</span>)]
+</span><span class="doccomment">/// # use std::error::Error;
+/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+/// use mio::{Events, Poll, Interest, Token};
+/// use mio::net::TcpStream;
+///
+/// use std::net::{self, SocketAddr};
+///
+/// // Bind a server socket to connect to.
+/// let addr: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;
+/// let server = net::TcpListener::bind(addr)?;
+///
+/// // Construct a new `Poll` handle as well as the `Events` we&#39;ll store into
+/// let mut poll = Poll::new()?;
+/// let mut events = Events::with_capacity(1024);
+///
+/// // Connect the stream
+/// let mut stream = TcpStream::connect(server.local_addr()?)?;
+///
+/// // Register the stream with `Poll`
+/// poll.registry().register(&amp;mut stream, Token(0), Interest::READABLE | Interest::WRITABLE)?;
+///
+/// // Wait for the socket to become ready. This has to happens in a loop to
+/// // handle spurious wakeups.
+/// loop {
+///     poll.poll(&amp;mut events, None)?;
+///
+///     for event in &amp;events {
+///         if event.token() == Token(0) &amp;&amp; event.is_writable() {
+///             // The socket connected (probably, it could still be a spurious
+///             // wakeup)
+///             return Ok(());
+///         }
+///     }
+/// }
+/// # }
+/// ```
+///
+/// # Portability
+///
+/// Using `Poll` provides a portable interface across supported platforms as
+/// long as the caller takes the following into consideration:
+///
+/// ### Spurious events
+///
+/// [`Poll::poll`] may return readiness events even if the associated
+/// event source is not actually ready. Given the same code, this may
+/// happen more on some platforms than others. It is important to never assume
+/// that, just because a readiness event was received, that the associated
+/// operation will succeed as well.
+///
+/// If operation fails with [`WouldBlock`], then the caller should not treat
+/// this as an error, but instead should wait until another readiness event is
+/// received.
+///
+/// ### Draining readiness
+///
+/// Once a readiness event is received, the corresponding operation must be
+/// performed repeatedly until it returns [`WouldBlock`]. Unless this is done,
+/// there is no guarantee that another readiness event will be delivered, even
+/// if further data is received for the event source.
+///
+/// [`WouldBlock`]: std::io::ErrorKind::WouldBlock
+///
+/// ### Readiness operations
+///
+/// The only readiness operations that are guaranteed to be present on all
+/// supported platforms are [`readable`] and [`writable`]. All other readiness
+/// operations may have false negatives and as such should be considered
+/// **hints**. This means that if a socket is registered with [`readable`]
+/// interest and either an error or close is received, a readiness event will
+/// be generated for the socket, but it **may** only include `readable`
+/// readiness. Also note that, given the potential for spurious events,
+/// receiving a readiness event with `read_closed`, `write_closed`, or `error`
+/// doesn&#39;t actually mean that a `read` on the socket will return a result
+/// matching the readiness event.
+///
+/// In other words, portable programs that explicitly check for [`read_closed`],
+/// [`write_closed`], or [`error`] readiness should be doing so as an
+/// **optimization** and always be able to handle an error or close situation
+/// when performing the actual read operation.
+///
+/// [`readable`]: ./event/struct.Event.html#method.is_readable
+/// [`writable`]: ./event/struct.Event.html#method.is_writable
+/// [`error`]: ./event/struct.Event.html#method.is_error
+/// [`read_closed`]: ./event/struct.Event.html#method.is_read_closed
+/// [`write_closed`]: ./event/struct.Event.html#method.is_write_closed
+///
+/// ### Registering handles
+///
+/// Unless otherwise noted, it should be assumed that types implementing
+/// [`event::Source`] will never become ready unless they are registered with
+/// `Poll`.
+///
+/// For example:
+///
+</span><span class="attribute">#[cfg_attr(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>), doc = <span class="string">&quot;```&quot;</span>)]
+#[cfg_attr(not(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>)), doc = <span class="string">&quot;```ignore&quot;</span>)]
+</span><span class="doccomment">/// # use std::error::Error;
+/// # use std::net;
+/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+/// use mio::{Poll, Interest, Token};
+/// use mio::net::TcpStream;
+/// use std::net::SocketAddr;
+/// use std::time::Duration;
+/// use std::thread;
+///
+/// let address: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;
+/// let listener = net::TcpListener::bind(address)?;
+/// let mut sock = TcpStream::connect(listener.local_addr()?)?;
+///
+/// thread::sleep(Duration::from_secs(1));
+///
+/// let poll = Poll::new()?;
+///
+/// // The connect is not guaranteed to have started until it is registered at
+/// // this point
+/// poll.registry().register(&amp;mut sock, Token(0), Interest::READABLE | Interest::WRITABLE)?;
+/// #     Ok(())
+/// # }
+/// ```
+///
+/// ### Dropping `Poll`
+///
+/// When the `Poll` instance is dropped it may cancel in-flight operations for
+/// the registered [event sources], meaning that no further events for them may
+/// be received. It also means operations on the registered event sources may no
+/// longer work. It is up to the user to keep the `Poll` instance alive while
+/// registered event sources are being used.
+///
+/// [event sources]: ./event/trait.Source.html
+///
+/// ### Accessing raw fd/socket/handle
+///
+/// Mio makes it possible for many types to be converted into a raw file
+/// descriptor (fd, Unix), socket (Windows) or handle (Windows). This makes it
+/// possible to support more operations on the type than Mio supports, for
+/// example it makes [mio-aio] possible. However accessing the raw fd is not
+/// without it&#39;s pitfalls.
+///
+/// Specifically performing I/O operations outside of Mio on these types (via
+/// the raw fd) has unspecified behaviour. It could cause no more events to be
+/// generated for the type even though it returned `WouldBlock` (in an operation
+/// directly accessing the fd). The behaviour is OS specific and Mio can only
+/// guarantee cross-platform behaviour if it can control the I/O.
+///
+/// [mio-aio]: https://github.com/asomers/mio-aio
+///
+/// *The following is **not** guaranteed, just a description of the current
+/// situation!* Mio is allowed to change the following without it being considered
+/// a breaking change, don&#39;t depend on this, it&#39;s just here to inform the user.
+/// Currently the kqueue and epoll implementation support direct I/O operations
+/// on the fd without Mio&#39;s knowledge. Windows however needs **all** I/O
+/// operations to go through Mio otherwise it is not able to update it&#39;s
+/// internal state properly and won&#39;t generate events.
+///
+/// ### Polling without registering event sources
+///
+///
+/// *The following is **not** guaranteed, just a description of the current
+/// situation!* Mio is allowed to change the following without it being
+/// considered a breaking change, don&#39;t depend on this, it&#39;s just here to inform
+/// the user. On platforms that use epoll, kqueue or IOCP (see implementation
+/// notes below) polling without previously registering [event sources] will
+/// result in sleeping forever, only a process signal will be able to wake up
+/// the thread.
+///
+/// On WASM/WASI this is different as it doesn&#39;t support process signals,
+/// furthermore the WASI specification doesn&#39;t specify a behaviour in this
+/// situation, thus it&#39;s up to the implementation what to do here. As an
+/// example, the wasmtime runtime will return `EINVAL` in this situation, but
+/// different runtimes may return different results. If you have further
+/// insights or thoughts about this situation (and/or how Mio should handle it)
+/// please add you comment to [pull request#1580].
+///
+/// [event sources]: crate::event::Source
+/// [pull request#1580]: https://github.com/tokio-rs/mio/pull/1580
+///
+/// # Implementation notes
+///
+/// `Poll` is backed by the selector provided by the operating system.
+///
+/// |      OS       |  Selector |
+/// |---------------|-----------|
+/// | Android       | [epoll]   |
+/// | DragonFly BSD | [kqueue]  |
+/// | FreeBSD       | [kqueue]  |
+/// | iOS           | [kqueue]  |
+/// | illumos       | [epoll]   |
+/// | Linux         | [epoll]   |
+/// | NetBSD        | [kqueue]  |
+/// | OpenBSD       | [kqueue]  |
+/// | Windows       | [IOCP]    |
+/// | macOS         | [kqueue]  |
+///
+/// On all supported platforms, socket operations are handled by using the
+/// system selector. Platform specific extensions (e.g. [`SourceFd`]) allow
+/// accessing other features provided by individual system selectors. For
+/// example, Linux&#39;s [`signalfd`] feature can be used by registering the FD with
+/// `Poll` via [`SourceFd`].
+///
+/// On all platforms except windows, a call to [`Poll::poll`] is mostly just a
+/// direct call to the system selector. However, [IOCP] uses a completion model
+/// instead of a readiness model. In this case, `Poll` must adapt the completion
+/// model Mio&#39;s API. While non-trivial, the bridge layer is still quite
+/// efficient. The most expensive part being calls to `read` and `write` require
+/// data to be copied into an intermediate buffer before it is passed to the
+/// kernel.
+///
+/// [epoll]: https://man7.org/linux/man-pages/man7/epoll.7.html
+/// [kqueue]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2
+/// [IOCP]: https://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports
+/// [`signalfd`]: https://man7.org/linux/man-pages/man2/signalfd.2.html
+/// [`SourceFd`]: unix/struct.SourceFd.html
+/// [`Poll::poll`]: struct.Poll.html#method.poll
+</span><span class="kw">pub struct </span>Poll {
+    registry: <a href="../../src/mio/poll.rs.html#254">Registry</a>,
 }
 
-<span class="doccomment">/// Registers I/O resources.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Registry</span> {
-    <span class="ident">selector</span>: <a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#16">sys::Selector</a>,
+<span class="doccomment">/// Registers I/O resources.
+</span><span class="kw">pub struct </span>Registry {
+    selector: <a href="../../src/mio/sys/unix/selector/epoll.rs.html#16">sys::Selector</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/mio/poll.rs.html#249">Poll</a> {
-    <span class="macro">cfg_os_poll!</span> {
-        <span class="doccomment">/// Return a new `Poll` handle.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will make a syscall to the operating system to create</span>
-        <span class="doccomment">/// the system selector. If this syscall fails, `Poll::new` will return</span>
-        <span class="doccomment">/// with the error.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// See [struct] level docs for more details.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [struct]: struct.Poll.html</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">/// # use std::error::Error;</span>
-        <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-        <span class="doccomment">/// use mio::{Poll, Events};</span>
-        <span class="doccomment">/// use std::time::Duration;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// let mut poll = match Poll::new() {</span>
-        <span class="doccomment">///     Ok(poll) =&gt; poll,</span>
-        <span class="doccomment">///     Err(e) =&gt; panic!(&quot;failed to create Poll instance; err={:?}&quot;, e),</span>
-        <span class="doccomment">/// };</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// // Create a structure to receive polled events</span>
-        <span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// // Wait for events, but none will be received because no</span>
-        <span class="doccomment">/// // `event::Source`s have been registered with this `Poll` instance.</span>
-        <span class="doccomment">/// poll.poll(&amp;mut events, Some(Duration::from_millis(500)))?;</span>
-        <span class="doccomment">/// assert!(events.is_empty());</span>
-        <span class="doccomment">/// #     Ok(())</span>
-        <span class="doccomment">/// # }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/mio/poll.rs.html#249">Poll</a><span class="op">&gt;</span> {
-            <span class="ident">sys::Selector::new</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">selector</span><span class="op">|</span> <a class="ident" href="../../src/mio/poll.rs.html#249">Poll</a> {
-                <span class="ident">registry</span>: <a class="ident" href="../../src/mio/poll.rs.html#254">Registry</a> { <a class="ident" href="../../src/mio/poll.rs.html#294">selector</a> },
+<span class="kw">impl </span><a href="../../src/mio/poll.rs.html#249">Poll</a> {
+    <span class="macro">cfg_os_poll! </span>{
+        <span class="doccomment">/// Return a new `Poll` handle.
+        ///
+        /// This function will make a syscall to the operating system to create
+        /// the system selector. If this syscall fails, `Poll::new` will return
+        /// with the error.
+        ///
+        /// See [struct] level docs for more details.
+        ///
+        /// [struct]: struct.Poll.html
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// # use std::error::Error;
+        /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+        /// use mio::{Poll, Events};
+        /// use std::time::Duration;
+        ///
+        /// let mut poll = match Poll::new() {
+        ///     Ok(poll) =&gt; poll,
+        ///     Err(e) =&gt; panic!(&quot;failed to create Poll instance; err={:?}&quot;, e),
+        /// };
+        ///
+        /// // Create a structure to receive polled events
+        /// let mut events = Events::with_capacity(1024);
+        ///
+        /// // Wait for events, but none will be received because no
+        /// // `event::Source`s have been registered with this `Poll` instance.
+        /// poll.poll(&amp;mut events, Some(Duration::from_millis(500)))?;
+        /// assert!(events.is_empty());
+        /// #     Ok(())
+        /// # }
+        /// ```
+        </span><span class="kw">pub fn </span>new() -&gt; io::Result&lt;<a href="../../src/mio/poll.rs.html#249">Poll</a>&gt; {
+            sys::Selector::new().map(|selector| <a href="../../src/mio/poll.rs.html#249">Poll</a> {
+                registry: <a href="../../src/mio/poll.rs.html#254">Registry</a> { <a href="../../src/mio/poll.rs.html#294">selector</a> },
             })
         }
     }
 
-    <span class="doccomment">/// Create a separate `Registry` which can be used to register</span>
-    <span class="doccomment">/// `event::Source`s.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">registry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#254">Registry</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/mio/poll.rs.html#302">self</a>.<span class="ident">registry</span>
+    <span class="doccomment">/// Create a separate `Registry` which can be used to register
+    /// `event::Source`s.
+    </span><span class="kw">pub fn </span>registry(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/mio/poll.rs.html#254">Registry</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/mio/poll.rs.html#302">self</a>.registry
     }
 
-    <span class="doccomment">/// Wait for readiness events</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Blocks the current thread and waits for readiness events for any of the</span>
-    <span class="doccomment">/// [`event::Source`]s that have been registered with this `Poll` instance.</span>
-    <span class="doccomment">/// The function will block until either at least one readiness event has</span>
-    <span class="doccomment">/// been received or `timeout` has elapsed. A `timeout` of `None` means that</span>
-    <span class="doccomment">/// `poll` will block until a readiness event has been received.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The supplied `events` will be cleared and newly received readiness events</span>
-    <span class="doccomment">/// will be pushed onto the end. At most `events.capacity()` events will be</span>
-    <span class="doccomment">/// returned. If there are further pending readiness events, they will be</span>
-    <span class="doccomment">/// returned on the next call to `poll`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A single call to `poll` may result in multiple readiness events being</span>
-    <span class="doccomment">/// returned for a single event source. For example, if a TCP socket becomes</span>
-    <span class="doccomment">/// both readable and writable, it may be possible for a single readiness</span>
-    <span class="doccomment">/// event to be returned with both [`readable`] and [`writable`] readiness</span>
-    <span class="doccomment">/// **OR** two separate events may be returned, one with [`readable`] set</span>
-    <span class="doccomment">/// and one with [`writable`] set.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that the `timeout` will be rounded up to the system clock</span>
-    <span class="doccomment">/// granularity (usually 1ms), and kernel scheduling delays mean that</span>
-    <span class="doccomment">/// the blocking interval may be overrun by a small amount.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See the [struct] level documentation for a higher level discussion of</span>
-    <span class="doccomment">/// polling.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`event::Source`]: ./event/trait.Source.html</span>
-    <span class="doccomment">/// [`readable`]: struct.Interest.html#associatedconstant.READABLE</span>
-    <span class="doccomment">/// [`writable`]: struct.Interest.html#associatedconstant.WRITABLE</span>
-    <span class="doccomment">/// [struct]: struct.Poll.html</span>
-    <span class="doccomment">/// [`iter`]: ./event/struct.Events.html#method.iter</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This returns any errors without attempting to retry, previous versions</span>
-    <span class="doccomment">/// of Mio would automatically retry the poll call if it was interrupted</span>
-    <span class="doccomment">/// (if `EINTR` was returned).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A basic example -- establishing a `TcpStream` connection.</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::{Events, Poll, Interest, Token};</span>
-    <span class="doccomment">/// use mio::net::TcpStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::net::{TcpListener, SocketAddr};</span>
-    <span class="doccomment">/// use std::thread;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Bind a server socket to connect to.</span>
-    <span class="doccomment">/// let addr: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;</span>
-    <span class="doccomment">/// let server = TcpListener::bind(addr)?;</span>
-    <span class="doccomment">/// let addr = server.local_addr()?.clone();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Spawn a thread to accept the socket</span>
-    <span class="doccomment">/// thread::spawn(move || {</span>
-    <span class="doccomment">///     let _ = server.accept();</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Construct a new `Poll` handle as well as the `Events` we&#39;ll store into</span>
-    <span class="doccomment">/// let mut poll = Poll::new()?;</span>
-    <span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Connect the stream</span>
-    <span class="doccomment">/// let mut stream = TcpStream::connect(addr)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Register the stream with `Poll`</span>
-    <span class="doccomment">/// poll.registry().register(</span>
-    <span class="doccomment">///     &amp;mut stream,</span>
-    <span class="doccomment">///     Token(0),</span>
-    <span class="doccomment">///     Interest::READABLE | Interest::WRITABLE)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Wait for the socket to become ready. This has to happens in a loop to</span>
-    <span class="doccomment">/// // handle spurious wakeups.</span>
-    <span class="doccomment">/// loop {</span>
-    <span class="doccomment">///     poll.poll(&amp;mut events, None)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     for event in &amp;events {</span>
-    <span class="doccomment">///         if event.token() == Token(0) &amp;&amp; event.is_writable() {</span>
-    <span class="doccomment">///             // The socket connected (probably, it could still be a spurious</span>
-    <span class="doccomment">///             // wakeup)</span>
-    <span class="doccomment">///             return Ok(());</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [struct]: #</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">events</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/mio/event/events.rs.html#42">Events</a>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../src/mio/poll.rs.html#399">self</a>.<span class="ident">registry</span>.<span class="ident">selector</span>.<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#54">select</a>(<a class="ident" href="../../src/mio/poll.rs.html#399">events</a>.<a class="ident" href="../../src/mio/event/events.rs.html#189">sys</a>(), <a class="ident" href="../../src/mio/poll.rs.html#399">timeout</a>)
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#249">Poll</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../src/mio/poll.rs.html#406">self</a>.<span class="ident">registry</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+    <span class="doccomment">/// Wait for readiness events
+    ///
+    /// Blocks the current thread and waits for readiness events for any of the
+    /// [`event::Source`]s that have been registered with this `Poll` instance.
+    /// The function will block until either at least one readiness event has
+    /// been received or `timeout` has elapsed. A `timeout` of `None` means that
+    /// `poll` will block until a readiness event has been received.
+    ///
+    /// The supplied `events` will be cleared and newly received readiness events
+    /// will be pushed onto the end. At most `events.capacity()` events will be
+    /// returned. If there are further pending readiness events, they will be
+    /// returned on the next call to `poll`.
+    ///
+    /// A single call to `poll` may result in multiple readiness events being
+    /// returned for a single event source. For example, if a TCP socket becomes
+    /// both readable and writable, it may be possible for a single readiness
+    /// event to be returned with both [`readable`] and [`writable`] readiness
+    /// **OR** two separate events may be returned, one with [`readable`] set
+    /// and one with [`writable`] set.
+    ///
+    /// Note that the `timeout` will be rounded up to the system clock
+    /// granularity (usually 1ms), and kernel scheduling delays mean that
+    /// the blocking interval may be overrun by a small amount.
+    ///
+    /// See the [struct] level documentation for a higher level discussion of
+    /// polling.
+    ///
+    /// [`event::Source`]: ./event/trait.Source.html
+    /// [`readable`]: struct.Interest.html#associatedconstant.READABLE
+    /// [`writable`]: struct.Interest.html#associatedconstant.WRITABLE
+    /// [struct]: struct.Poll.html
+    /// [`iter`]: ./event/struct.Events.html#method.iter
+    ///
+    /// # Notes
+    ///
+    /// This returns any errors without attempting to retry, previous versions
+    /// of Mio would automatically retry the poll call if it was interrupted
+    /// (if `EINTR` was returned).
+    ///
+    /// # Examples
+    ///
+    /// A basic example -- establishing a `TcpStream` connection.
+    ///
+    </span><span class="attribute">#[cfg_attr(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>), doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>)), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::{Events, Poll, Interest, Token};
+    /// use mio::net::TcpStream;
+    ///
+    /// use std::net::{TcpListener, SocketAddr};
+    /// use std::thread;
+    ///
+    /// // Bind a server socket to connect to.
+    /// let addr: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;
+    /// let server = TcpListener::bind(addr)?;
+    /// let addr = server.local_addr()?.clone();
+    ///
+    /// // Spawn a thread to accept the socket
+    /// thread::spawn(move || {
+    ///     let _ = server.accept();
+    /// });
+    ///
+    /// // Construct a new `Poll` handle as well as the `Events` we&#39;ll store into
+    /// let mut poll = Poll::new()?;
+    /// let mut events = Events::with_capacity(1024);
+    ///
+    /// // Connect the stream
+    /// let mut stream = TcpStream::connect(addr)?;
+    ///
+    /// // Register the stream with `Poll`
+    /// poll.registry().register(
+    ///     &amp;mut stream,
+    ///     Token(0),
+    ///     Interest::READABLE | Interest::WRITABLE)?;
+    ///
+    /// // Wait for the socket to become ready. This has to happens in a loop to
+    /// // handle spurious wakeups.
+    /// loop {
+    ///     poll.poll(&amp;mut events, None)?;
+    ///
+    ///     for event in &amp;events {
+    ///         if event.token() == Token(0) &amp;&amp; event.is_writable() {
+    ///             // The socket connected (probably, it could still be a spurious
+    ///             // wakeup)
+    ///             return Ok(());
+    ///         }
+    ///     }
+    /// }
+    /// # }
+    /// ```
+    ///
+    /// [struct]: #
+    </span><span class="kw">pub fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, events: <span class="kw-2">&amp;mut </span><a href="../../src/mio/event/events.rs.html#42">Events</a>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../src/mio/poll.rs.html#399">self</a>.registry.selector.<a href="../../src/mio/sys/unix/selector/epoll.rs.html#54">select</a>(<a href="../../src/mio/poll.rs.html#399">events</a>.<a href="../../src/mio/event/events.rs.html#189">sys</a>(), <a href="../../src/mio/poll.rs.html#399">timeout</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#249">Poll</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/mio/poll.rs.html#412">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Poll&quot;</span>).<span class="ident">finish</span>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../src/mio/poll.rs.html#249">Poll</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../src/mio/poll.rs.html#406">self</a>.registry.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/mio/poll.rs.html#254">Registry</a> {
-    <span class="doccomment">/// Register an [`event::Source`] with the `Poll` instance.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Once registered, the `Poll` instance will monitor the event source for</span>
-    <span class="doccomment">/// readiness state changes. When it notices a state change, it will return</span>
-    <span class="doccomment">/// a readiness event for the handle the next time [`poll`] is called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [`Poll`] docs for a high level overview.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Arguments</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `source: &amp;mut S: event::Source`: This is the source of events that the</span>
-    <span class="doccomment">/// `Poll` instance should monitor for readiness state changes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `token: Token`: The caller picks a token to associate with the socket.</span>
-    <span class="doccomment">/// When [`poll`] returns an event for the handle, this token is included.</span>
-    <span class="doccomment">/// This allows the caller to map the event to its source. The token</span>
-    <span class="doccomment">/// associated with the `event::Source` can be changed at any time by</span>
-    <span class="doccomment">/// calling [`reregister`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See documentation on [`Token`] for an example showing how to pick</span>
-    <span class="doccomment">/// [`Token`] values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `interest: Interest`: Specifies which operations `Poll` should monitor</span>
-    <span class="doccomment">/// for readiness. `Poll` will only return readiness events for operations</span>
-    <span class="doccomment">/// specified by this argument.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If a socket is registered with readable interest and the socket becomes</span>
-    <span class="doccomment">/// writable, no event will be returned from [`poll`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The readiness interest for an `event::Source` can be changed at any time</span>
-    <span class="doccomment">/// by calling [`reregister`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Callers must ensure that if a source being registered with a `Poll`</span>
-    <span class="doccomment">/// instance was previously registered with that `Poll` instance, then a</span>
-    <span class="doccomment">/// call to [`deregister`] has already occurred. Consecutive calls to</span>
-    <span class="doccomment">/// `register` is unspecified behavior.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Unless otherwise specified, the caller should assume that once an event</span>
-    <span class="doccomment">/// source is registered with a `Poll` instance, it is bound to that `Poll`</span>
-    <span class="doccomment">/// instance for the lifetime of the event source. This remains true even</span>
-    <span class="doccomment">/// if the event source is deregistered from the poll instance using</span>
-    <span class="doccomment">/// [`deregister`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`event::Source`]: ./event/trait.Source.html</span>
-    <span class="doccomment">/// [`poll`]: struct.Poll.html#method.poll</span>
-    <span class="doccomment">/// [`reregister`]: struct.Registry.html#method.reregister</span>
-    <span class="doccomment">/// [`deregister`]: struct.Registry.html#method.deregister</span>
-    <span class="doccomment">/// [`Token`]: struct.Token.html</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// # use std::net;</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::{Events, Poll, Interest, Token};</span>
-    <span class="doccomment">/// use mio::net::TcpStream;</span>
-    <span class="doccomment">/// use std::net::SocketAddr;</span>
-    <span class="doccomment">/// use std::time::{Duration, Instant};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut poll = Poll::new()?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let address: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;</span>
-    <span class="doccomment">/// let listener = net::TcpListener::bind(address)?;</span>
-    <span class="doccomment">/// let mut socket = TcpStream::connect(listener.local_addr()?)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Register the socket with `poll`</span>
-    <span class="doccomment">/// poll.registry().register(</span>
-    <span class="doccomment">///     &amp;mut socket,</span>
-    <span class="doccomment">///     Token(0),</span>
-    <span class="doccomment">///     Interest::READABLE | Interest::WRITABLE)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-    <span class="doccomment">/// let start = Instant::now();</span>
-    <span class="doccomment">/// let timeout = Duration::from_millis(500);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// loop {</span>
-    <span class="doccomment">///     let elapsed = start.elapsed();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     if elapsed &gt;= timeout {</span>
-    <span class="doccomment">///         // Connection timed out</span>
-    <span class="doccomment">///         return Ok(());</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let remaining = timeout - elapsed;</span>
-    <span class="doccomment">///     poll.poll(&amp;mut events, Some(remaining))?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     for event in &amp;events {</span>
-    <span class="doccomment">///         if event.token() == Token(0) {</span>
-    <span class="doccomment">///             // Something (probably) happened on the socket.</span>
-    <span class="doccomment">///             return Ok(());</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;mut</span> <span class="ident">S</span>, <span class="ident">token</span>: <a class="ident" href="../../src/mio/token.rs.html#132">Token</a>, <span class="ident">interests</span>: <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../src/mio/event/source.rs.html#75">event::Source</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/mio/poll.rs.html#249">Poll</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/mio/poll.rs.html#412">fmt</a>.debug_struct(<span class="string">&quot;Poll&quot;</span>).finish()
+    }
+}
+
+<span class="kw">impl </span><a href="../../src/mio/poll.rs.html#254">Registry</a> {
+    <span class="doccomment">/// Register an [`event::Source`] with the `Poll` instance.
+    ///
+    /// Once registered, the `Poll` instance will monitor the event source for
+    /// readiness state changes. When it notices a state change, it will return
+    /// a readiness event for the handle the next time [`poll`] is called.
+    ///
+    /// See [`Poll`] docs for a high level overview.
+    ///
+    /// # Arguments
+    ///
+    /// `source: &amp;mut S: event::Source`: This is the source of events that the
+    /// `Poll` instance should monitor for readiness state changes.
+    ///
+    /// `token: Token`: The caller picks a token to associate with the socket.
+    /// When [`poll`] returns an event for the handle, this token is included.
+    /// This allows the caller to map the event to its source. The token
+    /// associated with the `event::Source` can be changed at any time by
+    /// calling [`reregister`].
+    ///
+    /// See documentation on [`Token`] for an example showing how to pick
+    /// [`Token`] values.
+    ///
+    /// `interest: Interest`: Specifies which operations `Poll` should monitor
+    /// for readiness. `Poll` will only return readiness events for operations
+    /// specified by this argument.
+    ///
+    /// If a socket is registered with readable interest and the socket becomes
+    /// writable, no event will be returned from [`poll`].
+    ///
+    /// The readiness interest for an `event::Source` can be changed at any time
+    /// by calling [`reregister`].
+    ///
+    /// # Notes
+    ///
+    /// Callers must ensure that if a source being registered with a `Poll`
+    /// instance was previously registered with that `Poll` instance, then a
+    /// call to [`deregister`] has already occurred. Consecutive calls to
+    /// `register` is unspecified behavior.
+    ///
+    /// Unless otherwise specified, the caller should assume that once an event
+    /// source is registered with a `Poll` instance, it is bound to that `Poll`
+    /// instance for the lifetime of the event source. This remains true even
+    /// if the event source is deregistered from the poll instance using
+    /// [`deregister`].
+    ///
+    /// [`event::Source`]: ./event/trait.Source.html
+    /// [`poll`]: struct.Poll.html#method.poll
+    /// [`reregister`]: struct.Registry.html#method.reregister
+    /// [`deregister`]: struct.Registry.html#method.deregister
+    /// [`Token`]: struct.Token.html
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>), doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>)), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// # use std::net;
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::{Events, Poll, Interest, Token};
+    /// use mio::net::TcpStream;
+    /// use std::net::SocketAddr;
+    /// use std::time::{Duration, Instant};
+    ///
+    /// let mut poll = Poll::new()?;
+    ///
+    /// let address: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;
+    /// let listener = net::TcpListener::bind(address)?;
+    /// let mut socket = TcpStream::connect(listener.local_addr()?)?;
+    ///
+    /// // Register the socket with `poll`
+    /// poll.registry().register(
+    ///     &amp;mut socket,
+    ///     Token(0),
+    ///     Interest::READABLE | Interest::WRITABLE)?;
+    ///
+    /// let mut events = Events::with_capacity(1024);
+    /// let start = Instant::now();
+    /// let timeout = Duration::from_millis(500);
+    ///
+    /// loop {
+    ///     let elapsed = start.elapsed();
+    ///
+    ///     if elapsed &gt;= timeout {
+    ///         // Connection timed out
+    ///         return Ok(());
+    ///     }
+    ///
+    ///     let remaining = timeout - elapsed;
+    ///     poll.poll(&amp;mut events, Some(remaining))?;
+    ///
+    ///     for event in &amp;events {
+    ///         if event.token() == Token(0) {
+    ///             // Something (probably) happened on the socket.
+    ///             return Ok(());
+    ///         }
+    ///     }
+    /// }
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>register&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, source: <span class="kw-2">&amp;mut </span>S, token: <a href="../../src/mio/token.rs.html#132">Token</a>, interests: <a href="../../src/mio/interest.rs.html#17">Interest</a>) -&gt; io::Result&lt;()&gt;
+    <span class="kw">where
+        </span>S: <a href="../../src/mio/event/source.rs.html#75">event::Source</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <a class="macro" href="../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;registering event source with poller: token={:?}, interests={:?}&quot;</span>,
-            <span class="ident">token</span>,
-            <span class="ident">interests</span>
+            token,
+            interests
         );
-        <a class="ident" href="../../src/mio/poll.rs.html#517">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#83-88">register</a>(<a class="self" href="../../src/mio/poll.rs.html#517">self</a>, <a class="ident" href="../../src/mio/poll.rs.html#517">token</a>, <a class="ident" href="../../src/mio/poll.rs.html#517">interests</a>)
+        <a href="../../src/mio/poll.rs.html#517">source</a>.<a href="../../src/mio/event/source.rs.html#83-88">register</a>(<a class="self" href="../../src/mio/poll.rs.html#517">self</a>, <a href="../../src/mio/poll.rs.html#517">token</a>, <a href="../../src/mio/poll.rs.html#517">interests</a>)
     }
 
-    <span class="doccomment">/// Re-register an [`event::Source`] with the `Poll` instance.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Re-registering an event source allows changing the details of the</span>
-    <span class="doccomment">/// registration. Specifically, it allows updating the associated `token`</span>
-    <span class="doccomment">/// and `interests` specified in previous `register` and `reregister` calls.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `reregister` arguments fully override the previous values. In other</span>
-    <span class="doccomment">/// words, if a socket is registered with [`readable`] interest and the call</span>
-    <span class="doccomment">/// to `reregister` specifies [`writable`], then read interest is no longer</span>
-    <span class="doccomment">/// requested for the handle.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The event source must have previously been registered with this instance</span>
-    <span class="doccomment">/// of `Poll`, otherwise the behavior is unspecified.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See the [`register`] documentation for details about the function</span>
-    <span class="doccomment">/// arguments and see the [`struct`] docs for a high level overview of</span>
-    <span class="doccomment">/// polling.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// # use std::net;</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::{Poll, Interest, Token};</span>
-    <span class="doccomment">/// use mio::net::TcpStream;</span>
-    <span class="doccomment">/// use std::net::SocketAddr;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let poll = Poll::new()?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let address: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;</span>
-    <span class="doccomment">/// let listener = net::TcpListener::bind(address)?;</span>
-    <span class="doccomment">/// let mut socket = TcpStream::connect(listener.local_addr()?)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Register the socket with `poll`, requesting readable</span>
-    <span class="doccomment">/// poll.registry().register(</span>
-    <span class="doccomment">///     &amp;mut socket,</span>
-    <span class="doccomment">///     Token(0),</span>
-    <span class="doccomment">///     Interest::READABLE)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Reregister the socket specifying write interest instead. Even though</span>
-    <span class="doccomment">/// // the token is the same it must be specified.</span>
-    <span class="doccomment">/// poll.registry().reregister(</span>
-    <span class="doccomment">///     &amp;mut socket,</span>
-    <span class="doccomment">///     Token(0),</span>
-    <span class="doccomment">///     Interest::WRITABLE)?;</span>
-    <span class="doccomment">/// #     Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`event::Source`]: ./event/trait.Source.html</span>
-    <span class="doccomment">/// [`struct`]: struct.Poll.html</span>
-    <span class="doccomment">/// [`register`]: struct.Registry.html#method.register</span>
-    <span class="doccomment">/// [`readable`]: ./event/struct.Event.html#is_readable</span>
-    <span class="doccomment">/// [`writable`]: ./event/struct.Event.html#is_writable</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reregister</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;mut</span> <span class="ident">S</span>, <span class="ident">token</span>: <a class="ident" href="../../src/mio/token.rs.html#132">Token</a>, <span class="ident">interests</span>: <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../src/mio/event/source.rs.html#75">event::Source</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Re-register an [`event::Source`] with the `Poll` instance.
+    ///
+    /// Re-registering an event source allows changing the details of the
+    /// registration. Specifically, it allows updating the associated `token`
+    /// and `interests` specified in previous `register` and `reregister` calls.
+    ///
+    /// The `reregister` arguments fully override the previous values. In other
+    /// words, if a socket is registered with [`readable`] interest and the call
+    /// to `reregister` specifies [`writable`], then read interest is no longer
+    /// requested for the handle.
+    ///
+    /// The event source must have previously been registered with this instance
+    /// of `Poll`, otherwise the behavior is unspecified.
+    ///
+    /// See the [`register`] documentation for details about the function
+    /// arguments and see the [`struct`] docs for a high level overview of
+    /// polling.
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>), doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>)), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// # use std::net;
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::{Poll, Interest, Token};
+    /// use mio::net::TcpStream;
+    /// use std::net::SocketAddr;
+    ///
+    /// let poll = Poll::new()?;
+    ///
+    /// let address: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;
+    /// let listener = net::TcpListener::bind(address)?;
+    /// let mut socket = TcpStream::connect(listener.local_addr()?)?;
+    ///
+    /// // Register the socket with `poll`, requesting readable
+    /// poll.registry().register(
+    ///     &amp;mut socket,
+    ///     Token(0),
+    ///     Interest::READABLE)?;
+    ///
+    /// // Reregister the socket specifying write interest instead. Even though
+    /// // the token is the same it must be specified.
+    /// poll.registry().reregister(
+    ///     &amp;mut socket,
+    ///     Token(0),
+    ///     Interest::WRITABLE)?;
+    /// #     Ok(())
+    /// # }
+    /// ```
+    ///
+    /// [`event::Source`]: ./event/trait.Source.html
+    /// [`struct`]: struct.Poll.html
+    /// [`register`]: struct.Registry.html#method.register
+    /// [`readable`]: ./event/struct.Event.html#is_readable
+    /// [`writable`]: ./event/struct.Event.html#is_writable
+    </span><span class="kw">pub fn </span>reregister&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, source: <span class="kw-2">&amp;mut </span>S, token: <a href="../../src/mio/token.rs.html#132">Token</a>, interests: <a href="../../src/mio/interest.rs.html#17">Interest</a>) -&gt; io::Result&lt;()&gt;
+    <span class="kw">where
+        </span>S: <a href="../../src/mio/event/source.rs.html#75">event::Source</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <a class="macro" href="../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;reregistering event source with poller: token={:?}, interests={:?}&quot;</span>,
-            <span class="ident">token</span>,
-            <span class="ident">interests</span>
+            token,
+            interests
         );
-        <a class="ident" href="../../src/mio/poll.rs.html#585">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="self" href="../../src/mio/poll.rs.html#585">self</a>, <a class="ident" href="../../src/mio/poll.rs.html#585">token</a>, <a class="ident" href="../../src/mio/poll.rs.html#585">interests</a>)
+        <a href="../../src/mio/poll.rs.html#585">source</a>.<a href="../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="self" href="../../src/mio/poll.rs.html#585">self</a>, <a href="../../src/mio/poll.rs.html#585">token</a>, <a href="../../src/mio/poll.rs.html#585">interests</a>)
     }
 
-    <span class="doccomment">/// Deregister an [`event::Source`] with the `Poll` instance.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When an event source is deregistered, the `Poll` instance will no longer</span>
-    <span class="doccomment">/// monitor it for readiness state changes. Deregistering clears up any</span>
-    <span class="doccomment">/// internal resources needed to track the handle.  After an explicit call</span>
-    <span class="doccomment">/// to this method completes, it is guaranteed that the token previously</span>
-    <span class="doccomment">/// registered to this handle will not be returned by a future poll, so long</span>
-    <span class="doccomment">/// as a happens-before relationship is established between this call and</span>
-    <span class="doccomment">/// the poll.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The event source must have previously been registered with this instance</span>
-    <span class="doccomment">/// of `Poll`, otherwise the behavior is unspecified.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A handle can be passed back to `register` after it has been</span>
-    <span class="doccomment">/// deregistered; however, it must be passed back to the **same** `Poll`</span>
-    <span class="doccomment">/// instance, otherwise the behavior is unspecified.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// # use std::net;</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::{Events, Poll, Interest, Token};</span>
-    <span class="doccomment">/// use mio::net::TcpStream;</span>
-    <span class="doccomment">/// use std::net::SocketAddr;</span>
-    <span class="doccomment">/// use std::time::Duration;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut poll = Poll::new()?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let address: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;</span>
-    <span class="doccomment">/// let listener = net::TcpListener::bind(address)?;</span>
-    <span class="doccomment">/// let mut socket = TcpStream::connect(listener.local_addr()?)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Register the socket with `poll`</span>
-    <span class="doccomment">/// poll.registry().register(</span>
-    <span class="doccomment">///     &amp;mut socket,</span>
-    <span class="doccomment">///     Token(0),</span>
-    <span class="doccomment">///     Interest::READABLE)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// poll.registry().deregister(&amp;mut socket)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Set a timeout because this poll should never receive any events.</span>
-    <span class="doccomment">/// poll.poll(&amp;mut events, Some(Duration::from_secs(1)))?;</span>
-    <span class="doccomment">/// assert!(events.is_empty());</span>
-    <span class="doccomment">/// #     Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deregister</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;mut</span> <span class="ident">S</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../src/mio/event/source.rs.html#75">event::Source</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Deregister an [`event::Source`] with the `Poll` instance.
+    ///
+    /// When an event source is deregistered, the `Poll` instance will no longer
+    /// monitor it for readiness state changes. Deregistering clears up any
+    /// internal resources needed to track the handle.  After an explicit call
+    /// to this method completes, it is guaranteed that the token previously
+    /// registered to this handle will not be returned by a future poll, so long
+    /// as a happens-before relationship is established between this call and
+    /// the poll.
+    ///
+    /// The event source must have previously been registered with this instance
+    /// of `Poll`, otherwise the behavior is unspecified.
+    ///
+    /// A handle can be passed back to `register` after it has been
+    /// deregistered; however, it must be passed back to the **same** `Poll`
+    /// instance, otherwise the behavior is unspecified.
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>), doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(all(feature = <span class="string">&quot;os-poll&quot;</span>, feature = <span class="string">&quot;net&quot;</span>)), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// # use std::net;
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::{Events, Poll, Interest, Token};
+    /// use mio::net::TcpStream;
+    /// use std::net::SocketAddr;
+    /// use std::time::Duration;
+    ///
+    /// let mut poll = Poll::new()?;
+    ///
+    /// let address: SocketAddr = &quot;127.0.0.1:0&quot;.parse()?;
+    /// let listener = net::TcpListener::bind(address)?;
+    /// let mut socket = TcpStream::connect(listener.local_addr()?)?;
+    ///
+    /// // Register the socket with `poll`
+    /// poll.registry().register(
+    ///     &amp;mut socket,
+    ///     Token(0),
+    ///     Interest::READABLE)?;
+    ///
+    /// poll.registry().deregister(&amp;mut socket)?;
+    ///
+    /// let mut events = Events::with_capacity(1024);
+    ///
+    /// // Set a timeout because this poll should never receive any events.
+    /// poll.poll(&amp;mut events, Some(Duration::from_secs(1)))?;
+    /// assert!(events.is_empty());
+    /// #     Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>deregister&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, source: <span class="kw-2">&amp;mut </span>S) -&gt; io::Result&lt;()&gt;
+    <span class="kw">where
+        </span>S: <a href="../../src/mio/event/source.rs.html#75">event::Source</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
         <a class="macro" href="../../log/macro.trace.html">trace!</a>(<span class="string">&quot;deregistering event source from poller&quot;</span>);
-        <a class="ident" href="../../src/mio/poll.rs.html#648">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#111">deregister</a>(<a class="self" href="../../src/mio/poll.rs.html#648">self</a>)
+        <a href="../../src/mio/poll.rs.html#648">source</a>.<a href="../../src/mio/event/source.rs.html#111">deregister</a>(<a class="self" href="../../src/mio/poll.rs.html#648">self</a>)
     }
 
-    <span class="doccomment">/// Creates a new independently owned `Registry`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Event sources registered with this `Registry` will be registered with</span>
-    <span class="doccomment">/// the original `Registry` and `Poll` instance.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/mio/poll.rs.html#254">Registry</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/mio/poll.rs.html#660">self</a>.<span class="ident">selector</span>
-            .<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#43">try_clone</a>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">selector</span><span class="op">|</span> <a class="ident" href="../../src/mio/poll.rs.html#254">Registry</a> { <a class="ident" href="../../src/mio/poll.rs.html#663">selector</a> })
+    <span class="doccomment">/// Creates a new independently owned `Registry`.
+    ///
+    /// Event sources registered with this `Registry` will be registered with
+    /// the original `Registry` and `Poll` instance.
+    </span><span class="kw">pub fn </span>try_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../src/mio/poll.rs.html#254">Registry</a>&gt; {
+        <a class="self" href="../../src/mio/poll.rs.html#660">self</a>.selector
+            .<a href="../../src/mio/sys/unix/selector/epoll.rs.html#43">try_clone</a>()
+            .map(|selector| <a href="../../src/mio/poll.rs.html#254">Registry</a> { <a href="../../src/mio/poll.rs.html#663">selector</a> })
     }
 
-    <span class="doccomment">/// Internal check to ensure only a single `Waker` is active per [`Poll`]</span>
-    <span class="doccomment">/// instance.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">debug_assertions</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="doccomment">/// Internal check to ensure only a single `Waker` is active per [`Poll`]
+    /// instance.
+    </span><span class="attribute">#[cfg(all(debug_assertions, not(target_os = <span class="string">&quot;wasi&quot;</span>)))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_waker(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="op">!</span><span class="self">self</span>.<span class="ident">selector</span>.<span class="ident">register_waker</span>(),
-            <span class="string">&quot;Only a single `Waker` can be active per `Poll` instance&quot;</span>
-        );
+            !<span class="self">self</span>.selector.register_waker(),
+            <span class="string">&quot;Only a single `Waker` can be active per `Poll` instance&quot;
+        </span>);
     }
 
-    <span class="doccomment">/// Get access to the `sys::Selector`.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">selector</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#16">sys::Selector</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/mio/poll.rs.html#678">self</a>.<span class="ident">selector</span>
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#254">Registry</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/mio/poll.rs.html#684">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Registry&quot;</span>).<span class="ident">finish</span>()
+    <span class="doccomment">/// Get access to the `sys::Selector`.
+    </span><span class="attribute">#[cfg(any(not(target_os = <span class="string">&quot;wasi&quot;</span>), feature = <span class="string">&quot;net&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>selector(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../src/mio/sys/unix/selector/epoll.rs.html#16">sys::Selector</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/mio/poll.rs.html#678">self</a>.selector
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#254">Registry</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../src/mio/poll.rs.html#691">self</a>.<span class="ident">selector</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/mio/poll.rs.html#254">Registry</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/mio/poll.rs.html#684">fmt</a>.debug_struct(<span class="string">&quot;Registry&quot;</span>).finish()
     }
 }
 
-<span class="macro">cfg_os_poll!</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw_fd</span>() {
-        <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="ident">Poll::new</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">poll</span>.<span class="ident">as_raw_fd</span>() <span class="op">&gt;</span> <span class="number">0</span>);
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../src/mio/poll.rs.html#254">Registry</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../src/mio/poll.rs.html#691">self</a>.selector.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+    }
+}
+
+<span class="macro">cfg_os_poll! </span>{
+    <span class="attribute">#[cfg(unix)]
+    #[test]
+    </span><span class="kw">pub fn </span>as_raw_fd() {
+        <span class="kw">let </span>poll = Poll::new().unwrap();
+        <span class="macro">assert!</span>(poll.as_raw_fd() &gt; <span class="number">0</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

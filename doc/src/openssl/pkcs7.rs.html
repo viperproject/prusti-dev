@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/pkcs7.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs7.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/pkcs7.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs7.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -440,447 +440,447 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../bitflags/macro.bitflags.html">bitflags::bitflags</a>;
-<span class="kw">use</span> <span class="ident">foreign_types</span>::{<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../bitflags/macro.bitflags.html">bitflags::bitflags</a>;
+<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
+<span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bio</span>::{<a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a class="ident" href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stack</span>::{<a class="ident" href="../../src/openssl/stack.rs.html#43">Stack</a>, <a class="ident" href="../../src/openssl/stack.rs.html#180">StackRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/x509/store.rs.html#173-181"><span class="kw">crate</span>::x509::store::X509StoreRef</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>, <a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><span class="kw">crate</span>::bio::{<a href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>};
+<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
+<span class="kw">use </span><span class="kw">crate</span>::stack::{<a href="../../src/openssl/stack.rs.html#43">Stack</a>, <a href="../../src/openssl/stack.rs.html#180">StackRef</a>};
+<span class="kw">use </span><a href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
+<span class="kw">use </span><a href="../../src/openssl/x509/store.rs.html#173-181"><span class="kw">crate</span>::x509::store::X509StoreRef</a>;
+<span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>, <a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>};
+<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/pkcs7/enum.PKCS7.html">ffi::PKCS7</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_free</span>;
+<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/pkcs7/enum.PKCS7.html">ffi::PKCS7</a>;
+    <span class="kw">fn </span>drop = ffi::PKCS7_free;
 
-    <span class="doccomment">/// A PKCS#7 structure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Contains signed and/or encrypted data.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pkcs7</span>;
+    <span class="doccomment">/// A PKCS#7 structure.
+    ///
+    /// Contains signed and/or encrypted data.
+    </span><span class="kw">pub struct </span>Pkcs7;
 
-    <span class="doccomment">/// Reference to `Pkcs7`</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pkcs7Ref</span>;
+    <span class="doccomment">/// Reference to `Pkcs7`
+    </span><span class="kw">pub struct </span>Pkcs7Ref;
 }
 
-<a class="macro" href="../../bitflags/macro.bitflags.html">bitflags!</a> {
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pkcs7Flags</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <span class="kw">const</span> <span class="ident">TEXT</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_TEXT</span>;
-        <span class="kw">const</span> <span class="ident">NOCERTS</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOCERTS</span>;
-        <span class="kw">const</span> <span class="ident">NOSIGS</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOSIGS</span>;
-        <span class="kw">const</span> <span class="ident">NOCHAIN</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOCHAIN</span>;
-        <span class="kw">const</span> <span class="ident">NOINTERN</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOINTERN</span>;
-        <span class="kw">const</span> <span class="ident">NOVERIFY</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOVERIFY</span>;
-        <span class="kw">const</span> <span class="ident">DETACHED</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_DETACHED</span>;
-        <span class="kw">const</span> <span class="ident">BINARY</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_BINARY</span>;
-        <span class="kw">const</span> <span class="ident">NOATTR</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOATTR</span>;
-        <span class="kw">const</span> <span class="ident">NOSMIMECAP</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOSMIMECAP</span>;
-        <span class="kw">const</span> <span class="ident">NOOLDMIMETYPE</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOOLDMIMETYPE</span>;
-        <span class="kw">const</span> <span class="ident">CRLFEOL</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_CRLFEOL</span>;
-        <span class="kw">const</span> <span class="ident">STREAM</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_STREAM</span>;
-        <span class="kw">const</span> <span class="ident">NOCRL</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NOCRL</span>;
-        <span class="kw">const</span> <span class="ident">PARTIAL</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_PARTIAL</span>;
-        <span class="kw">const</span> <span class="ident">REUSE_DIGEST</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_REUSE_DIGEST</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">ossl101</span>, <span class="ident">ossl102</span>, <span class="ident">libressl</span>)))]</span>
-        <span class="kw">const</span> <span class="ident">NO_DUAL_CONTENT</span> <span class="op">=</span> <span class="ident">ffi::PKCS7_NO_DUAL_CONTENT</span>;
+<a class="macro" href="../../bitflags/macro.bitflags.html">bitflags! </a>{
+    <span class="kw">pub struct </span>Pkcs7Flags: <a href="../../libc/unix/type.c_int.html">c_int</a> {
+        <span class="kw">const </span>TEXT = ffi::PKCS7_TEXT;
+        <span class="kw">const </span>NOCERTS = ffi::PKCS7_NOCERTS;
+        <span class="kw">const </span>NOSIGS = ffi::PKCS7_NOSIGS;
+        <span class="kw">const </span>NOCHAIN = ffi::PKCS7_NOCHAIN;
+        <span class="kw">const </span>NOINTERN = ffi::PKCS7_NOINTERN;
+        <span class="kw">const </span>NOVERIFY = ffi::PKCS7_NOVERIFY;
+        <span class="kw">const </span>DETACHED = ffi::PKCS7_DETACHED;
+        <span class="kw">const </span>BINARY = ffi::PKCS7_BINARY;
+        <span class="kw">const </span>NOATTR = ffi::PKCS7_NOATTR;
+        <span class="kw">const </span>NOSMIMECAP = ffi::PKCS7_NOSMIMECAP;
+        <span class="kw">const </span>NOOLDMIMETYPE = ffi::PKCS7_NOOLDMIMETYPE;
+        <span class="kw">const </span>CRLFEOL = ffi::PKCS7_CRLFEOL;
+        <span class="kw">const </span>STREAM = ffi::PKCS7_STREAM;
+        <span class="kw">const </span>NOCRL = ffi::PKCS7_NOCRL;
+        <span class="kw">const </span>PARTIAL = ffi::PKCS7_PARTIAL;
+        <span class="kw">const </span>REUSE_DIGEST = ffi::PKCS7_REUSE_DIGEST;
+        <span class="attribute">#[cfg(not(any(ossl101, ossl102, libressl)))]
+        </span><span class="kw">const </span>NO_DUAL_CONTENT = ffi::PKCS7_NO_DUAL_CONTENT;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a> {
-    <a class="macro" href="../../src/openssl/macros.rs.html#119-131">from_pem!</a> {
-        <span class="doccomment">/// Deserializes a PEM-encoded PKCS#7 signature</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The input should have a header of `-----BEGIN PKCS7-----`.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_PKCS7</span>)]</span>
-        <span class="ident">from_pem</span>,
-        <span class="ident">Pkcs7</span>,
-        <span class="ident">ffi::PEM_read_bio_PKCS7</span>
+<span class="kw">impl </span><a href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a> {
+    <a class="macro" href="../../src/openssl/macros.rs.html#119-131">from_pem! </a>{
+        <span class="doccomment">/// Deserializes a PEM-encoded PKCS#7 signature
+        ///
+        /// The input should have a header of `-----BEGIN PKCS7-----`.
+        </span><span class="attribute">#[corresponds(PEM_read_bio_PKCS7)]
+        </span>from_pem,
+        Pkcs7,
+        ffi::PEM_read_bio_PKCS7
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der!</a> {
-        <span class="doccomment">/// Deserializes a DER-encoded PKCS#7 signature</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_PKCS7</span>)]</span>
-        <span class="ident">from_der</span>,
-        <span class="ident">Pkcs7</span>,
-        <span class="ident">ffi::d2i_PKCS7</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der! </a>{
+        <span class="doccomment">/// Deserializes a DER-encoded PKCS#7 signature
+        </span><span class="attribute">#[corresponds(d2i_PKCS7)]
+        </span>from_der,
+        Pkcs7,
+        ffi::d2i_PKCS7
     }
 
-    <span class="doccomment">/// Parses a message in S/MIME format.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the loaded signature, along with the cleartext message (if</span>
-    <span class="doccomment">/// available).</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SMIME_read_PKCS7</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_smime</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
+    <span class="doccomment">/// Parses a message in S/MIME format.
+    ///
+    /// Returns the loaded signature, along with the cleartext message (if
+    /// available).
+    </span><span class="attribute">#[corresponds(SMIME_read_PKCS7)]
+    </span><span class="kw">pub fn </span>from_smime(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>, <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-        <span class="kw">let</span> <span class="ident">input_bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bcont_bio</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">pkcs7</span> <span class="op">=</span>
-                <span class="ident">cvt_p</span>(<span class="ident">ffi::SMIME_read_PKCS7</span>(<span class="ident">input_bio</span>.<span class="ident">as_ptr</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">bcont_bio</span>)).<span class="ident">map</span>(<span class="ident">Pkcs7</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">bcont_bio</span>.<span class="ident">is_null</span>() {
-                <span class="kw">let</span> <span class="ident">bcont_bio</span> <span class="op">=</span> <span class="ident">MemBio::from_ptr</span>(<a class="ident" href="../../src/openssl/pkcs7.rs.html#81">bcont_bio</a>);
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/pkcs7.rs.html#86">bcont_bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<span class="ident">to_vec</span>())
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            };
-            <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/openssl/pkcs7.rs.html#83">pkcs7</a>, <a class="ident" href="../../src/openssl/pkcs7.rs.html#85">out</a>))
+        <span class="kw">let </span>input_bio = MemBioSlice::new(input)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>bcont_bio = ptr::null_mut();
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>pkcs7 =
+                cvt_p(ffi::SMIME_read_PKCS7(input_bio.as_ptr(), <span class="kw-2">&amp;mut </span>bcont_bio)).map(Pkcs7)<span class="question-mark">?</span>;
+            <span class="kw">let </span>out = <span class="kw">if </span>!bcont_bio.is_null() {
+                <span class="kw">let </span>bcont_bio = MemBio::from_ptr(<a href="../../src/openssl/pkcs7.rs.html#81">bcont_bio</a>);
+                <span class="prelude-val">Some</span>(<a href="../../src/openssl/pkcs7.rs.html#86">bcont_bio</a>.<a href="../../src/openssl/bio.rs.html#62">get_buf</a>().to_vec())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>};
+            <span class="prelude-val">Ok</span>((<a href="../../src/openssl/pkcs7.rs.html#83">pkcs7</a>, <a href="../../src/openssl/pkcs7.rs.html#85">out</a>))
         }
     }
 
-    <span class="doccomment">/// Creates and returns a PKCS#7 `envelopedData` structure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `certs` is a list of recipient certificates. `input` is the content to be</span>
-    <span class="doccomment">/// encrypted. `cipher` is the symmetric cipher to use. `flags` is an optional</span>
-    <span class="doccomment">/// set of flags.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PKCS7_encrypt</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encrypt</span>(
-        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a><span class="op">&gt;</span>,
-        <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">cipher</span>: <a class="ident" href="../../src/openssl/symm.rs.html#73">Cipher</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input_bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Creates and returns a PKCS#7 `envelopedData` structure.
+    ///
+    /// `certs` is a list of recipient certificates. `input` is the content to be
+    /// encrypted. `cipher` is the symmetric cipher to use. `flags` is an optional
+    /// set of flags.
+    </span><span class="attribute">#[corresponds(PKCS7_encrypt)]
+    </span><span class="kw">pub fn </span>encrypt(
+        certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>&gt;,
+        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        cipher: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+        flags: <a href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>input_bio = MemBioSlice::new(input)<span class="question-mark">?</span>;
 
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::PKCS7_encrypt</span>(
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#102">certs</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#107">input_bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#104">cipher</a>.<a class="ident" href="../../src/openssl/symm.rs.html#345">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#105">flags</a>.<span class="ident">bits</span>,
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::PKCS7_encrypt(
+                <a href="../../src/openssl/pkcs7.rs.html#102">certs</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#107">input_bio</a>.<a href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#104">cipher</a>.<a href="../../src/openssl/symm.rs.html#345">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#105">flags</a>.bits,
             ))
-            .<span class="ident">map</span>(<a class="ident" href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>)
+            .map(<a href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>)
         }
     }
 
-    <span class="doccomment">/// Creates and returns a PKCS#7 `signedData` structure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `signcert` is the certificate to sign with, `pkey` is the corresponding</span>
-    <span class="doccomment">/// private key. `certs` is an optional additional set of certificates to</span>
-    <span class="doccomment">/// include in the PKCS#7 structure (for example any intermediate CAs in the</span>
-    <span class="doccomment">/// chain).</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PKCS7_sign</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span><span class="op">&lt;</span><span class="ident">PT</span><span class="op">&gt;</span>(
-        <span class="ident">signcert</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>,
-        <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">PT</span><span class="op">&gt;</span>,
-        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a><span class="op">&gt;</span>,
-        <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">PT</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+    <span class="doccomment">/// Creates and returns a PKCS#7 `signedData` structure.
+    ///
+    /// `signcert` is the certificate to sign with, `pkey` is the corresponding
+    /// private key. `certs` is an optional additional set of certificates to
+    /// include in the PKCS#7 structure (for example any intermediate CAs in the
+    /// chain).
+    </span><span class="attribute">#[corresponds(PKCS7_sign)]
+    </span><span class="kw">pub fn </span>sign&lt;PT&gt;(
+        signcert: <span class="kw-2">&amp;</span><a href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>,
+        pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;PT&gt;,
+        certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>&gt;,
+        input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        flags: <a href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>PT: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="kw">let</span> <span class="ident">input_bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::PKCS7_sign</span>(
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#128">signcert</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#129">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#130">certs</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#137">input_bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#132">flags</a>.<span class="ident">bits</span>,
+        <span class="kw">let </span>input_bio = MemBioSlice::new(input)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::PKCS7_sign(
+                <a href="../../src/openssl/pkcs7.rs.html#128">signcert</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#129">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#130">certs</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#137">input_bio</a>.<a href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#132">flags</a>.bits,
             ))
-            .<span class="ident">map</span>(<a class="ident" href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>)
+            .map(<a href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7Ref</a> {
-    <span class="doccomment">/// Converts PKCS#7 structure to S/MIME format</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SMIME_write_PKCS7</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_smime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input_bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">MemBio::new</span>()<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::SMIME_write_PKCS7</span>(
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#156">output</a>.<a class="ident" href="../../src/openssl/bio.rs.html#58">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/pkcs7.rs.html#154">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#155">input_bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#154">flags</a>.<span class="ident">bits</span>,
+<span class="kw">impl </span><a href="../../src/openssl/pkcs7.rs.html#17-28">Pkcs7Ref</a> {
+    <span class="doccomment">/// Converts PKCS#7 structure to S/MIME format
+    </span><span class="attribute">#[corresponds(SMIME_write_PKCS7)]
+    </span><span class="kw">pub fn </span>to_smime(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], flags: <a href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>input_bio = MemBioSlice::new(input)<span class="question-mark">?</span>;
+        <span class="kw">let </span>output = MemBio::new()<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::SMIME_write_PKCS7(
+                <a href="../../src/openssl/pkcs7.rs.html#156">output</a>.<a href="../../src/openssl/bio.rs.html#58">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/pkcs7.rs.html#154">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#155">input_bio</a>.<a href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#154">flags</a>.bits,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#156">output</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+            .map(|<span class="kw">_</span>| <a href="../../src/openssl/pkcs7.rs.html#156">output</a>.<a href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
         }
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#76-87">to_pem!</a> {
-        <span class="doccomment">/// Serializes the data into a PEM-encoded PKCS#7 structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The output will have a header of `-----BEGIN PKCS7-----`.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_PKCS7</span>)]</span>
-        <span class="ident">to_pem</span>,
-        <span class="ident">ffi::PEM_write_bio_PKCS7</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#76-87">to_pem! </a>{
+        <span class="doccomment">/// Serializes the data into a PEM-encoded PKCS#7 structure.
+        ///
+        /// The output will have a header of `-----BEGIN PKCS7-----`.
+        </span><span class="attribute">#[corresponds(PEM_write_bio_PKCS7)]
+        </span>to_pem,
+        ffi::PEM_write_bio_PKCS7
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der!</a> {
-        <span class="doccomment">/// Serializes the data into a DER-encoded PKCS#7 structure.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_PKCS7</span>)]</span>
-        <span class="ident">to_der</span>,
-        <span class="ident">ffi::i2d_PKCS7</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der! </a>{
+        <span class="doccomment">/// Serializes the data into a DER-encoded PKCS#7 structure.
+        </span><span class="attribute">#[corresponds(i2d_PKCS7)]
+        </span>to_der,
+        ffi::i2d_PKCS7
     }
 
-    <span class="doccomment">/// Decrypts data using the provided private key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `pkey` is the recipient&#39;s private key, and `cert` is the recipient&#39;s</span>
-    <span class="doccomment">/// certificate.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the decrypted message.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PKCS7_decrypt</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrypt</span><span class="op">&lt;</span><span class="ident">PT</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Decrypts data using the provided private key.
+    ///
+    /// `pkey` is the recipient&#39;s private key, and `cert` is the recipient&#39;s
+    /// certificate.
+    ///
+    /// Returns the decrypted message.
+    </span><span class="attribute">#[corresponds(PKCS7_decrypt)]
+    </span><span class="kw">pub fn </span>decrypt&lt;PT&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">PT</span><span class="op">&gt;</span>,
-        <span class="ident">cert</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">PT</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+        pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;PT&gt;,
+        cert: <span class="kw-2">&amp;</span><a href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>,
+        flags: <a href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>PT: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">MemBio::new</span>()<span class="question-mark">?</span>;
+        <span class="kw">let </span>output = MemBio::new()<span class="question-mark">?</span>;
 
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::PKCS7_decrypt</span>(
-                <a class="self" href="../../src/openssl/pkcs7.rs.html#192">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#193">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#194">cert</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#200">output</a>.<a class="ident" href="../../src/openssl/bio.rs.html#58">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/pkcs7.rs.html#195">flags</a>.<span class="ident">bits</span>,
+        <span class="kw">unsafe </span>{
+            <a href="../../src/openssl/lib.rs.html#194">cvt</a>(ffi::PKCS7_decrypt(
+                <a class="self" href="../../src/openssl/pkcs7.rs.html#192">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#193">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#194">cert</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#200">output</a>.<a href="../../src/openssl/bio.rs.html#58">as_ptr</a>(),
+                <a href="../../src/openssl/pkcs7.rs.html#195">flags</a>.bits,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#200">output</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+            .map(|<span class="kw">_</span>| <a href="../../src/openssl/pkcs7.rs.html#200">output</a>.<a href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
         }
     }
 
-    <span class="doccomment">/// Verifies the PKCS#7 `signedData` structure contained by `&amp;self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `certs` is a set of certificates in which to search for the signer&#39;s</span>
-    <span class="doccomment">/// certificate. `store` is a trusted certificate store (used for chain</span>
-    <span class="doccomment">/// verification). `indata` is the signed data if the content is not present</span>
-    <span class="doccomment">/// in `&amp;self`. The content is written to `out` if it is not `None`.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PKCS7_verify</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span>(
+    <span class="doccomment">/// Verifies the PKCS#7 `signedData` structure contained by `&amp;self`.
+    ///
+    /// `certs` is a set of certificates in which to search for the signer&#39;s
+    /// certificate. `store` is a trusted certificate store (used for chain
+    /// verification). `indata` is the signed data if the content is not present
+    /// in `&amp;self`. The content is written to `out` if it is not `None`.
+    </span><span class="attribute">#[corresponds(PKCS7_verify)]
+    </span><span class="kw">pub fn </span>verify(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a><span class="op">&gt;</span>,
-        <span class="ident">store</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/store.rs.html#173-181">X509StoreRef</a>,
-        <span class="ident">indata</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
-        <span class="ident">out</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">out_bio</span> <span class="op">=</span> <span class="ident">MemBio::new</span>()<span class="question-mark">?</span>;
+        certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>&gt;,
+        store: <span class="kw-2">&amp;</span><a href="../../src/openssl/x509/store.rs.html#173-181">X509StoreRef</a>,
+        indata: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        out: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
+        flags: <a href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>out_bio = MemBio::new()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">indata_bio</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#225">indata</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">MemBioSlice::new</span>(<span class="ident">data</span>)<span class="question-mark">?</span>),
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">let </span>indata_bio = <span class="kw">match </span><a href="../../src/openssl/pkcs7.rs.html#225">indata</a> {
+            <span class="prelude-val">Some</span>(data) =&gt; <span class="prelude-val">Some</span>(MemBioSlice::new(data)<span class="question-mark">?</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        <span class="kw">let</span> <span class="ident">indata_bio_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#231">indata_bio</a>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#235">p</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>());
+        <span class="kw">let </span>indata_bio_ptr = <a href="../../src/openssl/pkcs7.rs.html#231">indata_bio</a>.as_ref().map_or(ptr::null_mut(), |p| <a href="../../src/openssl/pkcs7.rs.html#235">p</a>.<a href="../../src/openssl/bio.rs.html#35">as_ptr</a>());
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">cvt</span>(<span class="ident">ffi::PKCS7_verify</span>(
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">certs</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">store</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">indata_bio_ptr</span>,
-                <span class="ident">out_bio</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">flags</span>.<span class="ident">bits</span>,
+        <span class="kw">unsafe </span>{
+            cvt(ffi::PKCS7_verify(
+                <span class="self">self</span>.as_ptr(),
+                certs.as_ptr(),
+                store.as_ptr(),
+                indata_bio_ptr,
+                out_bio.as_ptr(),
+                flags.bits,
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())<span class="question-mark">?</span>
-        }
+            .map(|<span class="kw">_</span>| ())<span class="question-mark">?
+        </span>}
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#226">out</a> {
-            <a class="ident" href="../../src/openssl/pkcs7.rs.html#249">data</a>.<span class="ident">clear</span>();
-            <a class="ident" href="../../src/openssl/pkcs7.rs.html#249">data</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../src/openssl/pkcs7.rs.html#229">out_bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(data) = <a href="../../src/openssl/pkcs7.rs.html#226">out</a> {
+            <a href="../../src/openssl/pkcs7.rs.html#249">data</a>.clear();
+            <a href="../../src/openssl/pkcs7.rs.html#249">data</a>.extend_from_slice(<a href="../../src/openssl/pkcs7.rs.html#229">out_bio</a>.<a href="../../src/openssl/bio.rs.html#62">get_buf</a>());
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Retrieve the signer&#39;s certificates from the PKCS#7 structure without verifying them.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PKCS7_get0_signers</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signers</span>(
+    <span class="doccomment">/// Retrieve the signer&#39;s certificates from the PKCS#7 structure without verifying them.
+    </span><span class="attribute">#[corresponds(PKCS7_get0_signers)]
+    </span><span class="kw">pub fn </span>signers(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a><span class="op">&gt;</span>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::PKCS7_get0_signers</span>(
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">certs</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">flags</span>.<span class="ident">bits</span>,
+        certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>&gt;,
+        flags: <a href="../../src/openssl/pkcs7.rs.html#30-51">Pkcs7Flags</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Stack&lt;<a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>ptr = cvt_p(ffi::PKCS7_get0_signers(
+                <span class="self">self</span>.as_ptr(),
+                certs.as_ptr(),
+                flags.bits,
             ))<span class="question-mark">?</span>;
 
-            <span class="comment">// The returned stack is owned by the caller, but the certs inside are not! Our stack interface can&#39;t deal</span>
-            <span class="comment">// with that, so instead we just manually bump the refcount of the certs so that the whole stack is properly</span>
-            <span class="comment">// owned.</span>
-            <span class="kw">let</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">Stack</span>::<span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a><span class="op">&gt;</span><span class="ident">::from_ptr</span>(<a class="ident" href="../../src/openssl/pkcs7.rs.html#265">ptr</a>);
-            <span class="kw">for</span> <span class="ident">cert</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">stack</span> {
-                <span class="ident">mem::forget</span>(<span class="ident">cert</span>.<span class="ident">to_owned</span>());
+            <span class="comment">// The returned stack is owned by the caller, but the certs inside are not! Our stack interface can&#39;t deal
+            // with that, so instead we just manually bump the refcount of the certs so that the whole stack is properly
+            // owned.
+            </span><span class="kw">let </span>stack = Stack::&lt;<a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>&gt;::from_ptr(<a href="../../src/openssl/pkcs7.rs.html#265">ptr</a>);
+            <span class="kw">for </span>cert <span class="kw">in </span><span class="kw-2">&amp;</span>stack {
+                mem::forget(cert.to_owned());
             }
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkcs7.rs.html#274">stack</a>)
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/pkcs7.rs.html#274">stack</a>)
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hash::MessageDigest</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkcs7</span>::{<span class="ident">Pkcs7</span>, <span class="ident">Pkcs7Flags</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey::PKey</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stack::Stack</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::symm::Cipher</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509::store::X509StoreBuilder</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509::X509</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::hash::MessageDigest;
+    <span class="kw">use </span><span class="kw">crate</span>::pkcs7::{Pkcs7, Pkcs7Flags};
+    <span class="kw">use </span><span class="kw">crate</span>::pkey::PKey;
+    <span class="kw">use </span><span class="kw">crate</span>::stack::Stack;
+    <span class="kw">use </span><span class="kw">crate</span>::symm::Cipher;
+    <span class="kw">use </span><span class="kw">crate</span>::x509::store::X509StoreBuilder;
+    <span class="kw">use </span><span class="kw">crate</span>::x509::X509;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">encrypt_decrypt_test</span>() {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/certs.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">X509::from_pem</span>(<span class="ident">cert</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">Stack::new</span>().<span class="ident">unwrap</span>();
-        <span class="ident">certs</span>.<span class="ident">push</span>(<span class="ident">cert</span>.<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">message</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;foo&quot;</span>);
-        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <span class="ident">Cipher::des_ede3_cbc</span>();
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Pkcs7Flags::STREAM</span>;
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::private_key_from_pem</span>(<span class="ident">pkey</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>encrypt_decrypt_test() {
+        <span class="kw">let </span>cert = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/certs.pem&quot;</span>);
+        <span class="kw">let </span>cert = X509::from_pem(cert).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>certs = Stack::new().unwrap();
+        certs.push(cert.clone()).unwrap();
+        <span class="kw">let </span>message: String = String::from(<span class="string">&quot;foo&quot;</span>);
+        <span class="kw">let </span>cipher = Cipher::des_ede3_cbc();
+        <span class="kw">let </span>flags = Pkcs7Flags::STREAM;
+        <span class="kw">let </span>pkey = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
+        <span class="kw">let </span>pkey = PKey::private_key_from_pem(pkey).unwrap();
 
-        <span class="kw">let</span> <span class="ident">pkcs7</span> <span class="op">=</span>
-            <span class="ident">Pkcs7::encrypt</span>(<span class="kw-2">&amp;</span><span class="ident">certs</span>, <span class="ident">message</span>.<span class="ident">as_bytes</span>(), <span class="ident">cipher</span>, <span class="ident">flags</span>).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>pkcs7 =
+            Pkcs7::encrypt(<span class="kw-2">&amp;</span>certs, message.as_bytes(), cipher, flags).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">encrypted</span> <span class="op">=</span> <span class="ident">pkcs7</span>
-            .<span class="ident">to_smime</span>(<span class="ident">message</span>.<span class="ident">as_bytes</span>(), <span class="ident">flags</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>encrypted = pkcs7
+            .to_smime(message.as_bytes(), flags)
+            .expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> (<span class="ident">pkcs7_decoded</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">Pkcs7::from_smime</span>(<span class="ident">encrypted</span>.<span class="ident">as_slice</span>()).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>(pkcs7_decoded, <span class="kw">_</span>) = Pkcs7::from_smime(encrypted.as_slice()).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="ident">pkcs7_decoded</span>
-            .<span class="ident">decrypt</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>, <span class="kw-2">&amp;</span><span class="ident">cert</span>, <span class="ident">Pkcs7Flags::empty</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>decoded = pkcs7_decoded
+            .decrypt(<span class="kw-2">&amp;</span>pkey, <span class="kw-2">&amp;</span>cert, Pkcs7Flags::empty())
+            .expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">decoded</span>, <span class="ident">message</span>.<span class="ident">into_bytes</span>());
+        <span class="macro">assert_eq!</span>(decoded, message.into_bytes());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sign_verify_test_detached</span>() {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cert.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">X509::from_pem</span>(<span class="ident">cert</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">Stack::new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="string">&quot;foo&quot;</span>;
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Pkcs7Flags::STREAM</span> <span class="op">|</span> <span class="ident">Pkcs7Flags::DETACHED</span>;
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::private_key_from_pem</span>(<span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">store_builder</span> <span class="op">=</span> <span class="ident">X509StoreBuilder::new</span>().<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>sign_verify_test_detached() {
+        <span class="kw">let </span>cert = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cert.pem&quot;</span>);
+        <span class="kw">let </span>cert = X509::from_pem(cert).unwrap();
+        <span class="kw">let </span>certs = Stack::new().unwrap();
+        <span class="kw">let </span>message = <span class="string">&quot;foo&quot;</span>;
+        <span class="kw">let </span>flags = Pkcs7Flags::STREAM | Pkcs7Flags::DETACHED;
+        <span class="kw">let </span>pkey = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
+        <span class="kw">let </span>pkey = PKey::private_key_from_pem(pkey).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>store_builder = X509StoreBuilder::new().expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">root_ca</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/root-ca.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">root_ca</span> <span class="op">=</span> <span class="ident">X509::from_pem</span>(<span class="ident">root_ca</span>).<span class="ident">unwrap</span>();
-        <span class="ident">store_builder</span>.<span class="ident">add_cert</span>(<span class="ident">root_ca</span>).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>root_ca = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/root-ca.pem&quot;</span>);
+        <span class="kw">let </span>root_ca = X509::from_pem(root_ca).unwrap();
+        store_builder.add_cert(root_ca).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">store_builder</span>.<span class="ident">build</span>();
+        <span class="kw">let </span>store = store_builder.build();
 
-        <span class="kw">let</span> <span class="ident">pkcs7</span> <span class="op">=</span>
-            <span class="ident">Pkcs7::sign</span>(<span class="kw-2">&amp;</span><span class="ident">cert</span>, <span class="kw-2">&amp;</span><span class="ident">pkey</span>, <span class="kw-2">&amp;</span><span class="ident">certs</span>, <span class="ident">message</span>.<span class="ident">as_bytes</span>(), <span class="ident">flags</span>).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>pkcs7 =
+            Pkcs7::sign(<span class="kw-2">&amp;</span>cert, <span class="kw-2">&amp;</span>pkey, <span class="kw-2">&amp;</span>certs, message.as_bytes(), flags).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">signed</span> <span class="op">=</span> <span class="ident">pkcs7</span>
-            .<span class="ident">to_smime</span>(<span class="ident">message</span>.<span class="ident">as_bytes</span>(), <span class="ident">flags</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
-        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">String::from_utf8</span>(<span class="ident">signed</span>.<span class="ident">clone</span>()).<span class="ident">unwrap</span>());
-        <span class="kw">let</span> (<span class="ident">pkcs7_decoded</span>, <span class="ident">content</span>) <span class="op">=</span>
-            <span class="ident">Pkcs7::from_smime</span>(<span class="ident">signed</span>.<span class="ident">as_slice</span>()).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>signed = pkcs7
+            .to_smime(message.as_bytes(), flags)
+            .expect(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, String::from_utf8(signed.clone()).unwrap());
+        <span class="kw">let </span>(pkcs7_decoded, content) =
+            Pkcs7::from_smime(signed.as_slice()).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">pkcs7_decoded</span>
-            .<span class="ident">verify</span>(
-                <span class="kw-2">&amp;</span><span class="ident">certs</span>,
-                <span class="kw-2">&amp;</span><span class="ident">store</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">as_bytes</span>()),
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>),
-                <span class="ident">flags</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
+        pkcs7_decoded
+            .verify(
+                <span class="kw-2">&amp;</span>certs,
+                <span class="kw-2">&amp;</span>store,
+                <span class="prelude-val">Some</span>(message.as_bytes()),
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>output),
+                flags,
             )
-            .<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+            .expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">output</span>, <span class="ident">message</span>.<span class="ident">as_bytes</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">content</span>.<span class="ident">expect</span>(<span class="string">&quot;should be non-empty&quot;</span>), <span class="ident">message</span>.<span class="ident">as_bytes</span>());
+        <span class="macro">assert_eq!</span>(output, message.as_bytes());
+        <span class="macro">assert_eq!</span>(content.expect(<span class="string">&quot;should be non-empty&quot;</span>), message.as_bytes());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sign_verify_test_normal</span>() {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cert.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">X509::from_pem</span>(<span class="ident">cert</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">Stack::new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="string">&quot;foo&quot;</span>;
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Pkcs7Flags::STREAM</span>;
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::private_key_from_pem</span>(<span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">store_builder</span> <span class="op">=</span> <span class="ident">X509StoreBuilder::new</span>().<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>sign_verify_test_normal() {
+        <span class="kw">let </span>cert = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cert.pem&quot;</span>);
+        <span class="kw">let </span>cert = X509::from_pem(cert).unwrap();
+        <span class="kw">let </span>certs = Stack::new().unwrap();
+        <span class="kw">let </span>message = <span class="string">&quot;foo&quot;</span>;
+        <span class="kw">let </span>flags = Pkcs7Flags::STREAM;
+        <span class="kw">let </span>pkey = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
+        <span class="kw">let </span>pkey = PKey::private_key_from_pem(pkey).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>store_builder = X509StoreBuilder::new().expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">root_ca</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/root-ca.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">root_ca</span> <span class="op">=</span> <span class="ident">X509::from_pem</span>(<span class="ident">root_ca</span>).<span class="ident">unwrap</span>();
-        <span class="ident">store_builder</span>.<span class="ident">add_cert</span>(<span class="ident">root_ca</span>).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>root_ca = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/root-ca.pem&quot;</span>);
+        <span class="kw">let </span>root_ca = X509::from_pem(root_ca).unwrap();
+        store_builder.add_cert(root_ca).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">store_builder</span>.<span class="ident">build</span>();
+        <span class="kw">let </span>store = store_builder.build();
 
-        <span class="kw">let</span> <span class="ident">pkcs7</span> <span class="op">=</span>
-            <span class="ident">Pkcs7::sign</span>(<span class="kw-2">&amp;</span><span class="ident">cert</span>, <span class="kw-2">&amp;</span><span class="ident">pkey</span>, <span class="kw-2">&amp;</span><span class="ident">certs</span>, <span class="ident">message</span>.<span class="ident">as_bytes</span>(), <span class="ident">flags</span>).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>pkcs7 =
+            Pkcs7::sign(<span class="kw-2">&amp;</span>cert, <span class="kw-2">&amp;</span>pkey, <span class="kw-2">&amp;</span>certs, message.as_bytes(), flags).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">signed</span> <span class="op">=</span> <span class="ident">pkcs7</span>
-            .<span class="ident">to_smime</span>(<span class="ident">message</span>.<span class="ident">as_bytes</span>(), <span class="ident">flags</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>signed = pkcs7
+            .to_smime(message.as_bytes(), flags)
+            .expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> (<span class="ident">pkcs7_decoded</span>, <span class="ident">content</span>) <span class="op">=</span>
-            <span class="ident">Pkcs7::from_smime</span>(<span class="ident">signed</span>.<span class="ident">as_slice</span>()).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>(pkcs7_decoded, content) =
+            Pkcs7::from_smime(signed.as_slice()).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">pkcs7_decoded</span>
-            .<span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="ident">certs</span>, <span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>), <span class="ident">flags</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
+        pkcs7_decoded
+            .verify(<span class="kw-2">&amp;</span>certs, <span class="kw-2">&amp;</span>store, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>output), flags)
+            .expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">output</span>, <span class="ident">message</span>.<span class="ident">as_bytes</span>());
-        <span class="macro">assert!</span>(<span class="ident">content</span>.<span class="ident">is_none</span>());
+        <span class="macro">assert_eq!</span>(output, message.as_bytes());
+        <span class="macro">assert!</span>(content.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">signers</span>() {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cert.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">X509::from_pem</span>(<span class="ident">cert</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">cert_digest</span> <span class="op">=</span> <span class="ident">cert</span>.<span class="ident">digest</span>(<span class="ident">MessageDigest::sha256</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">Stack::new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="string">&quot;foo&quot;</span>;
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Pkcs7Flags::STREAM</span>;
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">PKey::private_key_from_pem</span>(<span class="ident">pkey</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">store_builder</span> <span class="op">=</span> <span class="ident">X509StoreBuilder::new</span>().<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>signers() {
+        <span class="kw">let </span>cert = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cert.pem&quot;</span>);
+        <span class="kw">let </span>cert = X509::from_pem(cert).unwrap();
+        <span class="kw">let </span>cert_digest = cert.digest(MessageDigest::sha256()).unwrap();
+        <span class="kw">let </span>certs = Stack::new().unwrap();
+        <span class="kw">let </span>message = <span class="string">&quot;foo&quot;</span>;
+        <span class="kw">let </span>flags = Pkcs7Flags::STREAM;
+        <span class="kw">let </span>pkey = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/key.pem&quot;</span>);
+        <span class="kw">let </span>pkey = PKey::private_key_from_pem(pkey).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>store_builder = X509StoreBuilder::new().expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">root_ca</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/root-ca.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">root_ca</span> <span class="op">=</span> <span class="ident">X509::from_pem</span>(<span class="ident">root_ca</span>).<span class="ident">unwrap</span>();
-        <span class="ident">store_builder</span>.<span class="ident">add_cert</span>(<span class="ident">root_ca</span>).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>root_ca = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/root-ca.pem&quot;</span>);
+        <span class="kw">let </span>root_ca = X509::from_pem(root_ca).unwrap();
+        store_builder.add_cert(root_ca).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">pkcs7</span> <span class="op">=</span>
-            <span class="ident">Pkcs7::sign</span>(<span class="kw-2">&amp;</span><span class="ident">cert</span>, <span class="kw-2">&amp;</span><span class="ident">pkey</span>, <span class="kw-2">&amp;</span><span class="ident">certs</span>, <span class="ident">message</span>.<span class="ident">as_bytes</span>(), <span class="ident">flags</span>).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>pkcs7 =
+            Pkcs7::sign(<span class="kw-2">&amp;</span>cert, <span class="kw-2">&amp;</span>pkey, <span class="kw-2">&amp;</span>certs, message.as_bytes(), flags).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">signed</span> <span class="op">=</span> <span class="ident">pkcs7</span>
-            .<span class="ident">to_smime</span>(<span class="ident">message</span>.<span class="ident">as_bytes</span>(), <span class="ident">flags</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>signed = pkcs7
+            .to_smime(message.as_bytes(), flags)
+            .expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> (<span class="ident">pkcs7_decoded</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">Pkcs7::from_smime</span>(<span class="ident">signed</span>.<span class="ident">as_slice</span>()).<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="kw">let </span>(pkcs7_decoded, <span class="kw">_</span>) = Pkcs7::from_smime(signed.as_slice()).expect(<span class="string">&quot;should succeed&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">empty_certs</span> <span class="op">=</span> <span class="ident">Stack::new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">signer_certs</span> <span class="op">=</span> <span class="ident">pkcs7_decoded</span>
-            .<span class="ident">signers</span>(<span class="kw-2">&amp;</span><span class="ident">empty_certs</span>, <span class="ident">flags</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should succeed&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">empty_certs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">signer_certs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">signer_digest</span> <span class="op">=</span> <span class="ident">signer_certs</span>[<span class="number">0</span>].<span class="ident">digest</span>(<span class="ident">MessageDigest::sha256</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">cert_digest</span>, <span class="kw-2">*</span><span class="ident">signer_digest</span>);
+        <span class="kw">let </span>empty_certs = Stack::new().unwrap();
+        <span class="kw">let </span>signer_certs = pkcs7_decoded
+            .signers(<span class="kw-2">&amp;</span>empty_certs, flags)
+            .expect(<span class="string">&quot;should succeed&quot;</span>);
+        <span class="macro">assert_eq!</span>(empty_certs.len(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(signer_certs.len(), <span class="number">1</span>);
+        <span class="kw">let </span>signer_digest = signer_certs[<span class="number">0</span>].digest(MessageDigest::sha256()).unwrap();
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>cert_digest, <span class="kw-2">*</span>signer_digest);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">invalid_from_smime</span>() {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;Invalid SMIME Message&quot;</span>);
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Pkcs7::from_smime</span>(<span class="ident">input</span>.<span class="ident">as_bytes</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>invalid_from_smime() {
+        <span class="kw">let </span>input = String::from(<span class="string">&quot;Invalid SMIME Message&quot;</span>);
+        <span class="kw">let </span>result = Pkcs7::from_smime(input.as_bytes());
 
-        <span class="macro">assert!</span>(<span class="ident">result</span>.<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(result.is_err());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

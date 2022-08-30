@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derivative-2.2.0/src/hash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hash.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../derivative/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../derivative/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../derivative/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/derivative-2.2.0/src/hash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hash.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../derivative/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../derivative/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../derivative/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -95,102 +95,102 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../proc_macro2/index.html">proc_macro2</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../proc_macro2/index.html">proc_macro2</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/derivative/lib.rs.html#20">ast</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/derivative/lib.rs.html#21">attr</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/derivative/lib.rs.html#28">matcher</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/derivative/lib.rs.html#29">paths</a>;
-<span class="kw">use</span> <a class="ident" href="../../syn/index.html">syn</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/derivative/lib.rs.html#30">utils</a>;
+<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#20">ast</a>;
+<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#21">attr</a>;
+<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#28">matcher</a>;
+<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#29">paths</a>;
+<span class="kw">use </span><a href="../../syn/index.html">syn</a>;
+<span class="kw">use </span><a href="../../src/derivative/lib.rs.html#30">utils</a>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/ast.rs.html#7">ast::Input</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
-    <span class="kw">let</span> <span class="ident">hasher_trait_path</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/hash.rs.html#91">hasher_trait_path</a>();
-    <span class="kw">let</span> <span class="ident">hash_trait_path</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/hash.rs.html#82">hash_trait_path</a>();
+<span class="kw">pub fn </span>derive(input: <span class="kw-2">&amp;</span><a href="../../src/derivative/ast.rs.html#7">ast::Input</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a> {
+    <span class="kw">let </span>hasher_trait_path = <a href="../../src/derivative/hash.rs.html#91">hasher_trait_path</a>();
+    <span class="kw">let </span>hash_trait_path = <a href="../../src/derivative/hash.rs.html#82">hash_trait_path</a>();
 
-    <span class="kw">let</span> <span class="ident">discriminant</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/derivative/ast.rs.html#17">ast::Body::Enum</a>(<span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/derivative/hash.rs.html#10">input</a>.<span class="ident">body</span> {
-        <span class="kw">let</span> <span class="ident">discriminant</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/paths.rs.html#4">paths::discriminant_path</a>();
+    <span class="kw">let </span>discriminant = <span class="kw">if let </span><a href="../../src/derivative/ast.rs.html#17">ast::Body::Enum</a>(<span class="kw">_</span>) = <a href="../../src/derivative/hash.rs.html#10">input</a>.body {
+        <span class="kw">let </span>discriminant = <a href="../../src/derivative/paths.rs.html#4">paths::discriminant_path</a>();
         <span class="prelude-val">Some</span>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(
-            #<span class="ident">hash_trait_path::hash</span>(<span class="kw-2">&amp;</span>#<span class="ident">discriminant</span>(<span class="self">self</span>), <span class="ident">__state</span>);
+            #hash_trait_path::hash(<span class="kw-2">&amp;</span>#discriminant(<span class="self">self</span>), __state);
         ))
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
-    };
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>};
 
-    <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">matcher::Matcher::new</span>(<a class="ident" href="../../src/derivative/matcher.rs.html#25">matcher::BindingStyle::Ref</a>, <a class="ident" href="../../src/derivative/hash.rs.html#10">input</a>.<span class="ident">attrs</span>.<span class="ident">is_packed</span>).<a class="ident" href="../../src/derivative/matcher.rs.html#104-113">build_arms</a>(
-        <a class="ident" href="../../src/derivative/hash.rs.html#10">input</a>,
+    <span class="kw">let </span>body = matcher::Matcher::new(<a href="../../src/derivative/matcher.rs.html#25">matcher::BindingStyle::Ref</a>, <a href="../../src/derivative/hash.rs.html#10">input</a>.attrs.is_packed).<a href="../../src/derivative/matcher.rs.html#104-113">build_arms</a>(
+        <a href="../../src/derivative/hash.rs.html#10">input</a>,
         <span class="string">&quot;__arg&quot;</span>,
-        <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">bis</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">field_prints</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/hash.rs.html#26">bis</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">bi</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="ident">bi</span>.<span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">ignore_hash</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+        |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, bis| {
+            <span class="kw">let </span>field_prints = <a href="../../src/derivative/hash.rs.html#26">bis</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|bi| {
+                <span class="kw">if </span>bi.field.attrs.ignore_hash() {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
 
-                <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/hash.rs.html#27">bi</a>.<span class="ident">expr</span>;
+                <span class="kw">let </span>arg = <span class="kw-2">&amp;</span><a href="../../src/derivative/hash.rs.html#27">bi</a>.expr;
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">hash_with</span>) <span class="op">=</span> <a class="ident" href="../../src/derivative/hash.rs.html#27">bi</a>.<span class="ident">field</span>.<span class="ident">attrs</span>.<a class="ident" href="../../src/derivative/attr.rs.html#611">hash_with</a>() {
-                    <span class="prelude-val">Some</span>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a> {
-                        #<span class="ident">hash_with</span>(<span class="kw-2">&amp;</span>#<span class="ident">arg</span>, <span class="ident">__state</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(hash_with) = <a href="../../src/derivative/hash.rs.html#27">bi</a>.field.attrs.<a href="../../src/derivative/attr.rs.html#611">hash_with</a>() {
+                    <span class="prelude-val">Some</span>(<a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+                        #hash_with(<span class="kw-2">&amp;</span>#arg, __state);
                     })
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<a class="macro" href="../../quote/quote/macro.quote.html">quote!</a> {
-                        #<span class="ident">hash_trait_path::hash</span>(<span class="kw-2">&amp;</span>#<span class="ident">arg</span>, <span class="ident">__state</span>);
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(<a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+                        #hash_trait_path::hash(<span class="kw-2">&amp;</span>#arg, __state);
                     })
                 }
             });
 
-            <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a> {
-                #(#<span class="ident">field_prints</span>)<span class="op">*</span>
+            <a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+                #(#field_prints)*
             }
         },
     );
 
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/hash.rs.html#10">input</a>.<span class="ident">ident</span>;
-    <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/utils.rs.html#10-20">utils::build_impl_generics</a>(
-        <a class="ident" href="../../src/derivative/hash.rs.html#10">input</a>,
-        <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/hash.rs.html#12">hash_trait_path</a>,
-        <a class="ident" href="../../src/derivative/hash.rs.html#77">needs_hash_bound</a>,
-        <span class="op">|</span><span class="ident">field</span><span class="op">|</span> <a class="ident" href="../../src/derivative/hash.rs.html#56">field</a>.<a class="ident" href="../../src/derivative/attr.rs.html#607">hash_bound</a>(),
-        <span class="op">|</span><span class="ident">input</span><span class="op">|</span> <a class="ident" href="../../src/derivative/hash.rs.html#57">input</a>.<a class="ident" href="../../src/derivative/attr.rs.html#412">hash_bound</a>(),
+    <span class="kw">let </span>name = <span class="kw-2">&amp;</span><a href="../../src/derivative/hash.rs.html#10">input</a>.ident;
+    <span class="kw">let </span>generics = <a href="../../src/derivative/utils.rs.html#10-20">utils::build_impl_generics</a>(
+        <a href="../../src/derivative/hash.rs.html#10">input</a>,
+        <span class="kw-2">&amp;</span><a href="../../src/derivative/hash.rs.html#12">hash_trait_path</a>,
+        <a href="../../src/derivative/hash.rs.html#77">needs_hash_bound</a>,
+        |field| <a href="../../src/derivative/hash.rs.html#56">field</a>.<a href="../../src/derivative/attr.rs.html#607">hash_bound</a>(),
+        |input| <a href="../../src/derivative/hash.rs.html#57">input</a>.<a href="../../src/derivative/attr.rs.html#412">hash_bound</a>(),
     );
-    <span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <a class="ident" href="../../src/derivative/hash.rs.html#52">generics</a>.<span class="ident">split_for_impl</span>();
+    <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <a href="../../src/derivative/hash.rs.html#52">generics</a>.split_for_impl();
 
-    <span class="kw">let</span> <span class="ident">hasher_ty_parameter</span> <span class="op">=</span> <a class="ident" href="../../src/derivative/utils.rs.html#34">utils::hygienic_type_parameter</a>(<a class="ident" href="../../src/derivative/hash.rs.html#10">input</a>, <span class="string">&quot;__H&quot;</span>);
-    <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_qualifications</span>)]</span>
-        <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">hash_trait_path</span> <span class="kw">for</span> #<span class="ident">name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
-            <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span>#<span class="ident">hasher_ty_parameter</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__state</span>: <span class="kw-2">&amp;mut</span> #<span class="ident">hasher_ty_parameter</span>)
-                <span class="kw">where</span> #<span class="ident">hasher_ty_parameter</span>: #<span class="ident">hasher_trait_path</span>
+    <span class="kw">let </span>hasher_ty_parameter = <a href="../../src/derivative/utils.rs.html#34">utils::hygienic_type_parameter</a>(<a href="../../src/derivative/hash.rs.html#10">input</a>, <span class="string">&quot;__H&quot;</span>);
+    <a class="macro" href="../../quote/quote/macro.quote.html">quote! </a>{
+        <span class="attribute">#[allow(unused_qualifications)]
+        </span><span class="kw">impl </span>#impl_generics #hash_trait_path <span class="kw">for </span>#name #ty_generics #where_clause {
+            <span class="kw">fn </span>hash&lt;#hasher_ty_parameter&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, __state: <span class="kw-2">&amp;mut </span>#hasher_ty_parameter)
+                <span class="kw">where </span>#hasher_ty_parameter: #hasher_trait_path
             {
-                #<span class="ident">discriminant</span>
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                    #<span class="ident">body</span>
+                #discriminant
+                <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+                    #body
                 }
             }
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">needs_hash_bound</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/derivative/attr.rs.html#31">attr::Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="op">!</span><a class="ident" href="../../src/derivative/hash.rs.html#77">attrs</a>.<a class="ident" href="../../src/derivative/attr.rs.html#591">ignore_hash</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/derivative/hash.rs.html#77">attrs</a>.<a class="ident" href="../../src/derivative/attr.rs.html#607">hash_bound</a>().<span class="ident">is_none</span>()
+<span class="kw">fn </span>needs_hash_bound(attrs: <span class="kw-2">&amp;</span><a href="../../src/derivative/attr.rs.html#31">attr::Field</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    !<a href="../../src/derivative/hash.rs.html#77">attrs</a>.<a href="../../src/derivative/attr.rs.html#591">ignore_hash</a>() &amp;&amp; <a href="../../src/derivative/hash.rs.html#77">attrs</a>.<a href="../../src/derivative/attr.rs.html#607">hash_bound</a>().is_none()
 }
 
-<span class="doccomment">/// Return the path of the `Hash` trait, that is `::std::hash::Hash`.</span>
-<span class="kw">fn</span> <span class="ident">hash_trait_path</span>() -&gt; <a class="ident" href="../../syn/path/struct.Path.html">syn::Path</a> {
-    <span class="kw">if</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_core&quot;</span>) {
-        <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(<span class="ident">::core::hash::Hash</span>)
-    } <span class="kw">else</span> {
-        <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(<span class="ident">::std::hash::Hash</span>)
+<span class="doccomment">/// Return the path of the `Hash` trait, that is `::std::hash::Hash`.
+</span><span class="kw">fn </span>hash_trait_path() -&gt; <a href="../../syn/path/struct.Path.html">syn::Path</a> {
+    <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(feature = <span class="string">&quot;use_core&quot;</span>) {
+        <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(::core::hash::Hash)
+    } <span class="kw">else </span>{
+        <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(::std::hash::Hash)
     }
 }
 
-<span class="doccomment">/// Return the path of the `Hasher` trait, that is `::std::hash::Hasher`.</span>
-<span class="kw">fn</span> <span class="ident">hasher_trait_path</span>() -&gt; <a class="ident" href="../../syn/path/struct.Path.html">syn::Path</a> {
-    <span class="kw">if</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_core&quot;</span>) {
-        <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(<span class="ident">::core::hash::Hasher</span>)
-    } <span class="kw">else</span> {
-        <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(<span class="ident">::std::hash::Hasher</span>)
+<span class="doccomment">/// Return the path of the `Hasher` trait, that is `::std::hash::Hasher`.
+</span><span class="kw">fn </span>hasher_trait_path() -&gt; <a href="../../syn/path/struct.Path.html">syn::Path</a> {
+    <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(feature = <span class="string">&quot;use_core&quot;</span>) {
+        <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(::core::hash::Hasher)
+    } <span class="kw">else </span>{
+        <a class="macro" href="../../syn/syn/macro.parse_quote.html">parse_quote!</a>(::std::hash::Hasher)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derivative" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="derivative" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

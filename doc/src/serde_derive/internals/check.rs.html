@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.141/src/internals/check.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>check.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.144/src/internals/check.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>check.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -418,40 +418,40 @@
 <span id="418">418</span>
 <span id="419">419</span>
 <span id="420">420</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">internals::ast</span>::{<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#27">Data</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#42">Field</a>, <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#50">Style</a>};
-<span class="kw">use</span> <span class="ident">internals::attr</span>::{<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#264">Identifier</a>, <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#231">TagType</a>};
-<span class="kw">use</span> <span class="ident">internals</span>::{<a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#23">ungroup</a>, <a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#18">Derive</a>};
-<span class="kw">use</span> <span class="ident">syn</span>::{<a class="ident" href="../../../syn/expr/enum.Member.html">Member</a>, <a class="ident" href="../../../syn/ty/enum.Type.html">Type</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>internals::ast::{<a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <a href="../../../src/serde_derive/internals/ast.rs.html#27">Data</a>, <a href="../../../src/serde_derive/internals/ast.rs.html#42">Field</a>, <a href="../../../src/serde_derive/internals/ast.rs.html#50">Style</a>};
+<span class="kw">use </span>internals::attr::{<a href="../../../src/serde_derive/internals/attr.rs.html#264">Identifier</a>, <a href="../../../src/serde_derive/internals/attr.rs.html#231">TagType</a>};
+<span class="kw">use </span>internals::{<a href="../../../src/serde_derive/internals/mod.rs.html#23">ungroup</a>, <a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <a href="../../../src/serde_derive/internals/mod.rs.html#18">Derive</a>};
+<span class="kw">use </span>syn::{<a href="../../../syn/expr/enum.Member.html">Member</a>, <a href="../../../syn/ty/enum.Type.html">Type</a>};
 
-<span class="doccomment">/// Cross-cutting checks that require looking at more than a single attrs</span>
-<span class="doccomment">/// object. Simpler checks should happen when parsing and building the attrs.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <span class="ident">derive</span>: <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#18">Derive</a>) {
-    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#21">check_getter</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
-    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#43">check_flatten</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
-    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#87">check_identifier</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
-    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#171">check_variant_skip_attrs</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
-    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#248">check_internal_tag_field_name_conflict</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
-    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#295">check_adjacent_tag_conflict</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
-    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">check_transparent</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">derive</a>);
-    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#413">check_from_and_try_from</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
+<span class="doccomment">/// Cross-cutting checks that require looking at more than a single attrs
+/// object. Simpler checks should happen when parsing and building the attrs.
+</span><span class="kw">pub fn </span>check(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>, derive: <a href="../../../src/serde_derive/internals/mod.rs.html#18">Derive</a>) {
+    <a href="../../../src/serde_derive/internals/check.rs.html#21">check_getter</a>(<a href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
+    <a href="../../../src/serde_derive/internals/check.rs.html#43">check_flatten</a>(<a href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
+    <a href="../../../src/serde_derive/internals/check.rs.html#87">check_identifier</a>(<a href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
+    <a href="../../../src/serde_derive/internals/check.rs.html#171">check_variant_skip_attrs</a>(<a href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
+    <a href="../../../src/serde_derive/internals/check.rs.html#248">check_internal_tag_field_name_conflict</a>(<a href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
+    <a href="../../../src/serde_derive/internals/check.rs.html#295">check_adjacent_tag_conflict</a>(<a href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
+    <a href="../../../src/serde_derive/internals/check.rs.html#313">check_transparent</a>(<a href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">derive</a>);
+    <a href="../../../src/serde_derive/internals/check.rs.html#413">check_from_and_try_from</a>(<a href="../../../src/serde_derive/internals/check.rs.html#8">cx</a>, <a href="../../../src/serde_derive/internals/check.rs.html#8">cont</a>);
 }
 
-<span class="doccomment">/// Getters are only allowed inside structs (not enums) with the `remote`</span>
-<span class="doccomment">/// attribute.</span>
-<span class="kw">fn</span> <span class="ident">check_getter</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
-    <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#21">cont</a>.<span class="ident">data</span> {
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="kw">_</span>) =&gt; {
-            <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">data</span>.<span class="ident">has_getter</span>() {
-                <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#21">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-                    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#21">cont</a>.<span class="ident">original</span>,
+<span class="doccomment">/// Getters are only allowed inside structs (not enums) with the `remote`
+/// attribute.
+</span><span class="kw">fn </span>check_getter(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
+    <span class="kw">match </span><a href="../../../src/serde_derive/internals/check.rs.html#21">cont</a>.data {
+        <a href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="kw">_</span>) =&gt; {
+            <span class="kw">if </span>cont.data.has_getter() {
+                <a href="../../../src/serde_derive/internals/check.rs.html#21">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+                    <a href="../../../src/serde_derive/internals/check.rs.html#21">cont</a>.original,
                     <span class="string">&quot;#[serde(getter = \&quot;...\&quot;)] is not allowed in an enum&quot;</span>,
                 );
             }
         }
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-            <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">data</span>.<span class="ident">has_getter</span>() <span class="op">&amp;&amp;</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">remote</span>().<span class="ident">is_none</span>() {
-                <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#21">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-                    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#21">cont</a>.<span class="ident">original</span>,
+        <a href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+            <span class="kw">if </span>cont.data.has_getter() &amp;&amp; cont.attrs.remote().is_none() {
+                <a href="../../../src/serde_derive/internals/check.rs.html#21">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+                    <a href="../../../src/serde_derive/internals/check.rs.html#21">cont</a>.original,
                     <span class="string">&quot;#[serde(getter = \&quot;...\&quot;)] can only be used in structs that have #[serde(remote = \&quot;...\&quot;)]&quot;</span>,
                 );
             }
@@ -459,126 +459,126 @@
     }
 }
 
-<span class="doccomment">/// Flattening has some restrictions we can test.</span>
-<span class="kw">fn</span> <span class="ident">check_flatten</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
-    <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/check.rs.html#43">cont</a>.<span class="ident">data</span> {
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="ident">variants</span>) =&gt; {
-            <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="ident">variants</span> {
-                <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">fields</span> {
-                    <span class="ident">check_flatten_field</span>(<span class="ident">cx</span>, <span class="ident">variant</span>.<span class="ident">style</span>, <span class="ident">field</span>);
+<span class="doccomment">/// Flattening has some restrictions we can test.
+</span><span class="kw">fn </span>check_flatten(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
+    <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/check.rs.html#43">cont</a>.data {
+        <a href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(variants) =&gt; {
+            <span class="kw">for </span>variant <span class="kw">in </span>variants {
+                <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;</span>variant.fields {
+                    check_flatten_field(cx, variant.style, field);
                 }
             }
         }
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="ident">style</span>, <span class="ident">fields</span>) =&gt; {
-            <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
-                <span class="ident">check_flatten_field</span>(<span class="ident">cx</span>, <span class="kw-2">*</span><span class="ident">style</span>, <span class="ident">field</span>);
+        <a href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(style, fields) =&gt; {
+            <span class="kw">for </span>field <span class="kw">in </span>fields {
+                check_flatten_field(cx, <span class="kw-2">*</span>style, field);
             }
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">check_flatten_field</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">style</span>: <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#50">Style</a>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#42">Field</a>) {
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">flatten</span>() {
+<span class="kw">fn </span>check_flatten_field(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, style: <a href="../../../src/serde_derive/internals/ast.rs.html#50">Style</a>, field: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ast.rs.html#42">Field</a>) {
+    <span class="kw">if </span>!field.attrs.flatten() {
         <span class="kw">return</span>;
     }
-    <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#60">style</a> {
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#54">Style::Tuple</a> =&gt; {
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#60">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-                <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#60">field</a>.<span class="ident">original</span>,
+    <span class="kw">match </span><a href="../../../src/serde_derive/internals/check.rs.html#60">style</a> {
+        <a href="../../../src/serde_derive/internals/ast.rs.html#54">Style::Tuple</a> =&gt; {
+            <a href="../../../src/serde_derive/internals/check.rs.html#60">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+                <a href="../../../src/serde_derive/internals/check.rs.html#60">field</a>.original,
                 <span class="string">&quot;#[serde(flatten)] cannot be used on tuple structs&quot;</span>,
             );
         }
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#56">Style::Newtype</a> =&gt; {
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#60">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-                <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#60">field</a>.<span class="ident">original</span>,
+        <a href="../../../src/serde_derive/internals/ast.rs.html#56">Style::Newtype</a> =&gt; {
+            <a href="../../../src/serde_derive/internals/check.rs.html#60">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+                <a href="../../../src/serde_derive/internals/check.rs.html#60">field</a>.original,
                 <span class="string">&quot;#[serde(flatten)] cannot be used on newtype structs&quot;</span>,
             );
         }
-        <span class="kw">_</span> =&gt; {}
+        <span class="kw">_ </span>=&gt; {}
     }
 }
 
-<span class="doccomment">/// The `other` attribute must be used at most once and it must be the last</span>
-<span class="doccomment">/// variant of an enum.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Inside a `variant_identifier` all variants must be unit variants. Inside a</span>
-<span class="doccomment">/// `field_identifier` all but possibly one variant must be unit variants. The</span>
-<span class="doccomment">/// last variant may be a newtype variant which is an implicit &quot;other&quot; case.</span>
-<span class="kw">fn</span> <span class="ident">check_identifier</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
-    <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/check.rs.html#87">cont</a>.<span class="ident">data</span> {
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="ident">variants</span>) =&gt; <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#89">variants</a>,
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+<span class="doccomment">/// The `other` attribute must be used at most once and it must be the last
+/// variant of an enum.
+///
+/// Inside a `variant_identifier` all variants must be unit variants. Inside a
+/// `field_identifier` all but possibly one variant must be unit variants. The
+/// last variant may be a newtype variant which is an implicit &quot;other&quot; case.
+</span><span class="kw">fn </span>check_identifier(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
+    <span class="kw">let </span>variants = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/check.rs.html#87">cont</a>.data {
+        <a href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(variants) =&gt; <a href="../../../src/serde_derive/internals/check.rs.html#89">variants</a>,
+        <a href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
             <span class="kw">return</span>;
         }
     };
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">variant</span>) <span class="kw">in</span> <span class="ident">variants</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">match</span> (
-            <span class="ident">variant</span>.<span class="ident">style</span>,
-            <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">identifier</span>(),
-            <span class="ident">variant</span>.<span class="ident">attrs</span>.<span class="ident">other</span>(),
-            <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">tag</span>(),
+    <span class="kw">for </span>(i, variant) <span class="kw">in </span>variants.iter().enumerate() {
+        <span class="kw">match </span>(
+            variant.style,
+            cont.attrs.identifier(),
+            variant.attrs.other(),
+            cont.attrs.tag(),
         ) {
-            <span class="comment">// The `other` attribute may not be used in a variant_identifier.</span>
-            (<span class="kw">_</span>, <span class="ident">Identifier::Variant</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; {
-                <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                    <span class="ident">variant</span>.<span class="ident">original</span>,
+            <span class="comment">// The `other` attribute may not be used in a variant_identifier.
+            </span>(<span class="kw">_</span>, Identifier::Variant, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; {
+                cx.error_spanned_by(
+                    variant.original,
                     <span class="string">&quot;#[serde(other)] may not be used on a variant identifier&quot;</span>,
                 );
             }
 
-            <span class="comment">// Variant with `other` attribute cannot appear in untagged enum</span>
-            (<span class="kw">_</span>, <span class="ident">Identifier::No</span>, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">TagType::None</span>) =&gt; {
-                <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                    <span class="ident">variant</span>.<span class="ident">original</span>,
+            <span class="comment">// Variant with `other` attribute cannot appear in untagged enum
+            </span>(<span class="kw">_</span>, Identifier::No, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span>TagType::None) =&gt; {
+                cx.error_spanned_by(
+                    variant.original,
                     <span class="string">&quot;#[serde(other)] cannot appear on untagged enum&quot;</span>,
                 );
             }
 
-            <span class="comment">// Variant with `other` attribute must be the last one.</span>
-            (<span class="ident">Style::Unit</span>, <span class="ident">Identifier::Field</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">|</span> (<span class="ident">Style::Unit</span>, <span class="ident">Identifier::No</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">variants</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
-                    <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                        <span class="ident">variant</span>.<span class="ident">original</span>,
+            <span class="comment">// Variant with `other` attribute must be the last one.
+            </span>(Style::Unit, Identifier::Field, <span class="bool-val">true</span>, <span class="kw">_</span>) | (Style::Unit, Identifier::No, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; {
+                <span class="kw">if </span>i &lt; variants.len() - <span class="number">1 </span>{
+                    cx.error_spanned_by(
+                        variant.original,
                         <span class="string">&quot;#[serde(other)] must be on the last variant&quot;</span>,
                     );
                 }
             }
 
-            <span class="comment">// Variant with `other` attribute must be a unit variant.</span>
-            (<span class="kw">_</span>, <span class="ident">Identifier::Field</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">|</span> (<span class="kw">_</span>, <span class="ident">Identifier::No</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; {
-                <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                    <span class="ident">variant</span>.<span class="ident">original</span>,
+            <span class="comment">// Variant with `other` attribute must be a unit variant.
+            </span>(<span class="kw">_</span>, Identifier::Field, <span class="bool-val">true</span>, <span class="kw">_</span>) | (<span class="kw">_</span>, Identifier::No, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; {
+                cx.error_spanned_by(
+                    variant.original,
                     <span class="string">&quot;#[serde(other)] must be on a unit variant&quot;</span>,
                 );
             }
 
-            <span class="comment">// Any sort of variant is allowed if this is not an identifier.</span>
-            (<span class="kw">_</span>, <span class="ident">Identifier::No</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {}
+            <span class="comment">// Any sort of variant is allowed if this is not an identifier.
+            </span>(<span class="kw">_</span>, Identifier::No, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {}
 
-            <span class="comment">// Unit variant without `other` attribute is always fine.</span>
-            (<span class="ident">Style::Unit</span>, <span class="kw">_</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {}
+            <span class="comment">// Unit variant without `other` attribute is always fine.
+            </span>(Style::Unit, <span class="kw">_</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {}
 
-            <span class="comment">// The last field is allowed to be a newtype catch-all.</span>
-            (<span class="ident">Style::Newtype</span>, <span class="ident">Identifier::Field</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">variants</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
-                    <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                        <span class="ident">variant</span>.<span class="ident">original</span>,
-                        <span class="macro">format!</span>(<span class="string">&quot;`{}` must be the last variant&quot;</span>, <span class="ident">variant</span>.<span class="ident">ident</span>),
+            <span class="comment">// The last field is allowed to be a newtype catch-all.
+            </span>(Style::Newtype, Identifier::Field, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {
+                <span class="kw">if </span>i &lt; variants.len() - <span class="number">1 </span>{
+                    cx.error_spanned_by(
+                        variant.original,
+                        <span class="macro">format!</span>(<span class="string">&quot;`{}` must be the last variant&quot;</span>, variant.ident),
                     );
                 }
             }
 
-            (<span class="kw">_</span>, <span class="ident">Identifier::Field</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {
-                <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                    <span class="ident">variant</span>.<span class="ident">original</span>,
+            (<span class="kw">_</span>, Identifier::Field, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {
+                cx.error_spanned_by(
+                    variant.original,
                     <span class="string">&quot;#[serde(field_identifier)] may only contain unit variants&quot;</span>,
                 );
             }
 
-            (<span class="kw">_</span>, <span class="ident">Identifier::Variant</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {
-                <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                    <span class="ident">variant</span>.<span class="ident">original</span>,
+            (<span class="kw">_</span>, Identifier::Variant, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {
+                cx.error_spanned_by(
+                    variant.original,
                     <span class="string">&quot;#[serde(variant_identifier)] may only contain unit variants&quot;</span>,
                 );
             }
@@ -586,73 +586,73 @@
     }
 }
 
-<span class="doccomment">/// Skip-(de)serializing attributes are not allowed on variants marked</span>
-<span class="doccomment">/// (de)serialize_with.</span>
-<span class="kw">fn</span> <span class="ident">check_variant_skip_attrs</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
-    <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/check.rs.html#171">cont</a>.<span class="ident">data</span> {
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="ident">variants</span>) =&gt; <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#173">variants</a>,
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+<span class="doccomment">/// Skip-(de)serializing attributes are not allowed on variants marked
+/// (de)serialize_with.
+</span><span class="kw">fn </span>check_variant_skip_attrs(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
+    <span class="kw">let </span>variants = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/check.rs.html#171">cont</a>.data {
+        <a href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(variants) =&gt; <a href="../../../src/serde_derive/internals/check.rs.html#173">variants</a>,
+        <a href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
             <span class="kw">return</span>;
         }
     };
 
-    <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="ident">variants</span>.<span class="ident">iter</span>() {
-        <span class="kw">if</span> <span class="ident">variant</span>.<span class="ident">attrs</span>.<span class="ident">serialize_with</span>().<span class="ident">is_some</span>() {
-            <span class="kw">if</span> <span class="ident">variant</span>.<span class="ident">attrs</span>.<span class="ident">skip_serializing</span>() {
-                <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                    <span class="ident">variant</span>.<span class="ident">original</span>,
+    <span class="kw">for </span>variant <span class="kw">in </span>variants.iter() {
+        <span class="kw">if </span>variant.attrs.serialize_with().is_some() {
+            <span class="kw">if </span>variant.attrs.skip_serializing() {
+                cx.error_spanned_by(
+                    variant.original,
                     <span class="macro">format!</span>(
                         <span class="string">&quot;variant `{}` cannot have both #[serde(serialize_with)] and #[serde(skip_serializing)]&quot;</span>,
-                        <span class="ident">variant</span>.<span class="ident">ident</span>
+                        variant.ident
                     ),
                 );
             }
 
-            <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">fields</span> {
-                <span class="kw">let</span> <span class="ident">member</span> <span class="op">=</span> <span class="ident">member_message</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">member</span>);
+            <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;</span>variant.fields {
+                <span class="kw">let </span>member = member_message(<span class="kw-2">&amp;</span>field.member);
 
-                <span class="kw">if</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_serializing</span>() {
-                    <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                        <span class="ident">variant</span>.<span class="ident">original</span>,
+                <span class="kw">if </span>field.attrs.skip_serializing() {
+                    cx.error_spanned_by(
+                        variant.original,
                         <span class="macro">format!</span>(
                             <span class="string">&quot;variant `{}` cannot have both #[serde(serialize_with)] and a field {} marked with #[serde(skip_serializing)]&quot;</span>,
-                            <span class="ident">variant</span>.<span class="ident">ident</span>, <span class="ident">member</span>
+                            variant.ident, member
                         ),
                     );
                 }
 
-                <span class="kw">if</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_serializing_if</span>().<span class="ident">is_some</span>() {
-                    <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                        <span class="ident">variant</span>.<span class="ident">original</span>,
+                <span class="kw">if </span>field.attrs.skip_serializing_if().is_some() {
+                    cx.error_spanned_by(
+                        variant.original,
                         <span class="macro">format!</span>(
                             <span class="string">&quot;variant `{}` cannot have both #[serde(serialize_with)] and a field {} marked with #[serde(skip_serializing_if)]&quot;</span>,
-                            <span class="ident">variant</span>.<span class="ident">ident</span>, <span class="ident">member</span>
+                            variant.ident, member
                         ),
                     );
                 }
             }
         }
 
-        <span class="kw">if</span> <span class="ident">variant</span>.<span class="ident">attrs</span>.<span class="ident">deserialize_with</span>().<span class="ident">is_some</span>() {
-            <span class="kw">if</span> <span class="ident">variant</span>.<span class="ident">attrs</span>.<span class="ident">skip_deserializing</span>() {
-                <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                    <span class="ident">variant</span>.<span class="ident">original</span>,
+        <span class="kw">if </span>variant.attrs.deserialize_with().is_some() {
+            <span class="kw">if </span>variant.attrs.skip_deserializing() {
+                cx.error_spanned_by(
+                    variant.original,
                     <span class="macro">format!</span>(
                         <span class="string">&quot;variant `{}` cannot have both #[serde(deserialize_with)] and #[serde(skip_deserializing)]&quot;</span>,
-                        <span class="ident">variant</span>.<span class="ident">ident</span>
+                        variant.ident
                     ),
                 );
             }
 
-            <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">fields</span> {
-                <span class="kw">if</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_deserializing</span>() {
-                    <span class="kw">let</span> <span class="ident">member</span> <span class="op">=</span> <span class="ident">member_message</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">member</span>);
+            <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;</span>variant.fields {
+                <span class="kw">if </span>field.attrs.skip_deserializing() {
+                    <span class="kw">let </span>member = member_message(<span class="kw-2">&amp;</span>field.member);
 
-                    <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                        <span class="ident">variant</span>.<span class="ident">original</span>,
+                    cx.error_spanned_by(
+                        variant.original,
                         <span class="macro">format!</span>(
                             <span class="string">&quot;variant `{}` cannot have both #[serde(deserialize_with)] and a field {} marked with #[serde(skip_deserializing)]&quot;</span>,
-                            <span class="ident">variant</span>.<span class="ident">ident</span>, <span class="ident">member</span>
+                            variant.ident, member
                         ),
                     );
                 }
@@ -661,146 +661,146 @@
     }
 }
 
-<span class="doccomment">/// The tag of an internally-tagged struct variant must not be</span>
-<span class="doccomment">/// the same as either one of its fields, as this would result in</span>
-<span class="doccomment">/// duplicate keys in the serialized output and/or ambiguity in</span>
-<span class="doccomment">/// the to-be-deserialized input.</span>
-<span class="kw">fn</span> <span class="ident">check_internal_tag_field_name_conflict</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
-    <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/check.rs.html#248">cont</a>.<span class="ident">data</span> {
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="ident">variants</span>) =&gt; <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#250">variants</a>,
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+<span class="doccomment">/// The tag of an internally-tagged struct variant must not be
+/// the same as either one of its fields, as this would result in
+/// duplicate keys in the serialized output and/or ambiguity in
+/// the to-be-deserialized input.
+</span><span class="kw">fn </span>check_internal_tag_field_name_conflict(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
+    <span class="kw">let </span>variants = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/check.rs.html#248">cont</a>.data {
+        <a href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(variants) =&gt; <a href="../../../src/serde_derive/internals/check.rs.html#250">variants</a>,
+        <a href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span>,
     };
 
-    <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#248">cont</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#654">tag</a>() {
-        <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#244">TagType::Internal</a> { <span class="ident">tag</span> } =&gt; <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#255">tag</a>.<span class="ident">as_str</span>(),
-        <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#237">TagType::External</a> <span class="op">|</span> <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#251">TagType::Adjacent</a> { .. } <span class="op">|</span> <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#258">TagType::None</a> =&gt; <span class="kw">return</span>,
+    <span class="kw">let </span>tag = <span class="kw">match </span><a href="../../../src/serde_derive/internals/check.rs.html#248">cont</a>.attrs.<a href="../../../src/serde_derive/internals/attr.rs.html#654">tag</a>() {
+        <a href="../../../src/serde_derive/internals/attr.rs.html#244">TagType::Internal</a> { tag } =&gt; <a href="../../../src/serde_derive/internals/check.rs.html#255">tag</a>.as_str(),
+        <a href="../../../src/serde_derive/internals/attr.rs.html#237">TagType::External</a> | <a href="../../../src/serde_derive/internals/attr.rs.html#251">TagType::Adjacent</a> { .. } | <a href="../../../src/serde_derive/internals/attr.rs.html#258">TagType::None</a> =&gt; <span class="kw">return</span>,
     };
 
-    <span class="kw">let</span> <span class="ident">diagnose_conflict</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> {
-        <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#248">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#248">cont</a>.<span class="ident">original</span>,
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;variant field name `{}` conflicts with internal tag&quot;</span>, <span class="ident">tag</span>),
+    <span class="kw">let </span>diagnose_conflict = || {
+        <a href="../../../src/serde_derive/internals/check.rs.html#248">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+            <a href="../../../src/serde_derive/internals/check.rs.html#248">cont</a>.original,
+            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;variant field name `{}` conflicts with internal tag&quot;</span>, tag),
         );
     };
 
-    <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="ident">variants</span> {
-        <span class="kw">match</span> <span class="ident">variant</span>.<span class="ident">style</span> {
-            <span class="ident">Style::Struct</span> =&gt; {
-                <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">fields</span> {
-                    <span class="kw">let</span> <span class="ident">check_ser</span> <span class="op">=</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_serializing</span>();
-                    <span class="kw">let</span> <span class="ident">check_de</span> <span class="op">=</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_deserializing</span>();
-                    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">name</span>();
-                    <span class="kw">let</span> <span class="ident">ser_name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">serialize_name</span>();
+    <span class="kw">for </span>variant <span class="kw">in </span>variants {
+        <span class="kw">match </span>variant.style {
+            Style::Struct =&gt; {
+                <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;</span>variant.fields {
+                    <span class="kw">let </span>check_ser = !field.attrs.skip_serializing();
+                    <span class="kw">let </span>check_de = !field.attrs.skip_deserializing();
+                    <span class="kw">let </span>name = field.attrs.name();
+                    <span class="kw">let </span>ser_name = name.serialize_name();
 
-                    <span class="kw">if</span> <span class="ident">check_ser</span> <span class="op">&amp;&amp;</span> <span class="ident">ser_name</span> <span class="op">==</span> <span class="ident">tag</span> {
-                        <span class="ident">diagnose_conflict</span>();
+                    <span class="kw">if </span>check_ser &amp;&amp; ser_name == tag {
+                        diagnose_conflict();
                         <span class="kw">return</span>;
                     }
 
-                    <span class="kw">for</span> <span class="ident">de_name</span> <span class="kw">in</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">aliases</span>() {
-                        <span class="kw">if</span> <span class="ident">check_de</span> <span class="op">&amp;&amp;</span> <span class="ident">de_name</span> <span class="op">==</span> <span class="ident">tag</span> {
-                            <span class="ident">diagnose_conflict</span>();
+                    <span class="kw">for </span>de_name <span class="kw">in </span>field.attrs.aliases() {
+                        <span class="kw">if </span>check_de &amp;&amp; de_name == tag {
+                            diagnose_conflict();
                             <span class="kw">return</span>;
                         }
                     }
                 }
             }
-            <span class="ident">Style::Unit</span> <span class="op">|</span> <span class="ident">Style::Newtype</span> <span class="op">|</span> <span class="ident">Style::Tuple</span> =&gt; {}
+            Style::Unit | Style::Newtype | Style::Tuple =&gt; {}
         }
     }
 }
 
-<span class="doccomment">/// In the case of adjacently-tagged enums, the type and the</span>
-<span class="doccomment">/// contents tag must differ, for the same reason.</span>
-<span class="kw">fn</span> <span class="ident">check_adjacent_tag_conflict</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
-    <span class="kw">let</span> (<span class="ident">type_tag</span>, <span class="ident">content_tag</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#295">cont</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#654">tag</a>() {
-        <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#251">TagType::Adjacent</a> { <span class="ident">tag</span>, <span class="ident">content</span> } =&gt; (<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#297">tag</a>, <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#297">content</a>),
-        <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#244">TagType::Internal</a> { .. } <span class="op">|</span> <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#237">TagType::External</a> <span class="op">|</span> <a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#258">TagType::None</a> =&gt; <span class="kw">return</span>,
+<span class="doccomment">/// In the case of adjacently-tagged enums, the type and the
+/// contents tag must differ, for the same reason.
+</span><span class="kw">fn </span>check_adjacent_tag_conflict(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
+    <span class="kw">let </span>(type_tag, content_tag) = <span class="kw">match </span><a href="../../../src/serde_derive/internals/check.rs.html#295">cont</a>.attrs.<a href="../../../src/serde_derive/internals/attr.rs.html#654">tag</a>() {
+        <a href="../../../src/serde_derive/internals/attr.rs.html#251">TagType::Adjacent</a> { tag, content } =&gt; (<a href="../../../src/serde_derive/internals/check.rs.html#297">tag</a>, <a href="../../../src/serde_derive/internals/check.rs.html#297">content</a>),
+        <a href="../../../src/serde_derive/internals/attr.rs.html#244">TagType::Internal</a> { .. } | <a href="../../../src/serde_derive/internals/attr.rs.html#237">TagType::External</a> | <a href="../../../src/serde_derive/internals/attr.rs.html#258">TagType::None</a> =&gt; <span class="kw">return</span>,
     };
 
-    <span class="kw">if</span> <span class="ident">type_tag</span> <span class="op">==</span> <span class="ident">content_tag</span> {
-        <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#295">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#295">cont</a>.<span class="ident">original</span>,
+    <span class="kw">if </span>type_tag == content_tag {
+        <a href="../../../src/serde_derive/internals/check.rs.html#295">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+            <a href="../../../src/serde_derive/internals/check.rs.html#295">cont</a>.original,
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;enum tags `{}` for type and content conflict with each other&quot;</span>,
-                <span class="ident">type_tag</span>
+                type_tag
             ),
         );
     }
 }
 
-<span class="doccomment">/// Enums and unit structs cannot be transparent.</span>
-<span class="kw">fn</span> <span class="ident">check_transparent</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <span class="ident">derive</span>: <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#18">Derive</a>) {
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">transparent</span>() {
+<span class="doccomment">/// Enums and unit structs cannot be transparent.
+</span><span class="kw">fn </span>check_transparent(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>, derive: <a href="../../../src/serde_derive/internals/mod.rs.html#18">Derive</a>) {
+    <span class="kw">if </span>!cont.attrs.transparent() {
         <span class="kw">return</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_from</span>().<span class="ident">is_some</span>() {
-        <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.<span class="ident">original</span>,
+    <span class="kw">if </span>cont.attrs.type_from().is_some() {
+        <a href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+            <a href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.original,
             <span class="string">&quot;#[serde(transparent)] is not allowed with #[serde(from = \&quot;...\&quot;)]&quot;</span>,
         );
     }
 
-    <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_try_from</span>().<span class="ident">is_some</span>() {
-        <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.<span class="ident">original</span>,
+    <span class="kw">if </span>cont.attrs.type_try_from().is_some() {
+        <a href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+            <a href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.original,
             <span class="string">&quot;#[serde(transparent)] is not allowed with #[serde(try_from = \&quot;...\&quot;)]&quot;</span>,
         );
     }
 
-    <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_into</span>().<span class="ident">is_some</span>() {
-        <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.<span class="ident">original</span>,
+    <span class="kw">if </span>cont.attrs.type_into().is_some() {
+        <a href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+            <a href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.original,
             <span class="string">&quot;#[serde(transparent)] is not allowed with #[serde(into = \&quot;...\&quot;)]&quot;</span>,
         );
     }
 
-    <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.<span class="ident">data</span> {
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="kw">_</span>) =&gt; {
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-                <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.<span class="ident">original</span>,
+    <span class="kw">let </span>fields = <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.data {
+        <a href="../../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="kw">_</span>) =&gt; {
+            <a href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+                <a href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.original,
                 <span class="string">&quot;#[serde(transparent)] is not allowed on an enum&quot;</span>,
             );
             <span class="kw">return</span>;
         }
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#58">Style::Unit</a>, <span class="kw">_</span>) =&gt; {
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-                <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.<span class="ident">original</span>,
+        <a href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<a href="../../../src/serde_derive/internals/ast.rs.html#58">Style::Unit</a>, <span class="kw">_</span>) =&gt; {
+            <a href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+                <a href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.original,
                 <span class="string">&quot;#[serde(transparent)] is not allowed on a unit struct&quot;</span>,
             );
             <span class="kw">return</span>;
         }
-        <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="ident">fields</span>) =&gt; <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#354">fields</a>,
+        <a href="../../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, fields) =&gt; <a href="../../../src/serde_derive/internals/check.rs.html#354">fields</a>,
     };
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">transparent_field</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>transparent_field = <span class="prelude-val">None</span>;
 
-    <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
-        <span class="kw">if</span> <span class="ident">allow_transparent</span>(<span class="ident">field</span>, <span class="ident">derive</span>) {
-            <span class="kw">if</span> <span class="ident">transparent_field</span>.<span class="ident">is_some</span>() {
-                <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
-                    <span class="ident">cont</span>.<span class="ident">original</span>,
+    <span class="kw">for </span>field <span class="kw">in </span>fields {
+        <span class="kw">if </span>allow_transparent(field, derive) {
+            <span class="kw">if </span>transparent_field.is_some() {
+                cx.error_spanned_by(
+                    cont.original,
                     <span class="string">&quot;#[serde(transparent)] requires struct to have at most one transparent field&quot;</span>,
                 );
                 <span class="kw">return</span>;
             }
-            <span class="ident">transparent_field</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">field</span>);
+            transparent_field = <span class="prelude-val">Some</span>(field);
         }
     }
 
-    <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#357">transparent_field</a> {
-        <span class="prelude-val">Some</span>(<span class="ident">transparent_field</span>) =&gt; <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#373">transparent_field</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1493">mark_transparent</a>(),
-        <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">derive</a> {
-            <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#19">Derive::Serialize</a> =&gt; {
-                <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-                    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.<span class="ident">original</span>,
+    <span class="kw">match </span><a href="../../../src/serde_derive/internals/check.rs.html#357">transparent_field</a> {
+        <span class="prelude-val">Some</span>(transparent_field) =&gt; <a href="../../../src/serde_derive/internals/check.rs.html#373">transparent_field</a>.attrs.<a href="../../../src/serde_derive/internals/attr.rs.html#1493">mark_transparent</a>(),
+        <span class="prelude-val">None </span>=&gt; <span class="kw">match </span><a href="../../../src/serde_derive/internals/check.rs.html#313">derive</a> {
+            <a href="../../../src/serde_derive/internals/mod.rs.html#19">Derive::Serialize</a> =&gt; {
+                <a href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+                    <a href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.original,
                     <span class="string">&quot;#[serde(transparent)] requires at least one field that is not skipped&quot;</span>,
                 );
             }
-            <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#20">Derive::Deserialize</a> =&gt; {
-                <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-                    <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.<span class="ident">original</span>,
+            <a href="../../../src/serde_derive/internals/mod.rs.html#20">Derive::Deserialize</a> =&gt; {
+                <a href="../../../src/serde_derive/internals/check.rs.html#313">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+                    <a href="../../../src/serde_derive/internals/check.rs.html#313">cont</a>.original,
                     <span class="string">&quot;#[serde(transparent)] requires at least one field that is neither skipped nor has a default&quot;</span>,
                 );
             }
@@ -808,35 +808,35 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">member_message</span>(<span class="ident">member</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/expr/enum.Member.html">Member</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#391">member</a> {
-        <span class="ident">Member::Named</span>(<span class="ident">ident</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;`{}`&quot;</span>, <span class="ident">ident</span>),
-        <span class="ident">Member::Unnamed</span>(<span class="ident">i</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;#{}&quot;</span>, <span class="ident">i</span>.<span class="ident">index</span>),
+<span class="kw">fn </span>member_message(member: <span class="kw-2">&amp;</span><a href="../../../syn/expr/enum.Member.html">Member</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">match </span><a href="../../../src/serde_derive/internals/check.rs.html#391">member</a> {
+        Member::Named(ident) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;`{}`&quot;</span>, ident),
+        Member::Unnamed(i) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;#{}&quot;</span>, i.index),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">allow_transparent</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#42">Field</a>, <span class="ident">derive</span>: <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#18">Derive</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type::Path</span>(<span class="ident">ty</span>) <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#23">ungroup</a>(<a class="ident" href="../../../src/serde_derive/internals/check.rs.html#398">field</a>.<span class="ident">ty</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">seg</span>) <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#399">ty</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>() {
-            <span class="kw">if</span> <span class="ident">seg</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;PhantomData&quot;</span> {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+<span class="kw">fn </span>allow_transparent(field: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ast.rs.html#42">Field</a>, derive: <a href="../../../src/serde_derive/internals/mod.rs.html#18">Derive</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">if let </span>Type::Path(ty) = <a href="../../../src/serde_derive/internals/mod.rs.html#23">ungroup</a>(<a href="../../../src/serde_derive/internals/check.rs.html#398">field</a>.ty) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(seg) = <a href="../../../src/serde_derive/internals/check.rs.html#399">ty</a>.path.segments.last() {
+            <span class="kw">if </span>seg.ident == <span class="string">&quot;PhantomData&quot; </span>{
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
         }
     }
 
-    <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#398">derive</a> {
-        <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#19">Derive::Serialize</a> =&gt; <span class="op">!</span><a class="ident" href="../../../src/serde_derive/internals/check.rs.html#398">field</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1445">skip_serializing</a>(),
-        <a class="ident" href="../../../src/serde_derive/internals/mod.rs.html#20">Derive::Deserialize</a> =&gt; <span class="op">!</span><a class="ident" href="../../../src/serde_derive/internals/check.rs.html#398">field</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1449">skip_deserializing</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#398">field</a>.<span class="ident">attrs</span>.<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1457">default</a>().<a class="ident" href="../../../src/serde_derive/internals/attr.rs.html#1134">is_none</a>(),
+    <span class="kw">match </span><a href="../../../src/serde_derive/internals/check.rs.html#398">derive</a> {
+        <a href="../../../src/serde_derive/internals/mod.rs.html#19">Derive::Serialize</a> =&gt; !<a href="../../../src/serde_derive/internals/check.rs.html#398">field</a>.attrs.<a href="../../../src/serde_derive/internals/attr.rs.html#1445">skip_serializing</a>(),
+        <a href="../../../src/serde_derive/internals/mod.rs.html#20">Derive::Deserialize</a> =&gt; !<a href="../../../src/serde_derive/internals/check.rs.html#398">field</a>.attrs.<a href="../../../src/serde_derive/internals/attr.rs.html#1449">skip_deserializing</a>() &amp;&amp; <a href="../../../src/serde_derive/internals/check.rs.html#398">field</a>.attrs.<a href="../../../src/serde_derive/internals/attr.rs.html#1457">default</a>().<a href="../../../src/serde_derive/internals/attr.rs.html#1134">is_none</a>(),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">check_from_and_try_from</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
-    <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_from</span>().<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_try_from</span>().<span class="ident">is_some</span>() {
-        <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#413">cx</a>.<a class="ident" href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
-            <a class="ident" href="../../../src/serde_derive/internals/check.rs.html#413">cont</a>.<span class="ident">original</span>,
+<span class="kw">fn </span>check_from_and_try_from(cx: <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, cont: <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
+    <span class="kw">if </span>cont.attrs.type_from().is_some() &amp;&amp; cont.attrs.type_try_from().is_some() {
+        <a href="../../../src/serde_derive/internals/check.rs.html#413">cx</a>.<a href="../../../src/serde_derive/internals/ctxt.rs.html#32">error_spanned_by</a>(
+            <a href="../../../src/serde_derive/internals/check.rs.html#413">cont</a>.original,
             <span class="string">&quot;#[serde(from = \&quot;...\&quot;)] and #[serde(try_from = \&quot;...\&quot;)] conflict with each other&quot;</span>,
         );
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/aes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/aes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -295,302 +295,302 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Low level AES IGE and key wrapping functionality</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! AES ECB, CBC, XTS, CTR, CFB, GCM and other conventional symmetric encryption</span>
-<span class="doccomment">//! modes are found in [`symm`].  This is the implementation of AES IGE and key wrapping</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Advanced Encryption Standard (AES) provides symmetric key cipher that</span>
-<span class="doccomment">//! the same key is used to encrypt and decrypt data.  This implementation</span>
-<span class="doccomment">//! uses 128, 192, or 256 bit keys.  This module provides functions to</span>
-<span class="doccomment">//! create a new key with [`new_encrypt`] and perform an encryption/decryption</span>
-<span class="doccomment">//! using that key with [`aes_ige`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`new_encrypt`]: struct.AesKey.html#method.new_encrypt</span>
-<span class="doccomment">//! [`aes_ige`]: fn.aes_ige.html</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The [`symm`] module should be used in preference to this module in most cases.</span>
-<span class="doccomment">//! The IGE block cipher is a non-traditional cipher mode.  More traditional AES</span>
-<span class="doccomment">//! encryption methods are found in the [`Crypter`] and [`Cipher`] structs.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`symm`]: ../symm/index.html</span>
-<span class="doccomment">//! [`Crypter`]: ../symm/struct.Crypter.html</span>
-<span class="doccomment">//! [`Cipher`]: ../symm/struct.Cipher.html</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## AES IGE</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::aes::{AesKey, aes_ige};</span>
-<span class="doccomment">//! use openssl::symm::Mode;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let key = b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F&quot;;</span>
-<span class="doccomment">//! let plaintext = b&quot;\x12\x34\x56\x78\x90\x12\x34\x56\x12\x34\x56\x78\x90\x12\x34\x56&quot;;</span>
-<span class="doccomment">//! let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\</span>
-<span class="doccomment">//!                 \x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F&quot;;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!  let key = AesKey::new_encrypt(key).unwrap();</span>
-<span class="doccomment">//!  let mut output = [0u8; 16];</span>
-<span class="doccomment">//!  aes_ige(plaintext, &amp;mut output, &amp;key, &amp;mut iv, Mode::Encrypt);</span>
-<span class="doccomment">//!  assert_eq!(output, *b&quot;\xa6\xad\x97\x4d\x5c\xea\x1d\x36\xd2\xf3\x67\x98\x09\x07\xed\x32&quot;);</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Key wrapping</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::aes::{AesKey, unwrap_key, wrap_key};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let kek = b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F&quot;;</span>
-<span class="doccomment">//! let key_to_wrap = b&quot;\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF&quot;;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let enc_key = AesKey::new_encrypt(kek).unwrap();</span>
-<span class="doccomment">//! let mut ciphertext = [0u8; 24];</span>
-<span class="doccomment">//! wrap_key(&amp;enc_key, None, &amp;mut ciphertext, &amp;key_to_wrap[..]).unwrap();</span>
-<span class="doccomment">//! let dec_key = AesKey::new_decrypt(kek).unwrap();</span>
-<span class="doccomment">//! let mut orig_key = [0u8; 16];</span>
-<span class="doccomment">//! unwrap_key(&amp;dec_key, None, &amp;mut orig_key, &amp;ciphertext[..]).unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! assert_eq!(&amp;orig_key[..], &amp;key_to_wrap[..]);</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! Low level AES IGE and key wrapping functionality
+//!
+//! AES ECB, CBC, XTS, CTR, CFB, GCM and other conventional symmetric encryption
+//! modes are found in [`symm`].  This is the implementation of AES IGE and key wrapping
+//!
+//! Advanced Encryption Standard (AES) provides symmetric key cipher that
+//! the same key is used to encrypt and decrypt data.  This implementation
+//! uses 128, 192, or 256 bit keys.  This module provides functions to
+//! create a new key with [`new_encrypt`] and perform an encryption/decryption
+//! using that key with [`aes_ige`].
+//!
+//! [`new_encrypt`]: struct.AesKey.html#method.new_encrypt
+//! [`aes_ige`]: fn.aes_ige.html
+//!
+//! The [`symm`] module should be used in preference to this module in most cases.
+//! The IGE block cipher is a non-traditional cipher mode.  More traditional AES
+//! encryption methods are found in the [`Crypter`] and [`Cipher`] structs.
+//!
+//! [`symm`]: ../symm/index.html
+//! [`Crypter`]: ../symm/struct.Crypter.html
+//! [`Cipher`]: ../symm/struct.Cipher.html
+//!
+//! # Examples
+//!
+//! ## AES IGE
+//! ```rust
+//! use openssl::aes::{AesKey, aes_ige};
+//! use openssl::symm::Mode;
+//!
+//! let key = b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F&quot;;
+//! let plaintext = b&quot;\x12\x34\x56\x78\x90\x12\x34\x56\x12\x34\x56\x78\x90\x12\x34\x56&quot;;
+//! let mut iv = *b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\
+//!                 \x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F&quot;;
+//!
+//!  let key = AesKey::new_encrypt(key).unwrap();
+//!  let mut output = [0u8; 16];
+//!  aes_ige(plaintext, &amp;mut output, &amp;key, &amp;mut iv, Mode::Encrypt);
+//!  assert_eq!(output, *b&quot;\xa6\xad\x97\x4d\x5c\xea\x1d\x36\xd2\xf3\x67\x98\x09\x07\xed\x32&quot;);
+//! ```
+//!
+//! ## Key wrapping
+//! ```rust
+//! use openssl::aes::{AesKey, unwrap_key, wrap_key};
+//!
+//! let kek = b&quot;\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F&quot;;
+//! let key_to_wrap = b&quot;\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF&quot;;
+//!
+//! let enc_key = AesKey::new_encrypt(kek).unwrap();
+//! let mut ciphertext = [0u8; 24];
+//! wrap_key(&amp;enc_key, None, &amp;mut ciphertext, &amp;key_to_wrap[..]).unwrap();
+//! let dec_key = AesKey::new_decrypt(kek).unwrap();
+//! let mut orig_key = [0u8; 16];
+//! unwrap_key(&amp;dec_key, None, &amp;mut orig_key, &amp;ciphertext[..]).unwrap();
+//!
+//! assert_eq!(&amp;orig_key[..], &amp;key_to_wrap[..]);
+//! ```
+//!
+</span><span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/symm.rs.html#62"><span class="kw">crate</span>::symm::Mode</a>;
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><a href="../../src/openssl/symm.rs.html#62"><span class="kw">crate</span>::symm::Mode</a>;
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<span class="doccomment">/// Provides Error handling for parsing keys.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeyError</span>(());
+<span class="doccomment">/// Provides Error handling for parsing keys.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>KeyError(());
 
-<span class="doccomment">/// The key used to encrypt or decrypt cipher blocks.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AesKey</span>(<a class="ident" href="../../openssl_sys/handwritten/aes/struct.AES_KEY.html">ffi::AES_KEY</a>);
+<span class="doccomment">/// The key used to encrypt or decrypt cipher blocks.
+</span><span class="kw">pub struct </span>AesKey(<a href="../../openssl_sys/handwritten/aes/struct.AES_KEY.html">ffi::AES_KEY</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/aes.rs.html#70">AesKey</a> {
-    <span class="doccomment">/// Prepares a key for encryption.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Failure</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an error if the key is not 128, 192, or 256 bits.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">AES_set_encrypt_key</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_encrypt</span>(<span class="ident">key</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/aes.rs.html#70">AesKey</a>, <a class="ident" href="../../src/openssl/aes.rs.html#67">KeyError</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">key</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">/</span> <span class="number">8</span>);
+<span class="kw">impl </span><a href="../../src/openssl/aes.rs.html#70">AesKey</a> {
+    <span class="doccomment">/// Prepares a key for encryption.
+    ///
+    /// # Failure
+    ///
+    /// Returns an error if the key is not 128, 192, or 256 bits.
+    </span><span class="attribute">#[corresponds(AES_set_encrypt_key)]
+    </span><span class="kw">pub fn </span>new_encrypt(key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/aes.rs.html#70">AesKey</a>, <a href="../../src/openssl/aes.rs.html#67">KeyError</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize / <span class="number">8</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aes_key</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::AES_set_encrypt_key</span>(
-                <a class="ident" href="../../src/openssl/aes.rs.html#79">key</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/aes.rs.html#79">key</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> <span class="op">*</span> <span class="number">8</span>,
-                <a class="ident" href="../../src/openssl/aes.rs.html#83">aes_key</a>.<span class="ident">as_mut_ptr</span>(),
+            <span class="kw">let </span><span class="kw-2">mut </span>aes_key = MaybeUninit::uninit();
+            <span class="kw">let </span>r = ffi::AES_set_encrypt_key(
+                <a href="../../src/openssl/aes.rs.html#79">key</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <a href="../../src/openssl/aes.rs.html#79">key</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a> * <span class="number">8</span>,
+                <a href="../../src/openssl/aes.rs.html#83">aes_key</a>.as_mut_ptr(),
             );
-            <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/aes.rs.html#70">AesKey</a>(<a class="ident" href="../../src/openssl/aes.rs.html#83">aes_key</a>.<span class="ident">assume_init</span>()))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/openssl/aes.rs.html#67">KeyError</a>(()))
+            <span class="kw">if </span>r == <span class="number">0 </span>{
+                <span class="prelude-val">Ok</span>(<a href="../../src/openssl/aes.rs.html#70">AesKey</a>(<a href="../../src/openssl/aes.rs.html#83">aes_key</a>.assume_init()))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(<a href="../../src/openssl/aes.rs.html#67">KeyError</a>(()))
             }
         }
     }
 
-    <span class="doccomment">/// Prepares a key for decryption.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Failure</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an error if the key is not 128, 192, or 256 bits.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">AES_set_decrypt_key</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_decrypt</span>(<span class="ident">key</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/aes.rs.html#70">AesKey</a>, <a class="ident" href="../../src/openssl/aes.rs.html#67">KeyError</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">key</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">/</span> <span class="number">8</span>);
+    <span class="doccomment">/// Prepares a key for decryption.
+    ///
+    /// # Failure
+    ///
+    /// Returns an error if the key is not 128, 192, or 256 bits.
+    </span><span class="attribute">#[corresponds(AES_set_decrypt_key)]
+    </span><span class="kw">pub fn </span>new_decrypt(key: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/aes.rs.html#70">AesKey</a>, <a href="../../src/openssl/aes.rs.html#67">KeyError</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize / <span class="number">8</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aes_key</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::AES_set_decrypt_key</span>(
-                <a class="ident" href="../../src/openssl/aes.rs.html#103">key</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/aes.rs.html#103">key</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> <span class="op">*</span> <span class="number">8</span>,
-                <a class="ident" href="../../src/openssl/aes.rs.html#107">aes_key</a>.<span class="ident">as_mut_ptr</span>(),
+            <span class="kw">let </span><span class="kw-2">mut </span>aes_key = MaybeUninit::uninit();
+            <span class="kw">let </span>r = ffi::AES_set_decrypt_key(
+                <a href="../../src/openssl/aes.rs.html#103">key</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+                <a href="../../src/openssl/aes.rs.html#103">key</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a> * <span class="number">8</span>,
+                <a href="../../src/openssl/aes.rs.html#107">aes_key</a>.as_mut_ptr(),
             );
 
-            <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/aes.rs.html#70">AesKey</a>(<a class="ident" href="../../src/openssl/aes.rs.html#107">aes_key</a>.<span class="ident">assume_init</span>()))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/openssl/aes.rs.html#67">KeyError</a>(()))
+            <span class="kw">if </span>r == <span class="number">0 </span>{
+                <span class="prelude-val">Ok</span>(<a href="../../src/openssl/aes.rs.html#70">AesKey</a>(<a href="../../src/openssl/aes.rs.html#107">aes_key</a>.assume_init()))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(<a href="../../src/openssl/aes.rs.html#67">KeyError</a>(()))
             }
         }
     }
 }
 
-<span class="doccomment">/// Performs AES IGE encryption or decryption</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// AES IGE (Infinite Garble Extension) is a form of AES block cipher utilized in</span>
-<span class="doccomment">/// OpenSSL.  Infinite Garble refers to propagating forward errors.  IGE, like other</span>
-<span class="doccomment">/// block ciphers implemented for AES requires an initialization vector.  The IGE mode</span>
-<span class="doccomment">/// allows a stream of blocks to be encrypted or decrypted without having the entire</span>
-<span class="doccomment">/// plaintext available.  For more information, visit [AES IGE Encryption].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This block cipher uses 16 byte blocks.  The rust implementation will panic</span>
-<span class="doccomment">/// if the input or output does not meet this 16-byte boundary.  Attention must</span>
-<span class="doccomment">/// be made in this low level implementation to pad the value to the 128-bit boundary.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [AES IGE Encryption]: http://www.links.org/files/openssl-ige.pdf</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Panics if `in_` is not the same length as `out`, if that length is not a multiple of 16, or if</span>
-<span class="doccomment">/// `iv` is not at least 32 bytes.</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">AES_ige_encrypt</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_ige</span>(<span class="ident">in_</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/aes.rs.html#70">AesKey</a>, <span class="ident">iv</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">mode</span>: <a class="ident" href="../../src/openssl/symm.rs.html#62">Mode</a>) {
-    <span class="kw">unsafe</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">in_</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">out</span>.<span class="ident">len</span>());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">in_</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="ident">ffi::AES_BLOCK_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="number">0</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">iv</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">ffi::AES_BLOCK_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="number">2</span>);
+<span class="doccomment">/// Performs AES IGE encryption or decryption
+///
+/// AES IGE (Infinite Garble Extension) is a form of AES block cipher utilized in
+/// OpenSSL.  Infinite Garble refers to propagating forward errors.  IGE, like other
+/// block ciphers implemented for AES requires an initialization vector.  The IGE mode
+/// allows a stream of blocks to be encrypted or decrypted without having the entire
+/// plaintext available.  For more information, visit [AES IGE Encryption].
+///
+/// This block cipher uses 16 byte blocks.  The rust implementation will panic
+/// if the input or output does not meet this 16-byte boundary.  Attention must
+/// be made in this low level implementation to pad the value to the 128-bit boundary.
+///
+/// [AES IGE Encryption]: http://www.links.org/files/openssl-ige.pdf
+///
+/// # Panics
+///
+/// Panics if `in_` is not the same length as `out`, if that length is not a multiple of 16, or if
+/// `iv` is not at least 32 bytes.
+</span><span class="attribute">#[corresponds(AES_ige_encrypt)]
+</span><span class="kw">pub fn </span>aes_ige(in_: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], key: <span class="kw-2">&amp;</span><a href="../../src/openssl/aes.rs.html#70">AesKey</a>, iv: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], mode: <a href="../../src/openssl/symm.rs.html#62">Mode</a>) {
+    <span class="kw">unsafe </span>{
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(in_.len() == out.len());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(in_.len() % ffi::AES_BLOCK_SIZE <span class="kw">as </span>usize == <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(iv.len() &gt;= ffi::AES_BLOCK_SIZE <span class="kw">as </span>usize * <span class="number">2</span>);
 
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/openssl/aes.rs.html#142">mode</a> {
-            <a class="ident" href="../../src/openssl/symm.rs.html#63">Mode::Encrypt</a> =&gt; <span class="ident">ffi::AES_ENCRYPT</span>,
-            <a class="ident" href="../../src/openssl/symm.rs.html#64">Mode::Decrypt</a> =&gt; <span class="ident">ffi::AES_DECRYPT</span>,
+        <span class="kw">let </span>mode = <span class="kw">match </span><a href="../../src/openssl/aes.rs.html#142">mode</a> {
+            <a href="../../src/openssl/symm.rs.html#63">Mode::Encrypt</a> =&gt; ffi::AES_ENCRYPT,
+            <a href="../../src/openssl/symm.rs.html#64">Mode::Decrypt</a> =&gt; ffi::AES_DECRYPT,
         };
-        <span class="ident">ffi::AES_ige_encrypt</span>(
-            <a class="ident" href="../../src/openssl/aes.rs.html#142">in_</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/aes.rs.html#142">out</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/aes.rs.html#142">in_</a>.<span class="ident">len</span>(),
-            <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/aes.rs.html#142">key</a>.<span class="number">0</span>,
-            <a class="ident" href="../../src/openssl/aes.rs.html#142">iv</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/aes.rs.html#148">mode</a>,
+        ffi::AES_ige_encrypt(
+            <a href="../../src/openssl/aes.rs.html#142">in_</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <a href="../../src/openssl/aes.rs.html#142">out</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            <a href="../../src/openssl/aes.rs.html#142">in_</a>.len(),
+            <span class="kw-2">&amp;</span><a href="../../src/openssl/aes.rs.html#142">key</a>.<span class="number">0</span>,
+            <a href="../../src/openssl/aes.rs.html#142">iv</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            <a href="../../src/openssl/aes.rs.html#148">mode</a>,
         );
     }
 }
 
-<span class="doccomment">/// Wrap a key, according to [RFC 3394](https://tools.ietf.org/html/rfc3394)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `key`: The key-encrypting-key to use. Must be a encrypting key</span>
-<span class="doccomment">/// * `iv`: The IV to use. You must use the same IV for both wrapping and unwrapping</span>
-<span class="doccomment">/// * `out`: The output buffer to store the ciphertext</span>
-<span class="doccomment">/// * `in_`: The input buffer, storing the key to be wrapped</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns the number of bytes written into `out`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Panics if either `out` or `in_` do not have sizes that are a multiple of 8, or if</span>
-<span class="doccomment">/// `out` is not 8 bytes longer than `in_`</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">AES_wrap_key</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_key</span>(
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/aes.rs.html#70">AesKey</a>,
-    <span class="ident">iv</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]<span class="op">&gt;</span>,
-    <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="ident">in_</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/aes.rs.html#67">KeyError</a><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">out</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">in_</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">8</span>); <span class="comment">// Ciphertext is 64 bits longer (see 2.2.1)</span>
+<span class="doccomment">/// Wrap a key, according to [RFC 3394](https://tools.ietf.org/html/rfc3394)
+///
+/// * `key`: The key-encrypting-key to use. Must be a encrypting key
+/// * `iv`: The IV to use. You must use the same IV for both wrapping and unwrapping
+/// * `out`: The output buffer to store the ciphertext
+/// * `in_`: The input buffer, storing the key to be wrapped
+///
+/// Returns the number of bytes written into `out`
+///
+/// # Panics
+///
+/// Panics if either `out` or `in_` do not have sizes that are a multiple of 8, or if
+/// `out` is not 8 bytes longer than `in_`
+</span><span class="attribute">#[corresponds(AES_wrap_key)]
+</span><span class="kw">pub fn </span>wrap_key(
+    key: <span class="kw-2">&amp;</span><a href="../../src/openssl/aes.rs.html#70">AesKey</a>,
+    iv: <span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]&gt;,
+    out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    in_: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/aes.rs.html#67">KeyError</a>&gt; {
+    <span class="kw">unsafe </span>{
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(out.len() &gt;= in_.len() + <span class="number">8</span>); <span class="comment">// Ciphertext is 64 bits longer (see 2.2.1)
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">ffi::AES_wrap_key</span>(
-            <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/aes.rs.html#178">key</a>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="comment">// this is safe, the implementation only uses the key as a const pointer.</span>
-            <a class="ident" href="../../src/openssl/aes.rs.html#179">iv</a>.<span class="ident">as_ref</span>()
-                .<span class="ident">map_or</span>(<span class="ident">ptr::null</span>(), <span class="op">|</span><span class="ident">iv</span><span class="op">|</span> <a class="ident" href="../../src/openssl/aes.rs.html#189">iv</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>),
-            <a class="ident" href="../../src/openssl/aes.rs.html#180">out</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/aes.rs.html#181">in_</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/aes.rs.html#181">in_</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
+        </span><span class="kw">let </span>written = ffi::AES_wrap_key(
+            <span class="kw-2">&amp;</span><a href="../../src/openssl/aes.rs.html#178">key</a>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="comment">// this is safe, the implementation only uses the key as a const pointer.
+            </span><a href="../../src/openssl/aes.rs.html#179">iv</a>.as_ref()
+                .map_or(ptr::null(), |iv| <a href="../../src/openssl/aes.rs.html#189">iv</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>),
+            <a href="../../src/openssl/aes.rs.html#180">out</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            <a href="../../src/openssl/aes.rs.html#181">in_</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <a href="../../src/openssl/aes.rs.html#181">in_</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>,
         );
-        <span class="kw">if</span> <span class="ident">written</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/openssl/aes.rs.html#67">KeyError</a>(()))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/aes.rs.html#186">written</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="kw">if </span>written &lt;= <span class="number">0 </span>{
+            <span class="prelude-val">Err</span>(<a href="../../src/openssl/aes.rs.html#67">KeyError</a>(()))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/aes.rs.html#186">written</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 }
 
-<span class="doccomment">/// Unwrap a key, according to [RFC 3394](https://tools.ietf.org/html/rfc3394)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `key`: The key-encrypting-key to decrypt the wrapped key. Must be a decrypting key</span>
-<span class="doccomment">/// * `iv`: The same IV used for wrapping the key</span>
-<span class="doccomment">/// * `out`: The buffer to write the unwrapped key to</span>
-<span class="doccomment">/// * `in_`: The input ciphertext</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns the number of bytes written into `out`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Panics if either `out` or `in_` do not have sizes that are a multiple of 8, or</span>
-<span class="doccomment">/// if `in_` is not 8 bytes longer than `out`</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">AES_unwrap_key</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap_key</span>(
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/aes.rs.html#70">AesKey</a>,
-    <span class="ident">iv</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]<span class="op">&gt;</span>,
-    <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="ident">in_</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/aes.rs.html#67">KeyError</a><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">out</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">8</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">in_</span>.<span class="ident">len</span>());
+<span class="doccomment">/// Unwrap a key, according to [RFC 3394](https://tools.ietf.org/html/rfc3394)
+///
+/// * `key`: The key-encrypting-key to decrypt the wrapped key. Must be a decrypting key
+/// * `iv`: The same IV used for wrapping the key
+/// * `out`: The buffer to write the unwrapped key to
+/// * `in_`: The input ciphertext
+///
+/// Returns the number of bytes written into `out`
+///
+/// # Panics
+///
+/// Panics if either `out` or `in_` do not have sizes that are a multiple of 8, or
+/// if `in_` is not 8 bytes longer than `out`
+</span><span class="attribute">#[corresponds(AES_unwrap_key)]
+</span><span class="kw">pub fn </span>unwrap_key(
+    key: <span class="kw-2">&amp;</span><a href="../../src/openssl/aes.rs.html#70">AesKey</a>,
+    iv: <span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]&gt;,
+    out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    in_: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/openssl/aes.rs.html#67">KeyError</a>&gt; {
+    <span class="kw">unsafe </span>{
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(out.len() + <span class="number">8 </span>&lt;= in_.len());
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">ffi::AES_unwrap_key</span>(
-            <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/aes.rs.html#217">key</a>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="comment">// this is safe, the implementation only uses the key as a const pointer.</span>
-            <a class="ident" href="../../src/openssl/aes.rs.html#218">iv</a>.<span class="ident">as_ref</span>()
-                .<span class="ident">map_or</span>(<span class="ident">ptr::null</span>(), <span class="op">|</span><span class="ident">iv</span><span class="op">|</span> <a class="ident" href="../../src/openssl/aes.rs.html#228">iv</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>),
-            <a class="ident" href="../../src/openssl/aes.rs.html#219">out</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/aes.rs.html#220">in_</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/aes.rs.html#220">in_</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
+        <span class="kw">let </span>written = ffi::AES_unwrap_key(
+            <span class="kw-2">&amp;</span><a href="../../src/openssl/aes.rs.html#217">key</a>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <span class="comment">// this is safe, the implementation only uses the key as a const pointer.
+            </span><a href="../../src/openssl/aes.rs.html#218">iv</a>.as_ref()
+                .map_or(ptr::null(), |iv| <a href="../../src/openssl/aes.rs.html#228">iv</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>),
+            <a href="../../src/openssl/aes.rs.html#219">out</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            <a href="../../src/openssl/aes.rs.html#220">in_</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <a href="../../src/openssl/aes.rs.html#220">in_</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>,
         );
 
-        <span class="kw">if</span> <span class="ident">written</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/openssl/aes.rs.html#67">KeyError</a>(()))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/aes.rs.html#225">written</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="kw">if </span>written &lt;= <span class="number">0 </span>{
+            <span class="prelude-val">Err</span>(<a href="../../src/openssl/aes.rs.html#67">KeyError</a>(()))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/aes.rs.html#225">written</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident">hex::FromHex</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use </span>hex::FromHex;
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::symm::Mode</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::symm::Mode;
 
-    <span class="comment">// From https://www.mgp25.com/AESIGE/</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ige_vector_1</span>() {
-        <span class="kw">let</span> <span class="ident">raw_key</span> <span class="op">=</span> <span class="string">&quot;000102030405060708090A0B0C0D0E0F&quot;</span>;
-        <span class="kw">let</span> <span class="ident">raw_iv</span> <span class="op">=</span> <span class="string">&quot;000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F&quot;</span>;
-        <span class="kw">let</span> <span class="ident">raw_pt</span> <span class="op">=</span> <span class="string">&quot;0000000000000000000000000000000000000000000000000000000000000000&quot;</span>;
-        <span class="kw">let</span> <span class="ident">raw_ct</span> <span class="op">=</span> <span class="string">&quot;1A8519A6557BE652E9DA8E43DA4EF4453CF456B4CA488AA383C79C98B34797CB&quot;</span>;
+    <span class="comment">// From https://www.mgp25.com/AESIGE/
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>ige_vector_1() {
+        <span class="kw">let </span>raw_key = <span class="string">&quot;000102030405060708090A0B0C0D0E0F&quot;</span>;
+        <span class="kw">let </span>raw_iv = <span class="string">&quot;000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F&quot;</span>;
+        <span class="kw">let </span>raw_pt = <span class="string">&quot;0000000000000000000000000000000000000000000000000000000000000000&quot;</span>;
+        <span class="kw">let </span>raw_ct = <span class="string">&quot;1A8519A6557BE652E9DA8E43DA4EF4453CF456B4CA488AA383C79C98B34797CB&quot;</span>;
 
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">AesKey::new_encrypt</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">raw_key</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iv</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="ident">raw_iv</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">pt</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="ident">raw_pt</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">ct</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="ident">raw_ct</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>key = AesKey::new_encrypt(<span class="kw-2">&amp;</span>Vec::from_hex(raw_key).unwrap()).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>iv = Vec::from_hex(raw_iv).unwrap();
+        <span class="kw">let </span>pt = Vec::from_hex(raw_pt).unwrap();
+        <span class="kw">let </span>ct = Vec::from_hex(raw_ct).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ct_actual</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">ct</span>.<span class="ident">len</span>()];
-        <span class="ident">aes_ige</span>(<span class="kw-2">&amp;</span><span class="ident">pt</span>, <span class="kw-2">&amp;mut</span> <span class="ident">ct_actual</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;mut</span> <span class="ident">iv</span>, <span class="ident">Mode::Encrypt</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">ct_actual</span>, <span class="ident">ct</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>ct_actual = <span class="macro">vec!</span>[<span class="number">0</span>; ct.len()];
+        aes_ige(<span class="kw-2">&amp;</span>pt, <span class="kw-2">&amp;mut </span>ct_actual, <span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>iv, Mode::Encrypt);
+        <span class="macro">assert_eq!</span>(ct_actual, ct);
 
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">AesKey::new_decrypt</span>(<span class="kw-2">&amp;</span><span class="ident">Vec::from_hex</span>(<span class="ident">raw_key</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iv</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="ident">raw_iv</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pt_actual</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">pt</span>.<span class="ident">len</span>()];
-        <span class="ident">aes_ige</span>(<span class="kw-2">&amp;</span><span class="ident">ct</span>, <span class="kw-2">&amp;mut</span> <span class="ident">pt_actual</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;mut</span> <span class="ident">iv</span>, <span class="ident">Mode::Decrypt</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">pt_actual</span>, <span class="ident">pt</span>);
+        <span class="kw">let </span>key = AesKey::new_decrypt(<span class="kw-2">&amp;</span>Vec::from_hex(raw_key).unwrap()).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>iv = Vec::from_hex(raw_iv).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>pt_actual = <span class="macro">vec!</span>[<span class="number">0</span>; pt.len()];
+        aes_ige(<span class="kw-2">&amp;</span>ct, <span class="kw-2">&amp;mut </span>pt_actual, <span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>iv, Mode::Decrypt);
+        <span class="macro">assert_eq!</span>(pt_actual, pt);
     }
 
-    <span class="comment">// from the RFC https://tools.ietf.org/html/rfc3394#section-2.2.3</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_wrap_unwrap</span>() {
-        <span class="kw">let</span> <span class="ident">raw_key</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="string">&quot;000102030405060708090A0B0C0D0E0F&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key_data</span> <span class="op">=</span> <span class="ident">Vec::from_hex</span>(<span class="string">&quot;00112233445566778899AABBCCDDEEFF&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">expected_ciphertext</span> <span class="op">=</span>
-            <span class="ident">Vec::from_hex</span>(<span class="string">&quot;1FA68B0A8112B447AEF34BD8FB5A7B829D3E862371D2CFE5&quot;</span>).<span class="ident">unwrap</span>();
+    <span class="comment">// from the RFC https://tools.ietf.org/html/rfc3394#section-2.2.3
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_wrap_unwrap() {
+        <span class="kw">let </span>raw_key = Vec::from_hex(<span class="string">&quot;000102030405060708090A0B0C0D0E0F&quot;</span>).unwrap();
+        <span class="kw">let </span>key_data = Vec::from_hex(<span class="string">&quot;00112233445566778899AABBCCDDEEFF&quot;</span>).unwrap();
+        <span class="kw">let </span>expected_ciphertext =
+            Vec::from_hex(<span class="string">&quot;1FA68B0A8112B447AEF34BD8FB5A7B829D3E862371D2CFE5&quot;</span>).unwrap();
 
-        <span class="kw">let</span> <span class="ident">enc_key</span> <span class="op">=</span> <span class="ident">AesKey::new_encrypt</span>(<span class="kw-2">&amp;</span><span class="ident">raw_key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wrapped</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">24</span>];
+        <span class="kw">let </span>enc_key = AesKey::new_encrypt(<span class="kw-2">&amp;</span>raw_key).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>wrapped = [<span class="number">0</span>; <span class="number">24</span>];
         <span class="macro">assert_eq!</span>(
-            <span class="ident">wrap_key</span>(<span class="kw-2">&amp;</span><span class="ident">enc_key</span>, <span class="prelude-val">None</span>, <span class="kw-2">&amp;mut</span> <span class="ident">wrapped</span>, <span class="kw-2">&amp;</span><span class="ident">key_data</span>).<span class="ident">unwrap</span>(),
-            <span class="number">24</span>
-        );
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">wrapped</span>[..], <span class="kw-2">&amp;</span><span class="ident">expected_ciphertext</span>[..]);
+            wrap_key(<span class="kw-2">&amp;</span>enc_key, <span class="prelude-val">None</span>, <span class="kw-2">&amp;mut </span>wrapped, <span class="kw-2">&amp;</span>key_data).unwrap(),
+            <span class="number">24
+        </span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>wrapped[..], <span class="kw-2">&amp;</span>expected_ciphertext[..]);
 
-        <span class="kw">let</span> <span class="ident">dec_key</span> <span class="op">=</span> <span class="ident">AesKey::new_decrypt</span>(<span class="kw-2">&amp;</span><span class="ident">raw_key</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unwrapped</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
+        <span class="kw">let </span>dec_key = AesKey::new_decrypt(<span class="kw-2">&amp;</span>raw_key).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>unwrapped = [<span class="number">0</span>; <span class="number">16</span>];
         <span class="macro">assert_eq!</span>(
-            <span class="ident">unwrap_key</span>(<span class="kw-2">&amp;</span><span class="ident">dec_key</span>, <span class="prelude-val">None</span>, <span class="kw-2">&amp;mut</span> <span class="ident">unwrapped</span>, <span class="kw-2">&amp;</span><span class="ident">wrapped</span>).<span class="ident">unwrap</span>(),
-            <span class="number">16</span>
-        );
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">unwrapped</span>[..], <span class="kw-2">&amp;</span><span class="ident">key_data</span>[..]);
+            unwrap_key(<span class="kw-2">&amp;</span>dec_key, <span class="prelude-val">None</span>, <span class="kw-2">&amp;mut </span>unwrapped, <span class="kw-2">&amp;</span>wrapped).unwrap(),
+            <span class="number">16
+        </span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>unwrapped[..], <span class="kw-2">&amp;</span>key_data[..]);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

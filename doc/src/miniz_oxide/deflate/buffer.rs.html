@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/miniz_oxide-0.5.3/src/deflate/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../miniz_oxide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/miniz_oxide-0.5.3/src/deflate/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../miniz_oxide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -56,63 +56,63 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Buffer wrappers implementing default so we can allocate the buffers with `Box::default()`</span>
-<span class="doccomment">//! to avoid stack copies. Box::new() doesn&#39;t at the moment, and using a vec means we would lose</span>
-<span class="doccomment">//! static length info.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Buffer wrappers implementing default so we can allocate the buffers with `Box::default()`
+//! to avoid stack copies. Box::new() doesn&#39;t at the moment, and using a vec means we would lose
+//! static length info.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::deflate::core</span>::{<a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>, <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#297">MAX_MATCH_LEN</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::deflate::core::{<a href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>, <a href="../../../src/miniz_oxide/deflate/core.rs.html#297">MAX_MATCH_LEN</a>};
 
-<span class="doccomment">/// Size of the buffer of lz77 encoded data.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LZ_CODE_BUF_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="doccomment">/// Size of the output buffer.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OUT_BUF_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> <span class="op">=</span> (<a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#8">LZ_CODE_BUF_SIZE</a> <span class="op">*</span> <span class="number">13</span>) <span class="op">/</span> <span class="number">10</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LZ_DICT_FULL_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a> <span class="op">+</span> <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#297">MAX_MATCH_LEN</a> <span class="op">-</span> <span class="number">1</span> <span class="op">+</span> <span class="number">1</span>;
+<span class="doccomment">/// Size of the buffer of lz77 encoded data.
+</span><span class="kw">pub const </span>LZ_CODE_BUF_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="doccomment">/// Size of the output buffer.
+</span><span class="kw">pub const </span>OUT_BUF_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = (<a href="../../../src/miniz_oxide/deflate/buffer.rs.html#8">LZ_CODE_BUF_SIZE</a> * <span class="number">13</span>) / <span class="number">10</span>;
+<span class="kw">pub const </span>LZ_DICT_FULL_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <a href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a> + <a href="../../../src/miniz_oxide/deflate/core.rs.html#297">MAX_MATCH_LEN</a> - <span class="number">1 </span>+ <span class="number">1</span>;
 
-<span class="doccomment">/// Size of hash values in the hash chains.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LZ_HASH_BITS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a> <span class="op">=</span> <span class="number">15</span>;
-<span class="doccomment">/// How many bits to shift when updating the current hash value.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LZ_HASH_SHIFT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a> <span class="op">=</span> (<a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#14">LZ_HASH_BITS</a> <span class="op">+</span> <span class="number">2</span>) <span class="op">/</span> <span class="number">3</span>;
-<span class="doccomment">/// Size of the chained hash tables.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LZ_HASH_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#14">LZ_HASH_BITS</a>;
+<span class="doccomment">/// Size of hash values in the hash chains.
+</span><span class="kw">pub const </span>LZ_HASH_BITS: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a> = <span class="number">15</span>;
+<span class="doccomment">/// How many bits to shift when updating the current hash value.
+</span><span class="kw">pub const </span>LZ_HASH_SHIFT: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a> = (<a href="../../../src/miniz_oxide/deflate/buffer.rs.html#14">LZ_HASH_BITS</a> + <span class="number">2</span>) / <span class="number">3</span>;
+<span class="doccomment">/// Size of the chained hash tables.
+</span><span class="kw">pub const </span>LZ_HASH_SIZE: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> = <span class="number">1 </span>&lt;&lt; <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#14">LZ_HASH_BITS</a>;
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_hash</span>(<span class="ident">current_hash</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> {
-    ((<a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#21">current_hash</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#16">LZ_HASH_SHIFT</a>) <span class="op">^</span> <span class="ident">u16::from</span>(<a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#21">byte</a>)) <span class="op">&amp;</span> (<a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#18">LZ_HASH_SIZE</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> <span class="op">-</span> <span class="number">1</span>)
+<span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>update_hash(current_hash: <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>, byte: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> {
+    ((<a href="../../../src/miniz_oxide/deflate/buffer.rs.html#21">current_hash</a> &lt;&lt; <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#16">LZ_HASH_SHIFT</a>) ^ u16::from(<a href="../../../src/miniz_oxide/deflate/buffer.rs.html#21">byte</a>)) &amp; (<a href="../../../src/miniz_oxide/deflate/buffer.rs.html#18">LZ_HASH_SIZE</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a> - <span class="number">1</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HashBuffers</span> {
-    <span class="kw">pub</span> <span class="ident">dict</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#11">LZ_DICT_FULL_SIZE</a>],
-    <span class="kw">pub</span> <span class="ident">next</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>; <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>],
-    <span class="kw">pub</span> <span class="ident">hash</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>; <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>],
+<span class="kw">pub struct </span>HashBuffers {
+    <span class="kw">pub </span>dict: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#11">LZ_DICT_FULL_SIZE</a>],
+    <span class="kw">pub </span>next: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>; <a href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>],
+    <span class="kw">pub </span>hash: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>; <a href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>],
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#25">HashBuffers</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw-2">*</span><a class="self" href="../../../src/miniz_oxide/deflate/buffer.rs.html#33">self</a> <span class="op">=</span> <span class="ident">HashBuffers::default</span>();
+<span class="kw">impl </span><a href="../../../src/miniz_oxide/deflate/buffer.rs.html#25">HashBuffers</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw-2">*</span><span class="self"><a href="../../../src/miniz_oxide/deflate/buffer.rs.html#33">self</a> </span>= HashBuffers::default();
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#25">HashBuffers</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#25">HashBuffers</a> {
-        <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#25">HashBuffers</a> {
-            <span class="ident">dict</span>: [<span class="number">0</span>; <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#11">LZ_DICT_FULL_SIZE</a>],
-            <span class="ident">next</span>: [<span class="number">0</span>; <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>],
-            <span class="ident">hash</span>: [<span class="number">0</span>; <a class="ident" href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>],
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/miniz_oxide/deflate/buffer.rs.html#25">HashBuffers</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#25">HashBuffers</a> {
+        <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#25">HashBuffers</a> {
+            dict: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#11">LZ_DICT_FULL_SIZE</a>],
+            next: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>],
+            hash: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/deflate/core.rs.html#291">LZ_DICT_SIZE</a>],
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalBuf</span> {
-    <span class="kw">pub</span> <span class="ident">b</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#10">OUT_BUF_SIZE</a>],
+<span class="kw">pub struct </span>LocalBuf {
+    <span class="kw">pub </span>b: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#10">OUT_BUF_SIZE</a>],
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#48">LocalBuf</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#48">LocalBuf</a> {
-        <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#48">LocalBuf</a> {
-            <span class="ident">b</span>: [<span class="number">0</span>; <a class="ident" href="../../../src/miniz_oxide/deflate/buffer.rs.html#10">OUT_BUF_SIZE</a>],
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/miniz_oxide/deflate/buffer.rs.html#48">LocalBuf</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#48">LocalBuf</a> {
+        <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#48">LocalBuf</a> {
+            b: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/deflate/buffer.rs.html#10">OUT_BUF_SIZE</a>],
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="miniz_oxide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="miniz_oxide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

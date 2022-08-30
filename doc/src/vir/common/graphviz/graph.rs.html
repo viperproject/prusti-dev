@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/common/graphviz/graph.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>graph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/common/graphviz/graph.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>graph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -138,145 +138,145 @@
 <span id="138">138</span>
 <span id="139">139</span>
 <span id="140">140</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
+</pre><pre class="rust"><code><span class="kw">use </span>std::{
+    collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>},
+    <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::builders</span>::{<a class="ident" href="../../../../src/vir/common/graphviz/builders.rs.html#11">NodeBuilder</a>, <a class="ident" href="../../../../src/vir/common/graphviz/builders.rs.html#4">TableBuilder</a>};
+<span class="kw">use </span><span class="kw">super</span>::builders::{<a href="../../../../src/vir/common/graphviz/builders.rs.html#11">NodeBuilder</a>, <a href="../../../../src/vir/common/graphviz/builders.rs.html#4">TableBuilder</a>};
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Graph</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">column_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#16">Node</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">edges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">exit_targets</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">tables</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#45">Table</a><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>Graph {
+    <span class="kw">pub</span>(<span class="kw">super</span>) column_names: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) nodes: Vec&lt;<a href="../../../../src/vir/common/graphviz/graph.rs.html#16">Node</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) edges: Vec&lt;<a href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) exit_targets: BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) tables: Vec&lt;<a href="../../../../src/vir/common/graphviz/graph.rs.html#45">Table</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Node</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">node_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">node_id_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">rows</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#35">Row</a><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Node {
+    <span class="kw">pub</span>(<span class="kw">super</span>) node_id: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) node_id_style: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) rows: Vec&lt;<a href="../../../../src/vir/common/graphviz/graph.rs.html#35">Row</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">EdgeKind</span> {
-    <span class="ident">Normal</span>,
-    <span class="ident">Unwind</span>,
-    <span class="ident">Imaginary</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>EdgeKind {
+    Normal,
+    Unwind,
+    Imaginary,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Edge</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">source</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">target</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">annotation</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">kind</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#22">EdgeKind</a>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Edge {
+    <span class="kw">pub</span>(<span class="kw">super</span>) source: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) target: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) annotation: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) kind: <a href="../../../../src/vir/common/graphviz/graph.rs.html#22">EdgeKind</a>,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">Row</span> {
-    <span class="ident">Map</span>(<span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>),
-    <span class="ident">Seq</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>),
-    <span class="ident">Single</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Row {
+    Map(BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;),
+    Seq(Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;),
+    Single(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">HeaderRow</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">column_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>HeaderRow {
+    <span class="kw">pub</span>(<span class="kw">super</span>) column_names: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Table</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">table_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">header</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#41">HeaderRow</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">rows</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#35">Row</a><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Table {
+    <span class="kw">pub</span>(<span class="kw">super</span>) table_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) header: <a href="../../../../src/vir/common/graphviz/graph.rs.html#41">HeaderRow</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) rows: Vec&lt;<a href="../../../../src/vir/common/graphviz/graph.rs.html#35">Row</a>&gt;,
 }
 
-<span class="kw">fn</span> <span class="ident">to_string_vector</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#51">slice</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#52">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+<span class="kw">fn </span>to_string_vector(slice: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    <a href="../../../../src/vir/common/graphviz/graph.rs.html#51">slice</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="../../../../src/vir/common/graphviz/graph.rs.html#52">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#8">Graph</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_columns</span>(<span class="ident">column_names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">column_names</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#51">to_string_vector</a>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#56">column_names</a>),
-            <span class="ident">nodes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            <span class="ident">edges</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            <span class="ident">exit_targets</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-            <span class="ident">tables</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+<span class="kw">impl </span><a href="../../../../src/vir/common/graphviz/graph.rs.html#8">Graph</a> {
+    <span class="kw">pub fn </span>with_columns(column_names: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>]) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            column_names: <a href="../../../../src/vir/common/graphviz/graph.rs.html#51">to_string_vector</a>(<a href="../../../../src/vir/common/graphviz/graph.rs.html#56">column_names</a>),
+            nodes: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            edges: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            exit_targets: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            tables: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         }
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_table</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">table_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">column_names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
-    ) -&gt; <span class="ident">TableBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/vir/common/graphviz/builders.rs.html#4">TableBuilder</a> {
-            <span class="ident">graph</span>: <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#66">self</a>,
-            <span class="ident">table_name</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#67">table_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <span class="ident">header</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#41">HeaderRow</a> {
-                <span class="ident">column_names</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#51">to_string_vector</a>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#68">column_names</a>),
+    <span class="kw">pub fn </span>create_table&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        table_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        column_names: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
+    ) -&gt; TableBuilder&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <a href="../../../../src/vir/common/graphviz/builders.rs.html#4">TableBuilder</a> {
+            graph: <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#66">self</a>,
+            table_name: <a href="../../../../src/vir/common/graphviz/graph.rs.html#67">table_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            header: <a href="../../../../src/vir/common/graphviz/graph.rs.html#41">HeaderRow</a> {
+                column_names: <a href="../../../../src/vir/common/graphviz/graph.rs.html#51">to_string_vector</a>(<a href="../../../../src/vir/common/graphviz/graph.rs.html#68">column_names</a>),
             },
-            <span class="ident">rows</span>: <span class="ident">Vec::new</span>(),
+            rows: Vec::new(),
         }
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_node</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="ident">NodeBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#79">self</a>.<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#82-86">create_node_with_custom_style</a>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#79">node_id</a>, <span class="string">&quot;bgcolor=\&quot;grey\&quot;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+    <span class="kw">pub fn </span>create_node(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node_id: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; NodeBuilder&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#79">self</a>.<a href="../../../../src/vir/common/graphviz/graph.rs.html#82-86">create_node_with_custom_style</a>(<a href="../../../../src/vir/common/graphviz/graph.rs.html#79">node_id</a>, <span class="string">&quot;bgcolor=\&quot;grey\&quot;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_node_with_custom_style</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">node_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        <span class="ident">node_id_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    ) -&gt; <span class="ident">NodeBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/vir/common/graphviz/builders.rs.html#11">NodeBuilder</a> {
-            <span class="ident">graph</span>: <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#83">self</a>,
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#84">node_id</a>,
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#85">node_id_style</a>,
-            <span class="ident">rows</span>: <span class="ident">Vec::new</span>(),
+    <span class="kw">pub fn </span>create_node_with_custom_style(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        node_id: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        node_id_style: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    ) -&gt; NodeBuilder&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a href="../../../../src/vir/common/graphviz/builders.rs.html#11">NodeBuilder</a> {
+            graph: <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#83">self</a>,
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#84">node_id</a>,
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#85">node_id_style</a>,
+            rows: Vec::new(),
         }
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_regular_edge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">target</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
-        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#94">self</a>.<span class="ident">edges</span>.<span class="ident">push</span>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#94">source</a>,
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#94">target</a>,
-            <span class="ident">annotation</span>: <span class="prelude-val">None</span>,
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#23">EdgeKind::Normal</a>,
+    <span class="kw">pub fn </span>add_regular_edge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, source: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, target: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
+        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#94">self</a>.edges.push(<a href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#94">source</a>,
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#94">target</a>,
+            annotation: <span class="prelude-val">None</span>,
+            kind: <a href="../../../../src/vir/common/graphviz/graph.rs.html#23">EdgeKind::Normal</a>,
         })
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_regular_annotated_edge</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">source</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        <span class="ident">target</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        <span class="ident">annotation</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw">pub fn </span>add_regular_annotated_edge(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        source: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        target: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        annotation: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     ) {
-        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#103">self</a>.<span class="ident">edges</span>.<span class="ident">push</span>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#104">source</a>,
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#105">target</a>,
-            <span class="ident">annotation</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#106">annotation</a>),
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#23">EdgeKind::Normal</a>,
+        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#103">self</a>.edges.push(<a href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#104">source</a>,
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#105">target</a>,
+            annotation: <span class="prelude-val">Some</span>(<a href="../../../../src/vir/common/graphviz/graph.rs.html#106">annotation</a>),
+            kind: <a href="../../../../src/vir/common/graphviz/graph.rs.html#23">EdgeKind::Normal</a>,
         })
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_unwind_edge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">target</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
-        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#115">self</a>.<span class="ident">edges</span>.<span class="ident">push</span>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#115">source</a>,
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#115">target</a>,
-            <span class="ident">annotation</span>: <span class="prelude-val">None</span>,
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#24">EdgeKind::Unwind</a>,
+    <span class="kw">pub fn </span>add_unwind_edge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, source: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, target: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
+        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#115">self</a>.edges.push(<a href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#115">source</a>,
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#115">target</a>,
+            annotation: <span class="prelude-val">None</span>,
+            kind: <a href="../../../../src/vir/common/graphviz/graph.rs.html#24">EdgeKind::Unwind</a>,
         })
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_imaginary_edge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">target</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
-        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#123">self</a>.<span class="ident">edges</span>.<span class="ident">push</span>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#123">source</a>,
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#123">target</a>,
-            <span class="ident">annotation</span>: <span class="prelude-val">None</span>,
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#25">EdgeKind::Imaginary</a>,
+    <span class="kw">pub fn </span>add_imaginary_edge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, source: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, target: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
+        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#123">self</a>.edges.push(<a href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#123">source</a>,
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#123">target</a>,
+            annotation: <span class="prelude-val">None</span>,
+            kind: <a href="../../../../src/vir/common/graphviz/graph.rs.html#25">EdgeKind::Imaginary</a>,
         })
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_exit_edge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">target</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
-        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#131">self</a>.<span class="ident">exit_targets</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#131">target</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#131">self</a>.<span class="ident">edges</span>.<span class="ident">push</span>(<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#131">source</a>,
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#131">target</a>,
-            <span class="ident">annotation</span>: <span class="prelude-val">None</span>,
-            <span class="ident">kind</span>: <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#23">EdgeKind::Normal</a>,
+    <span class="kw">pub fn </span>add_exit_edge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, source: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, target: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
+        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#131">self</a>.exit_targets.insert(<a href="../../../../src/vir/common/graphviz/graph.rs.html#131">target</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="../../../../src/vir/common/graphviz/graph.rs.html#131">self</a>.edges.push(<a href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#131">source</a>,
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#131">target</a>,
+            annotation: <span class="prelude-val">None</span>,
+            kind: <a href="../../../../src/vir/common/graphviz/graph.rs.html#23">EdgeKind::Normal</a>,
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

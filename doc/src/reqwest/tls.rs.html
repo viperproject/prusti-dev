@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/tls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/tls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -460,138 +460,138 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
-</pre><pre class="rust"><code><span class="doccomment">//! TLS configuration</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! By default, a `Client` will make use of system-native transport layer</span>
-<span class="doccomment">//! security to connect to HTTPS destinations. This means schannel on Windows,</span>
-<span class="doccomment">//! Security-Framework on macOS, and OpenSSL on Linux.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - Additional X509 certificates can be configured on a `ClientBuilder` with the</span>
-<span class="doccomment">//!   [`Certificate`](Certificate) type.</span>
-<span class="doccomment">//! - Client certificates can be add to a `ClientBuilder` with the</span>
-<span class="doccomment">//!   [`Identity`][Identity] type.</span>
-<span class="doccomment">//! - Various parts of TLS can also be configured or even disabled on the</span>
-<span class="doccomment">//!   `ClientBuilder`.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! TLS configuration
+//!
+//! By default, a `Client` will make use of system-native transport layer
+//! security to connect to HTTPS destinations. This means schannel on Windows,
+//! Security-Framework on macOS, and OpenSSL on Linux.
+//!
+//! - Additional X509 certificates can be configured on a `ClientBuilder` with the
+//!   [`Certificate`](Certificate) type.
+//! - Client certificates can be add to a `ClientBuilder` with the
+//!   [`Identity`][Identity] type.
+//! - Various parts of TLS can also be configured or even disabled on the
+//!   `ClientBuilder`.
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">rustls</span>::{
-    <span class="ident">client::HandshakeSignatureValid</span>, <span class="ident">client::ServerCertVerified</span>, <span class="ident">client::ServerCertVerifier</span>,
-    <span class="ident">internal::msgs::handshake::DigitallySignedStruct</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">TLSError</span>, <span class="ident">ServerName</span>,
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+</span><span class="kw">use </span>rustls::{
+    client::HandshakeSignatureValid, client::ServerCertVerified, client::ServerCertVerifier,
+    internal::msgs::handshake::DigitallySignedStruct, Error <span class="kw">as </span>TLSError, ServerName,
 };
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="doccomment">/// Represents a server X509 certificate.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Certificate</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls-crate&quot;</span>)]</span>
-    <span class="ident">native</span>: <a class="ident" href="../../native_tls/struct.Certificate.html">native_tls_crate::Certificate</a>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="ident">original</span>: <span class="ident">Cert</span>,
+<span class="doccomment">/// Represents a server X509 certificate.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Certificate {
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls-crate&quot;</span>)]
+    </span>native: <a href="../../native_tls/struct.Certificate.html">native_tls_crate::Certificate</a>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    </span>original: Cert,
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Cert</span> {
-    <span class="ident">Der</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
-    <span class="ident">Pem</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
+<span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+#[derive(Clone)]
+</span><span class="kw">enum </span>Cert {
+    Der(Vec&lt;u8&gt;),
+    Pem(Vec&lt;u8&gt;),
 }
 
-<span class="doccomment">/// Represents a private key and X509 cert as a client certificate.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Identity</span> {
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)), <span class="ident">allow</span>(<span class="ident">unused</span>))]</span>
-    <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#45">ClientCert</a>,
+<span class="doccomment">/// Represents a private key and X509 cert as a client certificate.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Identity {
+    <span class="attribute">#[cfg_attr(not(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>)), allow(unused))]
+    </span>inner: <a href="../../src/reqwest/tls.rs.html#45">ClientCert</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">ClientCert</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-    <span class="ident">Pkcs12</span>(<span class="ident">native_tls_crate::Identity</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="ident">Pem</span> {
-        <span class="ident">key</span>: <span class="ident">rustls::PrivateKey</span>,
-        <span class="ident">certs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">rustls::Certificate</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">enum </span>ClientCert {
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+    </span>Pkcs12(native_tls_crate::Identity),
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    </span>Pem {
+        key: rustls::PrivateKey,
+        certs: Vec&lt;rustls::Certificate&gt;,
     },
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/reqwest/tls.rs.html#23">Certificate</a> {
-    <span class="doccomment">/// Create a `Certificate` from a binary DER encoded certificate</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use std::fs::File;</span>
-    <span class="doccomment">/// # use std::io::Read;</span>
-    <span class="doccomment">/// # fn cert() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {</span>
-    <span class="doccomment">/// let mut buf = Vec::new();</span>
-    <span class="doccomment">/// File::open(&quot;my_cert.der&quot;)?</span>
-    <span class="doccomment">///     .read_to_end(&amp;mut buf)?;</span>
-    <span class="doccomment">/// let cert = reqwest::Certificate::from_der(&amp;buf)?;</span>
-    <span class="doccomment">/// # drop(cert);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_der</span>(<span class="ident">der</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/reqwest/tls.rs.html#23">Certificate</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/tls.rs.html#23">Certificate</a> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls-crate&quot;</span>)]</span>
-            <span class="ident">native</span>: <span class="ident">native_tls_crate::Certificate::from_der</span>(<span class="ident">der</span>).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-            <span class="ident">original</span>: <span class="ident">Cert::Der</span>(<span class="ident">der</span>.<span class="ident">to_owned</span>()),
+<span class="kw">impl </span><a href="../../src/reqwest/tls.rs.html#23">Certificate</a> {
+    <span class="doccomment">/// Create a `Certificate` from a binary DER encoded certificate
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::fs::File;
+    /// # use std::io::Read;
+    /// # fn cert() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// let mut buf = Vec::new();
+    /// File::open(&quot;my_cert.der&quot;)?
+    ///     .read_to_end(&amp;mut buf)?;
+    /// let cert = reqwest::Certificate::from_der(&amp;buf)?;
+    /// # drop(cert);
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>from_der(der: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/tls.rs.html#23">Certificate</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="../../src/reqwest/tls.rs.html#23">Certificate</a> {
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls-crate&quot;</span>)]
+            </span>native: native_tls_crate::Certificate::from_der(der).map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+            </span>original: Cert::Der(der.to_owned()),
         })
     }
 
-    <span class="doccomment">/// Create a `Certificate` from a PEM encoded certificate</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use std::fs::File;</span>
-    <span class="doccomment">/// # use std::io::Read;</span>
-    <span class="doccomment">/// # fn cert() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {</span>
-    <span class="doccomment">/// let mut buf = Vec::new();</span>
-    <span class="doccomment">/// File::open(&quot;my_cert.pem&quot;)?</span>
-    <span class="doccomment">///     .read_to_end(&amp;mut buf)?;</span>
-    <span class="doccomment">/// let cert = reqwest::Certificate::from_pem(&amp;buf)?;</span>
-    <span class="doccomment">/// # drop(cert);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pem</span>(<span class="ident">pem</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/reqwest/tls.rs.html#23">Certificate</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/tls.rs.html#23">Certificate</a> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls-crate&quot;</span>)]</span>
-            <span class="ident">native</span>: <span class="ident">native_tls_crate::Certificate::from_pem</span>(<span class="ident">pem</span>).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-            <span class="ident">original</span>: <span class="ident">Cert::Pem</span>(<span class="ident">pem</span>.<span class="ident">to_owned</span>()),
+    <span class="doccomment">/// Create a `Certificate` from a PEM encoded certificate
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::fs::File;
+    /// # use std::io::Read;
+    /// # fn cert() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// let mut buf = Vec::new();
+    /// File::open(&quot;my_cert.pem&quot;)?
+    ///     .read_to_end(&amp;mut buf)?;
+    /// let cert = reqwest::Certificate::from_pem(&amp;buf)?;
+    /// # drop(cert);
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>from_pem(pem: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw">crate</span>::Result&lt;<a href="../../src/reqwest/tls.rs.html#23">Certificate</a>&gt; {
+        <span class="prelude-val">Ok</span>(<a href="../../src/reqwest/tls.rs.html#23">Certificate</a> {
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls-crate&quot;</span>)]
+            </span>native: native_tls_crate::Certificate::from_pem(pem).map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+            </span>original: Cert::Pem(pem.to_owned()),
         })
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls-crate&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_to_native_tls</span>(<span class="self">self</span>, <span class="ident">tls</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../native_tls/struct.TlsConnectorBuilder.html">native_tls_crate::TlsConnectorBuilder</a>) {
-        <a class="ident" href="../../src/reqwest/tls.rs.html#107">tls</a>.<span class="ident">add_root_certificate</span>(<a class="self" href="../../src/reqwest/tls.rs.html#107">self</a>.<span class="ident">native</span>);
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls-crate&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_to_native_tls(<span class="self">self</span>, tls: <span class="kw-2">&amp;mut </span><a href="../../native_tls/struct.TlsConnectorBuilder.html">native_tls_crate::TlsConnectorBuilder</a>) {
+        <a href="../../src/reqwest/tls.rs.html#107">tls</a>.add_root_certificate(<a class="self" href="../../src/reqwest/tls.rs.html#107">self</a>.native);
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_to_rustls</span>(
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_to_rustls(
         <span class="self">self</span>,
-        <span class="ident">root_cert_store</span>: <span class="kw-2">&amp;mut</span> <span class="ident">rustls::RootCertStore</span>,
-    ) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">std::io::Cursor</span>;
+        root_cert_store: <span class="kw-2">&amp;mut </span>rustls::RootCertStore,
+    ) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+        <span class="kw">use </span>std::io::Cursor;
 
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">original</span> {
-            <span class="ident">Cert::Der</span>(<span class="ident">buf</span>) =&gt; <span class="ident">root_cert_store</span>
-                .<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">rustls::Certificate</span>(<span class="ident">buf</span>))
-                .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>,
-            <span class="ident">Cert::Pem</span>(<span class="ident">buf</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pem</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="ident">buf</span>);
-                <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">rustls_pemfile::certs</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pem</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="ident">TLSError::General</span>(<span class="ident">String::from</span>(
+        <span class="kw">match </span><span class="self">self</span>.original {
+            Cert::Der(buf) =&gt; root_cert_store
+                .add(<span class="kw-2">&amp;</span>rustls::Certificate(buf))
+                .map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>,
+            Cert::Pem(buf) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>pem = Cursor::new(buf);
+                <span class="kw">let </span>certs = rustls_pemfile::certs(<span class="kw-2">&amp;mut </span>pem).map_err(|<span class="kw">_</span>| {
+                    <span class="kw">crate</span>::error::builder(TLSError::General(String::from(
                         <span class="string">&quot;No valid certificate was found&quot;</span>,
                     )))
                 })<span class="question-mark">?</span>;
-                <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">certs</span> {
-                    <span class="ident">root_cert_store</span>
-                        .<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">rustls::Certificate</span>(<span class="ident">c</span>))
-                        .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>;
+                <span class="kw">for </span>c <span class="kw">in </span>certs {
+                    root_cert_store
+                        .add(<span class="kw-2">&amp;</span>rustls::Certificate(c))
+                        .map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>;
                 }
             }
         }
@@ -599,328 +599,328 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/reqwest/tls.rs.html#39">Identity</a> {
-    <span class="doccomment">/// Parses a DER-formatted PKCS #12 archive, using the specified password to decrypt the key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The archive should contain a leaf certificate and its private key, as well any intermediate</span>
-    <span class="doccomment">/// certificates that allow clients to build a chain to a trusted root.</span>
-    <span class="doccomment">/// The chain certificates should be in order from the leaf certificate towards the root.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// PKCS #12 archives typically have the file extension `.p12` or `.pfx`, and can be created</span>
-    <span class="doccomment">/// with the OpenSSL `pkcs12` tool:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```bash</span>
-    <span class="doccomment">/// openssl pkcs12 -export -out identity.pfx -inkey key.pem -in cert.pem -certfile chain_certs.pem</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use std::fs::File;</span>
-    <span class="doccomment">/// # use std::io::Read;</span>
-    <span class="doccomment">/// # fn pkcs12() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {</span>
-    <span class="doccomment">/// let mut buf = Vec::new();</span>
-    <span class="doccomment">/// File::open(&quot;my-ident.pfx&quot;)?</span>
-    <span class="doccomment">///     .read_to_end(&amp;mut buf)?;</span>
-    <span class="doccomment">/// let pkcs12 = reqwest::Identity::from_pkcs12_der(&amp;buf, &quot;my-privkey-password&quot;)?;</span>
-    <span class="doccomment">/// # drop(pkcs12);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Optional</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires the `native-tls` Cargo feature enabled.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pkcs12_der</span>(<span class="ident">der</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">password</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="ident">Identity</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Identity</span> {
-            <span class="ident">inner</span>: <span class="ident">ClientCert::Pkcs12</span>(
-                <span class="ident">native_tls_crate::Identity::from_pkcs12</span>(<span class="ident">der</span>, <span class="ident">password</span>)
-                    .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>,
+<span class="kw">impl </span><a href="../../src/reqwest/tls.rs.html#39">Identity</a> {
+    <span class="doccomment">/// Parses a DER-formatted PKCS #12 archive, using the specified password to decrypt the key.
+    ///
+    /// The archive should contain a leaf certificate and its private key, as well any intermediate
+    /// certificates that allow clients to build a chain to a trusted root.
+    /// The chain certificates should be in order from the leaf certificate towards the root.
+    ///
+    /// PKCS #12 archives typically have the file extension `.p12` or `.pfx`, and can be created
+    /// with the OpenSSL `pkcs12` tool:
+    ///
+    /// ```bash
+    /// openssl pkcs12 -export -out identity.pfx -inkey key.pem -in cert.pem -certfile chain_certs.pem
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::fs::File;
+    /// # use std::io::Read;
+    /// # fn pkcs12() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// let mut buf = Vec::new();
+    /// File::open(&quot;my-ident.pfx&quot;)?
+    ///     .read_to_end(&amp;mut buf)?;
+    /// let pkcs12 = reqwest::Identity::from_pkcs12_der(&amp;buf, &quot;my-privkey-password&quot;)?;
+    /// # drop(pkcs12);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Optional
+    ///
+    /// This requires the `native-tls` Cargo feature enabled.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+    </span><span class="kw">pub fn </span>from_pkcs12_der(der: <span class="kw-2">&amp;</span>[u8], password: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw">crate</span>::Result&lt;Identity&gt; {
+        <span class="prelude-val">Ok</span>(Identity {
+            inner: ClientCert::Pkcs12(
+                native_tls_crate::Identity::from_pkcs12(der, password)
+                    .map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>,
             ),
         })
     }
 
-    <span class="doccomment">/// Parses PEM encoded private key and certificate.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The input should contain a PEM encoded private key</span>
-    <span class="doccomment">/// and at least one PEM encoded certificate.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note: The private key must be in RSA, SEC1 Elliptic Curve or PKCS#8 format.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use std::fs::File;</span>
-    <span class="doccomment">/// # use std::io::Read;</span>
-    <span class="doccomment">/// # fn pem() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {</span>
-    <span class="doccomment">/// let mut buf = Vec::new();</span>
-    <span class="doccomment">/// File::open(&quot;my-ident.pem&quot;)?</span>
-    <span class="doccomment">///     .read_to_end(&amp;mut buf)?;</span>
-    <span class="doccomment">/// let id = reqwest::Identity::from_pem(&amp;buf)?;</span>
-    <span class="doccomment">/// # drop(id);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Optional</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires the `rustls-tls(-...)` Cargo feature enabled.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pem</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="ident">Identity</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">std::io::Cursor</span>;
+    <span class="doccomment">/// Parses PEM encoded private key and certificate.
+    ///
+    /// The input should contain a PEM encoded private key
+    /// and at least one PEM encoded certificate.
+    ///
+    /// Note: The private key must be in RSA, SEC1 Elliptic Curve or PKCS#8 format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::fs::File;
+    /// # use std::io::Read;
+    /// # fn pem() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// let mut buf = Vec::new();
+    /// File::open(&quot;my-ident.pem&quot;)?
+    ///     .read_to_end(&amp;mut buf)?;
+    /// let id = reqwest::Identity::from_pem(&amp;buf)?;
+    /// # drop(id);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Optional
+    ///
+    /// This requires the `rustls-tls(-...)` Cargo feature enabled.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    </span><span class="kw">pub fn </span>from_pem(buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw">crate</span>::Result&lt;Identity&gt; {
+        <span class="kw">use </span>std::io::Cursor;
 
-        <span class="kw">let</span> (<span class="ident">key</span>, <span class="ident">certs</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pem</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="ident">buf</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sk</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">rustls::PrivateKey</span><span class="op">&gt;</span><span class="ident">::new</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">rustls::Certificate</span><span class="op">&gt;</span><span class="ident">::new</span>();
+        <span class="kw">let </span>(key, certs) = {
+            <span class="kw">let </span><span class="kw-2">mut </span>pem = Cursor::new(buf);
+            <span class="kw">let </span><span class="kw-2">mut </span>sk = Vec::&lt;rustls::PrivateKey&gt;::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>certs = Vec::&lt;rustls::Certificate&gt;::new();
 
-            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">std::iter::from_fn</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">rustls_pemfile::read_one</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pem</span>).<span class="ident">transpose</span>()) {
-                <span class="kw">match</span> <span class="ident">item</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="ident">TLSError::General</span>(<span class="ident">String::from</span>(
+            <span class="kw">for </span>item <span class="kw">in </span>std::iter::from_fn(|| rustls_pemfile::read_one(<span class="kw-2">&amp;mut </span>pem).transpose()) {
+                <span class="kw">match </span>item.map_err(|<span class="kw">_</span>| {
+                    <span class="kw">crate</span>::error::builder(TLSError::General(String::from(
                         <span class="string">&quot;Invalid identity PEM file&quot;</span>,
                     )))
-                })<span class="question-mark">?</span> {
-                    <span class="ident">rustls_pemfile::Item::X509Certificate</span>(<span class="ident">cert</span>) =&gt; {
-                        <span class="ident">certs</span>.<span class="ident">push</span>(<span class="ident">rustls::Certificate</span>(<span class="ident">cert</span>))
+                })<span class="question-mark">? </span>{
+                    rustls_pemfile::Item::X509Certificate(cert) =&gt; {
+                        certs.push(rustls::Certificate(cert))
                     }
-                    <span class="ident">rustls_pemfile::Item::PKCS8Key</span>(<span class="ident">key</span>) =&gt; <span class="ident">sk</span>.<span class="ident">push</span>(<span class="ident">rustls::PrivateKey</span>(<span class="ident">key</span>)),
-                    <span class="ident">rustls_pemfile::Item::RSAKey</span>(<span class="ident">key</span>) =&gt; <span class="ident">sk</span>.<span class="ident">push</span>(<span class="ident">rustls::PrivateKey</span>(<span class="ident">key</span>)),
-                    <span class="ident">rustls_pemfile::Item::ECKey</span>(<span class="ident">key</span>) =&gt; <span class="ident">sk</span>.<span class="ident">push</span>(<span class="ident">rustls::PrivateKey</span>(<span class="ident">key</span>)),
-                    <span class="kw">_</span> =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="ident">TLSError::General</span>(<span class="ident">String::from</span>(
+                    rustls_pemfile::Item::PKCS8Key(key) =&gt; sk.push(rustls::PrivateKey(key)),
+                    rustls_pemfile::Item::RSAKey(key) =&gt; sk.push(rustls::PrivateKey(key)),
+                    rustls_pemfile::Item::ECKey(key) =&gt; sk.push(rustls::PrivateKey(key)),
+                    <span class="kw">_ </span>=&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::builder(TLSError::General(String::from(
                             <span class="string">&quot;No valid certificate was found&quot;</span>,
                         ))))
                     }
                 }
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">sk</span>), <span class="bool-val">false</span>) <span class="op">=</span> (<span class="ident">sk</span>.<span class="ident">pop</span>(), <span class="ident">certs</span>.<span class="ident">is_empty</span>()) {
-                (<span class="ident">sk</span>, <span class="ident">certs</span>)
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="ident">TLSError::General</span>(<span class="ident">String::from</span>(
+            <span class="kw">if let </span>(<span class="prelude-val">Some</span>(sk), <span class="bool-val">false</span>) = (sk.pop(), certs.is_empty()) {
+                (sk, certs)
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::builder(TLSError::General(String::from(
                     <span class="string">&quot;private key or certificate not found&quot;</span>,
                 ))));
             }
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Identity</span> {
-            <span class="ident">inner</span>: <span class="ident">ClientCert::Pem</span> { <span class="ident">key</span>, <span class="ident">certs</span> },
+        <span class="prelude-val">Ok</span>(Identity {
+            inner: ClientCert::Pem { key, certs },
         })
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_to_native_tls</span>(
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_to_native_tls(
         <span class="self">self</span>,
-        <span class="ident">tls</span>: <span class="kw-2">&amp;mut</span> <span class="ident">native_tls_crate::TlsConnectorBuilder</span>,
-    ) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">ClientCert::Pkcs12</span>(<span class="ident">id</span>) =&gt; {
-                <span class="ident">tls</span>.<span class="ident">identity</span>(<span class="ident">id</span>);
+        tls: <span class="kw-2">&amp;mut </span>native_tls_crate::TlsConnectorBuilder,
+    ) -&gt; <span class="kw">crate</span>::Result&lt;()&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            ClientCert::Pkcs12(id) =&gt; {
+                tls.identity(id);
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-            <span class="ident">ClientCert::Pem</span> { .. } =&gt; <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="string">&quot;incompatible TLS identity type&quot;</span>)),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+            </span>ClientCert::Pem { .. } =&gt; <span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::builder(<span class="string">&quot;incompatible TLS identity type&quot;</span>)),
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_to_rustls</span>(
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_to_rustls(
         <span class="self">self</span>,
-        <span class="ident">config_builder</span>: <span class="ident">rustls::ConfigBuilder</span><span class="op">&lt;</span>
-            <span class="ident">rustls::ClientConfig</span>,
-            <span class="ident">rustls::client::WantsTransparencyPolicyOrClientCert</span>,
-        <span class="op">&gt;</span>,
-    ) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="ident">rustls::ClientConfig</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">ClientCert::Pem</span> { <span class="ident">key</span>, <span class="ident">certs</span> } =&gt; <span class="ident">config_builder</span>
-                .<span class="ident">with_single_cert</span>(<span class="ident">certs</span>, <span class="ident">key</span>)
-                .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-            <span class="ident">ClientCert::Pkcs12</span>(..) =&gt; <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="string">&quot;incompatible TLS identity type&quot;</span>)),
+        config_builder: rustls::ConfigBuilder&lt;
+            rustls::ClientConfig,
+            rustls::client::WantsTransparencyPolicyOrClientCert,
+        &gt;,
+    ) -&gt; <span class="kw">crate</span>::Result&lt;rustls::ClientConfig&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            ClientCert::Pem { key, certs } =&gt; config_builder
+                .with_single_cert(certs, key)
+                .map_err(<span class="kw">crate</span>::error::builder),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+            </span>ClientCert::Pkcs12(..) =&gt; <span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::builder(<span class="string">&quot;incompatible TLS identity type&quot;</span>)),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#23">Certificate</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/reqwest/tls.rs.html#284">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Certificate&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/reqwest/tls.rs.html#23">Certificate</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/reqwest/tls.rs.html#284">f</a>.debug_struct(<span class="string">&quot;Certificate&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#39">Identity</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/reqwest/tls.rs.html#290">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Identity&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/reqwest/tls.rs.html#39">Identity</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/reqwest/tls.rs.html#290">f</a>.debug_struct(<span class="string">&quot;Identity&quot;</span>).finish()
     }
 }
 
-<span class="doccomment">/// A TLS protocol version.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Version</span>(<a class="ident" href="../../src/reqwest/tls.rs.html#301">InnerVersion</a>);
+<span class="doccomment">/// A TLS protocol version.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="kw">pub struct </span>Version(<a href="../../src/reqwest/tls.rs.html#301">InnerVersion</a>);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">enum</span> <span class="ident">InnerVersion</span> {
-    <span class="ident">Tls1_0</span>,
-    <span class="ident">Tls1_1</span>,
-    <span class="ident">Tls1_2</span>,
-    <span class="ident">Tls1_3</span>,
+<span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[non_exhaustive]
+</span><span class="kw">enum </span>InnerVersion {
+    Tls1_0,
+    Tls1_1,
+    Tls1_2,
+    Tls1_3,
 }
 
-<span class="comment">// These could perhaps be From/TryFrom implementations, but those would be</span>
-<span class="comment">// part of the public API so let&#39;s be careful</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> {
-    <span class="doccomment">/// Version 1.0 of the TLS protocol.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_0</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#302">InnerVersion::Tls1_0</a>);
-    <span class="doccomment">/// Version 1.1 of the TLS protocol.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_1</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#303">InnerVersion::Tls1_1</a>);
-    <span class="doccomment">/// Version 1.2 of the TLS protocol.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_2</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#304">InnerVersion::Tls1_2</a>);
-    <span class="doccomment">/// Version 1.3 of the TLS protocol.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_3</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#305">InnerVersion::Tls1_3</a>);
+<span class="comment">// These could perhaps be From/TryFrom implementations, but those would be
+// part of the public API so let&#39;s be careful
+</span><span class="kw">impl </span><a href="../../src/reqwest/tls.rs.html#297">Version</a> {
+    <span class="doccomment">/// Version 1.0 of the TLS protocol.
+    </span><span class="kw">pub const </span>TLS_1_0: <a href="../../src/reqwest/tls.rs.html#297">Version</a> = <a href="../../src/reqwest/tls.rs.html#297">Version</a>(<a href="../../src/reqwest/tls.rs.html#302">InnerVersion::Tls1_0</a>);
+    <span class="doccomment">/// Version 1.1 of the TLS protocol.
+    </span><span class="kw">pub const </span>TLS_1_1: <a href="../../src/reqwest/tls.rs.html#297">Version</a> = <a href="../../src/reqwest/tls.rs.html#297">Version</a>(<a href="../../src/reqwest/tls.rs.html#303">InnerVersion::Tls1_1</a>);
+    <span class="doccomment">/// Version 1.2 of the TLS protocol.
+    </span><span class="kw">pub const </span>TLS_1_2: <a href="../../src/reqwest/tls.rs.html#297">Version</a> = <a href="../../src/reqwest/tls.rs.html#297">Version</a>(<a href="../../src/reqwest/tls.rs.html#304">InnerVersion::Tls1_2</a>);
+    <span class="doccomment">/// Version 1.3 of the TLS protocol.
+    </span><span class="kw">pub const </span>TLS_1_3: <a href="../../src/reqwest/tls.rs.html#297">Version</a> = <a href="../../src/reqwest/tls.rs.html#297">Version</a>(<a href="../../src/reqwest/tls.rs.html#305">InnerVersion::Tls1_3</a>);
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_native_tls</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../native_tls/enum.Protocol.html">native_tls_crate::Protocol</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/reqwest/tls.rs.html#321">self</a>.<span class="number">0</span> {
-            <a class="ident" href="../../src/reqwest/tls.rs.html#302">InnerVersion::Tls1_0</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv10</span>),
-            <a class="ident" href="../../src/reqwest/tls.rs.html#303">InnerVersion::Tls1_1</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv11</span>),
-            <a class="ident" href="../../src/reqwest/tls.rs.html#304">InnerVersion::Tls1_2</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv12</span>),
-            <a class="ident" href="../../src/reqwest/tls.rs.html#305">InnerVersion::Tls1_3</a> =&gt; <span class="prelude-val">None</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_native_tls(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../native_tls/enum.Protocol.html">native_tls_crate::Protocol</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../src/reqwest/tls.rs.html#321">self</a>.<span class="number">0 </span>{
+            <a href="../../src/reqwest/tls.rs.html#302">InnerVersion::Tls1_0</a> =&gt; <span class="prelude-val">Some</span>(native_tls_crate::Protocol::Tlsv10),
+            <a href="../../src/reqwest/tls.rs.html#303">InnerVersion::Tls1_1</a> =&gt; <span class="prelude-val">Some</span>(native_tls_crate::Protocol::Tlsv11),
+            <a href="../../src/reqwest/tls.rs.html#304">InnerVersion::Tls1_2</a> =&gt; <span class="prelude-val">Some</span>(native_tls_crate::Protocol::Tlsv12),
+            <a href="../../src/reqwest/tls.rs.html#305">InnerVersion::Tls1_3</a> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_rustls</span>(<span class="ident">version</span>: <span class="ident">rustls::ProtocolVersion</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">version</span> {
-            <span class="ident">rustls::ProtocolVersion::SSLv2</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">rustls::ProtocolVersion::SSLv3</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">rustls::ProtocolVersion::TLSv1_0</span> =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>(<span class="ident">InnerVersion::Tls1_0</span>)),
-            <span class="ident">rustls::ProtocolVersion::TLSv1_1</span> =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>(<span class="ident">InnerVersion::Tls1_1</span>)),
-            <span class="ident">rustls::ProtocolVersion::TLSv1_2</span> =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>(<span class="ident">InnerVersion::Tls1_2</span>)),
-            <span class="ident">rustls::ProtocolVersion::TLSv1_3</span> =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>(<span class="ident">InnerVersion::Tls1_3</span>)),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">TlsBackend</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-    <span class="ident">Default</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-    <span class="ident">BuiltNativeTls</span>(<span class="ident">native_tls_crate::TlsConnector</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="ident">Rustls</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="ident">BuiltRustls</span>(<span class="ident">rustls::ClientConfig</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>,))]</span>
-    <span class="ident">UnknownPreconfigured</span>,
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#344">TlsBackend</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/reqwest/tls.rs.html#358">self</a> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-            <a class="ident" href="../../src/reqwest/tls.rs.html#346">TlsBackend::Default</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#358">f</a>, <span class="string">&quot;Default&quot;</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-            <span class="ident">TlsBackend::BuiltNativeTls</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;BuiltNativeTls&quot;</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-            <span class="ident">TlsBackend::Rustls</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Rustls&quot;</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-            <span class="ident">TlsBackend::BuiltRustls</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;BuiltRustls&quot;</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>,))]</span>
-            <span class="ident">TlsBackend::UnknownPreconfigured</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;UnknownPreconfigured&quot;</span>),
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_rustls(version: rustls::ProtocolVersion) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>version {
+            rustls::ProtocolVersion::SSLv2 =&gt; <span class="prelude-val">None</span>,
+            rustls::ProtocolVersion::SSLv3 =&gt; <span class="prelude-val">None</span>,
+            rustls::ProtocolVersion::TLSv1_0 =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>(InnerVersion::Tls1_0)),
+            rustls::ProtocolVersion::TLSv1_1 =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>(InnerVersion::Tls1_1)),
+            rustls::ProtocolVersion::TLSv1_2 =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>(InnerVersion::Tls1_2)),
+            rustls::ProtocolVersion::TLSv1_3 =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>(InnerVersion::Tls1_3)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#344">TlsBackend</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/reqwest/tls.rs.html#344">TlsBackend</a> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-        {
-            <a class="ident" href="../../src/reqwest/tls.rs.html#346">TlsBackend::Default</a>
-        }
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>TlsBackend {
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
+    </span>Default,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+    </span>BuiltNativeTls(native_tls_crate::TlsConnector),
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    </span>Rustls,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    </span>BuiltRustls(rustls::ClientConfig),
+    <span class="attribute">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>,))]
+    </span>UnknownPreconfigured,
+}
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)))]</span>
-        {
-            <span class="ident">TlsBackend::Rustls</span>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/reqwest/tls.rs.html#344">TlsBackend</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="self"><a href="../../src/reqwest/tls.rs.html#358">self</a> </span>{
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
+            </span><a href="../../src/reqwest/tls.rs.html#346">TlsBackend::Default</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/reqwest/tls.rs.html#358">f</a>, <span class="string">&quot;Default&quot;</span>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+            </span>TlsBackend::BuiltNativeTls(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;BuiltNativeTls&quot;</span>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+            </span>TlsBackend::Rustls =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Rustls&quot;</span>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+            </span>TlsBackend::BuiltRustls(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;BuiltRustls&quot;</span>),
+            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>,))]
+            </span>TlsBackend::UnknownPreconfigured =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;UnknownPreconfigured&quot;</span>),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">NoVerifier</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/reqwest/tls.rs.html#344">TlsBackend</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../src/reqwest/tls.rs.html#344">TlsBackend</a> {
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
+        </span>{
+            <a href="../../src/reqwest/tls.rs.html#346">TlsBackend::Default</a>
+        }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">ServerCertVerifier</span> <span class="kw">for</span> <span class="ident">NoVerifier</span> {
-    <span class="kw">fn</span> <span class="ident">verify_server_cert</span>(
+        <span class="attribute">#[cfg(all(feature = <span class="string">&quot;__rustls&quot;</span>, not(feature = <span class="string">&quot;default-tls&quot;</span>)))]
+        </span>{
+            TlsBackend::Rustls
+        }
+    }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NoVerifier;
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+</span><span class="kw">impl </span>ServerCertVerifier <span class="kw">for </span>NoVerifier {
+    <span class="kw">fn </span>verify_server_cert(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_end_entity</span>: <span class="kw-2">&amp;</span><span class="ident">rustls::Certificate</span>,
-        <span class="ident">_intermediates</span>: <span class="kw-2">&amp;</span>[<span class="ident">rustls::Certificate</span>],
-        <span class="ident">_server_name</span>: <span class="kw-2">&amp;</span><span class="ident">ServerName</span>,
-        <span class="ident">_scts</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
-        <span class="ident">_ocsp_response</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">_now</span>: <span class="ident">std::time::SystemTime</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ServerCertVerified</span>, <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">ServerCertVerified::assertion</span>())
+        _end_entity: <span class="kw-2">&amp;</span>rustls::Certificate,
+        _intermediates: <span class="kw-2">&amp;</span>[rustls::Certificate],
+        _server_name: <span class="kw-2">&amp;</span>ServerName,
+        _scts: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>[u8]&gt;,
+        _ocsp_response: <span class="kw-2">&amp;</span>[u8],
+        _now: std::time::SystemTime,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ServerCertVerified, TLSError&gt; {
+        <span class="prelude-val">Ok</span>(ServerCertVerified::assertion())
     }
 
-    <span class="kw">fn</span> <span class="ident">verify_tls12_signature</span>(
+    <span class="kw">fn </span>verify_tls12_signature(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_message</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">_cert</span>: <span class="kw-2">&amp;</span><span class="ident">rustls::Certificate</span>,
-        <span class="ident">_dss</span>: <span class="kw-2">&amp;</span><span class="ident">DigitallySignedStruct</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HandshakeSignatureValid</span>, <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">HandshakeSignatureValid::assertion</span>())
+        _message: <span class="kw-2">&amp;</span>[u8],
+        _cert: <span class="kw-2">&amp;</span>rustls::Certificate,
+        _dss: <span class="kw-2">&amp;</span>DigitallySignedStruct,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;HandshakeSignatureValid, TLSError&gt; {
+        <span class="prelude-val">Ok</span>(HandshakeSignatureValid::assertion())
     }
 
-    <span class="kw">fn</span> <span class="ident">verify_tls13_signature</span>(
+    <span class="kw">fn </span>verify_tls13_signature(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_message</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">_cert</span>: <span class="kw-2">&amp;</span><span class="ident">rustls::Certificate</span>,
-        <span class="ident">_dss</span>: <span class="kw-2">&amp;</span><span class="ident">DigitallySignedStruct</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HandshakeSignatureValid</span>, <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">HandshakeSignatureValid::assertion</span>())
+        _message: <span class="kw-2">&amp;</span>[u8],
+        _cert: <span class="kw-2">&amp;</span>rustls::Certificate,
+        _dss: <span class="kw-2">&amp;</span>DigitallySignedStruct,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;HandshakeSignatureValid, TLSError&gt; {
+        <span class="prelude-val">Ok</span>(HandshakeSignatureValid::assertion())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">certificate_from_der_invalid</span>() {
-        <span class="ident">Certificate::from_der</span>(<span class="string">b&quot;not der&quot;</span>).<span class="ident">unwrap_err</span>();
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
+    #[test]
+    </span><span class="kw">fn </span>certificate_from_der_invalid() {
+        Certificate::from_der(<span class="string">b&quot;not der&quot;</span>).unwrap_err();
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">certificate_from_pem_invalid</span>() {
-        <span class="ident">Certificate::from_pem</span>(<span class="string">b&quot;not pem&quot;</span>).<span class="ident">unwrap_err</span>();
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;default-tls&quot;</span>)]
+    #[test]
+    </span><span class="kw">fn </span>certificate_from_pem_invalid() {
+        Certificate::from_pem(<span class="string">b&quot;not pem&quot;</span>).unwrap_err();
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">identity_from_pkcs12_der_invalid</span>() {
-        <span class="ident">Identity::from_pkcs12_der</span>(<span class="string">b&quot;not der&quot;</span>, <span class="string">&quot;nope&quot;</span>).<span class="ident">unwrap_err</span>();
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+    #[test]
+    </span><span class="kw">fn </span>identity_from_pkcs12_der_invalid() {
+        Identity::from_pkcs12_der(<span class="string">b&quot;not der&quot;</span>, <span class="string">&quot;nope&quot;</span>).unwrap_err();
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">identity_from_pem_invalid</span>() {
-        <span class="ident">Identity::from_pem</span>(<span class="string">b&quot;not pem&quot;</span>).<span class="ident">unwrap_err</span>();
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    #[test]
+    </span><span class="kw">fn </span>identity_from_pem_invalid() {
+        Identity::from_pem(<span class="string">b&quot;not pem&quot;</span>).unwrap_err();
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">identity_from_pem_pkcs1_key</span>() {
-        <span class="kw">let</span> <span class="ident">pem</span> <span class="op">=</span> <span class="string">b&quot;-----BEGIN CERTIFICATE-----\n\
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
+    #[test]
+    </span><span class="kw">fn </span>identity_from_pem_pkcs1_key() {
+        <span class="kw">let </span>pem = <span class="string">b&quot;-----BEGIN CERTIFICATE-----\n\
             -----END CERTIFICATE-----\n\
             -----BEGIN RSA PRIVATE KEY-----\n\
             -----END RSA PRIVATE KEY-----\n&quot;</span>;
 
-        <span class="ident">Identity::from_pem</span>(<span class="ident">pem</span>).<span class="ident">unwrap</span>();
+        Identity::from_pem(pem).unwrap();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/revwalk.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>revwalk.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/revwalk.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>revwalk.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -314,321 +314,321 @@
 <span id="314">314</span>
 <span id="315">315</span>
 <span id="316">316</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/git2/lib.rs.html#655">panic</a>, <a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a>, <a class="ident" href="../../src/git2/lib.rs.html#412-437">Sort</a>};
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../src/git2/lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>, <a href="../../src/git2/lib.rs.html#412-437">Sort</a>};
 
-<span class="doccomment">/// A revwalk allows traversal of the commit graph defined by including one or</span>
-<span class="doccomment">/// more leaves and excluding one or more roots.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_revwalk.html">raw::git_revwalk</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A revwalk allows traversal of the commit graph defined by including one or
+/// more leaves and excluding one or more roots.
+</span><span class="kw">pub struct </span>Revwalk&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_revwalk.html">raw::git_revwalk</a>,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../src/git2/repo.rs.html#108">Repository</a>&gt;,
 }
 
-<span class="doccomment">/// A `Revwalk` with an assiciated &quot;hide callback&quot;, see `with_hide_callback`</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RevwalkWithHideCb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, <span class="ident">C</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">C</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// A `Revwalk` with an assiciated &quot;hide callback&quot;, see `with_hide_callback`
+</span><span class="kw">pub struct </span>RevwalkWithHideCb&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, C&gt;
+<span class="kw">where
+    </span>C: FnMut(<a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-    <span class="ident">revwalk</span>: <span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;cb</span> <span class="ident">C</span><span class="op">&gt;</span>,
+    revwalk: Revwalk&lt;<span class="lifetime">&#39;repo</span>&gt;,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cb </span>C&gt;,
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">revwalk_hide_cb</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">commit_id</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>, <span class="ident">payload</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">C</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>revwalk_hide_cb&lt;C&gt;(commit_id: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>, payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>C: FnMut(<a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-    <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">hide_cb</span> <span class="op">=</span> <a class="ident" href="../../src/git2/revwalk.rs.html#24">payload</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">C</span>;
-        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">hide_cb</span>)(<span class="ident">Oid::from_raw</span>(<span class="ident">commit_id</span>)) {
-            <span class="number">1</span>
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
-        }
+    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>hide_cb = <a href="../../src/git2/revwalk.rs.html#24">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>C;
+        <span class="kw">if </span>(<span class="kw-2">*</span>hide_cb)(Oid::from_raw(commit_id)) {
+            <span class="number">1
+        </span>} <span class="kw">else </span>{
+            <span class="number">0
+        </span>}
     })
-    .<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>)
+    .unwrap_or(-<span class="number">1</span>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, <span class="ident">C</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> <span class="ident">RevwalkWithHideCb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Consumes the `RevwalkWithHideCb` and returns the contained `Revwalk`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this will reset the `Revwalk`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">revwalk</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/git2/revwalk.rs.html#43">self</a>.<span class="ident">revwalk</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, C: FnMut(<a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; RevwalkWithHideCb&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, C&gt; {
+    <span class="doccomment">/// Consumes the `RevwalkWithHideCb` and returns the contained `Revwalk`.
+    ///
+    /// Note that this will reset the `Revwalk`.
+    </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Revwalk&lt;<span class="lifetime">&#39;repo</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="self">self</span>.revwalk.reset()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/git2/revwalk.rs.html#43">self</a>.revwalk)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Reset a revwalk to allow re-configuring it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The revwalk is automatically reset when iteration of its commits</span>
-    <span class="doccomment">/// completes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_reset</span>(<span class="self">self</span>.<span class="ident">raw</span>()));
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Revwalk&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Reset a revwalk to allow re-configuring it.
+    ///
+    /// The revwalk is automatically reset when iteration of its commits
+    /// completes.
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_reset(<span class="self">self</span>.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Set the order in which commits are visited.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_sorting</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sort_mode</span>: <a class="ident" href="../../src/git2/lib.rs.html#412-437">Sort</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_sorting</span>(
-                <span class="self">self</span>.<span class="ident">raw</span>(),
-                <span class="ident">sort_mode</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">c_uint</span>
+    <span class="doccomment">/// Set the order in which commits are visited.
+    </span><span class="kw">pub fn </span>set_sorting(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sort_mode: <a href="../../src/git2/lib.rs.html#412-437">Sort</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_sorting(
+                <span class="self">self</span>.raw(),
+                sort_mode.bits() <span class="kw">as </span>c_uint
             ));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Simplify the history by first-parent</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// No parents other than the first for each commit will be enqueued.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simplify_first_parent</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_simplify_first_parent</span>(<span class="self">self</span>.<span class="ident">raw</span>));
+    <span class="doccomment">/// Simplify the history by first-parent
+    ///
+    /// No parents other than the first for each commit will be enqueued.
+    </span><span class="kw">pub fn </span>simplify_first_parent(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_simplify_first_parent(<span class="self">self</span>.raw));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Mark a commit to start traversal from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The given OID must belong to a commitish on the walked repository.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The given commit will be used as one of the roots when starting the</span>
-    <span class="doccomment">/// revision walk. At least one commit must be pushed onto the walker before</span>
-    <span class="doccomment">/// a walk can be started.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">oid</span>: <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_push</span>(<span class="self">self</span>.<span class="ident">raw</span>(), <span class="ident">oid</span>.<span class="ident">raw</span>()));
+    <span class="doccomment">/// Mark a commit to start traversal from.
+    ///
+    /// The given OID must belong to a commitish on the walked repository.
+    ///
+    /// The given commit will be used as one of the roots when starting the
+    /// revision walk. At least one commit must be pushed onto the walker before
+    /// a walk can be started.
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, oid: <a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_push(<span class="self">self</span>.raw(), oid.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Push the repository&#39;s HEAD</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information, see `push`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_head</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_push_head</span>(<span class="self">self</span>.<span class="ident">raw</span>()));
+    <span class="doccomment">/// Push the repository&#39;s HEAD
+    ///
+    /// For more information, see `push`.
+    </span><span class="kw">pub fn </span>push_head(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_push_head(<span class="self">self</span>.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Push matching references</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The OIDs pointed to by the references that match the given glob pattern</span>
-    <span class="doccomment">/// will be pushed to the revision walker.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A leading &#39;refs/&#39; is implied if not present as well as a trailing `/ \</span>
-    <span class="doccomment">/// *` if the glob lacks &#39;?&#39;, &#39; \ *&#39; or &#39;[&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Any references matching this glob which do not point to a commitish</span>
-    <span class="doccomment">/// will be ignored.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_glob</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">glob</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">glob</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">glob</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_push_glob</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">glob</span>));
+    <span class="doccomment">/// Push matching references
+    ///
+    /// The OIDs pointed to by the references that match the given glob pattern
+    /// will be pushed to the revision walker.
+    ///
+    /// A leading &#39;refs/&#39; is implied if not present as well as a trailing `/ \
+    /// *` if the glob lacks &#39;?&#39;, &#39; \ *&#39; or &#39;[&#39;.
+    ///
+    /// Any references matching this glob which do not point to a commitish
+    /// will be ignored.
+    </span><span class="kw">pub fn </span>push_glob(<span class="kw-2">&amp;mut </span><span class="self">self</span>, glob: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>glob = CString::new(glob)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_push_glob(<span class="self">self</span>.raw, glob));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Push and hide the respective endpoints of the given range.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The range should be of the form `&lt;commit&gt;..&lt;commit&gt;` where each</span>
-    <span class="doccomment">/// `&lt;commit&gt;` is in the form accepted by `revparse_single`. The left-hand</span>
-    <span class="doccomment">/// commit will be hidden and the right-hand commit pushed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_range</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">range</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_push_range</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">range</span>));
+    <span class="doccomment">/// Push and hide the respective endpoints of the given range.
+    ///
+    /// The range should be of the form `&lt;commit&gt;..&lt;commit&gt;` where each
+    /// `&lt;commit&gt;` is in the form accepted by `revparse_single`. The left-hand
+    /// commit will be hidden and the right-hand commit pushed.
+    </span><span class="kw">pub fn </span>push_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>range = CString::new(range)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_push_range(<span class="self">self</span>.raw, range));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Push the OID pointed to by a reference</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The reference must point to a commitish.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">reference</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">reference</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_push_ref</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">reference</span>));
+    <span class="doccomment">/// Push the OID pointed to by a reference
+    ///
+    /// The reference must point to a commitish.
+    </span><span class="kw">pub fn </span>push_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reference: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>reference = CString::new(reference)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_push_ref(<span class="self">self</span>.raw, reference));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Mark a commit as not of interest to this revwalk.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">oid</span>: <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_hide</span>(<span class="self">self</span>.<span class="ident">raw</span>(), <span class="ident">oid</span>.<span class="ident">raw</span>()));
+    <span class="doccomment">/// Mark a commit as not of interest to this revwalk.
+    </span><span class="kw">pub fn </span>hide(<span class="kw-2">&amp;mut </span><span class="self">self</span>, oid: <a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_hide(<span class="self">self</span>.raw(), oid.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Hide all commits for which the callback returns true from</span>
-    <span class="doccomment">/// the walk.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_hide_callback</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span>, <span class="ident">C</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Hide all commits for which the callback returns true from
+    /// the walk.
+    </span><span class="kw">pub fn </span>with_hide_callback&lt;<span class="lifetime">&#39;cb</span>, C&gt;(
         <span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cb</span> <span class="ident">C</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RevwalkWithHideCb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, <span class="ident">C</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        callback: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cb </span>C,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;RevwalkWithHideCb&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, C&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;
+    <span class="kw">where
+        </span>C: FnMut(<a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <a class="ident" href="../../src/git2/revwalk.rs.html#16">RevwalkWithHideCb</a> {
-            <span class="ident">revwalk</span>: <a class="self" href="../../src/git2/revwalk.rs.html#159">self</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+        <span class="kw">let </span>r = <a href="../../src/git2/revwalk.rs.html#16">RevwalkWithHideCb</a> {
+            revwalk: <a class="self" href="../../src/git2/revwalk.rs.html#159">self</a>,
+            _marker: marker::PhantomData,
         };
-        <span class="kw">unsafe</span> {
-            <span class="ident">raw::git_revwalk_add_hide_cb</span>(
-                <a class="ident" href="../../src/git2/revwalk.rs.html#165">r</a>.<span class="ident">revwalk</span>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>(),
-                <span class="prelude-val">Some</span>(<span class="ident">revwalk_hide_cb</span>::<span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>),
-                <a class="ident" href="../../src/git2/revwalk.rs.html#160">callback</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        <span class="kw">unsafe </span>{
+            raw::git_revwalk_add_hide_cb(
+                <a href="../../src/git2/revwalk.rs.html#165">r</a>.revwalk.<a href="../../src/git2/util.rs.html#29">raw</a>(),
+                <span class="prelude-val">Some</span>(revwalk_hide_cb::&lt;C&gt;),
+                <a href="../../src/git2/revwalk.rs.html#160">callback</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
             );
         };
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/revwalk.rs.html#165">r</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../src/git2/revwalk.rs.html#165">r</a>)
     }
 
-    <span class="doccomment">/// Hide the repository&#39;s HEAD</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information, see `hide`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_head</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_hide_head</span>(<span class="self">self</span>.<span class="ident">raw</span>()));
+    <span class="doccomment">/// Hide the repository&#39;s HEAD
+    ///
+    /// For more information, see `hide`.
+    </span><span class="kw">pub fn </span>hide_head(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_hide_head(<span class="self">self</span>.raw()));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Hide matching references.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The OIDs pointed to by the references that match the given glob pattern</span>
-    <span class="doccomment">/// and their ancestors will be hidden from the output on the revision walk.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A leading &#39;refs/&#39; is implied if not present as well as a trailing `/ \</span>
-    <span class="doccomment">/// *` if the glob lacks &#39;?&#39;, &#39; \ *&#39; or &#39;[&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Any references matching this glob which do not point to a commitish</span>
-    <span class="doccomment">/// will be ignored.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_glob</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">glob</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">glob</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">glob</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_hide_glob</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">glob</span>));
+    <span class="doccomment">/// Hide matching references.
+    ///
+    /// The OIDs pointed to by the references that match the given glob pattern
+    /// and their ancestors will be hidden from the output on the revision walk.
+    ///
+    /// A leading &#39;refs/&#39; is implied if not present as well as a trailing `/ \
+    /// *` if the glob lacks &#39;?&#39;, &#39; \ *&#39; or &#39;[&#39;.
+    ///
+    /// Any references matching this glob which do not point to a commitish
+    /// will be ignored.
+    </span><span class="kw">pub fn </span>hide_glob(<span class="kw-2">&amp;mut </span><span class="self">self</span>, glob: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>glob = CString::new(glob)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_hide_glob(<span class="self">self</span>.raw, glob));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Hide the OID pointed to by a reference.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The reference must point to a commitish.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">reference</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">reference</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_revwalk_hide_ref</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">reference</span>));
+    <span class="doccomment">/// Hide the OID pointed to by a reference.
+    ///
+    /// The reference must point to a commitish.
+    </span><span class="kw">pub fn </span>hide_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reference: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>reference = CString::new(reference)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_revwalk_hide_ref(<span class="self">self</span>.raw, reference));
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_revwalk.html">raw::git_revwalk</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_revwalk.html">raw::git_revwalk</a>) -&gt; <span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/revwalk.rs.html#10">Revwalk</a> {
-            <a class="ident" href="../../src/git2/revwalk.rs.html#221">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Revwalk&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_revwalk.html">raw::git_revwalk</a>;
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_revwalk.html">raw::git_revwalk</a>) -&gt; Revwalk&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/revwalk.rs.html#10">Revwalk</a> {
+            <a href="../../src/git2/revwalk.rs.html#221">raw</a>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_revwalk.html">raw::git_revwalk</a> {
-        <a class="self" href="../../src/git2/revwalk.rs.html#227">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_revwalk.html">raw::git_revwalk</a> {
+        <a class="self" href="../../src/git2/revwalk.rs.html#227">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_revwalk_free</span>(<a class="self" href="../../src/git2/revwalk.rs.html#233">self</a>.<span class="ident">raw</span>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Revwalk&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{ raw::git_revwalk_free(<a class="self" href="../../src/git2/revwalk.rs.html#233">self</a>.raw) }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">Revwalk</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span>: <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> <span class="op">=</span> <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
-            <span class="ident">id</span>: [<span class="number">0</span>; <span class="ident">raw::GIT_OID_RAWSZ</span>],
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Revwalk&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>out: <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> = <a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a> {
+            id: [<span class="number">0</span>; raw::GIT_OID_RAWSZ],
         };
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#21-29">try_call_iter!</a>(<span class="ident">raw::git_revwalk_next</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out</span>, <span class="self">self</span>.<span class="ident">raw</span>()));
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/revwalk.rs.html#241">out</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>)))
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#21-29">try_call_iter!</a>(raw::git_revwalk_next(<span class="kw-2">&amp;mut </span>out, <span class="self">self</span>.raw()));
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/revwalk.rs.html#241">out</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>)))
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, <span class="ident">C</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">RevwalkWithHideCb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <a class="self" href="../../src/git2/revwalk.rs.html#253">self</a>.<span class="ident">revwalk</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-        <a class="ident" href="../../src/git2/panic.rs.html#24"><span class="kw">crate</span>::panic::check</a>();
-        <a class="ident" href="../../src/git2/revwalk.rs.html#254">out</a>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, C: FnMut(<a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>RevwalkWithHideCb&lt;<span class="lifetime">&#39;repo</span>, <span class="lifetime">&#39;cb</span>, C&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;&gt; {
+        <span class="kw">let </span>out = <a class="self" href="../../src/git2/revwalk.rs.html#253">self</a>.revwalk.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        <a href="../../src/git2/panic.rs.html#24"><span class="kw">crate</span>::panic::check</a>();
+        <a href="../../src/git2/revwalk.rs.html#254">out</a>
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">target</span>().<span class="ident">unwrap</span>();
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span>head = repo.head().unwrap();
+        <span class="kw">let </span>target = head.target().unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">walk</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">revwalk</span>().<span class="ident">unwrap</span>();
-        <span class="ident">walk</span>.<span class="ident">push</span>(<span class="ident">target</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>walk = repo.revwalk().unwrap();
+        walk.push(target).unwrap();
 
-        <span class="kw">let</span> <span class="ident">oids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Oid</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">walk</span>.<span class="ident">by_ref</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>oids: Vec&lt;<span class="kw">crate</span>::Oid&gt; = walk.by_ref().collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;().unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">oids</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">oids</span>[<span class="number">0</span>], <span class="ident">target</span>);
+        <span class="macro">assert_eq!</span>(oids.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(oids[<span class="number">0</span>], target);
 
-        <span class="ident">walk</span>.<span class="ident">reset</span>().<span class="ident">unwrap</span>();
-        <span class="ident">walk</span>.<span class="ident">push_head</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">walk</span>.<span class="ident">by_ref</span>().<span class="ident">count</span>(), <span class="number">1</span>);
+        walk.reset().unwrap();
+        walk.push_head().unwrap();
+        <span class="macro">assert_eq!</span>(walk.by_ref().count(), <span class="number">1</span>);
 
-        <span class="ident">walk</span>.<span class="ident">reset</span>().<span class="ident">unwrap</span>();
-        <span class="ident">walk</span>.<span class="ident">push_head</span>().<span class="ident">unwrap</span>();
-        <span class="ident">walk</span>.<span class="ident">hide_head</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">walk</span>.<span class="ident">by_ref</span>().<span class="ident">count</span>(), <span class="number">0</span>);
+        walk.reset().unwrap();
+        walk.push_head().unwrap();
+        walk.hide_head().unwrap();
+        <span class="macro">assert_eq!</span>(walk.by_ref().count(), <span class="number">0</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke_hide_cb</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">target</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke_hide_cb() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span>head = repo.head().unwrap();
+        <span class="kw">let </span>target = head.target().unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">walk</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">revwalk</span>().<span class="ident">unwrap</span>();
-        <span class="ident">walk</span>.<span class="ident">push</span>(<span class="ident">target</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>walk = repo.revwalk().unwrap();
+        walk.push(target).unwrap();
 
-        <span class="kw">let</span> <span class="ident">oids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Oid</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">walk</span>.<span class="ident">by_ref</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>oids: Vec&lt;<span class="kw">crate</span>::Oid&gt; = walk.by_ref().collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;().unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">oids</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">oids</span>[<span class="number">0</span>], <span class="ident">target</span>);
+        <span class="macro">assert_eq!</span>(oids.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(oids[<span class="number">0</span>], target);
 
-        <span class="ident">walk</span>.<span class="ident">reset</span>().<span class="ident">unwrap</span>();
-        <span class="ident">walk</span>.<span class="ident">push_head</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">walk</span>.<span class="ident">by_ref</span>().<span class="ident">count</span>(), <span class="number">1</span>);
+        walk.reset().unwrap();
+        walk.push_head().unwrap();
+        <span class="macro">assert_eq!</span>(walk.by_ref().count(), <span class="number">1</span>);
 
-        <span class="ident">walk</span>.<span class="ident">reset</span>().<span class="ident">unwrap</span>();
-        <span class="ident">walk</span>.<span class="ident">push_head</span>().<span class="ident">unwrap</span>();
+        walk.reset().unwrap();
+        walk.push_head().unwrap();
 
-        <span class="kw">let</span> <span class="ident">hide_cb</span> <span class="op">=</span> <span class="op">|</span><span class="ident">oid</span><span class="op">|</span> <span class="ident">oid</span> <span class="op">==</span> <span class="ident">target</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">walk</span> <span class="op">=</span> <span class="ident">walk</span>.<span class="ident">with_hide_callback</span>(<span class="kw-2">&amp;</span><span class="ident">hide_cb</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>hide_cb = |oid| oid == target;
+        <span class="kw">let </span><span class="kw-2">mut </span>walk = walk.with_hide_callback(<span class="kw-2">&amp;</span>hide_cb).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">walk</span>.<span class="ident">by_ref</span>().<span class="ident">count</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(walk.by_ref().count(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">walk</span> <span class="op">=</span> <span class="ident">walk</span>.<span class="ident">into_inner</span>().<span class="ident">unwrap</span>();
-        <span class="ident">walk</span>.<span class="ident">push_head</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">walk</span>.<span class="ident">by_ref</span>().<span class="ident">count</span>(), <span class="number">1</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>walk = walk.into_inner().unwrap();
+        walk.push_head().unwrap();
+        <span class="macro">assert_eq!</span>(walk.by_ref().count(), <span class="number">1</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

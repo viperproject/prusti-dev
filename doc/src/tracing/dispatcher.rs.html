@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.36/src/dispatcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.36/src/dispatcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing/index.html">
                         <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -145,150 +145,150 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Dispatches trace events to [`Subscriber`]s.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The _dispatcher_ is the component of the tracing system which is responsible</span>
-<span class="doccomment">//! for forwarding trace data from the instrumentation points that generate it</span>
-<span class="doccomment">//! to the subscriber that collects it.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Using the Trace Dispatcher</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Every thread in a program using `tracing` has a _default subscriber_. When</span>
-<span class="doccomment">//! events occur, or spans are created, they are dispatched to the thread&#39;s</span>
-<span class="doccomment">//! current subscriber.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Setting the Default Subscriber</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! By default, the current subscriber is an empty implementation that does</span>
-<span class="doccomment">//! nothing. To use a subscriber implementation, it must be set as the default.</span>
-<span class="doccomment">//! There are two methods for doing so: [`with_default`] and</span>
-<span class="doccomment">//! [`set_global_default`]. `with_default` sets the default subscriber for the</span>
-<span class="doccomment">//! duration of a scope, while `set_global_default` sets a default subscriber</span>
-<span class="doccomment">//! for the entire process.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! To use either of these functions, we must first wrap our subscriber in a</span>
-<span class="doccomment">//! [`Dispatch`], a cloneable, type-erased reference to a subscriber. For</span>
-<span class="doccomment">//! example:</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # pub struct FooSubscriber;</span>
-<span class="doccomment">//! # use tracing_core::{</span>
-<span class="doccomment">//! #   dispatcher, Event, Metadata,</span>
-<span class="doccomment">//! #   span::{Attributes, Id, Record}</span>
-<span class="doccomment">//! # };</span>
-<span class="doccomment">//! # impl tracing_core::Subscriber for FooSubscriber {</span>
-<span class="doccomment">//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }</span>
-<span class="doccomment">//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}</span>
-<span class="doccomment">//! #   fn event(&amp;self, _: &amp;Event) {}</span>
-<span class="doccomment">//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }</span>
-<span class="doccomment">//! #   fn enter(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn exit(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }</span>
-<span class="doccomment">//! use dispatcher::Dispatch;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let my_subscriber = FooSubscriber::new();</span>
-<span class="doccomment">//! let my_dispatch = Dispatch::new(my_subscriber);</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! Then, we can use [`with_default`] to set our `Dispatch` as the default for</span>
-<span class="doccomment">//! the duration of a block:</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # pub struct FooSubscriber;</span>
-<span class="doccomment">//! # use tracing_core::{</span>
-<span class="doccomment">//! #   dispatcher, Event, Metadata,</span>
-<span class="doccomment">//! #   span::{Attributes, Id, Record}</span>
-<span class="doccomment">//! # };</span>
-<span class="doccomment">//! # impl tracing_core::Subscriber for FooSubscriber {</span>
-<span class="doccomment">//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }</span>
-<span class="doccomment">//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}</span>
-<span class="doccomment">//! #   fn event(&amp;self, _: &amp;Event) {}</span>
-<span class="doccomment">//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }</span>
-<span class="doccomment">//! #   fn enter(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn exit(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }</span>
-<span class="doccomment">//! # let my_subscriber = FooSubscriber::new();</span>
-<span class="doccomment">//! # let my_dispatch = dispatcher::Dispatch::new(my_subscriber);</span>
-<span class="doccomment">//! // no default subscriber</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # #[cfg(feature = &quot;std&quot;)]</span>
-<span class="doccomment">//! dispatcher::with_default(&amp;my_dispatch, || {</span>
-<span class="doccomment">//!     // my_subscriber is the default</span>
-<span class="doccomment">//! });</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // no default subscriber again</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! It&#39;s important to note that `with_default` will not propagate the current</span>
-<span class="doccomment">//! thread&#39;s default subscriber to any threads spawned within the `with_default`</span>
-<span class="doccomment">//! block. To propagate the default subscriber to new threads, either use</span>
-<span class="doccomment">//! `with_default` from the new thread, or use `set_global_default`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! As an alternative to `with_default`, we can use [`set_global_default`] to</span>
-<span class="doccomment">//! set a `Dispatch` as the default for all threads, for the lifetime of the</span>
-<span class="doccomment">//! program. For example:</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # pub struct FooSubscriber;</span>
-<span class="doccomment">//! # use tracing_core::{</span>
-<span class="doccomment">//! #   dispatcher, Event, Metadata,</span>
-<span class="doccomment">//! #   span::{Attributes, Id, Record}</span>
-<span class="doccomment">//! # };</span>
-<span class="doccomment">//! # impl tracing_core::Subscriber for FooSubscriber {</span>
-<span class="doccomment">//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }</span>
-<span class="doccomment">//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}</span>
-<span class="doccomment">//! #   fn event(&amp;self, _: &amp;Event) {}</span>
-<span class="doccomment">//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }</span>
-<span class="doccomment">//! #   fn enter(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! #   fn exit(&amp;self, _: &amp;Id) {}</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }</span>
-<span class="doccomment">//! # let my_subscriber = FooSubscriber::new();</span>
-<span class="doccomment">//! # let my_dispatch = dispatcher::Dispatch::new(my_subscriber);</span>
-<span class="doccomment">//! // no default subscriber</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! dispatcher::set_global_default(my_dispatch)</span>
-<span class="doccomment">//!     // `set_global_default` will return an error if the global default</span>
-<span class="doccomment">//!     // subscriber has already been set.</span>
-<span class="doccomment">//!     .expect(&quot;global default was already set!&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // `my_subscriber` is now the default</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
-<span class="doccomment">//! &lt;strong&gt;Note&lt;/strong&gt;: The thread-local scoped dispatcher (&lt;code&gt;with_default&lt;/code&gt;)</span>
-<span class="doccomment">//! requires the Rust standard library. &lt;code&gt;no_std&lt;/code&gt; users should</span>
-<span class="doccomment">//! use &lt;a href=&quot;fn.set_global_default.html&quot;&gt;&lt;code&gt;set_global_default&lt;/code&gt;&lt;/a&gt;</span>
-<span class="doccomment">//! instead.</span>
-<span class="doccomment">//! &lt;/pre&gt;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Accessing the Default Subscriber</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A thread&#39;s current default subscriber can be accessed using the</span>
-<span class="doccomment">//! [`get_default`] function, which executes a closure with a reference to the</span>
-<span class="doccomment">//! currently default `Dispatch`. This is used primarily by `tracing`</span>
-<span class="doccomment">//! instrumentation.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Subscriber`]: crate::Subscriber</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../tracing/dispatcher/fn.set_default.html">tracing_core::dispatcher::set_default</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../tracing/dispatcher/fn.with_default.html">tracing_core::dispatcher::with_default</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../tracing/subscriber/struct.DefaultGuard.html">tracing_core::dispatcher::DefaultGuard</a>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tracing_core::dispatcher</span>::{
-    <a class="ident" href="../../tracing/dispatcher/fn.get_default.html">get_default</a>, <a class="ident" href="../../tracing/dispatcher/fn.set_global_default.html">set_global_default</a>, <a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a>, <a class="ident" href="../../tracing/subscriber/struct.SetGlobalDefaultError.html">SetGlobalDefaultError</a>,
+</pre><pre class="rust"><code><span class="doccomment">//! Dispatches trace events to [`Subscriber`]s.
+//!
+//! The _dispatcher_ is the component of the tracing system which is responsible
+//! for forwarding trace data from the instrumentation points that generate it
+//! to the subscriber that collects it.
+//!
+//! # Using the Trace Dispatcher
+//!
+//! Every thread in a program using `tracing` has a _default subscriber_. When
+//! events occur, or spans are created, they are dispatched to the thread&#39;s
+//! current subscriber.
+//!
+//! ## Setting the Default Subscriber
+//!
+//! By default, the current subscriber is an empty implementation that does
+//! nothing. To use a subscriber implementation, it must be set as the default.
+//! There are two methods for doing so: [`with_default`] and
+//! [`set_global_default`]. `with_default` sets the default subscriber for the
+//! duration of a scope, while `set_global_default` sets a default subscriber
+//! for the entire process.
+//!
+//! To use either of these functions, we must first wrap our subscriber in a
+//! [`Dispatch`], a cloneable, type-erased reference to a subscriber. For
+//! example:
+//! ```rust
+//! # pub struct FooSubscriber;
+//! # use tracing_core::{
+//! #   dispatcher, Event, Metadata,
+//! #   span::{Attributes, Id, Record}
+//! # };
+//! # impl tracing_core::Subscriber for FooSubscriber {
+//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }
+//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}
+//! #   fn event(&amp;self, _: &amp;Event) {}
+//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}
+//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }
+//! #   fn enter(&amp;self, _: &amp;Id) {}
+//! #   fn exit(&amp;self, _: &amp;Id) {}
+//! # }
+//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }
+//! use dispatcher::Dispatch;
+//!
+//! let my_subscriber = FooSubscriber::new();
+//! let my_dispatch = Dispatch::new(my_subscriber);
+//! ```
+//! Then, we can use [`with_default`] to set our `Dispatch` as the default for
+//! the duration of a block:
+//! ```rust
+//! # pub struct FooSubscriber;
+//! # use tracing_core::{
+//! #   dispatcher, Event, Metadata,
+//! #   span::{Attributes, Id, Record}
+//! # };
+//! # impl tracing_core::Subscriber for FooSubscriber {
+//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }
+//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}
+//! #   fn event(&amp;self, _: &amp;Event) {}
+//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}
+//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }
+//! #   fn enter(&amp;self, _: &amp;Id) {}
+//! #   fn exit(&amp;self, _: &amp;Id) {}
+//! # }
+//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }
+//! # let my_subscriber = FooSubscriber::new();
+//! # let my_dispatch = dispatcher::Dispatch::new(my_subscriber);
+//! // no default subscriber
+//!
+//! # #[cfg(feature = &quot;std&quot;)]
+//! dispatcher::with_default(&amp;my_dispatch, || {
+//!     // my_subscriber is the default
+//! });
+//!
+//! // no default subscriber again
+//! ```
+//! It&#39;s important to note that `with_default` will not propagate the current
+//! thread&#39;s default subscriber to any threads spawned within the `with_default`
+//! block. To propagate the default subscriber to new threads, either use
+//! `with_default` from the new thread, or use `set_global_default`.
+//!
+//! As an alternative to `with_default`, we can use [`set_global_default`] to
+//! set a `Dispatch` as the default for all threads, for the lifetime of the
+//! program. For example:
+//! ```rust
+//! # pub struct FooSubscriber;
+//! # use tracing_core::{
+//! #   dispatcher, Event, Metadata,
+//! #   span::{Attributes, Id, Record}
+//! # };
+//! # impl tracing_core::Subscriber for FooSubscriber {
+//! #   fn new_span(&amp;self, _: &amp;Attributes) -&gt; Id { Id::from_u64(0) }
+//! #   fn record(&amp;self, _: &amp;Id, _: &amp;Record) {}
+//! #   fn event(&amp;self, _: &amp;Event) {}
+//! #   fn record_follows_from(&amp;self, _: &amp;Id, _: &amp;Id) {}
+//! #   fn enabled(&amp;self, _: &amp;Metadata) -&gt; bool { false }
+//! #   fn enter(&amp;self, _: &amp;Id) {}
+//! #   fn exit(&amp;self, _: &amp;Id) {}
+//! # }
+//! # impl FooSubscriber { fn new() -&gt; Self { FooSubscriber } }
+//! # let my_subscriber = FooSubscriber::new();
+//! # let my_dispatch = dispatcher::Dispatch::new(my_subscriber);
+//! // no default subscriber
+//!
+//! dispatcher::set_global_default(my_dispatch)
+//!     // `set_global_default` will return an error if the global default
+//!     // subscriber has already been set.
+//!     .expect(&quot;global default was already set!&quot;);
+//!
+//! // `my_subscriber` is now the default
+//! ```
+//!
+//! &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;
+//! &lt;strong&gt;Note&lt;/strong&gt;: The thread-local scoped dispatcher (&lt;code&gt;with_default&lt;/code&gt;)
+//! requires the Rust standard library. &lt;code&gt;no_std&lt;/code&gt; users should
+//! use &lt;a href=&quot;fn.set_global_default.html&quot;&gt;&lt;code&gt;set_global_default&lt;/code&gt;&lt;/a&gt;
+//! instead.
+//! &lt;/pre&gt;
+//!
+//! ## Accessing the Default Subscriber
+//!
+//! A thread&#39;s current default subscriber can be accessed using the
+//! [`get_default`] function, which executes a closure with a reference to the
+//! currently default `Dispatch`. This is used primarily by `tracing`
+//! instrumentation.
+//!
+//! [`Subscriber`]: crate::Subscriber
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">pub use </span><a href="../../tracing/dispatcher/fn.set_default.html">tracing_core::dispatcher::set_default</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">pub use </span><a href="../../tracing/dispatcher/fn.with_default.html">tracing_core::dispatcher::with_default</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="kw">pub use </span><a href="../../tracing/subscriber/struct.DefaultGuard.html">tracing_core::dispatcher::DefaultGuard</a>;
+<span class="kw">pub use </span>tracing_core::dispatcher::{
+    <a href="../../tracing/dispatcher/fn.get_default.html">get_default</a>, <a href="../../tracing/dispatcher/fn.set_global_default.html">set_global_default</a>, <a href="../../tracing/struct.Dispatch.html">Dispatch</a>, <a href="../../tracing/subscriber/struct.SetGlobalDefaultError.html">SetGlobalDefaultError</a>,
 };
 
-<span class="doccomment">/// Private API for internal use by tracing&#39;s macros.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is *not* considered part of `tracing`&#39;s public API, and has no</span>
-<span class="doccomment">/// stability guarantees. If you use it, and it breaks or disappears entirely,</span>
-<span class="doccomment">/// don&#39;t say we didn;&#39;t warn you.</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tracing_core::dispatcher::has_been_set</span>;
+<span class="doccomment">/// Private API for internal use by tracing&#39;s macros.
+///
+/// This function is *not* considered part of `tracing`&#39;s public API, and has no
+/// stability guarantees. If you use it, and it breaks or disappears entirely,
+/// don&#39;t say we didn;&#39;t warn you.
+</span><span class="attribute">#[doc(hidden)]
+</span><span class="kw">pub use </span>tracing_core::dispatcher::has_been_set;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

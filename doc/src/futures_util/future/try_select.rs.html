@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/future/try_select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/future/try_select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try_select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -82,89 +82,89 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::future</span>::{<a class="ident" href="../../../src/futures_util/future/either.rs.html#28">Either</a>, <a class="ident" href="../../../src/futures_util/future/try_future/mod.rs.html#137">TryFutureExt</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">futures_core::future</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::{<a href="../../../src/futures_util/future/either.rs.html#28">Either</a>, <a href="../../../src/futures_util/future/try_future/mod.rs.html#137">TryFutureExt</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>futures_core::future::{<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// Future for the [`try_select()`] function.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrySelect</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">A</span>, <span class="ident">B</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// Future for the [`try_select()`] function.
+</span><span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+#[derive(Debug)]
+</span><span class="kw">pub struct </span>TrySelect&lt;A, B&gt; {
+    inner: <span class="prelude-ty">Option</span>&lt;(A, B)&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, <span class="ident">B</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">TrySelect</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;A: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, B: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>TrySelect&lt;A, B&gt; {}
 
-<span class="doccomment">/// Waits for either one of two differently-typed futures to complete.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will return a new future which awaits for either one of both</span>
-<span class="doccomment">/// futures to complete. The returned future will finish with both the value</span>
-<span class="doccomment">/// resolved and a future representing the completion of the other work.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that this function consumes the receiving futures and returns a</span>
-<span class="doccomment">/// wrapped version of them.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Also note that if both this and the second future have the same</span>
-<span class="doccomment">/// success/error type you can use the `Either::factor_first` method to</span>
-<span class="doccomment">/// conveniently extract out the value at the end.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use futures::future::{self, Either, Future, FutureExt, TryFuture, TryFutureExt};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // A poor-man&#39;s try_join implemented on top of select</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn try_join&lt;A, B, E&gt;(a: A, b: B) -&gt; impl TryFuture&lt;Ok=(A::Ok, B::Ok), Error=E&gt;</span>
-<span class="doccomment">///      where A: TryFuture&lt;Error = E&gt; + Unpin + &#39;static,</span>
-<span class="doccomment">///            B: TryFuture&lt;Error = E&gt; + Unpin + &#39;static,</span>
-<span class="doccomment">///            E: &#39;static,</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     future::try_select(a, b).then(|res| -&gt; Box&lt;dyn Future&lt;Output = Result&lt;_, _&gt;&gt; + Unpin&gt; {</span>
-<span class="doccomment">///         match res {</span>
-<span class="doccomment">///             Ok(Either::Left((x, b))) =&gt; Box::new(b.map_ok(move |y| (x, y))),</span>
-<span class="doccomment">///             Ok(Either::Right((y, a))) =&gt; Box::new(a.map_ok(move |x| (x, y))),</span>
-<span class="doccomment">///             Err(Either::Left((e, _))) =&gt; Box::new(future::err(e)),</span>
-<span class="doccomment">///             Err(Either::Right((e, _))) =&gt; Box::new(future::err(e)),</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     })</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_select</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">future1</span>: <span class="ident">A</span>, <span class="ident">future2</span>: <span class="ident">B</span>) -&gt; <span class="ident">TrySelect</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">B</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="doccomment">/// Waits for either one of two differently-typed futures to complete.
+///
+/// This function will return a new future which awaits for either one of both
+/// futures to complete. The returned future will finish with both the value
+/// resolved and a future representing the completion of the other work.
+///
+/// Note that this function consumes the receiving futures and returns a
+/// wrapped version of them.
+///
+/// Also note that if both this and the second future have the same
+/// success/error type you can use the `Either::factor_first` method to
+/// conveniently extract out the value at the end.
+///
+/// # Examples
+///
+/// ```
+/// use futures::future::{self, Either, Future, FutureExt, TryFuture, TryFutureExt};
+///
+/// // A poor-man&#39;s try_join implemented on top of select
+///
+/// fn try_join&lt;A, B, E&gt;(a: A, b: B) -&gt; impl TryFuture&lt;Ok=(A::Ok, B::Ok), Error=E&gt;
+///      where A: TryFuture&lt;Error = E&gt; + Unpin + &#39;static,
+///            B: TryFuture&lt;Error = E&gt; + Unpin + &#39;static,
+///            E: &#39;static,
+/// {
+///     future::try_select(a, b).then(|res| -&gt; Box&lt;dyn Future&lt;Output = Result&lt;_, _&gt;&gt; + Unpin&gt; {
+///         match res {
+///             Ok(Either::Left((x, b))) =&gt; Box::new(b.map_ok(move |y| (x, y))),
+///             Ok(Either::Right((y, a))) =&gt; Box::new(a.map_ok(move |x| (x, y))),
+///             Err(Either::Left((e, _))) =&gt; Box::new(future::err(e)),
+///             Err(Either::Right((e, _))) =&gt; Box::new(future::err(e)),
+///         }
+///     })
+/// }
+/// ```
+</span><span class="kw">pub fn </span>try_select&lt;A, B&gt;(future1: A, future2: B) -&gt; TrySelect&lt;A, B&gt;
+<span class="kw">where
+    </span>A: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    B: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="ident"><span class="kw">super</span>::assert_future</span>::<span class="op">&lt;</span>
-        <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span>(<span class="ident">A::Ok</span>, <span class="ident">B</span>), (<span class="ident">B::Ok</span>, <span class="ident">A</span>)<span class="op">&gt;</span>, <span class="ident">Either</span><span class="op">&lt;</span>(<span class="ident">A::Error</span>, <span class="ident">B</span>), (<span class="ident">B::Error</span>, <span class="ident">A</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">super</span>::assert_future::&lt;
+        <span class="prelude-ty">Result</span>&lt;Either&lt;(A::Ok, B), (B::Ok, A)&gt;, Either&lt;(A::Error, B), (B::Error, A)&gt;&gt;,
         <span class="kw">_</span>,
-    <span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#9">TrySelect</a> { <span class="ident">inner</span>: <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#50">future1</a>, <a class="ident" href="../../../src/futures_util/future/try_select.rs.html#50">future2</a>)) })
+    &gt;(<a href="../../../src/futures_util/future/try_select.rs.html#9">TrySelect</a> { inner: <span class="prelude-val">Some</span>((<a href="../../../src/futures_util/future/try_select.rs.html#50">future1</a>, <a href="../../../src/futures_util/future/try_select.rs.html#50">future2</a>)) })
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, <span class="ident">B</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">TrySelect</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>,
-    <span class="ident">B</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>,
+<span class="kw">impl</span>&lt;A: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, B: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>TrySelect&lt;A, B&gt;
+<span class="kw">where
+    </span>A: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>,
+    B: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>,
 {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::type_complexity</span>)]</span>
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span>(<span class="ident">A::Ok</span>, <span class="ident">B</span>), (<span class="ident">B::Ok</span>, <span class="ident">A</span>)<span class="op">&gt;</span>, <span class="ident">Either</span><span class="op">&lt;</span>(<span class="ident">A::Error</span>, <span class="ident">B</span>), (<span class="ident">B::Error</span>, <span class="ident">A</span>)<span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="attribute">#[allow(clippy::type_complexity)]
+    </span><span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;Either&lt;(A::Ok, B), (B::Ok, A)&gt;, Either&lt;(A::Error, B), (B::Error, A)&gt;&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">a</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> <a class="self" href="../../../src/futures_util/future/try_select.rs.html#69">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;cannot poll Select twice&quot;</span>);
-        <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/future/try_select.rs.html#70">a</a>.<a class="ident" href="../../../src/futures_util/future/try_future/mod.rs.html#613-615">try_poll_unpin</a>(<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#69">cx</a>) {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">x</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#72">x</a>, <a class="ident" href="../../../src/futures_util/future/try_select.rs.html#70">b</a>)))),
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">x</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#73">x</a>, <a class="ident" href="../../../src/futures_util/future/try_select.rs.html#70">b</a>)))),
-            <span class="ident">Poll::Pending</span> =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/future/try_select.rs.html#70">b</a>.<a class="ident" href="../../../src/futures_util/future/try_future/mod.rs.html#613-615">try_poll_unpin</a>(<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#69">cx</a>) {
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">x</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#75">x</a>, <a class="ident" href="../../../src/futures_util/future/try_select.rs.html#70">a</a>)))),
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">x</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#76">x</a>, <a class="ident" href="../../../src/futures_util/future/try_select.rs.html#70">a</a>)))),
-                <span class="ident">Poll::Pending</span> =&gt; {
-                    <a class="self" href="../../../src/futures_util/future/try_select.rs.html#69">self</a>.<span class="ident">inner</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/futures_util/future/try_select.rs.html#70">a</a>, <a class="ident" href="../../../src/futures_util/future/try_select.rs.html#70">b</a>));
-                    <span class="ident">Poll::Pending</span>
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>a, <span class="kw-2">mut </span>b) = <a class="self" href="../../../src/futures_util/future/try_select.rs.html#69">self</a>.inner.take().expect(<span class="string">&quot;cannot poll Select twice&quot;</span>);
+        <span class="kw">match </span><a href="../../../src/futures_util/future/try_select.rs.html#70">a</a>.<a href="../../../src/futures_util/future/try_future/mod.rs.html#619-621">try_poll_unpin</a>(<a href="../../../src/futures_util/future/try_select.rs.html#69">cx</a>) {
+            Poll::Ready(<span class="prelude-val">Err</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((<a href="../../../src/futures_util/future/try_select.rs.html#72">x</a>, <a href="../../../src/futures_util/future/try_select.rs.html#70">b</a>)))),
+            Poll::Ready(<span class="prelude-val">Ok</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/future/either.rs.html#30">Either::Left</a>((<a href="../../../src/futures_util/future/try_select.rs.html#73">x</a>, <a href="../../../src/futures_util/future/try_select.rs.html#70">b</a>)))),
+            Poll::Pending =&gt; <span class="kw">match </span><a href="../../../src/futures_util/future/try_select.rs.html#70">b</a>.<a href="../../../src/futures_util/future/try_future/mod.rs.html#619-621">try_poll_unpin</a>(<a href="../../../src/futures_util/future/try_select.rs.html#69">cx</a>) {
+                Poll::Ready(<span class="prelude-val">Err</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((<a href="../../../src/futures_util/future/try_select.rs.html#75">x</a>, <a href="../../../src/futures_util/future/try_select.rs.html#70">a</a>)))),
+                Poll::Ready(<span class="prelude-val">Ok</span>(x)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/future/either.rs.html#32">Either::Right</a>((<a href="../../../src/futures_util/future/try_select.rs.html#76">x</a>, <a href="../../../src/futures_util/future/try_select.rs.html#70">a</a>)))),
+                Poll::Pending =&gt; {
+                    <a class="self" href="../../../src/futures_util/future/try_select.rs.html#69">self</a>.inner = <span class="prelude-val">Some</span>((<a href="../../../src/futures_util/future/try_select.rs.html#70">a</a>, <a href="../../../src/futures_util/future/try_select.rs.html#70">b</a>));
+                    Poll::Pending
                 }
             },
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

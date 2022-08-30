@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/take.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>take.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/take.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>take.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -153,160 +153,160 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>, <a class="ident" href="../../../src/bytes/bytes.rs.html#100">Bytes</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>, <a href="../../../src/bytes/bytes.rs.html#100">Bytes</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
 
-<span class="doccomment">/// A `Buf` adapter which limits the bytes read from an underlying buffer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct is generally created by calling `take()` on `Buf`. See</span>
-<span class="doccomment">/// documentation of [`take()`](trait.Buf.html#method.take) for more details.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">T</span>,
-    <span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// A `Buf` adapter which limits the bytes read from an underlying buffer.
+///
+/// This struct is generally created by calling `take()` on `Buf`. See
+/// documentation of [`take()`](trait.Buf.html#method.take) for more details.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Take&lt;T&gt; {
+    inner: T,
+    limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">inner</span>: <span class="ident">T</span>, <span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/bytes/buf/take.rs.html#10">Take</a> { <a class="ident" href="../../../src/bytes/buf/take.rs.html#15">inner</a>, <a class="ident" href="../../../src/bytes/buf/take.rs.html#15">limit</a> }
+<span class="kw">pub fn </span>new&lt;T&gt;(inner: T, limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Take&lt;T&gt; {
+    <a href="../../../src/bytes/buf/take.rs.html#10">Take</a> { <a href="../../../src/bytes/buf/take.rs.html#15">inner</a>, <a href="../../../src/bytes/buf/take.rs.html#15">limit</a> }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Consumes this `Take`, returning the underlying value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use bytes::{Buf, BufMut};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = b&quot;hello world&quot;.take(2);</span>
-    <span class="doccomment">/// let mut dst = vec![];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// dst.put(&amp;mut buf);</span>
-    <span class="doccomment">/// assert_eq!(*dst, b&quot;he&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = buf.into_inner();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// dst.clear();</span>
-    <span class="doccomment">/// dst.put(&amp;mut buf);</span>
-    <span class="doccomment">/// assert_eq!(*dst, b&quot;llo world&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../../src/bytes/buf/take.rs.html#39">self</a>.<span class="ident">inner</span>
+<span class="kw">impl</span>&lt;T&gt; Take&lt;T&gt; {
+    <span class="doccomment">/// Consumes this `Take`, returning the underlying value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use bytes::{Buf, BufMut};
+    ///
+    /// let mut buf = b&quot;hello world&quot;.take(2);
+    /// let mut dst = vec![];
+    ///
+    /// dst.put(&amp;mut buf);
+    /// assert_eq!(*dst, b&quot;he&quot;[..]);
+    ///
+    /// let mut buf = buf.into_inner();
+    ///
+    /// dst.clear();
+    /// dst.put(&amp;mut buf);
+    /// assert_eq!(*dst, b&quot;llo world&quot;[..]);
+    /// ```
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <a class="self" href="../../../src/bytes/buf/take.rs.html#39">self</a>.inner
     }
 
-    <span class="doccomment">/// Gets a reference to the underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is inadvisable to directly read from the underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use bytes::Buf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let buf = b&quot;hello world&quot;.take(2);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(11, buf.get_ref().remaining());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/take.rs.html#56">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Gets a reference to the underlying `Buf`.
+    ///
+    /// It is inadvisable to directly read from the underlying `Buf`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use bytes::Buf;
+    ///
+    /// let buf = b&quot;hello world&quot;.take(2);
+    ///
+    /// assert_eq!(11, buf.get_ref().remaining());
+    /// ```
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/bytes/buf/take.rs.html#56">self</a>.inner
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is inadvisable to directly read from the underlying `Buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use bytes::{Buf, BufMut};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = b&quot;hello world&quot;.take(2);</span>
-    <span class="doccomment">/// let mut dst = vec![];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buf.get_mut().advance(2);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// dst.put(&amp;mut buf);</span>
-    <span class="doccomment">/// assert_eq!(*dst, b&quot;ll&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/bytes/buf/take.rs.html#77">self</a>.<span class="ident">inner</span>
+    <span class="doccomment">/// Gets a mutable reference to the underlying `Buf`.
+    ///
+    /// It is inadvisable to directly read from the underlying `Buf`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use bytes::{Buf, BufMut};
+    ///
+    /// let mut buf = b&quot;hello world&quot;.take(2);
+    /// let mut dst = vec![];
+    ///
+    /// buf.get_mut().advance(2);
+    ///
+    /// dst.put(&amp;mut buf);
+    /// assert_eq!(*dst, b&quot;ll&quot;[..]);
+    /// ```
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/bytes/buf/take.rs.html#77">self</a>.inner
     }
 
-    <span class="doccomment">/// Returns the maximum number of bytes that can be read.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the inner `Buf` has fewer bytes than indicated by this method then</span>
-    <span class="doccomment">/// that is the actual number of available bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use bytes::Buf;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = b&quot;hello world&quot;.take(2);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(2, buf.limit());</span>
-    <span class="doccomment">/// assert_eq!(b&#39;h&#39;, buf.get_u8());</span>
-    <span class="doccomment">/// assert_eq!(1, buf.limit());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">limit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/bytes/buf/take.rs.html#99">self</a>.<span class="ident">limit</span>
+    <span class="doccomment">/// Returns the maximum number of bytes that can be read.
+    ///
+    /// # Note
+    ///
+    /// If the inner `Buf` has fewer bytes than indicated by this method then
+    /// that is the actual number of available bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use bytes::Buf;
+    ///
+    /// let mut buf = b&quot;hello world&quot;.take(2);
+    ///
+    /// assert_eq!(2, buf.limit());
+    /// assert_eq!(b&#39;h&#39;, buf.get_u8());
+    /// assert_eq!(1, buf.limit());
+    /// ```
+    </span><span class="kw">pub fn </span>limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/bytes/buf/take.rs.html#99">self</a>.limit
     }
 
-    <span class="doccomment">/// Sets the maximum number of bytes that can be read.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the inner `Buf` has fewer bytes than `lim` then that is the actual</span>
-    <span class="doccomment">/// number of available bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use bytes::{Buf, BufMut};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = b&quot;hello world&quot;.take(2);</span>
-    <span class="doccomment">/// let mut dst = vec![];</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// dst.put(&amp;mut buf);</span>
-    <span class="doccomment">/// assert_eq!(*dst, b&quot;he&quot;[..]);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// dst.clear();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// buf.set_limit(3);</span>
-    <span class="doccomment">/// dst.put(&amp;mut buf);</span>
-    <span class="doccomment">/// assert_eq!(*dst, b&quot;llo&quot;[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_limit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lim</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/bytes/buf/take.rs.html#127">self</a>.<span class="ident">limit</span> <span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/take.rs.html#127">lim</a>
+    <span class="doccomment">/// Sets the maximum number of bytes that can be read.
+    ///
+    /// # Note
+    ///
+    /// If the inner `Buf` has fewer bytes than `lim` then that is the actual
+    /// number of available bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use bytes::{Buf, BufMut};
+    ///
+    /// let mut buf = b&quot;hello world&quot;.take(2);
+    /// let mut dst = vec![];
+    ///
+    /// dst.put(&amp;mut buf);
+    /// assert_eq!(*dst, b&quot;he&quot;[..]);
+    ///
+    /// dst.clear();
+    ///
+    /// buf.set_limit(3);
+    /// dst.put(&amp;mut buf);
+    /// assert_eq!(*dst, b&quot;llo&quot;[..]);
+    /// ```
+    </span><span class="kw">pub fn </span>set_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lim: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/bytes/buf/take.rs.html#127">self</a>.limit = <a href="../../../src/bytes/buf/take.rs.html#127">lim</a>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a><span class="op">&gt;</span> <a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a> <span class="kw">for</span> <span class="ident">Take</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="ident">cmp::min</span>(<a class="self" href="../../../src/bytes/buf/take.rs.html#133">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>(), <a class="self" href="../../../src/bytes/buf/take.rs.html#133">self</a>.<span class="ident">limit</span>)
+<span class="kw">impl</span>&lt;T: <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a>&gt; <a href="../../../src/bytes/buf/buf_impl.rs.html#76">Buf</a> <span class="kw">for </span>Take&lt;T&gt; {
+    <span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        cmp::min(<a class="self" href="../../../src/bytes/buf/take.rs.html#133">self</a>.inner.<a href="../../../src/bytes/buf/buf_impl.rs.html#102">remaining</a>(), <a class="self" href="../../../src/bytes/buf/take.rs.html#133">self</a>.limit)
     }
 
-    <span class="kw">fn</span> <span class="ident">chunk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/take.rs.html#137">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>();
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/bytes/buf/take.rs.html#138">bytes</a>[..<span class="ident">cmp::min</span>(<a class="ident" href="../../../src/bytes/buf/take.rs.html#138">bytes</a>.<span class="ident">len</span>(), <a class="self" href="../../../src/bytes/buf/take.rs.html#137">self</a>.<span class="ident">limit</span>)]
+    <span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">let </span>bytes = <a class="self" href="../../../src/bytes/buf/take.rs.html#137">self</a>.inner.<a href="../../../src/bytes/buf/buf_impl.rs.html#133">chunk</a>();
+        <span class="kw-2">&amp;</span><a href="../../../src/bytes/buf/take.rs.html#138">bytes</a>[..cmp::min(<a href="../../../src/bytes/buf/take.rs.html#138">bytes</a>.len(), <a class="self" href="../../../src/bytes/buf/take.rs.html#137">self</a>.limit)]
     }
 
-    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">cnt</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">limit</span>);
-        <a class="self" href="../../../src/bytes/buf/take.rs.html#142">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<a class="ident" href="../../../src/bytes/buf/take.rs.html#142">cnt</a>);
-        <a class="self" href="../../../src/bytes/buf/take.rs.html#142">self</a>.<span class="ident">limit</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/take.rs.html#142">cnt</a>;
+    <span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(cnt &lt;= <span class="self">self</span>.limit);
+        <a class="self" href="../../../src/bytes/buf/take.rs.html#142">self</a>.inner.<a href="../../../src/bytes/buf/buf_impl.rs.html#206">advance</a>(<a href="../../../src/bytes/buf/take.rs.html#142">cnt</a>);
+        <a class="self" href="../../../src/bytes/buf/take.rs.html#142">self</a>.limit -= <a href="../../../src/bytes/buf/take.rs.html#142">cnt</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">copy_to_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/bytes/bytes.rs.html#100">Bytes</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">remaining</span>(), <span class="string">&quot;`len` greater than remaining&quot;</span>);
+    <span class="kw">fn </span>copy_to_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/bytes/bytes.rs.html#100">Bytes</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(len &lt;= <span class="self">self</span>.remaining(), <span class="string">&quot;`len` greater than remaining&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <a class="self" href="../../../src/bytes/buf/take.rs.html#148">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/bytes/buf/buf_impl.rs.html#816">copy_to_bytes</a>(<a class="ident" href="../../../src/bytes/buf/take.rs.html#148">len</a>);
-        <a class="self" href="../../../src/bytes/buf/take.rs.html#148">self</a>.<span class="ident">limit</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/bytes/buf/take.rs.html#148">len</a>;
-        <a class="ident" href="../../../src/bytes/buf/take.rs.html#151">r</a>
+        <span class="kw">let </span>r = <a class="self" href="../../../src/bytes/buf/take.rs.html#148">self</a>.inner.<a href="../../../src/bytes/buf/buf_impl.rs.html#816">copy_to_bytes</a>(<a href="../../../src/bytes/buf/take.rs.html#148">len</a>);
+        <a class="self" href="../../../src/bytes/buf/take.rs.html#148">self</a>.limit -= <a href="../../../src/bytes/buf/take.rs.html#148">len</a>;
+        <a href="../../../src/bytes/buf/take.rs.html#151">r</a>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

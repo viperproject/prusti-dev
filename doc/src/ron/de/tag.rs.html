@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ron-0.7.1/src/de/tag.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tag.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../ron/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ron-0.7.1/src/de/tag.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tag.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../ron/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -247,254 +247,254 @@
 <span id="247">247</span>
 <span id="248">248</span>
 <span id="249">249</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">serde::de</span>::{<a class="self" href="../../../serde/de/index.html">self</a>, <a class="ident" href="../../../serde/de/trait.Visitor.html">Visitor</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>serde::de::{<a class="self" href="../../../serde/de/index.html">self</a>, <a href="../../../serde/de/trait.Visitor.html">Visitor</a>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/ron/de/mod.rs.html#24">Deserializer</a>, <a class="ident" href="../../../src/ron/error.rs.html#7">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use super</span>::{<a href="../../../src/ron/de/mod.rs.html#24">Deserializer</a>, <a href="../../../src/ron/error.rs.html#7">Error</a>, <span class="prelude-ty">Result</span>};
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TagDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>TagDeserializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>&gt; {
+    d: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">&#39;b</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">TagDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/ron/de/tag.rs.html#5">TagDeserializer</a> { <a class="ident" href="../../../src/ron/de/tag.rs.html#10">d</a> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>&gt; TagDeserializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+    <span class="kw">pub fn </span>new(d: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">&#39;b</span>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/ron/de/tag.rs.html#5">TagDeserializer</a> { <a href="../../../src/ron/de/tag.rs.html#10">d</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">TagDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/ron/error.rs.html#7">Error</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>&gt; de::Deserializer&lt;<span class="lifetime">&#39;b</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><span class="kw-2">mut </span>TagDeserializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+    <span class="kw">type </span>Error = <a href="../../../src/ron/error.rs.html#7">Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">deserialize_str</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#18">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#18">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#18">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="../../../src/ron/de/tag.rs.html#18">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_identifier</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_identifier&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#25">self</a>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#25">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#25">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="../../../src/ron/de/tag.rs.html#25">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#32">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_any</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#32">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#32">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_any</a>(<a href="../../../src/ron/de/tag.rs.html#32">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_bool</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_bool&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#39">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_bool</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#39">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#39">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_bool</a>(<a href="../../../src/ron/de/tag.rs.html#39">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i8</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i8&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#46">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_i8</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#46">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#46">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_i8</a>(<a href="../../../src/ron/de/tag.rs.html#46">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i16</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i16&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#53">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_i16</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#53">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#53">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_i16</a>(<a href="../../../src/ron/de/tag.rs.html#53">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i32</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#60">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_i32</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#60">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#60">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_i32</a>(<a href="../../../src/ron/de/tag.rs.html#60">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i64</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#67">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_i64</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#67">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#67">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_i64</a>(<a href="../../../src/ron/de/tag.rs.html#67">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i128</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#74">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_i128</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#74">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#74">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_i128</a>(<a href="../../../src/ron/de/tag.rs.html#74">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u8</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u8&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#81">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_u8</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#81">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#81">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_u8</a>(<a href="../../../src/ron/de/tag.rs.html#81">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u16</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u16&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#88">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_u16</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#88">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#88">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_u16</a>(<a href="../../../src/ron/de/tag.rs.html#88">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u32</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#95">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_u32</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#95">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#95">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_u32</a>(<a href="../../../src/ron/de/tag.rs.html#95">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u64</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#102">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_u64</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#102">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#102">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_u64</a>(<a href="../../../src/ron/de/tag.rs.html#102">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u128</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#109">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_u128</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#109">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#109">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_u128</a>(<a href="../../../src/ron/de/tag.rs.html#109">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_f32</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_f32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#116">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_f32</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#116">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#116">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_f32</a>(<a href="../../../src/ron/de/tag.rs.html#116">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_f64</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_f64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#123">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_f64</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#123">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#123">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_f64</a>(<a href="../../../src/ron/de/tag.rs.html#123">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_char</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_char&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#130">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_char</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#130">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#130">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_char</a>(<a href="../../../src/ron/de/tag.rs.html#130">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_string</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_string&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#137">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_string</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#137">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#137">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_string</a>(<a href="../../../src/ron/de/tag.rs.html#137">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_bytes</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_bytes&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#144">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#144">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#144">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="../../../src/ron/de/tag.rs.html#144">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_byte_buf</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_byte_buf&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#151">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_byte_buf</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#151">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#151">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_byte_buf</a>(<a href="../../../src/ron/de/tag.rs.html#151">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#158">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_option</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#158">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#158">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_option</a>(<a href="../../../src/ron/de/tag.rs.html#158">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_unit</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_unit&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#165">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_unit</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#165">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#165">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_unit</a>(<a href="../../../src/ron/de/tag.rs.html#165">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_unit_struct</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_unit_struct&lt;V&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#172">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_unit_struct</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#172">name</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#172">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#172">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_unit_struct</a>(<a href="../../../src/ron/de/tag.rs.html#172">name</a>, <a href="../../../src/ron/de/tag.rs.html#172">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_newtype_struct</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#179">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_newtype_struct</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#179">name</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#179">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#179">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_newtype_struct</a>(<a href="../../../src/ron/de/tag.rs.html#179">name</a>, <a href="../../../src/ron/de/tag.rs.html#179">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_seq</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#186">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#186">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#186">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="../../../src/ron/de/tag.rs.html#186">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_tuple</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_tuple&lt;V&gt;(<span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#193">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_tuple</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#193">len</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#193">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#193">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_tuple</a>(<a href="../../../src/ron/de/tag.rs.html#193">len</a>, <a href="../../../src/ron/de/tag.rs.html#193">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_tuple_struct</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>deserialize_tuple_struct&lt;V&gt;(
         <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        visitor: V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#201">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_tuple_struct</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#202">name</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#203">len</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#204">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#201">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_tuple_struct</a>(<a href="../../../src/ron/de/tag.rs.html#202">name</a>, <a href="../../../src/ron/de/tag.rs.html#203">len</a>, <a href="../../../src/ron/de/tag.rs.html#204">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_map</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_map&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#212">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_map</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#212">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#212">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_map</a>(<a href="../../../src/ron/de/tag.rs.html#212">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_struct</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>deserialize_struct&lt;V&gt;(
         <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
-        <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
+        visitor: V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#220">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_struct</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#221">name</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#222">fields</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#223">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#220">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_struct</a>(<a href="../../../src/ron/de/tag.rs.html#221">name</a>, <a href="../../../src/ron/de/tag.rs.html#222">fields</a>, <a href="../../../src/ron/de/tag.rs.html#223">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">variants</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
-        <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
+        visitor: V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#232">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_enum</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#233">name</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#234">variants</a>, <a class="ident" href="../../../src/ron/de/tag.rs.html#235">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#232">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_enum</a>(<a href="../../../src/ron/de/tag.rs.html#233">name</a>, <a href="../../../src/ron/de/tag.rs.html#234">variants</a>, <a href="../../../src/ron/de/tag.rs.html#235">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_ignored_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;b</span>&gt;,
     {
-        <a class="self" href="../../../src/ron/de/tag.rs.html#243">self</a>.<span class="ident">d</span>.<a class="ident" href="../../../serde/de/trait.Deserializer.html">deserialize_ignored_any</a>(<a class="ident" href="../../../src/ron/de/tag.rs.html#243">visitor</a>)
+        <a class="self" href="../../../src/ron/de/tag.rs.html#243">self</a>.d.<a href="../../../serde/de/trait.Deserializer.html">deserialize_ignored_any</a>(<a href="../../../src/ron/de/tag.rs.html#243">visitor</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="ron" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="ron" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

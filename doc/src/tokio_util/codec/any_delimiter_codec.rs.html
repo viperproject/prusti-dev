@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/any_delimiter_codec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>any_delimiter_codec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/any_delimiter_codec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>any_delimiter_codec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -261,268 +261,268 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35"><span class="kw">crate</span>::codec::decoder::Decoder</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio_util/codec/encoder.rs.html#8"><span class="kw">crate</span>::codec::encoder::Encoder</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/tokio_util/codec/decoder.rs.html#35"><span class="kw">crate</span>::codec::decoder::Decoder</a>;
+<span class="kw">use </span><a href="../../../src/tokio_util/codec/encoder.rs.html#8"><span class="kw">crate</span>::codec::encoder::Encoder</a>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/usize/index.html">usize</a>};
+<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>, <a href="https://doc.rust-lang.org/nightly/core/usize/index.html">usize</a>};
 
-<span class="kw">const</span> <span class="ident">DEFAULT_SEEK_DELIMITERS</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="string">b&quot;,;\n\r&quot;</span>;
-<span class="kw">const</span> <span class="ident">DEFAULT_SEQUENCE_WRITER</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="string">b&quot;,&quot;</span>;
-<span class="doccomment">/// A simple [`Decoder`] and [`Encoder`] implementation that splits up data into chunks based on any character in the given delimiter string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Decoder`]: crate::codec::Decoder</span>
-<span class="doccomment">/// [`Encoder`]: crate::codec::Encoder</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// Decode string of bytes containing various different delimiters.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`BytesMut`]: bytes::BytesMut</span>
-<span class="doccomment">/// [`Error`]: std::io::Error</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use tokio_util::codec::{AnyDelimiterCodec, Decoder};</span>
-<span class="doccomment">/// use bytes::{BufMut, BytesMut};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # #[tokio::main(flavor = &quot;current_thread&quot;)]</span>
-<span class="doccomment">/// # async fn main() -&gt; Result&lt;(), std::io::Error&gt; {</span>
-<span class="doccomment">/// let mut codec = AnyDelimiterCodec::new(b&quot;,;\r\n&quot;.to_vec(),b&quot;;&quot;.to_vec());</span>
-<span class="doccomment">/// let buf = &amp;mut BytesMut::new();</span>
-<span class="doccomment">/// buf.reserve(200);</span>
-<span class="doccomment">/// buf.put_slice(b&quot;chunk 1,chunk 2;chunk 3\n\r&quot;);</span>
-<span class="doccomment">/// assert_eq!(&quot;chunk 1&quot;, codec.decode(buf).unwrap().unwrap());</span>
-<span class="doccomment">/// assert_eq!(&quot;chunk 2&quot;, codec.decode(buf).unwrap().unwrap());</span>
-<span class="doccomment">/// assert_eq!(&quot;chunk 3&quot;, codec.decode(buf).unwrap().unwrap());</span>
-<span class="doccomment">/// assert_eq!(&quot;&quot;, codec.decode(buf).unwrap().unwrap());</span>
-<span class="doccomment">/// assert_eq!(None, codec.decode(buf).unwrap());</span>
-<span class="doccomment">/// # Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnyDelimiterCodec</span> {
-    <span class="comment">// Stored index of the next index to examine for the delimiter character.</span>
-    <span class="comment">// This is used to optimize searching.</span>
-    <span class="comment">// For example, if `decode` was called with `abc` and the delimiter is &#39;{}&#39;, it would hold `3`,</span>
-    <span class="comment">// because that is the next index to examine.</span>
-    <span class="comment">// The next time `decode` is called with `abcde}`, the method will</span>
-    <span class="comment">// only look at `de}` before returning.</span>
-    <span class="ident">next_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="kw">const </span>DEFAULT_SEEK_DELIMITERS: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <span class="string">b&quot;,;\n\r&quot;</span>;
+<span class="kw">const </span>DEFAULT_SEQUENCE_WRITER: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <span class="string">b&quot;,&quot;</span>;
+<span class="doccomment">/// A simple [`Decoder`] and [`Encoder`] implementation that splits up data into chunks based on any character in the given delimiter string.
+///
+/// [`Decoder`]: crate::codec::Decoder
+/// [`Encoder`]: crate::codec::Encoder
+///
+/// # Example
+/// Decode string of bytes containing various different delimiters.
+///
+/// [`BytesMut`]: bytes::BytesMut
+/// [`Error`]: std::io::Error
+///
+/// ```
+/// use tokio_util::codec::{AnyDelimiterCodec, Decoder};
+/// use bytes::{BufMut, BytesMut};
+///
+/// #
+/// # #[tokio::main(flavor = &quot;current_thread&quot;)]
+/// # async fn main() -&gt; Result&lt;(), std::io::Error&gt; {
+/// let mut codec = AnyDelimiterCodec::new(b&quot;,;\r\n&quot;.to_vec(),b&quot;;&quot;.to_vec());
+/// let buf = &amp;mut BytesMut::new();
+/// buf.reserve(200);
+/// buf.put_slice(b&quot;chunk 1,chunk 2;chunk 3\n\r&quot;);
+/// assert_eq!(&quot;chunk 1&quot;, codec.decode(buf).unwrap().unwrap());
+/// assert_eq!(&quot;chunk 2&quot;, codec.decode(buf).unwrap().unwrap());
+/// assert_eq!(&quot;chunk 3&quot;, codec.decode(buf).unwrap().unwrap());
+/// assert_eq!(&quot;&quot;, codec.decode(buf).unwrap().unwrap());
+/// assert_eq!(None, codec.decode(buf).unwrap());
+/// # Ok(())
+/// # }
+/// ```
+///
+</span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+</span><span class="kw">pub struct </span>AnyDelimiterCodec {
+    <span class="comment">// Stored index of the next index to examine for the delimiter character.
+    // This is used to optimize searching.
+    // For example, if `decode` was called with `abc` and the delimiter is &#39;{}&#39;, it would hold `3`,
+    // because that is the next index to examine.
+    // The next time `decode` is called with `abcde}`, the method will
+    // only look at `de}` before returning.
+    </span>next_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
-    <span class="doccomment">/// The maximum length for a given chunk. If `usize::MAX`, chunks will be</span>
-    <span class="doccomment">/// read until a delimiter character is reached.</span>
-    <span class="ident">max_length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// The maximum length for a given chunk. If `usize::MAX`, chunks will be
+    /// read until a delimiter character is reached.
+    </span>max_length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
-    <span class="doccomment">/// Are we currently discarding the remainder of a chunk which was over</span>
-    <span class="doccomment">/// the length limit?</span>
-    <span class="ident">is_discarding</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// Are we currently discarding the remainder of a chunk which was over
+    /// the length limit?
+    </span>is_discarding: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 
-    <span class="doccomment">/// The bytes that are using for search during decode</span>
-    <span class="ident">seek_delimiters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// The bytes that are using for search during decode
+    </span>seek_delimiters: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 
-    <span class="doccomment">/// The bytes that are using for encoding</span>
-    <span class="ident">sequence_writer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// The bytes that are using for encoding
+    </span>sequence_writer: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
-    <span class="doccomment">/// Returns a `AnyDelimiterCodec` for splitting up data into chunks.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned `AnyDelimiterCodec` will not have an upper bound on the length</span>
-    <span class="doccomment">/// of a buffered chunk. See the documentation for [`new_with_max_length`]</span>
-    <span class="doccomment">/// for information on why this could be a potential security risk.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`new_with_max_length`]: crate::codec::AnyDelimiterCodec::new_with_max_length()</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">seek_delimiters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="ident">sequence_writer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
-        <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
-            <span class="ident">next_index</span>: <span class="number">0</span>,
-            <span class="ident">max_length</span>: <span class="ident">usize::MAX</span>,
-            <span class="ident">is_discarding</span>: <span class="bool-val">false</span>,
-            <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#75">seek_delimiters</a>,
-            <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#75">sequence_writer</a>,
+<span class="kw">impl </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
+    <span class="doccomment">/// Returns a `AnyDelimiterCodec` for splitting up data into chunks.
+    ///
+    /// # Note
+    ///
+    /// The returned `AnyDelimiterCodec` will not have an upper bound on the length
+    /// of a buffered chunk. See the documentation for [`new_with_max_length`]
+    /// for information on why this could be a potential security risk.
+    ///
+    /// [`new_with_max_length`]: crate::codec::AnyDelimiterCodec::new_with_max_length()
+    </span><span class="kw">pub fn </span>new(seek_delimiters: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, sequence_writer: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
+        <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
+            next_index: <span class="number">0</span>,
+            max_length: usize::MAX,
+            is_discarding: <span class="bool-val">false</span>,
+            <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#75">seek_delimiters</a>,
+            <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#75">sequence_writer</a>,
         }
     }
 
-    <span class="doccomment">/// Returns a `AnyDelimiterCodec` with a maximum chunk length limit.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this is set, calls to `AnyDelimiterCodec::decode` will return a</span>
-    <span class="doccomment">/// [`AnyDelimiterCodecError`] when a chunk exceeds the length limit. Subsequent calls</span>
-    <span class="doccomment">/// will discard up to `limit` bytes from that chunk until a delimiter</span>
-    <span class="doccomment">/// character is reached, returning `None` until the delimiter over the limit</span>
-    <span class="doccomment">/// has been fully discarded. After that point, calls to `decode` will</span>
-    <span class="doccomment">/// function as normal.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Setting a length limit is highly recommended for any `AnyDelimiterCodec` which</span>
-    <span class="doccomment">/// will be exposed to untrusted input. Otherwise, the size of the buffer</span>
-    <span class="doccomment">/// that holds the chunk currently being read is unbounded. An attacker could</span>
-    <span class="doccomment">/// exploit this unbounded buffer by sending an unbounded amount of input</span>
-    <span class="doccomment">/// without any delimiter characters, causing unbounded memory consumption.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`AnyDelimiterCodecError`]: crate::codec::AnyDelimiterCodecError</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_max_length</span>(
-        <span class="ident">seek_delimiters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-        <span class="ident">sequence_writer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-        <span class="ident">max_length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
-            <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#106">max_length</a>,
-            ..<span class="ident">AnyDelimiterCodec::new</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#104">seek_delimiters</a>, <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#105">sequence_writer</a>)
+    <span class="doccomment">/// Returns a `AnyDelimiterCodec` with a maximum chunk length limit.
+    ///
+    /// If this is set, calls to `AnyDelimiterCodec::decode` will return a
+    /// [`AnyDelimiterCodecError`] when a chunk exceeds the length limit. Subsequent calls
+    /// will discard up to `limit` bytes from that chunk until a delimiter
+    /// character is reached, returning `None` until the delimiter over the limit
+    /// has been fully discarded. After that point, calls to `decode` will
+    /// function as normal.
+    ///
+    /// # Note
+    ///
+    /// Setting a length limit is highly recommended for any `AnyDelimiterCodec` which
+    /// will be exposed to untrusted input. Otherwise, the size of the buffer
+    /// that holds the chunk currently being read is unbounded. An attacker could
+    /// exploit this unbounded buffer by sending an unbounded amount of input
+    /// without any delimiter characters, causing unbounded memory consumption.
+    ///
+    /// [`AnyDelimiterCodecError`]: crate::codec::AnyDelimiterCodecError
+    </span><span class="kw">pub fn </span>new_with_max_length(
+        seek_delimiters: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+        sequence_writer: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+        max_length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
+            <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#106">max_length</a>,
+            ..AnyDelimiterCodec::new(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#104">seek_delimiters</a>, <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#105">sequence_writer</a>)
         }
     }
 
-    <span class="doccomment">/// Returns the maximum chunk length when decoding.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::usize;</span>
-    <span class="doccomment">/// use tokio_util::codec::AnyDelimiterCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let codec = AnyDelimiterCodec::new(b&quot;,;\n&quot;.to_vec(), b&quot;;&quot;.to_vec());</span>
-    <span class="doccomment">/// assert_eq!(codec.max_length(), usize::MAX);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio_util::codec::AnyDelimiterCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let codec = AnyDelimiterCodec::new_with_max_length(b&quot;,;\n&quot;.to_vec(), b&quot;;&quot;.to_vec(), 256);</span>
-    <span class="doccomment">/// assert_eq!(codec.max_length(), 256);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#129">self</a>.<span class="ident">max_length</span>
+    <span class="doccomment">/// Returns the maximum chunk length when decoding.
+    ///
+    /// ```
+    /// use std::usize;
+    /// use tokio_util::codec::AnyDelimiterCodec;
+    ///
+    /// let codec = AnyDelimiterCodec::new(b&quot;,;\n&quot;.to_vec(), b&quot;;&quot;.to_vec());
+    /// assert_eq!(codec.max_length(), usize::MAX);
+    /// ```
+    /// ```
+    /// use tokio_util::codec::AnyDelimiterCodec;
+    ///
+    /// let codec = AnyDelimiterCodec::new_with_max_length(b&quot;,;\n&quot;.to_vec(), b&quot;;&quot;.to_vec(), 256);
+    /// assert_eq!(codec.max_length(), 256);
+    /// ```
+    </span><span class="kw">pub fn </span>max_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#129">self</a>.max_length
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a>;
+<span class="kw">impl </span><a href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
+    <span class="kw">type </span>Item = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>;
+    <span class="kw">type </span>Error = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a>;
 
-    <span class="kw">fn</span> <span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="comment">// Determine how far into the buffer we&#39;ll search for a delimiter. If</span>
-            <span class="comment">// there&#39;s no max_length set, we&#39;ll read to the end of the buffer.</span>
-            <span class="kw">let</span> <span class="ident">read_to</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">max_length</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>), <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.<span class="ident">len</span>());
+    <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;, <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a>&gt; {
+        <span class="kw">loop </span>{
+            <span class="comment">// Determine how far into the buffer we&#39;ll search for a delimiter. If
+            // there&#39;s no max_length set, we&#39;ll read to the end of the buffer.
+            </span><span class="kw">let </span>read_to = cmp::min(<a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.max_length.saturating_add(<span class="number">1</span>), <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.len());
 
-            <span class="kw">let</span> <span class="ident">new_chunk_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>[<a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">next_index</span>..<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#142">read_to</a>].<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> {
-                <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">seek_delimiters</span>
-                    .<span class="ident">iter</span>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">delimiter</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#144">b</a> <span class="op">==</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#147">delimiter</a>)
+            <span class="kw">let </span>new_chunk_offset = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>[<a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.next_index..<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#142">read_to</a>].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|b| {
+                <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.seek_delimiters
+                    .iter()
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|delimiter| <span class="kw-2">*</span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#144">b</a> == <span class="kw-2">*</span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#147">delimiter</a>)
             });
 
-            <span class="kw">match</span> (<a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">is_discarding</span>, <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#144">new_chunk_offset</a>) {
-                (<span class="bool-val">true</span>, <span class="prelude-val">Some</span>(<span class="ident">offset</span>)) =&gt; {
-                    <span class="comment">// If we found a new chunk, discard up to that offset and</span>
-                    <span class="comment">// then stop discarding. On the next iteration, we&#39;ll try</span>
-                    <span class="comment">// to read a chunk normally.</span>
-                    <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#151">offset</a> <span class="op">+</span> <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">next_index</span> <span class="op">+</span> <span class="number">1</span>);
-                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">is_discarding</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">next_index</span> <span class="op">=</span> <span class="number">0</span>;
+            <span class="kw">match </span>(<a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.is_discarding, <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#144">new_chunk_offset</a>) {
+                (<span class="bool-val">true</span>, <span class="prelude-val">Some</span>(offset)) =&gt; {
+                    <span class="comment">// If we found a new chunk, discard up to that offset and
+                    // then stop discarding. On the next iteration, we&#39;ll try
+                    // to read a chunk normally.
+                    </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#151">offset</a> + <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.next_index + <span class="number">1</span>);
+                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.is_discarding = <span class="bool-val">false</span>;
+                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.next_index = <span class="number">0</span>;
                 }
                 (<span class="bool-val">true</span>, <span class="prelude-val">None</span>) =&gt; {
-                    <span class="comment">// Otherwise, we didn&#39;t find a new chunk, so we&#39;ll discard</span>
-                    <span class="comment">// everything we read. On the next iteration, we&#39;ll continue</span>
-                    <span class="comment">// discarding up to max_len bytes unless we find a new chunk.</span>
-                    <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#142">read_to</a>);
-                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">next_index</span> <span class="op">=</span> <span class="number">0</span>;
-                    <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                    <span class="comment">// Otherwise, we didn&#39;t find a new chunk, so we&#39;ll discard
+                    // everything we read. On the next iteration, we&#39;ll continue
+                    // discarding up to max_len bytes unless we find a new chunk.
+                    </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#142">read_to</a>);
+                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.next_index = <span class="number">0</span>;
+                    <span class="kw">if </span>buf.is_empty() {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                     }
                 }
-                (<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="ident">offset</span>)) =&gt; {
-                    <span class="comment">// Found a chunk!</span>
-                    <span class="kw">let</span> <span class="ident">new_chunk_index</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#169">offset</a> <span class="op">+</span> <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">next_index</span>;
-                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">next_index</span> <span class="op">=</span> <span class="number">0</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chunk</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.<span class="ident">split_to</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#171">new_chunk_index</a> <span class="op">+</span> <span class="number">1</span>);
-                    <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#173">chunk</a>.<span class="ident">truncate</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#173">chunk</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
-                    <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#173">chunk</a>.<span class="ident">freeze</span>();
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#175">chunk</a>));
+                (<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(offset)) =&gt; {
+                    <span class="comment">// Found a chunk!
+                    </span><span class="kw">let </span>new_chunk_index = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#169">offset</a> + <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.next_index;
+                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.next_index = <span class="number">0</span>;
+                    <span class="kw">let </span><span class="kw-2">mut </span>chunk = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.split_to(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#171">new_chunk_index</a> + <span class="number">1</span>);
+                    <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#173">chunk</a>.truncate(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#173">chunk</a>.len() - <span class="number">1</span>);
+                    <span class="kw">let </span>chunk = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#173">chunk</a>.freeze();
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#175">chunk</a>));
                 }
-                (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">max_length</span> =&gt; {
-                    <span class="comment">// Reached the maximum length without finding a</span>
-                    <span class="comment">// new chunk, return an error and start discarding on the</span>
-                    <span class="comment">// next call.</span>
-                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">is_discarding</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#241">AnyDelimiterCodecError::MaxChunkLengthExceeded</a>);
+                (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) <span class="kw">if </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">buf</a>.len() &gt; <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.max_length =&gt; {
+                    <span class="comment">// Reached the maximum length without finding a
+                    // new chunk, return an error and start discarding on the
+                    // next call.
+                    </span><a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.is_discarding = <span class="bool-val">true</span>;
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#241">AnyDelimiterCodecError::MaxChunkLengthExceeded</a>);
                 }
                 (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) =&gt; {
-                    <span class="comment">// We didn&#39;t find a chunk or reach the length limit, so the next</span>
-                    <span class="comment">// call will resume searching at the current offset.</span>
-                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.<span class="ident">next_index</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#142">read_to</a>;
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                    <span class="comment">// We didn&#39;t find a chunk or reach the length limit, so the next
+                    // call will resume searching at the current offset.
+                    </span><a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#138">self</a>.next_index = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#142">read_to</a>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">decode_eof</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">decode</span>(<span class="ident">buf</span>)<span class="question-mark">?</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">frame</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#197">frame</a>),
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="comment">// return remaining data, if any</span>
-                <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#195">buf</a>.<span class="ident">split_to</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#195">buf</a>.<span class="ident">len</span>());
-                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#195">self</a>.<span class="ident">next_index</span> <span class="op">=</span> <span class="number">0</span>;
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#203">chunk</a>.<span class="ident">freeze</span>())
+    <span class="kw">fn </span>decode_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;, <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.decode(buf)<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(frame) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#197">frame</a>),
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// return remaining data, if any
+                </span><span class="kw">if </span>buf.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="kw">let </span>chunk = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#195">buf</a>.split_to(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#195">buf</a>.len());
+                    <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#195">self</a>.next_index = <span class="number">0</span>;
+                    <span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#203">chunk</a>.freeze())
                 }
             }
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T&gt; Encoder&lt;T&gt; <span class="kw">for </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a>
+<span class="kw">where
+    </span>T: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a>;
+    <span class="kw">type </span>Error = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a>;
 
-    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="ident">T</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">chunk</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-        <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">buf</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#219">chunk</a>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>);
-        <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">buf</a>.<a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#219">chunk</a>.<span class="ident">as_bytes</span>());
-        <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">buf</a>.<a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">self</a>.<span class="ident">sequence_writer</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+    <span class="kw">fn </span>encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: T, buf: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a>&gt; {
+        <span class="kw">let </span>chunk = <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">chunk</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+        <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">buf</a>.reserve(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#219">chunk</a>.len() + <span class="number">1</span>);
+        <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#219">chunk</a>.as_bytes());
+        <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">buf</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#218">self</a>.sequence_writer.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(
-            <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#7">DEFAULT_SEEK_DELIMITERS</a>.<span class="ident">to_vec</span>(),
-            <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#8">DEFAULT_SEQUENCE_WRITER</a>.<span class="ident">to_vec</span>(),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#41">AnyDelimiterCodec</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(
+            <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#7">DEFAULT_SEEK_DELIMITERS</a>.to_vec(),
+            <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#8">DEFAULT_SEQUENCE_WRITER</a>.to_vec(),
         )
     }
 }
 
-<span class="doccomment">/// An error occurred while encoding or decoding a chunk.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AnyDelimiterCodecError</span> {
-    <span class="doccomment">/// The maximum chunk length was exceeded.</span>
-    <span class="ident">MaxChunkLengthExceeded</span>,
-    <span class="doccomment">/// An IO error occurred.</span>
-    <span class="ident">Io</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
+<span class="doccomment">/// An error occurred while encoding or decoding a chunk.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>AnyDelimiterCodecError {
+    <span class="doccomment">/// The maximum chunk length was exceeded.
+    </span>MaxChunkLengthExceeded,
+    <span class="doccomment">/// An IO error occurred.
+    </span>Io(<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#247">self</a> {
-            <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#241">AnyDelimiterCodecError::MaxChunkLengthExceeded</a> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#247">f</a>, <span class="string">&quot;max chunk length exceeded&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#247">self</a> </span>{
+            <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#241">AnyDelimiterCodecError::MaxChunkLengthExceeded</a> =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#247">f</a>, <span class="string">&quot;max chunk length exceeded&quot;</span>)
             }
-            <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#243">AnyDelimiterCodecError::Io</a>(<span class="ident">e</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#247">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
+            <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#243">AnyDelimiterCodecError::Io</a>(e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#247">f</a>, <span class="string">&quot;{}&quot;</span>, e),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a> {
-        <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#243">AnyDelimiterCodecError::Io</a>(<a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#258">e</a>)
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; <span class="kw">for </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a> {
+    <span class="kw">fn </span>from(e: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a> {
+        <a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#243">AnyDelimiterCodecError::Io</a>(<a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#258">e</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/any_delimiter_codec.rs.html#239">AnyDelimiterCodecError</a> {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

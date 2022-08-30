@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/common/graphviz/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/common/graphviz/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../vir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -158,160 +158,160 @@
 <span id="158">158</span>
 <span id="159">159</span>
 <span id="160">160</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::graph</span>::{<a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a>, <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#22">EdgeKind</a>, <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#8">Graph</a>, <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#41">HeaderRow</a>, <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#16">Node</a>, <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#35">Row</a>, <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#45">Table</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::graph::{<a href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a>, <a href="../../../../src/vir/common/graphviz/graph.rs.html#22">EdgeKind</a>, <a href="../../../../src/vir/common/graphviz/graph.rs.html#8">Graph</a>, <a href="../../../../src/vir/common/graphviz/graph.rs.html#41">HeaderRow</a>, <a href="../../../../src/vir/common/graphviz/graph.rs.html#16">Node</a>, <a href="../../../../src/vir/common/graphviz/graph.rs.html#35">Row</a>, <a href="../../../../src/vir/common/graphviz/graph.rs.html#45">Table</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
 
-<span class="kw">fn</span> <span class="ident">create_node_id</span>(<span class="ident">node_id</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;node{}&quot;</span>, <span class="ident">node_id</span>)
+<span class="kw">fn </span>create_node_id(node_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;node{}&quot;</span>, node_id)
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#8">Graph</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;digraph CFG {{&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;graph [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;node [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;edge [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">table</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">tables</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">table</span>.<span class="ident">write</span>(<span class="macro">format!</span>(<span class="string">&quot;table{}&quot;</span>, <span class="ident">i</span>), <span class="ident">writer</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../src/vir/common/graphviz/graph.rs.html#8">Graph</a> {
+    <span class="kw">pub fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, writer: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; std::io::Result&lt;()&gt; {
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;digraph CFG {{&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;graph [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;node [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;edge [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>(i, table) <span class="kw">in </span><span class="self">self</span>.tables.iter().enumerate() {
+            table.write(<span class="macro">format!</span>(<span class="string">&quot;table{}&quot;</span>, i), writer)<span class="question-mark">?</span>;
         }
-        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nodes</span> {
-            <span class="ident">node</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">column_names</span>, <span class="ident">writer</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nodes {
+            node.write(<span class="kw-2">&amp;</span><span class="self">self</span>.column_names, writer)<span class="question-mark">?</span>;
         }
-        <span class="kw">for</span> <span class="ident">exit_target</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">exit_targets</span> {
+        <span class="kw">for </span>exit_target <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.exit_targets {
             <span class="macro">writeln!</span>(
-                <span class="ident">writer</span>,
+                writer,
                 <span class="string">&quot;{} [label=\&quot;{}\&quot;]&quot;</span>,
-                <span class="ident">create_node_id</span>(<span class="ident">exit_target</span>),
-                <span class="ident">exit_target</span>
+                create_node_id(exit_target),
+                exit_target
             )<span class="question-mark">?</span>;
         }
-        <span class="kw">for</span> <span class="ident">edge</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">edges</span> {
-            <span class="ident">edge</span>.<span class="ident">write</span>(<span class="ident">writer</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>edge <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.edges {
+            edge.write(writer)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;}}&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;}}&quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#45">Table</a> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">table_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;{} [&quot;</span>, <span class="ident">create_node_id</span>(<span class="kw-2">&amp;</span><span class="ident">table_id</span>))<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;  style=filled&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;  shape = \&quot;record\&quot;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;  label =&lt;&lt;table&gt;&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../src/vir/common/graphviz/graph.rs.html#45">Table</a> {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, table_id: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, writer: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; std::io::Result&lt;()&gt; {
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;{} [&quot;</span>, create_node_id(<span class="kw-2">&amp;</span>table_id))<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;  style=filled&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;  shape = \&quot;record\&quot;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;  label =&lt;&lt;table&gt;&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(
-            <span class="ident">writer</span>,
+            writer,
             <span class="string">&quot;    &lt;tr&gt;&lt;td colspan=\&quot;{}\&quot;&gt;{}&lt;/td&gt;&lt;/tr&gt;&quot;</span>,
-            <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">column_names</span>.<span class="ident">len</span>(),
-            <span class="self">self</span>.<span class="ident">table_name</span>
+            <span class="self">self</span>.header.column_names.len(),
+            <span class="self">self</span>.table_name
         )<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">write</span>(<span class="ident">writer</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">row</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rows</span> {
-            <span class="ident">row</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">header</span>.<span class="ident">column_names</span>, <span class="ident">writer</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.header.write(writer)<span class="question-mark">?</span>;
+        <span class="kw">for </span>row <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.rows {
+            row.write(<span class="kw-2">&amp;</span><span class="self">self</span>.header.column_names, writer)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;  &lt;/table&gt;&gt;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;]&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;  &lt;/table&gt;&gt;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;]&quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#41">HeaderRow</a> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">write!</span>(<span class="ident">writer</span>, <span class="string">&quot;    &lt;tr&gt;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">column_names</span> {
-            <span class="macro">write!</span>(<span class="ident">writer</span>, <span class="string">&quot;&lt;td&gt;&lt;b&gt;{}&lt;/b&gt;&lt;/td&gt;&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../src/vir/common/graphviz/graph.rs.html#41">HeaderRow</a> {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, writer: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; std::io::Result&lt;()&gt; {
+        <span class="macro">write!</span>(writer, <span class="string">&quot;    &lt;tr&gt;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.column_names {
+            <span class="macro">write!</span>(writer, <span class="string">&quot;&lt;td&gt;&lt;b&gt;{}&lt;/b&gt;&lt;/td&gt;&quot;</span>, name)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;&lt;/tr&gt;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;&lt;/tr&gt;&quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#35">Row</a> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">column_names</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>], <span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">write!</span>(<span class="ident">writer</span>, <span class="string">&quot;    &lt;tr&gt;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#70">self</a> {
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#38">Row::Single</a>(<span class="ident">value</span>) =&gt; {
+<span class="kw">impl </span><a href="../../../../src/vir/common/graphviz/graph.rs.html#35">Row</a> {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, column_names: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>], writer: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; std::io::Result&lt;()&gt; {
+        <span class="macro">write!</span>(writer, <span class="string">&quot;    &lt;tr&gt;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><span class="self"><a href="../../../../src/vir/common/graphviz/writer.rs.html#70">self</a> </span>{
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#38">Row::Single</a>(value) =&gt; {
                 <span class="macro">write!</span>(
-                    <span class="ident">writer</span>,
+                    writer,
                     <span class="string">&quot;&lt;td colspan=\&quot;{}\&quot; align=\&quot;left\&quot;&gt;{}&lt;/td&gt;&quot;</span>,
-                    <span class="ident">column_names</span>.<span class="ident">len</span>(),
-                    <span class="ident">value</span>
+                    column_names.len(),
+                    value
                 )<span class="question-mark">?</span>;
             }
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#37">Row::Seq</a>(<span class="ident">values</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">values</span> {
-                    <span class="macro">write!</span>(<span class="ident">writer</span>, <span class="string">&quot;&lt;td align=\&quot;left\&quot;&gt;{}&lt;/td&gt;&quot;</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#37">Row::Seq</a>(values) =&gt; {
+                <span class="kw">for </span>value <span class="kw">in </span>values {
+                    <span class="macro">write!</span>(writer, <span class="string">&quot;&lt;td align=\&quot;left\&quot;&gt;{}&lt;/td&gt;&quot;</span>, value)<span class="question-mark">?</span>;
                 }
             }
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#36">Row::Map</a>(<span class="ident">values</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">column</span> <span class="kw">in</span> <span class="ident">column_names</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">values</span>.<span class="ident">get</span>(<span class="ident">column</span>) {
-                        <span class="macro">write!</span>(<span class="ident">writer</span>, <span class="string">&quot;&lt;td align=\&quot;left\&quot;&gt;{}&lt;/td&gt;&quot;</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
-                    } <span class="kw">else</span> {
-                        <span class="macro">write!</span>(<span class="ident">writer</span>, <span class="string">&quot;&lt;td align=\&quot;left\&quot;&gt;n/a&lt;/td&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#36">Row::Map</a>(values) =&gt; {
+                <span class="kw">for </span>column <span class="kw">in </span>column_names {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = values.get(column) {
+                        <span class="macro">write!</span>(writer, <span class="string">&quot;&lt;td align=\&quot;left\&quot;&gt;{}&lt;/td&gt;&quot;</span>, value)<span class="question-mark">?</span>;
+                    } <span class="kw">else </span>{
+                        <span class="macro">write!</span>(writer, <span class="string">&quot;&lt;td align=\&quot;left\&quot;&gt;n/a&lt;/td&gt;&quot;</span>)<span class="question-mark">?</span>;
                     }
                 }
             }
         }
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;&lt;/tr&gt;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;&lt;/tr&gt;&quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#16">Node</a> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">column_names</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>], <span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;{} [&quot;</span>, <span class="ident">create_node_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">node_id</span>))<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;  shape = \&quot;record\&quot;&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../src/vir/common/graphviz/graph.rs.html#16">Node</a> {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, column_names: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>], writer: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; std::io::Result&lt;()&gt; {
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;{} [&quot;</span>, create_node_id(<span class="kw-2">&amp;</span><span class="self">self</span>.node_id))<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;  shape = \&quot;record\&quot;&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(
-            <span class="ident">writer</span>,
-            <span class="string">&quot;  label =&lt;&lt;table border=\&quot;0\&quot; cellborder=\&quot;0\&quot; cellspacing=\&quot;0\&quot;&gt;&quot;</span>
-        )<span class="question-mark">?</span>;
+            writer,
+            <span class="string">&quot;  label =&lt;&lt;table border=\&quot;0\&quot; cellborder=\&quot;0\&quot; cellspacing=\&quot;0\&quot;&gt;&quot;
+        </span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(
-            <span class="ident">writer</span>,
+            writer,
             <span class="string">&quot;    &lt;tr&gt;&lt;td colspan=\&quot;{}\&quot; {}&gt;{}&lt;/td&gt;&lt;/tr&gt;&quot;</span>,
-            <span class="ident">column_names</span>.<span class="ident">len</span>(),
-            <span class="self">self</span>.<span class="ident">node_id_style</span>,
-            <span class="self">self</span>.<span class="ident">node_id</span>
+            column_names.len(),
+            <span class="self">self</span>.node_id_style,
+            <span class="self">self</span>.node_id
         )<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="ident">writer</span>, <span class="string">&quot;    &lt;tr&gt;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">column_names</span> {
-            <span class="macro">write!</span>(<span class="ident">writer</span>, <span class="string">&quot;&lt;td&gt;&lt;b&gt;{}&lt;/b&gt;&lt;/td&gt;&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(writer, <span class="string">&quot;    &lt;tr&gt;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>name <span class="kw">in </span>column_names {
+            <span class="macro">write!</span>(writer, <span class="string">&quot;&lt;td&gt;&lt;b&gt;{}&lt;/b&gt;&lt;/td&gt;&quot;</span>, name)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;&lt;/tr&gt;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">row</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rows</span> {
-            <span class="ident">row</span>.<span class="ident">write</span>(<span class="ident">column_names</span>, <span class="ident">writer</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;&lt;/tr&gt;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>row <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.rows {
+            row.write(column_names, writer)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;  &lt;/table&gt;&gt;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;]&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;  &lt;/table&gt;&gt;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">&quot;]&quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/common/graphviz/writer.rs.html#4">create_node_id</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#131">self</a>.<span class="ident">source</span>);
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/common/graphviz/writer.rs.html#4">create_node_id</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#131">self</a>.<span class="ident">target</span>);
-        <span class="kw">let</span> <span class="ident">annotation</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">annotation</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#131">self</a>.<span class="ident">annotation</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;label=\&quot;{}\&quot;&quot;</span>, <span class="ident">annotation</span>)
-        } <span class="kw">else</span> {
-            <span class="string">&quot;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+<span class="kw">impl </span><a href="../../../../src/vir/common/graphviz/graph.rs.html#28">Edge</a> {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, writer: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; std::io::Result&lt;()&gt; {
+        <span class="kw">let </span>source = <a href="../../../../src/vir/common/graphviz/writer.rs.html#4">create_node_id</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#131">self</a>.source);
+        <span class="kw">let </span>target = <a href="../../../../src/vir/common/graphviz/writer.rs.html#4">create_node_id</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#131">self</a>.target);
+        <span class="kw">let </span>annotation = <span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#131">self</a>.annotation {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;label=\&quot;{}\&quot;&quot;</span>, annotation)
+        } <span class="kw">else </span>{
+            <span class="string">&quot;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
         };
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#131">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#23">EdgeKind::Normal</a> =&gt; {
-                <span class="macro">writeln!</span>(<span class="ident">writer</span>, <span class="string">&quot;\&quot;{}\&quot; -&gt; \&quot;{}\&quot; [{}]&quot;</span>, <span class="ident">source</span>, <span class="ident">target</span>, <span class="ident">annotation</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><a class="self" href="../../../../src/vir/common/graphviz/writer.rs.html#131">self</a>.kind {
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#23">EdgeKind::Normal</a> =&gt; {
+                <span class="macro">writeln!</span>(writer, <span class="string">&quot;\&quot;{}\&quot; -&gt; \&quot;{}\&quot; [{}]&quot;</span>, source, target, annotation)<span class="question-mark">?</span>;
             }
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#24">EdgeKind::Unwind</a> =&gt; {
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#24">EdgeKind::Unwind</a> =&gt; {
                 <span class="macro">writeln!</span>(
-                    <span class="ident">writer</span>,
+                    writer,
                     <span class="string">&quot;\&quot;{}\&quot; -&gt; \&quot;{}\&quot; [color=red {}]&quot;</span>,
-                    <span class="ident">source</span>, <span class="ident">target</span>, <span class="ident">annotation</span>
+                    source, target, annotation
                 )<span class="question-mark">?</span>;
             }
-            <a class="ident" href="../../../../src/vir/common/graphviz/graph.rs.html#25">EdgeKind::Imaginary</a> =&gt; {
+            <a href="../../../../src/vir/common/graphviz/graph.rs.html#25">EdgeKind::Imaginary</a> =&gt; {
                 <span class="macro">writeln!</span>(
-                    <span class="ident">writer</span>,
+                    writer,
                     <span class="string">&quot;\&quot;{}\&quot; -&gt; \&quot;{}\&quot; [style=\&quot;dashed\&quot; {}]&quot;</span>,
-                    <span class="ident">source</span>, <span class="ident">target</span>, <span class="ident">annotation</span>
+                    source, target, annotation
                 )<span class="question-mark">?</span>;
             }
         };
@@ -319,4 +319,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

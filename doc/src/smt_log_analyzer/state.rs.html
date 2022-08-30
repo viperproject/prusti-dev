@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `smt-log-analyzer/src/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../smt_log_analyzer/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../smt_log_analyzer/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../smt_log_analyzer/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `smt-log-analyzer/src/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../smt_log_analyzer/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../smt_log_analyzer/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../smt_log_analyzer/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -789,620 +789,620 @@
 <span id="789">789</span>
 <span id="790">790</span>
 <span id="791">791</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../csv/writer/struct.Writer.html">csv::Writer</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../csv/writer/struct.Writer.html">csv::Writer</a>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10">error::Error</a>,
-    <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21">parser::TheoryKind</a>,
-    <span class="ident">types</span>::{<a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>, <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>, <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>},
+<span class="kw">use crate</span>::{
+    <a href="../../src/smt_log_analyzer/error.rs.html#10">error::Error</a>,
+    <a href="../../src/smt_log_analyzer/parser.rs.html#21">parser::TheoryKind</a>,
+    types::{<a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>, <a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>, <a href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>},
 };
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a>,
+<span class="kw">use </span>std::{
+    collections::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>},
+    <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">fmt::Write</a>,
 };
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Quantifier</span> {
-    <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Quantifier {
+    name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Term</span> {
-    <span class="ident">FunctionApplication</span> { <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a><span class="op">&gt;</span> },
-    <span class="ident">Variable</span> { <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> },
-    <span class="ident">AttachMeaning</span> { <span class="ident">ident</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> },
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Term {
+    FunctionApplication { name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, args: Vec&lt;<a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>&gt; },
+    Variable { index: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> },
+    AttachMeaning { ident: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, value: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> },
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// The specified term was used to trigger a quantifier instantiation.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">TermUsedInTriggerEvent</span> {
-    <span class="ident">level</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
-    <span class="ident">term_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="doccomment">/// The specified term was used to trigger a quantifier instantiation.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TermUsedInTriggerEvent {
+    level: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
+    term_id: <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#25">TermUsedInTriggerEvent</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">level</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>, <span class="ident">term_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#31">level</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#31">term_id</a> }
+<span class="kw">impl </span><a href="../../src/smt_log_analyzer/state.rs.html#25">TermUsedInTriggerEvent</a> {
+    <span class="kw">fn </span>new(level: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>, term_id: <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../src/smt_log_analyzer/state.rs.html#31">level</a>, <a href="../../src/smt_log_analyzer/state.rs.html#31">term_id</a> }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// The quantifier was matched event.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">QuantifierMatchedEvent</span> {
-    <span class="ident">level</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
-    <span class="ident">counter</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="doccomment">/// The quantifier was matched event.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>QuantifierMatchedEvent {
+    level: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
+    counter: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#38">QuantifierMatchedEvent</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">level</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#44">level</a>, <span class="ident">counter</span>: <span class="number">1</span> }
+<span class="kw">impl </span><a href="../../src/smt_log_analyzer/state.rs.html#38">QuantifierMatchedEvent</a> {
+    <span class="kw">fn </span>new(level: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../src/smt_log_analyzer/state.rs.html#44">level</a>, counter: <span class="number">1 </span>}
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// The quantifier was instantiated event.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">QuantifierInstanceEvent</span> {
-    <span class="ident">level</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
-    <span class="ident">counter</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="doccomment">/// The quantifier was instantiated event.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>QuantifierInstanceEvent {
+    level: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
+    counter: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#51">QuantifierInstanceEvent</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">level</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#57">level</a>, <span class="ident">counter</span>: <span class="number">1</span> }
+<span class="kw">impl </span><a href="../../src/smt_log_analyzer/state.rs.html#51">QuantifierInstanceEvent</a> {
+    <span class="kw">fn </span>new(level: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../src/smt_log_analyzer/state.rs.html#57">level</a>, counter: <span class="number">1 </span>}
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="doccomment">/// The basic block label was visited event.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">BasicBlockVisitedEvent</span> {
-    <span class="ident">level</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
-    <span class="ident">label</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+<span class="attribute">#[derive(Debug, Clone)]
+</span><span class="doccomment">/// The basic block label was visited event.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BasicBlockVisitedEvent {
+    level: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
+    label: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="doccomment">/// What is the largest number of quantifier matches removed with a single pop</span>
-<span class="doccomment">/// operation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">struct</span> <span class="ident">LargestPop</span> {
-    <span class="doccomment">/// How many quantifier matches were removed.</span>
-    <span class="ident">quantifier_matches_removed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="doccomment">/// How many active scopes were popped with that pop operation?</span>
-    <span class="ident">active_scopes_popped</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
-    <span class="doccomment">/// How many instances of each quantifier were removed in that pop?</span>
-    <span class="ident">removed_quantifiers</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// Popped labels.</span>
-    <span class="ident">labels</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#64">BasicBlockVisitedEvent</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// Labels leading to the popped labels.</span>
-    <span class="ident">trace_prefix</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#64">BasicBlockVisitedEvent</a><span class="op">&gt;</span>,
+<span class="doccomment">/// What is the largest number of quantifier matches removed with a single pop
+/// operation.
+</span><span class="attribute">#[derive(Default)]
+</span><span class="kw">struct </span>LargestPop {
+    <span class="doccomment">/// How many quantifier matches were removed.
+    </span>quantifier_matches_removed: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// How many active scopes were popped with that pop operation?
+    </span>active_scopes_popped: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
+    <span class="doccomment">/// How many instances of each quantifier were removed in that pop?
+    </span>removed_quantifiers: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <span class="doccomment">/// Popped labels.
+    </span>labels: Vec&lt;<a href="../../src/smt_log_analyzer/state.rs.html#64">BasicBlockVisitedEvent</a>&gt;,
+    <span class="doccomment">/// Labels leading to the popped labels.
+    </span>trace_prefix: Vec&lt;<a href="../../src/smt_log_analyzer/state.rs.html#64">BasicBlockVisitedEvent</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">State</span> {
-    <span class="ident">quantifiers</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#13">Quantifier</a><span class="op">&gt;</span>,
-    <span class="ident">terms</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#17">Term</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// The currently matched quantifiers (via [new-match]) at a given level.</span>
-    <span class="ident">quantifiers_matched_events</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#38">QuantifierMatchedEvent</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The currently discovered quantifiers (via [inst-discovered]) at a given level.</span>
-    <span class="ident">quantifiers_inst_disovered_events</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#38">QuantifierMatchedEvent</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// How many times each quantifier was matched (ignoring push/pop).</span>
-    <span class="ident">total_quantifiers_matched_counters</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// How many times each quantifier was discovered (ignoring push/pop).</span>
-    <span class="ident">total_quantifiers_inst_disovered_counters</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// How many instantiations we had of each quantifier.</span>
-    <span class="ident">max_quantifier_matched_event_counters</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// How many instantiations we had of each theory.</span>
-    <span class="ident">max_quantifier_inst_discovered_event_counters</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="ident">unique_quantifier_triggers</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">term_used_in_trigger_events</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#25">TermUsedInTriggerEvent</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">max_term_used_in_trigger_event_counters</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// Quantifiers that the triggered by exactly the same term multiple times.</span>
-    <span class="doccomment">/// (Push/pop is taken into account.)</span>
-    <span class="ident">multi_term_quantifiers</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// A total number of times the quantifiers were instantiated via [instance]</span>
-    <span class="doccomment">/// (ignoring push/pop).</span>
-    <span class="ident">total_quantifiers_instance_counters</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="doccomment">/// How many time quantifiers were instantiated on the current trace.</span>
-    <span class="ident">quantifiers_instance_events</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#51">QuantifierInstanceEvent</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// A maximum number of times the quantifiers were instantiated via [instance]</span>
-    <span class="doccomment">/// on a specific trace.</span>
-    <span class="ident">max_quantifier_instance_event_counters</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="doccomment">/// The current trace through CFG.</span>
-    <span class="ident">trace</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#64">BasicBlockVisitedEvent</a><span class="op">&gt;</span>,
-    <span class="ident">largest_pop</span>: <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#72">LargestPop</a>,
-    <span class="ident">current_active_scopes_count</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
-    <span class="ident">traced_quantifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a><span class="op">&gt;</span>,
-    <span class="ident">traced_quantifier_triggers</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Default)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>State {
+    quantifiers: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a href="../../src/smt_log_analyzer/state.rs.html#13">Quantifier</a>&gt;,
+    terms: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>, <a href="../../src/smt_log_analyzer/state.rs.html#17">Term</a>&gt;,
+    <span class="doccomment">/// The currently matched quantifiers (via [new-match]) at a given level.
+    </span>quantifiers_matched_events: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, Vec&lt;<a href="../../src/smt_log_analyzer/state.rs.html#38">QuantifierMatchedEvent</a>&gt;&gt;,
+    <span class="doccomment">/// The currently discovered quantifiers (via [inst-discovered]) at a given level.
+    </span>quantifiers_inst_disovered_events: HashMap&lt;<a href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>, Vec&lt;<a href="../../src/smt_log_analyzer/state.rs.html#38">QuantifierMatchedEvent</a>&gt;&gt;,
+    <span class="doccomment">/// How many times each quantifier was matched (ignoring push/pop).
+    </span>total_quantifiers_matched_counters: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <span class="doccomment">/// How many times each quantifier was discovered (ignoring push/pop).
+    </span>total_quantifiers_inst_disovered_counters: HashMap&lt;<a href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <span class="doccomment">/// How many instantiations we had of each quantifier.
+    </span>max_quantifier_matched_event_counters: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <span class="doccomment">/// How many instantiations we had of each theory.
+    </span>max_quantifier_inst_discovered_event_counters: HashMap&lt;<a href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    unique_quantifier_triggers: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, HashSet&lt;<a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>&gt;&gt;,
+    term_used_in_trigger_events: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, Vec&lt;<a href="../../src/smt_log_analyzer/state.rs.html#25">TermUsedInTriggerEvent</a>&gt;&gt;,
+    max_term_used_in_trigger_event_counters: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <span class="doccomment">/// Quantifiers that the triggered by exactly the same term multiple times.
+    /// (Push/pop is taken into account.)
+    </span>multi_term_quantifiers: HashMap&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, Vec&lt;<a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>&gt;&gt;,
+    <span class="doccomment">/// A total number of times the quantifiers were instantiated via [instance]
+    /// (ignoring push/pop).
+    </span>total_quantifiers_instance_counters: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// How many time quantifiers were instantiated on the current trace.
+    </span>quantifiers_instance_events: Vec&lt;<a href="../../src/smt_log_analyzer/state.rs.html#51">QuantifierInstanceEvent</a>&gt;,
+    <span class="doccomment">/// A maximum number of times the quantifiers were instantiated via [instance]
+    /// on a specific trace.
+    </span>max_quantifier_instance_event_counters: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// The current trace through CFG.
+    </span>trace: Vec&lt;<a href="../../src/smt_log_analyzer/state.rs.html#64">BasicBlockVisitedEvent</a>&gt;,
+    largest_pop: <a href="../../src/smt_log_analyzer/state.rs.html#72">LargestPop</a>,
+    current_active_scopes_count: <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a>,
+    traced_quantifier: <span class="prelude-ty">Option</span>&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>&gt;,
+    traced_quantifier_triggers: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#86">State</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#124">self</a>.<span class="ident">trace</span>.<span class="ident">push</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#64">BasicBlockVisitedEvent</a> {
-            <span class="ident">level</span>: <a class="self" href="../../src/smt_log_analyzer/state.rs.html#124">self</a>.<span class="ident">current_active_scopes_count</span>,
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#124">label</a>,
+<span class="kw">impl </span><a href="../../src/smt_log_analyzer/state.rs.html#86">State</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#124">self</a>.trace.push(<a href="../../src/smt_log_analyzer/state.rs.html#64">BasicBlockVisitedEvent</a> {
+            level: <a class="self" href="../../src/smt_log_analyzer/state.rs.html#124">self</a>.current_active_scopes_count,
+            <a href="../../src/smt_log_analyzer/state.rs.html#124">label</a>,
         });
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_quantifier</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">quantifier_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.<span class="ident">quantifiers</span>.<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#13">Quantifier</a> { <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">name</a> });
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.<span class="ident">quantifiers_matched_events</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="ident">Vec::new</span>());
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.<span class="ident">total_quantifiers_matched_counters</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="number">0</span>);
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.<span class="ident">max_quantifier_matched_event_counters</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="number">0</span>);
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.<span class="ident">unique_quantifier_triggers</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="ident">HashSet::new</span>());
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.<span class="ident">term_used_in_trigger_events</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="ident">Vec::new</span>());
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.<span class="ident">max_term_used_in_trigger_event_counters</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="number">0</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_quantifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quantifier_id: <a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.quantifiers.insert(<a href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <a href="../../src/smt_log_analyzer/state.rs.html#13">Quantifier</a> { <a href="../../src/smt_log_analyzer/state.rs.html#131">name</a> });
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.quantifiers_matched_events
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, Vec::new());
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.total_quantifiers_matched_counters
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="number">0</span>);
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.max_quantifier_matched_event_counters
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="number">0</span>);
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.unique_quantifier_triggers
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, HashSet::new());
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.term_used_in_trigger_events
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, Vec::new());
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#131">self</a>.max_term_used_in_trigger_event_counters
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#131">quantifier_id</a>, <span class="number">0</span>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_matched_quantifier</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">quantifier_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-        <span class="kw-2">*</span><a class="self" href="../../src/smt_log_analyzer/state.rs.html#148">self</a>
-            .<span class="ident">total_quantifiers_matched_counters</span>
-            .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#149">quantifier_id</a>)
-            .<span class="ident">unwrap</span>() <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">events</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#148">self</a>
-            .<span class="ident">quantifiers_matched_events</span>
-            .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#149">quantifier_id</a>)
-            .<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#155">events</a>.<span class="ident">last_mut</span>() {
-            <span class="kw">if</span> <span class="ident">last</span>.<span class="ident">level</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">current_active_scopes_count</span> {
-                <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#159">last</a>.<span class="ident">counter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_matched_quantifier(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        quantifier_id: <a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/smt_log_analyzer/error.rs.html#10">Error</a>&gt; {
+        <span class="kw-2">*</span><span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#148">self</a>
+            </span>.total_quantifiers_matched_counters
+            .get_mut(<span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/state.rs.html#149">quantifier_id</a>)
+            .unwrap() += <span class="number">1</span>;
+        <span class="kw">let </span>events = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#148">self</a>
+            </span>.quantifiers_matched_events
+            .get_mut(<span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/state.rs.html#149">quantifier_id</a>)
+            .unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <a href="../../src/smt_log_analyzer/state.rs.html#155">events</a>.last_mut() {
+            <span class="kw">if </span>last.level == <span class="self">self</span>.current_active_scopes_count {
+                <a href="../../src/smt_log_analyzer/state.rs.html#159">last</a>.counter += <span class="number">1</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
         }
-        <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#155">events</a>.<span class="ident">push</span>(<span class="ident">QuantifierMatchedEvent::new</span>(
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#148">self</a>.<span class="ident">current_active_scopes_count</span>,
+        <a href="../../src/smt_log_analyzer/state.rs.html#155">events</a>.push(QuantifierMatchedEvent::new(
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#148">self</a>.current_active_scopes_count,
         ));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_theory</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">theory</span>: <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#171">self</a>.<span class="ident">quantifiers_inst_disovered_events</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#171">theory</a>, <span class="ident">Vec::new</span>());
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#171">self</a>.<span class="ident">total_quantifiers_inst_disovered_counters</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#171">theory</a>, <span class="number">0</span>);
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#171">self</a>.<span class="ident">max_quantifier_inst_discovered_event_counters</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#171">theory</a>, <span class="number">0</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_theory(<span class="kw-2">&amp;mut </span><span class="self">self</span>, theory: <a href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>) {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#171">self</a>.quantifiers_inst_disovered_events
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#171">theory</a>, Vec::new());
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#171">self</a>.total_quantifiers_inst_disovered_counters
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#171">theory</a>, <span class="number">0</span>);
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#171">self</a>.max_quantifier_inst_discovered_event_counters
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#171">theory</a>, <span class="number">0</span>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_inst_discovered</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">theory_kind</span>: <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-        <span class="kw-2">*</span><a class="self" href="../../src/smt_log_analyzer/state.rs.html#181">self</a>
-            .<span class="ident">total_quantifiers_inst_disovered_counters</span>
-            .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#182">theory_kind</a>)
-            .<span class="ident">unwrap</span>() <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">events</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#181">self</a>
-            .<span class="ident">quantifiers_inst_disovered_events</span>
-            .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#182">theory_kind</a>)
-            .<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#188">events</a>.<span class="ident">last_mut</span>() {
-            <span class="kw">if</span> <span class="ident">last</span>.<span class="ident">level</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">current_active_scopes_count</span> {
-                <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#192">last</a>.<span class="ident">counter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_inst_discovered(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        theory_kind: <a href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/smt_log_analyzer/error.rs.html#10">Error</a>&gt; {
+        <span class="kw-2">*</span><span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#181">self</a>
+            </span>.total_quantifiers_inst_disovered_counters
+            .get_mut(<span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/state.rs.html#182">theory_kind</a>)
+            .unwrap() += <span class="number">1</span>;
+        <span class="kw">let </span>events = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#181">self</a>
+            </span>.quantifiers_inst_disovered_events
+            .get_mut(<span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/state.rs.html#182">theory_kind</a>)
+            .unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <a href="../../src/smt_log_analyzer/state.rs.html#188">events</a>.last_mut() {
+            <span class="kw">if </span>last.level == <span class="self">self</span>.current_active_scopes_count {
+                <a href="../../src/smt_log_analyzer/state.rs.html#192">last</a>.counter += <span class="number">1</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
         }
-        <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#188">events</a>.<span class="ident">push</span>(<span class="ident">QuantifierMatchedEvent::new</span>(
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#181">self</a>.<span class="ident">current_active_scopes_count</span>,
+        <a href="../../src/smt_log_analyzer/state.rs.html#188">events</a>.push(QuantifierMatchedEvent::new(
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#181">self</a>.current_active_scopes_count,
         ));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_matched_trigger_term</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">quantifier_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>,
-        <span class="ident">term_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">trace_quantifier_trigger</span>(<span class="ident">quantifier_id</span>, <span class="ident">term_id</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#205">self</a>.<span class="ident">unique_quantifier_triggers</span>
-            .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#206">quantifier_id</a>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#207">term_id</a>);
-        <span class="kw">let</span> <span class="ident">term_used_in_trigger_events</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#205">self</a>
-            .<span class="ident">term_used_in_trigger_events</span>
-            .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#206">quantifier_id</a>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;quantifier_id: {}&quot;</span>, <span class="ident">quantifier_id</span>));
-        <span class="kw">if</span> <span class="ident">term_used_in_trigger_events</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">event</span><span class="op">|</span> <span class="ident">event</span>.<span class="ident">term_id</span> <span class="op">==</span> <span class="ident">term_id</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_matched_trigger_term(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        quantifier_id: <a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>,
+        term_id: <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/smt_log_analyzer/error.rs.html#10">Error</a>&gt; {
+        <span class="self">self</span>.trace_quantifier_trigger(quantifier_id, term_id)<span class="question-mark">?</span>;
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#205">self</a>.unique_quantifier_triggers
+            .get_mut(<span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/state.rs.html#206">quantifier_id</a>)
+            .unwrap()
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#207">term_id</a>);
+        <span class="kw">let </span>term_used_in_trigger_events = <span class="kw-2">&amp;mut </span><span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#205">self</a>
+            </span>.term_used_in_trigger_events
+            .get_mut(<span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/state.rs.html#206">quantifier_id</a>)
+            .unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;quantifier_id: {}&quot;</span>, quantifier_id));
+        <span class="kw">if </span>term_used_in_trigger_events
+            .iter()
+            .any(|event| event.term_id == term_id)
         {
-            <span class="kw">let</span> <span class="ident">terms</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#205">self</a>
-                .<span class="ident">multi_term_quantifiers</span>
-                .<span class="ident">entry</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#206">quantifier_id</a>)
-                .<span class="ident">or_default</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#222">terms</a>.<span class="ident">push</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#207">term_id</a>);
+            <span class="kw">let </span>terms = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#205">self</a>
+                </span>.multi_term_quantifiers
+                .entry(<a href="../../src/smt_log_analyzer/state.rs.html#206">quantifier_id</a>)
+                .or_default();
+            <a href="../../src/smt_log_analyzer/state.rs.html#222">terms</a>.push(<a href="../../src/smt_log_analyzer/state.rs.html#207">term_id</a>);
         }
-        <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#214">term_used_in_trigger_events</a>.<span class="ident">push</span>(<span class="ident">TermUsedInTriggerEvent::new</span>(
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#205">self</a>.<span class="ident">current_active_scopes_count</span>,
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#207">term_id</a>,
+        <a href="../../src/smt_log_analyzer/state.rs.html#214">term_used_in_trigger_events</a>.push(TermUsedInTriggerEvent::new(
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#205">self</a>.current_active_scopes_count,
+            <a href="../../src/smt_log_analyzer/state.rs.html#207">term_id</a>,
         ));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">trace_quantifier_trigger</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">quantifier_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>,
-        <span class="ident">term_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">traced_quantifier_id</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#236">self</a>.<span class="ident">traced_quantifier</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">unique_quantifier_triggers</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">term_id</span>)
-                <span class="op">&amp;&amp;</span> <span class="ident">traced_quantifier_id</span> <span class="op">==</span> <span class="ident">quantifier_id</span>
+    <span class="kw">fn </span>trace_quantifier_trigger(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        quantifier_id: <a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>,
+        term_id: <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/smt_log_analyzer/error.rs.html#10">Error</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(traced_quantifier_id) = <a class="self" href="../../src/smt_log_analyzer/state.rs.html#236">self</a>.traced_quantifier {
+            <span class="kw">if </span>!<span class="self">self</span>.unique_quantifier_triggers[<span class="kw-2">&amp;</span>quantifier_id].contains(<span class="kw-2">&amp;</span>term_id)
+                &amp;&amp; traced_quantifier_id == quantifier_id
             {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#236">self</a>.<span class="ident">traced_quantifier_triggers</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#244">buf</a>, <span class="string">&quot;{},&quot;</span>, <span class="ident">term_id</span>).<span class="ident">unwrap</span>();
-                <a class="self" href="../../src/smt_log_analyzer/state.rs.html#236">self</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#414">render_term</a>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#238">term_id</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#244">buf</a>, <span class="number">30</span>).<span class="ident">unwrap</span>();
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#244">buf</a>).<span class="ident">unwrap</span>();
-                <a class="self" href="../../src/smt_log_analyzer/state.rs.html#236">self</a>.<span class="ident">traced_quantifier_triggers</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#244">buf</a>);
+                <span class="kw">let </span><span class="kw-2">mut </span>buf = <a class="self" href="../../src/smt_log_analyzer/state.rs.html#236">self</a>.traced_quantifier_triggers.take().unwrap();
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/smt_log_analyzer/state.rs.html#244">buf</a>, <span class="string">&quot;{},&quot;</span>, term_id).unwrap();
+                <a class="self" href="../../src/smt_log_analyzer/state.rs.html#236">self</a>.<a href="../../src/smt_log_analyzer/state.rs.html#414">render_term</a>(<a href="../../src/smt_log_analyzer/state.rs.html#238">term_id</a>, <span class="kw-2">&amp;mut </span><a href="../../src/smt_log_analyzer/state.rs.html#244">buf</a>, <span class="number">30</span>).unwrap();
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../src/smt_log_analyzer/state.rs.html#244">buf</a>).unwrap();
+                <a class="self" href="../../src/smt_log_analyzer/state.rs.html#236">self</a>.traced_quantifier_triggers = <span class="prelude-val">Some</span>(<a href="../../src/smt_log_analyzer/state.rs.html#244">buf</a>);
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">mark_quantifier_for_tracing</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">quantifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a><span class="op">&gt;</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">traced_quantifier</span>.<span class="ident">is_none</span>());
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#254">self</a>.<span class="ident">traced_quantifier</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#254">quantifier</a>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">quantifier</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#254">quantifier</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#258">buf</a>, <span class="string">&quot;{},&quot;</span>, <span class="ident">quantifier</span>).<span class="ident">unwrap</span>();
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#254">self</a>.<span class="ident">traced_quantifier_triggers</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#258">buf</a>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>mark_quantifier_for_tracing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quantifier: <span class="prelude-ty">Option</span>&lt;<a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>&gt;) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.traced_quantifier.is_none());
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#254">self</a>.traced_quantifier = <a href="../../src/smt_log_analyzer/state.rs.html#254">quantifier</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(quantifier) = <a href="../../src/smt_log_analyzer/state.rs.html#254">quantifier</a> {
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../src/smt_log_analyzer/state.rs.html#258">buf</a>, <span class="string">&quot;{},&quot;</span>, quantifier).unwrap();
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#254">self</a>.traced_quantifier_triggers = <span class="prelude-val">Some</span>(<a href="../../src/smt_log_analyzer/state.rs.html#258">buf</a>);
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_instance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#264">self</a>.<span class="ident">total_quantifiers_instance_counters</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">events</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#264">self</a>.<span class="ident">quantifiers_instance_events</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#266">events</a>.<span class="ident">last_mut</span>() {
-            <span class="kw">if</span> <span class="ident">last</span>.<span class="ident">level</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">current_active_scopes_count</span> {
-                <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#267">last</a>.<span class="ident">counter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_instance(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/smt_log_analyzer/error.rs.html#10">Error</a>&gt; {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#264">self</a>.total_quantifiers_instance_counters += <span class="number">1</span>;
+        <span class="kw">let </span>events = <span class="kw-2">&amp;mut </span><a class="self" href="../../src/smt_log_analyzer/state.rs.html#264">self</a>.quantifiers_instance_events;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <a href="../../src/smt_log_analyzer/state.rs.html#266">events</a>.last_mut() {
+            <span class="kw">if </span>last.level == <span class="self">self</span>.current_active_scopes_count {
+                <a href="../../src/smt_log_analyzer/state.rs.html#267">last</a>.counter += <span class="number">1</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
         }
-        <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#266">events</a>.<span class="ident">push</span>(<span class="ident">QuantifierInstanceEvent::new</span>(
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#264">self</a>.<span class="ident">current_active_scopes_count</span>,
+        <a href="../../src/smt_log_analyzer/state.rs.html#266">events</a>.push(QuantifierInstanceEvent::new(
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#264">self</a>.current_active_scopes_count,
         ));
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_term_function_application</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">term_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
-        <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_term_function_application(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        term_id: <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
+        name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        args: Vec&lt;<a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>&gt;,
     ) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#280">self</a>.<span class="ident">terms</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#281">term_id</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#18">Term::FunctionApplication</a> { <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#282">name</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#283">args</a> });
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#280">self</a>.terms
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#281">term_id</a>, <a href="../../src/smt_log_analyzer/state.rs.html#18">Term::FunctionApplication</a> { <a href="../../src/smt_log_analyzer/state.rs.html#282">name</a>, <a href="../../src/smt_log_analyzer/state.rs.html#283">args</a> });
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_term_bound_variable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">term_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#289">self</a>.<span class="ident">terms</span>.<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#289">term_id</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#19">Term::Variable</a> { <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#289">index</a> });
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_term_bound_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, term_id: <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#289">self</a>.terms.insert(<a href="../../src/smt_log_analyzer/state.rs.html#289">term_id</a>, <a href="../../src/smt_log_analyzer/state.rs.html#19">Term::Variable</a> { <a href="../../src/smt_log_analyzer/state.rs.html#289">index</a> });
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_term_attach_meaning</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">term_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
-        <span class="ident">ident</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_term_attach_meaning(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        term_id: <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>,
+        ident: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        value: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     ) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#294">self</a>.<span class="ident">terms</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#295">term_id</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#20">Term::AttachMeaning</a> { <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#296">ident</a>, <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#297">value</a> });
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#294">self</a>.terms
+            .insert(<a href="../../src/smt_log_analyzer/state.rs.html#295">term_id</a>, <a href="../../src/smt_log_analyzer/state.rs.html#20">Term::AttachMeaning</a> { <a href="../../src/smt_log_analyzer/state.rs.html#296">ident</a>, <a href="../../src/smt_log_analyzer/state.rs.html#297">value</a> });
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">active_scopes_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#5">Level</a> {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#303">self</a>.<span class="ident">current_active_scopes_count</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>active_scopes_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/smt_log_analyzer/types.rs.html#5">Level</a> {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#303">self</a>.current_active_scopes_count
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_scope</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#307">self</a>.<span class="ident">current_active_scopes_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_scope(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#307">self</a>.current_active_scopes_count += <span class="number">1</span>;
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop_scopes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">scopes_to_pop</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.<span class="ident">current_active_scopes_count</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#311">scopes_to_pop</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_scopes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scopes_to_pop: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.current_active_scopes_count -= <a href="../../src/smt_log_analyzer/state.rs.html#311">scopes_to_pop</a>;
 
-        <span class="kw">let</span> <span class="ident">max_instances</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>
-            .<span class="ident">quantifiers_instance_events</span>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">event</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#317">event</a>.<span class="ident">counter</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">max_quantifier_instance_event_counters</span> <span class="op">&lt;</span> <span class="ident">max_instances</span> {
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.<span class="ident">max_quantifier_instance_event_counters</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#314">max_instances</a>;
+        <span class="kw">let </span>max_instances = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#311">self</a>
+            </span>.quantifiers_instance_events
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|event| <a href="../../src/smt_log_analyzer/state.rs.html#317">event</a>.counter)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>();
+        <span class="kw">if </span><span class="self">self</span>.max_quantifier_instance_event_counters &lt; max_instances {
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.max_quantifier_instance_event_counters = <a href="../../src/smt_log_analyzer/state.rs.html#314">max_instances</a>;
         }
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">quantifiers_instance_events</span>.<span class="ident">last</span>() {
-            <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">level</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">current_active_scopes_count</span> {
-                <span class="self">self</span>.<span class="ident">quantifiers_instance_events</span>.<span class="ident">pop</span>();
-            } <span class="kw">else</span> {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = <span class="self">self</span>.quantifiers_instance_events.last() {
+            <span class="kw">if </span>event.level &gt; <span class="self">self</span>.current_active_scopes_count {
+                <span class="self">self</span>.quantifiers_instance_events.pop();
+            } <span class="kw">else </span>{
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="kw">for</span> (<span class="ident">quantifier_id</span>, <span class="ident">term_used_in_trigger_events</span>) <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">term_used_in_trigger_events</span> {
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">max_term_used_in_trigger_event_counters</span>
-                .<span class="ident">get_mut</span>(<span class="ident">quantifier_id</span>)
-                .<span class="ident">unwrap</span>();
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">max</span> <span class="op">&lt;</span> <span class="ident">term_used_in_trigger_events</span>.<span class="ident">len</span>() {
-                <span class="kw-2">*</span><span class="ident">max</span> <span class="op">=</span> <span class="ident">term_used_in_trigger_events</span>.<span class="ident">len</span>();
+        <span class="kw">for </span>(quantifier_id, term_used_in_trigger_events) <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.term_used_in_trigger_events {
+            <span class="kw">let </span>max = <span class="self">self
+                </span>.max_term_used_in_trigger_event_counters
+                .get_mut(quantifier_id)
+                .unwrap();
+            <span class="kw">if </span><span class="kw-2">*</span>max &lt; term_used_in_trigger_events.len() {
+                <span class="kw-2">*</span>max = term_used_in_trigger_events.len();
             }
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <span class="ident">term_used_in_trigger_events</span>.<span class="ident">last</span>() {
-                <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">level</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">current_active_scopes_count</span> {
-                    <span class="ident">term_used_in_trigger_events</span>.<span class="ident">pop</span>();
-                } <span class="kw">else</span> {
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = term_used_in_trigger_events.last() {
+                <span class="kw">if </span>event.level &gt; <span class="self">self</span>.current_active_scopes_count {
+                    term_used_in_trigger_events.pop();
+                } <span class="kw">else </span>{
                     <span class="kw">break</span>;
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">removed_labels</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">trace</span>.<span class="ident">last</span>() {
-            <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">level</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">current_active_scopes_count</span> {
-                <span class="ident">removed_labels</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">trace</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>());
-            } <span class="kw">else</span> {
+        <span class="kw">let </span><span class="kw-2">mut </span>removed_labels = Vec::new();
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = <span class="self">self</span>.trace.last() {
+            <span class="kw">if </span>event.level &gt; <span class="self">self</span>.current_active_scopes_count {
+                removed_labels.push(<span class="self">self</span>.trace.pop().unwrap());
+            } <span class="kw">else </span>{
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="kw">for</span> (<span class="ident">theory</span>, <span class="ident">events</span>) <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">quantifiers_inst_disovered_events</span> {
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">max_quantifier_inst_discovered_event_counters</span>
-                .<span class="ident">get_mut</span>(<span class="ident">theory</span>)
-                .<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">events</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">event</span><span class="op">|</span> <span class="ident">event</span>.<span class="ident">counter</span>).<span class="ident">sum</span>();
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">max</span> <span class="op">&lt;</span> <span class="ident">sum</span> {
-                <span class="kw-2">*</span><span class="ident">max</span> <span class="op">=</span> <span class="ident">sum</span>;
+        <span class="kw">for </span>(theory, events) <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.quantifiers_inst_disovered_events {
+            <span class="kw">let </span>max = <span class="self">self
+                </span>.max_quantifier_inst_discovered_event_counters
+                .get_mut(theory)
+                .unwrap();
+            <span class="kw">let </span>sum = events.iter().map(|event| event.counter).sum();
+            <span class="kw">if </span><span class="kw-2">*</span>max &lt; sum {
+                <span class="kw-2">*</span>max = sum;
             }
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <span class="ident">events</span>.<span class="ident">last</span>() {
-                <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">level</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">current_active_scopes_count</span> {
-                    <span class="ident">events</span>.<span class="ident">pop</span>();
-                } <span class="kw">else</span> {
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = events.last() {
+                <span class="kw">if </span>event.level &gt; <span class="self">self</span>.current_active_scopes_count {
+                    events.pop();
+                } <span class="kw">else </span>{
                     <span class="kw">break</span>;
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">removed_quantifiers</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_quantifier_matches_removed</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">for</span> (<span class="ident">quantifier_id</span>, <span class="ident">events</span>) <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">quantifiers_matched_events</span> {
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">max_quantifier_matched_event_counters</span>
-                .<span class="ident">get_mut</span>(<span class="ident">quantifier_id</span>)
-                .<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">events</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">event</span><span class="op">|</span> <span class="ident">event</span>.<span class="ident">counter</span>).<span class="ident">sum</span>();
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">max</span> <span class="op">&lt;</span> <span class="ident">sum</span> {
-                <span class="kw-2">*</span><span class="ident">max</span> <span class="op">=</span> <span class="ident">sum</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>removed_quantifiers = HashMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>total_quantifier_matches_removed = <span class="number">0</span>;
+        <span class="kw">for </span>(quantifier_id, events) <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.quantifiers_matched_events {
+            <span class="kw">let </span>max = <span class="self">self
+                </span>.max_quantifier_matched_event_counters
+                .get_mut(quantifier_id)
+                .unwrap();
+            <span class="kw">let </span>sum = events.iter().map(|event| event.counter).sum();
+            <span class="kw">if </span><span class="kw-2">*</span>max &lt; sum {
+                <span class="kw-2">*</span>max = sum;
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">quantifier_matches_removed</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <span class="ident">events</span>.<span class="ident">last</span>() {
-                <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">level</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">current_active_scopes_count</span> {
-                    <span class="ident">quantifier_matches_removed</span> <span class="op">+</span><span class="op">=</span> <span class="ident">event</span>.<span class="ident">counter</span>;
-                    <span class="ident">events</span>.<span class="ident">pop</span>();
-                } <span class="kw">else</span> {
+            <span class="kw">let </span><span class="kw-2">mut </span>quantifier_matches_removed = <span class="number">0</span>;
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = events.last() {
+                <span class="kw">if </span>event.level &gt; <span class="self">self</span>.current_active_scopes_count {
+                    quantifier_matches_removed += event.counter;
+                    events.pop();
+                } <span class="kw">else </span>{
                     <span class="kw">break</span>;
                 }
             }
-            <span class="ident">total_quantifier_matches_removed</span> <span class="op">+</span><span class="op">=</span> <span class="ident">quantifier_matches_removed</span>;
-            <span class="kw">if</span> <span class="ident">quantifier_matches_removed</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="ident">removed_quantifiers</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">quantifier_id</span>, <span class="ident">quantifier_matches_removed</span>);
+            total_quantifier_matches_removed += quantifier_matches_removed;
+            <span class="kw">if </span>quantifier_matches_removed &gt; <span class="number">0 </span>{
+                removed_quantifiers.insert(<span class="kw-2">*</span>quantifier_id, quantifier_matches_removed);
             }
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">largest_pop</span>.<span class="ident">quantifier_matches_removed</span> <span class="op">&lt;</span> <span class="ident">total_quantifier_matches_removed</span> {
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.<span class="ident">largest_pop</span>.<span class="ident">active_scopes_popped</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#311">scopes_to_pop</a>;
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.<span class="ident">largest_pop</span>.<span class="ident">quantifier_matches_removed</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#375">total_quantifier_matches_removed</a>;
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.<span class="ident">largest_pop</span>.<span class="ident">removed_quantifiers</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#374">removed_quantifiers</a>;
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#347">removed_labels</a>.<span class="ident">reverse</span>();
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.<span class="ident">largest_pop</span>.<span class="ident">labels</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#347">removed_labels</a>;
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.<span class="ident">largest_pop</span>.<span class="ident">trace_prefix</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.<span class="ident">trace</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">if </span><span class="self">self</span>.largest_pop.quantifier_matches_removed &lt; total_quantifier_matches_removed {
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.largest_pop.active_scopes_popped = <a href="../../src/smt_log_analyzer/state.rs.html#311">scopes_to_pop</a>;
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.largest_pop.quantifier_matches_removed = <a href="../../src/smt_log_analyzer/state.rs.html#375">total_quantifier_matches_removed</a>;
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.largest_pop.removed_quantifiers = <a href="../../src/smt_log_analyzer/state.rs.html#374">removed_quantifiers</a>;
+            <a href="../../src/smt_log_analyzer/state.rs.html#347">removed_labels</a>.reverse();
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.largest_pop.labels = <a href="../../src/smt_log_analyzer/state.rs.html#347">removed_labels</a>;
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.largest_pop.trace_prefix = <a class="self" href="../../src/smt_log_analyzer/state.rs.html#311">self</a>.trace.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop_all_scopes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#410">self</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#311">pop_scopes</a>(<a class="self" href="../../src/smt_log_analyzer/state.rs.html#410">self</a>.<span class="ident">current_active_scopes_count</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_all_scopes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../src/smt_log_analyzer/state.rs.html#410">self</a>.<a href="../../src/smt_log_analyzer/state.rs.html#311">pop_scopes</a>(<a class="self" href="../../src/smt_log_analyzer/state.rs.html#410">self</a>.current_active_scopes_count);
     }
 
-    <span class="kw">fn</span> <span class="ident">render_term</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">term_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">Write</a>, <span class="ident">depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">if</span> <span class="ident">depth</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;…&quot;</span>)<span class="question-mark">?</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">term</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#414">self</a>.<span class="ident">terms</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#414">term_id</a>) {
-            <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#417">term</a> {
-                <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#18">Term::FunctionApplication</a> { <span class="ident">name</span>, <span class="ident">args</span> } =&gt; {
-                    <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-                        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
-                    } <span class="kw">else</span> {
-                        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;({}&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
-                        <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
-                            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
-                            <span class="self">self</span>.<span class="ident">render_term</span>(<span class="kw-2">*</span><span class="ident">arg</span>, <span class="ident">f</span>, <span class="ident">depth</span> <span class="op">-</span> <span class="number">1</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>render_term(<span class="kw-2">&amp;</span><span class="self">self</span>, term_id: <a href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>, f: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html">Write</a>, depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <span class="kw">if </span>depth == <span class="number">0 </span>{
+            <span class="macro">write!</span>(f, <span class="string">&quot;…&quot;</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(term) = <a class="self" href="../../src/smt_log_analyzer/state.rs.html#414">self</a>.terms.get(<span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/state.rs.html#414">term_id</a>) {
+            <span class="kw">match </span><a href="../../src/smt_log_analyzer/state.rs.html#417">term</a> {
+                <a href="../../src/smt_log_analyzer/state.rs.html#18">Term::FunctionApplication</a> { name, args } =&gt; {
+                    <span class="kw">if </span>args.is_empty() {
+                        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, name)<span class="question-mark">?</span>;
+                    } <span class="kw">else </span>{
+                        <span class="macro">write!</span>(f, <span class="string">&quot;({}&quot;</span>, name)<span class="question-mark">?</span>;
+                        <span class="kw">for </span>arg <span class="kw">in </span>args {
+                            <span class="macro">write!</span>(f, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.render_term(<span class="kw-2">*</span>arg, f, depth - <span class="number">1</span>)<span class="question-mark">?</span>;
                         }
-                        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
+                        <span class="macro">write!</span>(f, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
                     }
                 }
-                <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#19">Term::Variable</a> { <span class="ident">index</span> } =&gt; {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;var({})&quot;</span>, <span class="ident">index</span>)<span class="question-mark">?</span>;
+                <a href="../../src/smt_log_analyzer/state.rs.html#19">Term::Variable</a> { index } =&gt; {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;var({})&quot;</span>, index)<span class="question-mark">?</span>;
                 }
-                <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#20">Term::AttachMeaning</a> { <span class="ident">ident</span>, <span class="ident">value</span> } =&gt; {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;( {} {} )&quot;</span>, <span class="ident">ident</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+                <a href="../../src/smt_log_analyzer/state.rs.html#20">Term::AttachMeaning</a> { ident, value } =&gt; {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;( {} {} )&quot;</span>, ident, value)<span class="question-mark">?</span>;
                 }
             }
-        } <span class="kw">else</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;n/a&quot;</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            <span class="macro">write!</span>(f, <span class="string">&quot;n/a&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">quantifier_matches_counts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#444">self</a>
-            .<span class="ident">max_quantifier_matched_event_counters</span>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">quantifier_id</span>, <span class="ident">counter</span>)<span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#448">counter</a>, <span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#448">quantifier_id</a>))
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#445">counts</a>.<span class="ident">sort</span>();
-        <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#445">counts</a>
+    <span class="kw">fn </span>quantifier_matches_counts(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>)&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>counts: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#444">self</a>
+            </span>.max_quantifier_matched_event_counters
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(quantifier_id, counter)| (<span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#448">counter</a>, <span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#448">quantifier_id</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="../../src/smt_log_analyzer/state.rs.html#445">counts</a>.sort();
+        <a href="../../src/smt_log_analyzer/state.rs.html#445">counts</a>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">write_statistics</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input_file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_statistics(<span class="kw-2">&amp;</span><span class="self">self</span>, input_file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
         {
-            <span class="comment">// [instance] – the number of quantifier instantiations.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">Writer::from_path</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.instances.csv&quot;</span>, <span class="ident">input_file</span>)).<span class="ident">unwrap</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#457">writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
+            <span class="comment">// [instance] – the number of quantifier instantiations.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>writer = Writer::from_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.instances.csv&quot;</span>, input_file)).unwrap();
+            <a href="../../src/smt_log_analyzer/state.rs.html#457">writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[
                     <span class="string">&quot;Total Quantifier Instance Count&quot;</span>,
                     <span class="string">&quot;Max Trace Quantifier Instance Count&quot;</span>,
                 ])
-                .<span class="ident">unwrap</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#457">writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
-                    <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.<span class="ident">total_quantifiers_instance_counters</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.<span class="ident">max_quantifier_instance_event_counters</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                .unwrap();
+            <a href="../../src/smt_log_analyzer/state.rs.html#457">writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[
+                    <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.total_quantifiers_instance_counters.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.max_quantifier_instance_event_counters.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                 ])
-                .<span class="ident">unwrap</span>();
+                .unwrap();
         }
 
         {
-            <span class="comment">// The number of trigger matches per quantifier.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">Writer::from_path</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.triggers.csv&quot;</span>, <span class="ident">input_file</span>)).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
-                .<span class="ident">max_term_used_in_trigger_event_counters</span>
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">quantifier_id</span>, <span class="ident">counter</span>)<span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#478">counter</a>, <span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#478">quantifier_id</a>))
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#475">counts</a>.<span class="ident">sort</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#474">writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Trigger Count&quot;</span>])
-                .<span class="ident">unwrap</span>();
-            <span class="kw">for</span> (<span class="ident">counter</span>, <span class="ident">quantifier_id</span>) <span class="kw">in</span> <span class="ident">counts</span> {
-                <span class="ident">writer</span>
-                    .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
-                        <span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>.<span class="ident">to_string</span>(),
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">quantifiers</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>].<span class="ident">name</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">counter</span>.<span class="ident">to_string</span>(),
+            <span class="comment">// The number of trigger matches per quantifier.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>writer = Writer::from_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.triggers.csv&quot;</span>, input_file)).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>counts: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
+                </span>.max_term_used_in_trigger_event_counters
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(quantifier_id, counter)| (<span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#478">counter</a>, <span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#478">quantifier_id</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <a href="../../src/smt_log_analyzer/state.rs.html#475">counts</a>.sort();
+            <a href="../../src/smt_log_analyzer/state.rs.html#474">writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Trigger Count&quot;</span>])
+                .unwrap();
+            <span class="kw">for </span>(counter, quantifier_id) <span class="kw">in </span>counts {
+                writer
+                    .write_record(<span class="kw-2">&amp;</span>[
+                        <span class="kw-2">&amp;</span>quantifier_id.to_string(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.quantifiers[<span class="kw-2">&amp;</span>quantifier_id].name,
+                        <span class="kw-2">&amp;</span>counter.to_string(),
                     ])
-                    .<span class="ident">unwrap</span>();
+                    .unwrap();
             }
         }
 
         {
-            <span class="comment">// The number of unique triggers per quantifier.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span>
-                <span class="ident">Writer::from_path</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.unique-triggers.csv&quot;</span>, <span class="ident">input_file</span>)).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
-                .<span class="ident">unique_quantifier_triggers</span>
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">quantifier_id</span>, <span class="ident">terms</span>)<span class="op">|</span> (<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#502">terms</a>.<span class="ident">len</span>(), <span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#502">quantifier_id</a>))
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#499">counts</a>.<span class="ident">sort</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#497">writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Unique trigger Count&quot;</span>])
-                .<span class="ident">unwrap</span>();
-            <span class="kw">for</span> (<span class="ident">counter</span>, <span class="ident">quantifier_id</span>) <span class="kw">in</span> <span class="ident">counts</span> {
-                <span class="ident">writer</span>
-                    .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
-                        <span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>.<span class="ident">to_string</span>(),
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">quantifiers</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>].<span class="ident">name</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">counter</span>.<span class="ident">to_string</span>(),
+            <span class="comment">// The number of unique triggers per quantifier.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>writer =
+                Writer::from_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.unique-triggers.csv&quot;</span>, input_file)).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>counts: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
+                </span>.unique_quantifier_triggers
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(quantifier_id, terms)| (<a href="../../src/smt_log_analyzer/state.rs.html#502">terms</a>.len(), <span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#502">quantifier_id</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <a href="../../src/smt_log_analyzer/state.rs.html#499">counts</a>.sort();
+            <a href="../../src/smt_log_analyzer/state.rs.html#497">writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Unique trigger Count&quot;</span>])
+                .unwrap();
+            <span class="kw">for </span>(counter, quantifier_id) <span class="kw">in </span>counts {
+                writer
+                    .write_record(<span class="kw-2">&amp;</span>[
+                        <span class="kw-2">&amp;</span>quantifier_id.to_string(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.quantifiers[<span class="kw-2">&amp;</span>quantifier_id].name,
+                        <span class="kw-2">&amp;</span>counter.to_string(),
                     ])
-                    .<span class="ident">unwrap</span>();
+                    .unwrap();
             }
         }
 
-        <span class="comment">// { This seems to be useless and is very slow.</span>
-        <span class="comment">//     // The unique triggers per quantifier.</span>
-        <span class="comment">//     let mut writer =</span>
-        <span class="comment">//         Writer::from_path(format!(&quot;{}.unique-trigger-terms.csv&quot;, input_file)).unwrap();</span>
-        <span class="comment">//     writer</span>
-        <span class="comment">//         .write_record(&amp;[&quot;Quantifier ID&quot;, &quot;Quantifier Name&quot;, &quot;Term Id&quot;, &quot;Trigger&quot;])</span>
-        <span class="comment">//         .unwrap();</span>
-        <span class="comment">//     let mut term = String::new();</span>
-        <span class="comment">//     for (quantifier_id, triggers) in &amp;self.unique_quantifier_triggers {</span>
-        <span class="comment">//         for trigger in triggers {</span>
-        <span class="comment">//             term.clear();</span>
-        <span class="comment">//             self.render_term(*trigger, &amp;mut term, 10).unwrap();</span>
-        <span class="comment">//             writer</span>
-        <span class="comment">//                 .write_record(&amp;[</span>
-        <span class="comment">//                     &amp;quantifier_id.to_string(),</span>
-        <span class="comment">//                     &amp;self.quantifiers[&amp;quantifier_id].name,</span>
-        <span class="comment">//                     &amp;trigger.to_string(),</span>
-        <span class="comment">//                     &amp;term,</span>
-        <span class="comment">//                 ])</span>
-        <span class="comment">//                 .unwrap();</span>
-        <span class="comment">//         }</span>
-        <span class="comment">//     }</span>
-        <span class="comment">// }</span>
+        <span class="comment">// { This seems to be useless and is very slow.
+        //     // The unique triggers per quantifier.
+        //     let mut writer =
+        //         Writer::from_path(format!(&quot;{}.unique-trigger-terms.csv&quot;, input_file)).unwrap();
+        //     writer
+        //         .write_record(&amp;[&quot;Quantifier ID&quot;, &quot;Quantifier Name&quot;, &quot;Term Id&quot;, &quot;Trigger&quot;])
+        //         .unwrap();
+        //     let mut term = String::new();
+        //     for (quantifier_id, triggers) in &amp;self.unique_quantifier_triggers {
+        //         for trigger in triggers {
+        //             term.clear();
+        //             self.render_term(*trigger, &amp;mut term, 10).unwrap();
+        //             writer
+        //                 .write_record(&amp;[
+        //                     &amp;quantifier_id.to_string(),
+        //                     &amp;self.quantifiers[&amp;quantifier_id].name,
+        //                     &amp;trigger.to_string(),
+        //                     &amp;term,
+        //                 ])
+        //                 .unwrap();
+        //         }
+        //     }
+        // }
 
-        {
-            <span class="comment">// The quantifiers that were matched multiple times with the same</span>
-            <span class="comment">// trigger.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span>
-                <span class="ident">Writer::from_path</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.multi-triggers.csv&quot;</span>, <span class="ident">input_file</span>)).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">multi_term_instantiation_counts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
-                .<span class="ident">multi_term_quantifiers</span>
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">quantifier_id</span>, <span class="ident">terms</span>)<span class="op">|</span> (<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#551">terms</a>.<span class="ident">len</span>(), <span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#551">quantifier_id</a>))
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#548">multi_term_instantiation_counts</a>.<span class="ident">sort</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#546">writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Trigger Count&quot;</span>])
-                .<span class="ident">unwrap</span>();
-            <span class="kw">for</span> (<span class="ident">counter</span>, <span class="ident">quantifier_id</span>) <span class="kw">in</span> <span class="ident">multi_term_instantiation_counts</span> {
-                <span class="ident">writer</span>
-                    .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
-                        <span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>.<span class="ident">to_string</span>(),
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">quantifiers</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>].<span class="ident">name</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">counter</span>.<span class="ident">to_string</span>(),
+        </span>{
+            <span class="comment">// The quantifiers that were matched multiple times with the same
+            // trigger.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>writer =
+                Writer::from_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.multi-triggers.csv&quot;</span>, input_file)).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>multi_term_instantiation_counts: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
+                </span>.multi_term_quantifiers
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(quantifier_id, terms)| (<a href="../../src/smt_log_analyzer/state.rs.html#551">terms</a>.len(), <span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#551">quantifier_id</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <a href="../../src/smt_log_analyzer/state.rs.html#548">multi_term_instantiation_counts</a>.sort();
+            <a href="../../src/smt_log_analyzer/state.rs.html#546">writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Trigger Count&quot;</span>])
+                .unwrap();
+            <span class="kw">for </span>(counter, quantifier_id) <span class="kw">in </span>multi_term_instantiation_counts {
+                writer
+                    .write_record(<span class="kw-2">&amp;</span>[
+                        <span class="kw-2">&amp;</span>quantifier_id.to_string(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.quantifiers[<span class="kw-2">&amp;</span>quantifier_id].name,
+                        <span class="kw-2">&amp;</span>counter.to_string(),
                     ])
-                    .<span class="ident">unwrap</span>();
+                    .unwrap();
             }
         }
 
         {
-            <span class="comment">// [new-match] – The number of quantifier matches.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">Writer::from_path</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.matches.csv&quot;</span>, <span class="ident">input_file</span>)).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">counts</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#444">quantifier_matches_counts</a>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#570">writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
+            <span class="comment">// [new-match] – The number of quantifier matches.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>writer = Writer::from_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.matches.csv&quot;</span>, input_file)).unwrap();
+            <span class="kw">let </span>counts = <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.<a href="../../src/smt_log_analyzer/state.rs.html#444">quantifier_matches_counts</a>();
+            <a href="../../src/smt_log_analyzer/state.rs.html#570">writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[
                     <span class="string">&quot;Quantifier ID&quot;</span>,
                     <span class="string">&quot;Quantifier Name&quot;</span>,
                     <span class="string">&quot;Matches&quot;</span>,
                     <span class="string">&quot;Total Matches&quot;</span>,
                 ])
-                .<span class="ident">unwrap</span>();
-            <span class="kw">for</span> (<span class="ident">counter</span>, <span class="ident">quantifier_id</span>) <span class="kw">in</span> <span class="ident">counts</span> {
-                <span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">total_quantifiers_matched_counters</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>];
-                <span class="ident">writer</span>
-                    .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
-                        <span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>.<span class="ident">to_string</span>(),
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">quantifiers</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>].<span class="ident">name</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">counter</span>.<span class="ident">to_string</span>(),
-                        <span class="kw-2">&amp;</span><span class="ident">total</span>.<span class="ident">to_string</span>(),
+                .unwrap();
+            <span class="kw">for </span>(counter, quantifier_id) <span class="kw">in </span>counts {
+                <span class="kw">let </span>total = <span class="self">self</span>.total_quantifiers_matched_counters[<span class="kw-2">&amp;</span>quantifier_id];
+                writer
+                    .write_record(<span class="kw-2">&amp;</span>[
+                        <span class="kw-2">&amp;</span>quantifier_id.to_string(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.quantifiers[<span class="kw-2">&amp;</span>quantifier_id].name,
+                        <span class="kw-2">&amp;</span>counter.to_string(),
+                        <span class="kw-2">&amp;</span>total.to_string(),
                     ])
-                    .<span class="ident">unwrap</span>();
+                    .unwrap();
             }
         }
 
         {
-            <span class="comment">// [inst-discovered] – The number of quantifier instance discoveries.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span>
-                <span class="ident">Writer::from_path</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.inst-discoveries.csv&quot;</span>, <span class="ident">input_file</span>)).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
-                .<span class="ident">max_quantifier_inst_discovered_event_counters</span>
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">theory</span>, <span class="ident">counter</span>)<span class="op">|</span> (<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#600">counter</a>, <span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#600">theory</a>))
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#597">counts</a>.<span class="ident">sort</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#595">writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;Theory&quot;</span>, <span class="string">&quot;Discoveries&quot;</span>, <span class="string">&quot;Total Discoveries&quot;</span>])
-                .<span class="ident">unwrap</span>();
-            <span class="kw">for</span> (<span class="ident">counter</span>, <span class="ident">theory</span>) <span class="kw">in</span> <span class="ident">counts</span> {
-                <span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">total_quantifiers_inst_disovered_counters</span>[<span class="kw-2">&amp;</span><span class="ident">theory</span>];
-                <span class="ident">writer</span>
-                    .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
-                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">theory</span>),
-                        <span class="kw-2">&amp;</span><span class="ident">counter</span>.<span class="ident">to_string</span>(),
-                        <span class="kw-2">&amp;</span><span class="ident">total</span>.<span class="ident">to_string</span>(),
+            <span class="comment">// [inst-discovered] – The number of quantifier instance discoveries.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>writer =
+                Writer::from_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.inst-discoveries.csv&quot;</span>, input_file)).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>counts: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
+                </span>.max_quantifier_inst_discovered_event_counters
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(theory, counter)| (<a href="../../src/smt_log_analyzer/state.rs.html#600">counter</a>, <span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#600">theory</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <a href="../../src/smt_log_analyzer/state.rs.html#597">counts</a>.sort();
+            <a href="../../src/smt_log_analyzer/state.rs.html#595">writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[<span class="string">&quot;Theory&quot;</span>, <span class="string">&quot;Discoveries&quot;</span>, <span class="string">&quot;Total Discoveries&quot;</span>])
+                .unwrap();
+            <span class="kw">for </span>(counter, theory) <span class="kw">in </span>counts {
+                <span class="kw">let </span>total = <span class="self">self</span>.total_quantifiers_inst_disovered_counters[<span class="kw-2">&amp;</span>theory];
+                writer
+                    .write_record(<span class="kw-2">&amp;</span>[
+                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, theory),
+                        <span class="kw-2">&amp;</span>counter.to_string(),
+                        <span class="kw-2">&amp;</span>total.to_string(),
                     ])
-                    .<span class="ident">unwrap</span>();
+                    .unwrap();
             }
         }
 
@@ -1410,175 +1410,175 @@
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>(
                 <span class="string">&quot;The largest number of quantifier matches removed in a single \
                 “pop {}” operation: {}&quot;</span>,
-                <span class="self">self</span>.<span class="ident">largest_pop</span>.<span class="ident">active_scopes_popped</span>, <span class="self">self</span>.<span class="ident">largest_pop</span>.<span class="ident">quantifier_matches_removed</span>
+                <span class="self">self</span>.largest_pop.active_scopes_popped, <span class="self">self</span>.largest_pop.quantifier_matches_removed
             );
-            <span class="comment">// The number of quantifier matches poped in the largest match.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span>
-                <span class="ident">Writer::from_path</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.largest_pop_matches.csv&quot;</span>, <span class="ident">input_file</span>)).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
-                .<span class="ident">largest_pop</span>
-                .<span class="ident">removed_quantifiers</span>
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">quantifier_id</span>, <span class="ident">counter</span>)<span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#631">counter</a>, <span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#631">quantifier_id</a>))
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#627">counts</a>.<span class="ident">sort</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#625">writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Matches Removed&quot;</span>])
-                .<span class="ident">unwrap</span>();
-            <span class="kw">for</span> (<span class="ident">counter</span>, <span class="ident">quantifier_id</span>) <span class="kw">in</span> <span class="ident">counts</span> {
-                <span class="ident">writer</span>
-                    .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[
-                        <span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>.<span class="ident">to_string</span>(),
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">quantifiers</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>].<span class="ident">name</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">counter</span>.<span class="ident">to_string</span>(),
+            <span class="comment">// The number of quantifier matches poped in the largest match.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>writer =
+                Writer::from_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.largest_pop_matches.csv&quot;</span>, input_file)).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>counts: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="../../src/smt_log_analyzer/state.rs.html#454">self</a>
+                </span>.largest_pop
+                .removed_quantifiers
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(quantifier_id, counter)| (<span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#631">counter</a>, <span class="kw-2">*</span><a href="../../src/smt_log_analyzer/state.rs.html#631">quantifier_id</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <a href="../../src/smt_log_analyzer/state.rs.html#627">counts</a>.sort();
+            <a href="../../src/smt_log_analyzer/state.rs.html#625">writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[<span class="string">&quot;Quantifier ID&quot;</span>, <span class="string">&quot;Quantifier Name&quot;</span>, <span class="string">&quot;Matches Removed&quot;</span>])
+                .unwrap();
+            <span class="kw">for </span>(counter, quantifier_id) <span class="kw">in </span>counts {
+                writer
+                    .write_record(<span class="kw-2">&amp;</span>[
+                        <span class="kw-2">&amp;</span>quantifier_id.to_string(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.quantifiers[<span class="kw-2">&amp;</span>quantifier_id].name,
+                        <span class="kw-2">&amp;</span>counter.to_string(),
                     ])
-                    .<span class="ident">unwrap</span>();
+                    .unwrap();
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">label_writer</span> <span class="op">=</span>
-                <span class="ident">Writer::from_path</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.largest_pop_labels.csv&quot;</span>, <span class="ident">input_file</span>)).<span class="ident">unwrap</span>();
-            <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#647">label_writer</a>
-                .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;Basic Block Label&quot;</span>, <span class="string">&quot;Level&quot;</span>, <span class="string">&quot;Was popped?&quot;</span>])
-                .<span class="ident">unwrap</span>();
-            <span class="kw">for</span> <span class="ident">event</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">largest_pop</span>.<span class="ident">trace_prefix</span> {
-                <span class="ident">label_writer</span>
-                    .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">event</span>.<span class="ident">label</span>, <span class="kw-2">&amp;</span><span class="ident">event</span>.<span class="ident">level</span>.<span class="ident">to_string</span>(), <span class="string">&quot;false&quot;</span>])
-                    .<span class="ident">unwrap</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>label_writer =
+                Writer::from_path(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.largest_pop_labels.csv&quot;</span>, input_file)).unwrap();
+            <a href="../../src/smt_log_analyzer/state.rs.html#647">label_writer</a>
+                .write_record(<span class="kw-2">&amp;</span>[<span class="string">&quot;Basic Block Label&quot;</span>, <span class="string">&quot;Level&quot;</span>, <span class="string">&quot;Was popped?&quot;</span>])
+                .unwrap();
+            <span class="kw">for </span>event <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.largest_pop.trace_prefix {
+                label_writer
+                    .write_record(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event.label, <span class="kw-2">&amp;</span>event.level.to_string(), <span class="string">&quot;false&quot;</span>])
+                    .unwrap();
             }
-            <span class="kw">for</span> <span class="ident">event</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">largest_pop</span>.<span class="ident">labels</span> {
-                <span class="ident">label_writer</span>
-                    .<span class="ident">write_record</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">event</span>.<span class="ident">label</span>, <span class="kw-2">&amp;</span><span class="ident">event</span>.<span class="ident">level</span>.<span class="ident">to_string</span>(), <span class="string">&quot;true&quot;</span>])
-                    .<span class="ident">unwrap</span>();
+            <span class="kw">for </span>event <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.largest_pop.labels {
+                label_writer
+                    .write_record(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event.label, <span class="kw-2">&amp;</span>event.level.to_string(), <span class="string">&quot;true&quot;</span>])
+                    .unwrap();
             }
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">quantifier_id</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.<span class="ident">traced_quantifier</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">std::fs::File::create</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(quantifier_id) = <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.traced_quantifier {
+            <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;{}.quantifier-{}-triggers.csv&quot;</span>,
-                <span class="ident">input_file</span>, <span class="ident">quantifier_id</span>
+                input_file, quantifier_id
             ))
-            .<span class="ident">unwrap</span>();
-            <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write::write_all</a>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#665">file</a>,
-                <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.<span class="ident">traced_quantifier_triggers</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>(),
+            .unwrap();
+            <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write::write_all</a>(
+                <span class="kw-2">&amp;mut </span><a href="../../src/smt_log_analyzer/state.rs.html#665">file</a>,
+                <a class="self" href="../../src/smt_log_analyzer/state.rs.html#454">self</a>.traced_quantifier_triggers.as_ref().unwrap().as_bytes(),
             )
-            .<span class="ident">unwrap</span>();
+            .unwrap();
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">check_bounds_explanatory_quantifier_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">quantifier_id</span>: <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">quantifiers</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>].<span class="ident">name</span>.<span class="ident">starts_with</span>(<span class="string">&quot;k!&quot;</span>) {
+    <span class="kw">fn </span>check_bounds_explanatory_quantifier_name(<span class="kw-2">&amp;</span><span class="self">self</span>, quantifier_id: <a href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <span class="kw">if </span><span class="self">self</span>.quantifiers[<span class="kw-2">&amp;</span>quantifier_id].name.starts_with(<span class="string">&quot;k!&quot;</span>) {
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;{} (quantifiers with name k!&lt;line&gt; are defined on \
                 &lt;line&gt;&#39;th line of the smt2 file)&quot;</span>,
-                <span class="self">self</span>.<span class="ident">quantifiers</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>].<span class="ident">name</span>
+                <span class="self">self</span>.quantifiers[<span class="kw-2">&amp;</span>quantifier_id].name
             )
-        } <span class="kw">else</span> {
-            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#678">self</a>.<span class="ident">quantifiers</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/state.rs.html#678">quantifier_id</a>].<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        } <span class="kw">else </span>{
+            <a class="self" href="../../src/smt_log_analyzer/state.rs.html#678">self</a>.quantifiers[<span class="kw-2">&amp;</span><a href="../../src/smt_log_analyzer/state.rs.html#678">quantifier_id</a>].name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_bounds</span>(
+    <span class="attribute">#[allow(clippy::too_many_arguments)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_bounds(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">input_file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">quantifier_instantiations_ignore_builtin</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="ident">quantifier_instantiations_bound_global_kind</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
-        <span class="ident">quantifier_instantiations_bound_trace</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
-        <span class="ident">quantifier_instantiations_bound_trace_kind</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
-        <span class="ident">unique_triggers_bound</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
-        <span class="ident">unique_triggers_bound_total</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
+        input_file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        quantifier_instantiations_ignore_builtin: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        quantifier_instantiations_bound_global_kind: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+        quantifier_instantiations_bound_trace: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+        quantifier_instantiations_bound_trace_kind: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+        unique_triggers_bound: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+        unique_triggers_bound_total: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
     ) {
-        <span class="kw">if</span> <span class="ident">quantifier_instantiations_bound_trace</span>.<span class="ident">is_none</span>()
-            <span class="op">&amp;&amp;</span> <span class="ident">quantifier_instantiations_bound_trace_kind</span>.<span class="ident">is_none</span>()
-            <span class="op">&amp;&amp;</span> <span class="ident">quantifier_instantiations_bound_global_kind</span>.<span class="ident">is_none</span>()
+        <span class="kw">if </span>quantifier_instantiations_bound_trace.is_none()
+            &amp;&amp; quantifier_instantiations_bound_trace_kind.is_none()
+            &amp;&amp; quantifier_instantiations_bound_global_kind.is_none()
         {
             <span class="kw">return</span>;
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sum</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">violating_quantifiers</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> (<span class="ident">counter</span>, <span class="ident">quantifier_id</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">quantifier_matches_counts</span>() {
-            <span class="kw">if</span> <span class="ident">quantifier_id</span> <span class="op">==</span> <span class="ident">BUILTIN_QUANTIFIER_ID</span> <span class="op">&amp;&amp;</span> <span class="ident">quantifier_instantiations_ignore_builtin</span> {
+        <span class="kw">let </span><span class="kw-2">mut </span>sum = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>violating_quantifiers = Vec::new();
+        <span class="kw">for </span>(counter, quantifier_id) <span class="kw">in </span><span class="self">self</span>.quantifier_matches_counts() {
+            <span class="kw">if </span>quantifier_id == BUILTIN_QUANTIFIER_ID &amp;&amp; quantifier_instantiations_ignore_builtin {
                 <span class="kw">continue</span>;
             }
-            <span class="ident">sum</span> <span class="op">+</span><span class="op">=</span> <span class="ident">counter</span>;
-            <span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">total_quantifiers_matched_counters</span>[<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>];
-            <span class="kw">if</span> <span class="ident">counter</span> <span class="op">&lt;</span> <span class="ident">total</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bound</span>) <span class="op">=</span> <span class="ident">quantifier_instantiations_bound_trace_kind</span> {
-                    <span class="kw">if</span> <span class="ident">counter</span> <span class="op">&gt;</span> <span class="ident">bound</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>() {
-                        <span class="ident">violating_quantifiers</span>.<span class="ident">push</span>(<span class="macro">format!</span>(
+            sum += counter;
+            <span class="kw">let </span>total = <span class="self">self</span>.total_quantifiers_matched_counters[<span class="kw-2">&amp;</span>quantifier_id];
+            <span class="kw">if </span>counter &lt; total {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = quantifier_instantiations_bound_trace_kind {
+                    <span class="kw">if </span>counter &gt; bound.try_into().unwrap() {
+                        violating_quantifiers.push(<span class="macro">format!</span>(
                             <span class="string">&quot;Quantifier {} (id={}) instantiated {} times in trace (allowed: {})&quot;</span>,
-                            <span class="self">self</span>.<span class="ident">check_bounds_explanatory_quantifier_name</span>(<span class="ident">quantifier_id</span>),
-                            <span class="ident">quantifier_id</span>,
-                            <span class="ident">counter</span>,
-                            <span class="ident">bound</span>,
+                            <span class="self">self</span>.check_bounds_explanatory_quantifier_name(quantifier_id),
+                            quantifier_id,
+                            counter,
+                            bound,
                         ))
                     }
                 }
             }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bound</span>) <span class="op">=</span> <span class="ident">quantifier_instantiations_bound_global_kind</span> {
-                <span class="kw">if</span> <span class="ident">counter</span> <span class="op">&gt;</span> <span class="ident">bound</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>() {
-                    <span class="ident">violating_quantifiers</span>.<span class="ident">push</span>(<span class="macro">format!</span>(
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = quantifier_instantiations_bound_global_kind {
+                <span class="kw">if </span>counter &gt; bound.try_into().unwrap() {
+                    violating_quantifiers.push(<span class="macro">format!</span>(
                         <span class="string">&quot;Quantifier {} (id={}) instantiated {} times in trace and in total (allowed: {})&quot;</span>,
-                        <span class="self">self</span>.<span class="ident">check_bounds_explanatory_quantifier_name</span>(<span class="ident">quantifier_id</span>), <span class="ident">quantifier_id</span>, <span class="ident">counter</span>, <span class="ident">bound</span>,
+                        <span class="self">self</span>.check_bounds_explanatory_quantifier_name(quantifier_id), quantifier_id, counter, bound,
                     ));
                 }
             }
         }
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="ident">violating_quantifiers</span>.<span class="ident">is_empty</span>(),
+            violating_quantifiers.is_empty(),
             <span class="string">&quot;the number of allowed instantiations (in {}) were \
             exceeded by the following quantifiers:\n{}&quot;</span>,
-            <span class="ident">input_file</span>,
-            <span class="ident">violating_quantifiers</span>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>)
+            input_file,
+            violating_quantifiers.join(<span class="string">&quot;\n&quot;</span>)
         );
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bound</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#696">quantifier_instantiations_bound_trace</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = <a href="../../src/smt_log_analyzer/state.rs.html#696">quantifier_instantiations_bound_trace</a> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-                <span class="ident">sum</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">bound</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
+                sum &lt;= bound.try_into().unwrap(),
                 <span class="string">&quot;the number of quantifier instantiations (in {}) on a specific \
                 trace ({}) exceeded the allowed bound ({})&quot;</span>,
-                <span class="ident">input_file</span>,
-                <span class="ident">sum</span>,
-                <span class="ident">bound</span>
+                input_file,
+                sum,
+                bound
             );
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_unique_triggers_count</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">violating_quantifiers</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">quantifier_id</span>, <span class="ident">triggers</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">unique_quantifier_triggers</span> {
-            <span class="kw">if</span> <span class="ident">quantifier_id</span> <span class="op">==</span> <span class="ident">BUILTIN_QUANTIFIER_ID</span> <span class="op">&amp;&amp;</span> <span class="ident">quantifier_instantiations_ignore_builtin</span> {
+        <span class="kw">let </span><span class="kw-2">mut </span>total_unique_triggers_count = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>violating_quantifiers = Vec::new();
+        <span class="kw">for </span>(<span class="kw-2">&amp;</span>quantifier_id, triggers) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.unique_quantifier_triggers {
+            <span class="kw">if </span>quantifier_id == BUILTIN_QUANTIFIER_ID &amp;&amp; quantifier_instantiations_ignore_builtin {
                 <span class="kw">continue</span>;
             }
-            <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">triggers</span>.<span class="ident">len</span>();
-            <span class="ident">total_unique_triggers_count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">count</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bound</span>) <span class="op">=</span> <span class="ident">unique_triggers_bound</span> {
-                <span class="kw">if</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="ident">bound</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>() {
-                    <span class="ident">violating_quantifiers</span>.<span class="ident">push</span>(<span class="macro">format!</span>(
+            <span class="kw">let </span>count = triggers.len();
+            total_unique_triggers_count += count;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = unique_triggers_bound {
+                <span class="kw">if </span>count &gt; bound.try_into().unwrap() {
+                    violating_quantifiers.push(<span class="macro">format!</span>(
                         <span class="string">&quot;Quantifier {} (id={}) has {} unique triggers (allowed: {})&quot;</span>,
-                        <span class="self">self</span>.<span class="ident">check_bounds_explanatory_quantifier_name</span>(<span class="ident">quantifier_id</span>),
-                        <span class="ident">quantifier_id</span>,
-                        <span class="ident">count</span>,
-                        <span class="ident">bound</span>,
+                        <span class="self">self</span>.check_bounds_explanatory_quantifier_name(quantifier_id),
+                        quantifier_id,
+                        count,
+                        bound,
                     ));
                 }
             }
         }
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="ident">violating_quantifiers</span>.<span class="ident">is_empty</span>(),
+            violating_quantifiers.is_empty(),
             <span class="string">&quot;the number of allowed unique triggers (in {}) were \
             exceeded by the following quantifiers:\n{}&quot;</span>,
-            <span class="ident">input_file</span>,
-            <span class="ident">violating_quantifiers</span>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>)
+            input_file,
+            violating_quantifiers.join(<span class="string">&quot;\n&quot;</span>)
         );
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bound</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#699">unique_triggers_bound_total</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = <a href="../../src/smt_log_analyzer/state.rs.html#699">unique_triggers_bound_total</a> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-                <span class="ident">total_unique_triggers_count</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">bound</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
+                total_unique_triggers_count &lt;= bound.try_into().unwrap(),
                 <span class="string">&quot;the number of unique triggers ({}) exceeded the allowed bound ({}) in {}&quot;</span>,
-                <span class="ident">total_unique_triggers_count</span>,
-                <span class="ident">bound</span>,
-                <span class="ident">input_file</span>
+                total_unique_triggers_count,
+                bound,
+                input_file
             );
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="smt_log_analyzer" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="smt_log_analyzer" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

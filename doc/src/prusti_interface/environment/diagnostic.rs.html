@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/diagnostic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diagnostic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/diagnostic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diagnostic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -83,90 +83,90 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{
-    <span class="ident">errors</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/diagnostic_builder/struct.DiagnosticBuilder.html">DiagnosticBuilder</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/diagnostic_builder/trait.EmissionGuarantee.html">EmissionGuarantee</a>, <span class="ident">MultiSpan</span>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">middle::ty::TyCtxt</a>,
+</pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
+    errors::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/diagnostic_builder/struct.DiagnosticBuilder.html">DiagnosticBuilder</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/diagnostic_builder/trait.EmissionGuarantee.html">EmissionGuarantee</a>, MultiSpan},
+    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">middle::ty::TyCtxt</a>,
 };
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EnvDiagnostic</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">warn_buffer</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/diagnostic/struct.Diagnostic.html">prusti_rustc_interface::errors::Diagnostic</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>EnvDiagnostic&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    warn_buffer: RefCell&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/diagnostic/struct.Diagnostic.html">prusti_rustc_interface::errors::Diagnostic</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">EnvDiagnostic</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#7">EnvDiagnostic</a> {
-            <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#13">tcx</a>,
-            <span class="ident">warn_buffer</span>: <span class="ident">RefCell::new</span>(<span class="ident">Vec::new</span>()),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; EnvDiagnostic&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub fn </span>new(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#7">EnvDiagnostic</a> {
+            <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#13">tcx</a>,
+            warn_buffer: RefCell::new(Vec::new()),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">configure_diagnostic</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/diagnostic_builder/trait.EmissionGuarantee.html">EmissionGuarantee</a><span class="op">&gt;</span>(
-        <span class="ident">diagnostic</span>: <span class="kw-2">&amp;mut</span> <span class="ident">DiagnosticBuilder</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">sp</span>: <span class="ident">S</span>,
-        <span class="ident">help</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-        <span class="ident">notes</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>)],
+    <span class="kw">fn </span>configure_diagnostic&lt;S: Into&lt;MultiSpan&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>, T: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/diagnostic_builder/trait.EmissionGuarantee.html">EmissionGuarantee</a>&gt;(
+        diagnostic: <span class="kw-2">&amp;mut </span>DiagnosticBuilder&lt;T&gt;,
+        sp: S,
+        help: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        notes: <span class="kw-2">&amp;</span>[(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;S&gt;)],
     ) {
-        <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#21">diagnostic</a>.<span class="ident">set_span</span>(<a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#22">sp</a>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">help_msg</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#23">help</a> {
-            <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#21">diagnostic</a>.<span class="ident">help</span>(<a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#27">help_msg</a>);
+        <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#21">diagnostic</a>.set_span(<a href="../../../src/prusti_interface/environment/diagnostic.rs.html#22">sp</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(help_msg) = <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#23">help</a> {
+            <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#21">diagnostic</a>.help(<a href="../../../src/prusti_interface/environment/diagnostic.rs.html#27">help_msg</a>);
         }
-        <span class="kw">for</span> (<span class="ident">note_msg</span>, <span class="ident">opt_note_sp</span>) <span class="kw">in</span> <span class="ident">notes</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">note_sp</span>) <span class="op">=</span> <span class="ident">opt_note_sp</span> {
-                <span class="ident">diagnostic</span>.<span class="ident">span_note</span>(<span class="ident">note_sp</span>.<span class="ident">clone</span>(), <span class="ident">note_msg</span>);
-            } <span class="kw">else</span> {
-                <span class="ident">diagnostic</span>.<span class="ident">note</span>(<span class="ident">note_msg</span>);
+        <span class="kw">for </span>(note_msg, opt_note_sp) <span class="kw">in </span>notes {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(note_sp) = opt_note_sp {
+                diagnostic.span_note(note_sp.clone(), note_msg);
+            } <span class="kw">else </span>{
+                diagnostic.note(note_msg);
             }
         }
     }
 
-    <span class="doccomment">/// Emits an error message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_err_with_help_and_notes</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a><span class="op">&gt;</span>(
+    <span class="doccomment">/// Emits an error message.
+    </span><span class="kw">pub fn </span>span_err_with_help_and_notes&lt;S: Into&lt;MultiSpan&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sp</span>: <span class="ident">S</span>,
-        <span class="ident">msg</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">help</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-        <span class="ident">notes</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>)],
+        sp: S,
+        msg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        help: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        notes: <span class="kw-2">&amp;</span>[(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;S&gt;)],
     ) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">diagnostic</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#41">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">struct_err</span>(<a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#43">msg</a>);
-        <span class="ident"><span class="self">Self</span>::configure_diagnostic</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#47">diagnostic</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#42">sp</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#44">help</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#45">notes</a>);
-        <span class="kw">for</span> <span class="ident">warn</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">warn_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">iter_mut</span>() {
-            <span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">diagnostic</span>().<span class="ident">emit_diagnostic</span>(<span class="ident">warn</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>diagnostic = <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#41">self</a>.tcx.sess.struct_err(<a href="../../../src/prusti_interface/environment/diagnostic.rs.html#43">msg</a>);
+        <span class="self">Self</span>::configure_diagnostic(<span class="kw-2">&amp;mut </span><a href="../../../src/prusti_interface/environment/diagnostic.rs.html#47">diagnostic</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#42">sp</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#44">help</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#45">notes</a>);
+        <span class="kw">for </span>warn <span class="kw">in </span><span class="self">self</span>.warn_buffer.borrow_mut().iter_mut() {
+            <span class="self">self</span>.tcx.sess.diagnostic().emit_diagnostic(warn);
         }
-        <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#47">diagnostic</a>.<span class="ident">emit</span>();
+        <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#47">diagnostic</a>.emit();
     }
 
-    <span class="doccomment">/// Emits a warning message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_warn_with_help_and_notes</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a><span class="op">&gt;</span>(
+    <span class="doccomment">/// Emits a warning message.
+    </span><span class="kw">pub fn </span>span_warn_with_help_and_notes&lt;S: Into&lt;MultiSpan&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sp</span>: <span class="ident">S</span>,
-        <span class="ident">msg</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">help</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-        <span class="ident">notes</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>)],
+        sp: S,
+        msg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        help: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        notes: <span class="kw-2">&amp;</span>[(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;S&gt;)],
     ) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">diagnostic</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#57">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">struct_warn</span>(<a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#59">msg</a>);
-        <span class="ident"><span class="self">Self</span>::configure_diagnostic</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#63">diagnostic</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#58">sp</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#60">help</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#61">notes</a>);
-        <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#63">diagnostic</a>.<span class="ident">emit</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>diagnostic = <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#57">self</a>.tcx.sess.struct_warn(<a href="../../../src/prusti_interface/environment/diagnostic.rs.html#59">msg</a>);
+        <span class="self">Self</span>::configure_diagnostic(<span class="kw-2">&amp;mut </span><a href="../../../src/prusti_interface/environment/diagnostic.rs.html#63">diagnostic</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#58">sp</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#60">help</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#61">notes</a>);
+        <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#63">diagnostic</a>.emit();
     }
 
-    <span class="doccomment">/// Buffers a warning message, to be emitted on error.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_warn_on_err_with_help_and_notes</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a><span class="op">&gt;</span>(
+    <span class="doccomment">/// Buffers a warning message, to be emitted on error.
+    </span><span class="kw">pub fn </span>span_warn_on_err_with_help_and_notes&lt;S: Into&lt;MultiSpan&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sp</span>: <span class="ident">S</span>,
-        <span class="ident">msg</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-        <span class="ident">help</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-        <span class="ident">notes</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>)],
+        sp: S,
+        msg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        help: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+        notes: <span class="kw-2">&amp;</span>[(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;S&gt;)],
     ) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">diagnostic</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#70">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">struct_warn</span>(<a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#72">msg</a>);
-        <span class="ident"><span class="self">Self</span>::configure_diagnostic</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#76">diagnostic</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#71">sp</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#73">help</a>, <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#74">notes</a>);
-        <a class="ident" href="../../../src/prusti_interface/environment/diagnostic.rs.html#76">diagnostic</a>.<span class="ident">buffer</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#70">self</a>.<span class="ident">warn_buffer</span>.<span class="ident">borrow_mut</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>diagnostic = <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#70">self</a>.tcx.sess.struct_warn(<a href="../../../src/prusti_interface/environment/diagnostic.rs.html#72">msg</a>);
+        <span class="self">Self</span>::configure_diagnostic(<span class="kw-2">&amp;mut </span><a href="../../../src/prusti_interface/environment/diagnostic.rs.html#76">diagnostic</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#71">sp</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#73">help</a>, <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#74">notes</a>);
+        <a href="../../../src/prusti_interface/environment/diagnostic.rs.html#76">diagnostic</a>.buffer(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#70">self</a>.warn_buffer.borrow_mut());
     }
 
-    <span class="doccomment">/// Returns true if an error has been emitted</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_errors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#82">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">has_errors</span>().<span class="ident">is_some</span>()
+    <span class="doccomment">/// Returns true if an error has been emitted
+    </span><span class="kw">pub fn </span>has_errors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/prusti_interface/environment/diagnostic.rs.html#82">self</a>.tcx.sess.has_errors().is_some()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

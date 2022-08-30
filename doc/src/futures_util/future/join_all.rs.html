@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/future/join_all.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join_all.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/future/join_all.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join_all.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -164,173 +164,171 @@
 <span id="164">164</span>
 <span id="165">165</span>
 <span id="166">166</span>
-<span id="167">167</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Definition of the `JoinAll` combinator, waiting for all of a list of futures</span>
-<span class="doccomment">//! to finish.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Definition of the `JoinAll` combinator, waiting for all of a list of futures
+//! to finish.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">core::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/futures_util/future/mod.rs.html#126-128">assert_future</a>, <a class="ident" href="../../../src/futures_util/future/maybe_done.rs.html#14">MaybeDone</a>};
+<span class="kw">use super</span>::{<a href="../../../src/futures_util/future/mod.rs.html#126-128">assert_future</a>, <a href="../../../src/futures_util/future/maybe_done.rs.html#14">MaybeDone</a>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stream</span>::{<a class="ident" href="../../../src/futures_util/stream/stream/collect.rs.html#9-18">Collect</a>, <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#95">FuturesOrdered</a>, <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>};
+<span class="attribute">#[cfg(not(futures_no_atomic_cas))]
+</span><span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="../../../src/futures_util/stream/stream/collect.rs.html#9-18">Collect</a>, <a href="../../../src/futures_util/stream/futures_ordered.rs.html#95">FuturesOrdered</a>, <a href="../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>};
 
-<span class="kw">fn</span> <span class="ident">iter_pin_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">slice</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> [<span class="ident">T</span>]<span class="op">&gt;</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="comment">// Safety: `std` _could_ make this unsound if it were to decide Pin&#39;s</span>
-    <span class="comment">// invariants aren&#39;t required to transmit through slices. Otherwise this has</span>
-    <span class="comment">// the same safety as a normal field pin projection.</span>
-    <span class="kw">unsafe</span> { <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#18">slice</a>.<span class="ident">get_unchecked_mut</span>() }.<span class="ident">iter_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#22">t</a>) })
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iter_pin_mut&lt;T&gt;(slice: Pin&lt;<span class="kw-2">&amp;mut </span>[T]&gt;) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;&gt; {
+    <span class="comment">// Safety: `std` _could_ make this unsound if it were to decide Pin&#39;s
+    // invariants aren&#39;t required to transmit through slices. Otherwise this has
+    // the same safety as a normal field pin projection.
+    </span><span class="kw">unsafe </span>{ <a href="../../../src/futures_util/future/join_all.rs.html#18">slice</a>.get_unchecked_mut() }.iter_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|t| <span class="kw">unsafe </span>{ Pin::new_unchecked(<a href="../../../src/futures_util/future/join_all.rs.html#22">t</a>) })
 }
 
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-<span class="doccomment">/// Future for the [`join_all`] function.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JoinAll</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+</span><span class="doccomment">/// Future for the [`join_all`] function.
+</span><span class="kw">pub struct </span>JoinAll&lt;F&gt;
+<span class="kw">where
+    </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="ident">kind</span>: <span class="ident">JoinAllKind</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
+    kind: JoinAllKind&lt;F&gt;,
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
-<span class="kw">const</span> <span class="ident">SMALL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">30</span>;
+<span class="attribute">#[cfg(not(futures_no_atomic_cas))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SMALL: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">30</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">JoinAllKind</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="kw">enum </span>JoinAllKind&lt;F&gt;
+<span class="kw">where
+    </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="ident">Small</span> {
-        <span class="ident">elems</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">MaybeDone</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+    Small {
+        elems: Pin&lt;Box&lt;[MaybeDone&lt;F&gt;]&gt;&gt;,
     },
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
-    <span class="ident">Big</span> {
-        <span class="ident">fut</span>: <span class="ident">Collect</span><span class="op">&lt;</span><span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">F::Output</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[cfg(not(futures_no_atomic_cas))]
+    </span>Big {
+        fut: Collect&lt;FuturesOrdered&lt;F&gt;, Vec&lt;F::Output&gt;&gt;,
     },
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">JoinAll</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    <span class="ident">F::Output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;F&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>JoinAll&lt;F&gt;
+<span class="kw">where
+    </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    F::Output: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/futures_util/future/join_all.rs.html#55">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#41">JoinAllKind::Small</a> { <span class="kw-2">ref</span> <span class="ident">elems</span> } =&gt; {
-                <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#55">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;JoinAll&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;elems&quot;</span>, <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#57">elems</a>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><a class="self" href="../../../src/futures_util/future/join_all.rs.html#55">self</a>.kind {
+            <a href="../../../src/futures_util/future/join_all.rs.html#41">JoinAllKind::Small</a> { <span class="kw-2">ref </span>elems } =&gt; {
+                <a href="../../../src/futures_util/future/join_all.rs.html#55">f</a>.debug_struct(<span class="string">&quot;JoinAll&quot;</span>).field(<span class="string">&quot;elems&quot;</span>, <a href="../../../src/futures_util/future/join_all.rs.html#57">elems</a>).finish()
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
-            <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#45">JoinAllKind::Big</a> { <span class="kw-2">ref</span> <span class="ident">fut</span>, .. } =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#61">fut</a>, <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#55">f</a>),
+            <span class="attribute">#[cfg(not(futures_no_atomic_cas))]
+            </span><a href="../../../src/futures_util/future/join_all.rs.html#45">JoinAllKind::Big</a> { <span class="kw-2">ref </span>fut, .. } =&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<a href="../../../src/futures_util/future/join_all.rs.html#61">fut</a>, <a href="../../../src/futures_util/future/join_all.rs.html#55">f</a>),
         }
     }
 }
 
-<span class="doccomment">/// Creates a future which represents a collection of the outputs of the futures</span>
-<span class="doccomment">/// given.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The returned future will drive execution for all of its underlying futures,</span>
-<span class="doccomment">/// collecting the results into a destination `Vec&lt;T&gt;` in the same order as they</span>
-<span class="doccomment">/// were provided.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is only available when the `std` or `alloc` feature of this</span>
-<span class="doccomment">/// library is activated, and it is activated by default.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # See Also</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `join_all` will switch to the more powerful [`FuturesOrdered`] for performance</span>
-<span class="doccomment">/// reasons if the number of futures is large. You may want to look into using it or</span>
-<span class="doccomment">/// it&#39;s counterpart [`FuturesUnordered`][crate::stream::FuturesUnordered] directly.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Some examples for additional functionality provided by these are:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///  * Adding new futures to the set even after it has been started.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///  * Only polling the specific futures that have been woken. In cases where</span>
-<span class="doccomment">///    you have a lot of futures this will result in much more efficient polling.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::future::join_all;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// async fn foo(i: u32) -&gt; u32 { i }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let futures = vec![foo(1), foo(2), foo(3)];</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(join_all(futures).await, [1, 2, 3]);</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_all</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">JoinAll</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    <span class="ident">I::Item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="doccomment">/// Creates a future which represents a collection of the outputs of the futures
+/// given.
+///
+/// The returned future will drive execution for all of its underlying futures,
+/// collecting the results into a destination `Vec&lt;T&gt;` in the same order as they
+/// were provided.
+///
+/// This function is only available when the `std` or `alloc` feature of this
+/// library is activated, and it is activated by default.
+///
+/// # See Also
+///
+/// `join_all` will switch to the more powerful [`FuturesOrdered`] for performance
+/// reasons if the number of futures is large. You may want to look into using it or
+/// it&#39;s counterpart [`FuturesUnordered`][crate::stream::FuturesUnordered] directly.
+///
+/// Some examples for additional functionality provided by these are:
+///
+///  * Adding new futures to the set even after it has been started.
+///
+///  * Only polling the specific futures that have been woken. In cases where
+///    you have a lot of futures this will result in much more efficient polling.
+///
+/// # Examples
+///
+/// ```
+/// # futures::executor::block_on(async {
+/// use futures::future::join_all;
+///
+/// async fn foo(i: u32) -&gt; u32 { i }
+///
+/// let futures = vec![foo(1), foo(2), foo(3)];
+///
+/// assert_eq!(join_all(futures).await, [1, 2, 3]);
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>join_all&lt;I&gt;(iter: I) -&gt; JoinAll&lt;I::Item&gt;
+<span class="kw">where
+    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
+    I::Item: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">futures_no_atomic_cas</span>)]</span>
-    {
-        <span class="kw">let</span> <span class="ident">elems</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">MaybeDone::Future</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="kw">_</span>]<span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">JoinAllKind::Small</span> { <span class="ident">elems</span> };
-        <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">I::Item</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Output</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">JoinAll</span> { <span class="ident">kind</span> })
+    <span class="kw">let </span>iter = <a href="../../../src/futures_util/future/join_all.rs.html#102">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+
+    <span class="attribute">#[cfg(futures_no_atomic_cas)]
+    </span>{
+        <span class="kw">let </span>kind =
+            JoinAllKind::Small { elems: iter.map(MaybeDone::Future).collect::&lt;Box&lt;[<span class="kw">_</span>]&gt;&gt;().into() };
+
+        assert_future::&lt;Vec&lt;&lt;I::Item <span class="kw">as </span>Future&gt;::Output&gt;, <span class="kw">_</span>&gt;(JoinAll { kind })
     }
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
-    {
-        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#102">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#115">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>().<span class="number">1</span> {
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#45">JoinAllKind::Big</a> { <span class="ident">fut</span>: <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#115">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#516-518">collect</a>() },
-            <span class="prelude-val">Some</span>(<span class="ident">max</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">max</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">SMALL</span> {
-                    <span class="kw">let</span> <span class="ident">elems</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#115">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a class="ident" href="../../../src/futures_util/future/maybe_done.rs.html#16">MaybeDone::Future</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="kw">_</span>]<span class="op">&gt;</span><span class="op">&gt;</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                    <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#41">JoinAllKind::Small</a> { <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#120">elems</a> }
-                } <span class="kw">else</span> {
-                    <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#45">JoinAllKind::Big</a> { <span class="ident">fut</span>: <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#115">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">FuturesOrdered</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#516-518">collect</a>() }
-                }
-            }
+
+    <span class="attribute">#[cfg(not(futures_no_atomic_cas))]
+    </span>{
+        <span class="kw">let </span>kind = <span class="kw">match </span><a href="../../../src/futures_util/future/join_all.rs.html#107">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>().<span class="number">1 </span>{
+            <span class="prelude-val">Some</span>(max) <span class="kw">if </span><a href="../../../src/futures_util/future/join_all.rs.html#120">max</a> &lt;= <a href="../../../src/futures_util/future/join_all.rs.html#35">SMALL</a> =&gt; <a href="../../../src/futures_util/future/join_all.rs.html#41">JoinAllKind::Small</a> {
+                elems: <a href="../../../src/futures_util/future/join_all.rs.html#107">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="../../../src/futures_util/future/maybe_done.rs.html#16">MaybeDone::Future</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Box&lt;[<span class="kw">_</span>]&gt;&gt;().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            },
+            <span class="kw">_ </span>=&gt; <a href="../../../src/futures_util/future/join_all.rs.html#45">JoinAllKind::Big</a> { fut: <a href="../../../src/futures_util/future/join_all.rs.html#107">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;FuturesOrdered&lt;<span class="kw">_</span>&gt;&gt;().<a href="../../../src/futures_util/stream/stream/mod.rs.html#516-518">collect</a>() },
         };
-        <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">I::Item</span> <span class="kw">as</span> <span class="ident">Future</span><span class="op">&gt;</span><span class="ident">::Output</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#27">JoinAll</a> { <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#116">kind</a> })
+
+        assert_future::&lt;Vec&lt;&lt;I::Item <span class="kw">as </span>Future&gt;::Output&gt;, <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/future/join_all.rs.html#27">JoinAll</a> { <a href="../../../src/futures_util/future/join_all.rs.html#119">kind</a> })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">JoinAll</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="kw">impl</span>&lt;F&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>JoinAll&lt;F&gt;
+<span class="kw">where
+    </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">F::Output</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = Vec&lt;F::Output&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/futures_util/future/join_all.rs.html#137">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#41">JoinAllKind::Small</a> { <span class="ident">elems</span> } =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_done</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_util/future/join_all.rs.html#136">self</a>.kind {
+            <a href="../../../src/futures_util/future/join_all.rs.html#41">JoinAllKind::Small</a> { elems } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>all_done = <span class="bool-val">true</span>;
 
-                <span class="kw">for</span> <span class="ident">elem</span> <span class="kw">in</span> <span class="ident">iter_pin_mut</span>(<span class="ident">elems</span>.<span class="ident">as_mut</span>()) {
-                    <span class="kw">if</span> <span class="ident">elem</span>.<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>() {
-                        <span class="ident">all_done</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="kw">for </span>elem <span class="kw">in </span>iter_pin_mut(elems.as_mut()) {
+                    <span class="kw">if </span>elem.poll(cx).is_pending() {
+                        all_done = <span class="bool-val">false</span>;
                     }
                 }
 
-                <span class="kw">if</span> <span class="ident">all_done</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#139">elems</a>, <span class="ident">Box::pin</span>([]));
-                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
-                        <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#18">iter_pin_mut</a>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#149">elems</a>.<span class="ident">as_mut</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#151">e</a>.<a class="ident" href="../../../src/futures_util/future/maybe_done.rs.html#65">take_output</a>().<span class="ident">unwrap</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                    <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#150">result</a>)
-                } <span class="kw">else</span> {
-                    <span class="ident">Poll::Pending</span>
+                <span class="kw">if </span>all_done {
+                    <span class="kw">let </span><span class="kw-2">mut </span>elems = mem::replace(<a href="../../../src/futures_util/future/join_all.rs.html#138">elems</a>, Box::pin([]));
+                    <span class="kw">let </span>result =
+                        <a href="../../../src/futures_util/future/join_all.rs.html#18">iter_pin_mut</a>(<a href="../../../src/futures_util/future/join_all.rs.html#148">elems</a>.as_mut()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a href="../../../src/futures_util/future/join_all.rs.html#150">e</a>.<a href="../../../src/futures_util/future/maybe_done.rs.html#65">take_output</a>().unwrap()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                    Poll::Ready(<a href="../../../src/futures_util/future/join_all.rs.html#149">result</a>)
+                } <span class="kw">else </span>{
+                    Poll::Pending
                 }
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
-            <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#45">JoinAllKind::Big</a> { <span class="ident">fut</span> } =&gt; <span class="ident">Pin::new</span>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#158">fut</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#137">cx</a>),
+            <span class="attribute">#[cfg(not(futures_no_atomic_cas))]
+            </span><a href="../../../src/futures_util/future/join_all.rs.html#45">JoinAllKind::Big</a> { fut } =&gt; Pin::new(<a href="../../../src/futures_util/future/join_all.rs.html#157">fut</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/futures_util/future/join_all.rs.html#136">cx</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinAll</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/futures_util/future/join_all.rs.html#102-105">join_all</a>(<a class="ident" href="../../../src/futures_util/future/join_all.rs.html#164">iter</a>)
+<span class="kw">impl</span>&lt;F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; FromIterator&lt;F&gt; <span class="kw">for </span>JoinAll&lt;F&gt; {
+    <span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = F&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/futures_util/future/join_all.rs.html#102-105">join_all</a>(<a href="../../../src/futures_util/future/join_all.rs.html#163">iter</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

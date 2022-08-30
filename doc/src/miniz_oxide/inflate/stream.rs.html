@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/miniz_oxide-0.5.3/src/inflate/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../miniz_oxide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/miniz_oxide-0.5.3/src/inflate/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../miniz_oxide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../miniz_oxide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -413,420 +413,420 @@
 <span id="413">413</span>
 <span id="414">414</span>
 <span id="415">415</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Extra streaming decompression functionality.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! As of now this is mainly intended for use to build a higher-level wrapper.</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html"><span class="kw">crate</span>::alloc::boxed::Box</a>;
-<span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+</pre><pre class="rust"><code><span class="doccomment">//! Extra streaming decompression functionality.
+//!
+//! As of now this is mainly intended for use to build a higher-level wrapper.
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html"><span class="kw">crate</span>::alloc::boxed::Box</a>;
+<span class="kw">use </span>core::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::inflate::core</span>::{<a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#1067-1073">decompress</a>, <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#108">inflate_flags</a>, <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>, <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/miniz_oxide/inflate/mod.rs.html#25"><span class="kw">crate</span>::inflate::TINFLStatus</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>, <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#107">MZError</a>, <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#41">MZFlush</a>, <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#174">MZResult</a>, <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#83">MZStatus</a>, <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a>};
+<span class="kw">use </span><span class="kw">crate</span>::inflate::core::{<a href="../../../src/miniz_oxide/inflate/core.rs.html#1067-1073">decompress</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#108">inflate_flags</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>, <a href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a>};
+<span class="kw">use </span><a href="../../../src/miniz_oxide/inflate/mod.rs.html#25"><span class="kw">crate</span>::inflate::TINFLStatus</a>;
+<span class="kw">use crate</span>::{<a href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>, <a href="../../../src/miniz_oxide/lib.rs.html#107">MZError</a>, <a href="../../../src/miniz_oxide/lib.rs.html#41">MZFlush</a>, <a href="../../../src/miniz_oxide/lib.rs.html#174">MZResult</a>, <a href="../../../src/miniz_oxide/lib.rs.html#83">MZStatus</a>, <a href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a>};
 
-<span class="doccomment">/// Tag that determines reset policy of [InflateState](struct.InflateState.html)</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ResetPolicy</span> {
-    <span class="doccomment">/// Performs reset</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>);
+<span class="doccomment">/// Tag that determines reset policy of [InflateState](struct.InflateState.html)
+</span><span class="kw">pub trait </span>ResetPolicy {
+    <span class="doccomment">/// Performs reset
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>);
 }
 
-<span class="doccomment">/// Resets state, without performing expensive ops (e.g. zeroing buffer)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that not zeroing buffer can lead to security issues when dealing with untrusted input.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MinReset</span>;
+<span class="doccomment">/// Resets state, without performing expensive ops (e.g. zeroing buffer)
+///
+/// Note that not zeroing buffer can lead to security issues when dealing with untrusted input.
+</span><span class="kw">pub struct </span>MinReset;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#12">ResetPolicy</a> <span class="kw">for</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#20">MinReset</a> {
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>) {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#125">decompressor</a>().<a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#206">init</a>();
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.<span class="ident">dict_ofs</span> <span class="op">=</span> <span class="number">0</span>;
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.<span class="ident">dict_avail</span> <span class="op">=</span> <span class="number">0</span>;
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.<span class="ident">first_call</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.<span class="ident">has_flushed</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.<span class="ident">last_status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/mod.rs.html#59">TINFLStatus::NeedsMoreInput</a>;
+<span class="kw">impl </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#12">ResetPolicy</a> <span class="kw">for </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#20">MinReset</a> {
+    <span class="kw">fn </span>reset(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>) {
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.<a href="../../../src/miniz_oxide/inflate/stream.rs.html#125">decompressor</a>().<a href="../../../src/miniz_oxide/inflate/core.rs.html#206">init</a>();
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.dict_ofs = <span class="number">0</span>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.dict_avail = <span class="number">0</span>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.first_call = <span class="bool-val">true</span>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.has_flushed = <span class="bool-val">false</span>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#23">state</a>.last_status = <a href="../../../src/miniz_oxide/inflate/mod.rs.html#59">TINFLStatus::NeedsMoreInput</a>;
     }
 }
 
-<span class="doccomment">/// Resets state and zero memory, continuing to use the same data format.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ZeroReset</span>;
+<span class="doccomment">/// Resets state and zero memory, continuing to use the same data format.
+</span><span class="kw">pub struct </span>ZeroReset;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#12">ResetPolicy</a> <span class="kw">for</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#34">ZeroReset</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>) {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#20">MinReset</a>.<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#14">reset</a>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#38">state</a>);
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#38">state</a>.<span class="ident">dict</span> <span class="op">=</span> [<span class="number">0</span>; <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a>];
+<span class="kw">impl </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#12">ResetPolicy</a> <span class="kw">for </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#34">ZeroReset</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>) {
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#20">MinReset</a>.<a href="../../../src/miniz_oxide/inflate/stream.rs.html#14">reset</a>(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#38">state</a>);
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#38">state</a>.dict = [<span class="number">0</span>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a>];
     }
 }
 
-<span class="doccomment">/// Full reset of the state, including zeroing memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Requires to provide new data format.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FullReset</span>(<span class="kw">pub</span> <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>);
+<span class="doccomment">/// Full reset of the state, including zeroing memory.
+///
+/// Requires to provide new data format.
+</span><span class="kw">pub struct </span>FullReset(<span class="kw">pub </span><a href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#12">ResetPolicy</a> <span class="kw">for</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#47">FullReset</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>) {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#34">ZeroReset</a>.<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#14">reset</a>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#51">state</a>);
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#51">state</a>.<span class="ident">data_format</span> <span class="op">=</span> <a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#51">self</a>.<span class="number">0</span>;
+<span class="kw">impl </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#12">ResetPolicy</a> <span class="kw">for </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#47">FullReset</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>) {
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#34">ZeroReset</a>.<a href="../../../src/miniz_oxide/inflate/stream.rs.html#14">reset</a>(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#51">state</a>);
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#51">state</a>.data_format = <a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#51">self</a>.<span class="number">0</span>;
     }
 }
 
-<span class="doccomment">/// A struct that compbines a decompressor with extra data for streaming decompression.</span>
-<span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InflateState</span> {
-    <span class="doccomment">/// Inner decompressor struct</span>
-    <span class="ident">decomp</span>: <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>,
+<span class="doccomment">/// A struct that compbines a decompressor with extra data for streaming decompression.
+///
+</span><span class="kw">pub struct </span>InflateState {
+    <span class="doccomment">/// Inner decompressor struct
+    </span>decomp: <a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a>,
 
-    <span class="doccomment">/// Buffer of input bytes for matches.</span>
-    <span class="doccomment">/// TODO: Could probably do this a bit cleaner with some</span>
-    <span class="doccomment">/// Cursor-like class.</span>
-    <span class="doccomment">/// We may also look into whether we need to keep a buffer here, or just one in the</span>
-    <span class="doccomment">/// decompressor struct.</span>
-    <span class="ident">dict</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a>],
-    <span class="doccomment">/// Where in the buffer are we currently at?</span>
-    <span class="ident">dict_ofs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    <span class="doccomment">/// How many bytes of data to be flushed is there currently in the buffer?</span>
-    <span class="ident">dict_avail</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// Buffer of input bytes for matches.
+    /// TODO: Could probably do this a bit cleaner with some
+    /// Cursor-like class.
+    /// We may also look into whether we need to keep a buffer here, or just one in the
+    /// decompressor struct.
+    </span>dict: [<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a>],
+    <span class="doccomment">/// Where in the buffer are we currently at?
+    </span>dict_ofs: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// How many bytes of data to be flushed is there currently in the buffer?
+    </span>dict_avail: <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
 
-    <span class="ident">first_call</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
-    <span class="ident">has_flushed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
+    first_call: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
+    has_flushed: <a href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>,
 
-    <span class="doccomment">/// Whether the input data is wrapped in a zlib header and checksum.</span>
-    <span class="doccomment">/// TODO: This should be stored in the decompressor.</span>
-    <span class="ident">data_format</span>: <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>,
-    <span class="ident">last_status</span>: <a class="ident" href="../../../src/miniz_oxide/inflate/mod.rs.html#25">TINFLStatus</a>,
+    <span class="doccomment">/// Whether the input data is wrapped in a zlib header and checksum.
+    /// TODO: This should be stored in the decompressor.
+    </span>data_format: <a href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>,
+    last_status: <a href="../../../src/miniz_oxide/inflate/mod.rs.html#25">TINFLStatus</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
-            <span class="ident">decomp</span>: <span class="ident">DecompressorOxide::default</span>(),
-            <span class="ident">dict</span>: [<span class="number">0</span>; <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a>],
-            <span class="ident">dict_ofs</span>: <span class="number">0</span>,
-            <span class="ident">dict_avail</span>: <span class="number">0</span>,
-            <span class="ident">first_call</span>: <span class="bool-val">true</span>,
-            <span class="ident">has_flushed</span>: <span class="bool-val">false</span>,
-            <span class="ident">data_format</span>: <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#153">DataFormat::Raw</a>,
-            <span class="ident">last_status</span>: <a class="ident" href="../../../src/miniz_oxide/inflate/mod.rs.html#59">TINFLStatus::NeedsMoreInput</a>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
+            decomp: DecompressorOxide::default(),
+            dict: [<span class="number">0</span>; <a href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a>],
+            dict_ofs: <span class="number">0</span>,
+            dict_avail: <span class="number">0</span>,
+            first_call: <span class="bool-val">true</span>,
+            has_flushed: <span class="bool-val">false</span>,
+            data_format: <a href="../../../src/miniz_oxide/lib.rs.html#153">DataFormat::Raw</a>,
+            last_status: <a href="../../../src/miniz_oxide/inflate/mod.rs.html#59">TINFLStatus::NeedsMoreInput</a>,
         }
     }
 }
-<span class="kw">impl</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
-    <span class="doccomment">/// Create a new state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this struct is quite large due to internal buffers, and as such storing it on</span>
-    <span class="doccomment">/// the stack is not recommended.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Parameters</span>
-    <span class="doccomment">/// `data_format`: Determines whether the compressed data is assumed to wrapped with zlib</span>
-    <span class="doccomment">/// metadata.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data_format</span>: <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>) -&gt; <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
-            <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#106">data_format</a>,
-            ..<a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
+<span class="kw">impl </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
+    <span class="doccomment">/// Create a new state.
+    ///
+    /// Note that this struct is quite large due to internal buffers, and as such storing it on
+    /// the stack is not recommended.
+    ///
+    /// # Parameters
+    /// `data_format`: Determines whether the compressed data is assumed to wrapped with zlib
+    /// metadata.
+    </span><span class="kw">pub fn </span>new(data_format: <a href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>) -&gt; <a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a> {
+            <a href="../../../src/miniz_oxide/inflate/stream.rs.html#106">data_format</a>,
+            ..<a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
         }
     }
 
-    <span class="doccomment">/// Create a new state on the heap.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Parameters</span>
-    <span class="doccomment">/// `data_format`: Determines whether the compressed data is assumed to wrapped with zlib</span>
-    <span class="doccomment">/// metadata.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_boxed</span>(<span class="ident">data_format</span>: <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Box::default</span>();
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#119">b</a>.<span class="ident">data_format</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#118">data_format</a>;
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#119">b</a>
+    <span class="doccomment">/// Create a new state on the heap.
+    ///
+    /// # Parameters
+    /// `data_format`: Determines whether the compressed data is assumed to wrapped with zlib
+    /// metadata.
+    </span><span class="kw">pub fn </span>new_boxed(data_format: <a href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>) -&gt; Box&lt;<a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>b: Box&lt;<a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>&gt; = Box::default();
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#119">b</a>.data_format = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#118">data_format</a>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#119">b</a>
     }
 
-    <span class="doccomment">/// Access the innner decompressor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decompressor</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#125">self</a>.<span class="ident">decomp</span>
+    <span class="doccomment">/// Access the innner decompressor.
+    </span><span class="kw">pub fn </span>decompressor(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/core.rs.html#163">DecompressorOxide</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#125">self</a>.decomp
     }
 
-    <span class="doccomment">/// Return the status of the last call to `inflate` with this `InflateState`.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">last_status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/miniz_oxide/inflate/mod.rs.html#25">TINFLStatus</a> {
-        <a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#130">self</a>.<span class="ident">last_status</span>
+    <span class="doccomment">/// Return the status of the last call to `inflate` with this `InflateState`.
+    </span><span class="kw">pub const fn </span>last_status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/miniz_oxide/inflate/mod.rs.html#25">TINFLStatus</a> {
+        <a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#130">self</a>.last_status
     }
 
-    <span class="doccomment">/// Create a new state using miniz/zlib style window bits parameter.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The decompressor does not support different window sizes. As such,</span>
-    <span class="doccomment">/// any positive (&gt;0) value will set the zlib header flag, while a negative one</span>
-    <span class="doccomment">/// will not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_boxed_with_window_bits</span>(<span class="ident">window_bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Box::default</span>();
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#140">b</a>.<span class="ident">data_format</span> <span class="op">=</span> <span class="ident">DataFormat::from_window_bits</span>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#139">window_bits</a>);
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#140">b</a>
+    <span class="doccomment">/// Create a new state using miniz/zlib style window bits parameter.
+    ///
+    /// The decompressor does not support different window sizes. As such,
+    /// any positive (&gt;0) value will set the zlib header flag, while a negative one
+    /// will not.
+    </span><span class="kw">pub fn </span>new_boxed_with_window_bits(window_bits: <a href="https://doc.rust-lang.org/nightly/core/primitive.i32.html">i32</a>) -&gt; Box&lt;<a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>b: Box&lt;<a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>&gt; = Box::default();
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#140">b</a>.data_format = DataFormat::from_window_bits(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#139">window_bits</a>);
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#140">b</a>
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Reset the decompressor without re-allocating memory, using the given</span>
-    <span class="doccomment">/// data format.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data_format</span>: <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>) {
-        <a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#148">self</a>.<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#154">reset_as</a>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#47">FullReset</a>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#148">data_format</a>));
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// Reset the decompressor without re-allocating memory, using the given
+    /// data format.
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data_format: <a href="../../../src/miniz_oxide/lib.rs.html#146">DataFormat</a>) {
+        <a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#148">self</a>.<a href="../../../src/miniz_oxide/inflate/stream.rs.html#154">reset_as</a>(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#47">FullReset</a>(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#148">data_format</a>));
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Resets the state according to specified policy.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_as</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#12">ResetPolicy</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">policy</span>: <span class="ident">T</span>) {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#154">policy</a>.<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#14">reset</a>(<a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#154">self</a>)
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// Resets the state according to specified policy.
+    </span><span class="kw">pub fn </span>reset_as&lt;T: <a href="../../../src/miniz_oxide/inflate/stream.rs.html#12">ResetPolicy</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, policy: T) {
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#154">policy</a>.<a href="../../../src/miniz_oxide/inflate/stream.rs.html#14">reset</a>(<a class="self" href="../../../src/miniz_oxide/inflate/stream.rs.html#154">self</a>)
     }
 }
 
-<span class="doccomment">/// Try to decompress from `input` to `output` with the given [`InflateState`]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # `flush`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Generally, the various [`MZFlush`] flags have meaning only on the compression side.  They can be</span>
-<span class="doccomment">/// supplied here, but the only one that has any semantic meaning is [`MZFlush::Finish`], which is a</span>
-<span class="doccomment">/// signal that the stream is expected to finish, and failing to do so is an error.  It isn&#39;t</span>
-<span class="doccomment">/// necessary to specify it when the stream ends; you&#39;ll still get returned a</span>
-<span class="doccomment">/// [`MZStatus::StreamEnd`] anyway.  Other values either have no effect or cause errors.  It&#39;s</span>
-<span class="doccomment">/// likely that you&#39;ll almost always just want to use [`MZFlush::None`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Errors</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns [`MZError::Buf`] if the size of the `output` slice is empty or no progress was made due</span>
-<span class="doccomment">/// to lack of expected input data, or if called with [`MZFlush::Finish`] and input wasn&#39;t all</span>
-<span class="doccomment">/// consumed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns [`MZError::Data`] if this or a a previous call failed with an error return from</span>
-<span class="doccomment">/// [`TINFLStatus`]; probably indicates corrupted data.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns [`MZError::Stream`] when called with [`MZFlush::Full`] (meaningless on</span>
-<span class="doccomment">/// decompression), or when called without [`MZFlush::Finish`] after an earlier call with</span>
-<span class="doccomment">/// [`MZFlush::Finish`] has been made.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflate</span>(
-    <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>,
-    <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-    <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-    <span class="ident">flush</span>: <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#41">MZFlush</a>,
-) -&gt; <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes_consumed</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes_written</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_in</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#184">input</a>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_out</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#185">output</a>;
+<span class="doccomment">/// Try to decompress from `input` to `output` with the given [`InflateState`]
+///
+/// # `flush`
+///
+/// Generally, the various [`MZFlush`] flags have meaning only on the compression side.  They can be
+/// supplied here, but the only one that has any semantic meaning is [`MZFlush::Finish`], which is a
+/// signal that the stream is expected to finish, and failing to do so is an error.  It isn&#39;t
+/// necessary to specify it when the stream ends; you&#39;ll still get returned a
+/// [`MZStatus::StreamEnd`] anyway.  Other values either have no effect or cause errors.  It&#39;s
+/// likely that you&#39;ll almost always just want to use [`MZFlush::None`].
+///
+/// # Errors
+///
+/// Returns [`MZError::Buf`] if the size of the `output` slice is empty or no progress was made due
+/// to lack of expected input data, or if called with [`MZFlush::Finish`] and input wasn&#39;t all
+/// consumed.
+///
+/// Returns [`MZError::Data`] if this or a a previous call failed with an error return from
+/// [`TINFLStatus`]; probably indicates corrupted data.
+///
+/// Returns [`MZError::Stream`] when called with [`MZFlush::Full`] (meaningless on
+/// decompression), or when called without [`MZFlush::Finish`] after an earlier call with
+/// [`MZFlush::Finish`] has been made.
+</span><span class="kw">pub fn </span>inflate(
+    state: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>,
+    input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
+    output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
+    flush: <a href="../../../src/miniz_oxide/lib.rs.html#41">MZFlush</a>,
+) -&gt; <a href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>bytes_consumed = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>bytes_written = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>next_in = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#184">input</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>next_out = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#185">output</a>;
 
-    <span class="kw">if</span> <span class="ident">flush</span> <span class="op">==</span> <span class="ident">MZFlush::Full</span> {
-        <span class="kw">return</span> <span class="ident">StreamResult::error</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#117">MZError::Stream</a>);
+    <span class="kw">if </span>flush == MZFlush::Full {
+        <span class="kw">return </span>StreamResult::error(<a href="../../../src/miniz_oxide/lib.rs.html#117">MZError::Stream</a>);
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decomp_flags</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">data_format</span> <span class="op">==</span> <span class="ident">DataFormat::Zlib</span> {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#136">inflate_flags::TINFL_FLAG_COMPUTE_ADLER32</a>
-    } <span class="kw">else</span> {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#148">inflate_flags::TINFL_FLAG_IGNORE_ADLER32</a>
+    <span class="kw">let </span><span class="kw-2">mut </span>decomp_flags = <span class="kw">if </span>state.data_format == DataFormat::Zlib {
+        <a href="../../../src/miniz_oxide/inflate/core.rs.html#136">inflate_flags::TINFL_FLAG_COMPUTE_ADLER32</a>
+    } <span class="kw">else </span>{
+        <a href="../../../src/miniz_oxide/inflate/core.rs.html#148">inflate_flags::TINFL_FLAG_IGNORE_ADLER32</a>
     };
 
-    <span class="kw">if</span> (<span class="ident">state</span>.<span class="ident">data_format</span> <span class="op">==</span> <span class="ident">DataFormat::Zlib</span>)
-        <span class="op">|</span> (<span class="ident">state</span>.<span class="ident">data_format</span> <span class="op">==</span> <span class="ident">DataFormat::ZLibIgnoreChecksum</span>)
+    <span class="kw">if </span>(state.data_format == DataFormat::Zlib)
+        | (state.data_format == DataFormat::ZLibIgnoreChecksum)
     {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#113">inflate_flags::TINFL_FLAG_PARSE_ZLIB_HEADER</a>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a> |= <a href="../../../src/miniz_oxide/inflate/core.rs.html#113">inflate_flags::TINFL_FLAG_PARSE_ZLIB_HEADER</a>;
     }
 
-    <span class="kw">let</span> <span class="ident">first_call</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.<span class="ident">first_call</span>;
-    <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.<span class="ident">first_call</span> <span class="op">=</span> <span class="bool-val">false</span>;
-    <span class="kw">if</span> (<span class="ident">state</span>.<span class="ident">last_status</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">&lt;</span> <span class="number">0</span> {
-        <span class="kw">return</span> <span class="ident">StreamResult::error</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#122">MZError::Data</a>);
+    <span class="kw">let </span>first_call = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.first_call;
+    <a href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.first_call = <span class="bool-val">false</span>;
+    <span class="kw">if </span>(state.last_status <span class="kw">as </span>i32) &lt; <span class="number">0 </span>{
+        <span class="kw">return </span>StreamResult::error(<a href="../../../src/miniz_oxide/lib.rs.html#122">MZError::Data</a>);
     }
 
-    <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">has_flushed</span> <span class="op">&amp;&amp;</span> (<span class="ident">flush</span> <span class="op">!</span><span class="op">=</span> <span class="ident">MZFlush::Finish</span>) {
-        <span class="kw">return</span> <span class="ident">StreamResult::error</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#117">MZError::Stream</a>);
+    <span class="kw">if </span>state.has_flushed &amp;&amp; (flush != MZFlush::Finish) {
+        <span class="kw">return </span>StreamResult::error(<a href="../../../src/miniz_oxide/lib.rs.html#117">MZError::Stream</a>);
     }
-    <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.<span class="ident">has_flushed</span> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#186">flush</a> <span class="op">==</span> <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#57">MZFlush::Finish</a>;
+    <a href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.has_flushed |= <a href="../../../src/miniz_oxide/inflate/stream.rs.html#186">flush</a> == <a href="../../../src/miniz_oxide/lib.rs.html#57">MZFlush::Finish</a>;
 
-    <span class="kw">if</span> (<span class="ident">flush</span> <span class="op">==</span> <span class="ident">MZFlush::Finish</span>) <span class="op">&amp;&amp;</span> <span class="ident">first_call</span> {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#128">inflate_flags::TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF</a>;
+    <span class="kw">if </span>(flush == MZFlush::Finish) &amp;&amp; first_call {
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a> |= <a href="../../../src/miniz_oxide/inflate/core.rs.html#128">inflate_flags::TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF</a>;
 
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#1067-1073">decompress</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.<span class="ident">decomp</span>, <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#190">next_in</a>, <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#191">next_out</a>, <span class="number">0</span>, <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a>);
-        <span class="kw">let</span> <span class="ident">in_bytes</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#223">status</a>.<span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">out_bytes</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#223">status</a>.<span class="number">2</span>;
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#223">status</a>.<span class="number">0</span>;
+        <span class="kw">let </span>status = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1067-1073">decompress</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.decomp, <a href="../../../src/miniz_oxide/inflate/stream.rs.html#190">next_in</a>, <a href="../../../src/miniz_oxide/inflate/stream.rs.html#191">next_out</a>, <span class="number">0</span>, <a href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a>);
+        <span class="kw">let </span>in_bytes = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#223">status</a>.<span class="number">1</span>;
+        <span class="kw">let </span>out_bytes = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#223">status</a>.<span class="number">2</span>;
+        <span class="kw">let </span>status = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#223">status</a>.<span class="number">0</span>;
 
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.<span class="ident">last_status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#226">status</a>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.last_status = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#226">status</a>;
 
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#224">in_bytes</a>;
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#225">out_bytes</a>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a> += <a href="../../../src/miniz_oxide/inflate/stream.rs.html#224">in_bytes</a>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a> += <a href="../../../src/miniz_oxide/inflate/stream.rs.html#225">out_bytes</a>;
 
-        <span class="kw">let</span> <span class="ident">ret_status</span> <span class="op">=</span> {
-            <span class="kw">if</span> (<span class="ident">status</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">&lt;</span> <span class="number">0</span> {
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#122">MZError::Data</a>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">status</span> <span class="op">!</span><span class="op">=</span> <span class="ident">TINFLStatus::Done</span> {
-                <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.<span class="ident">last_status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>;
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#131">MZError::Buf</a>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#95">MZStatus::StreamEnd</a>)
+        <span class="kw">let </span>ret_status = {
+            <span class="kw">if </span>(status <span class="kw">as </span>i32) &lt; <span class="number">0 </span>{
+                <span class="prelude-val">Err</span>(<a href="../../../src/miniz_oxide/lib.rs.html#122">MZError::Data</a>)
+            } <span class="kw">else if </span>status != TINFLStatus::Done {
+                <a href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>.last_status = <a href="../../../src/miniz_oxide/inflate/mod.rs.html#44">TINFLStatus::Failed</a>;
+                <span class="prelude-val">Err</span>(<a href="../../../src/miniz_oxide/lib.rs.html#131">MZError::Buf</a>)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Ok</span>(<a href="../../../src/miniz_oxide/lib.rs.html#95">MZStatus::StreamEnd</a>)
             }
         };
-        <span class="kw">return</span> <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a> {
-            <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a>,
-            <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a>,
-            <span class="ident">status</span>: <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#233">ret_status</a>,
+        <span class="kw">return </span><a href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a> {
+            <a href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a>,
+            <a href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a>,
+            status: <a href="../../../src/miniz_oxide/inflate/stream.rs.html#233">ret_status</a>,
         };
     }
 
-    <span class="kw">if</span> <span class="ident">flush</span> <span class="op">!</span><span class="op">=</span> <span class="ident">MZFlush::Finish</span> {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#125">inflate_flags::TINFL_FLAG_HAS_MORE_INPUT</a>;
+    <span class="kw">if </span>flush != MZFlush::Finish {
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a> |= <a href="../../../src/miniz_oxide/inflate/core.rs.html#125">inflate_flags::TINFL_FLAG_HAS_MORE_INPUT</a>;
     }
 
-    <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">dict_avail</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">push_dict_out</a>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#191">next_out</a>);
-        <span class="kw">return</span> <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a> {
-            <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a>,
-            <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a>,
-            <span class="ident">status</span>: <span class="prelude-val">Ok</span>(
-                <span class="kw">if</span> (<span class="ident">state</span>.<span class="ident">last_status</span> <span class="op">==</span> <span class="ident">TINFLStatus::Done</span>) <span class="op">&amp;&amp;</span> (<span class="ident">state</span>.<span class="ident">dict_avail</span> <span class="op">==</span> <span class="number">0</span>) {
-                    <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#95">MZStatus::StreamEnd</a>
-                } <span class="kw">else</span> {
-                    <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#88">MZStatus::Ok</a>
+    <span class="kw">if </span>state.dict_avail != <span class="number">0 </span>{
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a> += <a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">push_dict_out</a>(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#191">next_out</a>);
+        <span class="kw">return </span><a href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a> {
+            <a href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a>,
+            <a href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a>,
+            status: <span class="prelude-val">Ok</span>(
+                <span class="kw">if </span>(state.last_status == TINFLStatus::Done) &amp;&amp; (state.dict_avail == <span class="number">0</span>) {
+                    <a href="../../../src/miniz_oxide/lib.rs.html#95">MZStatus::StreamEnd</a>
+                } <span class="kw">else </span>{
+                    <a href="../../../src/miniz_oxide/lib.rs.html#88">MZStatus::Ok</a>
                 },
             ),
         };
     }
 
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#285-293">inflate_loop</a>(
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>,
-        <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#190">next_in</a>,
-        <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#191">next_out</a>,
-        <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a>,
-        <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a>,
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a>,
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#186">flush</a>,
+    <span class="kw">let </span>status = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#285-293">inflate_loop</a>(
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#183">state</a>,
+        <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#190">next_in</a>,
+        <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#191">next_out</a>,
+        <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a>,
+        <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a>,
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#197">decomp_flags</a>,
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#186">flush</a>,
     );
-    <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a> {
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a>,
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a>,
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#269">status</a>,
+    <a href="../../../src/miniz_oxide/lib.rs.html#178">StreamResult</a> {
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#188">bytes_consumed</a>,
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#189">bytes_written</a>,
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#269">status</a>,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">inflate_loop</span>(
-    <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>,
-    <span class="ident">next_in</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-    <span class="ident">next_out</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
-    <span class="ident">total_in</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    <span class="ident">total_out</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
-    <span class="ident">decomp_flags</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
-    <span class="ident">flush</span>: <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#41">MZFlush</a>,
-) -&gt; <a class="ident" href="../../../src/miniz_oxide/lib.rs.html#174">MZResult</a> {
-    <span class="kw">let</span> <span class="ident">orig_in_len</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a>.<span class="ident">len</span>();
-    <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#1067-1073">decompress</a>(
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.<span class="ident">decomp</span>,
-            <span class="kw-2">*</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a>,
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.<span class="ident">dict</span>,
-            <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.<span class="ident">dict_ofs</span>,
-            <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#291">decomp_flags</a>,
+<span class="kw">fn </span>inflate_loop(
+    state: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>,
+    next_in: <span class="kw-2">&amp;mut &amp;</span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
+    next_out: <span class="kw-2">&amp;mut &amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>],
+    total_in: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    total_out: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    decomp_flags: <a href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
+    flush: <a href="../../../src/miniz_oxide/lib.rs.html#41">MZFlush</a>,
+) -&gt; <a href="../../../src/miniz_oxide/lib.rs.html#174">MZResult</a> {
+    <span class="kw">let </span>orig_in_len = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a>.len();
+    <span class="kw">loop </span>{
+        <span class="kw">let </span>status = <a href="../../../src/miniz_oxide/inflate/core.rs.html#1067-1073">decompress</a>(
+            <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.decomp,
+            <span class="kw-2">*</span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a>,
+            <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.dict,
+            <a href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.dict_ofs,
+            <a href="../../../src/miniz_oxide/inflate/stream.rs.html#291">decomp_flags</a>,
         );
 
-        <span class="kw">let</span> <span class="ident">in_bytes</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#296">status</a>.<span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">out_bytes</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#296">status</a>.<span class="number">2</span>;
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#296">status</a>.<span class="number">0</span>;
+        <span class="kw">let </span>in_bytes = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#296">status</a>.<span class="number">1</span>;
+        <span class="kw">let </span>out_bytes = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#296">status</a>.<span class="number">2</span>;
+        <span class="kw">let </span>status = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#296">status</a>.<span class="number">0</span>;
 
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.<span class="ident">last_status</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#306">status</a>;
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.last_status = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#306">status</a>;
 
-        <span class="kw-2">*</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a>[<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#304">in_bytes</a>..];
-        <span class="kw-2">*</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#289">total_in</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#304">in_bytes</a>;
+        <span class="kw-2">*</span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a> = <span class="kw-2">&amp;</span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a>[<a href="../../../src/miniz_oxide/inflate/stream.rs.html#304">in_bytes</a>..];
+        <span class="kw-2">*</span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#289">total_in</a> += <a href="../../../src/miniz_oxide/inflate/stream.rs.html#304">in_bytes</a>;
 
-        <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.<span class="ident">dict_avail</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#305">out_bytes</a>;
-        <span class="kw-2">*</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#290">total_out</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">push_dict_out</a>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>, <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#288">next_out</a>);
+        <a href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>.dict_avail = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#305">out_bytes</a>;
+        <span class="kw-2">*</span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#290">total_out</a> += <a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">push_dict_out</a>(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#286">state</a>, <a href="../../../src/miniz_oxide/inflate/stream.rs.html#288">next_out</a>);
 
-        <span class="comment">// The stream was corrupted, and decompression failed.</span>
-        <span class="kw">if</span> (<span class="ident">status</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#122">MZError::Data</a>);
+        <span class="comment">// The stream was corrupted, and decompression failed.
+        </span><span class="kw">if </span>(status <span class="kw">as </span>i32) &lt; <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/miniz_oxide/lib.rs.html#122">MZError::Data</a>);
         }
 
-        <span class="comment">// The decompressor has flushed all it&#39;s data and is waiting for more input, but</span>
-        <span class="comment">// there was no more input provided.</span>
-        <span class="kw">if</span> (<span class="ident">status</span> <span class="op">==</span> <span class="ident">TINFLStatus::NeedsMoreInput</span>) <span class="op">&amp;&amp;</span> <span class="ident">orig_in_len</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#131">MZError::Buf</a>);
+        <span class="comment">// The decompressor has flushed all it&#39;s data and is waiting for more input, but
+        // there was no more input provided.
+        </span><span class="kw">if </span>(status == TINFLStatus::NeedsMoreInput) &amp;&amp; orig_in_len == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/miniz_oxide/lib.rs.html#131">MZError::Buf</a>);
         }
 
-        <span class="kw">if</span> <span class="ident">flush</span> <span class="op">==</span> <span class="ident">MZFlush::Finish</span> {
-            <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">TINFLStatus::Done</span> {
-                <span class="comment">// There is not enough space in the output buffer to flush the remaining</span>
-                <span class="comment">// decompressed data in the internal buffer.</span>
-                <span class="kw">return</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">dict_avail</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#131">MZError::Buf</a>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#95">MZStatus::StreamEnd</a>)
+        <span class="kw">if </span>flush == MZFlush::Finish {
+            <span class="kw">if </span>status == TINFLStatus::Done {
+                <span class="comment">// There is not enough space in the output buffer to flush the remaining
+                // decompressed data in the internal buffer.
+                </span><span class="kw">return if </span>state.dict_avail != <span class="number">0 </span>{
+                    <span class="prelude-val">Err</span>(<a href="../../../src/miniz_oxide/lib.rs.html#131">MZError::Buf</a>)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Ok</span>(<a href="../../../src/miniz_oxide/lib.rs.html#95">MZStatus::StreamEnd</a>)
                 };
-            <span class="comment">// No more space in the output buffer, but we&#39;re not done.</span>
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">next_out</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#131">MZError::Buf</a>);
+            <span class="comment">// No more space in the output buffer, but we&#39;re not done.
+            </span>} <span class="kw">else if </span>next_out.is_empty() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/miniz_oxide/lib.rs.html#131">MZError::Buf</a>);
             }
-        } <span class="kw">else</span> {
-            <span class="comment">// We&#39;re not expected to finish, so it&#39;s fine if we can&#39;t flush everything yet.</span>
-            <span class="kw">let</span> <span class="ident">empty_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#288">next_out</a>.<span class="ident">is_empty</span>();
-            <span class="kw">if</span> (<span class="ident">status</span> <span class="op">==</span> <span class="ident">TINFLStatus::Done</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">empty_buf</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">state</span>.<span class="ident">dict_avail</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>) {
-                <span class="kw">return</span> <span class="kw">if</span> (<span class="ident">status</span> <span class="op">==</span> <span class="ident">TINFLStatus::Done</span>) <span class="op">&amp;&amp;</span> (<span class="ident">state</span>.<span class="ident">dict_avail</span> <span class="op">==</span> <span class="number">0</span>) {
-                    <span class="comment">// No more data left, we&#39;re done.</span>
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#95">MZStatus::StreamEnd</a>)
-                } <span class="kw">else</span> {
-                    <span class="comment">// Ok for now, still waiting for more input data or output space.</span>
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/miniz_oxide/lib.rs.html#88">MZStatus::Ok</a>)
+        } <span class="kw">else </span>{
+            <span class="comment">// We&#39;re not expected to finish, so it&#39;s fine if we can&#39;t flush everything yet.
+            </span><span class="kw">let </span>empty_buf = <a href="../../../src/miniz_oxide/inflate/stream.rs.html#287">next_in</a>.is_empty() || <a href="../../../src/miniz_oxide/inflate/stream.rs.html#288">next_out</a>.is_empty();
+            <span class="kw">if </span>(status == TINFLStatus::Done) || empty_buf || (state.dict_avail != <span class="number">0</span>) {
+                <span class="kw">return if </span>(status == TINFLStatus::Done) &amp;&amp; (state.dict_avail == <span class="number">0</span>) {
+                    <span class="comment">// No more data left, we&#39;re done.
+                    </span><span class="prelude-val">Ok</span>(<a href="../../../src/miniz_oxide/lib.rs.html#95">MZStatus::StreamEnd</a>)
+                } <span class="kw">else </span>{
+                    <span class="comment">// Ok for now, still waiting for more input data or output space.
+                    </span><span class="prelude-val">Ok</span>(<a href="../../../src/miniz_oxide/lib.rs.html#88">MZStatus::Ok</a>)
                 };
             }
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">push_dict_out</span>(<span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>, <span class="ident">next_out</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
-    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">cmp::min</a>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.<span class="ident">dict_avail</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">next_out</a>.<span class="ident">len</span>());
-    (<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">next_out</a>[..<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.<span class="ident">dict</span>[<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.<span class="ident">dict_ofs</span>..<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.<span class="ident">dict_ofs</span> <span class="op">+</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>]);
-    <span class="kw-2">*</span><a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">next_out</a> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">mem::take</span>(<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">next_out</a>)[<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>..];
-    <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.<span class="ident">dict_avail</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>;
-    <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.<span class="ident">dict_ofs</span> <span class="op">=</span> (<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.<span class="ident">dict_ofs</span> <span class="op">+</span> (<a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>)) <span class="op">&amp;</span> (<a class="ident" href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a> <span class="op">-</span> <span class="number">1</span>);
-    <a class="ident" href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>
+<span class="kw">fn </span>push_dict_out(state: <span class="kw-2">&amp;mut </span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#59">InflateState</a>, next_out: <span class="kw-2">&amp;mut &amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+    <span class="kw">let </span>n = <a href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">cmp::min</a>(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.dict_avail <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>, <a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">next_out</a>.len());
+    (<a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">next_out</a>[..<a href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>]).copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.dict[<a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.dict_ofs..<a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.dict_ofs + <a href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>]);
+    <span class="kw-2">*</span><a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">next_out</a> = <span class="kw-2">&amp;mut </span>mem::take(<a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">next_out</a>)[<a href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>..];
+    <a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.dict_avail -= <a href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>;
+    <a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.dict_ofs = (<a href="../../../src/miniz_oxide/inflate/stream.rs.html#356">state</a>.dict_ofs + (<a href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>)) &amp; (<a href="../../../src/miniz_oxide/inflate/core.rs.html#11">TINFL_LZ_DICT_SIZE</a> - <span class="number">1</span>);
+    <a href="../../../src/miniz_oxide/inflate/stream.rs.html#357">n</a>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">inflate</span>, <span class="ident">InflateState</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">DataFormat</span>, <span class="ident">MZFlush</span>, <span class="ident">MZStatus</span>};
-    <span class="kw">use</span> <span class="ident">alloc::vec</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::{inflate, InflateState};
+    <span class="kw">use crate</span>::{DataFormat, MZFlush, MZStatus};
+    <span class="kw">use </span>alloc::vec;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_state</span>() {
-        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_state() {
+        <span class="kw">let </span>encoded = [
             <span class="number">120u8</span>, <span class="number">156</span>, <span class="number">243</span>, <span class="number">72</span>, <span class="number">205</span>, <span class="number">201</span>, <span class="number">201</span>, <span class="number">215</span>, <span class="number">81</span>, <span class="number">168</span>, <span class="number">202</span>, <span class="number">201</span>, <span class="number">76</span>, <span class="number">82</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">27</span>, <span class="number">101</span>, <span class="number">4</span>,
             <span class="number">19</span>,
         ];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">50</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">InflateState::new_boxed</span>(<span class="ident">DataFormat::Zlib</span>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">inflate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="kw-2">&amp;</span><span class="ident">encoded</span>, <span class="kw-2">&amp;mut</span> <span class="ident">out</span>, <span class="ident">MZFlush::Finish</span>);
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">status</span>.<span class="ident">expect</span>(<span class="string">&quot;Failed to decompress!&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">MZStatus::StreamEnd</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">out</span>[..<span class="ident">res</span>.<span class="ident">bytes_written</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="string">b&quot;Hello, zlib!&quot;</span>[..]);
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">bytes_consumed</span>, <span class="ident">encoded</span>.<span class="ident">len</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">50</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>state = InflateState::new_boxed(DataFormat::Zlib);
+        <span class="kw">let </span>res = inflate(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>encoded, <span class="kw-2">&amp;mut </span>out, MZFlush::Finish);
+        <span class="kw">let </span>status = res.status.expect(<span class="string">&quot;Failed to decompress!&quot;</span>);
+        <span class="macro">assert_eq!</span>(status, MZStatus::StreamEnd);
+        <span class="macro">assert_eq!</span>(out[..res.bytes_written <span class="kw">as </span>usize], <span class="string">b&quot;Hello, zlib!&quot;</span>[..]);
+        <span class="macro">assert_eq!</span>(res.bytes_consumed, encoded.len());
 
-        <span class="ident">state</span>.<span class="ident">reset_as</span>(<span class="ident"><span class="kw">super</span>::ZeroReset</span>);
-        <span class="ident">out</span>.<span class="ident">iter_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span> <span class="number">0</span>).<span class="ident">count</span>();
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">inflate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="kw-2">&amp;</span><span class="ident">encoded</span>, <span class="kw-2">&amp;mut</span> <span class="ident">out</span>, <span class="ident">MZFlush::Finish</span>);
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">status</span>.<span class="ident">expect</span>(<span class="string">&quot;Failed to decompress!&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">MZStatus::StreamEnd</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">out</span>[..<span class="ident">res</span>.<span class="ident">bytes_written</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="string">b&quot;Hello, zlib!&quot;</span>[..]);
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">bytes_consumed</span>, <span class="ident">encoded</span>.<span class="ident">len</span>());
+        state.reset_as(<span class="kw">super</span>::ZeroReset);
+        out.iter_mut().map(|x| <span class="kw-2">*</span>x = <span class="number">0</span>).count();
+        <span class="kw">let </span>res = inflate(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>encoded, <span class="kw-2">&amp;mut </span>out, MZFlush::Finish);
+        <span class="kw">let </span>status = res.status.expect(<span class="string">&quot;Failed to decompress!&quot;</span>);
+        <span class="macro">assert_eq!</span>(status, MZStatus::StreamEnd);
+        <span class="macro">assert_eq!</span>(out[..res.bytes_written <span class="kw">as </span>usize], <span class="string">b&quot;Hello, zlib!&quot;</span>[..]);
+        <span class="macro">assert_eq!</span>(res.bytes_consumed, encoded.len());
 
-        <span class="ident">state</span>.<span class="ident">reset_as</span>(<span class="ident"><span class="kw">super</span>::MinReset</span>);
-        <span class="ident">out</span>.<span class="ident">iter_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span> <span class="number">0</span>).<span class="ident">count</span>();
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">inflate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="kw-2">&amp;</span><span class="ident">encoded</span>, <span class="kw-2">&amp;mut</span> <span class="ident">out</span>, <span class="ident">MZFlush::Finish</span>);
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">status</span>.<span class="ident">expect</span>(<span class="string">&quot;Failed to decompress!&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">MZStatus::StreamEnd</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">out</span>[..<span class="ident">res</span>.<span class="ident">bytes_written</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="string">b&quot;Hello, zlib!&quot;</span>[..]);
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">bytes_consumed</span>, <span class="ident">encoded</span>.<span class="ident">len</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">state</span>.<span class="ident">decompressor</span>().<span class="ident">adler32</span>(), <span class="prelude-val">Some</span>(<span class="number">459605011</span>));
+        state.reset_as(<span class="kw">super</span>::MinReset);
+        out.iter_mut().map(|x| <span class="kw-2">*</span>x = <span class="number">0</span>).count();
+        <span class="kw">let </span>res = inflate(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>encoded, <span class="kw-2">&amp;mut </span>out, MZFlush::Finish);
+        <span class="kw">let </span>status = res.status.expect(<span class="string">&quot;Failed to decompress!&quot;</span>);
+        <span class="macro">assert_eq!</span>(status, MZStatus::StreamEnd);
+        <span class="macro">assert_eq!</span>(out[..res.bytes_written <span class="kw">as </span>usize], <span class="string">b&quot;Hello, zlib!&quot;</span>[..]);
+        <span class="macro">assert_eq!</span>(res.bytes_consumed, encoded.len());
+        <span class="macro">assert_eq!</span>(state.decompressor().adler32(), <span class="prelude-val">Some</span>(<span class="number">459605011</span>));
 
-        <span class="comment">// Test state when not computing adler.</span>
-        <span class="ident">state</span> <span class="op">=</span> <span class="ident">InflateState::new_boxed</span>(<span class="ident">DataFormat::ZLibIgnoreChecksum</span>);
-        <span class="ident">out</span>.<span class="ident">iter_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span> <span class="number">0</span>).<span class="ident">count</span>();
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">inflate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="kw-2">&amp;</span><span class="ident">encoded</span>, <span class="kw-2">&amp;mut</span> <span class="ident">out</span>, <span class="ident">MZFlush::Finish</span>);
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">status</span>.<span class="ident">expect</span>(<span class="string">&quot;Failed to decompress!&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">MZStatus::StreamEnd</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">out</span>[..<span class="ident">res</span>.<span class="ident">bytes_written</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="string">b&quot;Hello, zlib!&quot;</span>[..]);
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">bytes_consumed</span>, <span class="ident">encoded</span>.<span class="ident">len</span>());
-        <span class="comment">// Not computed, so should be Some(1)</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">state</span>.<span class="ident">decompressor</span>().<span class="ident">adler32</span>(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
-        <span class="comment">// Should still have the checksum read from the header file.</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">state</span>.<span class="ident">decompressor</span>().<span class="ident">adler32_header</span>(), <span class="prelude-val">Some</span>(<span class="number">459605011</span>))
+        <span class="comment">// Test state when not computing adler.
+        </span>state = InflateState::new_boxed(DataFormat::ZLibIgnoreChecksum);
+        out.iter_mut().map(|x| <span class="kw-2">*</span>x = <span class="number">0</span>).count();
+        <span class="kw">let </span>res = inflate(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>encoded, <span class="kw-2">&amp;mut </span>out, MZFlush::Finish);
+        <span class="kw">let </span>status = res.status.expect(<span class="string">&quot;Failed to decompress!&quot;</span>);
+        <span class="macro">assert_eq!</span>(status, MZStatus::StreamEnd);
+        <span class="macro">assert_eq!</span>(out[..res.bytes_written <span class="kw">as </span>usize], <span class="string">b&quot;Hello, zlib!&quot;</span>[..]);
+        <span class="macro">assert_eq!</span>(res.bytes_consumed, encoded.len());
+        <span class="comment">// Not computed, so should be Some(1)
+        </span><span class="macro">assert_eq!</span>(state.decompressor().adler32(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="comment">// Should still have the checksum read from the header file.
+        </span><span class="macro">assert_eq!</span>(state.decompressor().adler32_header(), <span class="prelude-val">Some</span>(<span class="number">459605011</span>))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="miniz_oxide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="miniz_oxide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

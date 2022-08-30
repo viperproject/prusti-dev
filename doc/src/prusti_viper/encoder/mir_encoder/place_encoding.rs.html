@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir_encoder/place_encoding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>place_encoding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir_encoder/place_encoding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>place_encoding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -145,152 +145,152 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019-2020, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019-2020, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">prusti_rustc_interface::middle::ty</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as</span> <span class="ident">vir</span>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">prusti_rustc_interface::middle::ty</a>;
+<span class="kw">use </span><a href="../../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as </span>vir;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
-    <span class="ident">errors</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>},
+<span class="kw">use </span><span class="kw">crate</span>::encoder::{
+    errors::{<a href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>},
 };
 
 
-<span class="doccomment">/// Result of encoding a place</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PlaceEncoding</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Just an expression, the most common case.</span>
-    <span class="ident">Expr</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
-    <span class="doccomment">/// Field access expression</span>
-    <span class="ident">FieldAccess</span> {
-        <span class="ident">base</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PlaceEncoding</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">field</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>,
+<span class="doccomment">/// Result of encoding a place
+</span><span class="attribute">#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+</span><span class="kw">pub enum </span>PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="doccomment">/// Just an expression, the most common case.
+    </span>Expr(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
+    <span class="doccomment">/// Field access expression
+    </span>FieldAccess {
+        base: Box&lt;PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+        field: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>,
     },
-    <span class="doccomment">/// Array access expression</span>
-    <span class="ident">ArrayAccess</span> {
-        <span class="ident">base</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PlaceEncoding</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">index</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        <span class="ident">encoded_elem_ty</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
-        <span class="ident">rust_array_ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Array access expression
+    </span>ArrayAccess {
+        base: Box&lt;PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+        index: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+        encoded_elem_ty: <a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
+        rust_array_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     },
-    <span class="doccomment">/// Variant (i.e. enum access)</span>
-    <span class="ident">Variant</span> {
-        <span class="ident">base</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PlaceEncoding</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">field</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>,
+    <span class="doccomment">/// Variant (i.e. enum access)
+    </span>Variant {
+        base: Box&lt;PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+        field: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>,
     },
-    <span class="doccomment">/// Slice indexing projection</span>
-    <span class="ident">SliceAccess</span> {
-        <span class="ident">base</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PlaceEncoding</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">index</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-        <span class="ident">encoded_elem_ty</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
-        <span class="ident">rust_slice_ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Slice indexing projection
+    </span>SliceAccess {
+        base: Box&lt;PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+        index: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+        encoded_elem_ty: <a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
+        rust_slice_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     },
 }
 
-<span class="doccomment">/// Return type of PlaceEncoding::into_array_base</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExprOrArrayBase</span> {
-    <span class="ident">Expr</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
-    <span class="ident">ArrayBase</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="ident">SliceBase</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
+<span class="doccomment">/// Return type of PlaceEncoding::into_array_base
+</span><span class="kw">pub enum </span>ExprOrArrayBase {
+    Expr(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
+    ArrayBase(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
+    <span class="attribute">#[allow(dead_code)]
+    </span>SliceBase(<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">PlaceEncoding</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_into_expr</span>(<span class="self">self</span>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#58">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
-           <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#60">e</a>),
-           <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="ident">b</span>)
-           <span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">EncodingError::internal</span>(
-               <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;PlaceEncoding::try_into_expr called on sequence expr &#39;{:?}&#39;&quot;</span>, <span class="ident">b</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub fn </span>try_into_expr(<span class="self">self</span>) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#58">self</a>.<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
+           <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(e) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#60">e</a>),
+           <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(b)
+           | <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(b) =&gt; <span class="prelude-val">Err</span>(EncodingError::internal(
+               <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;PlaceEncoding::try_into_expr called on sequence expr &#39;{:?}&#39;&quot;</span>, b)
            )),
         }
     }
 
-    <span class="doccomment">/// Returns the base variable of an array access, if any of the nested places are an array</span>
-    <span class="doccomment">/// access, else just the same expr that `try_into_expr` would</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_array_base</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#50">ExprOrArrayBase</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">self</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#22">PlaceEncoding::Expr</a>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#72">e</a>),
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#24">PlaceEncoding::FieldAccess</a> { <span class="ident">base</span>, <span class="ident">field</span> } =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#73">base</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#75">e</a>.<span class="ident">field</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#73">field</a>)),
-                    <span class="ident">base</span>@<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#76">base</a>,
-                    <span class="ident">base</span>@<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#77">base</a>,
+    <span class="doccomment">/// Returns the base variable of an array access, if any of the nested places are an array
+    /// access, else just the same expr that `try_into_expr` would
+    </span><span class="kw">pub fn </span>into_array_base(<span class="self">self</span>) -&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#50">ExprOrArrayBase</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">self</a> </span>{
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#22">PlaceEncoding::Expr</a>(e) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#72">e</a>),
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#24">PlaceEncoding::FieldAccess</a> { base, field } =&gt; {
+                <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#73">base</a>.<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
+                    <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(e) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#75">e</a>.field(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#73">field</a>)),
+                    base@<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#76">base</a>,
+                    base@<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#77">base</a>,
                 }
             }
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#36">PlaceEncoding::Variant</a> { <span class="ident">base</span>, <span class="ident">field</span> } =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#80">base</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(
-                        <span class="ident">vir::Expr::Variant</span>( <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> {<span class="ident">base</span>: <span class="kw">box</span> <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#82">e</a>, <span class="ident">variant_index</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#80">field</a>, <span class="ident">position</span>: <span class="ident">vir::Position::default</span>()} )
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#36">PlaceEncoding::Variant</a> { base, field } =&gt; {
+                <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#80">base</a>.<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
+                    <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(e) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(
+                        vir::Expr::Variant( <a href="../../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a> {base: <span class="kw">box </span><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#82">e</a>, variant_index: <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#80">field</a>, position: vir::Position::default()} )
                     ),
-                    <span class="ident">base</span>@<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#85">base</a>,
-                    <span class="ident">base</span>@<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#86">base</a>,
+                    base@<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#85">base</a>,
+                    base@<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#86">base</a>,
                 }
             }
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#29">PlaceEncoding::ArrayAccess</a> { <span class="ident">base</span>, .. } =&gt; {
-                <span class="comment">// need to check base&#39;s into_expr_or_array_base, maybe we&#39;re not the outermost</span>
-                <span class="comment">// array</span>
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#89">base</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#93">e</a>),
-                    <span class="ident">base</span>@<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#94">base</a>,
-                    <span class="ident">base</span>@<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#95">base</a>,
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#29">PlaceEncoding::ArrayAccess</a> { base, .. } =&gt; {
+                <span class="comment">// need to check base&#39;s into_expr_or_array_base, maybe we&#39;re not the outermost
+                // array
+                </span><span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#89">base</a>.<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
+                    <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(e) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#93">e</a>),
+                    base@<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#94">base</a>,
+                    base@<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#95">base</a>,
                 }
             }
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#41">PlaceEncoding::SliceAccess</a> { <span class="ident">base</span>, .. } =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#98">base</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#100">e</a>),
-                    <span class="ident">base</span>@<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#101">base</a>,
-                    <span class="ident">base</span>@<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#102">base</a>,
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#41">PlaceEncoding::SliceAccess</a> { base, .. } =&gt; {
+                <span class="kw">match </span><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#98">base</a>.<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#70">into_array_base</a>() {
+                    <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#51">ExprOrArrayBase::Expr</a>(e) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#100">e</a>),
+                    base@<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#52">ExprOrArrayBase::ArrayBase</a>(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#101">base</a>,
+                    base@<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#54">ExprOrArrayBase::SliceBase</a>(<span class="kw">_</span>) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#102">base</a>,
                 }
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">field</span>(<span class="self">self</span>, <span class="ident">field</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#24">PlaceEncoding::FieldAccess</a> { <span class="ident">base</span>: <span class="kw">box</span> <a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#108">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#108">field</a> }
+    <span class="kw">pub fn </span>field(<span class="self">self</span>, field: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#24">PlaceEncoding::FieldAccess</a> { base: <span class="kw">box </span><a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#108">self</a>, <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#108">field</a> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#112">self</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#22">PlaceEncoding::Expr</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#114">e</a>.<span class="ident">get_type</span>(),
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#24">PlaceEncoding::FieldAccess</a> { <span class="kw-2">ref</span> <span class="ident">field</span>, .. } =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#115">field</a>.<span class="ident">typ</span>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#29">PlaceEncoding::ArrayAccess</a> { <span class="kw-2">ref</span> <span class="ident">encoded_elem_ty</span>, .. } =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#116">encoded_elem_ty</a>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#36">PlaceEncoding::Variant</a> { <span class="kw-2">ref</span> <span class="ident">field</span>, .. } =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#117">field</a>.<span class="ident">typ</span>,
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#41">PlaceEncoding::SliceAccess</a> { <span class="kw-2">ref</span> <span class="ident">encoded_elem_ty</span>, .. } =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#118">encoded_elem_ty</a>,
+    <span class="kw">pub fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#112">self</a> </span>{
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#22">PlaceEncoding::Expr</a>(<span class="kw-2">ref </span>e) =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#114">e</a>.get_type(),
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#24">PlaceEncoding::FieldAccess</a> { <span class="kw-2">ref </span>field, .. } =&gt; <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#115">field</a>.typ,
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#29">PlaceEncoding::ArrayAccess</a> { <span class="kw-2">ref </span>encoded_elem_ty, .. } =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#116">encoded_elem_ty</a>,
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#36">PlaceEncoding::Variant</a> { <span class="kw-2">ref </span>field, .. } =&gt; <span class="kw-2">&amp;</span><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#117">field</a>.typ,
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#41">PlaceEncoding::SliceAccess</a> { <span class="kw-2">ref </span>encoded_elem_ty, .. } =&gt; <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#118">encoded_elem_ty</a>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variant</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
-        <span class="comment">// TODO: somewhat duplicate from vir::Expr::variant()</span>
-        <span class="kw">let</span> <span class="ident">field_name</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;enum_{}&quot;</span>, <span class="ident">index</span>);
-        <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">vir::Field::new</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#124">field_name</a>, <a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#122">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#112">get_type</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">variant</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#122">index</a>));
+    <span class="kw">pub fn </span>variant(<span class="self">self</span>, index: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
+        <span class="comment">// TODO: somewhat duplicate from vir::Expr::variant()
+        </span><span class="kw">let </span>field_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;enum_{}&quot;</span>, index);
+        <span class="kw">let </span>field = vir::Field::new(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#124">field_name</a>, <a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#122">self</a>.<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#112">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().variant(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#122">index</a>));
 
-        <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#36">PlaceEncoding::Variant</a> { <span class="ident">base</span>: <span class="kw">box</span> <a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#122">self</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#125">field</a> }
+        <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#36">PlaceEncoding::Variant</a> { base: <span class="kw">box </span><a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#122">self</a>, <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#125">field</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PlaceEncoding</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#22">PlaceEncoding::Expr</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#132">e</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; From&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; <span class="kw">for </span>PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>from(e: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#22">PlaceEncoding::Expr</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#132">e</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <span class="ident">PlaceEncoding</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">self</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#22">PlaceEncoding::Expr</a>(<span class="ident">e</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#24">PlaceEncoding::FieldAccess</a> { <span class="ident">base</span>, <span class="ident">field</span> } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}.{}&quot;</span>, <span class="ident">base</span>, <span class="ident">field</span>),
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#29">PlaceEncoding::ArrayAccess</a> { <span class="ident">base</span>, <span class="ident">index</span>, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, <span class="ident">base</span>, <span class="ident">index</span>),
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#36">PlaceEncoding::Variant</a> { <span class="ident">base</span>, <span class="ident">field</span> } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, <span class="ident">base</span>, <span class="ident">field</span>),
-            <a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#41">PlaceEncoding::SliceAccess</a> { <span class="ident">base</span>, <span class="ident">index</span>, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, <span class="ident">base</span>, <span class="ident">index</span>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span>PlaceEncoding&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">self</a> </span>{
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#22">PlaceEncoding::Expr</a>(e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}&quot;</span>, e),
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#24">PlaceEncoding::FieldAccess</a> { base, field } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}.{}&quot;</span>, base, field),
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#29">PlaceEncoding::ArrayAccess</a> { base, index, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, base, index),
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#36">PlaceEncoding::Variant</a> { base, field } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, base, field),
+            <a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#41">PlaceEncoding::SliceAccess</a> { base, index, .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/prusti_viper/encoder/mir_encoder/place_encoding.rs.html#138">f</a>, <span class="string">&quot;{}[{}]&quot;</span>, base, index),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

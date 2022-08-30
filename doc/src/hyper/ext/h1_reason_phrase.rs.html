@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/ext/h1_reason_phrase.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>h1_reason_phrase.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/ext/h1_reason_phrase.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>h1_reason_phrase.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -219,226 +219,226 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../hyper/body/struct.Bytes.html">bytes::Bytes</a>;
+<span class="kw">use </span><a href="../../../hyper/body/struct.Bytes.html">bytes::Bytes</a>;
 
-<span class="doccomment">/// A reason phrase in an HTTP/1 response.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Clients</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// For clients, a `ReasonPhrase` will be present in the extensions of the `http::Response` returned</span>
-<span class="doccomment">/// for a request if the reason phrase is different from the canonical reason phrase for the</span>
-<span class="doccomment">/// response&#39;s status code. For example, if a server returns `HTTP/1.1 200 Awesome`, the</span>
-<span class="doccomment">/// `ReasonPhrase` will be present and contain `Awesome`, but if a server returns `HTTP/1.1 200 OK`,</span>
-<span class="doccomment">/// the response will not contain a `ReasonPhrase`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// # #[cfg(all(feature = &quot;tcp&quot;, feature = &quot;client&quot;, feature = &quot;http1&quot;))]</span>
-<span class="doccomment">/// # async fn fake_fetch() -&gt; hyper::Result&lt;()&gt; {</span>
-<span class="doccomment">/// use hyper::{Client, Uri};</span>
-<span class="doccomment">/// use hyper::ext::ReasonPhrase;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let res = Client::new().get(Uri::from_static(&quot;http://example.com/non_canonical_reason&quot;)).await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Print out the non-canonical reason phrase, if it has one...</span>
-<span class="doccomment">/// if let Some(reason) = res.extensions().get::&lt;ReasonPhrase&gt;() {</span>
-<span class="doccomment">///     println!(&quot;non-canonical reason: {}&quot;, std::str::from_utf8(reason.as_bytes()).unwrap());</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// # Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Servers</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When a `ReasonPhrase` is present in the extensions of the `http::Response` written by a server,</span>
-<span class="doccomment">/// its contents will be written in place of the canonical reason phrase when responding via HTTP/1.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReasonPhrase</span>(<a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>);
+<span class="doccomment">/// A reason phrase in an HTTP/1 response.
+///
+/// # Clients
+///
+/// For clients, a `ReasonPhrase` will be present in the extensions of the `http::Response` returned
+/// for a request if the reason phrase is different from the canonical reason phrase for the
+/// response&#39;s status code. For example, if a server returns `HTTP/1.1 200 Awesome`, the
+/// `ReasonPhrase` will be present and contain `Awesome`, but if a server returns `HTTP/1.1 200 OK`,
+/// the response will not contain a `ReasonPhrase`.
+///
+/// ```no_run
+/// # #[cfg(all(feature = &quot;tcp&quot;, feature = &quot;client&quot;, feature = &quot;http1&quot;))]
+/// # async fn fake_fetch() -&gt; hyper::Result&lt;()&gt; {
+/// use hyper::{Client, Uri};
+/// use hyper::ext::ReasonPhrase;
+///
+/// let res = Client::new().get(Uri::from_static(&quot;http://example.com/non_canonical_reason&quot;)).await?;
+///
+/// // Print out the non-canonical reason phrase, if it has one...
+/// if let Some(reason) = res.extensions().get::&lt;ReasonPhrase&gt;() {
+///     println!(&quot;non-canonical reason: {}&quot;, std::str::from_utf8(reason.as_bytes()).unwrap());
+/// }
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Servers
+///
+/// When a `ReasonPhrase` is present in the extensions of the `http::Response` written by a server,
+/// its contents will be written in place of the canonical reason phrase when responding via HTTP/1.
+</span><span class="attribute">#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub struct </span>ReasonPhrase(<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
-    <span class="doccomment">/// Gets the reason phrase as bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#40">self</a>.<span class="number">0</span>
-    }
+<span class="kw">impl </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
+    <span class="doccomment">/// Gets the reason phrase as bytes.
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#40">self</a>.<span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Converts a static byte slice to a reason phrase.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_static</span>(<span class="ident">reason</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self</span> {
-        <span class="comment">// TODO: this can be made const once MSRV is &gt;= 1.57.0</span>
-        <span class="kw">if</span> <span class="ident">find_invalid_byte</span>(<span class="ident">reason</span>).<span class="ident">is_some</span>() {
+    <span class="doccomment">/// Converts a static byte slice to a reason phrase.
+    </span><span class="kw">pub fn </span>from_static(reason: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="self">Self </span>{
+        <span class="comment">// TODO: this can be made const once MSRV is &gt;= 1.57.0
+        </span><span class="kw">if </span>find_invalid_byte(reason).is_some() {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid byte in static reason phrase&quot;</span>);
         }
-        <span class="self">Self</span>(<span class="ident">Bytes::from_static</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#45">reason</a>))
+        <span class="self">Self</span>(Bytes::from_static(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#45">reason</a>))
     }
 
-    <span class="doccomment">/// Converts a `Bytes` directly into a `ReasonPhrase` without validating.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use with care; invalid bytes in a reason phrase can cause serious security problems if</span>
-    <span class="doccomment">/// emitted in a response.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_bytes_unchecked</span>(<span class="ident">reason</span>: <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#57">reason</a>)
+    <span class="doccomment">/// Converts a `Bytes` directly into a `ReasonPhrase` without validating.
+    ///
+    /// Use with care; invalid bytes in a reason phrase can cause serious security problems if
+    /// emitted in a response.
+    </span><span class="kw">pub unsafe fn </span>from_bytes_unchecked(reason: <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#57">reason</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a>;
+<span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
+    <span class="kw">type </span>Error = <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">reason</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bad_byte</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#159">find_invalid_byte</a>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#65">reason</a>) {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> { <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#66">bad_byte</a> })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(<span class="ident">Bytes::copy_from_slice</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#65">reason</a>)))
+    <span class="kw">fn </span>try_from(reason: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bad_byte) = <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#159">find_invalid_byte</a>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#65">reason</a>) {
+            <span class="prelude-val">Err</span>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> { <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#66">bad_byte</a> })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(Bytes::copy_from_slice(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#65">reason</a>)))
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a>;
+<span class="kw">impl </span>TryFrom&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
+    <span class="kw">type </span>Error = <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">reason</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bad_byte</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#159">find_invalid_byte</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#77">reason</a>) {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> { <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#78">bad_byte</a> })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(<span class="ident">Bytes::from</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#77">reason</a>)))
+    <span class="kw">fn </span>try_from(reason: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bad_byte) = <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#159">find_invalid_byte</a>(<span class="kw-2">&amp;</span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#77">reason</a>) {
+            <span class="prelude-val">Err</span>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> { <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#78">bad_byte</a> })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(Bytes::from(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#77">reason</a>)))
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a>;
+<span class="kw">impl </span>TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
+    <span class="kw">type </span>Error = <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">reason</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bad_byte</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#159">find_invalid_byte</a>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#89">reason</a>.<span class="ident">as_bytes</span>()) {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> { <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#90">bad_byte</a> })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(<span class="ident">Bytes::from</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#89">reason</a>)))
+    <span class="kw">fn </span>try_from(reason: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bad_byte) = <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#159">find_invalid_byte</a>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#89">reason</a>.as_bytes()) {
+            <span class="prelude-val">Err</span>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> { <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#90">bad_byte</a> })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(Bytes::from(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#89">reason</a>)))
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a>;
+<span class="kw">impl </span>TryFrom&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
+    <span class="kw">type </span>Error = <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">reason</span>: <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bad_byte</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#159">find_invalid_byte</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#101">reason</a>) {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> { <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#102">bad_byte</a> })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#101">reason</a>))
+    <span class="kw">fn </span>try_from(reason: <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bad_byte) = <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#159">find_invalid_byte</a>(<span class="kw-2">&amp;</span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#101">reason</a>) {
+            <span class="prelude-val">Err</span>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> { <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#102">bad_byte</a> })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#101">reason</a>))
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a> {
-        <a class="self" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#111">self</a>.<span class="number">0</span>
+<span class="kw">impl </span>Into&lt;<a href="../../../hyper/body/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <a href="../../../hyper/body/struct.Bytes.html">Bytes</a> {
+        <a class="self" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#111">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#117">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="doccomment">/// Error indicating an invalid byte when constructing a `ReasonPhrase`.
+///
+/// See [the spec][spec] for details on allowed bytes.
+///
+/// [spec]: https://httpwg.org/http-core/draft-ietf-httpbis-messaging-latest.html#rfc.section.4.p.7
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>InvalidReasonPhrase {
+    bad_byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#133">f</a>, <span class="string">&quot;Invalid byte in reason phrase: {}&quot;</span>, <span class="self">self</span>.bad_byte)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#36">ReasonPhrase</a> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#117">self</a>.<span class="number">0</span>
-    }
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> {}
+
+<span class="kw">const fn </span>is_valid_byte(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="comment">// See https://www.rfc-editor.org/rfc/rfc5234.html#appendix-B.1
+    </span><span class="kw">const fn </span>is_vchar(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="number">0x21 </span>&lt;= <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#142">b</a> &amp;&amp; <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#142">b</a> &lt;= <span class="number">0x7E
+    </span>}
+
+    <span class="comment">// See https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#fields.values
+    //
+    // The 0xFF comparison is technically redundant, but it matches the text of the spec more
+    // clearly and will be optimized away.
+    </span><span class="attribute">#[allow(unused_comparisons)]
+    </span><span class="kw">const fn </span>is_obs_text(b: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="number">0x80 </span>&lt;= <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#151">b</a> &amp;&amp; <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#151">b</a> &lt;= <span class="number">0xFF
+    </span>}
+
+    <span class="comment">// See https://httpwg.org/http-core/draft-ietf-httpbis-messaging-latest.html#rfc.section.4.p.7
+    </span><a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#140">b</a> == <span class="string">b&#39;\t&#39; </span>|| <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#140">b</a> == <span class="string">b&#39; &#39; </span>|| <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#142">is_vchar</a>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#140">b</a>) || <a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#151">is_obs_text</a>(<a href="../../../src/hyper/ext/h1_reason_phrase.rs.html#140">b</a>)
 }
 
-<span class="doccomment">/// Error indicating an invalid byte when constructing a `ReasonPhrase`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [the spec][spec] for details on allowed bytes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://httpwg.org/http-core/draft-ietf-httpbis-messaging-latest.html#rfc.section.4.p.7</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InvalidReasonPhrase</span> {
-    <span class="ident">bad_byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#133">f</a>, <span class="string">&quot;Invalid byte in reason phrase: {}&quot;</span>, <span class="self">self</span>.<span class="ident">bad_byte</span>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#128">InvalidReasonPhrase</a> {}
-
-<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_valid_byte</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="comment">// See https://www.rfc-editor.org/rfc/rfc5234.html#appendix-B.1</span>
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_vchar</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="number">0x21</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#142">b</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#142">b</a> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7E</span>
-    }
-
-    <span class="comment">// See https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#fields.values</span>
-    <span class="comment">//</span>
-    <span class="comment">// The 0xFF comparison is technically redundant, but it matches the text of the spec more</span>
-    <span class="comment">// clearly and will be optimized away.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_comparisons</span>)]</span>
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_obs_text</span>(<span class="ident">b</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="number">0x80</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#151">b</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#151">b</a> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0xFF</span>
-    }
-
-    <span class="comment">// See https://httpwg.org/http-core/draft-ietf-httpbis-messaging-latest.html#rfc.section.4.p.7</span>
-    <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#140">b</a> <span class="op">==</span> <span class="string">b&#39;\t&#39;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#140">b</a> <span class="op">==</span> <span class="string">b&#39; &#39;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#142">is_vchar</a>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#140">b</a>) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#151">is_obs_text</a>(<a class="ident" href="../../../src/hyper/ext/h1_reason_phrase.rs.html#140">b</a>)
-}
-
-<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">find_invalid_byte</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">bytes</span>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">bytes</span>[<span class="ident">i</span>];
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_valid_byte</span>(<span class="ident">b</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>);
+<span class="kw">const fn </span>find_invalid_byte(bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+    <span class="kw">while </span>i &lt; bytes.len() {
+        <span class="kw">let </span>b = bytes[i];
+        <span class="kw">if </span>!is_valid_byte(b) {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(b);
         }
-        <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        i += <span class="number">1</span>;
     }
-    <span class="prelude-val">None</span>
-}
+    <span class="prelude-val">None
+</span>}
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">basic_valid</span>() {
-        <span class="kw">const</span> <span class="ident">PHRASE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;OK&quot;</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">ReasonPhrase::from_static</span>(<span class="ident">PHRASE</span>).<span class="ident">as_bytes</span>(), <span class="ident">PHRASE</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">ReasonPhrase::try_from</span>(<span class="ident">PHRASE</span>).<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>(), <span class="ident">PHRASE</span>);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">empty_valid</span>() {
-        <span class="kw">const</span> <span class="ident">PHRASE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;&quot;</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">ReasonPhrase::from_static</span>(<span class="ident">PHRASE</span>).<span class="ident">as_bytes</span>(), <span class="ident">PHRASE</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">ReasonPhrase::try_from</span>(<span class="ident">PHRASE</span>).<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>(), <span class="ident">PHRASE</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>basic_valid() {
+        <span class="kw">const </span>PHRASE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="string">b&quot;OK&quot;</span>;
+        <span class="macro">assert_eq!</span>(ReasonPhrase::from_static(PHRASE).as_bytes(), PHRASE);
+        <span class="macro">assert_eq!</span>(ReasonPhrase::try_from(PHRASE).unwrap().as_bytes(), PHRASE);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">obs_text_valid</span>() {
-        <span class="kw">const</span> <span class="ident">PHRASE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;hyp\xe9r&quot;</span>;
-        <span class="macro">assert_eq!</span>(<span class="ident">ReasonPhrase::from_static</span>(<span class="ident">PHRASE</span>).<span class="ident">as_bytes</span>(), <span class="ident">PHRASE</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">ReasonPhrase::try_from</span>(<span class="ident">PHRASE</span>).<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>(), <span class="ident">PHRASE</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>empty_valid() {
+        <span class="kw">const </span>PHRASE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="string">b&quot;&quot;</span>;
+        <span class="macro">assert_eq!</span>(ReasonPhrase::from_static(PHRASE).as_bytes(), PHRASE);
+        <span class="macro">assert_eq!</span>(ReasonPhrase::try_from(PHRASE).unwrap().as_bytes(), PHRASE);
     }
 
-    <span class="kw">const</span> <span class="ident">NEWLINE_PHRASE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;hyp\ner&quot;</span>;
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>]</span>
-    <span class="kw">fn</span> <span class="ident">newline_invalid_panic</span>() {
-        <span class="ident">ReasonPhrase::from_static</span>(<span class="ident">NEWLINE_PHRASE</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>obs_text_valid() {
+        <span class="kw">const </span>PHRASE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="string">b&quot;hyp\xe9r&quot;</span>;
+        <span class="macro">assert_eq!</span>(ReasonPhrase::from_static(PHRASE).as_bytes(), PHRASE);
+        <span class="macro">assert_eq!</span>(ReasonPhrase::try_from(PHRASE).unwrap().as_bytes(), PHRASE);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">newline_invalid_err</span>() {
-        <span class="macro">assert!</span>(<span class="ident">ReasonPhrase::try_from</span>(<span class="ident">NEWLINE_PHRASE</span>).<span class="ident">is_err</span>());
+    <span class="kw">const </span>NEWLINE_PHRASE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="string">b&quot;hyp\ner&quot;</span>;
+
+    <span class="attribute">#[test]
+    #[should_panic]
+    </span><span class="kw">fn </span>newline_invalid_panic() {
+        ReasonPhrase::from_static(NEWLINE_PHRASE);
     }
 
-    <span class="kw">const</span> <span class="ident">CR_PHRASE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;hyp\rer&quot;</span>;
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cr_invalid_panic</span>() {
-        <span class="ident">ReasonPhrase::from_static</span>(<span class="ident">CR_PHRASE</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>newline_invalid_err() {
+        <span class="macro">assert!</span>(ReasonPhrase::try_from(NEWLINE_PHRASE).is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cr_invalid_err</span>() {
-        <span class="macro">assert!</span>(<span class="ident">ReasonPhrase::try_from</span>(<span class="ident">CR_PHRASE</span>).<span class="ident">is_err</span>());
+    <span class="kw">const </span>CR_PHRASE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="string">b&quot;hyp\rer&quot;</span>;
+
+    <span class="attribute">#[test]
+    #[should_panic]
+    </span><span class="kw">fn </span>cr_invalid_panic() {
+        ReasonPhrase::from_static(CR_PHRASE);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>cr_invalid_err() {
+        <span class="macro">assert!</span>(ReasonPhrase::try_from(CR_PHRASE).is_err());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

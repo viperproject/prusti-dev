@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/protocol/frame/frame.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>frame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tungstenite/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/protocol/frame/frame.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>frame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tungstenite/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -467,368 +467,368 @@
 <span id="467">467</span>
 <span id="468">468</span>
 <span id="469">469</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">byteorder</span>::{<a class="ident" href="../../../../byteorder/trait.ByteOrder.html">ByteOrder</a>, <a class="ident" href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a>, <a class="ident" href="../../../../byteorder/io/trait.ReadBytesExt.html">ReadBytesExt</a>, <a class="ident" href="../../../../byteorder/io/trait.WriteBytesExt.html">WriteBytesExt</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../log/index.html">log</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">borrow::Cow</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/derive.Default.html">default::Default</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
-    <span class="ident">io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">result::Result</a> <span class="kw">as</span> <span class="ident">StdResult</span>,
-    <span class="ident">string</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>},
+</pre><pre class="rust"><code><span class="kw">use </span>byteorder::{<a href="../../../../byteorder/trait.ByteOrder.html">ByteOrder</a>, <a href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a>, <a href="../../../../byteorder/io/trait.ReadBytesExt.html">ReadBytesExt</a>, <a href="../../../../byteorder/io/trait.WriteBytesExt.html">WriteBytesExt</a>};
+<span class="kw">use </span><a href="../../../../log/index.html">log</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::{
+    <a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">borrow::Cow</a>,
+    <a href="https://doc.rust-lang.org/nightly/core/default/derive.Default.html">default::Default</a>,
+    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
+    io::{<a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
+    <a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">result::Result</a> <span class="kw">as </span>StdResult,
+    string::{<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>},
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">coding</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119">CloseCode</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32">Control</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19">Data</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">OpCode</a>},
-    <span class="ident">mask</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/mask.rs.html#9">apply_mask</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/mask.rs.html#3">generate_mask</a>},
+<span class="kw">use super</span>::{
+    coding::{<a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119">CloseCode</a>, <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32">Control</a>, <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19">Data</a>, <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">OpCode</a>},
+    mask::{<a href="../../../../src/tungstenite/protocol/frame/mask.rs.html#9">apply_mask</a>, <a href="../../../../src/tungstenite/protocol/frame/mask.rs.html#3">generate_mask</a>},
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../../src/tungstenite/error.rs.html#14">Error</a>, <a class="ident" href="../../../../src/tungstenite/error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../../src/tungstenite/error.rs.html#14">Error</a>, <a href="../../../../src/tungstenite/error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>};
 
-<span class="doccomment">/// A struct representing the close command.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CloseFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The reason as a code.</span>
-    <span class="kw">pub</span> <span class="ident">code</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119">CloseCode</a>,
-    <span class="doccomment">/// The reason as text string.</span>
-    <span class="kw">pub</span> <span class="ident">reason</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A struct representing the close command.
+</span><span class="attribute">#[derive(Debug, Clone, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>CloseFrame&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="doccomment">/// The reason as a code.
+    </span><span class="kw">pub </span>code: <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119">CloseCode</a>,
+    <span class="doccomment">/// The reason as text string.
+    </span><span class="kw">pub </span>reason: Cow&lt;<span class="lifetime">&#39;t</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="ident">CloseFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Convert into a owned string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) -&gt; <span class="ident">CloseFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#20">CloseFrame</a> { <span class="ident">code</span>: <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#29">self</a>.<span class="ident">code</span>, <span class="ident">reason</span>: <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#29">self</a>.<span class="ident">reason</span>.<span class="ident">into_owned</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; CloseFrame&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="doccomment">/// Convert into a owned string.
+    </span><span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; CloseFrame&lt;<span class="lifetime">&#39;static</span>&gt; {
+        <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#20">CloseFrame</a> { code: <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#29">self</a>.code, reason: <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#29">self</a>.reason.into_owned().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">CloseFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#35">f</a>, <span class="string">&quot;{} ({})&quot;</span>, <span class="self">self</span>.<span class="ident">reason</span>, <span class="self">self</span>.<span class="ident">code</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>CloseFrame&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#35">f</a>, <span class="string">&quot;{} ({})&quot;</span>, <span class="self">self</span>.reason, <span class="self">self</span>.code)
     }
 }
 
-<span class="doccomment">/// A struct representing a WebSocket frame header.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_copy_implementations</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FrameHeader</span> {
-    <span class="doccomment">/// Indicates that the frame is the last one of a possibly fragmented message.</span>
-    <span class="kw">pub</span> <span class="ident">is_final</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="doccomment">/// Reserved for protocol extensions.</span>
-    <span class="kw">pub</span> <span class="ident">rsv1</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="doccomment">/// Reserved for protocol extensions.</span>
-    <span class="kw">pub</span> <span class="ident">rsv2</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="doccomment">/// Reserved for protocol extensions.</span>
-    <span class="kw">pub</span> <span class="ident">rsv3</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="doccomment">/// WebSocket protocol opcode.</span>
-    <span class="kw">pub</span> <span class="ident">opcode</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">OpCode</a>,
-    <span class="doccomment">/// A frame mask, if any.</span>
-    <span class="kw">pub</span> <span class="ident">mask</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>]<span class="op">&gt;</span>,
+<span class="doccomment">/// A struct representing a WebSocket frame header.
+</span><span class="attribute">#[allow(missing_copy_implementations)]
+#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>FrameHeader {
+    <span class="doccomment">/// Indicates that the frame is the last one of a possibly fragmented message.
+    </span><span class="kw">pub </span>is_final: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// Reserved for protocol extensions.
+    </span><span class="kw">pub </span>rsv1: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// Reserved for protocol extensions.
+    </span><span class="kw">pub </span>rsv2: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// Reserved for protocol extensions.
+    </span><span class="kw">pub </span>rsv3: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// WebSocket protocol opcode.
+    </span><span class="kw">pub </span>opcode: <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">OpCode</a>,
+    <span class="doccomment">/// A frame mask, if any.
+    </span><span class="kw">pub </span>mask: <span class="prelude-ty">Option</span>&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>]&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
-            <span class="ident">is_final</span>: <span class="bool-val">true</span>,
-            <span class="ident">rsv1</span>: <span class="bool-val">false</span>,
-            <span class="ident">rsv2</span>: <span class="bool-val">false</span>,
-            <span class="ident">rsv3</span>: <span class="bool-val">false</span>,
-            <span class="ident">opcode</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Control::Close</a>),
-            <span class="ident">mask</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
+            is_final: <span class="bool-val">true</span>,
+            rsv1: <span class="bool-val">false</span>,
+            rsv2: <span class="bool-val">false</span>,
+            rsv3: <span class="bool-val">false</span>,
+            opcode: <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Control::Close</a>),
+            mask: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
-    <span class="doccomment">/// Parse a header from an input stream.</span>
-    <span class="doccomment">/// Returns `None` if insufficient data and does not consume anything in this case.</span>
-    <span class="doccomment">/// Payload size is returned along with the header.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">initial</span> <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#75">cursor</a>.<span class="ident">position</span>();
-        <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::parse_internal</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#75">cursor</a>) {
-            <span class="ident">ret</span> @ <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-                <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#75">cursor</a>.<span class="ident">set_position</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#76">initial</a>);
-                <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#78">ret</a>
+<span class="kw">impl </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
+    <span class="doccomment">/// Parse a header from an input stream.
+    /// Returns `None` if insufficient data and does not consume anything in this case.
+    /// Payload size is returned along with the header.
+    </span><span class="kw">pub fn </span>parse(cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt;&gt; {
+        <span class="kw">let </span>initial = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#75">cursor</a>.position();
+        <span class="kw">match </span><span class="self">Self</span>::parse_internal(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#75">cursor</a>) {
+            ret @ <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
+                <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#75">cursor</a>.set_position(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#76">initial</a>);
+                <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#78">ret</a>
             }
-            <span class="ident">ret</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#82">ret</a>,
+            ret =&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#82">ret</a>,
         }
     }
 
-    <span class="doccomment">/// Get the size of the header formatted with given payload length.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="number">2</span> <span class="op">+</span> <span class="ident">LengthFormat::for_length</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#87">length</a>).<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#407">extra_bytes</a>() <span class="op">+</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mask</span>.<span class="ident">is_some</span>() { <span class="number">4</span> } <span class="kw">else</span> { <span class="number">0</span> }
+    <span class="doccomment">/// Get the size of the header formatted with given payload length.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="number">2 </span>+ LengthFormat::for_length(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#87">length</a>).<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#407">extra_bytes</a>() + <span class="kw">if </span><span class="self">self</span>.mask.is_some() { <span class="number">4 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Format a header for given payload size.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">code</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#92">self</a>.<span class="ident">opcode</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+    <span class="doccomment">/// Format a header for given payload size.
+    </span><span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, length: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, output: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>code: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#92">self</a>.opcode.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
 
-        <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#93">code</a> <span class="op">|</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_final</span> { <span class="number">0x80</span> } <span class="kw">else</span> { <span class="number">0</span> }
-                <span class="op">|</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rsv1</span> { <span class="number">0x40</span> } <span class="kw">else</span> { <span class="number">0</span> }
-                <span class="op">|</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rsv2</span> { <span class="number">0x20</span> } <span class="kw">else</span> { <span class="number">0</span> }
-                <span class="op">|</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rsv3</span> { <span class="number">0x10</span> } <span class="kw">else</span> { <span class="number">0</span> }
+        <span class="kw">let </span>one = {
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#93">code</a> | <span class="kw">if </span><span class="self">self</span>.is_final { <span class="number">0x80 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
+                | <span class="kw">if </span><span class="self">self</span>.rsv1 { <span class="number">0x40 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
+                | <span class="kw">if </span><span class="self">self</span>.rsv2 { <span class="number">0x20 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
+                | <span class="kw">if </span><span class="self">self</span>.rsv3 { <span class="number">0x10 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
         };
 
-        <span class="kw">let</span> <span class="ident">lenfmt</span> <span class="op">=</span> <span class="ident">LengthFormat::for_length</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#92">length</a>);
+        <span class="kw">let </span>lenfmt = LengthFormat::for_length(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#92">length</a>);
 
-        <span class="kw">let</span> <span class="ident">two</span> <span class="op">=</span> { <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#102">lenfmt</a>.<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#417">length_byte</a>() <span class="op">|</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mask</span>.<span class="ident">is_some</span>() { <span class="number">0x80</span> } <span class="kw">else</span> { <span class="number">0</span> } };
+        <span class="kw">let </span>two = { <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#102">lenfmt</a>.<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#417">length_byte</a>() | <span class="kw">if </span><span class="self">self</span>.mask.is_some() { <span class="number">0x80 </span>} <span class="kw">else </span>{ <span class="number">0 </span>} };
 
-        <span class="ident">output</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span>[<span class="ident">one</span>, <span class="ident">two</span>])<span class="question-mark">?</span>;
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#102">lenfmt</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<span class="kw">_</span>) =&gt; (),
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a> =&gt; <span class="ident">output</span>.<span class="ident">write_u16</span>::<span class="op">&lt;</span><span class="ident">NetworkEndian</span><span class="op">&gt;</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">u16</span>)<span class="question-mark">?</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a> =&gt; <span class="ident">output</span>.<span class="ident">write_u64</span>::<span class="op">&lt;</span><span class="ident">NetworkEndian</span><span class="op">&gt;</span>(<span class="ident">length</span>)<span class="question-mark">?</span>,
+        output.write_all(<span class="kw-2">&amp;</span>[one, two])<span class="question-mark">?</span>;
+        <span class="kw">match </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#102">lenfmt</a> {
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<span class="kw">_</span>) =&gt; (),
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a> =&gt; output.write_u16::&lt;NetworkEndian&gt;(length <span class="kw">as </span>u16)<span class="question-mark">?</span>,
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a> =&gt; output.write_u64::&lt;NetworkEndian&gt;(length)<span class="question-mark">?</span>,
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">mask</span>) <span class="op">=</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#92">self</a>.<span class="ident">mask</span> {
-            <span class="ident">output</span>.<span class="ident">write_all</span>(<span class="ident">mask</span>)<span class="question-mark">?</span>
-        }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>mask) = <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#92">self</a>.mask {
+            output.write_all(mask)<span class="question-mark">?
+        </span>}
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Generate a random frame mask and store this in the header.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Of course this does not change frame contents. It just generates a mask.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_random_mask</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#123">self</a>.<span class="ident">mask</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/mask.rs.html#3">generate_mask</a>())
+    <span class="doccomment">/// Generate a random frame mask and store this in the header.
+    ///
+    /// Of course this does not change frame contents. It just generates a mask.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_random_mask(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#123">self</a>.mask = <span class="prelude-val">Some</span>(<a href="../../../../src/tungstenite/protocol/frame/mask.rs.html#3">generate_mask</a>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
-    <span class="doccomment">/// Internal parse engine.</span>
-    <span class="doccomment">/// Returns `None` if insufficient data.</span>
-    <span class="doccomment">/// Payload size is returned along with the header.</span>
-    <span class="kw">fn</span> <span class="ident">parse_internal</span>(<span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="self">Self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">first</span>, <span class="ident">second</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">2</span>];
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">head</span>)<span class="question-mark">?</span> <span class="op">!</span><span class="op">=</span> <span class="number">2</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+<span class="kw">impl </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
+    <span class="doccomment">/// Internal parse engine.
+    /// Returns `None` if insufficient data.
+    /// Payload size is returned along with the header.
+    </span><span class="kw">fn </span>parse_internal(cursor: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt;&gt; {
+        <span class="kw">let </span>(first, second) = {
+            <span class="kw">let </span><span class="kw-2">mut </span>head = [<span class="number">0u8</span>; <span class="number">2</span>];
+            <span class="kw">if </span>cursor.read(<span class="kw-2">&amp;mut </span>head)<span class="question-mark">? </span>!= <span class="number">2 </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
-            <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Parsed headers {:?}&quot;</span>, <span class="ident">head</span>);
-            (<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#134">head</a>[<span class="number">0</span>], <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#134">head</a>[<span class="number">1</span>])
+            <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Parsed headers {:?}&quot;</span>, head);
+            (<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#134">head</a>[<span class="number">0</span>], <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#134">head</a>[<span class="number">1</span>])
         };
 
-        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;First: {:b}&quot;</span>, <span class="ident">first</span>);
-        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Second: {:b}&quot;</span>, <span class="ident">second</span>);
+        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;First: {:b}&quot;</span>, first);
+        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Second: {:b}&quot;</span>, second);
 
-        <span class="kw">let</span> <span class="ident">is_final</span> <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> <span class="op">&amp;</span> <span class="number">0x80</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let </span>is_final = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> &amp; <span class="number">0x80 </span>!= <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="ident">rsv1</span> <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> <span class="op">&amp;</span> <span class="number">0x40</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">rsv2</span> <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> <span class="op">&amp;</span> <span class="number">0x20</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">rsv3</span> <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> <span class="op">&amp;</span> <span class="number">0x10</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let </span>rsv1 = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> &amp; <span class="number">0x40 </span>!= <span class="number">0</span>;
+        <span class="kw">let </span>rsv2 = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> &amp; <span class="number">0x20 </span>!= <span class="number">0</span>;
+        <span class="kw">let </span>rsv3 = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> &amp; <span class="number">0x10 </span>!= <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">OpCode::from</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> <span class="op">&amp;</span> <span class="number">0x0F</span>);
-        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Opcode: {:?}&quot;</span>, <span class="ident">opcode</span>);
+        <span class="kw">let </span>opcode = OpCode::from(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> &amp; <span class="number">0x0F</span>);
+        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Opcode: {:?}&quot;</span>, opcode);
 
-        <span class="kw">let</span> <span class="ident">masked</span> <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">second</a> <span class="op">&amp;</span> <span class="number">0x80</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Masked: {:?}&quot;</span>, <span class="ident">masked</span>);
+        <span class="kw">let </span>masked = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">second</a> &amp; <span class="number">0x80 </span>!= <span class="number">0</span>;
+        <a class="macro" href="../../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Masked: {:?}&quot;</span>, masked);
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">length_byte</span> <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">second</a> <span class="op">&amp;</span> <span class="number">0x7F</span>;
-            <span class="kw">let</span> <span class="ident">length_length</span> <span class="op">=</span> <span class="ident">LengthFormat::for_byte</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#158">length_byte</a>).<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#407">extra_bytes</a>();
-            <span class="kw">if</span> <span class="ident">length_length</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#132">cursor</a>.<a class="ident" href="../../../../byteorder/io/trait.ReadBytesExt.html">read_uint</a>::<span class="op">&lt;</span><a class="ident" href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a><span class="op">&gt;</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#159">length_length</a>) {
-                    <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#162">err</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">ErrorKind::UnexpectedEof</span> =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        <span class="kw">let </span>length = {
+            <span class="kw">let </span>length_byte = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">second</a> &amp; <span class="number">0x7F</span>;
+            <span class="kw">let </span>length_length = LengthFormat::for_byte(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#158">length_byte</a>).<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#407">extra_bytes</a>();
+            <span class="kw">if </span>length_length &gt; <span class="number">0 </span>{
+                <span class="kw">match </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#132">cursor</a>.<a href="../../../../byteorder/io/trait.ReadBytesExt.html">read_uint</a>::&lt;<a href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a>&gt;(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#159">length_length</a>) {
+                    <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) <span class="kw">if </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#162">err</a>.kind() == ErrorKind::UnexpectedEof =&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#165">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                    <span class="prelude-val">Err</span>(err) =&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#165">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                     }
-                    <span class="prelude-val">Ok</span>(<span class="ident">read</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#168">read</a>,
+                    <span class="prelude-val">Ok</span>(read) =&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#168">read</a>,
                 }
-            } <span class="kw">else</span> {
-                <span class="ident">u64::from</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#158">length_byte</a>)
+            } <span class="kw">else </span>{
+                u64::from(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#158">length_byte</a>)
             }
         };
 
-        <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">masked</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mask_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">mask_bytes</span>)<span class="question-mark">?</span> <span class="op">!</span><span class="op">=</span> <span class="number">4</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#176">mask_bytes</a>)
+        <span class="kw">let </span>mask = <span class="kw">if </span>masked {
+            <span class="kw">let </span><span class="kw-2">mut </span>mask_bytes = [<span class="number">0u8</span>; <span class="number">4</span>];
+            <span class="kw">if </span>cursor.read(<span class="kw-2">&amp;mut </span>mask_bytes)<span class="question-mark">? </span>!= <span class="number">4 </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#176">mask_bytes</a>)
             }
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
 
-        <span class="comment">// Disallow bad opcode</span>
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#151">opcode</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#40">Control::Reserved</a>(<span class="kw">_</span>)) <span class="op">|</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">OpCode::Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#27">Data::Reserved</a>(<span class="kw">_</span>)) =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../../src/tungstenite/error.rs.html#214">ProtocolError::InvalidOpcode</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> <span class="op">&amp;</span> <span class="number">0x0F</span>)))
+        <span class="comment">// Disallow bad opcode
+        </span><span class="kw">match </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#151">opcode</a> {
+            <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#40">Control::Reserved</a>(<span class="kw">_</span>)) | <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">OpCode::Data</a>(<a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#27">Data::Reserved</a>(<span class="kw">_</span>)) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../../src/tungstenite/error.rs.html#214">ProtocolError::InvalidOpcode</a>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#133">first</a> &amp; <span class="number">0x0F</span>)))
             }
-            <span class="kw">_</span> =&gt; (),
+            <span class="kw">_ </span>=&gt; (),
         }
 
-        <span class="kw">let</span> <span class="ident">hdr</span> <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> { <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#145">is_final</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#147">rsv1</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#148">rsv2</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#149">rsv3</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#151">opcode</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#175">mask</a> };
+        <span class="kw">let </span>hdr = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> { <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#145">is_final</a>, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#147">rsv1</a>, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#148">rsv2</a>, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#149">rsv3</a>, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#151">opcode</a>, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#175">mask</a> };
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#194">hdr</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#157">length</a>)))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#194">hdr</a>, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#157">length</a>)))
     }
 }
 
-<span class="doccomment">/// A struct representing a WebSocket frame.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Frame</span> {
-    <span class="ident">header</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a>,
-    <span class="ident">payload</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A struct representing a WebSocket frame.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>Frame {
+    header: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a>,
+    payload: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
-    <span class="doccomment">/// Get the length of the frame.</span>
-    <span class="doccomment">/// This is the length of the header + the length of the payload.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#211">self</a>.<span class="ident">payload</span>.<span class="ident">len</span>();
-        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#211">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#87">len</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#212">length</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="op">+</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#212">length</a>
+<span class="kw">impl </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
+    <span class="doccomment">/// Get the length of the frame.
+    /// This is the length of the header + the length of the payload.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">let </span>length = <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#211">self</a>.payload.len();
+        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#211">self</a>.header.<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#87">len</a>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#212">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) + <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#212">length</a>
     }
 
-    <span class="doccomment">/// Check if the frame is empty.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#218">self</a>.<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#211">len</a>() <span class="op">==</span> <span class="number">0</span>
+    <span class="doccomment">/// Check if the frame is empty.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#218">self</a>.<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#211">len</a>() == <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Get a reference to the frame&#39;s header.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#224">self</a>.header
     }
 
-    <span class="doccomment">/// Get a reference to the frame&#39;s header.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#224">self</a>.<span class="ident">header</span>
+    <span class="doccomment">/// Get a mutable reference to the frame&#39;s header.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>header_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#230">self</a>.header
     }
 
-    <span class="doccomment">/// Get a mutable reference to the frame&#39;s header.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#230">self</a>.<span class="ident">header</span>
+    <span class="doccomment">/// Get a reference to the frame&#39;s payload.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>payload(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#236">self</a>.payload
     }
 
-    <span class="doccomment">/// Get a reference to the frame&#39;s payload.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">payload</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#236">self</a>.<span class="ident">payload</span>
+    <span class="doccomment">/// Get a mutable reference to the frame&#39;s payload.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>payload_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#242">self</a>.payload
     }
 
-    <span class="doccomment">/// Get a mutable reference to the frame&#39;s payload.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">payload_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#242">self</a>.<span class="ident">payload</span>
+    <span class="doccomment">/// Test whether the frame is masked.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_masked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#248">self</a>.header.mask.is_some()
     }
 
-    <span class="doccomment">/// Test whether the frame is masked.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_masked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#248">self</a>.<span class="ident">header</span>.<span class="ident">mask</span>.<span class="ident">is_some</span>()
+    <span class="doccomment">/// Generate a random mask for the frame.
+    ///
+    /// This just generates a mask, payload is not changed. The actual masking is performed
+    /// either on `format()` or on `apply_mask()` call.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_random_mask(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#257">self</a>.header.<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#123">set_random_mask</a>()
     }
 
-    <span class="doccomment">/// Generate a random mask for the frame.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This just generates a mask, payload is not changed. The actual masking is performed</span>
-    <span class="doccomment">/// either on `format()` or on `apply_mask()` call.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_random_mask</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#257">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#123">set_random_mask</a>()
-    }
-
-    <span class="doccomment">/// This method unmasks the payload and should only be called on frames that are actually</span>
-    <span class="doccomment">/// masked. In other words, those frames that have just been received from a client endpoint.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">apply_mask</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mask</span>) <span class="op">=</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#264">self</a>.<span class="ident">header</span>.<span class="ident">mask</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/mask.rs.html#9">apply_mask</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#264">self</a>.<span class="ident">payload</span>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#265">mask</a>)
+    <span class="doccomment">/// This method unmasks the payload and should only be called on frames that are actually
+    /// masked. In other words, those frames that have just been received from a client endpoint.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>apply_mask(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(mask) = <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#264">self</a>.header.mask.take() {
+            <a href="../../../../src/tungstenite/protocol/frame/mask.rs.html#9">apply_mask</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#264">self</a>.payload, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#265">mask</a>)
         }
     }
 
-    <span class="doccomment">/// Consume the frame into its payload as binary.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_data</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#272">self</a>.<span class="ident">payload</span>
+    <span class="doccomment">/// Consume the frame into its payload as binary.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>into_data(<span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#272">self</a>.payload
     }
 
-    <span class="doccomment">/// Consume the frame into its payload as string.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_string</span>(<span class="self">self</span>) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a><span class="op">&gt;</span> {
-        <span class="ident">String::from_utf8</span>(<a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#278">self</a>.<span class="ident">payload</span>)
+    <span class="doccomment">/// Consume the frame into its payload as string.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>into_string(<span class="self">self</span>) -&gt; StdResult&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a>&gt; {
+        String::from_utf8(<a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#278">self</a>.payload)
     }
 
-    <span class="doccomment">/// Consume the frame into a closing frame.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_close</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CloseFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#284">self</a>.<span class="ident">payload</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="number">1</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../../src/tungstenite/error.rs.html#217">ProtocolError::InvalidCloseSequence</a>)),
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#284">self</a>.<span class="ident">payload</span>;
-                <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">NetworkEndian::read_u16</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#289">data</a>[<span class="number">0</span>..<span class="number">2</span>]).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#289">data</a>.<span class="ident">drain</span>(<span class="number">0</span>..<span class="number">2</span>);
-                <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#20">CloseFrame</a> { <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#290">code</a>, <span class="ident">reason</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#292">text</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }))
+    <span class="doccomment">/// Consume the frame into a closing frame.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_close(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;CloseFrame&lt;<span class="lifetime">&#39;static</span>&gt;&gt;&gt; {
+        <span class="kw">match </span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#284">self</a>.payload.len() {
+            <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <span class="number">1 </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../../src/tungstenite/error.rs.html#217">ProtocolError::InvalidCloseSequence</a>)),
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#284">self</a>.payload;
+                <span class="kw">let </span>code = NetworkEndian::read_u16(<span class="kw-2">&amp;</span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#289">data</a>[<span class="number">0</span>..<span class="number">2</span>]).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#289">data</a>.drain(<span class="number">0</span>..<span class="number">2</span>);
+                <span class="kw">let </span>text = String::from_utf8(data)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#20">CloseFrame</a> { <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#290">code</a>, reason: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#292">text</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() }))
             }
         }
     }
 
-    <span class="doccomment">/// Create a new data frame.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message</span>(<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="ident">opcode</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">OpCode</a>, <span class="ident">is_final</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="macro">matches!</span>(<span class="ident">opcode</span>, <span class="ident">OpCode::Data</span>(<span class="kw">_</span>)), <span class="string">&quot;Invalid opcode for data frame.&quot;</span>);
+    <span class="doccomment">/// Create a new data frame.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>message(data: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, opcode: <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">OpCode</a>, is_final: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="macro">matches!</span>(opcode, OpCode::Data(<span class="kw">_</span>)), <span class="string">&quot;Invalid opcode for data frame.&quot;</span>);
 
-        <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> { <span class="ident">header</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> { <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#300">is_final</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#300">opcode</a>, ..<span class="ident">FrameHeader::default</span>() }, <span class="ident">payload</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#300">data</a> }
+        <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> { header: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> { <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#300">is_final</a>, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#300">opcode</a>, ..FrameHeader::default() }, payload: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#300">data</a> }
     }
 
-    <span class="doccomment">/// Create a new Pong control frame.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pong</span>(<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
-        <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
-            <span class="ident">header</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
-                <span class="ident">opcode</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38">Control::Pong</a>),
-                ..<span class="ident">FrameHeader::default</span>()
+    <span class="doccomment">/// Create a new Pong control frame.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>pong(data: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
+        <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
+            header: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
+                opcode: <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38">Control::Pong</a>),
+                ..FrameHeader::default()
             },
-            <span class="ident">payload</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#308">data</a>,
+            payload: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#308">data</a>,
         }
     }
 
-    <span class="doccomment">/// Create a new Ping control frame.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ping</span>(<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
-        <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
-            <span class="ident">header</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
-                <span class="ident">opcode</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Control::Ping</a>),
-                ..<span class="ident">FrameHeader::default</span>()
+    <span class="doccomment">/// Create a new Ping control frame.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>ping(data: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
+        <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
+            header: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a> {
+                opcode: <a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<a href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Control::Ping</a>),
+                ..FrameHeader::default()
             },
-            <span class="ident">payload</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#320">data</a>,
+            payload: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#320">data</a>,
         }
     }
 
-    <span class="doccomment">/// Create a new Close control frame.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="ident">msg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#20">CloseFrame</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#20">CloseFrame</a> { <span class="ident">code</span>, <span class="ident">reason</span> }) <span class="op">=</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#332">msg</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#333">reason</a>.<span class="ident">as_bytes</span>().<span class="ident">len</span>() <span class="op">+</span> <span class="number">2</span>);
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#334">p</a>.<a class="ident" href="../../../../byteorder/io/trait.WriteBytesExt.html">write_u16</a>::<span class="op">&lt;</span><a class="ident" href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a><span class="op">&gt;</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#333">code</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<span class="ident">unwrap</span>(); <span class="comment">// can&#39;t fail</span>
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#334">p</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#333">reason</a>.<span class="ident">as_bytes</span>());
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#334">p</a>
-        } <span class="kw">else</span> {
-            <span class="ident">Vec::new</span>()
+    <span class="doccomment">/// Create a new Close control frame.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>close(msg: <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#20">CloseFrame</a>&gt;) -&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
+        <span class="kw">let </span>payload = <span class="kw">if let </span><span class="prelude-val">Some</span>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#20">CloseFrame</a> { code, reason }) = <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#332">msg</a> {
+            <span class="kw">let </span><span class="kw-2">mut </span>p = Vec::with_capacity(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#333">reason</a>.as_bytes().len() + <span class="number">2</span>);
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#334">p</a>.<a href="../../../../byteorder/io/trait.WriteBytesExt.html">write_u16</a>::&lt;<a href="../../../../byteorder/type.NetworkEndian.html">NetworkEndian</a>&gt;(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#333">code</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).unwrap(); <span class="comment">// can&#39;t fail
+            </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#334">p</a>.extend_from_slice(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#333">reason</a>.as_bytes());
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#334">p</a>
+        } <span class="kw">else </span>{
+            Vec::new()
         };
 
-        <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> { <span class="ident">header</span>: <span class="ident">FrameHeader::default</span>(), <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#333">payload</a> }
+        <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> { header: FrameHeader::default(), <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#333">payload</a> }
     }
 
-    <span class="doccomment">/// Create a frame from given header and data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_payload</span>(<span class="ident">header</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a>, <span class="ident">payload</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> { <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#346">header</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#346">payload</a> }
+    <span class="doccomment">/// Create a frame from given header and data.
+    </span><span class="kw">pub fn </span>from_payload(header: <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#43">FrameHeader</a>, payload: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> { <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#346">header</a>, <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#346">payload</a> }
     }
 
-    <span class="doccomment">/// Write a frame out to a buffer</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">format</span>(<span class="self">self</span>.<span class="ident">payload</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">output</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#351">self</a>.<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#264">apply_mask</a>();
-        <span class="ident">output</span>.<span class="ident">write_all</span>(<span class="self">self</span>.<span class="ident">payload</span>())<span class="question-mark">?</span>;
+    <span class="doccomment">/// Write a frame out to a buffer
+    </span><span class="kw">pub fn </span>format(<span class="kw-2">mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.header.format(<span class="self">self</span>.payload.len() <span class="kw">as </span>u64, output)<span class="question-mark">?</span>;
+        <a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#351">self</a>.<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#264">apply_mask</a>();
+        output.write_all(<span class="self">self</span>.payload())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#202">Frame</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#360">f</a>,
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#360">f</a>,
             <span class="string">&quot;
 &lt;FRAME&gt;
 final: {}
@@ -838,103 +838,103 @@ length: {}
 payload length: {}
 payload: 0x{}
             &quot;</span>,
-            <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">is_final</span>,
-            <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">rsv1</span>,
-            <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">rsv2</span>,
-            <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">rsv3</span>,
-            <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">opcode</span>,
-            <span class="comment">// self.mask.map(|mask| format!(&quot;{:?}&quot;, mask)).unwrap_or(&quot;NONE&quot;.into()),</span>
-            <span class="self">self</span>.<span class="ident">len</span>(),
-            <span class="self">self</span>.<span class="ident">payload</span>.<span class="ident">len</span>(),
-            <span class="self">self</span>.<span class="ident">payload</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:x}&quot;</span>, <span class="ident">byte</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()
+            <span class="self">self</span>.header.is_final,
+            <span class="self">self</span>.header.rsv1,
+            <span class="self">self</span>.header.rsv2,
+            <span class="self">self</span>.header.rsv3,
+            <span class="self">self</span>.header.opcode,
+            <span class="comment">// self.mask.map(|mask| format!(&quot;{:?}&quot;, mask)).unwrap_or(&quot;NONE&quot;.into()),
+            </span><span class="self">self</span>.len(),
+            <span class="self">self</span>.payload.len(),
+            <span class="self">self</span>.payload.iter().map(|byte| <span class="macro">format!</span>(<span class="string">&quot;{:x}&quot;</span>, byte)).collect::&lt;String&gt;()
         )
     }
 }
 
-<span class="doccomment">/// Handling of the length format.</span>
-<span class="kw">enum</span> <span class="ident">LengthFormat</span> {
-    <span class="ident">U8</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
-    <span class="ident">U16</span>,
-    <span class="ident">U64</span>,
+<span class="doccomment">/// Handling of the length format.
+</span><span class="kw">enum </span>LengthFormat {
+    U8(<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
+    U16,
+    U64,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#386">LengthFormat</a> {
-    <span class="doccomment">/// Get the length format for a given data size.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">for_length</span>(<span class="ident">length</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="ident">length</span> <span class="op">&lt;</span> <span class="number">126</span> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#395">length</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">length</span> <span class="op">&lt;</span> <span class="number">65536</span> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a>
+<span class="kw">impl </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#386">LengthFormat</a> {
+    <span class="doccomment">/// Get the length format for a given data size.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>for_length(length: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>length &lt; <span class="number">126 </span>{
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#395">length</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+        } <span class="kw">else if </span>length &lt; <span class="number">65536 </span>{
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a>
+        } <span class="kw">else </span>{
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a>
         }
     }
 
-    <span class="doccomment">/// Get the size of the length encoding.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">extra_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#407">self</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a> =&gt; <span class="number">2</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a> =&gt; <span class="number">8</span>,
+    <span class="doccomment">/// Get the size of the length encoding.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>extra_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#407">self</a> </span>{
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a> =&gt; <span class="number">2</span>,
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a> =&gt; <span class="number">8</span>,
         }
     }
 
-    <span class="doccomment">/// Encode the given length.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">length_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#417">self</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#419">b</a>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a> =&gt; <span class="number">126</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a> =&gt; <span class="number">127</span>,
+    <span class="doccomment">/// Encode the given length.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>length_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#417">self</a> </span>{
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(b) =&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#419">b</a>,
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a> =&gt; <span class="number">126</span>,
+            <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a> =&gt; <span class="number">127</span>,
         }
     }
 
-    <span class="doccomment">/// Get the length format for a given length byte.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">for_byte</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#427">byte</a> <span class="op">&amp;</span> <span class="number">0x7F</span> {
-            <span class="number">126</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a>,
-            <span class="number">127</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a>,
-            <span class="ident">b</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/frame.rs.html#431">b</a>),
+    <span class="doccomment">/// Get the length format for a given length byte.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>for_byte(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#427">byte</a> &amp; <span class="number">0x7F </span>{
+            <span class="number">126 </span>=&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#388">LengthFormat::U16</a>,
+            <span class="number">127 </span>=&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#389">LengthFormat::U64</a>,
+            b =&gt; <a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#387">LengthFormat::U8</a>(<a href="../../../../src/tungstenite/protocol/frame/frame.rs.html#431">b</a>),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::coding</span>::{<span class="ident">Data</span>, <span class="ident">OpCode</span>};
-    <span class="kw">use</span> <span class="ident">std::io::Cursor</span>;
+    <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::coding::{Data, OpCode};
+    <span class="kw">use </span>std::io::Cursor;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span>: <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">Cursor::new</span>(<span class="macro">vec!</span>[<span class="number">0x82</span>, <span class="number">0x07</span>, <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>]);
-        <span class="kw">let</span> (<span class="ident">header</span>, <span class="ident">length</span>) <span class="op">=</span> <span class="ident">FrameHeader::parse</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">length</span>, <span class="number">7</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">raw</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">payload</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="ident">Frame::from_payload</span>(<span class="ident">header</span>, <span class="ident">payload</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">frame</span>.<span class="ident">into_data</span>(), <span class="macro">vec!</span>[<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>]);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse() {
+        <span class="kw">let </span><span class="kw-2">mut </span>raw: Cursor&lt;Vec&lt;u8&gt;&gt; =
+            Cursor::new(<span class="macro">vec!</span>[<span class="number">0x82</span>, <span class="number">0x07</span>, <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>]);
+        <span class="kw">let </span>(header, length) = FrameHeader::parse(<span class="kw-2">&amp;mut </span>raw).unwrap().unwrap();
+        <span class="macro">assert_eq!</span>(length, <span class="number">7</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>payload = Vec::new();
+        raw.read_to_end(<span class="kw-2">&amp;mut </span>payload).unwrap();
+        <span class="kw">let </span>frame = Frame::from_payload(header, payload);
+        <span class="macro">assert_eq!</span>(frame.into_data(), <span class="macro">vec!</span>[<span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format</span>() {
-        <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="ident">Frame::ping</span>(<span class="macro">vec!</span>[<span class="number">0x01</span>, <span class="number">0x02</span>]);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">frame</span>.<span class="ident">len</span>());
-        <span class="ident">frame</span>.<span class="ident">format</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="macro">vec!</span>[<span class="number">0x89</span>, <span class="number">0x02</span>, <span class="number">0x01</span>, <span class="number">0x02</span>]);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format() {
+        <span class="kw">let </span>frame = Frame::ping(<span class="macro">vec!</span>[<span class="number">0x01</span>, <span class="number">0x02</span>]);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::with_capacity(frame.len());
+        frame.format(<span class="kw-2">&amp;mut </span>buf).unwrap();
+        <span class="macro">assert_eq!</span>(buf, <span class="macro">vec!</span>[<span class="number">0x89</span>, <span class="number">0x02</span>, <span class="number">0x01</span>, <span class="number">0x02</span>]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">display</span>() {
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Frame::message</span>(<span class="string">&quot;hi there&quot;</span>.<span class="ident">into</span>(), <span class="ident">OpCode::Data</span>(<span class="ident">Data::Text</span>), <span class="bool-val">true</span>);
-        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">f</span>);
-        <span class="macro">assert!</span>(<span class="ident">view</span>.<span class="ident">contains</span>(<span class="string">&quot;payload:&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>display() {
+        <span class="kw">let </span>f = Frame::message(<span class="string">&quot;hi there&quot;</span>.into(), OpCode::Data(Data::Text), <span class="bool-val">true</span>);
+        <span class="kw">let </span>view = <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, f);
+        <span class="macro">assert!</span>(view.contains(<span class="string">&quot;payload:&quot;</span>));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

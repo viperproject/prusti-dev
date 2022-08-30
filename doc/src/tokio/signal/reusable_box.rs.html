@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/signal/reusable_box.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reusable_box.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/signal/reusable_box.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reusable_box.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -225,232 +225,232 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/alloc/layout/struct.Layout.html">std::alloc::Layout</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <span class="ident">std::panic::AssertUnwindSafe</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::ptr</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">NonNull</a>};
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/alloc/layout/struct.Layout.html">std::alloc::Layout</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::panic::AssertUnwindSafe;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::ptr::{<a class="self" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">NonNull</a>};
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic</a>};
 
-<span class="doccomment">/// A reusable `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send&gt;&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type lets you replace the future stored in the box without</span>
-<span class="doccomment">/// reallocating when the size and alignment permits this.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">boxed</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A reusable `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send&gt;&gt;`.
+///
+/// This type lets you replace the future stored in the box without
+/// reallocating when the size and alignment permits this.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ReusableBoxFuture&lt;T&gt; {
+    boxed: NonNull&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new `ReusableBoxFuture&lt;T&gt;` containing the provided future.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">impl</span>&lt;T&gt; ReusableBoxFuture&lt;T&gt; {
+    <span class="doccomment">/// Create a new `ReusableBoxFuture&lt;T&gt;` containing the provided future.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;F&gt;(future: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> <span class="ident">boxed</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Box::new</span>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#19">future</a>);
+        <span class="kw">let </span>boxed: Box&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; = Box::new(<a href="../../../src/tokio/signal/reusable_box.rs.html#19">future</a>);
 
-        <span class="kw">let</span> <span class="ident">boxed</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#23">boxed</a>);
+        <span class="kw">let </span>boxed = Box::into_raw(<a href="../../../src/tokio/signal/reusable_box.rs.html#23">boxed</a>);
 
-        <span class="comment">// SAFETY: Box::into_raw does not return null pointers.</span>
-        <span class="kw">let</span> <span class="ident">boxed</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#25">boxed</a>) };
+        <span class="comment">// SAFETY: Box::into_raw does not return null pointers.
+        </span><span class="kw">let </span>boxed = <span class="kw">unsafe </span>{ NonNull::new_unchecked(<a href="../../../src/tokio/signal/reusable_box.rs.html#25">boxed</a>) };
 
-        <span class="self">Self</span> { <a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#28">boxed</a> }
+        <span class="self">Self </span>{ <a href="../../../src/tokio/signal/reusable_box.rs.html#28">boxed</a> }
     }
 
-    <span class="doccomment">/// Replaces the future currently stored in this box.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This reallocates if and only if the layout of the provided future is</span>
-    <span class="doccomment">/// different from the layout of the currently stored future.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Replaces the future currently stored in this box.
+    ///
+    /// This reallocates if and only if the layout of the provided future is
+    /// different from the layout of the currently stored future.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: F)
+    <span class="kw">where
+        </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">future</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#37">self</a>.<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#51-53">try_set</a>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#37">future</a>) {
-            <span class="kw-2">*</span><a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#37">self</a> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#41">future</a>);
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(future) = <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#37">self</a>.<a href="../../../src/tokio/signal/reusable_box.rs.html#51-53">try_set</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#37">future</a>) {
+            <span class="kw-2">*</span><span class="self"><a href="../../../src/tokio/signal/reusable_box.rs.html#37">self</a> </span>= <span class="self">Self</span>::new(<a href="../../../src/tokio/signal/reusable_box.rs.html#41">future</a>);
         }
     }
 
-    <span class="doccomment">/// Replaces the future currently stored in this box.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function never reallocates, but returns an error if the provided</span>
-    <span class="doccomment">/// future has a different size or alignment from the currently stored</span>
-    <span class="doccomment">/// future.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_set</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Replaces the future currently stored in this box.
+    ///
+    /// This function never reallocates, but returns an error if the provided
+    /// future has a different size or alignment from the currently stored
+    /// future.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_set&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), F&gt;
+    <span class="kw">where
+        </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="comment">// SAFETY: The pointer is not dangling.</span>
-        <span class="kw">let</span> <span class="ident">self_layout</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">dyn_future</span>: <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>) <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#51">self</a>.<span class="ident">boxed</span>.<span class="ident">as_ref</span>() };
-            <span class="ident">Layout::for_value</span>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#57">dyn_future</a>)
+        <span class="comment">// SAFETY: The pointer is not dangling.
+        </span><span class="kw">let </span>self_layout = {
+            <span class="kw">let </span>dyn_future: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>) = <span class="kw">unsafe </span>{ <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#51">self</a>.boxed.as_ref() };
+            Layout::for_value(<a href="../../../src/tokio/signal/reusable_box.rs.html#57">dyn_future</a>)
         };
 
-        <span class="kw">if</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="ident">self_layout</span> {
-            <span class="comment">// SAFETY: We just checked that the layout of F is correct.</span>
-            <span class="kw">unsafe</span> {
-                <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#51">self</a>.<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#79-81">set_same_layout</a>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#51">future</a>);
+        <span class="kw">if </span>Layout::new::&lt;F&gt;() == self_layout {
+            <span class="comment">// SAFETY: We just checked that the layout of F is correct.
+            </span><span class="kw">unsafe </span>{
+                <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#51">self</a>.<a href="../../../src/tokio/signal/reusable_box.rs.html#79-81">set_same_layout</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#51">future</a>);
             }
 
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#51">future</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<a href="../../../src/tokio/signal/reusable_box.rs.html#51">future</a>)
         }
     }
 
-    <span class="doccomment">/// Sets the current future.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function requires that the layout of the provided future is the</span>
-    <span class="doccomment">/// same as `self.layout`.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_same_layout</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Sets the current future.
+    ///
+    /// # Safety
+    ///
+    /// This function requires that the layout of the provided future is the
+    /// same as `self.layout`.
+    </span><span class="kw">unsafe fn </span>set_same_layout&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: F)
+    <span class="kw">where
+        </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="comment">// Drop the existing future, catching any panics.</span>
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="ident">AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.<span class="ident">boxed</span>.<span class="ident">as_ptr</span>());
+        <span class="comment">// Drop the existing future, catching any panics.
+        </span><span class="kw">let </span>result = panic::catch_unwind(AssertUnwindSafe(|| {
+            <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.boxed.as_ptr());
         }));
 
-        <span class="comment">// Overwrite the future behind the pointer. This is safe because the</span>
-        <span class="comment">// allocation was allocated with the same size and alignment as the type F.</span>
-        <span class="kw">let</span> <span class="ident">self_ptr</span>: <span class="kw-2">*mut</span> <span class="ident">F</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.<span class="ident">boxed</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">F</span>;
-        <span class="ident">ptr::write</span>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#90">self_ptr</a>, <a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#79">future</a>);
+        <span class="comment">// Overwrite the future behind the pointer. This is safe because the
+        // allocation was allocated with the same size and alignment as the type F.
+        </span><span class="kw">let </span>self_ptr: <span class="kw-2">*mut </span>F = <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.boxed.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>F;
+        ptr::write(<a href="../../../src/tokio/signal/reusable_box.rs.html#90">self_ptr</a>, <a href="../../../src/tokio/signal/reusable_box.rs.html#79">future</a>);
 
-        <span class="comment">// Update the vtable of self.boxed. The pointer is not null because we</span>
-        <span class="comment">// just got it from self.boxed, which is not null.</span>
-        <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.<span class="ident">boxed</span> <span class="op">=</span> <span class="ident">NonNull::new_unchecked</span>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#90">self_ptr</a>);
+        <span class="comment">// Update the vtable of self.boxed. The pointer is not null because we
+        // just got it from self.boxed, which is not null.
+        </span><a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#79">self</a>.boxed = NonNull::new_unchecked(<a href="../../../src/tokio/signal/reusable_box.rs.html#90">self_ptr</a>);
 
-        <span class="comment">// If the old future&#39;s destructor panicked, resume unwinding.</span>
-        <span class="kw">match</span> <a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#84">result</a> {
+        <span class="comment">// If the old future&#39;s destructor panicked, resume unwinding.
+        </span><span class="kw">match </span><a href="../../../src/tokio/signal/reusable_box.rs.html#84">result</a> {
             <span class="prelude-val">Ok</span>(()) =&gt; {}
-            <span class="prelude-val">Err</span>(<span class="ident">payload</span>) =&gt; {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">panic::resume_unwind</a>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#100">payload</a>);
+            <span class="prelude-val">Err</span>(payload) =&gt; {
+                <a href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">panic::resume_unwind</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#100">payload</a>);
             }
         }
     }
 
-    <span class="doccomment">/// Gets a pinned reference to the underlying future.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_pin</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> (<span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>)<span class="op">&gt;</span> {
-        <span class="comment">// SAFETY: The user of this box cannot move the box, and we do not move it</span>
-        <span class="comment">// either.</span>
-        <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#107">self</a>.<span class="ident">boxed</span>.<span class="ident">as_mut</span>()) }
+    <span class="doccomment">/// Gets a pinned reference to the underlying future.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_pin(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>)&gt; {
+        <span class="comment">// SAFETY: The user of this box cannot move the box, and we do not move it
+        // either.
+        </span><span class="kw">unsafe </span>{ Pin::new_unchecked(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#107">self</a>.boxed.as_mut()) }
     }
 
-    <span class="doccomment">/// Polls the future stored inside this box.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#114">self</a>.<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#107">get_pin</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#114">cx</a>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span>;
-
-    <span class="doccomment">/// Polls the future stored inside this box.</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::into_inner</span>(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#123">self</a>).<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#107">get_pin</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#123">cx</a>)
+    <span class="doccomment">/// Polls the future stored inside this box.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
+        <a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#114">self</a>.<a href="../../../src/tokio/signal/reusable_box.rs.html#107">get_pin</a>().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#114">cx</a>)
     }
 }
 
-<span class="comment">// The future stored inside ReusableBoxFuture&lt;T&gt; must be Send.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>ReusableBoxFuture&lt;T&gt; {
+    <span class="kw">type </span>Output = T;
 
-<span class="comment">// The only method called on self.boxed is poll, which takes &amp;mut self, so this</span>
-<span class="comment">// struct being Sync does not permit any invalid access to the Future, even if</span>
-<span class="comment">// the future is not Sync.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+    <span class="doccomment">/// Polls the future stored inside this box.
+    </span><span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
+        Pin::into_inner(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#123">self</a>).<a href="../../../src/tokio/signal/reusable_box.rs.html#107">get_pin</a>().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio/signal/reusable_box.rs.html#123">cx</a>)
+    }
+}
 
-<span class="comment">// Just like a Pin&lt;Box&lt;dyn Future&gt;&gt; is always Unpin, so is this type.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="comment">// The future stored inside ReusableBoxFuture&lt;T&gt; must be Send.
+</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>ReusableBoxFuture&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="ident">Box::from_raw</span>(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#140">self</a>.<span class="ident">boxed</span>.<span class="ident">as_ptr</span>()));
+<span class="comment">// The only method called on self.boxed is poll, which takes &amp;mut self, so this
+// struct being Sync does not permit any invalid access to the Future, even if
+// the future is not Sync.
+</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>ReusableBoxFuture&lt;T&gt; {}
+
+<span class="comment">// Just like a Pin&lt;Box&lt;dyn Future&gt;&gt; is always Unpin, so is this type.
+</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>ReusableBoxFuture&lt;T&gt; {}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>ReusableBoxFuture&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Box::from_raw(<a class="self" href="../../../src/tokio/signal/reusable_box.rs.html#140">self</a>.boxed.as_ptr()));
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/signal/reusable_box.rs.html#148">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ReusableBoxFuture&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReusableBoxFuture&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio/signal/reusable_box.rs.html#148">f</a>.debug_struct(<span class="string">&quot;ReusableBoxFuture&quot;</span>).finish()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ReusableBoxFuture</span>;
-    <span class="kw">use</span> <span class="ident">futures::future::FutureExt</span>;
-    <span class="kw">use</span> <span class="ident">std::alloc::Layout</span>;
-    <span class="kw">use</span> <span class="ident">std::future::Future</span>;
-    <span class="kw">use</span> <span class="ident">std::pin::Pin</span>;
-    <span class="kw">use</span> <span class="ident">std::task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use </span><span class="kw">super</span>::ReusableBoxFuture;
+    <span class="kw">use </span>futures::future::FutureExt;
+    <span class="kw">use </span>std::alloc::Layout;
+    <span class="kw">use </span>std::future::Future;
+    <span class="kw">use </span>std::pin::Pin;
+    <span class="kw">use </span>std::task::{Context, Poll};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_different_futures</span>() {
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> { <span class="number">10</span> };
-        <span class="comment">// Not zero sized!</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">Layout::for_value</span>(<span class="kw-2">&amp;</span><span class="ident">fut</span>).<span class="ident">size</span>(), <span class="number">1</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_different_futures() {
+        <span class="kw">let </span>fut = <span class="kw">async move </span>{ <span class="number">10 </span>};
+        <span class="comment">// Not zero sized!
+        </span><span class="macro">assert_eq!</span>(Layout::for_value(<span class="kw-2">&amp;</span>fut).size(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">ReusableBoxFuture::new</span>(<span class="ident">fut</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>b = ReusableBoxFuture::new(fut);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">10</span>));
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">10</span>));
 
-        <span class="ident">b</span>.<span class="ident">try_set</span>(<span class="kw">async</span> <span class="kw">move</span> { <span class="number">20</span> })
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;incorrect size&quot;</span>));
+        b.try_set(<span class="kw">async move </span>{ <span class="number">20 </span>})
+            .unwrap_or_else(|<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">&quot;incorrect size&quot;</span>));
 
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">20</span>));
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">20</span>));
 
-        <span class="ident">b</span>.<span class="ident">try_set</span>(<span class="kw">async</span> <span class="kw">move</span> { <span class="number">30</span> })
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;incorrect size&quot;</span>));
+        b.try_set(<span class="kw">async move </span>{ <span class="number">30 </span>})
+            .unwrap_or_else(|<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">&quot;incorrect size&quot;</span>));
 
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">30</span>));
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">30</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_different_sizes</span>() {
-        <span class="kw">let</span> <span class="ident">fut1</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> { <span class="number">10</span> };
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">1000</span>];
-        <span class="kw">let</span> <span class="ident">fut2</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> { <span class="ident">val</span>[<span class="number">0</span>] };
-        <span class="kw">let</span> <span class="ident">fut3</span> <span class="op">=</span> <span class="ident">ZeroSizedFuture</span> {};
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_different_sizes() {
+        <span class="kw">let </span>fut1 = <span class="kw">async move </span>{ <span class="number">10 </span>};
+        <span class="kw">let </span>val = [<span class="number">0u32</span>; <span class="number">1000</span>];
+        <span class="kw">let </span>fut2 = <span class="kw">async move </span>{ val[<span class="number">0</span>] };
+        <span class="kw">let </span>fut3 = ZeroSizedFuture {};
 
-        <span class="macro">assert_eq!</span>(<span class="ident">Layout::for_value</span>(<span class="kw-2">&amp;</span><span class="ident">fut1</span>).<span class="ident">size</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">Layout::for_value</span>(<span class="kw-2">&amp;</span><span class="ident">fut2</span>).<span class="ident">size</span>(), <span class="number">4004</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">Layout::for_value</span>(<span class="kw-2">&amp;</span><span class="ident">fut3</span>).<span class="ident">size</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(Layout::for_value(<span class="kw-2">&amp;</span>fut1).size(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(Layout::for_value(<span class="kw-2">&amp;</span>fut2).size(), <span class="number">4004</span>);
+        <span class="macro">assert_eq!</span>(Layout::for_value(<span class="kw-2">&amp;</span>fut3).size(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">ReusableBoxFuture::new</span>(<span class="ident">fut1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">10</span>));
-        <span class="ident">b</span>.<span class="ident">set</span>(<span class="ident">fut2</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">0</span>));
-        <span class="ident">b</span>.<span class="ident">set</span>(<span class="ident">fut3</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+        <span class="kw">let </span><span class="kw-2">mut </span>b = ReusableBoxFuture::new(fut1);
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">10</span>));
+        b.set(fut2);
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">0</span>));
+        b.set(fut3);
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
     }
 
-    <span class="kw">struct</span> <span class="ident">ZeroSizedFuture</span> {}
-    <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">ZeroSizedFuture</span> {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-            <span class="ident">Poll::Ready</span>(<span class="number">5</span>)
+    <span class="kw">struct </span>ZeroSizedFuture {}
+    <span class="kw">impl </span>Future <span class="kw">for </span>ZeroSizedFuture {
+        <span class="kw">type </span>Output = u32;
+        <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;u32&gt; {
+            Poll::Ready(<span class="number">5</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_zero_sized</span>() {
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">ZeroSizedFuture</span> {};
-        <span class="comment">// Zero sized!</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">Layout::for_value</span>(<span class="kw-2">&amp;</span><span class="ident">fut</span>).<span class="ident">size</span>(), <span class="number">0</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_zero_sized() {
+        <span class="kw">let </span>fut = ZeroSizedFuture {};
+        <span class="comment">// Zero sized!
+        </span><span class="macro">assert_eq!</span>(Layout::for_value(<span class="kw-2">&amp;</span>fut).size(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">ReusableBoxFuture::new</span>(<span class="ident">fut</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>b = ReusableBoxFuture::new(fut);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
 
-        <span class="ident">b</span>.<span class="ident">try_set</span>(<span class="ident">ZeroSizedFuture</span> {})
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;incorrect size&quot;</span>));
+        b.try_set(ZeroSizedFuture {})
+            .unwrap_or_else(|<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">&quot;incorrect size&quot;</span>));
 
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">b</span>.<span class="ident">get_pin</span>().<span class="ident">now_or_never</span>(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+        <span class="macro">assert_eq!</span>(b.get_pin().now_or_never(), <span class="prelude-val">Some</span>(<span class="number">5</span>));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/common/io/rewind.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rewind.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/common/io/rewind.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rewind.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -153,160 +153,160 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">std::marker::Unpin</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">std::marker::Unpin</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>, <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>};
-<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a class="ident" href="../../../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
+<span class="kw">use </span>bytes::{<a href="../../../../hyper/body/trait.Buf.html">Buf</a>, <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>};
+<span class="kw">use </span>tokio::io::{<a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a href="../../../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// Combine a buffer with an IO, rewinding reads to use the buffer.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Rewind</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">pre</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>,
-    <span class="ident">inner</span>: <span class="ident">T</span>,
+<span class="doccomment">/// Combine a buffer with an IO, rewinding reads to use the buffer.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Rewind&lt;T&gt; {
+    pre: <span class="prelude-ty">Option</span>&lt;<a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>&gt;,
+    inner: T,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Rewind</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>), <span class="ident">test</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#11">Rewind</a> {
-            <span class="ident">pre</span>: <span class="prelude-val">None</span>,
-            <span class="ident">inner</span>: <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#18">io</a>,
+<span class="kw">impl</span>&lt;T&gt; Rewind&lt;T&gt; {
+    <span class="attribute">#[cfg(any(all(feature = <span class="string">&quot;http2&quot;</span>, feature = <span class="string">&quot;server&quot;</span>), test))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(io: T) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/hyper/common/io/rewind.rs.html#11">Rewind</a> {
+            pre: <span class="prelude-val">None</span>,
+            inner: <a href="../../../../src/hyper/common/io/rewind.rs.html#18">io</a>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_buffered</span>(<span class="ident">io</span>: <span class="ident">T</span>, <span class="ident">buf</span>: <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#11">Rewind</a> {
-            <span class="ident">pre</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#25">buf</a>),
-            <span class="ident">inner</span>: <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#25">io</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_buffered(io: T, buf: <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/hyper/common/io/rewind.rs.html#11">Rewind</a> {
+            pre: <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/common/io/rewind.rs.html#25">buf</a>),
+            inner: <a href="../../../../src/hyper/common/io/rewind.rs.html#25">io</a>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>), <span class="ident">test</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">rewind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bs</span>: <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">pre</span>.<span class="ident">is_none</span>());
-        <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#33">self</a>.<span class="ident">pre</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#33">bs</a>);
+    <span class="attribute">#[cfg(any(all(feature = <span class="string">&quot;http1&quot;</span>, feature = <span class="string">&quot;http2&quot;</span>, feature = <span class="string">&quot;server&quot;</span>), test))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rewind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bs: <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.pre.is_none());
+        <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#33">self</a>.pre = <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/common/io/rewind.rs.html#33">bs</a>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; (<span class="ident">T</span>, <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>) {
-        (<a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#38">self</a>.<span class="ident">inner</span>, <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#38">self</a>.<span class="ident">pre</span>.<span class="ident">unwrap_or_else</span>(<span class="ident">Bytes::new</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; (T, <a href="../../../../hyper/body/struct.Bytes.html">Bytes</a>) {
+        (<a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#38">self</a>.inner, <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#38">self</a>.pre.unwrap_or_else(Bytes::new))
     }
 
-    <span class="comment">// pub(crate) fn get_mut(&amp;mut self) -&gt; &amp;mut T {</span>
-    <span class="comment">//     &amp;mut self.inner</span>
-    <span class="comment">// }</span>
-}
+    <span class="comment">// pub(crate) fn get_mut(&amp;mut self) -&gt; &amp;mut T {
+    //     &amp;mut self.inner
+    // }
+</span>}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for</span> <span class="ident">Rewind</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>Rewind&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">prefix</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#52">self</a>.<span class="ident">pre</span>.<span class="ident">take</span>() {
-            <span class="comment">// If there are no remaining bytes, let the bytes get dropped.</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">prefix</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">let</span> <span class="ident">copy_len</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#56">prefix</a>.<span class="ident">len</span>(), <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#54">buf</a>.<span class="ident">remaining</span>());
-                <span class="comment">// TODO: There should be a way to do following two lines cleaner...</span>
-                <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#54">buf</a>.<span class="ident">put_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#56">prefix</a>[..<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#59">copy_len</a>]);
-                <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#56">prefix</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#59">copy_len</a>);
-                <span class="comment">// Put back what&#39;s left</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">prefix</span>.<span class="ident">is_empty</span>() {
-                    <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#52">self</a>.<span class="ident">pre</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#56">prefix</a>);
+    <span class="kw">fn </span>poll_read(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>prefix) = <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#52">self</a>.pre.take() {
+            <span class="comment">// If there are no remaining bytes, let the bytes get dropped.
+            </span><span class="kw">if </span>!prefix.is_empty() {
+                <span class="kw">let </span>copy_len = cmp::min(<a href="../../../../src/hyper/common/io/rewind.rs.html#56">prefix</a>.len(), <a href="../../../../src/hyper/common/io/rewind.rs.html#54">buf</a>.remaining());
+                <span class="comment">// TODO: There should be a way to do following two lines cleaner...
+                </span><a href="../../../../src/hyper/common/io/rewind.rs.html#54">buf</a>.put_slice(<span class="kw-2">&amp;</span><a href="../../../../src/hyper/common/io/rewind.rs.html#56">prefix</a>[..<a href="../../../../src/hyper/common/io/rewind.rs.html#59">copy_len</a>]);
+                <a href="../../../../src/hyper/common/io/rewind.rs.html#56">prefix</a>.<a href="../../../../hyper/body/trait.Buf.html">advance</a>(<a href="../../../../src/hyper/common/io/rewind.rs.html#59">copy_len</a>);
+                <span class="comment">// Put back what&#39;s left
+                </span><span class="kw">if </span>!prefix.is_empty() {
+                    <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#52">self</a>.pre = <span class="prelude-val">Some</span>(<a href="../../../../src/hyper/common/io/rewind.rs.html#56">prefix</a>);
                 }
 
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             }
         }
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#52">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#53">cx</a>, <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#54">buf</a>)
+        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#52">self</a>.inner).<a href="../../../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a href="../../../../src/hyper/common/io/rewind.rs.html#53">cx</a>, <a href="../../../../src/hyper/common/io/rewind.rs.html#54">buf</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <span class="ident">Rewind</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>Rewind&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#80">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#81">cx</a>, <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#82">buf</a>)
+    <span class="kw">fn </span>poll_write(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#80">self</a>.inner).<a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a href="../../../../src/hyper/common/io/rewind.rs.html#81">cx</a>, <a href="../../../../src/hyper/common/io/rewind.rs.html#82">buf</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">io::IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#88">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#89">cx</a>, <a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#90">bufs</a>)
+    <span class="kw">fn </span>poll_write_vectored(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; Poll&lt;io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#88">self</a>.inner).<a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a href="../../../../src/hyper/common/io/rewind.rs.html#89">cx</a>, <a href="../../../../src/hyper/common/io/rewind.rs.html#90">bufs</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#95">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#95">cx</a>)
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#95">self</a>.inner).<a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a href="../../../../src/hyper/common/io/rewind.rs.html#95">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#99">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a class="ident" href="../../../../src/hyper/common/io/rewind.rs.html#99">cx</a>)
+    <span class="kw">fn </span>poll_shutdown(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#99">self</a>.inner).<a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a href="../../../../src/hyper/common/io/rewind.rs.html#99">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_write_vectored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#103">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>()
+    <span class="kw">fn </span>is_write_vectored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/hyper/common/io/rewind.rs.html#103">self</a>.inner.<a href="../../../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="comment">// FIXME: re-implement tests with `async/await`, this import should</span>
-    <span class="comment">// trigger a warning to remind us</span>
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Rewind</span>;
-    <span class="kw">use</span> <span class="ident">bytes::Bytes</span>;
-    <span class="kw">use</span> <span class="ident">tokio::io::AsyncReadExt</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="comment">// FIXME: re-implement tests with `async/await`, this import should
+    // trigger a warning to remind us
+    </span><span class="kw">use </span><span class="kw">super</span>::Rewind;
+    <span class="kw">use </span>bytes::Bytes;
+    <span class="kw">use </span>tokio::io::AsyncReadExt;
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">partial_rewind</span>() {
-        <span class="kw">let</span> <span class="ident">underlying</span> <span class="op">=</span> [<span class="number">104</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>];
+    <span class="attribute">#[tokio::test]
+    </span><span class="kw">async fn </span>partial_rewind() {
+        <span class="kw">let </span>underlying = [<span class="number">104</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>];
 
-        <span class="kw">let</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">tokio_test::io::Builder::new</span>().<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="ident">underlying</span>).<span class="ident">build</span>();
+        <span class="kw">let </span>mock = tokio_test::io::Builder::new().read(<span class="kw-2">&amp;</span>underlying).build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">Rewind::new</span>(<span class="ident">mock</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>stream = Rewind::new(mock);
 
-        <span class="comment">// Read off some bytes, ensure we filled o1</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
-        <span class="ident">stream</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="kw">await</span>.<span class="ident">expect</span>(<span class="string">&quot;read1&quot;</span>);
+        <span class="comment">// Read off some bytes, ensure we filled o1
+        </span><span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">2</span>];
+        stream.read_exact(<span class="kw-2">&amp;mut </span>buf).<span class="kw">await</span>.expect(<span class="string">&quot;read1&quot;</span>);
 
-        <span class="comment">// Rewind the stream so that it is as if we never read in the first place.</span>
-        <span class="ident">stream</span>.<span class="ident">rewind</span>(<span class="ident">Bytes::copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..]));
+        <span class="comment">// Rewind the stream so that it is as if we never read in the first place.
+        </span>stream.rewind(Bytes::copy_from_slice(<span class="kw-2">&amp;</span>buf[..]));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">5</span>];
-        <span class="ident">stream</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="kw">await</span>.<span class="ident">expect</span>(<span class="string">&quot;read1&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">5</span>];
+        stream.read_exact(<span class="kw-2">&amp;mut </span>buf).<span class="kw">await</span>.expect(<span class="string">&quot;read1&quot;</span>);
 
-        <span class="comment">// At this point we should have read everything that was in the MockStream</span>
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="kw-2">&amp;</span><span class="ident">underlying</span>);
+        <span class="comment">// At this point we should have read everything that was in the MockStream
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buf, <span class="kw-2">&amp;</span>underlying);
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">full_rewind</span>() {
-        <span class="kw">let</span> <span class="ident">underlying</span> <span class="op">=</span> [<span class="number">104</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>];
+    <span class="attribute">#[tokio::test]
+    </span><span class="kw">async fn </span>full_rewind() {
+        <span class="kw">let </span>underlying = [<span class="number">104</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>];
 
-        <span class="kw">let</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">tokio_test::io::Builder::new</span>().<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="ident">underlying</span>).<span class="ident">build</span>();
+        <span class="kw">let </span>mock = tokio_test::io::Builder::new().read(<span class="kw-2">&amp;</span>underlying).build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">Rewind::new</span>(<span class="ident">mock</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>stream = Rewind::new(mock);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">5</span>];
-        <span class="ident">stream</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="kw">await</span>.<span class="ident">expect</span>(<span class="string">&quot;read1&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">5</span>];
+        stream.read_exact(<span class="kw-2">&amp;mut </span>buf).<span class="kw">await</span>.expect(<span class="string">&quot;read1&quot;</span>);
 
-        <span class="comment">// Rewind the stream so that it is as if we never read in the first place.</span>
-        <span class="ident">stream</span>.<span class="ident">rewind</span>(<span class="ident">Bytes::copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..]));
+        <span class="comment">// Rewind the stream so that it is as if we never read in the first place.
+        </span>stream.rewind(Bytes::copy_from_slice(<span class="kw-2">&amp;</span>buf[..]));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">5</span>];
-        <span class="ident">stream</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="kw">await</span>.<span class="ident">expect</span>(<span class="string">&quot;read1&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">5</span>];
+        stream.read_exact(<span class="kw-2">&amp;mut </span>buf).<span class="kw">await</span>.expect(<span class="string">&quot;read1&quot;</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

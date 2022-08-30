@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/loops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/loops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -134,141 +134,141 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
-    <span class="ident">errors</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <span class="ident">mir</span>::{
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#13">errors::ErrorInterface</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#25">places::PlacesEncoderInterface</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/interface.rs.html#36">pure::SpecificationEncoderInterface</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/spans/interface.rs.html#9">spans::SpanInterface</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#8">type_layouts::MirTypeLayoutsEncoderInterface</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
+    errors::{<a href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>, <a href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
+    mir::{
+        <a href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#13">errors::ErrorInterface</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/places/interface.rs.html#25">places::PlacesEncoderInterface</a>,
+        <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/interface.rs.html#36">pure::SpecificationEncoderInterface</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/spans/interface.rs.html#9">spans::SpanInterface</a>,
+        <a href="../../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#8">type_layouts::MirTypeLayoutsEncoderInterface</a>,
     },
 };
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use</span> <span class="ident">vir_crate::high</span>::{<a class="self" href="../../../../../../vir/high/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_high</span>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
+<span class="kw">use </span>vir_crate::high::{<span class="self"><a href="../../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir_high};
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ProcedureEncoder</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">encode_loop_invariant</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">loop_head</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        <span class="ident">invariant_block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        <span class="ident">specification_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">invariant_location</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#16">invariant_block</a>,
-            <span class="ident">statement_index</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<span class="ident">mir</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#16">invariant_block</a>].<span class="ident">statements</span>.<span class="ident">len</span>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <span class="kw">super</span>::ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_loop_invariant(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        loop_head: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        invariant_block: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        specification_blocks: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt;,
+    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt; {
+        <span class="kw">let </span>invariant_location = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#16">invariant_block</a>,
+            statement_index: <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.mir[<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#16">invariant_block</a>].statements.len(),
         };
-        <span class="comment">// Encode functional specification.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded_specs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">specification_blocks</span> {
-            <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mir</span>[<span class="ident">block</span>].<span class="ident">statements</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">mir::StatementKind::Assign</span>(<span class="kw">box</span> (
+        <span class="comment">// Encode functional specification.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>encoded_specs = Vec::new();
+        <span class="kw">for </span>block <span class="kw">in </span>specification_blocks {
+            <span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.mir[block].statements {
+                <span class="kw">if let </span>mir::StatementKind::Assign(<span class="kw">box </span>(
                     <span class="kw">_</span>,
-                    <span class="ident">mir::Rvalue::Aggregate</span>(
-                        <span class="kw">box</span> <span class="ident">mir::AggregateKind::Closure</span>(<span class="ident">cl_def_id</span>, <span class="ident">cl_substs</span>),
+                    mir::Rvalue::Aggregate(
+                        <span class="kw">box </span>mir::AggregateKind::Closure(cl_def_id, cl_substs),
                         <span class="kw">_</span>,
                     ),
-                )) <span class="op">=</span> <span class="ident">statement</span>.<span class="ident">kind</span>
+                )) = statement.kind
                 {
-                    <span class="kw">let</span> <span class="ident">specification</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">get_loop_specs</span>(<span class="ident">cl_def_id</span>.<span class="ident">to_def_id</span>()).<span class="ident">unwrap</span>();
-                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">encoder</span>
-                        .<span class="ident">get_definition_span</span>(<span class="ident">specification</span>.<span class="ident">invariant</span>.<span class="ident">to_def_id</span>());
-                    <span class="kw">let</span> <span class="ident">encoded_specification</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">set_expression_error_ctxt</span>(
-                        <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">encode_invariant_high</span>(
-                            <span class="self">self</span>.<span class="ident">mir</span>,
-                            <span class="ident">block</span>,
-                            <span class="self">self</span>.<span class="ident">def_id</span>,
-                            <span class="ident">cl_substs</span>,
+                    <span class="kw">let </span>specification = <span class="self">self</span>.encoder.get_loop_specs(cl_def_id.to_def_id()).unwrap();
+                    <span class="kw">let </span>span = <span class="self">self
+                        </span>.encoder
+                        .get_definition_span(specification.invariant.to_def_id());
+                    <span class="kw">let </span>encoded_specification = <span class="self">self</span>.encoder.set_expression_error_ctxt(
+                        <span class="self">self</span>.encoder.encode_invariant_high(
+                            <span class="self">self</span>.mir,
+                            block,
+                            <span class="self">self</span>.def_id,
+                            cl_substs,
                         )<span class="question-mark">?</span>,
-                        <span class="ident">span</span>,
-                        <span class="ident">ErrorCtxt::LoopInvariant</span>,
-                        <span class="self">self</span>.<span class="ident">def_id</span>,
+                        span,
+                        ErrorCtxt::LoopInvariant,
+                        <span class="self">self</span>.def_id,
                     );
-                    <span class="ident">encoded_specs</span>.<span class="ident">push</span>(<span class="ident">encoded_specification</span>);
+                    encoded_specs.push(encoded_specification);
                 }
             }
         }
-        <span class="kw">let</span> <span class="ident">encoded_back_edges</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">predecessors</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<span class="ident">mir</span>.<span class="ident">basic_blocks</span>.<span class="ident">predecessors</span>();
-            <span class="kw">let</span> <span class="ident">dominators</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<span class="ident">mir</span>.<span class="ident">basic_blocks</span>.<span class="ident">dominators</span>();
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#55">predecessors</a>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>]
-                .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">predecessor</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#56">dominators</a>.<span class="ident">is_dominated_by</span>(<span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#59">predecessor</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>))
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">back_edge</span><span class="op">|</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1785">encode_basic_block_label</a>(<span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#60">back_edge</a>))
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="kw">let </span>encoded_back_edges = {
+            <span class="kw">let </span>predecessors = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.mir.basic_blocks.predecessors();
+            <span class="kw">let </span>dominators = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.mir.basic_blocks.dominators();
+            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#55">predecessors</a>[<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>]
+                .iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|predecessor| <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#56">dominators</a>.is_dominated_by(<span class="kw-2">**</span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#59">predecessor</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|back_edge| <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1785">encode_basic_block_label</a>(<span class="kw-2">*</span><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#60">back_edge</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
         };
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<span class="ident">init_data</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/initialisation.rs.html#42">seek_before</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.init_data.<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/initialisation.rs.html#42">seek_before</a>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
 
-        <span class="comment">// Encode permissions.</span>
-        <span class="kw">let</span> <span class="ident">initialized_places</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<span class="ident">initialization</span>.<span class="ident">get_after_statement</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
-        <span class="kw">let</span> <span class="ident">allocated_locals</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<span class="ident">allocation</span>.<span class="ident">get_after_statement</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
-        <span class="kw">let</span> (<span class="ident">written_places</span>, <span class="ident">mutably_borrowed_places</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>
-            .<span class="ident">procedure</span>
-            .<span class="ident">loop_info</span>()
-            .<span class="ident">compute_read_and_write_leaves</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<span class="ident">mir</span>, <span class="prelude-val">None</span>);
+        <span class="comment">// Encode permissions.
+        </span><span class="kw">let </span>initialized_places = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.initialization.get_after_statement(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
+        <span class="kw">let </span>allocated_locals = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.allocation.get_after_statement(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
+        <span class="kw">let </span>(written_places, mutably_borrowed_places, <span class="kw">_</span>) = <span class="self"><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>
+            </span>.procedure
+            .loop_info()
+            .compute_read_and_write_leaves(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>, <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.mir, <span class="prelude-val">None</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">maybe_modified_places</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="ident">written_places</span>.<span class="ident">into_iter</span>().<span class="ident">chain</span>(<span class="ident">mutably_borrowed_places</span>) {
-            <span class="kw">if</span> <span class="ident">initialized_places</span>.<span class="ident">contains_prefix_of</span>(<span class="ident">place</span>) {
-                <span class="ident">maybe_modified_places</span>.<span class="ident">push</span>(<span class="ident">vir_high::Predicate::owned_non_aliased_no_pos</span>(
-                    <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">encode_place_high</span>(<span class="self">self</span>.<span class="ident">mir</span>, <span class="ident">place</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>maybe_modified_places = Vec::new();
+        <span class="kw">for </span>place <span class="kw">in </span>written_places.into_iter().chain(mutably_borrowed_places) {
+            <span class="kw">if </span>initialized_places.contains_prefix_of(place) {
+                maybe_modified_places.push(vir_high::Predicate::owned_non_aliased_no_pos(
+                    <span class="self">self</span>.encoder.encode_place_high(<span class="self">self</span>.mir, place, <span class="prelude-val">None</span>)<span class="question-mark">?</span>,
                 ));
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">allocated_locals</span>.<span class="ident">contains_prefix_of</span>(<span class="ident">place</span>) {
-                <span class="kw">let</span> <span class="ident">mir_type</span> <span class="op">=</span> <span class="ident">place</span>.<span class="ident">ty</span>(<span class="self">self</span>.<span class="ident">mir</span>, <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">env</span>().<span class="ident">tcx</span>()).<span class="ident">ty</span>;
-                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">encode_type_size_expression</span>(<span class="ident">mir_type</span>)<span class="question-mark">?</span>;
-                <span class="ident">maybe_modified_places</span>.<span class="ident">push</span>(<span class="ident">vir_high::Predicate::memory_block_stack_no_pos</span>(
-                    <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">encode_place_high</span>(<span class="self">self</span>.<span class="ident">mir</span>, <span class="ident">place</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>,
-                    <span class="ident">size</span>,
+            } <span class="kw">else if </span>allocated_locals.contains_prefix_of(place) {
+                <span class="kw">let </span>mir_type = place.ty(<span class="self">self</span>.mir, <span class="self">self</span>.encoder.env().tcx()).ty;
+                <span class="kw">let </span>size = <span class="self">self</span>.encoder.encode_type_size_expression(mir_type)<span class="question-mark">?</span>;
+                maybe_modified_places.push(vir_high::Predicate::memory_block_stack_no_pos(
+                    <span class="self">self</span>.encoder.encode_place_high(<span class="self">self</span>.mir, place, <span class="prelude-val">None</span>)<span class="question-mark">?</span>,
+                    size,
                 ));
             }
         }
 
-        <span class="comment">// Encode Lifetime Relations</span>
-        <span class="kw">let</span> <span class="ident">derived_lifetimes</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>
-            .<span class="ident">lifetimes</span>
-            .<span class="ident">get_origin_contains_loan_at_mid</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
-        <span class="kw">for</span> (<span class="ident">derived_lifetime</span>, <span class="ident">derived_from</span>) <span class="kw">in</span> <span class="ident">derived_lifetimes</span> {
-            <span class="kw">let</span> <span class="ident">derived_from_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">vir_high::Expression</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">derived_from</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
-                    <span class="ident">vir_high::VariableDecl</span> {
-                        <span class="ident">name</span>: <span class="ident">x</span>.<span class="ident">clone</span>(),
-                        <span class="ident">ty</span>: <span class="ident">vir_high::Type::Lifetime</span>,
+        <span class="comment">// Encode Lifetime Relations
+        </span><span class="kw">let </span>derived_lifetimes = <span class="self"><a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>
+            </span>.lifetimes
+            .get_origin_contains_loan_at_mid(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
+        <span class="kw">for </span>(derived_lifetime, derived_from) <span class="kw">in </span>derived_lifetimes {
+            <span class="kw">let </span>derived_from_args: Vec&lt;vir_high::Expression&gt; = derived_from
+                .iter()
+                .map(|x| {
+                    vir_high::VariableDecl {
+                        name: x.clone(),
+                        ty: vir_high::Type::Lifetime,
                     }
-                    .<span class="ident">into</span>()
+                    .into()
                 })
-                .<span class="ident">collect</span>();
-            <span class="kw">let</span> <span class="ident">intersect_expr</span> <span class="op">=</span> <span class="ident">vir_high::Expression::builtin_func_app_no_pos</span>(
-                <span class="ident">vir_high::BuiltinFunc::LifetimeIntersect</span>,
-                <span class="macro">vec!</span>[], <span class="comment">// NOTE: we ignore argument_types for LifetimeItersect</span>
-                <span class="ident">derived_from_args</span>,
-                <span class="ident">vir_high::ty::Type::Lifetime</span>,
+                .collect();
+            <span class="kw">let </span>intersect_expr = vir_high::Expression::builtin_func_app_no_pos(
+                vir_high::BuiltinFunc::LifetimeIntersect,
+                <span class="macro">vec!</span>[], <span class="comment">// NOTE: we ignore argument_types for LifetimeItersect
+                </span>derived_from_args,
+                vir_high::ty::Type::Lifetime,
             );
-            <span class="kw">let</span> <span class="ident">equality_expr</span> <span class="op">=</span> <span class="ident">vir_high::Expression::binary_op_no_pos</span>(
-                <span class="ident">vir_high::BinaryOpKind::EqCmp</span>,
-                <span class="ident">vir_high::VariableDecl</span> {
-                    <span class="ident">name</span>: <span class="ident">derived_lifetime</span>,
-                    <span class="ident">ty</span>: <span class="ident">vir_high::ty::Type::Lifetime</span>,
+            <span class="kw">let </span>equality_expr = vir_high::Expression::binary_op_no_pos(
+                vir_high::BinaryOpKind::EqCmp,
+                vir_high::VariableDecl {
+                    name: derived_lifetime,
+                    ty: vir_high::ty::Type::Lifetime,
                 }
-                .<span class="ident">into</span>(),
-                <span class="ident">intersect_expr</span>,
+                .into(),
+                intersect_expr,
             );
-            <span class="ident">encoded_specs</span>.<span class="ident">push</span>(<span class="ident">equality_expr</span>);
+            encoded_specs.push(equality_expr);
         }
 
-        <span class="comment">// Construct the info.</span>
-        <span class="kw">let</span> <span class="ident">loop_invariant</span> <span class="op">=</span> <span class="ident">vir_high::Statement::loop_invariant_no_pos</span>(
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1785">encode_basic_block_label</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>),
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#54">encoded_back_edges</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#73">maybe_modified_places</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#24">encoded_specs</a>,
+        <span class="comment">// Construct the info.
+        </span><span class="kw">let </span>loop_invariant = vir_high::Statement::loop_invariant_no_pos(
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1785">encode_basic_block_label</a>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>),
+            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#54">encoded_back_edges</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#73">maybe_modified_places</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#24">encoded_specs</a>,
         );
-        <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">set_statement_error</span>(
-            <span class="ident">invariant_location</span>,
-            <span class="ident">ErrorCtxt::UnexpectedStorageLive</span>,
-            <span class="ident">loop_invariant</span>,
+        <span class="kw">let </span>statement = <span class="self">self</span>.set_statement_error(
+            invariant_location,
+            ErrorCtxt::UnexpectedStorageLive,
+            loop_invariant,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#129">statement</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#129">statement</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.6.0/src/backtrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.6.0/src/backtrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -280,287 +280,287 @@
 <span id="280">280</span>
 <span id="281">281</span>
 <span id="282">282</span>
-</pre><pre class="rust"><code><span class="comment">// This is the backtracking matching engine. It has the same exact capability</span>
-<span class="comment">// as the full NFA simulation, except it is artificially restricted to small</span>
-<span class="comment">// regexes on small inputs because of its memory requirements.</span>
-<span class="comment">//</span>
-<span class="comment">// In particular, this is a *bounded* backtracking engine. It retains worst</span>
-<span class="comment">// case linear time by keeping track of the states that it has visited (using a</span>
-<span class="comment">// bitmap). Namely, once a state is visited, it is never visited again. Since a</span>
-<span class="comment">// state is keyed by `(instruction index, input index)`, we have that its time</span>
-<span class="comment">// complexity is `O(mn)` (i.e., linear in the size of the search text).</span>
-<span class="comment">//</span>
-<span class="comment">// The backtracking engine can beat out the NFA simulation on small</span>
-<span class="comment">// regexes/inputs because it doesn&#39;t have to keep track of multiple copies of</span>
-<span class="comment">// the capture groups. In benchmarks, the backtracking engine is roughly twice</span>
-<span class="comment">// as fast as the full NFA simulation. Note though that its performance doesn&#39;t</span>
-<span class="comment">// scale, even if you&#39;re willing to live with the memory requirements. Namely,</span>
-<span class="comment">// the bitset has to be zeroed on each execution, which becomes quite expensive</span>
-<span class="comment">// on large bitsets.</span>
+</pre><pre class="rust"><code><span class="comment">// This is the backtracking matching engine. It has the same exact capability
+// as the full NFA simulation, except it is artificially restricted to small
+// regexes on small inputs because of its memory requirements.
+//
+// In particular, this is a *bounded* backtracking engine. It retains worst
+// case linear time by keeping track of the states that it has visited (using a
+// bitmap). Namely, once a state is visited, it is never visited again. Since a
+// state is keyed by `(instruction index, input index)`, we have that its time
+// complexity is `O(mn)` (i.e., linear in the size of the search text).
+//
+// The backtracking engine can beat out the NFA simulation on small
+// regexes/inputs because it doesn&#39;t have to keep track of multiple copies of
+// the capture groups. In benchmarks, the backtracking engine is roughly twice
+// as fast as the full NFA simulation. Note though that its performance doesn&#39;t
+// scale, even if you&#39;re willing to live with the memory requirements. Namely,
+// the bitset has to be zeroed on each execution, which becomes quite expensive
+// on large bitsets.
 
-<span class="kw">use</span> <a class="ident" href="../../src/regex/exec.rs.html#1521"><span class="kw">crate</span>::exec::ProgramCache</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input</span>::{<a class="ident" href="../../src/regex/input.rs.html#67">Input</a>, <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::prog</span>::{<a class="ident" href="../../src/regex/prog.rs.html#13">InstPtr</a>, <a class="ident" href="../../src/regex/prog.rs.html#18">Program</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/regex/re_trait.rs.html#7"><span class="kw">crate</span>::re_trait::Slot</a>;
+</span><span class="kw">use </span><a href="../../src/regex/exec.rs.html#1521"><span class="kw">crate</span>::exec::ProgramCache</a>;
+<span class="kw">use </span><span class="kw">crate</span>::input::{<a href="../../src/regex/input.rs.html#67">Input</a>, <a href="../../src/regex/input.rs.html#13">InputAt</a>};
+<span class="kw">use </span><span class="kw">crate</span>::prog::{<a href="../../src/regex/prog.rs.html#13">InstPtr</a>, <a href="../../src/regex/prog.rs.html#18">Program</a>};
+<span class="kw">use </span><a href="../../src/regex/re_trait.rs.html#7"><span class="kw">crate</span>::re_trait::Slot</a>;
 
-<span class="kw">type</span> <span class="ident">Bits</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+<span class="kw">type </span>Bits = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 
-<span class="kw">const</span> <span class="ident">BIT_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">32</span>;
-<span class="kw">const</span> <span class="ident">MAX_SIZE_BYTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">256</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">10</span>); <span class="comment">// 256 KB</span>
+<span class="kw">const </span>BIT_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">32</span>;
+<span class="kw">const </span>MAX_SIZE_BYTES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">256 </span>* (<span class="number">1 </span>&lt;&lt; <span class="number">10</span>); <span class="comment">// 256 KB
 
-<span class="doccomment">/// Returns true iff the given regex and input should be executed by this</span>
-<span class="doccomment">/// engine with reasonable memory usage.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_exec</span>(<span class="ident">num_insts</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">text_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="comment">// Total memory usage in bytes is determined by:</span>
-    <span class="comment">//</span>
-    <span class="comment">//   ((len(insts) * (len(input) + 1) + bits - 1) / bits) * (size_of(u32))</span>
-    <span class="comment">//</span>
-    <span class="comment">// The actual limit picked is pretty much a heuristic.</span>
-    <span class="comment">// See: https://github.com/rust-lang/regex/issues/215</span>
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> ((<a class="ident" href="../../src/regex/backtrack.rs.html#31">num_insts</a> <span class="op">*</span> (<a class="ident" href="../../src/regex/backtrack.rs.html#31">text_len</a> <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a>) <span class="op">*</span> <span class="number">4</span>;
-    <a class="ident" href="../../src/regex/backtrack.rs.html#38">size</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#27">MAX_SIZE_BYTES</a>
+</span><span class="doccomment">/// Returns true iff the given regex and input should be executed by this
+/// engine with reasonable memory usage.
+</span><span class="kw">pub fn </span>should_exec(num_insts: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, text_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="comment">// Total memory usage in bytes is determined by:
+    //
+    //   ((len(insts) * (len(input) + 1) + bits - 1) / bits) * (size_of(u32))
+    //
+    // The actual limit picked is pretty much a heuristic.
+    // See: https://github.com/rust-lang/regex/issues/215
+    </span><span class="kw">let </span>size = ((<a href="../../src/regex/backtrack.rs.html#31">num_insts</a> * (<a href="../../src/regex/backtrack.rs.html#31">text_len</a> + <span class="number">1</span>) + <a href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a> - <span class="number">1</span>) / <a href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a>) * <span class="number">4</span>;
+    <a href="../../src/regex/backtrack.rs.html#38">size</a> &lt;= <a href="../../src/regex/backtrack.rs.html#27">MAX_SIZE_BYTES</a>
 }
 
-<span class="doccomment">/// A backtracking matching engine.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bounded</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, <span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <a class="ident" href="../../src/regex/prog.rs.html#18">Program</a>,
-    <span class="ident">input</span>: <span class="ident">I</span>,
-    <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-    <span class="ident">slots</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="kw-2">mut</span> [<a class="ident" href="../../src/regex/re_trait.rs.html#7">Slot</a>],
-    <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../src/regex/backtrack.rs.html#55">Cache</a>,
+<span class="doccomment">/// A backtracking matching engine.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Bounded&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, I&gt; {
+    prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="../../src/regex/prog.rs.html#18">Program</a>,
+    input: I,
+    matches: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
+    slots: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[<a href="../../src/regex/re_trait.rs.html#7">Slot</a>],
+    m: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../src/regex/backtrack.rs.html#55">Cache</a>,
 }
 
-<span class="doccomment">/// Shared cached state between multiple invocations of a backtracking engine</span>
-<span class="doccomment">/// in the same thread.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cache</span> {
-    <span class="ident">jobs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/backtrack.rs.html#74">Job</a><span class="op">&gt;</span>,
-    <span class="ident">visited</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/backtrack.rs.html#24">Bits</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Shared cached state between multiple invocations of a backtracking engine
+/// in the same thread.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Cache {
+    jobs: Vec&lt;<a href="../../src/regex/backtrack.rs.html#74">Job</a>&gt;,
+    visited: Vec&lt;<a href="../../src/regex/backtrack.rs.html#24">Bits</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/regex/backtrack.rs.html#55">Cache</a> {
-    <span class="doccomment">/// Create new empty cache for the backtracking engine.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_prog</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/prog.rs.html#18">Program</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/regex/backtrack.rs.html#55">Cache</a> { <span class="ident">jobs</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <span class="ident">visited</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
+<span class="kw">impl </span><a href="../../src/regex/backtrack.rs.html#55">Cache</a> {
+    <span class="doccomment">/// Create new empty cache for the backtracking engine.
+    </span><span class="kw">pub fn </span>new(_prog: <span class="kw-2">&amp;</span><a href="../../src/regex/prog.rs.html#18">Program</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/regex/backtrack.rs.html#55">Cache</a> { jobs: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], visited: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
     }
 }
 
-<span class="doccomment">/// A job is an explicit unit of stack space in the backtracking engine.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The &quot;normal&quot; representation is a single state transition, which corresponds</span>
-<span class="doccomment">/// to an NFA state and a character in the input. However, the backtracking</span>
-<span class="doccomment">/// engine must keep track of old capture group values. We use the explicit</span>
-<span class="doccomment">/// stack to do it.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Job</span> {
-    <span class="ident">Inst</span> { <span class="ident">ip</span>: <a class="ident" href="../../src/regex/prog.rs.html#13">InstPtr</a>, <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a> },
-    <span class="ident">SaveRestore</span> { <span class="ident">slot</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">old_pos</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> },
+<span class="doccomment">/// A job is an explicit unit of stack space in the backtracking engine.
+///
+/// The &quot;normal&quot; representation is a single state transition, which corresponds
+/// to an NFA state and a character in the input. However, the backtracking
+/// engine must keep track of old capture group values. We use the explicit
+/// stack to do it.
+</span><span class="attribute">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">enum </span>Job {
+    Inst { ip: <a href="../../src/regex/prog.rs.html#13">InstPtr</a>, at: <a href="../../src/regex/input.rs.html#13">InputAt</a> },
+    SaveRestore { slot: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, old_pos: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; },
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, <span class="ident">I</span>: <a class="ident" href="../../src/regex/input.rs.html#67">Input</a><span class="op">&gt;</span> <span class="ident">Bounded</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, <span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Execute the backtracking matching engine.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there&#39;s a match, `exec` returns `true` and populates the given</span>
-    <span class="doccomment">/// captures accordingly.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exec</span>(
-        <span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <a class="ident" href="../../src/regex/prog.rs.html#18">Program</a>,
-        <span class="ident">cache</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/exec.rs.html#1521">ProgramCache</a>,
-        <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
-        <span class="ident">slots</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="kw-2">mut</span> [<a class="ident" href="../../src/regex/re_trait.rs.html#7">Slot</a>],
-        <span class="ident">input</span>: <span class="ident">I</span>,
-        <span class="ident">start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">end</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#86">cache</a>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/backtrack.rs.html#93">cache</a>.<span class="ident">backtrack</span>;
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#89">input</a>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#90">start</a>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#44">Bounded</a> { <a class="ident" href="../../src/regex/backtrack.rs.html#85">prog</a>, <a class="ident" href="../../src/regex/backtrack.rs.html#89">input</a>, <a class="ident" href="../../src/regex/backtrack.rs.html#87">matches</a>, <a class="ident" href="../../src/regex/backtrack.rs.html#88">slots</a>, <span class="ident">m</span>: <a class="ident" href="../../src/regex/backtrack.rs.html#94">cache</a> };
-        <a class="ident" href="../../src/regex/backtrack.rs.html#96">b</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#134">exec_</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#95">start</a>, <a class="ident" href="../../src/regex/backtrack.rs.html#91">end</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, I: <a href="../../src/regex/input.rs.html#67">Input</a>&gt; Bounded&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, <span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;s</span>, I&gt; {
+    <span class="doccomment">/// Execute the backtracking matching engine.
+    ///
+    /// If there&#39;s a match, `exec` returns `true` and populates the given
+    /// captures accordingly.
+    </span><span class="kw">pub fn </span>exec(
+        prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="../../src/regex/prog.rs.html#18">Program</a>,
+        cache: <span class="kw-2">&amp;</span><a href="../../src/regex/exec.rs.html#1521">ProgramCache</a>,
+        matches: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
+        slots: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>[<a href="../../src/regex/re_trait.rs.html#7">Slot</a>],
+        input: I,
+        start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <a href="../../src/regex/backtrack.rs.html#86">cache</a>.borrow_mut();
+        <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span><a href="../../src/regex/backtrack.rs.html#93">cache</a>.backtrack;
+        <span class="kw">let </span>start = <a href="../../src/regex/backtrack.rs.html#89">input</a>.<a href="../../src/regex/input.rs.html#69">at</a>(<a href="../../src/regex/backtrack.rs.html#90">start</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>b = <a href="../../src/regex/backtrack.rs.html#44">Bounded</a> { <a href="../../src/regex/backtrack.rs.html#85">prog</a>, <a href="../../src/regex/backtrack.rs.html#89">input</a>, <a href="../../src/regex/backtrack.rs.html#87">matches</a>, <a href="../../src/regex/backtrack.rs.html#88">slots</a>, m: <a href="../../src/regex/backtrack.rs.html#94">cache</a> };
+        <a href="../../src/regex/backtrack.rs.html#96">b</a>.<a href="../../src/regex/backtrack.rs.html#134">exec_</a>(<a href="../../src/regex/backtrack.rs.html#95">start</a>, <a href="../../src/regex/backtrack.rs.html#91">end</a>)
     }
 
-    <span class="doccomment">/// Clears the cache such that the backtracking engine can be executed</span>
-    <span class="doccomment">/// on some input of fixed length.</span>
-    <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// Reset the job memory so that we start fresh.</span>
-        <a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">clear</span>();
+    <span class="doccomment">/// Clears the cache such that the backtracking engine can be executed
+    /// on some input of fixed length.
+    </span><span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// Reset the job memory so that we start fresh.
+        </span><a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.m.jobs.clear();
 
-        <span class="comment">// Now we need to clear the bit state set.</span>
-        <span class="comment">// We do this by figuring out how much space we need to keep track</span>
-        <span class="comment">// of the states we&#39;ve visited.</span>
-        <span class="comment">// Then we reset all existing allocated space to 0.</span>
-        <span class="comment">// Finally, we request more space if we need it.</span>
-        <span class="comment">//</span>
-        <span class="comment">// This is all a little circuitous, but doing this using unchecked</span>
-        <span class="comment">// operations doesn&#39;t seem to have a measurable impact on performance.</span>
-        <span class="comment">// (Probably because backtracking is limited to such small</span>
-        <span class="comment">// inputs/regexes in the first place.)</span>
-        <span class="kw">let</span> <span class="ident">visited_len</span> <span class="op">=</span>
-            (<a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.<span class="ident">prog</span>.<span class="ident">len</span>() <span class="op">*</span> (<a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#93">len</a>() <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a> <span class="op">-</span> <span class="number">1</span>)
-                <span class="op">/</span> <a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a>;
-        <a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">truncate</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#116">visited_len</a>);
-        <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span> {
-            <span class="kw-2">*</span><span class="ident">v</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="comment">// Now we need to clear the bit state set.
+        // We do this by figuring out how much space we need to keep track
+        // of the states we&#39;ve visited.
+        // Then we reset all existing allocated space to 0.
+        // Finally, we request more space if we need it.
+        //
+        // This is all a little circuitous, but doing this using unchecked
+        // operations doesn&#39;t seem to have a measurable impact on performance.
+        // (Probably because backtracking is limited to such small
+        // inputs/regexes in the first place.)
+        </span><span class="kw">let </span>visited_len =
+            (<a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.prog.len() * (<a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.input.<a href="../../src/regex/input.rs.html#93">len</a>() + <span class="number">1</span>) + <a href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a> - <span class="number">1</span>)
+                / <a href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a>;
+        <a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.m.visited.truncate(<a href="../../src/regex/backtrack.rs.html#116">visited_len</a>);
+        <span class="kw">for </span>v <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.m.visited {
+            <span class="kw-2">*</span>v = <span class="number">0</span>;
         }
-        <span class="kw">if</span> <span class="ident">visited_len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">len</span>();
-            <a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">reserve_exact</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#116">visited_len</a> <span class="op">-</span> <a class="ident" href="../../src/regex/backtrack.rs.html#124">len</a>);
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">visited_len</span> <span class="op">-</span> <span class="ident">len</span>) {
-                <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">push</span>(<span class="number">0</span>);
+        <span class="kw">if </span>visited_len &gt; <span class="self">self</span>.m.visited.len() {
+            <span class="kw">let </span>len = <a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.m.visited.len();
+            <a class="self" href="../../src/regex/backtrack.rs.html#102">self</a>.m.visited.reserve_exact(<a href="../../src/regex/backtrack.rs.html#116">visited_len</a> - <a href="../../src/regex/backtrack.rs.html#124">len</a>);
+            <span class="kw">for _ in </span><span class="number">0</span>..(visited_len - len) {
+                <span class="self">self</span>.m.visited.push(<span class="number">0</span>);
             }
         }
     }
 
-    <span class="doccomment">/// Start backtracking at the given position in the input, but also look</span>
-    <span class="doccomment">/// for literal prefixes.</span>
-    <span class="kw">fn</span> <span class="ident">exec_</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>, <span class="ident">end</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#102">clear</a>();
-        <span class="comment">// If this is an anchored regex at the beginning of the input, then</span>
-        <span class="comment">// we&#39;re either already done or we only need to try backtracking once.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">is_anchored_start</span> {
-            <span class="kw">return</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">at</span>.<span class="ident">is_start</span>() { <span class="bool-val">false</span> } <span class="kw">else</span> { <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#162">backtrack</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#134">at</a>) };
+    <span class="doccomment">/// Start backtracking at the given position in the input, but also look
+    /// for literal prefixes.
+    </span><span class="kw">fn </span>exec_(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>at: <a href="../../src/regex/input.rs.html#13">InputAt</a>, end: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<a href="../../src/regex/backtrack.rs.html#102">clear</a>();
+        <span class="comment">// If this is an anchored regex at the beginning of the input, then
+        // we&#39;re either already done or we only need to try backtracking once.
+        </span><span class="kw">if </span><span class="self">self</span>.prog.is_anchored_start {
+            <span class="kw">return if </span>!at.is_start() { <span class="bool-val">false </span>} <span class="kw">else </span>{ <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<a href="../../src/regex/backtrack.rs.html#162">backtrack</a>(<a href="../../src/regex/backtrack.rs.html#134">at</a>) };
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">prefixes</span>.<span class="ident">is_empty</span>() {
-                <a class="ident" href="../../src/regex/backtrack.rs.html#134">at</a> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#86-90">prefix_at</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<span class="ident">prog</span>.<span class="ident">prefixes</span>, <a class="ident" href="../../src/regex/backtrack.rs.html#134">at</a>) {
-                    <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">at</span>) =&gt; <a class="ident" href="../../src/regex/backtrack.rs.html#146">at</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>matched = <span class="bool-val">false</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">if </span>!<span class="self">self</span>.prog.prefixes.is_empty() {
+                <a href="../../src/regex/backtrack.rs.html#134">at</a> = <span class="kw">match </span><a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.input.<a href="../../src/regex/input.rs.html#86-90">prefix_at</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.prog.prefixes, <a href="../../src/regex/backtrack.rs.html#134">at</a>) {
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
+                    <span class="prelude-val">Some</span>(at) =&gt; <a href="../../src/regex/backtrack.rs.html#146">at</a>,
                 };
             }
-            <a class="ident" href="../../src/regex/backtrack.rs.html#141">matched</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#162">backtrack</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#134">at</a>) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/regex/backtrack.rs.html#141">matched</a>;
-            <span class="kw">if</span> <span class="ident">matched</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-                <span class="kw">return</span> <span class="bool-val">true</span>;
+            <a href="../../src/regex/backtrack.rs.html#141">matched</a> = <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<a href="../../src/regex/backtrack.rs.html#162">backtrack</a>(<a href="../../src/regex/backtrack.rs.html#134">at</a>) || <a href="../../src/regex/backtrack.rs.html#141">matched</a>;
+            <span class="kw">if </span>matched &amp;&amp; <span class="self">self</span>.prog.matches.len() == <span class="number">1 </span>{
+                <span class="kw">return </span><span class="bool-val">true</span>;
             }
-            <span class="kw">if</span> <span class="ident">at</span>.<span class="ident">pos</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">end</span> {
+            <span class="kw">if </span>at.pos() &gt;= end {
                 <span class="kw">break</span>;
             }
-            <a class="ident" href="../../src/regex/backtrack.rs.html#134">at</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#134">at</a>.<a class="ident" href="../../src/regex/input.rs.html#61">next_pos</a>());
+            <a href="../../src/regex/backtrack.rs.html#134">at</a> = <a class="self" href="../../src/regex/backtrack.rs.html#134">self</a>.input.<a href="../../src/regex/input.rs.html#69">at</a>(<a href="../../src/regex/backtrack.rs.html#134">at</a>.<a href="../../src/regex/input.rs.html#61">next_pos</a>());
         }
-        <a class="ident" href="../../src/regex/backtrack.rs.html#141">matched</a>
+        <a href="../../src/regex/backtrack.rs.html#141">matched</a>
     }
 
-    <span class="doccomment">/// The main backtracking loop starting at the given input position.</span>
-    <span class="kw">fn</span> <span class="ident">backtrack</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">start</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="comment">// N.B. We use an explicit stack to avoid recursion.</span>
-        <span class="comment">// To avoid excessive pushing and popping, most transitions are handled</span>
-        <span class="comment">// in the `step` helper function, which only pushes to the stack when</span>
-        <span class="comment">// there&#39;s a capture or a branch.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <a class="self" href="../../src/regex/backtrack.rs.html#162">self</a>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">push</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#75">Job::Inst</a> { <span class="ident">ip</span>: <span class="number">0</span>, <span class="ident">at</span>: <a class="ident" href="../../src/regex/backtrack.rs.html#162">start</a> });
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">pop</span>() {
-            <span class="kw">match</span> <span class="ident">job</span> {
-                <span class="ident">Job::Inst</span> { <span class="ident">ip</span>, <span class="ident">at</span> } =&gt; {
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">step</span>(<span class="ident">ip</span>, <span class="ident">at</span>) {
-                        <span class="comment">// Only quit if we&#39;re matching one regex.</span>
-                        <span class="comment">// If we&#39;re matching a regex set, then mush on and</span>
-                        <span class="comment">// try to find other matches (if we want them).</span>
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-                            <span class="kw">return</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// The main backtracking loop starting at the given input position.
+    </span><span class="kw">fn </span>backtrack(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: <a href="../../src/regex/input.rs.html#13">InputAt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="comment">// N.B. We use an explicit stack to avoid recursion.
+        // To avoid excessive pushing and popping, most transitions are handled
+        // in the `step` helper function, which only pushes to the stack when
+        // there&#39;s a capture or a branch.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>matched = <span class="bool-val">false</span>;
+        <a class="self" href="../../src/regex/backtrack.rs.html#162">self</a>.m.jobs.push(<a href="../../src/regex/backtrack.rs.html#75">Job::Inst</a> { ip: <span class="number">0</span>, at: <a href="../../src/regex/backtrack.rs.html#162">start</a> });
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(job) = <span class="self">self</span>.m.jobs.pop() {
+            <span class="kw">match </span>job {
+                Job::Inst { ip, at } =&gt; {
+                    <span class="kw">if </span><span class="self">self</span>.step(ip, at) {
+                        <span class="comment">// Only quit if we&#39;re matching one regex.
+                        // If we&#39;re matching a regex set, then mush on and
+                        // try to find other matches (if we want them).
+                        </span><span class="kw">if </span><span class="self">self</span>.prog.matches.len() == <span class="number">1 </span>{
+                            <span class="kw">return </span><span class="bool-val">true</span>;
                         }
-                        <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        matched = <span class="bool-val">true</span>;
                     }
                 }
-                <span class="ident">Job::SaveRestore</span> { <span class="ident">slot</span>, <span class="ident">old_pos</span> } =&gt; {
-                    <span class="kw">if</span> <span class="ident">slot</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">slots</span>.<span class="ident">len</span>() {
-                        <span class="self">self</span>.<span class="ident">slots</span>[<span class="ident">slot</span>] <span class="op">=</span> <span class="ident">old_pos</span>;
+                Job::SaveRestore { slot, old_pos } =&gt; {
+                    <span class="kw">if </span>slot &lt; <span class="self">self</span>.slots.len() {
+                        <span class="self">self</span>.slots[slot] = old_pos;
                     }
                 }
             }
         }
-        <a class="ident" href="../../src/regex/backtrack.rs.html#167">matched</a>
+        <a href="../../src/regex/backtrack.rs.html#167">matched</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">ip</span>: <a class="ident" href="../../src/regex/prog.rs.html#13">InstPtr</a>, <span class="kw-2">mut</span> <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use</span> <a class="ident" href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
-        <span class="kw">loop</span> {
-            <span class="comment">// This loop is an optimization to avoid constantly pushing/popping</span>
-            <span class="comment">// from the stack. Namely, if we&#39;re pushing a job only to run it</span>
-            <span class="comment">// next, avoid the push and just mutate `ip` (and possibly `at`)</span>
-            <span class="comment">// in place.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_visited</span>(<span class="ident">ip</span>, <span class="ident">at</span>) {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="kw">fn </span>step(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>ip: <a href="../../src/regex/prog.rs.html#13">InstPtr</a>, <span class="kw-2">mut </span>at: <a href="../../src/regex/input.rs.html#13">InputAt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">use </span><a href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+        <span class="kw">loop </span>{
+            <span class="comment">// This loop is an optimization to avoid constantly pushing/popping
+            // from the stack. Namely, if we&#39;re pushing a job only to run it
+            // next, avoid the push and just mutate `ip` (and possibly `at`)
+            // in place.
+            </span><span class="kw">if </span><span class="self">self</span>.has_visited(ip, at) {
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
-            <span class="kw">match</span> <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">prog</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#192">ip</a>] {
-                <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="ident">slot</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">slot</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">matches</span>.<span class="ident">len</span>() {
-                        <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">matches</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#203">slot</a>] <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">match </span><a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.prog[<a href="../../src/regex/backtrack.rs.html#192">ip</a>] {
+                <a href="../../src/regex/prog.rs.html#276">Match</a>(slot) =&gt; {
+                    <span class="kw">if </span>slot &lt; <span class="self">self</span>.matches.len() {
+                        <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.matches[<a href="../../src/regex/backtrack.rs.html#203">slot</a>] = <span class="bool-val">true</span>;
                     }
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                    <span class="kw">return </span><span class="bool-val">true</span>;
                 }
-                <a class="ident" href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">old_pos</span>) <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">slots</span>.<span class="ident">get</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#209">inst</a>.<span class="ident">slot</span>) {
-                        <span class="comment">// If this path doesn&#39;t work out, then we save the old</span>
-                        <span class="comment">// capture index (if one exists) in an alternate</span>
-                        <span class="comment">// job. If the next path fails, then the alternate</span>
-                        <span class="comment">// job is popped and the old capture index is restored.</span>
-                        <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">push</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#76">Job::SaveRestore</a> {
-                            <span class="ident">slot</span>: <a class="ident" href="../../src/regex/backtrack.rs.html#209">inst</a>.<span class="ident">slot</span>,
-                            <a class="ident" href="../../src/regex/backtrack.rs.html#210">old_pos</a>,
+                <a href="../../src/regex/prog.rs.html#279">Save</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>old_pos) = <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.slots.get(<a href="../../src/regex/backtrack.rs.html#209">inst</a>.slot) {
+                        <span class="comment">// If this path doesn&#39;t work out, then we save the old
+                        // capture index (if one exists) in an alternate
+                        // job. If the next path fails, then the alternate
+                        // job is popped and the old capture index is restored.
+                        </span><a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.m.jobs.push(<a href="../../src/regex/backtrack.rs.html#76">Job::SaveRestore</a> {
+                            slot: <a href="../../src/regex/backtrack.rs.html#209">inst</a>.slot,
+                            <a href="../../src/regex/backtrack.rs.html#210">old_pos</a>,
                         });
-                        <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">slots</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#209">inst</a>.<span class="ident">slot</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a>.<a class="ident" href="../../src/regex/input.rs.html#56">pos</a>());
+                        <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.slots[<a href="../../src/regex/backtrack.rs.html#209">inst</a>.slot] = <span class="prelude-val">Some</span>(<a href="../../src/regex/backtrack.rs.html#192">at</a>.<a href="../../src/regex/input.rs.html#56">pos</a>());
                     }
-                    <a class="ident" href="../../src/regex/backtrack.rs.html#192">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#209">inst</a>.<span class="ident">goto</span>;
+                    <a href="../../src/regex/backtrack.rs.html#192">ip</a> = <a href="../../src/regex/backtrack.rs.html#209">inst</a>.goto;
                 }
-                <a class="ident" href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">push</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#75">Job::Inst</a> { <span class="ident">ip</span>: <a class="ident" href="../../src/regex/backtrack.rs.html#223">inst</a>.<span class="ident">goto2</span>, <a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a> });
-                    <a class="ident" href="../../src/regex/backtrack.rs.html#192">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#223">inst</a>.<span class="ident">goto1</span>;
+                <a href="../../src/regex/prog.rs.html#282">Split</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                    <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.m.jobs.push(<a href="../../src/regex/backtrack.rs.html#75">Job::Inst</a> { ip: <a href="../../src/regex/backtrack.rs.html#223">inst</a>.goto2, <a href="../../src/regex/backtrack.rs.html#192">at</a> });
+                    <a href="../../src/regex/backtrack.rs.html#192">ip</a> = <a href="../../src/regex/backtrack.rs.html#223">inst</a>.goto1;
                 }
-                <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">is_empty_match</span>(<span class="ident">at</span>, <span class="ident">inst</span>) {
-                        <a class="ident" href="../../src/regex/backtrack.rs.html#192">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#227">inst</a>.<span class="ident">goto</span>;
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="bool-val">false</span>;
-                    }
-                }
-                <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">c</span> <span class="op">==</span> <span class="ident">at</span>.<span class="ident">char</span>() {
-                        <a class="ident" href="../../src/regex/backtrack.rs.html#192">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#234">inst</a>.<span class="ident">goto</span>;
-                        <a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a>.<a class="ident" href="../../src/regex/input.rs.html#61">next_pos</a>());
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="bool-val">false</span>;
+                <a href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                    <span class="kw">if </span><span class="self">self</span>.input.is_empty_match(at, inst) {
+                        <a href="../../src/regex/backtrack.rs.html#192">ip</a> = <a href="../../src/regex/backtrack.rs.html#227">inst</a>.goto;
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="bool-val">false</span>;
                     }
                 }
-                <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">matches</span>(<span class="ident">at</span>.<span class="ident">char</span>()) {
-                        <a class="ident" href="../../src/regex/backtrack.rs.html#192">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#242">inst</a>.<span class="ident">goto</span>;
-                        <a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a>.<a class="ident" href="../../src/regex/input.rs.html#61">next_pos</a>());
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="bool-val">false</span>;
+                <a href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                    <span class="kw">if </span>inst.c == at.char() {
+                        <a href="../../src/regex/backtrack.rs.html#192">ip</a> = <a href="../../src/regex/backtrack.rs.html#234">inst</a>.goto;
+                        <a href="../../src/regex/backtrack.rs.html#192">at</a> = <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.input.<a href="../../src/regex/input.rs.html#69">at</a>(<a href="../../src/regex/backtrack.rs.html#192">at</a>.<a href="../../src/regex/input.rs.html#61">next_pos</a>());
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="bool-val">false</span>;
                     }
                 }
-                <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a>.<a class="ident" href="../../src/regex/input.rs.html#40">byte</a>() {
-                        <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">matches</span>(<span class="ident">b</span>) {
-                            <a class="ident" href="../../src/regex/backtrack.rs.html#192">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#250">inst</a>.<span class="ident">goto</span>;
-                            <a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#192">at</a>.<a class="ident" href="../../src/regex/input.rs.html#61">next_pos</a>());
+                <a href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                    <span class="kw">if </span>inst.matches(at.char()) {
+                        <a href="../../src/regex/backtrack.rs.html#192">ip</a> = <a href="../../src/regex/backtrack.rs.html#242">inst</a>.goto;
+                        <a href="../../src/regex/backtrack.rs.html#192">at</a> = <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.input.<a href="../../src/regex/input.rs.html#69">at</a>(<a href="../../src/regex/backtrack.rs.html#192">at</a>.<a href="../../src/regex/input.rs.html#61">next_pos</a>());
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="bool-val">false</span>;
+                    }
+                }
+                <a href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw-2">ref </span>inst) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = <a href="../../src/regex/backtrack.rs.html#192">at</a>.<a href="../../src/regex/input.rs.html#40">byte</a>() {
+                        <span class="kw">if </span>inst.matches(b) {
+                            <a href="../../src/regex/backtrack.rs.html#192">ip</a> = <a href="../../src/regex/backtrack.rs.html#250">inst</a>.goto;
+                            <a href="../../src/regex/backtrack.rs.html#192">at</a> = <a class="self" href="../../src/regex/backtrack.rs.html#192">self</a>.input.<a href="../../src/regex/input.rs.html#69">at</a>(<a href="../../src/regex/backtrack.rs.html#192">at</a>.<a href="../../src/regex/input.rs.html#61">next_pos</a>());
                             <span class="kw">continue</span>;
                         }
                     }
-                    <span class="kw">return</span> <span class="bool-val">false</span>;
+                    <span class="kw">return </span><span class="bool-val">false</span>;
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">has_visited</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ip</span>: <a class="ident" href="../../src/regex/prog.rs.html#13">InstPtr</a>, <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#264">ip</a> <span class="op">*</span> (<a class="self" href="../../src/regex/backtrack.rs.html#264">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#93">len</a>() <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <a class="ident" href="../../src/regex/backtrack.rs.html#264">at</a>.<a class="ident" href="../../src/regex/input.rs.html#56">pos</a>();
-        <span class="kw">let</span> <span class="ident">k1</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#265">k</a> <span class="op">/</span> <a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a>;
-        <span class="kw">let</span> <span class="ident">k2</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#277">usize_to_u32</a>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<a class="ident" href="../../src/regex/backtrack.rs.html#265">k</a> <span class="op">&amp;</span> (<a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a> <span class="op">-</span> <span class="number">1</span>)));
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>[<span class="ident">k1</span>] <span class="op">&amp;</span> <span class="ident">k2</span> <span class="op">==</span> <span class="number">0</span> {
-            <a class="self" href="../../src/regex/backtrack.rs.html#264">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#266">k1</a>] <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#267">k2</a>;
-            <span class="bool-val">false</span>
-        } <span class="kw">else</span> {
-            <span class="bool-val">true</span>
-        }
+    <span class="kw">fn </span>has_visited(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ip: <a href="../../src/regex/prog.rs.html#13">InstPtr</a>, at: <a href="../../src/regex/input.rs.html#13">InputAt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>k = <a href="../../src/regex/backtrack.rs.html#264">ip</a> * (<a class="self" href="../../src/regex/backtrack.rs.html#264">self</a>.input.<a href="../../src/regex/input.rs.html#93">len</a>() + <span class="number">1</span>) + <a href="../../src/regex/backtrack.rs.html#264">at</a>.<a href="../../src/regex/input.rs.html#56">pos</a>();
+        <span class="kw">let </span>k1 = <a href="../../src/regex/backtrack.rs.html#265">k</a> / <a href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a>;
+        <span class="kw">let </span>k2 = <a href="../../src/regex/backtrack.rs.html#277">usize_to_u32</a>(<span class="number">1 </span>&lt;&lt; (<a href="../../src/regex/backtrack.rs.html#265">k</a> &amp; (<a href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a> - <span class="number">1</span>)));
+        <span class="kw">if </span><span class="self">self</span>.m.visited[k1] &amp; k2 == <span class="number">0 </span>{
+            <a class="self" href="../../src/regex/backtrack.rs.html#264">self</a>.m.visited[<a href="../../src/regex/backtrack.rs.html#266">k1</a>] |= <a href="../../src/regex/backtrack.rs.html#267">k2</a>;
+            <span class="bool-val">false
+        </span>} <span class="kw">else </span>{
+            <span class="bool-val">true
+        </span>}
     }
 }
 
-<span class="kw">fn</span> <span class="ident">usize_to_u32</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">if</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span> (<span class="ident">::std::u32::MAX</span> <span class="kw">as</span> <span class="ident">u64</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, <span class="ident">n</span>)
+<span class="kw">fn </span>usize_to_u32(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+    <span class="kw">if </span>(n <span class="kw">as </span>u64) &gt; (::std::u32::MAX <span class="kw">as </span>u64) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, n)
     }
-    <a class="ident" href="../../src/regex/backtrack.rs.html#277">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    <a href="../../src/regex/backtrack.rs.html#277">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

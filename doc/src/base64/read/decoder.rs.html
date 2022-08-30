@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.0/src/read/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.0/src/read/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -280,287 +280,287 @@
 <span id="280">280</span>
 <span id="281">281</span>
 <span id="282">282</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/base64/decode.rs.html#173-177">decode_config_slice</a>, <a class="ident" href="../../../src/base64/lib.rs.html#153">Config</a>, <a class="ident" href="../../../src/base64/decode.rs.html#28">DecodeError</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../../src/base64/decode.rs.html#173-177">decode_config_slice</a>, <a href="../../../src/base64/lib.rs.html#153">Config</a>, <a href="../../../src/base64/decode.rs.html#28">DecodeError</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">std::io::Read</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
 
-<span class="comment">// This should be large, but it has to fit on the stack.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">BUF_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1024</span>;
+<span class="comment">// This should be large, but it has to fit on the stack.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BUF_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1024</span>;
 
-<span class="comment">// 4 bytes of base64 data encode 3 bytes of raw data (modulo padding).</span>
-<span class="kw">const</span> <span class="ident">BASE64_CHUNK_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">4</span>;
-<span class="kw">const</span> <span class="ident">DECODED_CHUNK_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">3</span>;
+<span class="comment">// 4 bytes of base64 data encode 3 bytes of raw data (modulo padding).
+</span><span class="kw">const </span>BASE64_CHUNK_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">4</span>;
+<span class="kw">const </span>DECODED_CHUNK_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">3</span>;
 
-<span class="doccomment">/// A `Read` implementation that decodes base64 data read from an underlying reader.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use std::io::Read;</span>
-<span class="doccomment">/// use std::io::Cursor;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // use a cursor as the simplest possible `Read` -- in real code this is probably a file, etc.</span>
-<span class="doccomment">/// let mut wrapped_reader = Cursor::new(b&quot;YXNkZg==&quot;);</span>
-<span class="doccomment">/// let mut decoder = base64::read::DecoderReader::new(</span>
-<span class="doccomment">///     &amp;mut wrapped_reader, base64::STANDARD);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // handle errors as you normally would</span>
-<span class="doccomment">/// let mut result = Vec::new();</span>
-<span class="doccomment">/// decoder.read_to_end(&amp;mut result).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(b&quot;asdf&quot;, &amp;result[..]);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DecoderReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a><span class="op">&gt;</span> {
-    <span class="ident">config</span>: <a class="ident" href="../../../src/base64/lib.rs.html#153">Config</a>,
-    <span class="doccomment">/// Where b64 data is read from</span>
-    <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span>,
+<span class="doccomment">/// A `Read` implementation that decodes base64 data read from an underlying reader.
+///
+/// # Examples
+///
+/// ```
+/// use std::io::Read;
+/// use std::io::Cursor;
+///
+/// // use a cursor as the simplest possible `Read` -- in real code this is probably a file, etc.
+/// let mut wrapped_reader = Cursor::new(b&quot;YXNkZg==&quot;);
+/// let mut decoder = base64::read::DecoderReader::new(
+///     &amp;mut wrapped_reader, base64::STANDARD);
+///
+/// // handle errors as you normally would
+/// let mut result = Vec::new();
+/// decoder.read_to_end(&amp;mut result).unwrap();
+///
+/// assert_eq!(b&quot;asdf&quot;, &amp;result[..]);
+///
+/// ```
+</span><span class="kw">pub struct </span>DecoderReader&lt;<span class="lifetime">&#39;a</span>, R: <span class="lifetime">&#39;a </span>+ <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>&gt; {
+    config: <a href="../../../src/base64/lib.rs.html#153">Config</a>,
+    <span class="doccomment">/// Where b64 data is read from
+    </span>r: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
 
-    <span class="comment">// Holds b64 data read from the delegate reader.</span>
-    <span class="ident">b64_buffer</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a class="ident" href="../../../src/base64/read/decoder.rs.html#6">BUF_SIZE</a>],
-    <span class="comment">// The start of the pending buffered data in b64_buffer.</span>
-    <span class="ident">b64_offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="comment">// The amount of buffered b64 data.</span>
-    <span class="ident">b64_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="comment">// Since the caller may provide us with a buffer of size 1 or 2 that&#39;s too small to copy a</span>
-    <span class="comment">// decoded chunk in to, we have to be able to hang on to a few decoded bytes.</span>
-    <span class="comment">// Technically we only need to hold 2 bytes but then we&#39;d need a separate temporary buffer to</span>
-    <span class="comment">// decode 3 bytes into and then juggle copying one byte into the provided read buf and the rest</span>
-    <span class="comment">// into here, which seems like a lot of complexity for 1 extra byte of storage.</span>
-    <span class="ident">decoded_buffer</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">3</span>],
-    <span class="comment">// index of start of decoded data</span>
-    <span class="ident">decoded_offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="comment">// length of decoded data</span>
-    <span class="ident">decoded_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="comment">// used to provide accurate offsets in errors</span>
-    <span class="ident">total_b64_decoded</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="comment">// Holds b64 data read from the delegate reader.
+    </span>b64_buffer: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="../../../src/base64/read/decoder.rs.html#6">BUF_SIZE</a>],
+    <span class="comment">// The start of the pending buffered data in b64_buffer.
+    </span>b64_offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="comment">// The amount of buffered b64 data.
+    </span>b64_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="comment">// Since the caller may provide us with a buffer of size 1 or 2 that&#39;s too small to copy a
+    // decoded chunk in to, we have to be able to hang on to a few decoded bytes.
+    // Technically we only need to hold 2 bytes but then we&#39;d need a separate temporary buffer to
+    // decode 3 bytes into and then juggle copying one byte into the provided read buf and the rest
+    // into here, which seems like a lot of complexity for 1 extra byte of storage.
+    </span>decoded_buffer: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">3</span>],
+    <span class="comment">// index of start of decoded data
+    </span>decoded_offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="comment">// length of decoded data
+    </span>decoded_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="comment">// used to provide accurate offsets in errors
+    </span>total_b64_decoded: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">DecoderReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/base64/read/decoder.rs.html#58">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;DecoderReader&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;config&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.<span class="ident">config</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;b64_offset&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.<span class="ident">b64_offset</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;b64_len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.<span class="ident">b64_len</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;decoded_buffer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.<span class="ident">decoded_buffer</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;decoded_offset&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.<span class="ident">decoded_offset</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;decoded_len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.<span class="ident">decoded_len</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;total_b64_decoded&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.<span class="ident">total_b64_decoded</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>DecoderReader&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/base64/read/decoder.rs.html#58">f</a>.debug_struct(<span class="string">&quot;DecoderReader&quot;</span>)
+            .field(<span class="string">&quot;config&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.config)
+            .field(<span class="string">&quot;b64_offset&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.b64_offset)
+            .field(<span class="string">&quot;b64_len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.b64_len)
+            .field(<span class="string">&quot;decoded_buffer&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.decoded_buffer)
+            .field(<span class="string">&quot;decoded_offset&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.decoded_offset)
+            .field(<span class="string">&quot;decoded_len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.decoded_len)
+            .field(<span class="string">&quot;total_b64_decoded&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#58">self</a>.total_b64_decoded)
+            .finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a><span class="op">&gt;</span> <span class="ident">DecoderReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new decoder that will read from the provided reader `r`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">config</span>: <a class="ident" href="../../../src/base64/lib.rs.html#153">Config</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/base64/read/decoder.rs.html#32">DecoderReader</a> {
-            <a class="ident" href="../../../src/base64/read/decoder.rs.html#73">config</a>,
-            <a class="ident" href="../../../src/base64/read/decoder.rs.html#73">r</a>,
-            <span class="ident">b64_buffer</span>: [<span class="number">0</span>; <a class="ident" href="../../../src/base64/read/decoder.rs.html#6">BUF_SIZE</a>],
-            <span class="ident">b64_offset</span>: <span class="number">0</span>,
-            <span class="ident">b64_len</span>: <span class="number">0</span>,
-            <span class="ident">decoded_buffer</span>: [<span class="number">0</span>; <a class="ident" href="../../../src/base64/read/decoder.rs.html#10">DECODED_CHUNK_SIZE</a>],
-            <span class="ident">decoded_offset</span>: <span class="number">0</span>,
-            <span class="ident">decoded_len</span>: <span class="number">0</span>,
-            <span class="ident">total_b64_decoded</span>: <span class="number">0</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>&gt; DecoderReader&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+    <span class="doccomment">/// Create a new decoder that will read from the provided reader `r`.
+    </span><span class="kw">pub fn </span>new(r: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R, config: <a href="../../../src/base64/lib.rs.html#153">Config</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/base64/read/decoder.rs.html#32">DecoderReader</a> {
+            <a href="../../../src/base64/read/decoder.rs.html#73">config</a>,
+            <a href="../../../src/base64/read/decoder.rs.html#73">r</a>,
+            b64_buffer: [<span class="number">0</span>; <a href="../../../src/base64/read/decoder.rs.html#6">BUF_SIZE</a>],
+            b64_offset: <span class="number">0</span>,
+            b64_len: <span class="number">0</span>,
+            decoded_buffer: [<span class="number">0</span>; <a href="../../../src/base64/read/decoder.rs.html#10">DECODED_CHUNK_SIZE</a>],
+            decoded_offset: <span class="number">0</span>,
+            decoded_len: <span class="number">0</span>,
+            total_b64_decoded: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Write as much as possible of the decoded buffer into the target buffer.</span>
-    <span class="doccomment">/// Must only be called when there is something to write and space to write into.</span>
-    <span class="doccomment">/// Returns a Result with the number of (decoded) bytes copied.</span>
-    <span class="kw">fn</span> <span class="ident">flush_decoded_buf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">decoded_len</span> <span class="op">&gt;</span> <span class="number">0</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>);
+    <span class="doccomment">/// Write as much as possible of the decoded buffer into the target buffer.
+    /// Must only be called when there is something to write and space to write into.
+    /// Returns a Result with the number of (decoded) bytes copied.
+    </span><span class="kw">fn </span>flush_decoded_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.decoded_len &gt; <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.len() &gt; <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">copy_len</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.<span class="ident">decoded_len</span>, <a class="ident" href="../../../src/base64/read/decoder.rs.html#90">buf</a>.<span class="ident">len</span>());
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">copy_len</span> <span class="op">&gt;</span> <span class="number">0</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">copy_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">decoded_len</span>);
+        <span class="kw">let </span>copy_len = cmp::min(<a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.decoded_len, <a href="../../../src/base64/read/decoder.rs.html#90">buf</a>.len());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(copy_len &gt; <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(copy_len &lt;= <span class="self">self</span>.decoded_len);
 
-        <a class="ident" href="../../../src/base64/read/decoder.rs.html#90">buf</a>[..<a class="ident" href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>].<span class="ident">copy_from_slice</span>(
-            <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.<span class="ident">decoded_buffer</span>[<a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.<span class="ident">decoded_offset</span>..<a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.<span class="ident">decoded_offset</span> <span class="op">+</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>],
+        <a href="../../../src/base64/read/decoder.rs.html#90">buf</a>[..<a href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>].copy_from_slice(
+            <span class="kw-2">&amp;</span><a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.decoded_buffer[<a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.decoded_offset..<a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.decoded_offset + <a href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>],
         );
 
-        <a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.<span class="ident">decoded_offset</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>;
-        <a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.<span class="ident">decoded_len</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>;
+        <a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.decoded_offset += <a href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>;
+        <a class="self" href="../../../src/base64/read/decoder.rs.html#90">self</a>.decoded_len -= <a href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">decoded_len</span> <span class="op">&lt;</span> <span class="ident">DECODED_CHUNK_SIZE</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.decoded_len &lt; DECODED_CHUNK_SIZE);
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/base64/read/decoder.rs.html#94">copy_len</a>)
     }
 
-    <span class="doccomment">/// Read into the remaining space in the buffer after the current contents.</span>
-    <span class="doccomment">/// Must only be called when there is space to read into in the buffer.</span>
-    <span class="doccomment">/// Returns the number of bytes read.</span>
-    <span class="kw">fn</span> <span class="ident">read_from_delegate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&lt;</span> <span class="ident">BUF_SIZE</span>);
+    <span class="doccomment">/// Read into the remaining space in the buffer after the current contents.
+    /// Must only be called when there is space to read into in the buffer.
+    /// Returns the number of bytes read.
+    </span><span class="kw">fn </span>read_from_delegate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len &lt; BUF_SIZE);
 
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">r</span>
-            .<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">b64_buffer</span>[<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">b64_len</span>..])<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/base64/read/decoder.rs.html#113">self</a>.<span class="ident">b64_len</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#116">read</a>;
+        <span class="kw">let </span>read = <span class="self">self
+            </span>.r
+            .read(<span class="kw-2">&amp;mut </span><span class="self">self</span>.b64_buffer[<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len..])<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/base64/read/decoder.rs.html#113">self</a>.b64_len += <a href="../../../src/base64/read/decoder.rs.html#116">read</a>;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">BUF_SIZE</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len &lt;= BUF_SIZE);
 
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/base64/read/decoder.rs.html#116">read</a>);
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/base64/read/decoder.rs.html#116">read</a>);
     }
 
-    <span class="doccomment">/// Decode the requested number of bytes from the b64 buffer into the provided buffer. It&#39;s the</span>
-    <span class="doccomment">/// caller&#39;s responsibility to choose the number of b64 bytes to decode correctly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a Result with the number of decoded bytes written to `buf`.</span>
-    <span class="kw">fn</span> <span class="ident">decode_to_buf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">num_bytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">num_bytes</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">BUF_SIZE</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>);
+    <span class="doccomment">/// Decode the requested number of bytes from the b64 buffer into the provided buffer. It&#39;s the
+    /// caller&#39;s responsibility to choose the number of b64 bytes to decode correctly.
+    ///
+    /// Returns a Result with the number of decoded bytes written to `buf`.
+    </span><span class="kw">fn </span>decode_to_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, num_bytes: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.b64_len &gt;= num_bytes);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len &lt;= BUF_SIZE);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.len() &gt; <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="ident">decode_config_slice</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">b64_buffer</span>[<span class="self">self</span>.<span class="ident">b64_offset</span>..<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">+</span> <span class="ident">num_bytes</span>],
-            <span class="self">self</span>.<span class="ident">config</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..],
+        <span class="kw">let </span>decoded = decode_config_slice(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.b64_buffer[<span class="self">self</span>.b64_offset..<span class="self">self</span>.b64_offset + num_bytes],
+            <span class="self">self</span>.config,
+            <span class="kw-2">&amp;mut </span>buf[..],
         )
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">e</span> {
-            <span class="ident">DecodeError::InvalidByte</span>(<span class="ident">offset</span>, <span class="ident">byte</span>) =&gt; {
-                <span class="ident">DecodeError::InvalidByte</span>(<span class="self">self</span>.<span class="ident">total_b64_decoded</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">byte</span>)
+        .map_err(|e| <span class="kw">match </span>e {
+            DecodeError::InvalidByte(offset, byte) =&gt; {
+                DecodeError::InvalidByte(<span class="self">self</span>.total_b64_decoded + offset, byte)
             }
-            <span class="ident">DecodeError::InvalidLength</span> =&gt; <span class="ident">DecodeError::InvalidLength</span>,
-            <span class="ident">DecodeError::InvalidLastSymbol</span>(<span class="ident">offset</span>, <span class="ident">byte</span>) =&gt; {
-                <span class="ident">DecodeError::InvalidLastSymbol</span>(<span class="self">self</span>.<span class="ident">total_b64_decoded</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">byte</span>)
+            DecodeError::InvalidLength =&gt; DecodeError::InvalidLength,
+            DecodeError::InvalidLastSymbol(offset, byte) =&gt; {
+                DecodeError::InvalidLastSymbol(<span class="self">self</span>.total_b64_decoded + offset, byte)
             }
         })
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::InvalidData</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))<span class="question-mark">?</span>;
 
-        <a class="self" href="../../../src/base64/read/decoder.rs.html#130">self</a>.<span class="ident">total_b64_decoded</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#130">num_bytes</a>;
-        <a class="self" href="../../../src/base64/read/decoder.rs.html#130">self</a>.<span class="ident">b64_offset</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#130">num_bytes</a>;
-        <a class="self" href="../../../src/base64/read/decoder.rs.html#130">self</a>.<span class="ident">b64_len</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#130">num_bytes</a>;
+        <a class="self" href="../../../src/base64/read/decoder.rs.html#130">self</a>.total_b64_decoded += <a href="../../../src/base64/read/decoder.rs.html#130">num_bytes</a>;
+        <a class="self" href="../../../src/base64/read/decoder.rs.html#130">self</a>.b64_offset += <a href="../../../src/base64/read/decoder.rs.html#130">num_bytes</a>;
+        <a class="self" href="../../../src/base64/read/decoder.rs.html#130">self</a>.b64_len -= <a href="../../../src/base64/read/decoder.rs.html#130">num_bytes</a>;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">BUF_SIZE</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len &lt;= BUF_SIZE);
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/base64/read/decoder.rs.html#135">decoded</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/base64/read/decoder.rs.html#135">decoded</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">DecoderReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Decode input from the wrapped reader.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Under non-error circumstances, this returns `Ok` with the value being the number of bytes</span>
-    <span class="doccomment">/// written in `buf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Where possible, this function buffers base64 to minimize the number of read() calls to the</span>
-    <span class="doccomment">/// delegate reader.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Any errors emitted by the delegate reader are returned. Decoding errors due to invalid</span>
-    <span class="doccomment">/// base64 are also possible, and will have `io::ErrorKind::InvalidData`.</span>
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>DecoderReader&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+    <span class="doccomment">/// Decode input from the wrapped reader.
+    ///
+    /// Under non-error circumstances, this returns `Ok` with the value being the number of bytes
+    /// written in `buf`.
+    ///
+    /// Where possible, this function buffers base64 to minimize the number of read() calls to the
+    /// delegate reader.
+    ///
+    /// # Errors
+    ///
+    /// Any errors emitted by the delegate reader are returned. Decoding errors due to invalid
+    /// base64 are also possible, and will have `io::ErrorKind::InvalidData`.
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">if </span>buf.len() == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
-        <span class="comment">// offset == BUF_SIZE when we copied it all last time</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">BUF_SIZE</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">BUF_SIZE</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">if</span> <span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">==</span> <span class="ident">BUF_SIZE</span> {
-            <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">==</span> <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">BUF_SIZE</span>
+        <span class="comment">// offset == BUF_SIZE when we copied it all last time
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.b64_offset &lt;= BUF_SIZE);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len &lt;= BUF_SIZE);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">if </span><span class="self">self</span>.b64_offset == BUF_SIZE {
+            <span class="self">self</span>.b64_len == <span class="number">0
+        </span>} <span class="kw">else </span>{
+            <span class="self">self</span>.b64_len &lt;= BUF_SIZE
         });
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">if</span> <span class="self">self</span>.<span class="ident">decoded_len</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="comment">// can be = when we were able to copy the complete chunk</span>
-            <span class="self">self</span>.<span class="ident">decoded_offset</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">DECODED_CHUNK_SIZE</span>
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">decoded_offset</span> <span class="op">&lt;</span> <span class="ident">DECODED_CHUNK_SIZE</span>
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">if </span><span class="self">self</span>.decoded_len == <span class="number">0 </span>{
+            <span class="comment">// can be = when we were able to copy the complete chunk
+            </span><span class="self">self</span>.decoded_offset &lt;= DECODED_CHUNK_SIZE
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.decoded_offset &lt; DECODED_CHUNK_SIZE
         });
 
-        <span class="comment">// We shouldn&#39;t ever decode into here when we can&#39;t immediately write at least one byte into</span>
-        <span class="comment">// the provided buf, so the effective length should only be 3 momentarily between when we</span>
-        <span class="comment">// decode and when we copy into the target buffer.</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">decoded_len</span> <span class="op">&lt;</span> <span class="ident">DECODED_CHUNK_SIZE</span>);
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">decoded_len</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">decoded_offset</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">DECODED_CHUNK_SIZE</span>);
+        <span class="comment">// We shouldn&#39;t ever decode into here when we can&#39;t immediately write at least one byte into
+        // the provided buf, so the effective length should only be 3 momentarily between when we
+        // decode and when we copy into the target buffer.
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.decoded_len &lt; DECODED_CHUNK_SIZE);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.decoded_len + <span class="self">self</span>.decoded_offset &lt;= DECODED_CHUNK_SIZE);
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">decoded_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="comment">// we have a few leftover decoded bytes; flush that rather than pull in more b64</span>
-            <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<a class="ident" href="../../../src/base64/read/decoder.rs.html#90">flush_decoded_buf</a>(<a class="ident" href="../../../src/base64/read/decoder.rs.html#174">buf</a>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">at_eof</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">while</span> <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&lt;</span> <span class="ident">BASE64_CHUNK_SIZE</span> {
-                <span class="comment">// Work around lack of copy_within, which is only present in 1.37</span>
-                <span class="comment">// Copy any bytes we have to the start of the buffer.</span>
-                <span class="comment">// We know we have &lt; 1 chunk, so we can use a tiny tmp buffer.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">memmove_buf</span> <span class="op">=</span> [<span class="number">0_u8</span>; <span class="ident">BASE64_CHUNK_SIZE</span>];
-                <span class="ident">memmove_buf</span>[..<span class="self">self</span>.<span class="ident">b64_len</span>].<span class="ident">copy_from_slice</span>(
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">b64_buffer</span>[<span class="self">self</span>.<span class="ident">b64_offset</span>..<span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">b64_len</span>],
+        <span class="kw">if </span><span class="self">self</span>.decoded_len &gt; <span class="number">0 </span>{
+            <span class="comment">// we have a few leftover decoded bytes; flush that rather than pull in more b64
+            </span><a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<a href="../../../src/base64/read/decoder.rs.html#90">flush_decoded_buf</a>(<a href="../../../src/base64/read/decoder.rs.html#174">buf</a>)
+        } <span class="kw">else </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>at_eof = <span class="bool-val">false</span>;
+            <span class="kw">while </span><span class="self">self</span>.b64_len &lt; BASE64_CHUNK_SIZE {
+                <span class="comment">// Work around lack of copy_within, which is only present in 1.37
+                // Copy any bytes we have to the start of the buffer.
+                // We know we have &lt; 1 chunk, so we can use a tiny tmp buffer.
+                </span><span class="kw">let </span><span class="kw-2">mut </span>memmove_buf = [<span class="number">0_u8</span>; BASE64_CHUNK_SIZE];
+                memmove_buf[..<span class="self">self</span>.b64_len].copy_from_slice(
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.b64_buffer[<span class="self">self</span>.b64_offset..<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len],
                 );
-                <span class="self">self</span>.<span class="ident">b64_buffer</span>[<span class="number">0</span>..<span class="self">self</span>.<span class="ident">b64_len</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">memmove_buf</span>[..<span class="self">self</span>.<span class="ident">b64_len</span>]);
-                <span class="self">self</span>.<span class="ident">b64_offset</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="self">self</span>.b64_buffer[<span class="number">0</span>..<span class="self">self</span>.b64_len].copy_from_slice(<span class="kw-2">&amp;</span>memmove_buf[..<span class="self">self</span>.b64_len]);
+                <span class="self">self</span>.b64_offset = <span class="number">0</span>;
 
-                <span class="comment">// then fill in more data</span>
-                <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_from_delegate</span>()<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">read</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="comment">// we never pass in an empty buf, so 0 =&gt; we&#39;ve hit EOF</span>
-                    <span class="ident">at_eof</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <span class="comment">// then fill in more data
+                </span><span class="kw">let </span>read = <span class="self">self</span>.read_from_delegate()<span class="question-mark">?</span>;
+                <span class="kw">if </span>read == <span class="number">0 </span>{
+                    <span class="comment">// we never pass in an empty buf, so 0 =&gt; we&#39;ve hit EOF
+                    </span>at_eof = <span class="bool-val">true</span>;
                     <span class="kw">break</span>;
                 }
             }
 
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">==</span> <span class="number">0</span> {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">at_eof</span>);
-                <span class="comment">// we must be at EOF, and we have no data left to decode</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+            <span class="kw">if </span><span class="self">self</span>.b64_len == <span class="number">0 </span>{
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(at_eof);
+                <span class="comment">// we must be at EOF, and we have no data left to decode
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
             };
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">if</span> <span class="ident">at_eof</span> {
-                <span class="comment">// if we are at eof, we may not have a complete chunk</span>
-                <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&gt;</span> <span class="number">0</span>
-            } <span class="kw">else</span> {
-                <span class="comment">// otherwise, we must have at least one chunk</span>
-                <span class="self">self</span>.<span class="ident">b64_len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">BASE64_CHUNK_SIZE</span>
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw">if </span>at_eof {
+                <span class="comment">// if we are at eof, we may not have a complete chunk
+                </span><span class="self">self</span>.b64_len &gt; <span class="number">0
+            </span>} <span class="kw">else </span>{
+                <span class="comment">// otherwise, we must have at least one chunk
+                </span><span class="self">self</span>.b64_len &gt;= BASE64_CHUNK_SIZE
             });
 
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">0</span>, <span class="self">self</span>.<span class="ident">decoded_len</span>);
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="number">0</span>, <span class="self">self</span>.decoded_len);
 
-            <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">DECODED_CHUNK_SIZE</span> {
-                <span class="comment">// caller requested an annoyingly short read</span>
-                <span class="comment">// have to write to a tmp buf first to avoid double mutable borrow</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded_chunk</span> <span class="op">=</span> [<span class="number">0_u8</span>; <a class="ident" href="../../../src/base64/read/decoder.rs.html#10">DECODED_CHUNK_SIZE</a>];
-                <span class="comment">// if we are at eof, could have less than BASE64_CHUNK_SIZE, in which case we have</span>
-                <span class="comment">// to assume that these last few tokens are, in fact, valid (i.e. must be 2-4 b64</span>
-                <span class="comment">// tokens, not 1, since 1 token can&#39;t decode to 1 byte).</span>
-                <span class="kw">let</span> <span class="ident">to_decode</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<span class="ident">b64_len</span>, <a class="ident" href="../../../src/base64/read/decoder.rs.html#9">BASE64_CHUNK_SIZE</a>);
+            <span class="kw">if </span>buf.len() &lt; DECODED_CHUNK_SIZE {
+                <span class="comment">// caller requested an annoyingly short read
+                // have to write to a tmp buf first to avoid double mutable borrow
+                </span><span class="kw">let </span><span class="kw-2">mut </span>decoded_chunk = [<span class="number">0_u8</span>; <a href="../../../src/base64/read/decoder.rs.html#10">DECODED_CHUNK_SIZE</a>];
+                <span class="comment">// if we are at eof, could have less than BASE64_CHUNK_SIZE, in which case we have
+                // to assume that these last few tokens are, in fact, valid (i.e. must be 2-4 b64
+                // tokens, not 1, since 1 token can&#39;t decode to 1 byte).
+                </span><span class="kw">let </span>to_decode = cmp::min(<a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.b64_len, <a href="../../../src/base64/read/decoder.rs.html#9">BASE64_CHUNK_SIZE</a>);
 
-                <span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_to_buf</span>(<span class="ident">to_decode</span>, <span class="kw-2">&amp;mut</span> <span class="ident">decoded_chunk</span>[..])<span class="question-mark">?</span>;
-                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<span class="ident">decoded_buffer</span>[..<a class="ident" href="../../../src/base64/read/decoder.rs.html#251">decoded</a>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/base64/read/decoder.rs.html#245">decoded_chunk</a>[..<a class="ident" href="../../../src/base64/read/decoder.rs.html#251">decoded</a>]);
+                <span class="kw">let </span>decoded = <span class="self">self</span>.decode_to_buf(to_decode, <span class="kw-2">&amp;mut </span>decoded_chunk[..])<span class="question-mark">?</span>;
+                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.decoded_buffer[..<a href="../../../src/base64/read/decoder.rs.html#251">decoded</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/base64/read/decoder.rs.html#245">decoded_chunk</a>[..<a href="../../../src/base64/read/decoder.rs.html#251">decoded</a>]);
 
-                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<span class="ident">decoded_offset</span> <span class="op">=</span> <span class="number">0</span>;
-                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<span class="ident">decoded_len</span> <span class="op">=</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#251">decoded</a>;
+                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.decoded_offset = <span class="number">0</span>;
+                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.decoded_len = <a href="../../../src/base64/read/decoder.rs.html#251">decoded</a>;
 
-                <span class="comment">// can be less than 3 on last block due to padding</span>
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">decoded</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">3</span>);
+                <span class="comment">// can be less than 3 on last block due to padding
+                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(decoded &lt;= <span class="number">3</span>);
 
-                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<a class="ident" href="../../../src/base64/read/decoder.rs.html#90">flush_decoded_buf</a>(<a class="ident" href="../../../src/base64/read/decoder.rs.html#174">buf</a>)
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">b64_bytes_that_can_decode_into_buf</span> <span class="op">=</span> (<a class="ident" href="../../../src/base64/read/decoder.rs.html#174">buf</a>.<span class="ident">len</span>() <span class="op">/</span> <a class="ident" href="../../../src/base64/read/decoder.rs.html#10">DECODED_CHUNK_SIZE</a>)
-                    .<span class="ident">checked_mul</span>(<a class="ident" href="../../../src/base64/read/decoder.rs.html#9">BASE64_CHUNK_SIZE</a>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;too many chunks&quot;</span>);
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">b64_bytes_that_can_decode_into_buf</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">BASE64_CHUNK_SIZE</span>);
+                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<a href="../../../src/base64/read/decoder.rs.html#90">flush_decoded_buf</a>(<a href="../../../src/base64/read/decoder.rs.html#174">buf</a>)
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>b64_bytes_that_can_decode_into_buf = (<a href="../../../src/base64/read/decoder.rs.html#174">buf</a>.len() / <a href="../../../src/base64/read/decoder.rs.html#10">DECODED_CHUNK_SIZE</a>)
+                    .checked_mul(<a href="../../../src/base64/read/decoder.rs.html#9">BASE64_CHUNK_SIZE</a>)
+                    .expect(<span class="string">&quot;too many chunks&quot;</span>);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(b64_bytes_that_can_decode_into_buf &gt;= BASE64_CHUNK_SIZE);
 
-                <span class="kw">let</span> <span class="ident">b64_bytes_available_to_decode</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">at_eof</span> {
-                    <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<span class="ident">b64_len</span>
-                } <span class="kw">else</span> {
-                    <span class="comment">// only use complete chunks</span>
-                    <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<span class="ident">b64_len</span> <span class="op">-</span> <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<span class="ident">b64_len</span> <span class="op">%</span> <span class="number">4</span>
-                };
+                <span class="kw">let </span>b64_bytes_available_to_decode = <span class="kw">if </span>at_eof {
+                    <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.b64_len
+                } <span class="kw">else </span>{
+                    <span class="comment">// only use complete chunks
+                    </span><a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.b64_len - <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.b64_len % <span class="number">4
+                </span>};
 
-                <span class="kw">let</span> <span class="ident">actual_decode_len</span> <span class="op">=</span> <span class="ident">cmp::min</span>(
-                    <a class="ident" href="../../../src/base64/read/decoder.rs.html#262">b64_bytes_that_can_decode_into_buf</a>,
-                    <a class="ident" href="../../../src/base64/read/decoder.rs.html#267">b64_bytes_available_to_decode</a>,
+                <span class="kw">let </span>actual_decode_len = cmp::min(
+                    <a href="../../../src/base64/read/decoder.rs.html#262">b64_bytes_that_can_decode_into_buf</a>,
+                    <a href="../../../src/base64/read/decoder.rs.html#267">b64_bytes_available_to_decode</a>,
                 );
-                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<a class="ident" href="../../../src/base64/read/decoder.rs.html#130">decode_to_buf</a>(<a class="ident" href="../../../src/base64/read/decoder.rs.html#274">actual_decode_len</a>, <a class="ident" href="../../../src/base64/read/decoder.rs.html#174">buf</a>)
+                <a class="self" href="../../../src/base64/read/decoder.rs.html#174">self</a>.<a href="../../../src/base64/read/decoder.rs.html#130">decode_to_buf</a>(<a href="../../../src/base64/read/decoder.rs.html#274">actual_decode_len</a>, <a href="../../../src/base64/read/decoder.rs.html#174">buf</a>)
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="base64" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="base64" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

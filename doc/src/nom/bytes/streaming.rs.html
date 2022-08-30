@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.1/src/bytes/streaming.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streaming.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nom/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.1/src/bytes/streaming.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streaming.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nom/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -698,705 +698,705 @@
 <span id="698">698</span>
 <span id="699">699</span>
 <span id="700">700</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Parsers recognizing bytes streams, streaming version</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Parsers recognizing bytes streams, streaming version
 
-<span class="kw">use</span> <a class="ident" href="../../../src/nom/error.rs.html#366"><span class="kw">crate</span>::error::ErrorKind</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nom/error.rs.html#16"><span class="kw">crate</span>::error::ParseError</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::internal</span>::{<span class="prelude-val">Err</span>, <a class="ident" href="../../../src/nom/internal.rs.html#18">IResult</a>, <a class="ident" href="../../../src/nom/internal.rs.html#50">Needed</a>, <a class="ident" href="../../../src/nom/internal.rs.html#241">Parser</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html"><span class="kw">crate</span>::lib::std::ops::RangeFrom</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html"><span class="kw">crate</span>::lib::std::result::Result</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::traits</span>::{
-  <a class="ident" href="../../../src/nom/traits.rs.html#717">Compare</a>, <a class="ident" href="../../../src/nom/traits.rs.html#707">CompareResult</a>, <a class="ident" href="../../../src/nom/traits.rs.html#930">FindSubstring</a>, <a class="ident" href="../../../src/nom/traits.rs.html#876">FindToken</a>, <a class="ident" href="../../../src/nom/traits.rs.html#302">InputIter</a>, <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a>, <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a>,
-  <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>, <a class="ident" href="../../../src/nom/traits.rs.html#1006">Slice</a>, <a class="ident" href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
+</span><span class="kw">use </span><a href="../../../src/nom/error.rs.html#366"><span class="kw">crate</span>::error::ErrorKind</a>;
+<span class="kw">use </span><a href="../../../src/nom/error.rs.html#16"><span class="kw">crate</span>::error::ParseError</a>;
+<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, <a href="../../../src/nom/internal.rs.html#18">IResult</a>, <a href="../../../src/nom/internal.rs.html#50">Needed</a>, <a href="../../../src/nom/internal.rs.html#241">Parser</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html"><span class="kw">crate</span>::lib::std::ops::RangeFrom</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html"><span class="kw">crate</span>::lib::std::result::Result</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::traits::{
+  <a href="../../../src/nom/traits.rs.html#717">Compare</a>, <a href="../../../src/nom/traits.rs.html#707">CompareResult</a>, <a href="../../../src/nom/traits.rs.html#930">FindSubstring</a>, <a href="../../../src/nom/traits.rs.html#876">FindToken</a>, <a href="../../../src/nom/traits.rs.html#302">InputIter</a>, <a href="../../../src/nom/traits.rs.html#18">InputLength</a>, <a href="../../../src/nom/traits.rs.html#328">InputTake</a>,
+  <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>, <a href="../../../src/nom/traits.rs.html#1006">Slice</a>, <a href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
 };
 
-<span class="doccomment">/// Recognizes a pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The input data will be compared to the tag combinator&#39;s argument and will return the part of</span>
-<span class="doccomment">/// the input that matches the argument.</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::tag;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   tag(&quot;Hello&quot;)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;Hello, World!&quot;), Ok((&quot;, World!&quot;, &quot;Hello&quot;)));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;Something&quot;), Err(Err::Error(Error::new(&quot;Something&quot;, ErrorKind::Tag))));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;S&quot;), Err(Err::Error(Error::new(&quot;S&quot;, ErrorKind::Tag))));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;H&quot;), Err(Err::Incomplete(Needed::new(4))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">tag</span>: <span class="ident">T</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a> <span class="op">+</span> <span class="ident">Compare</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-  <span class="ident">T</span>: <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+<span class="doccomment">/// Recognizes a pattern.
+///
+/// The input data will be compared to the tag combinator&#39;s argument and will return the part of
+/// the input that matches the argument.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
+/// use nom::bytes::streaming::tag;
+///
+/// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   tag(&quot;Hello&quot;)(s)
+/// }
+///
+/// assert_eq!(parser(&quot;Hello, World!&quot;), Ok((&quot;, World!&quot;, &quot;Hello&quot;)));
+/// assert_eq!(parser(&quot;Something&quot;), Err(Err::Error(Error::new(&quot;Something&quot;, ErrorKind::Tag))));
+/// assert_eq!(parser(&quot;S&quot;), Err(Err::Error(Error::new(&quot;S&quot;, ErrorKind::Tag))));
+/// assert_eq!(parser(&quot;H&quot;), Err(Err::Incomplete(Needed::new(4))));
+/// ```
+</span><span class="kw">pub fn </span>tag&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
+  tag: T,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + Compare&lt;T&gt;,
+  T: <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">tag_len</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#32">tag</a>.<a class="ident" href="../../../src/nom/traits.rs.html#21">input_len</a>();
-    <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#32">tag</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>tag_len = <a href="../../../src/nom/bytes/streaming.rs.html#32">tag</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>();
+    <span class="kw">let </span>t = <a href="../../../src/nom/bytes/streaming.rs.html#32">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#38">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#719">compare</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#40">t</a>) {
-      <a class="ident" href="../../../src/nom/traits.rs.html#709">CompareResult::Ok</a> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#38">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#332">take_split</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#39">tag_len</a>)),
-      <a class="ident" href="../../../src/nom/traits.rs.html#711">CompareResult::Incomplete</a> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<span class="ident">Needed::new</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#39">tag_len</a> <span class="op">-</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#38">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#21">input_len</a>()))),
-      <a class="ident" href="../../../src/nom/traits.rs.html#713">CompareResult::Error</a> =&gt; {
-        <span class="kw">let</span> <span class="ident">e</span>: <a class="ident" href="../../../src/nom/error.rs.html#366">ErrorKind</a> <span class="op">=</span> <a class="ident" href="../../../src/nom/error.rs.html#367">ErrorKind::Tag</a>;
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">Error::from_error_kind</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#38">i</a>, <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#46">e</a>)))
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="../../../src/nom/bytes/streaming.rs.html#38">i</a>.<a href="../../../src/nom/traits.rs.html#719">compare</a>(<a href="../../../src/nom/bytes/streaming.rs.html#40">t</a>) {
+      <a href="../../../src/nom/traits.rs.html#709">CompareResult::Ok</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/streaming.rs.html#38">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/streaming.rs.html#39">tag_len</a>)),
+      <a href="../../../src/nom/traits.rs.html#711">CompareResult::Incomplete</a> =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(Needed::new(<a href="../../../src/nom/bytes/streaming.rs.html#39">tag_len</a> - <a href="../../../src/nom/bytes/streaming.rs.html#38">i</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>()))),
+      <a href="../../../src/nom/traits.rs.html#713">CompareResult::Error</a> =&gt; {
+        <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#367">ErrorKind::Tag</a>;
+        <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/streaming.rs.html#38">i</a>, <a href="../../../src/nom/bytes/streaming.rs.html#46">e</a>)))
       }
     };
-    <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#42">res</a>
+    <a href="../../../src/nom/bytes/streaming.rs.html#42">res</a>
   }
 }
 
-<span class="doccomment">/// Recognizes a case insensitive pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The input data will be compared to the tag combinator&#39;s argument and will return the part of</span>
-<span class="doccomment">/// the input that matches the argument with no regard to case.</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::tag_no_case;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   tag_no_case(&quot;hello&quot;)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;Hello, World!&quot;), Ok((&quot;, World!&quot;, &quot;Hello&quot;)));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;hello, World!&quot;), Ok((&quot;, World!&quot;, &quot;hello&quot;)));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;HeLlO, World!&quot;), Ok((&quot;, World!&quot;, &quot;HeLlO&quot;)));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;Something&quot;), Err(Err::Error(Error::new(&quot;Something&quot;, ErrorKind::Tag))));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;&quot;), Err(Err::Incomplete(Needed::new(5))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag_no_case</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">tag</span>: <span class="ident">T</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a> <span class="op">+</span> <span class="ident">Compare</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-  <span class="ident">T</span>: <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+<span class="doccomment">/// Recognizes a case insensitive pattern.
+///
+/// The input data will be compared to the tag combinator&#39;s argument and will return the part of
+/// the input that matches the argument with no regard to case.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
+/// use nom::bytes::streaming::tag_no_case;
+///
+/// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   tag_no_case(&quot;hello&quot;)(s)
+/// }
+///
+/// assert_eq!(parser(&quot;Hello, World!&quot;), Ok((&quot;, World!&quot;, &quot;Hello&quot;)));
+/// assert_eq!(parser(&quot;hello, World!&quot;), Ok((&quot;, World!&quot;, &quot;hello&quot;)));
+/// assert_eq!(parser(&quot;HeLlO, World!&quot;), Ok((&quot;, World!&quot;, &quot;HeLlO&quot;)));
+/// assert_eq!(parser(&quot;Something&quot;), Err(Err::Error(Error::new(&quot;Something&quot;, ErrorKind::Tag))));
+/// assert_eq!(parser(&quot;&quot;), Err(Err::Incomplete(Needed::new(5))));
+/// ```
+</span><span class="kw">pub fn </span>tag_no_case&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
+  tag: T,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + Compare&lt;T&gt;,
+  T: <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">tag_len</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#74">tag</a>.<a class="ident" href="../../../src/nom/traits.rs.html#21">input_len</a>();
-    <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#74">tag</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>tag_len = <a href="../../../src/nom/bytes/streaming.rs.html#74">tag</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>();
+    <span class="kw">let </span>t = <a href="../../../src/nom/bytes/streaming.rs.html#74">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#80">i</a>).<a class="ident" href="../../../src/nom/traits.rs.html#727">compare_no_case</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#82">t</a>) {
-      <a class="ident" href="../../../src/nom/traits.rs.html#709">CompareResult::Ok</a> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#80">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#332">take_split</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#81">tag_len</a>)),
-      <a class="ident" href="../../../src/nom/traits.rs.html#711">CompareResult::Incomplete</a> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<span class="ident">Needed::new</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#81">tag_len</a> <span class="op">-</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#80">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#21">input_len</a>()))),
-      <a class="ident" href="../../../src/nom/traits.rs.html#713">CompareResult::Error</a> =&gt; {
-        <span class="kw">let</span> <span class="ident">e</span>: <a class="ident" href="../../../src/nom/error.rs.html#366">ErrorKind</a> <span class="op">=</span> <a class="ident" href="../../../src/nom/error.rs.html#367">ErrorKind::Tag</a>;
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">Error::from_error_kind</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#80">i</a>, <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#88">e</a>)))
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span>(<a href="../../../src/nom/bytes/streaming.rs.html#80">i</a>).<a href="../../../src/nom/traits.rs.html#727">compare_no_case</a>(<a href="../../../src/nom/bytes/streaming.rs.html#82">t</a>) {
+      <a href="../../../src/nom/traits.rs.html#709">CompareResult::Ok</a> =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/streaming.rs.html#80">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/streaming.rs.html#81">tag_len</a>)),
+      <a href="../../../src/nom/traits.rs.html#711">CompareResult::Incomplete</a> =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(Needed::new(<a href="../../../src/nom/bytes/streaming.rs.html#81">tag_len</a> - <a href="../../../src/nom/bytes/streaming.rs.html#80">i</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>()))),
+      <a href="../../../src/nom/traits.rs.html#713">CompareResult::Error</a> =&gt; {
+        <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#367">ErrorKind::Tag</a>;
+        <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/streaming.rs.html#80">i</a>, <a href="../../../src/nom/bytes/streaming.rs.html#88">e</a>)))
       }
     };
-    <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#84">res</a>
+    <a href="../../../src/nom/bytes/streaming.rs.html#84">res</a>
   }
 }
 
-<span class="doccomment">/// Parse till certain characters are met.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The parser will return the longest slice till one of the characters of the combinator&#39;s argument are met.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It doesn&#39;t consume the matched character.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It will return a `Err::Incomplete(Needed::new(1))` if the pattern wasn&#39;t met.</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::is_not;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn not_space(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   is_not(&quot; \t\r\n&quot;)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(not_space(&quot;Hello, World!&quot;), Ok((&quot; World!&quot;, &quot;Hello,&quot;)));</span>
-<span class="doccomment">/// assert_eq!(not_space(&quot;Sometimes\t&quot;), Ok((&quot;\t&quot;, &quot;Sometimes&quot;)));</span>
-<span class="doccomment">/// assert_eq!(not_space(&quot;Nospace&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// assert_eq!(not_space(&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_not</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">arr</span>: <span class="ident">T</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
-  <span class="ident">T</span>: <span class="ident">FindToken</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputTakeAtPosition</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Parse till certain characters are met.
+///
+/// The parser will return the longest slice till one of the characters of the combinator&#39;s argument are met.
+///
+/// It doesn&#39;t consume the matched character.
+///
+/// It will return a `Err::Incomplete(Needed::new(1))` if the pattern wasn&#39;t met.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::ErrorKind, Needed, IResult};
+/// use nom::bytes::streaming::is_not;
+///
+/// fn not_space(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   is_not(&quot; \t\r\n&quot;)(s)
+/// }
+///
+/// assert_eq!(not_space(&quot;Hello, World!&quot;), Ok((&quot; World!&quot;, &quot;Hello,&quot;)));
+/// assert_eq!(not_space(&quot;Sometimes\t&quot;), Ok((&quot;\t&quot;, &quot;Sometimes&quot;)));
+/// assert_eq!(not_space(&quot;Nospace&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// assert_eq!(not_space(&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// ```
+</span><span class="kw">pub fn </span>is_not&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
+  arr: T,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  T: FindToken&lt;&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item&gt;,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">e</span>: <a class="ident" href="../../../src/nom/error.rs.html#366">ErrorKind</a> <span class="op">=</span> <a class="ident" href="../../../src/nom/error.rs.html#371">ErrorKind::IsNot</a>;
-    <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#124">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#464-470">split_at_position1</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#118">arr</a>.<a class="ident" href="../../../src/nom/traits.rs.html#878">find_token</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#126">c</a>), <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#125">e</a>)
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#371">ErrorKind::IsNot</a>;
+    <a href="../../../src/nom/bytes/streaming.rs.html#124">i</a>.<a href="../../../src/nom/traits.rs.html#464-470">split_at_position1</a>(|c| <a href="../../../src/nom/bytes/streaming.rs.html#118">arr</a>.<a href="../../../src/nom/traits.rs.html#878">find_token</a>(<a href="../../../src/nom/bytes/streaming.rs.html#126">c</a>), <a href="../../../src/nom/bytes/streaming.rs.html#125">e</a>)
   }
 }
 
-<span class="doccomment">/// Returns the longest slice of the matches the pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The parser will return the longest slice consisting of the characters in provided in the</span>
-<span class="doccomment">/// combinator&#39;s argument.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Streaming specific</span>
-<span class="doccomment">/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` if the pattern wasn&#39;t met</span>
-<span class="doccomment">/// or if the pattern reaches the end of the input.</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::is_a;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn hex(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   is_a(&quot;1234567890ABCDEF&quot;)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(hex(&quot;123 and voila&quot;), Ok((&quot; and voila&quot;, &quot;123&quot;)));</span>
-<span class="doccomment">/// assert_eq!(hex(&quot;DEADBEEF and others&quot;), Ok((&quot; and others&quot;, &quot;DEADBEEF&quot;)));</span>
-<span class="doccomment">/// assert_eq!(hex(&quot;BADBABEsomething&quot;), Ok((&quot;something&quot;, &quot;BADBABE&quot;)));</span>
-<span class="doccomment">/// assert_eq!(hex(&quot;D15EA5E&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// assert_eq!(hex(&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_a</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">arr</span>: <span class="ident">T</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
-  <span class="ident">T</span>: <span class="ident">FindToken</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputTakeAtPosition</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Returns the longest slice of the matches the pattern.
+///
+/// The parser will return the longest slice consisting of the characters in provided in the
+/// combinator&#39;s argument.
+///
+/// # Streaming specific
+/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` if the pattern wasn&#39;t met
+/// or if the pattern reaches the end of the input.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::ErrorKind, Needed, IResult};
+/// use nom::bytes::streaming::is_a;
+///
+/// fn hex(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   is_a(&quot;1234567890ABCDEF&quot;)(s)
+/// }
+///
+/// assert_eq!(hex(&quot;123 and voila&quot;), Ok((&quot; and voila&quot;, &quot;123&quot;)));
+/// assert_eq!(hex(&quot;DEADBEEF and others&quot;), Ok((&quot; and others&quot;, &quot;DEADBEEF&quot;)));
+/// assert_eq!(hex(&quot;BADBABEsomething&quot;), Ok((&quot;something&quot;, &quot;BADBABE&quot;)));
+/// assert_eq!(hex(&quot;D15EA5E&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// assert_eq!(hex(&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// ```
+</span><span class="kw">pub fn </span>is_a&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
+  arr: T,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  T: FindToken&lt;&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item&gt;,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">e</span>: <a class="ident" href="../../../src/nom/error.rs.html#366">ErrorKind</a> <span class="op">=</span> <a class="ident" href="../../../src/nom/error.rs.html#372">ErrorKind::IsA</a>;
-    <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#160">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#464-470">split_at_position1</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/nom/bytes/streaming.rs.html#154">arr</a>.<a class="ident" href="../../../src/nom/traits.rs.html#878">find_token</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#162">c</a>), <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#161">e</a>)
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#372">ErrorKind::IsA</a>;
+    <a href="../../../src/nom/bytes/streaming.rs.html#160">i</a>.<a href="../../../src/nom/traits.rs.html#464-470">split_at_position1</a>(|c| !<a href="../../../src/nom/bytes/streaming.rs.html#154">arr</a>.<a href="../../../src/nom/traits.rs.html#878">find_token</a>(<a href="../../../src/nom/bytes/streaming.rs.html#162">c</a>), <a href="../../../src/nom/bytes/streaming.rs.html#161">e</a>)
   }
 }
 
-<span class="doccomment">/// Returns the longest input slice (if any) that matches the predicate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The parser will return the longest slice that matches the given predicate *(a function that</span>
-<span class="doccomment">/// takes the input and returns a bool)*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Streaming Specific</span>
-<span class="doccomment">/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` if the pattern reaches the end of the input.</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::take_while;</span>
-<span class="doccomment">/// use nom::character::is_alphabetic;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {</span>
-<span class="doccomment">///   take_while(is_alphabetic)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(alpha(b&quot;latin123&quot;), Ok((&amp;b&quot;123&quot;[..], &amp;b&quot;latin&quot;[..])));</span>
-<span class="doccomment">/// assert_eq!(alpha(b&quot;12345&quot;), Ok((&amp;b&quot;12345&quot;[..], &amp;b&quot;&quot;[..])));</span>
-<span class="doccomment">/// assert_eq!(alpha(b&quot;latin&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// assert_eq!(alpha(b&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_while</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">cond</span>: <span class="ident">F</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
-  <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputTakeAtPosition</span><span class="op">&gt;</span><span class="ident">::Item</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// Returns the longest input slice (if any) that matches the predicate.
+///
+/// The parser will return the longest slice that matches the given predicate *(a function that
+/// takes the input and returns a bool)*.
+///
+/// # Streaming Specific
+/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` if the pattern reaches the end of the input.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::ErrorKind, Needed, IResult};
+/// use nom::bytes::streaming::take_while;
+/// use nom::character::is_alphabetic;
+///
+/// fn alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {
+///   take_while(is_alphabetic)(s)
+/// }
+///
+/// assert_eq!(alpha(b&quot;latin123&quot;), Ok((&amp;b&quot;123&quot;[..], &amp;b&quot;latin&quot;[..])));
+/// assert_eq!(alpha(b&quot;12345&quot;), Ok((&amp;b&quot;12345&quot;[..], &amp;b&quot;&quot;[..])));
+/// assert_eq!(alpha(b&quot;latin&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// assert_eq!(alpha(b&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// ```
+</span><span class="kw">pub fn </span>take_while&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
+  cond: F,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#195">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#454-456">split_at_position</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/nom/bytes/streaming.rs.html#189">cond</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#195">c</a>))
+  <span class="kw">move </span>|i: Input| <a href="../../../src/nom/bytes/streaming.rs.html#195">i</a>.<a href="../../../src/nom/traits.rs.html#454-456">split_at_position</a>(|c| !<a href="../../../src/nom/bytes/streaming.rs.html#189">cond</a>(<a href="../../../src/nom/bytes/streaming.rs.html#195">c</a>))
 }
 
-<span class="doccomment">/// Returns the longest (at least 1) input slice that matches the predicate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The parser will return the longest slice that matches the given predicate *(a function that</span>
-<span class="doccomment">/// takes the input and returns a bool)*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It will return an `Err(Err::Error((_, ErrorKind::TakeWhile1)))` if the pattern wasn&#39;t met.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Streaming Specific</span>
-<span class="doccomment">/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` or if the pattern reaches the end of the input.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::take_while1;</span>
-<span class="doccomment">/// use nom::character::is_alphabetic;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {</span>
-<span class="doccomment">///   take_while1(is_alphabetic)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(alpha(b&quot;latin123&quot;), Ok((&amp;b&quot;123&quot;[..], &amp;b&quot;latin&quot;[..])));</span>
-<span class="doccomment">/// assert_eq!(alpha(b&quot;latin&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// assert_eq!(alpha(b&quot;12345&quot;), Err(Err::Error(Error::new(&amp;b&quot;12345&quot;[..], ErrorKind::TakeWhile1))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_while1</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">cond</span>: <span class="ident">F</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
-  <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputTakeAtPosition</span><span class="op">&gt;</span><span class="ident">::Item</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// Returns the longest (at least 1) input slice that matches the predicate.
+///
+/// The parser will return the longest slice that matches the given predicate *(a function that
+/// takes the input and returns a bool)*.
+///
+/// It will return an `Err(Err::Error((_, ErrorKind::TakeWhile1)))` if the pattern wasn&#39;t met.
+///
+/// # Streaming Specific
+/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` or if the pattern reaches the end of the input.
+///
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
+/// use nom::bytes::streaming::take_while1;
+/// use nom::character::is_alphabetic;
+///
+/// fn alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {
+///   take_while1(is_alphabetic)(s)
+/// }
+///
+/// assert_eq!(alpha(b&quot;latin123&quot;), Ok((&amp;b&quot;123&quot;[..], &amp;b&quot;latin&quot;[..])));
+/// assert_eq!(alpha(b&quot;latin&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// assert_eq!(alpha(b&quot;12345&quot;), Err(Err::Error(Error::new(&amp;b&quot;12345&quot;[..], ErrorKind::TakeWhile1))));
+/// ```
+</span><span class="kw">pub fn </span>take_while1&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
+  cond: F,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">e</span>: <a class="ident" href="../../../src/nom/error.rs.html#366">ErrorKind</a> <span class="op">=</span> <a class="ident" href="../../../src/nom/error.rs.html#402">ErrorKind::TakeWhile1</a>;
-    <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#229">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#464-470">split_at_position1</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/nom/bytes/streaming.rs.html#223">cond</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#231">c</a>), <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#230">e</a>)
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#402">ErrorKind::TakeWhile1</a>;
+    <a href="../../../src/nom/bytes/streaming.rs.html#229">i</a>.<a href="../../../src/nom/traits.rs.html#464-470">split_at_position1</a>(|c| !<a href="../../../src/nom/bytes/streaming.rs.html#223">cond</a>(<a href="../../../src/nom/bytes/streaming.rs.html#231">c</a>), <a href="../../../src/nom/bytes/streaming.rs.html#230">e</a>)
   }
 }
 
-<span class="doccomment">/// Returns the longest (m &lt;= len &lt;= n) input slice  that matches the predicate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The parser will return the longest slice that matches the given predicate *(a function that</span>
-<span class="doccomment">/// takes the input and returns a bool)*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It will return an `Err::Error((_, ErrorKind::TakeWhileMN))` if the pattern wasn&#39;t met.</span>
-<span class="doccomment">/// # Streaming Specific</span>
-<span class="doccomment">/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))`  if the pattern reaches the end of the input or is too short.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::take_while_m_n;</span>
-<span class="doccomment">/// use nom::character::is_alphabetic;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn short_alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {</span>
-<span class="doccomment">///   take_while_m_n(3, 6, is_alphabetic)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(short_alpha(b&quot;latin123&quot;), Ok((&amp;b&quot;123&quot;[..], &amp;b&quot;latin&quot;[..])));</span>
-<span class="doccomment">/// assert_eq!(short_alpha(b&quot;lengthy&quot;), Ok((&amp;b&quot;y&quot;[..], &amp;b&quot;length&quot;[..])));</span>
-<span class="doccomment">/// assert_eq!(short_alpha(b&quot;latin&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// assert_eq!(short_alpha(b&quot;ed&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// assert_eq!(short_alpha(b&quot;12345&quot;), Err(Err::Error(Error::new(&amp;b&quot;12345&quot;[..], ErrorKind::TakeWhileMN))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_while_m_n</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">m</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-  <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-  <span class="ident">cond</span>: <span class="ident">F</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#302">InputIter</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a>,
-  <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputIter</span><span class="op">&gt;</span><span class="ident">::Item</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// Returns the longest (m &lt;= len &lt;= n) input slice  that matches the predicate.
+///
+/// The parser will return the longest slice that matches the given predicate *(a function that
+/// takes the input and returns a bool)*.
+///
+/// It will return an `Err::Error((_, ErrorKind::TakeWhileMN))` if the pattern wasn&#39;t met.
+/// # Streaming Specific
+/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))`  if the pattern reaches the end of the input or is too short.
+///
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
+/// use nom::bytes::streaming::take_while_m_n;
+/// use nom::character::is_alphabetic;
+///
+/// fn short_alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {
+///   take_while_m_n(3, 6, is_alphabetic)(s)
+/// }
+///
+/// assert_eq!(short_alpha(b&quot;latin123&quot;), Ok((&amp;b&quot;123&quot;[..], &amp;b&quot;latin&quot;[..])));
+/// assert_eq!(short_alpha(b&quot;lengthy&quot;), Ok((&amp;b&quot;y&quot;[..], &amp;b&quot;length&quot;[..])));
+/// assert_eq!(short_alpha(b&quot;latin&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// assert_eq!(short_alpha(b&quot;ed&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// assert_eq!(short_alpha(b&quot;12345&quot;), Err(Err::Error(Error::new(&amp;b&quot;12345&quot;[..], ErrorKind::TakeWhileMN))));
+/// ```
+</span><span class="kw">pub fn </span>take_while_m_n&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
+  m: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+  n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+  cond: F,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + <a href="../../../src/nom/traits.rs.html#302">InputIter</a> + <a href="../../../src/nom/traits.rs.html#18">InputLength</a>,
+  F: Fn(&lt;Input <span class="kw">as </span>InputIter&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#269">i</a>;
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>input = <a href="../../../src/nom/bytes/streaming.rs.html#269">i</a>;
 
-    <span class="kw">match</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#320-322">position</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/nom/bytes/streaming.rs.html#263">cond</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#272">c</a>)) {
-      <span class="prelude-val">Some</span>(<span class="ident">idx</span>) =&gt; {
-        <span class="kw">if</span> <span class="ident">idx</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">m</span> {
-          <span class="kw">if</span> <span class="ident">idx</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">n</span> {
-            <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#273">idx</a>) {
-              <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#332">take_split</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#276">index</a>))
-            } <span class="kw">else</span> {
-              <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">Error::from_error_kind</span>(
-                <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>,
-                <a class="ident" href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
+    <span class="kw">match </span><a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a href="../../../src/nom/traits.rs.html#320-322">position</a>(|c| !<a href="../../../src/nom/bytes/streaming.rs.html#263">cond</a>(<a href="../../../src/nom/bytes/streaming.rs.html#272">c</a>)) {
+      <span class="prelude-val">Some</span>(idx) =&gt; {
+        <span class="kw">if </span>idx &gt;= m {
+          <span class="kw">if </span>idx &lt;= n {
+            <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = <a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a href="../../../src/nom/bytes/streaming.rs.html#273">idx</a>) {
+              <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/streaming.rs.html#276">index</a>))
+            } <span class="kw">else </span>{
+              <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
+                <a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>,
+                <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
               )))
             };
-            <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#276">res</a>
-          } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#262">n</a>) {
-              <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#332">take_split</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#286">index</a>))
-            } <span class="kw">else</span> {
-              <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">Error::from_error_kind</span>(
-                <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>,
-                <a class="ident" href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
+            <a href="../../../src/nom/bytes/streaming.rs.html#276">res</a>
+          } <span class="kw">else </span>{
+            <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = <a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a href="../../../src/nom/bytes/streaming.rs.html#262">n</a>) {
+              <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/streaming.rs.html#286">index</a>))
+            } <span class="kw">else </span>{
+              <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
+                <a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>,
+                <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
               )))
             };
-            <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#286">res</a>
+            <a href="../../../src/nom/bytes/streaming.rs.html#286">res</a>
           }
-        } <span class="kw">else</span> {
-          <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>;
-          <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">Error::from_error_kind</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>, <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#297">e</a>)))
+        } <span class="kw">else </span>{
+          <span class="kw">let </span>e = <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>;
+          <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>, <a href="../../../src/nom/bytes/streaming.rs.html#297">e</a>)))
         }
       }
-      <span class="prelude-val">None</span> =&gt; {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#21">input_len</a>();
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">n</span> {
-          <span class="kw">match</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#262">n</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">index</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#332">take_split</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#305">index</a>)),
-            <span class="prelude-val">Err</span>(<span class="ident">_needed</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">Error::from_error_kind</span>(
-              <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#270">input</a>,
-              <a class="ident" href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
+      <span class="prelude-val">None </span>=&gt; {
+        <span class="kw">let </span>len = <a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a href="../../../src/nom/traits.rs.html#21">input_len</a>();
+        <span class="kw">if </span>len &gt;= n {
+          <span class="kw">match </span><a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a href="../../../src/nom/bytes/streaming.rs.html#262">n</a>) {
+            <span class="prelude-val">Ok</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/streaming.rs.html#305">index</a>)),
+            <span class="prelude-val">Err</span>(_needed) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(
+              <a href="../../../src/nom/bytes/streaming.rs.html#270">input</a>,
+              <a href="../../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>,
             ))),
           }
-        } <span class="kw">else</span> {
-          <span class="kw">let</span> <span class="ident">needed</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">m</span> <span class="op">&gt;</span> <span class="ident">len</span> { <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#261">m</a> <span class="op">-</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#302">len</a> } <span class="kw">else</span> { <span class="number">1</span> };
-          <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<span class="ident">Needed::new</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#312">needed</a>)))
+        } <span class="kw">else </span>{
+          <span class="kw">let </span>needed = <span class="kw">if </span>m &gt; len { <a href="../../../src/nom/bytes/streaming.rs.html#261">m</a> - <a href="../../../src/nom/bytes/streaming.rs.html#302">len</a> } <span class="kw">else </span>{ <span class="number">1 </span>};
+          <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(Needed::new(<a href="../../../src/nom/bytes/streaming.rs.html#312">needed</a>)))
         }
       }
     }
   }
 }
 
-<span class="doccomment">/// Returns the longest input slice (if any) till a predicate is met.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The parser will return the longest slice till the given predicate *(a function that</span>
-<span class="doccomment">/// takes the input and returns a bool)*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Streaming Specific</span>
-<span class="doccomment">/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` if the match reaches the</span>
-<span class="doccomment">/// end of input or if there was not match.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::take_till;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn till_colon(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   take_till(|c| c == &#39;:&#39;)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(till_colon(&quot;latin:123&quot;), Ok((&quot;:123&quot;, &quot;latin&quot;)));</span>
-<span class="doccomment">/// assert_eq!(till_colon(&quot;:empty matched&quot;), Ok((&quot;:empty matched&quot;, &quot;&quot;))); //allowed</span>
-<span class="doccomment">/// assert_eq!(till_colon(&quot;12345&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// assert_eq!(till_colon(&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_till</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">cond</span>: <span class="ident">F</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
-  <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputTakeAtPosition</span><span class="op">&gt;</span><span class="ident">::Item</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// Returns the longest input slice (if any) till a predicate is met.
+///
+/// The parser will return the longest slice till the given predicate *(a function that
+/// takes the input and returns a bool)*.
+///
+/// # Streaming Specific
+/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` if the match reaches the
+/// end of input or if there was not match.
+///
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::ErrorKind, Needed, IResult};
+/// use nom::bytes::streaming::take_till;
+///
+/// fn till_colon(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   take_till(|c| c == &#39;:&#39;)(s)
+/// }
+///
+/// assert_eq!(till_colon(&quot;latin:123&quot;), Ok((&quot;:123&quot;, &quot;latin&quot;)));
+/// assert_eq!(till_colon(&quot;:empty matched&quot;), Ok((&quot;:empty matched&quot;, &quot;&quot;))); //allowed
+/// assert_eq!(till_colon(&quot;12345&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// assert_eq!(till_colon(&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// ```
+</span><span class="kw">pub fn </span>take_till&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
+  cond: F,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#350">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#454-456">split_at_position</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#344">cond</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#350">c</a>))
+  <span class="kw">move </span>|i: Input| <a href="../../../src/nom/bytes/streaming.rs.html#350">i</a>.<a href="../../../src/nom/traits.rs.html#454-456">split_at_position</a>(|c| <a href="../../../src/nom/bytes/streaming.rs.html#344">cond</a>(<a href="../../../src/nom/bytes/streaming.rs.html#350">c</a>))
 }
 
-<span class="doccomment">/// Returns the longest (at least 1) input slice till a predicate is met.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The parser will return the longest slice till the given predicate *(a function that</span>
-<span class="doccomment">/// takes the input and returns a bool)*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Streaming Specific</span>
-<span class="doccomment">/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` if the match reaches the</span>
-<span class="doccomment">/// end of input or if there was not match.</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::take_till1;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn till_colon(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   take_till1(|c| c == &#39;:&#39;)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(till_colon(&quot;latin:123&quot;), Ok((&quot;:123&quot;, &quot;latin&quot;)));</span>
-<span class="doccomment">/// assert_eq!(till_colon(&quot;:empty matched&quot;), Err(Err::Error(Error::new(&quot;:empty matched&quot;, ErrorKind::TakeTill1))));</span>
-<span class="doccomment">/// assert_eq!(till_colon(&quot;12345&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// assert_eq!(till_colon(&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_till1</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">cond</span>: <span class="ident">F</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
-  <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputTakeAtPosition</span><span class="op">&gt;</span><span class="ident">::Item</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// Returns the longest (at least 1) input slice till a predicate is met.
+///
+/// The parser will return the longest slice till the given predicate *(a function that
+/// takes the input and returns a bool)*.
+///
+/// # Streaming Specific
+/// *Streaming version* will return a `Err::Incomplete(Needed::new(1))` if the match reaches the
+/// end of input or if there was not match.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
+/// use nom::bytes::streaming::take_till1;
+///
+/// fn till_colon(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   take_till1(|c| c == &#39;:&#39;)(s)
+/// }
+///
+/// assert_eq!(till_colon(&quot;latin:123&quot;), Ok((&quot;:123&quot;, &quot;latin&quot;)));
+/// assert_eq!(till_colon(&quot;:empty matched&quot;), Err(Err::Error(Error::new(&quot;:empty matched&quot;, ErrorKind::TakeTill1))));
+/// assert_eq!(till_colon(&quot;12345&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// assert_eq!(till_colon(&quot;&quot;), Err(Err::Incomplete(Needed::new(1))));
+/// ```
+</span><span class="kw">pub fn </span>take_till1&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
+  cond: F,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>,
+  F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">e</span>: <a class="ident" href="../../../src/nom/error.rs.html#366">ErrorKind</a> <span class="op">=</span> <a class="ident" href="../../../src/nom/error.rs.html#412">ErrorKind::TakeTill1</a>;
-    <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#382">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#464-470">split_at_position1</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#376">cond</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#384">c</a>), <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#383">e</a>)
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>e: <a href="../../../src/nom/error.rs.html#366">ErrorKind</a> = <a href="../../../src/nom/error.rs.html#412">ErrorKind::TakeTill1</a>;
+    <a href="../../../src/nom/bytes/streaming.rs.html#382">i</a>.<a href="../../../src/nom/traits.rs.html#464-470">split_at_position1</a>(|c| <a href="../../../src/nom/bytes/streaming.rs.html#376">cond</a>(<a href="../../../src/nom/bytes/streaming.rs.html#384">c</a>), <a href="../../../src/nom/bytes/streaming.rs.html#383">e</a>)
   }
 }
 
-<span class="doccomment">/// Returns an input slice containing the first N input elements (Input[..N]).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Streaming Specific</span>
-<span class="doccomment">/// *Streaming version* if the input has less than N elements, `take` will</span>
-<span class="doccomment">/// return a `Err::Incomplete(Needed::new(M))` where M is the number of</span>
-<span class="doccomment">/// additional bytes the parser would need to succeed.</span>
-<span class="doccomment">/// It is well defined for `&amp;[u8]` as the number of elements is the byte size,</span>
-<span class="doccomment">/// but for types like `&amp;str`, we cannot know how many bytes correspond for</span>
-<span class="doccomment">/// the next few chars, so the result will be `Err::Incomplete(Needed::Unknown)`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::take;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn take6(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   take(6usize)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(take6(&quot;1234567&quot;), Ok((&quot;7&quot;, &quot;123456&quot;)));</span>
-<span class="doccomment">/// assert_eq!(take6(&quot;things&quot;), Ok((&quot;&quot;, &quot;things&quot;)));</span>
-<span class="doccomment">/// assert_eq!(take6(&quot;short&quot;), Err(Err::Incomplete(Needed::Unknown)));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">count</span>: <span class="ident">C</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#302">InputIter</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a>,
-  <span class="ident">C</span>: <a class="ident" href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
+<span class="doccomment">/// Returns an input slice containing the first N input elements (Input[..N]).
+///
+/// # Streaming Specific
+/// *Streaming version* if the input has less than N elements, `take` will
+/// return a `Err::Incomplete(Needed::new(M))` where M is the number of
+/// additional bytes the parser would need to succeed.
+/// It is well defined for `&amp;[u8]` as the number of elements is the byte size,
+/// but for types like `&amp;str`, we cannot know how many bytes correspond for
+/// the next few chars, so the result will be `Err::Incomplete(Needed::Unknown)`
+///
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::ErrorKind, Needed, IResult};
+/// use nom::bytes::streaming::take;
+///
+/// fn take6(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   take(6usize)(s)
+/// }
+///
+/// assert_eq!(take6(&quot;1234567&quot;), Ok((&quot;7&quot;, &quot;123456&quot;)));
+/// assert_eq!(take6(&quot;things&quot;), Ok((&quot;&quot;, &quot;things&quot;)));
+/// assert_eq!(take6(&quot;short&quot;), Err(Err::Incomplete(Needed::Unknown)));
+/// ```
+</span><span class="kw">pub fn </span>take&lt;C, Input, Error: ParseError&lt;Input&gt;&gt;(
+  count: C,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#302">InputIter</a> + <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + <a href="../../../src/nom/traits.rs.html#18">InputLength</a>,
+  C: <a href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
 {
-  <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#412">count</a>.<a class="ident" href="../../../src/nom/traits.rs.html#1236">to_usize</a>();
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#419">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#418">c</a>) {
-    <span class="prelude-val">Err</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#420">i</a>)),
-    <span class="prelude-val">Ok</span>(<span class="ident">index</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#419">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#332">take_split</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#421">index</a>)),
+  <span class="kw">let </span>c = <a href="../../../src/nom/bytes/streaming.rs.html#412">count</a>.<a href="../../../src/nom/traits.rs.html#1236">to_usize</a>();
+  <span class="kw">move </span>|i: Input| <span class="kw">match </span><a href="../../../src/nom/bytes/streaming.rs.html#419">i</a>.<a href="../../../src/nom/traits.rs.html#324">slice_index</a>(<a href="../../../src/nom/bytes/streaming.rs.html#418">c</a>) {
+    <span class="prelude-val">Err</span>(i) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/bytes/streaming.rs.html#420">i</a>)),
+    <span class="prelude-val">Ok</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/streaming.rs.html#419">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/streaming.rs.html#421">index</a>)),
   }
 }
 
-<span class="doccomment">/// Returns the input slice up to the first occurrence of the pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It doesn&#39;t consume the pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Streaming Specific</span>
-<span class="doccomment">/// *Streaming version* will return a `Err::Incomplete(Needed::new(N))` if the input doesn&#39;t</span>
-<span class="doccomment">/// contain the pattern or if the input is smaller than the pattern.</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::take_until;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn until_eof(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   take_until(&quot;eof&quot;)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;hello, worldeof&quot;), Ok((&quot;eof&quot;, &quot;hello, world&quot;)));</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;hello, world&quot;), Err(Err::Incomplete(Needed::Unknown)));</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;hello, worldeo&quot;), Err(Err::Incomplete(Needed::Unknown)));</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;1eof2eof&quot;), Ok((&quot;eof2eof&quot;, &quot;1&quot;)));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_until</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">tag</span>: <span class="ident">T</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a> <span class="op">+</span> <span class="ident">FindSubstring</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-  <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+<span class="doccomment">/// Returns the input slice up to the first occurrence of the pattern.
+///
+/// It doesn&#39;t consume the pattern.
+///
+/// # Streaming Specific
+/// *Streaming version* will return a `Err::Incomplete(Needed::new(N))` if the input doesn&#39;t
+/// contain the pattern or if the input is smaller than the pattern.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::ErrorKind, Needed, IResult};
+/// use nom::bytes::streaming::take_until;
+///
+/// fn until_eof(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   take_until(&quot;eof&quot;)(s)
+/// }
+///
+/// assert_eq!(until_eof(&quot;hello, worldeof&quot;), Ok((&quot;eof&quot;, &quot;hello, world&quot;)));
+/// assert_eq!(until_eof(&quot;hello, world&quot;), Err(Err::Incomplete(Needed::Unknown)));
+/// assert_eq!(until_eof(&quot;hello, worldeo&quot;), Err(Err::Incomplete(Needed::Unknown)));
+/// assert_eq!(until_eof(&quot;1eof2eof&quot;), Ok((&quot;eof2eof&quot;, &quot;1&quot;)));
+/// ```
+</span><span class="kw">pub fn </span>take_until&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
+  tag: T,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + FindSubstring&lt;T&gt;,
+  T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#447">tag</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>t = <a href="../../../src/nom/bytes/streaming.rs.html#447">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#453">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#932">find_substring</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#454">t</a>) {
-      <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a class="ident" href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>)),
-      <span class="prelude-val">Some</span>(<span class="ident">index</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#453">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#332">take_split</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#458">index</a>)),
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="../../../src/nom/bytes/streaming.rs.html#453">i</a>.<a href="../../../src/nom/traits.rs.html#932">find_substring</a>(<a href="../../../src/nom/bytes/streaming.rs.html#454">t</a>) {
+      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>)),
+      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/streaming.rs.html#453">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/streaming.rs.html#458">index</a>)),
     };
-    <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#456">res</a>
+    <a href="../../../src/nom/bytes/streaming.rs.html#456">res</a>
   }
 }
 
-<span class="doccomment">/// Returns the non empty input slice up to the first occurrence of the pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It doesn&#39;t consume the pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Streaming Specific</span>
-<span class="doccomment">/// *Streaming version* will return a `Err::Incomplete(Needed::new(N))` if the input doesn&#39;t</span>
-<span class="doccomment">/// contain the pattern or if the input is smaller than the pattern.</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};</span>
-<span class="doccomment">/// use nom::bytes::streaming::take_until1;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn until_eof(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   take_until1(&quot;eof&quot;)(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;hello, worldeof&quot;), Ok((&quot;eof&quot;, &quot;hello, world&quot;)));</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;hello, world&quot;), Err(Err::Incomplete(Needed::Unknown)));</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;hello, worldeo&quot;), Err(Err::Incomplete(Needed::Unknown)));</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;1eof2eof&quot;), Ok((&quot;eof2eof&quot;, &quot;1&quot;)));</span>
-<span class="doccomment">/// assert_eq!(until_eof(&quot;eof&quot;),  Err(Err::Error(Error::new(&quot;eof&quot;, ErrorKind::TakeUntil))));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_until1</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Input</span>, <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">tag</span>: <span class="ident">T</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a> <span class="op">+</span> <span class="ident">FindSubstring</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-  <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+<span class="doccomment">/// Returns the non empty input slice up to the first occurrence of the pattern.
+///
+/// It doesn&#39;t consume the pattern.
+///
+/// # Streaming Specific
+/// *Streaming version* will return a `Err::Incomplete(Needed::new(N))` if the input doesn&#39;t
+/// contain the pattern or if the input is smaller than the pattern.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
+/// use nom::bytes::streaming::take_until1;
+///
+/// fn until_eof(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   take_until1(&quot;eof&quot;)(s)
+/// }
+///
+/// assert_eq!(until_eof(&quot;hello, worldeof&quot;), Ok((&quot;eof&quot;, &quot;hello, world&quot;)));
+/// assert_eq!(until_eof(&quot;hello, world&quot;), Err(Err::Incomplete(Needed::Unknown)));
+/// assert_eq!(until_eof(&quot;hello, worldeo&quot;), Err(Err::Incomplete(Needed::Unknown)));
+/// assert_eq!(until_eof(&quot;1eof2eof&quot;), Ok((&quot;eof2eof&quot;, &quot;1&quot;)));
+/// assert_eq!(until_eof(&quot;eof&quot;),  Err(Err::Error(Error::new(&quot;eof&quot;, ErrorKind::TakeUntil))));
+/// ```
+</span><span class="kw">pub fn </span>take_until1&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
+  tag: T,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="../../../src/nom/traits.rs.html#328">InputTake</a> + <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + FindSubstring&lt;T&gt;,
+  T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#487">tag</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>t = <a href="../../../src/nom/bytes/streaming.rs.html#487">tag</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#493">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#932">find_substring</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#494">t</a>) {
-      <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a class="ident" href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>)),
-      <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">Error::from_error_kind</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#493">i</a>, <a class="ident" href="../../../src/nom/error.rs.html#379">ErrorKind::TakeUntil</a>))),
-      <span class="prelude-val">Some</span>(<span class="ident">index</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#493">i</a>.<a class="ident" href="../../../src/nom/traits.rs.html#332">take_split</a>(<a class="ident" href="../../../src/nom/bytes/streaming.rs.html#499">index</a>)),
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span><a href="../../../src/nom/bytes/streaming.rs.html#493">i</a>.<a href="../../../src/nom/traits.rs.html#932">find_substring</a>(<a href="../../../src/nom/bytes/streaming.rs.html#494">t</a>) {
+      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>)),
+      <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(Error::from_error_kind(<a href="../../../src/nom/bytes/streaming.rs.html#493">i</a>, <a href="../../../src/nom/error.rs.html#379">ErrorKind::TakeUntil</a>))),
+      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/nom/bytes/streaming.rs.html#493">i</a>.<a href="../../../src/nom/traits.rs.html#332">take_split</a>(<a href="../../../src/nom/bytes/streaming.rs.html#499">index</a>)),
     };
-    <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#496">res</a>
+    <a href="../../../src/nom/bytes/streaming.rs.html#496">res</a>
   }
 }
 
-<span class="doccomment">/// Matches a byte string with escaped characters.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * The first argument matches the normal characters (it must not accept the control character)</span>
-<span class="doccomment">/// * The second argument is the control character (like `\` in most languages)</span>
-<span class="doccomment">/// * The third argument matches the escaped characters</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed, IResult};</span>
-<span class="doccomment">/// # use nom::character::complete::digit1;</span>
-<span class="doccomment">/// use nom::bytes::streaming::escaped;</span>
-<span class="doccomment">/// use nom::character::streaming::one_of;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn esc(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {</span>
-<span class="doccomment">///   escaped(digit1, &#39;\\&#39;, one_of(&quot;\&quot;n\\&quot;))(s)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(esc(&quot;123;&quot;), Ok((&quot;;&quot;, &quot;123&quot;)));</span>
-<span class="doccomment">/// assert_eq!(esc(&quot;12\\\&quot;34;&quot;), Ok((&quot;;&quot;, &quot;12\\\&quot;34&quot;)));</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">escaped</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Error</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">O1</span>, <span class="ident">O2</span><span class="op">&gt;</span>(
-  <span class="kw-2">mut</span> <span class="ident">normal</span>: <span class="ident">F</span>,
-  <span class="ident">control_char</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-  <span class="kw-2">mut</span> <span class="ident">escapable</span>: <span class="ident">G</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Input</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#48"><span class="kw">crate</span>::traits::Offset</a>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>
-    <span class="op">+</span> <span class="ident">Slice</span><span class="op">&lt;</span><span class="ident">RangeFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#302">InputIter</a>,
-  <span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputIter</span><span class="op">&gt;</span><span class="ident">::Item</span>: <a class="ident" href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>,
-  <span class="ident">F</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">O1</span>, <span class="ident">Error</span><span class="op">&gt;</span>,
-  <span class="ident">G</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">O2</span>, <span class="ident">Error</span><span class="op">&gt;</span>,
-  <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Matches a byte string with escaped characters.
+///
+/// * The first argument matches the normal characters (it must not accept the control character)
+/// * The second argument is the control character (like `\` in most languages)
+/// * The third argument matches the escaped characters
+/// # Example
+/// ```
+/// # use nom::{Err, error::ErrorKind, Needed, IResult};
+/// # use nom::character::complete::digit1;
+/// use nom::bytes::streaming::escaped;
+/// use nom::character::streaming::one_of;
+///
+/// fn esc(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   escaped(digit1, &#39;\\&#39;, one_of(&quot;\&quot;n\\&quot;))(s)
+/// }
+///
+/// assert_eq!(esc(&quot;123;&quot;), Ok((&quot;;&quot;, &quot;123&quot;)));
+/// assert_eq!(esc(&quot;12\\\&quot;34;&quot;), Ok((&quot;;&quot;, &quot;12\\\&quot;34&quot;)));
+/// ```
+///
+</span><span class="kw">pub fn </span>escaped&lt;Input, Error, F, G, O1, O2&gt;(
+  <span class="kw-2">mut </span>normal: F,
+  control_char: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
+  <span class="kw-2">mut </span>escapable: G,
+) -&gt; <span class="kw">impl </span>FnMut(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
+    + <a href="../../../src/nom/traits.rs.html#48"><span class="kw">crate</span>::traits::Offset</a>
+    + <a href="../../../src/nom/traits.rs.html#18">InputLength</a>
+    + <a href="../../../src/nom/traits.rs.html#328">InputTake</a>
+    + <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>
+    + Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;
+    + <a href="../../../src/nom/traits.rs.html#302">InputIter</a>,
+  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <a href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>,
+  F: Parser&lt;Input, O1, Error&gt;,
+  G: Parser&lt;Input, O2, Error&gt;,
+  Error: ParseError&lt;Input&gt;,
 {
-  <span class="kw">use</span> <a class="ident" href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>;
+  <span class="kw">use </span><a href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>;
 
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">input</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#545">input</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+  <span class="kw">move </span>|input: Input| {
+    <span class="kw">let </span><span class="kw-2">mut </span>i = <a href="../../../src/nom/bytes/streaming.rs.html#545">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="kw">while</span> <span class="ident">i</span>.<span class="ident">input_len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
-      <span class="kw">let</span> <span class="ident">current_len</span> <span class="op">=</span> <span class="ident">i</span>.<span class="ident">input_len</span>();
+    <span class="kw">while </span>i.input_len() &gt; <span class="number">0 </span>{
+      <span class="kw">let </span>current_len = i.input_len();
 
-      <span class="kw">match</span> <span class="ident">normal</span>.<span class="ident">parse</span>(<span class="ident">i</span>.<span class="ident">clone</span>()) {
-        <span class="prelude-val">Ok</span>((<span class="ident">i2</span>, <span class="kw">_</span>)) =&gt; {
-          <span class="kw">if</span> <span class="ident">i2</span>.<span class="ident">input_len</span>() <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Unknown</span>));
-          } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i2</span>.<span class="ident">input_len</span>() <span class="op">==</span> <span class="ident">current_len</span> {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">offset</span>(<span class="kw-2">&amp;</span><span class="ident">i2</span>);
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>.<span class="ident">take_split</span>(<span class="ident">index</span>));
-          } <span class="kw">else</span> {
-            <span class="ident">i</span> <span class="op">=</span> <span class="ident">i2</span>;
+      <span class="kw">match </span>normal.parse(i.clone()) {
+        <span class="prelude-val">Ok</span>((i2, <span class="kw">_</span>)) =&gt; {
+          <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
+          } <span class="kw">else if </span>i2.input_len() == current_len {
+            <span class="kw">let </span>index = input.offset(<span class="kw-2">&amp;</span>i2);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(input.take_split(index));
+          } <span class="kw">else </span>{
+            i = i2;
           }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; {
-          <span class="comment">// unwrap() should be safe here since index &lt; $i.input_len()</span>
-          <span class="kw">if</span> <span class="ident">i</span>.<span class="ident">iter_elements</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_char</span>() <span class="op">==</span> <span class="ident">control_char</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">control_char</span>.<span class="ident">len_utf8</span>();
-            <span class="kw">if</span> <span class="ident">next</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">i</span>.<span class="ident">input_len</span>() {
-              <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>)));
-            } <span class="kw">else</span> {
-              <span class="kw">match</span> <span class="ident">escapable</span>.<span class="ident">parse</span>(<span class="ident">i</span>.<span class="ident">slice</span>(<span class="ident">next</span>..)) {
-                <span class="prelude-val">Ok</span>((<span class="ident">i2</span>, <span class="kw">_</span>)) =&gt; {
-                  <span class="kw">if</span> <span class="ident">i2</span>.<span class="ident">input_len</span>() <span class="op">==</span> <span class="number">0</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Unknown</span>));
-                  } <span class="kw">else</span> {
-                    <span class="ident">i</span> <span class="op">=</span> <span class="ident">i2</span>;
+        <span class="prelude-val">Err</span>(Err::Error(<span class="kw">_</span>)) =&gt; {
+          <span class="comment">// unwrap() should be safe here since index &lt; $i.input_len()
+          </span><span class="kw">if </span>i.iter_elements().next().unwrap().as_char() == control_char {
+            <span class="kw">let </span>next = control_char.len_utf8();
+            <span class="kw">if </span>next &gt;= i.input_len() {
+              <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(<span class="number">1</span>)));
+            } <span class="kw">else </span>{
+              <span class="kw">match </span>escapable.parse(i.slice(next..)) {
+                <span class="prelude-val">Ok</span>((i2, <span class="kw">_</span>)) =&gt; {
+                  <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
+                  } <span class="kw">else </span>{
+                    i = i2;
                   }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
               }
             }
-          } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">offset</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>);
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>.<span class="ident">take_split</span>(<span class="ident">index</span>));
+          } <span class="kw">else </span>{
+            <span class="kw">let </span>index = input.offset(<span class="kw-2">&amp;</span>i);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(input.take_split(index));
           }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-          <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
+        <span class="prelude-val">Err</span>(e) =&gt; {
+          <span class="kw">return </span><span class="prelude-val">Err</span>(e);
         }
       }
     }
 
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a class="ident" href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>))
+    <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>))
   }
 }
 
-<span class="doccomment">/// Matches a byte string with escaped characters.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * The first argument matches the normal characters (it must not match the control character)</span>
-<span class="doccomment">/// * The second argument is the control character (like `\` in most languages)</span>
-<span class="doccomment">/// * The third argument matches the escaped characters and transforms them</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// As an example, the chain `abc\tdef` could be `abc    def` (it also consumes the control character)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed, IResult};</span>
-<span class="doccomment">/// # use std::str::from_utf8;</span>
-<span class="doccomment">/// use nom::bytes::streaming::{escaped_transform, tag};</span>
-<span class="doccomment">/// use nom::character::streaming::alpha1;</span>
-<span class="doccomment">/// use nom::branch::alt;</span>
-<span class="doccomment">/// use nom::combinator::value;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn parser(input: &amp;str) -&gt; IResult&lt;&amp;str, String&gt; {</span>
-<span class="doccomment">///   escaped_transform(</span>
-<span class="doccomment">///     alpha1,</span>
-<span class="doccomment">///     &#39;\\&#39;,</span>
-<span class="doccomment">///     alt((</span>
-<span class="doccomment">///       value(&quot;\\&quot;, tag(&quot;\\&quot;)),</span>
-<span class="doccomment">///       value(&quot;\&quot;&quot;, tag(&quot;\&quot;&quot;)),</span>
-<span class="doccomment">///       value(&quot;\n&quot;, tag(&quot;n&quot;)),</span>
-<span class="doccomment">///     ))</span>
-<span class="doccomment">///   )(input)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;ab\\\&quot;cd\&quot;&quot;), Ok((&quot;\&quot;&quot;, String::from(&quot;ab\&quot;cd&quot;))));</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docsrs&quot;</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">escaped_transform</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Error</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">O1</span>, <span class="ident">O2</span>, <span class="ident">ExtendItem</span>, <span class="ident">Output</span><span class="op">&gt;</span>(
-  <span class="kw-2">mut</span> <span class="ident">normal</span>: <span class="ident">F</span>,
-  <span class="ident">control_char</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-  <span class="kw-2">mut</span> <span class="ident">transform</span>: <span class="ident">G</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="ident">Input</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Output</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">Input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#48"><span class="kw">crate</span>::traits::Offset</a>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#328">InputTake</a>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>
-    <span class="op">+</span> <span class="ident">Slice</span><span class="op">&lt;</span><span class="ident">RangeFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#302">InputIter</a>,
-  <span class="ident">Input</span>: <span class="ident"><span class="kw">crate</span>::traits::ExtendInto</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">ExtendItem</span>, <span class="ident">Extender</span> <span class="op">=</span> <span class="ident">Output</span><span class="op">&gt;</span>,
-  <span class="ident">O1</span>: <span class="ident"><span class="kw">crate</span>::traits::ExtendInto</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">ExtendItem</span>, <span class="ident">Extender</span> <span class="op">=</span> <span class="ident">Output</span><span class="op">&gt;</span>,
-  <span class="ident">O2</span>: <span class="ident"><span class="kw">crate</span>::traits::ExtendInto</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">ExtendItem</span>, <span class="ident">Extender</span> <span class="op">=</span> <span class="ident">Output</span><span class="op">&gt;</span>,
-  <span class="op">&lt;</span><span class="ident">Input</span> <span class="kw">as</span> <span class="ident">InputIter</span><span class="op">&gt;</span><span class="ident">::Item</span>: <a class="ident" href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>,
-  <span class="ident">F</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">O1</span>, <span class="ident">Error</span><span class="op">&gt;</span>,
-  <span class="ident">G</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">O2</span>, <span class="ident">Error</span><span class="op">&gt;</span>,
-  <span class="ident">Error</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Matches a byte string with escaped characters.
+///
+/// * The first argument matches the normal characters (it must not match the control character)
+/// * The second argument is the control character (like `\` in most languages)
+/// * The third argument matches the escaped characters and transforms them
+///
+/// As an example, the chain `abc\tdef` could be `abc    def` (it also consumes the control character)
+///
+/// ```
+/// # use nom::{Err, error::ErrorKind, Needed, IResult};
+/// # use std::str::from_utf8;
+/// use nom::bytes::streaming::{escaped_transform, tag};
+/// use nom::character::streaming::alpha1;
+/// use nom::branch::alt;
+/// use nom::combinator::value;
+///
+/// fn parser(input: &amp;str) -&gt; IResult&lt;&amp;str, String&gt; {
+///   escaped_transform(
+///     alpha1,
+///     &#39;\\&#39;,
+///     alt((
+///       value(&quot;\\&quot;, tag(&quot;\\&quot;)),
+///       value(&quot;\&quot;&quot;, tag(&quot;\&quot;&quot;)),
+///       value(&quot;\n&quot;, tag(&quot;n&quot;)),
+///     ))
+///   )(input)
+/// }
+///
+/// assert_eq!(parser(&quot;ab\\\&quot;cd\&quot;&quot;), Ok((&quot;\&quot;&quot;, String::from(&quot;ab\&quot;cd&quot;))));
+/// ```
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+#[cfg_attr(feature = <span class="string">&quot;docsrs&quot;</span>, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="kw">pub fn </span>escaped_transform&lt;Input, Error, F, G, O1, O2, ExtendItem, Output&gt;(
+  <span class="kw-2">mut </span>normal: F,
+  control_char: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
+  <span class="kw-2">mut </span>transform: G,
+) -&gt; <span class="kw">impl </span>FnMut(Input) -&gt; IResult&lt;Input, Output, Error&gt;
+<span class="kw">where
+  </span>Input: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>
+    + <a href="../../../src/nom/traits.rs.html#48"><span class="kw">crate</span>::traits::Offset</a>
+    + <a href="../../../src/nom/traits.rs.html#18">InputLength</a>
+    + <a href="../../../src/nom/traits.rs.html#328">InputTake</a>
+    + <a href="../../../src/nom/traits.rs.html#444">InputTakeAtPosition</a>
+    + Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt;
+    + <a href="../../../src/nom/traits.rs.html#302">InputIter</a>,
+  Input: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
+  O1: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
+  O2: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
+  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <a href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>,
+  F: Parser&lt;Input, O1, Error&gt;,
+  G: Parser&lt;Input, O2, Error&gt;,
+  Error: ParseError&lt;Input&gt;,
 {
-  <span class="kw">use</span> <a class="ident" href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>;
+  <span class="kw">use </span><a href="../../../src/nom/traits.rs.html#151"><span class="kw">crate</span>::traits::AsChar</a>;
 
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">input</span>: <span class="ident">Input</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#650">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#1148">new_builder</a>();
+  <span class="kw">move </span>|input: Input| {
+    <span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>res = <a href="../../../src/nom/bytes/streaming.rs.html#650">input</a>.<a href="../../../src/nom/traits.rs.html#1148">new_builder</a>();
 
-    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bytes/streaming.rs.html#650">input</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let </span>i = <a href="../../../src/nom/bytes/streaming.rs.html#650">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="kw">while</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">i</span>.<span class="ident">input_len</span>() {
-      <span class="kw">let</span> <span class="ident">current_len</span> <span class="op">=</span> <span class="ident">i</span>.<span class="ident">input_len</span>();
-      <span class="kw">let</span> <span class="ident">remainder</span> <span class="op">=</span> <span class="ident">i</span>.<span class="ident">slice</span>(<span class="ident">index</span>..);
-      <span class="kw">match</span> <span class="ident">normal</span>.<span class="ident">parse</span>(<span class="ident">remainder</span>.<span class="ident">clone</span>()) {
-        <span class="prelude-val">Ok</span>((<span class="ident">i2</span>, <span class="ident">o</span>)) =&gt; {
-          <span class="ident">o</span>.<span class="ident">extend_into</span>(<span class="kw-2">&amp;mut</span> <span class="ident">res</span>);
-          <span class="kw">if</span> <span class="ident">i2</span>.<span class="ident">input_len</span>() <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Unknown</span>));
-          } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i2</span>.<span class="ident">input_len</span>() <span class="op">==</span> <span class="ident">current_len</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">remainder</span>, <span class="ident">res</span>));
-          } <span class="kw">else</span> {
-            <span class="ident">index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">offset</span>(<span class="kw-2">&amp;</span><span class="ident">i2</span>);
+    <span class="kw">while </span>index &lt; i.input_len() {
+      <span class="kw">let </span>current_len = i.input_len();
+      <span class="kw">let </span>remainder = i.slice(index..);
+      <span class="kw">match </span>normal.parse(remainder.clone()) {
+        <span class="prelude-val">Ok</span>((i2, o)) =&gt; {
+          o.extend_into(<span class="kw-2">&amp;mut </span>res);
+          <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
+          } <span class="kw">else if </span>i2.input_len() == current_len {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>((remainder, res));
+          } <span class="kw">else </span>{
+            index = input.offset(<span class="kw-2">&amp;</span>i2);
           }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; {
-          <span class="comment">// unwrap() should be safe here since index &lt; $i.input_len()</span>
-          <span class="kw">if</span> <span class="ident">remainder</span>.<span class="ident">iter_elements</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_char</span>() <span class="op">==</span> <span class="ident">control_char</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">+</span> <span class="ident">control_char</span>.<span class="ident">len_utf8</span>();
-            <span class="kw">let</span> <span class="ident">input_len</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">input_len</span>();
+        <span class="prelude-val">Err</span>(Err::Error(<span class="kw">_</span>)) =&gt; {
+          <span class="comment">// unwrap() should be safe here since index &lt; $i.input_len()
+          </span><span class="kw">if </span>remainder.iter_elements().next().unwrap().as_char() == control_char {
+            <span class="kw">let </span>next = index + control_char.len_utf8();
+            <span class="kw">let </span>input_len = input.input_len();
 
-            <span class="kw">if</span> <span class="ident">next</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">input_len</span> {
-              <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Unknown</span>));
-            } <span class="kw">else</span> {
-              <span class="kw">match</span> <span class="ident">transform</span>.<span class="ident">parse</span>(<span class="ident">i</span>.<span class="ident">slice</span>(<span class="ident">next</span>..)) {
-                <span class="prelude-val">Ok</span>((<span class="ident">i2</span>, <span class="ident">o</span>)) =&gt; {
-                  <span class="ident">o</span>.<span class="ident">extend_into</span>(<span class="kw-2">&amp;mut</span> <span class="ident">res</span>);
-                  <span class="kw">if</span> <span class="ident">i2</span>.<span class="ident">input_len</span>() <span class="op">==</span> <span class="number">0</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Unknown</span>));
-                  } <span class="kw">else</span> {
-                    <span class="ident">index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">offset</span>(<span class="kw-2">&amp;</span><span class="ident">i2</span>);
+            <span class="kw">if </span>next &gt;= input_len {
+              <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
+            } <span class="kw">else </span>{
+              <span class="kw">match </span>transform.parse(i.slice(next..)) {
+                <span class="prelude-val">Ok</span>((i2, o)) =&gt; {
+                  o.extend_into(<span class="kw-2">&amp;mut </span>res);
+                  <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
+                  } <span class="kw">else </span>{
+                    index = input.offset(<span class="kw-2">&amp;</span>i2);
                   }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
               }
             }
-          } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">remainder</span>, <span class="ident">res</span>));
+          } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>((remainder, res));
           }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
       }
     }
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a class="ident" href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>))
+    <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a href="../../../src/nom/internal.rs.html#52">Needed::Unknown</a>))
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

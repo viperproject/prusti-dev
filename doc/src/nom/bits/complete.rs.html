@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.1/src/bits/complete.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>complete.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nom/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.1/src/bits/complete.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>complete.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nom/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -148,155 +148,155 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Bit level parsers</span>
-<span class="doccomment">//!</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Bit level parsers
+//!
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../src/nom/error.rs.html#366">ErrorKind</a>, <a class="ident" href="../../../src/nom/error.rs.html#16">ParseError</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::internal</span>::{<span class="prelude-val">Err</span>, <a class="ident" href="../../../src/nom/internal.rs.html#18">IResult</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::lib::std::ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Div.html">Div</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html">RangeFrom</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shl.html">Shl</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shr.html">Shr</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::traits</span>::{<a class="ident" href="../../../src/nom/traits.rs.html#302">InputIter</a>, <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a>, <a class="ident" href="../../../src/nom/traits.rs.html#1006">Slice</a>, <a class="ident" href="../../../src/nom/traits.rs.html#1234">ToUsize</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../src/nom/error.rs.html#366">ErrorKind</a>, <a href="../../../src/nom/error.rs.html#16">ParseError</a>};
+<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, <a href="../../../src/nom/internal.rs.html#18">IResult</a>};
+<span class="kw">use </span><span class="kw">crate</span>::lib::std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Div.html">Div</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html">RangeFrom</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shl.html">Shl</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shr.html">Shr</a>};
+<span class="kw">use </span><span class="kw">crate</span>::traits::{<a href="../../../src/nom/traits.rs.html#302">InputIter</a>, <a href="../../../src/nom/traits.rs.html#18">InputLength</a>, <a href="../../../src/nom/traits.rs.html#1006">Slice</a>, <a href="../../../src/nom/traits.rs.html#1234">ToUsize</a>};
 
-<span class="doccomment">/// Generates a parser taking `count` bits</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use nom::bits::complete::take;</span>
-<span class="doccomment">/// # use nom::IResult;</span>
-<span class="doccomment">/// # use nom::error::{Error, ErrorKind};</span>
-<span class="doccomment">/// // Input is a tuple of (input: I, bit_offset: usize)</span>
-<span class="doccomment">/// fn parser(input: (&amp;[u8], usize), count: usize)-&gt; IResult&lt;(&amp;[u8], usize), u8&gt; {</span>
-<span class="doccomment">///  take(count)(input)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Consumes 0 bits, returns 0</span>
-<span class="doccomment">/// assert_eq!(parser(([0b00010010].as_ref(), 0), 0), Ok((([0b00010010].as_ref(), 0), 0)));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Consumes 4 bits, returns their values and increase offset to 4</span>
-<span class="doccomment">/// assert_eq!(parser(([0b00010010].as_ref(), 0), 4), Ok((([0b00010010].as_ref(), 4), 0b00000001)));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Consumes 4 bits, offset is 4, returns their values and increase offset to 0 of next byte</span>
-<span class="doccomment">/// assert_eq!(parser(([0b00010010].as_ref(), 4), 4), Ok((([].as_ref(), 0), 0b00000010)));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Tries to consume 12 bits but only 8 are available</span>
-<span class="doccomment">/// assert_eq!(parser(([0b00010010].as_ref(), 0), 12), Err(nom::Err::Error(Error{input: ([0b00010010].as_ref(), 0), code: ErrorKind::Eof })));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">C</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span>(<span class="ident">I</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">count</span>: <span class="ident">C</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>((<span class="ident">I</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span>(<span class="ident">I</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">I</span>: <span class="ident">Slice</span><span class="op">&lt;</span><span class="ident">RangeFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">InputIter</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a>,
-  <span class="ident">C</span>: <a class="ident" href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
-  <span class="ident">O</span>: <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a> <span class="op">+</span> <span class="ident">Shl</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">O</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Shr</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">O</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Generates a parser taking `count` bits
+///
+/// # Example
+/// ```rust
+/// # use nom::bits::complete::take;
+/// # use nom::IResult;
+/// # use nom::error::{Error, ErrorKind};
+/// // Input is a tuple of (input: I, bit_offset: usize)
+/// fn parser(input: (&amp;[u8], usize), count: usize)-&gt; IResult&lt;(&amp;[u8], usize), u8&gt; {
+///  take(count)(input)
+/// }
+///
+/// // Consumes 0 bits, returns 0
+/// assert_eq!(parser(([0b00010010].as_ref(), 0), 0), Ok((([0b00010010].as_ref(), 0), 0)));
+///
+/// // Consumes 4 bits, returns their values and increase offset to 4
+/// assert_eq!(parser(([0b00010010].as_ref(), 0), 4), Ok((([0b00010010].as_ref(), 4), 0b00000001)));
+///
+/// // Consumes 4 bits, offset is 4, returns their values and increase offset to 0 of next byte
+/// assert_eq!(parser(([0b00010010].as_ref(), 4), 4), Ok((([].as_ref(), 0), 0b00000010)));
+///
+/// // Tries to consume 12 bits but only 8 are available
+/// assert_eq!(parser(([0b00010010].as_ref(), 0), 12), Err(nom::Err::Error(Error{input: ([0b00010010].as_ref(), 0), code: ErrorKind::Eof })));
+/// ```
+</span><span class="kw">pub fn </span>take&lt;I, O, C, E: ParseError&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt;&gt;(
+  count: C,
+) -&gt; <span class="kw">impl </span>Fn((I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)) -&gt; IResult&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), O, E&gt;
+<span class="kw">where
+  </span>I: Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; + InputIter&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="../../../src/nom/traits.rs.html#18">InputLength</a>,
+  C: <a href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
+  O: From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a> + Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = O&gt; + Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = O&gt;,
 {
-  <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bits/complete.rs.html#34">count</a>.<a class="ident" href="../../../src/nom/traits.rs.html#1236">to_usize</a>();
-  <span class="kw">move</span> <span class="op">|</span>(<span class="ident">input</span>, <span class="ident">bit_offset</span>): (<span class="ident">I</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">|</span> {
-    <span class="kw">if</span> <span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
-      <span class="prelude-val">Ok</span>(((<a class="ident" href="../../../src/nom/bits/complete.rs.html#42">input</a>, <a class="ident" href="../../../src/nom/bits/complete.rs.html#42">bit_offset</a>), <span class="number">0u8</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
-    } <span class="kw">else</span> {
-      <span class="kw">let</span> <span class="ident">cnt</span> <span class="op">=</span> (<a class="ident" href="../../../src/nom/bits/complete.rs.html#41">count</a> <span class="op">+</span> <a class="ident" href="../../../src/nom/bits/complete.rs.html#42">bit_offset</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Div.html">div</a>(<span class="number">8</span>);
-      <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">input_len</span>() <span class="op">*</span> <span class="number">8</span> <span class="op">&lt;</span> <span class="ident">count</span> <span class="op">+</span> <span class="ident">bit_offset</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">E::from_error_kind</span>(
-          (<a class="ident" href="../../../src/nom/bits/complete.rs.html#42">input</a>, <a class="ident" href="../../../src/nom/bits/complete.rs.html#42">bit_offset</a>),
-          <a class="ident" href="../../../src/nom/error.rs.html#390">ErrorKind::Eof</a>,
+  <span class="kw">let </span>count = <a href="../../../src/nom/bits/complete.rs.html#34">count</a>.<a href="../../../src/nom/traits.rs.html#1236">to_usize</a>();
+  <span class="kw">move </span>|(input, bit_offset): (I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)| {
+    <span class="kw">if </span>count == <span class="number">0 </span>{
+      <span class="prelude-val">Ok</span>(((<a href="../../../src/nom/bits/complete.rs.html#42">input</a>, <a href="../../../src/nom/bits/complete.rs.html#42">bit_offset</a>), <span class="number">0u8</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+    } <span class="kw">else </span>{
+      <span class="kw">let </span>cnt = (<a href="../../../src/nom/bits/complete.rs.html#41">count</a> + <a href="../../../src/nom/bits/complete.rs.html#42">bit_offset</a>).<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Div.html">div</a>(<span class="number">8</span>);
+      <span class="kw">if </span>input.input_len() * <span class="number">8 </span>&lt; count + bit_offset {
+        <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(E::from_error_kind(
+          (<a href="../../../src/nom/bits/complete.rs.html#42">input</a>, <a href="../../../src/nom/bits/complete.rs.html#42">bit_offset</a>),
+          <a href="../../../src/nom/error.rs.html#390">ErrorKind::Eof</a>,
         )))
-      } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">acc</span>: <span class="ident">O</span> <span class="op">=</span> <span class="number">0_u8</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../src/nom/bits/complete.rs.html#42">bit_offset</a>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remaining</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../src/nom/bits/complete.rs.html#41">count</a>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end_offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
+      } <span class="kw">else </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>acc: O = <span class="number">0_u8</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../src/nom/bits/complete.rs.html#42">bit_offset</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>remaining: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <a href="../../../src/nom/bits/complete.rs.html#41">count</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>end_offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
 
-        <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">input</span>.<span class="ident">iter_elements</span>().<span class="ident">take</span>(<span class="ident">cnt</span> <span class="op">+</span> <span class="number">1</span>) {
-          <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">for </span>byte <span class="kw">in </span>input.iter_elements().take(cnt + <span class="number">1</span>) {
+          <span class="kw">if </span>remaining == <span class="number">0 </span>{
             <span class="kw">break</span>;
           }
-          <span class="kw">let</span> <span class="ident">val</span>: <span class="ident">O</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="ident">byte</span>.<span class="ident">into</span>()
-          } <span class="kw">else</span> {
-            ((<span class="ident">byte</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">offset</span>) <span class="kw">as</span> <span class="ident">u8</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">offset</span>).<span class="ident">into</span>()
+          <span class="kw">let </span>val: O = <span class="kw">if </span>offset == <span class="number">0 </span>{
+            byte.into()
+          } <span class="kw">else </span>{
+            ((byte &lt;&lt; offset) <span class="kw">as </span>u8 &gt;&gt; offset).into()
           };
 
-          <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">&lt;</span> <span class="number">8</span> <span class="op">-</span> <span class="ident">offset</span> {
-            <span class="ident">acc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="number">8</span> <span class="op">-</span> <span class="ident">offset</span> <span class="op">-</span> <span class="ident">remaining</span>);
-            <span class="ident">end_offset</span> <span class="op">=</span> <span class="ident">remaining</span> <span class="op">+</span> <span class="ident">offset</span>;
+          <span class="kw">if </span>remaining &lt; <span class="number">8 </span>- offset {
+            acc += val &gt;&gt; (<span class="number">8 </span>- offset - remaining);
+            end_offset = remaining + offset;
             <span class="kw">break</span>;
-          } <span class="kw">else</span> {
-            <span class="ident">acc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">val</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">remaining</span> <span class="op">-</span> (<span class="number">8</span> <span class="op">-</span> <span class="ident">offset</span>));
-            <span class="ident">remaining</span> <span class="op">-</span><span class="op">=</span> <span class="number">8</span> <span class="op">-</span> <span class="ident">offset</span>;
-            <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
+          } <span class="kw">else </span>{
+            acc += val &lt;&lt; (remaining - (<span class="number">8 </span>- offset));
+            remaining -= <span class="number">8 </span>- offset;
+            offset = <span class="number">0</span>;
           }
         }
-        <span class="prelude-val">Ok</span>(((<a class="ident" href="../../../src/nom/bits/complete.rs.html#42">input</a>.<a class="ident" href="../../../src/nom/traits.rs.html#1008">slice</a>(<a class="ident" href="../../../src/nom/bits/complete.rs.html#46">cnt</a>..), <a class="ident" href="../../../src/nom/bits/complete.rs.html#56">end_offset</a>), <a class="ident" href="../../../src/nom/bits/complete.rs.html#53">acc</a>))
+        <span class="prelude-val">Ok</span>(((<a href="../../../src/nom/bits/complete.rs.html#42">input</a>.<a href="../../../src/nom/traits.rs.html#1008">slice</a>(<a href="../../../src/nom/bits/complete.rs.html#46">cnt</a>..), <a href="../../../src/nom/bits/complete.rs.html#56">end_offset</a>), <a href="../../../src/nom/bits/complete.rs.html#53">acc</a>))
       }
     }
   }
 }
 
-<span class="doccomment">/// Generates a parser taking `count` bits and comparing them to `pattern`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">C</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span>(<span class="ident">I</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">pattern</span>: <span class="ident">O</span>,
-  <span class="ident">count</span>: <span class="ident">C</span>,
-) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>((<span class="ident">I</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span>(<span class="ident">I</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">I</span>: <span class="ident">Slice</span><span class="op">&lt;</span><span class="ident">RangeFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">InputIter</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="../../../src/nom/traits.rs.html#18">InputLength</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-  <span class="ident">C</span>: <a class="ident" href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
-  <span class="ident">O</span>: <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a> <span class="op">+</span> <span class="ident">Shl</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">O</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Shr</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">O</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
+<span class="doccomment">/// Generates a parser taking `count` bits and comparing them to `pattern`
+</span><span class="kw">pub fn </span>tag&lt;I, O, C, E: ParseError&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)&gt;&gt;(
+  pattern: O,
+  count: C,
+) -&gt; <span class="kw">impl </span>Fn((I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)) -&gt; IResult&lt;(I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), O, E&gt;
+<span class="kw">where
+  </span>I: Slice&lt;RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; + InputIter&lt;Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="../../../src/nom/traits.rs.html#18">InputLength</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+  C: <a href="../../../src/nom/traits.rs.html#1234">ToUsize</a>,
+  O: From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a> + Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = O&gt; + Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, Output = O&gt; + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>,
 {
-  <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bits/complete.rs.html#87">count</a>.<a class="ident" href="../../../src/nom/traits.rs.html#1236">to_usize</a>();
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">input</span>: (<span class="ident">I</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">inp</span> <span class="op">=</span> <a class="ident" href="../../../src/nom/bits/complete.rs.html#95">input</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+  <span class="kw">let </span>count = <a href="../../../src/nom/bits/complete.rs.html#87">count</a>.<a href="../../../src/nom/traits.rs.html#1236">to_usize</a>();
+  <span class="kw">move </span>|input: (I, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)| {
+    <span class="kw">let </span>inp = <a href="../../../src/nom/bits/complete.rs.html#95">input</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <a class="ident" href="../../../src/nom/bits/complete.rs.html#33-39">take</a>(<a class="ident" href="../../../src/nom/bits/complete.rs.html#94">count</a>)(<a class="ident" href="../../../src/nom/bits/complete.rs.html#95">input</a>).<span class="ident">and_then</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">o</span>)<span class="op">|</span> {
-      <span class="kw">if</span> <span class="ident">pattern</span> <span class="op">==</span> <span class="ident">o</span> {
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/nom/bits/complete.rs.html#98">i</a>, <a class="ident" href="../../../src/nom/bits/complete.rs.html#98">o</a>))
-      } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<a class="macro" href="../../../src/nom/error.rs.html#550-554">error_position!</a>(<span class="ident">inp</span>, <span class="ident">ErrorKind::TagBits</span>)))
+    <a href="../../../src/nom/bits/complete.rs.html#33-39">take</a>(<a href="../../../src/nom/bits/complete.rs.html#94">count</a>)(<a href="../../../src/nom/bits/complete.rs.html#95">input</a>).and_then(|(i, o)| {
+      <span class="kw">if </span>pattern == o {
+        <span class="prelude-val">Ok</span>((<a href="../../../src/nom/bits/complete.rs.html#98">i</a>, <a href="../../../src/nom/bits/complete.rs.html#98">o</a>))
+      } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(<a href="../../../src/nom/internal.rs.html#101">Err::Error</a>(<a class="macro" href="../../../src/nom/error.rs.html#550-554">error_position!</a>(inp, ErrorKind::TagBits)))
       }
     })
   }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-  <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+  <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_take_0</span>() {
-    <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> [<span class="number">0b00010010</span>].<span class="ident">as_ref</span>();
-    <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0usize</span>;
-    <span class="macro">assert_eq!</span>(<span class="ident">count</span>, <span class="number">0usize</span>);
-    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">0usize</span>;
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>test_take_0() {
+    <span class="kw">let </span>input = [<span class="number">0b00010010</span>].as_ref();
+    <span class="kw">let </span>count = <span class="number">0usize</span>;
+    <span class="macro">assert_eq!</span>(count, <span class="number">0usize</span>);
+    <span class="kw">let </span>offset = <span class="number">0usize</span>;
 
-    <span class="kw">let</span> <span class="ident">result</span>: <span class="ident"><span class="kw">crate</span>::IResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>), <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take</span>(<span class="ident">count</span>)((<span class="ident">input</span>, <span class="ident">offset</span>));
+    <span class="kw">let </span>result: <span class="kw">crate</span>::IResult&lt;(<span class="kw-2">&amp;</span>[u8], usize), usize&gt; = take(count)((input, offset));
 
-    <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(((<span class="ident">input</span>, <span class="ident">offset</span>), <span class="number">0</span>)));
+    <span class="macro">assert_eq!</span>(result, <span class="prelude-val">Ok</span>(((input, offset), <span class="number">0</span>)));
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_take_eof</span>() {
-    <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> [<span class="number">0b00010010</span>].<span class="ident">as_ref</span>();
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>test_take_eof() {
+    <span class="kw">let </span>input = [<span class="number">0b00010010</span>].as_ref();
 
-    <span class="kw">let</span> <span class="ident">result</span>: <span class="ident"><span class="kw">crate</span>::IResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>), <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take</span>(<span class="number">1usize</span>)((<span class="ident">input</span>, <span class="number">8</span>));
+    <span class="kw">let </span>result: <span class="kw">crate</span>::IResult&lt;(<span class="kw-2">&amp;</span>[u8], usize), usize&gt; = take(<span class="number">1usize</span>)((input, <span class="number">8</span>));
 
     <span class="macro">assert_eq!</span>(
-      <span class="ident">result</span>,
-      <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Err::Error</span>(<span class="ident"><span class="kw">crate</span>::error::Error</span> {
-        <span class="ident">input</span>: (<span class="ident">input</span>, <span class="number">8</span>),
-        <span class="ident">code</span>: <span class="ident">ErrorKind::Eof</span>
+      result,
+      <span class="prelude-val">Err</span>(<span class="kw">crate</span>::Err::Error(<span class="kw">crate</span>::error::Error {
+        input: (input, <span class="number">8</span>),
+        code: ErrorKind::Eof
       }))
     )
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_take_span_over_multiple_bytes</span>() {
-    <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> [<span class="number">0b00010010</span>, <span class="number">0b00110100</span>, <span class="number">0b11111111</span>, <span class="number">0b11111111</span>].<span class="ident">as_ref</span>();
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>test_take_span_over_multiple_bytes() {
+    <span class="kw">let </span>input = [<span class="number">0b00010010</span>, <span class="number">0b00110100</span>, <span class="number">0b11111111</span>, <span class="number">0b11111111</span>].as_ref();
 
-    <span class="kw">let</span> <span class="ident">result</span>: <span class="ident"><span class="kw">crate</span>::IResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>), <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take</span>(<span class="number">24usize</span>)((<span class="ident">input</span>, <span class="number">4</span>));
+    <span class="kw">let </span>result: <span class="kw">crate</span>::IResult&lt;(<span class="kw-2">&amp;</span>[u8], usize), usize&gt; = take(<span class="number">24usize</span>)((input, <span class="number">4</span>));
 
     <span class="macro">assert_eq!</span>(
-      <span class="ident">result</span>,
-      <span class="prelude-val">Ok</span>((([<span class="number">0b11111111</span>].<span class="ident">as_ref</span>(), <span class="number">4</span>), <span class="number">0b1000110100111111111111</span>))
+      result,
+      <span class="prelude-val">Ok</span>((([<span class="number">0b11111111</span>].as_ref(), <span class="number">4</span>), <span class="number">0b1000110100111111111111</span>))
     );
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

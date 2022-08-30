@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/transport.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>transport.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/transport.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>transport.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -427,434 +427,434 @@
 <span id="427">427</span>
 <span id="428">428</span>
 <span id="429">429</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Interfaces for adding custom transports to libgit2</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Interfaces for adding custom transports to libgit2
 
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>};
-<span class="kw">use</span> <span class="ident">std::ffi</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</span><span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>};
+<span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/git2/lib.rs.html#655">panic</a>, <a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/remote.rs.html#22">Remote</a>};
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../src/git2/lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/remote.rs.html#22">Remote</a>};
 
-<span class="doccomment">/// A transport is a structure which knows how to transfer data to and from a</span>
-<span class="doccomment">/// remote.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This transport is a representation of the raw transport underneath it, which</span>
-<span class="doccomment">/// is similar to a trait object in Rust.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_copy_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Transport</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_transport.html">raw::git_transport</a>,
-    <span class="ident">owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// A transport is a structure which knows how to transfer data to and from a
+/// remote.
+///
+/// This transport is a representation of the raw transport underneath it, which
+/// is similar to a trait object in Rust.
+</span><span class="attribute">#[allow(missing_copy_implementations)]
+</span><span class="kw">pub struct </span>Transport {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_transport.html">raw::git_transport</a>,
+    owned: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="doccomment">/// Interface used by smart transports.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The full-fledged definiton of transports has to deal with lots of</span>
-<span class="doccomment">/// nitty-gritty details of the git protocol, but &quot;smart transports&quot; largely</span>
-<span class="doccomment">/// only need to deal with read() and write() of data over a channel.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A smart subtransport is contained within an instance of a smart transport</span>
-<span class="doccomment">/// and is delegated to in order to actually conduct network activity to push or</span>
-<span class="doccomment">/// pull data from a remote.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SmartSubtransport</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-    <span class="doccomment">/// Indicates that this subtransport will be performing the specified action</span>
-    <span class="doccomment">/// on the specified URL.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is responsible for making any network connections and</span>
-    <span class="doccomment">/// returns a stream which can be read and written from in order to</span>
-    <span class="doccomment">/// negotiate the git protocol.</span>
-    <span class="kw">fn</span> <span class="ident">action</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">action</span>: <a class="ident" href="../../src/git2/transport.rs.html#59">Service</a>)
-        -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/git2/transport.rs.html#72">SmartSubtransportStream</a><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>;
+<span class="doccomment">/// Interface used by smart transports.
+///
+/// The full-fledged definiton of transports has to deal with lots of
+/// nitty-gritty details of the git protocol, but &quot;smart transports&quot; largely
+/// only need to deal with read() and write() of data over a channel.
+///
+/// A smart subtransport is contained within an instance of a smart transport
+/// and is delegated to in order to actually conduct network activity to push or
+/// pull data from a remote.
+</span><span class="kw">pub trait </span>SmartSubtransport: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static </span>{
+    <span class="doccomment">/// Indicates that this subtransport will be performing the specified action
+    /// on the specified URL.
+    ///
+    /// This function is responsible for making any network connections and
+    /// returns a stream which can be read and written from in order to
+    /// negotiate the git protocol.
+    </span><span class="kw">fn </span>action(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, action: <a href="../../src/git2/transport.rs.html#59">Service</a>)
+        -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span><a href="../../src/git2/transport.rs.html#72">SmartSubtransportStream</a>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;;
 
-    <span class="doccomment">/// Terminates a connection with the remote.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Each subtransport is guaranteed a call to close() between calls to</span>
-    <span class="doccomment">/// action(), except for the following two natural progressions of actions</span>
-    <span class="doccomment">/// against a constant URL.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// 1. UploadPackLs -&gt; UploadPack</span>
-    <span class="doccomment">/// 2. ReceivePackLs -&gt; ReceivePack</span>
-    <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>;
+    <span class="doccomment">/// Terminates a connection with the remote.
+    ///
+    /// Each subtransport is guaranteed a call to close() between calls to
+    /// action(), except for the following two natural progressions of actions
+    /// against a constant URL.
+    ///
+    /// 1. UploadPackLs -&gt; UploadPack
+    /// 2. ReceivePackLs -&gt; ReceivePack
+    </span><span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt;;
 }
 
-<span class="doccomment">/// Actions that a smart transport can ask a subtransport to perform</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Service</span> {
-    <span class="ident">UploadPackLs</span>,
-    <span class="ident">UploadPack</span>,
-    <span class="ident">ReceivePackLs</span>,
-    <span class="ident">ReceivePack</span>,
+<span class="doccomment">/// Actions that a smart transport can ask a subtransport to perform
+</span><span class="attribute">#[derive(Copy, Clone, PartialEq)]
+#[allow(missing_docs)]
+</span><span class="kw">pub enum </span>Service {
+    UploadPackLs,
+    UploadPack,
+    ReceivePackLs,
+    ReceivePack,
 }
 
-<span class="doccomment">/// An instance of a stream over which a smart transport will communicate with a</span>
-<span class="doccomment">/// remote.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Currently this only requires the standard `Read` and `Write` traits. This</span>
-<span class="doccomment">/// trait also does not need to be implemented manually as long as the `Read`</span>
-<span class="doccomment">/// and `Write` traits are implemented.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SmartSubtransportStream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {}
+<span class="doccomment">/// An instance of a stream over which a smart transport will communicate with a
+/// remote.
+///
+/// Currently this only requires the standard `Read` and `Write` traits. This
+/// trait also does not need to be implemented manually as long as the `Read`
+/// and `Write` traits are implemented.
+</span><span class="kw">pub trait </span>SmartSubtransportStream: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static </span>{}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/transport.rs.html#72">SmartSubtransportStream</a> <span class="kw">for</span> <span class="ident">T</span> {}
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; <a href="../../src/git2/transport.rs.html#72">SmartSubtransportStream</a> <span class="kw">for </span>T {}
 
-<span class="kw">type</span> <span class="ident">TransportFactory</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">Remote</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/transport.rs.html#21">Transport</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>;
+<span class="kw">type </span>TransportFactory = <span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Remote&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/transport.rs.html#21">Transport</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>;
 
-<span class="doccomment">/// Boxed data payload used for registering new transports.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Currently only contains a field which knows how to create transports.</span>
-<span class="kw">struct</span> <span class="ident">TransportData</span> {
-    <span class="ident">factory</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/transport.rs.html#76">TransportFactory</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Boxed data payload used for registering new transports.
+///
+/// Currently only contains a field which knows how to create transports.
+</span><span class="kw">struct </span>TransportData {
+    factory: Box&lt;<a href="../../src/git2/transport.rs.html#76">TransportFactory</a>&gt;,
 }
 
-<span class="doccomment">/// Instance of a `git_smart_subtransport`, must use `#[repr(C)]` to ensure that</span>
-<span class="doccomment">/// the C fields come first.</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">struct</span> <span class="ident">RawSmartSubtransport</span> {
-    <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>,
-    <span class="ident">stream</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a><span class="op">&gt;</span>,
-    <span class="ident">rpc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">obj</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/git2/transport.rs.html#35">SmartSubtransport</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Instance of a `git_smart_subtransport`, must use `#[repr(C)]` to ensure that
+/// the C fields come first.
+</span><span class="attribute">#[repr(C)]
+</span><span class="kw">struct </span>RawSmartSubtransport {
+    raw: <a href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>,
+    stream: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>&gt;,
+    rpc: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    obj: Box&lt;<span class="kw">dyn </span><a href="../../src/git2/transport.rs.html#35">SmartSubtransport</a>&gt;,
 }
 
-<span class="doccomment">/// Instance of a `git_smart_subtransport_stream`, must use `#[repr(C)]` to</span>
-<span class="doccomment">/// ensure that the C fields come first.</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">struct</span> <span class="ident">RawSmartSubtransportStream</span> {
-    <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>,
-    <span class="ident">obj</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/git2/transport.rs.html#72">SmartSubtransportStream</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Instance of a `git_smart_subtransport_stream`, must use `#[repr(C)]` to
+/// ensure that the C fields come first.
+</span><span class="attribute">#[repr(C)]
+</span><span class="kw">struct </span>RawSmartSubtransportStream {
+    raw: <a href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>,
+    obj: Box&lt;<span class="kw">dyn </span><a href="../../src/git2/transport.rs.html#72">SmartSubtransportStream</a>&gt;,
 }
 
-<span class="doccomment">/// Add a custom transport definition, to be used in addition to the built-in</span>
-<span class="doccomment">/// set of transports that come with libgit2.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is unsafe as it needs to be externally synchronized with calls</span>
-<span class="doccomment">/// to creation of other transports.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">register</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">factory</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">Remote</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/transport.rs.html#21">Transport</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Add a custom transport definition, to be used in addition to the built-in
+/// set of transports that come with libgit2.
+///
+/// This function is unsafe as it needs to be externally synchronized with calls
+/// to creation of other transports.
+</span><span class="kw">pub unsafe fn </span>register&lt;F&gt;(prefix: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, factory: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt;
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;</span>Remote&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/transport.rs.html#21">Transport</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
 {
-    <a class="ident" href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/transport.rs.html#81">TransportData</a> {
-        <span class="ident">factory</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/transport.rs.html#108">factory</a>),
+    <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>data = Box::new(<a href="../../src/git2/transport.rs.html#81">TransportData</a> {
+        factory: Box::new(<a href="../../src/git2/transport.rs.html#108">factory</a>),
     });
-    <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">prefix</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">datap</span> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/git2/transport.rs.html#113">data</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/git2/transport.rs.html#81">TransportData</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-    <span class="kw">let</span> <span class="ident">factory</span>: <span class="ident">raw::git_transport_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/transport.rs.html#200-204">transport_factory</a>);
-    <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_transport_register</span>(<span class="ident">prefix</span>, <span class="ident">factory</span>, <span class="ident">datap</span>));
-    <span class="ident">mem::forget</span>(<a class="ident" href="../../src/git2/transport.rs.html#113">data</a>);
+    <span class="kw">let </span>prefix = CString::new(prefix)<span class="question-mark">?</span>;
+    <span class="kw">let </span>datap = (<span class="kw-2">&amp;mut *</span><a href="../../src/git2/transport.rs.html#113">data</a>) <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../src/git2/transport.rs.html#81">TransportData</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+    <span class="kw">let </span>factory: raw::git_transport_cb = <span class="prelude-val">Some</span>(<a href="../../src/git2/transport.rs.html#200-204">transport_factory</a>);
+    <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_transport_register(prefix, factory, datap));
+    mem::forget(<a href="../../src/git2/transport.rs.html#113">data</a>);
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/transport.rs.html#21">Transport</a> {
-    <span class="doccomment">/// Creates a new transport which will use the &quot;smart&quot; transport protocol</span>
-    <span class="doccomment">/// for transferring data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A smart transport requires a *subtransport* over which data is actually</span>
-    <span class="doccomment">/// communicated, but this subtransport largely just needs to be able to</span>
-    <span class="doccomment">/// read() and write(). The subtransport provided will be used to make</span>
-    <span class="doccomment">/// connections which can then be read/written from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `rpc` argument is `true` if the protocol is stateless, false</span>
-    <span class="doccomment">/// otherwise. For example `http://` is stateless but `git://` is not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">smart</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">remote</span>: <span class="kw-2">&amp;</span><span class="ident">Remote</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">rpc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">subtransport</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/transport.rs.html#21">Transport</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../src/git2/transport.rs.html#35">SmartSubtransport</a>,
+<span class="kw">impl </span><a href="../../src/git2/transport.rs.html#21">Transport</a> {
+    <span class="doccomment">/// Creates a new transport which will use the &quot;smart&quot; transport protocol
+    /// for transferring data.
+    ///
+    /// A smart transport requires a *subtransport* over which data is actually
+    /// communicated, but this subtransport largely just needs to be able to
+    /// read() and write(). The subtransport provided will be used to make
+    /// connections which can then be read/written from.
+    ///
+    /// The `rpc` argument is `true` if the protocol is stateless, false
+    /// otherwise. For example `http://` is stateless but `git://` is not.
+    </span><span class="kw">pub fn </span>smart&lt;S&gt;(remote: <span class="kw-2">&amp;</span>Remote&lt;<span class="lifetime">&#39;_</span>&gt;, rpc: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, subtransport: S) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/transport.rs.html#21">Transport</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt;
+    <span class="kw">where
+        </span>S: <a href="../../src/git2/transport.rs.html#35">SmartSubtransport</a>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/transport.rs.html#88">RawSmartSubtransport</a> {
-            <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a> {
-                <span class="ident">action</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/transport.rs.html#234-239">subtransport_action</a>),
-                <span class="ident">close</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/transport.rs.html#290">subtransport_close</a>),
-                <span class="ident">free</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/transport.rs.html#304">subtransport_free</a>),
+        <span class="kw">let </span><span class="kw-2">mut </span>raw = Box::new(<a href="../../src/git2/transport.rs.html#88">RawSmartSubtransport</a> {
+            raw: <a href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a> {
+                action: <span class="prelude-val">Some</span>(<a href="../../src/git2/transport.rs.html#234-239">subtransport_action</a>),
+                close: <span class="prelude-val">Some</span>(<a href="../../src/git2/transport.rs.html#290">subtransport_close</a>),
+                free: <span class="prelude-val">Some</span>(<a href="../../src/git2/transport.rs.html#304">subtransport_free</a>),
             },
-            <span class="ident">stream</span>: <span class="prelude-val">None</span>,
-            <a class="ident" href="../../src/git2/transport.rs.html#135">rpc</a>,
-            <span class="ident">obj</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/transport.rs.html#135">subtransport</a>),
+            stream: <span class="prelude-val">None</span>,
+            <a href="../../src/git2/transport.rs.html#135">rpc</a>,
+            obj: Box::new(<a href="../../src/git2/transport.rs.html#135">subtransport</a>),
         });
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">defn</span> <span class="op">=</span> <span class="ident">raw::git_smart_subtransport_definition</span> {
-            <span class="ident">callback</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/transport.rs.html#178-182">smart_factory</a>),
-            <span class="ident">rpc</span>: <a class="ident" href="../../src/git2/transport.rs.html#135">rpc</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
-            <span class="ident">param</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/git2/transport.rs.html#141">raw</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>defn = raw::git_smart_subtransport_definition {
+            callback: <span class="prelude-val">Some</span>(<a href="../../src/git2/transport.rs.html#178-182">smart_factory</a>),
+            rpc: <a href="../../src/git2/transport.rs.html#135">rpc</a> <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>,
+            param: <span class="kw-2">&amp;mut *</span><a href="../../src/git2/transport.rs.html#141">raw</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
         };
 
-        <span class="comment">// Currently there&#39;s no way to pass a payload via the</span>
-        <span class="comment">// git_smart_subtransport_definition structure, but it&#39;s only used as a</span>
-        <span class="comment">// configuration for the initial creation of the smart transport (verified</span>
-        <span class="comment">// by reading the current code, hopefully it doesn&#39;t change!).</span>
-        <span class="comment">//</span>
-        <span class="comment">// We, however, need some state (gotta pass in our</span>
-        <span class="comment">// `RawSmartSubtransport`). This also means that this block must be</span>
-        <span class="comment">// entirely synchronized with a lock (boo!)</span>
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_transport_smart</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">ret</span>,
-                <span class="ident">remote</span>.<span class="ident">raw</span>(),
-                <span class="kw-2">&amp;mut</span> <span class="ident">defn</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
-            ));
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/git2/transport.rs.html#141">raw</a>); <span class="comment">// ownership transport to `ret`</span>
-        }
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/transport.rs.html#21">Transport</a> {
-            <span class="ident">raw</span>: <a class="ident" href="../../src/git2/transport.rs.html#139">ret</a>,
-            <span class="ident">owned</span>: <span class="bool-val">true</span>,
+        <span class="comment">// Currently there&#39;s no way to pass a payload via the
+        // git_smart_subtransport_definition structure, but it&#39;s only used as a
+        // configuration for the initial creation of the smart transport (verified
+        // by reading the current code, hopefully it doesn&#39;t change!).
+        //
+        // We, however, need some state (gotta pass in our
+        // `RawSmartSubtransport`). This also means that this block must be
+        // entirely synchronized with a lock (boo!)
+        </span><span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_transport_smart(
+                <span class="kw-2">&amp;mut </span>ret,
+                remote.raw(),
+                <span class="kw-2">&amp;mut </span>defn <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_
+            </span>));
+            mem::forget(<a href="../../src/git2/transport.rs.html#141">raw</a>); <span class="comment">// ownership transport to `ret`
+        </span>}
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../src/git2/transport.rs.html#21">Transport</a> {
+            raw: <a href="../../src/git2/transport.rs.html#139">ret</a>,
+            owned: <span class="bool-val">true</span>,
         });
 
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">smart_factory</span>(
-            <span class="ident">out</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>,
-            <span class="ident">_owner</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_transport.html">raw::git_transport</a>,
-            <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-        ) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-            <span class="kw">unsafe</span> {
-                <span class="kw-2">*</span><a class="ident" href="../../src/git2/transport.rs.html#179">out</a> <span class="op">=</span> <a class="ident" href="../../src/git2/transport.rs.html#181">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>;
-                <span class="number">0</span>
-            }
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>smart_factory(
+            out: <span class="kw-2">*mut *mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>,
+            _owner: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_transport.html">raw::git_transport</a>,
+            ptr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+            <span class="kw">unsafe </span>{
+                <span class="kw-2">*</span><a href="../../src/git2/transport.rs.html#179">out</a> = <a href="../../src/git2/transport.rs.html#181">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>;
+                <span class="number">0
+            </span>}
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/git2/transport.rs.html#21">Transport</a> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">owned</span> {
-            <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../src/git2/transport.rs.html#192">self</a>.<span class="ident">raw</span>).<span class="ident">free</span>.<span class="ident">unwrap</span>()(<a class="self" href="../../src/git2/transport.rs.html#192">self</a>.<span class="ident">raw</span>) }
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="../../src/git2/transport.rs.html#21">Transport</a> {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.owned {
+            <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="../../src/git2/transport.rs.html#192">self</a>.raw).free.unwrap()(<a class="self" href="../../src/git2/transport.rs.html#192">self</a>.raw) }
         }
     }
 }
 
-<span class="comment">// callback used by register() to create new transports</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">transport_factory</span>(
-    <span class="ident">out</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_transport.html">raw::git_transport</a>,
-    <span class="ident">owner</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_remote.html">raw::git_remote</a>,
-    <span class="ident">param</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">struct</span> <span class="ident">Bomb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">remote</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Remote</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="comment">// callback used by register() to create new transports
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>transport_factory(
+    out: <span class="kw-2">*mut *mut </span><a href="../../libgit2_sys/struct.git_transport.html">raw::git_transport</a>,
+    owner: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_remote.html">raw::git_remote</a>,
+    param: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">struct </span>Bomb&lt;<span class="lifetime">&#39;a</span>&gt; {
+        remote: <span class="prelude-ty">Option</span>&lt;Remote&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
     }
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Bomb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <span class="comment">// TODO: maybe a method instead?</span>
-            <span class="ident">mem::forget</span>(<a class="self" href="../../src/git2/transport.rs.html#209">self</a>.<span class="ident">remote</span>.<span class="ident">take</span>());
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Bomb&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+            <span class="comment">// TODO: maybe a method instead?
+            </span>mem::forget(<a class="self" href="../../src/git2/transport.rs.html#209">self</a>.remote.take());
         }
     }
 
-    <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">remote</span> <span class="op">=</span> <a class="ident" href="../../src/git2/transport.rs.html#205">Bomb</a> {
-            <span class="ident">remote</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/transport.rs.html#202">owner</a>)),
+    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>remote = <a href="../../src/git2/transport.rs.html#205">Bomb</a> {
+            remote: <span class="prelude-val">Some</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/transport.rs.html#202">owner</a>)),
         };
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/transport.rs.html#203">param</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/git2/transport.rs.html#81">TransportData</a>);
-        <span class="kw">match</span> (<a class="ident" href="../../src/git2/transport.rs.html#219">data</a>.<span class="ident">factory</span>)(<a class="ident" href="../../src/git2/transport.rs.html#216">remote</a>.<span class="ident">remote</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()) {
-            <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">transport</span>) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../src/git2/transport.rs.html#201">out</a> <span class="op">=</span> <a class="ident" href="../../src/git2/transport.rs.html#221">transport</a>.<span class="ident">raw</span>;
-                <a class="ident" href="../../src/git2/transport.rs.html#221">transport</a>.<span class="ident">owned</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                <span class="number">0</span>
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../src/git2/transport.rs.html#226">e</a>.<a class="ident" href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+        <span class="kw">let </span>data = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/transport.rs.html#203">param</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../src/git2/transport.rs.html#81">TransportData</a>);
+        <span class="kw">match </span>(<a href="../../src/git2/transport.rs.html#219">data</a>.factory)(<a href="../../src/git2/transport.rs.html#216">remote</a>.remote.as_ref().unwrap()) {
+            <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>transport) =&gt; {
+                <span class="kw-2">*</span><a href="../../src/git2/transport.rs.html#201">out</a> = <a href="../../src/git2/transport.rs.html#221">transport</a>.raw;
+                <a href="../../src/git2/transport.rs.html#221">transport</a>.owned = <span class="bool-val">false</span>;
+                <span class="number">0
+            </span>}
+            <span class="prelude-val">Err</span>(e) =&gt; <a href="../../src/git2/transport.rs.html#226">e</a>.<a href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
         }
     })
-    .<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>)
+    .unwrap_or(-<span class="number">1</span>)
 }
 
-<span class="comment">// callback used by smart transports to delegate an action to a</span>
-<span class="comment">// `SmartSubtransport` trait object.</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">subtransport_action</span>(
-    <span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>,
-    <span class="ident">raw_transport</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>,
-    <span class="ident">url</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">action</span>: <a class="ident" href="../../libgit2_sys/type.git_smart_service_t.html">raw::git_smart_service_t</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/git2/transport.rs.html#237">url</a>).<span class="ident">to_bytes</span>();
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="ident" href="../../src/git2/transport.rs.html#241">url</a>).<span class="ident">ok</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/git2/transport.rs.html#243">s</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>,
+<span class="comment">// callback used by smart transports to delegate an action to a
+// `SmartSubtransport` trait object.
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>subtransport_action(
+    stream: <span class="kw-2">*mut *mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>,
+    raw_transport: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>,
+    url: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    action: <a href="../../libgit2_sys/type.git_smart_service_t.html">raw::git_smart_service_t</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>url = CStr::from_ptr(<a href="../../src/git2/transport.rs.html#237">url</a>).to_bytes();
+        <span class="kw">let </span>url = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/git2/transport.rs.html#241">url</a>).ok() {
+            <span class="prelude-val">Some</span>(s) =&gt; <a href="../../src/git2/transport.rs.html#243">s</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>-<span class="number">1</span>,
         };
-        <span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/transport.rs.html#238">action</a> {
-            <span class="ident">raw::GIT_SERVICE_UPLOADPACK_LS</span> =&gt; <a class="ident" href="../../src/git2/transport.rs.html#60">Service::UploadPackLs</a>,
-            <span class="ident">raw::GIT_SERVICE_UPLOADPACK</span> =&gt; <a class="ident" href="../../src/git2/transport.rs.html#61">Service::UploadPack</a>,
-            <span class="ident">raw::GIT_SERVICE_RECEIVEPACK_LS</span> =&gt; <a class="ident" href="../../src/git2/transport.rs.html#62">Service::ReceivePackLs</a>,
-            <span class="ident">raw::GIT_SERVICE_RECEIVEPACK</span> =&gt; <a class="ident" href="../../src/git2/transport.rs.html#63">Service::ReceivePack</a>,
-            <span class="ident">n</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unknown action: {}&quot;</span>, <span class="ident">n</span>),
+        <span class="kw">let </span>action = <span class="kw">match </span><a href="../../src/git2/transport.rs.html#238">action</a> {
+            raw::GIT_SERVICE_UPLOADPACK_LS =&gt; <a href="../../src/git2/transport.rs.html#60">Service::UploadPackLs</a>,
+            raw::GIT_SERVICE_UPLOADPACK =&gt; <a href="../../src/git2/transport.rs.html#61">Service::UploadPack</a>,
+            raw::GIT_SERVICE_RECEIVEPACK_LS =&gt; <a href="../../src/git2/transport.rs.html#62">Service::ReceivePackLs</a>,
+            raw::GIT_SERVICE_RECEIVEPACK =&gt; <a href="../../src/git2/transport.rs.html#63">Service::ReceivePack</a>,
+            n =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unknown action: {}&quot;</span>, n),
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">transport</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/transport.rs.html#236">raw_transport</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/git2/transport.rs.html#88">RawSmartSubtransport</a>);
-        <span class="comment">// Note: we only need to generate if rpc is on. Else, for receive-pack and upload-pack</span>
-        <span class="comment">// libgit2 reuses the stream generated for receive-pack-ls or upload-pack-ls.</span>
-        <span class="kw">let</span> <span class="ident">generate_stream</span> <span class="op">=</span>
-            <a class="ident" href="../../src/git2/transport.rs.html#254">transport</a>.<span class="ident">rpc</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/git2/transport.rs.html#246">action</a> <span class="op">==</span> <a class="ident" href="../../src/git2/transport.rs.html#60">Service::UploadPackLs</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/git2/transport.rs.html#246">action</a> <span class="op">==</span> <a class="ident" href="../../src/git2/transport.rs.html#62">Service::ReceivePackLs</a>;
-        <span class="kw">if</span> <span class="ident">generate_stream</span> {
-            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/transport.rs.html#254">transport</a>.<span class="ident">obj</span>.<a class="ident" href="../../src/git2/transport.rs.html#42-43">action</a>(<a class="ident" href="../../src/git2/transport.rs.html#242">url</a>, <a class="ident" href="../../src/git2/transport.rs.html#246">action</a>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/git2/transport.rs.html#261">s</a>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <a class="ident" href="../../src/git2/transport.rs.html#366">set_err</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/transport.rs.html#262">e</a>);
-                    <span class="kw">return</span> <a class="ident" href="../../src/git2/transport.rs.html#262">e</a>.<a class="ident" href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>transport = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/transport.rs.html#236">raw_transport</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../src/git2/transport.rs.html#88">RawSmartSubtransport</a>);
+        <span class="comment">// Note: we only need to generate if rpc is on. Else, for receive-pack and upload-pack
+        // libgit2 reuses the stream generated for receive-pack-ls or upload-pack-ls.
+        </span><span class="kw">let </span>generate_stream =
+            <a href="../../src/git2/transport.rs.html#254">transport</a>.rpc || <a href="../../src/git2/transport.rs.html#246">action</a> == <a href="../../src/git2/transport.rs.html#60">Service::UploadPackLs</a> || <a href="../../src/git2/transport.rs.html#246">action</a> == <a href="../../src/git2/transport.rs.html#62">Service::ReceivePackLs</a>;
+        <span class="kw">if </span>generate_stream {
+            <span class="kw">let </span>obj = <span class="kw">match </span><a href="../../src/git2/transport.rs.html#254">transport</a>.obj.<a href="../../src/git2/transport.rs.html#42-43">action</a>(<a href="../../src/git2/transport.rs.html#242">url</a>, <a href="../../src/git2/transport.rs.html#246">action</a>) {
+                <span class="prelude-val">Ok</span>(s) =&gt; <a href="../../src/git2/transport.rs.html#261">s</a>,
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <a href="../../src/git2/transport.rs.html#366">set_err</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/transport.rs.html#262">e</a>);
+                    <span class="kw">return </span><a href="../../src/git2/transport.rs.html#262">e</a>.<a href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>;
                 }
             };
-            <span class="kw-2">*</span><a class="ident" href="../../src/git2/transport.rs.html#235">stream</a> <span class="op">=</span> <span class="ident">mem::transmute</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/transport.rs.html#98">RawSmartSubtransportStream</a> {
-                <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a> {
-                    <span class="ident">subtransport</span>: <a class="ident" href="../../src/git2/transport.rs.html#236">raw_transport</a>,
-                    <span class="ident">read</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/transport.rs.html#312-317">stream_read</a>),
-                    <span class="ident">write</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/transport.rs.html#341-345">stream_write</a>),
-                    <span class="ident">free</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/transport.rs.html#373">stream_free</a>),
+            <span class="kw-2">*</span><a href="../../src/git2/transport.rs.html#235">stream</a> = mem::transmute(Box::new(<a href="../../src/git2/transport.rs.html#98">RawSmartSubtransportStream</a> {
+                raw: <a href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a> {
+                    subtransport: <a href="../../src/git2/transport.rs.html#236">raw_transport</a>,
+                    read: <span class="prelude-val">Some</span>(<a href="../../src/git2/transport.rs.html#312-317">stream_read</a>),
+                    write: <span class="prelude-val">Some</span>(<a href="../../src/git2/transport.rs.html#341-345">stream_write</a>),
+                    free: <span class="prelude-val">Some</span>(<a href="../../src/git2/transport.rs.html#373">stream_free</a>),
                 },
-                <a class="ident" href="../../src/git2/transport.rs.html#260">obj</a>,
+                <a href="../../src/git2/transport.rs.html#260">obj</a>,
             }));
-            <a class="ident" href="../../src/git2/transport.rs.html#254">transport</a>.<span class="ident">stream</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><a class="ident" href="../../src/git2/transport.rs.html#235">stream</a>);
-        } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="ident">transport</span>.<span class="ident">stream</span>.<span class="ident">is_none</span>() {
-                <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>;
+            <a href="../../src/git2/transport.rs.html#254">transport</a>.stream = <span class="prelude-val">Some</span>(<span class="kw-2">*</span><a href="../../src/git2/transport.rs.html#235">stream</a>);
+        } <span class="kw">else </span>{
+            <span class="kw">if </span>transport.stream.is_none() {
+                <span class="kw">return </span>-<span class="number">1</span>;
             }
-            <span class="kw-2">*</span><a class="ident" href="../../src/git2/transport.rs.html#235">stream</a> <span class="op">=</span> <a class="ident" href="../../src/git2/transport.rs.html#254">transport</a>.<span class="ident">stream</span>.<span class="ident">unwrap</span>();
+            <span class="kw-2">*</span><a href="../../src/git2/transport.rs.html#235">stream</a> = <a href="../../src/git2/transport.rs.html#254">transport</a>.stream.unwrap();
         }
-        <span class="number">0</span>
-    })
-    .<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>)
+        <span class="number">0
+    </span>})
+    .unwrap_or(-<span class="number">1</span>)
 }
 
-<span class="comment">// callback used by smart transports to close a `SmartSubtransport` trait</span>
-<span class="comment">// object.</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">subtransport_close</span>(<span class="ident">transport</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">transport</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/transport.rs.html#290">transport</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/git2/transport.rs.html#88">RawSmartSubtransport</a>);
-        <a class="ident" href="../../src/git2/transport.rs.html#292">transport</a>.<span class="ident">obj</span>.<a class="ident" href="../../src/git2/transport.rs.html#53">close</a>()
+<span class="comment">// callback used by smart transports to close a `SmartSubtransport` trait
+// object.
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>subtransport_close(transport: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">let </span>ret = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>transport = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/transport.rs.html#290">transport</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../src/git2/transport.rs.html#88">RawSmartSubtransport</a>);
+        <a href="../../src/git2/transport.rs.html#292">transport</a>.obj.<a href="../../src/git2/transport.rs.html#53">close</a>()
     });
-    <span class="kw">match</span> <a class="ident" href="../../src/git2/transport.rs.html#291">ret</a> {
+    <span class="kw">match </span><a href="../../src/git2/transport.rs.html#291">ret</a> {
         <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(())) =&gt; <span class="number">0</span>,
-        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <a class="ident" href="../../src/git2/transport.rs.html#297">e</a>.<a class="ident" href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="prelude-val">None</span> =&gt; <span class="op">-</span><span class="number">1</span>,
+        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <a href="../../src/git2/transport.rs.html#297">e</a>.<a href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+        <span class="prelude-val">None </span>=&gt; -<span class="number">1</span>,
     }
 }
 
-<span class="comment">// callback used by smart transports to free a `SmartSubtransport` trait</span>
-<span class="comment">// object.</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">subtransport_free</span>(<span class="ident">transport</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>) {
-    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/transport.rs.html#88">RawSmartSubtransport</a><span class="op">&gt;</span><span class="op">&gt;</span>(<a class="ident" href="../../src/git2/transport.rs.html#304">transport</a>);
+<span class="comment">// callback used by smart transports to free a `SmartSubtransport` trait
+// object.
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>subtransport_free(transport: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport.html">raw::git_smart_subtransport</a>) {
+    <span class="kw">let _ </span>= <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        mem::transmute::&lt;<span class="kw">_</span>, Box&lt;<a href="../../src/git2/transport.rs.html#88">RawSmartSubtransport</a>&gt;&gt;(<a href="../../src/git2/transport.rs.html#304">transport</a>);
     });
 }
 
-<span class="comment">// callback used by smart transports to read from a `SmartSubtransportStream`</span>
-<span class="comment">// object.</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">stream_read</span>(
-    <span class="ident">stream</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>,
-    <span class="ident">buffer</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">buf_size</span>: <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
-    <span class="ident">bytes_read</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">transport</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/transport.rs.html#313">stream</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/git2/transport.rs.html#98">RawSmartSubtransportStream</a>);
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<a class="ident" href="../../src/git2/transport.rs.html#314">buffer</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/git2/transport.rs.html#315">buf_size</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="kw">match</span> <a class="ident" href="../../src/git2/transport.rs.html#319">transport</a>.<span class="ident">obj</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../src/git2/transport.rs.html#320">buf</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../src/git2/transport.rs.html#316">bytes_read</a> <span class="op">=</span> <a class="ident" href="../../src/git2/transport.rs.html#322">n</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>;
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/transport.rs.html#322">n</a>)
+<span class="comment">// callback used by smart transports to read from a `SmartSubtransportStream`
+// object.
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>stream_read(
+    stream: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>,
+    buffer: <span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    buf_size: <a href="../../libc/unix/type.size_t.html">size_t</a>,
+    bytes_read: <span class="kw-2">*mut </span><a href="../../libc/unix/type.size_t.html">size_t</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">let </span>ret = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>transport = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/transport.rs.html#313">stream</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../src/git2/transport.rs.html#98">RawSmartSubtransportStream</a>);
+        <span class="kw">let </span>buf = slice::from_raw_parts_mut(<a href="../../src/git2/transport.rs.html#314">buffer</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/git2/transport.rs.html#315">buf_size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">match </span><a href="../../src/git2/transport.rs.html#319">transport</a>.obj.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../src/git2/transport.rs.html#320">buf</a>) {
+            <span class="prelude-val">Ok</span>(n) =&gt; {
+                <span class="kw-2">*</span><a href="../../src/git2/transport.rs.html#316">bytes_read</a> = <a href="../../src/git2/transport.rs.html#322">n</a> <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>;
+                <span class="prelude-val">Ok</span>(<a href="../../src/git2/transport.rs.html#322">n</a>)
             }
-            <span class="ident">e</span> =&gt; <a class="ident" href="../../src/git2/transport.rs.html#326">e</a>,
+            e =&gt; <a href="../../src/git2/transport.rs.html#326">e</a>,
         }
     });
-    <span class="kw">match</span> <a class="ident" href="../../src/git2/transport.rs.html#318">ret</a> {
+    <span class="kw">match </span><a href="../../src/git2/transport.rs.html#318">ret</a> {
         <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; <span class="number">0</span>,
-        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/git2/transport.rs.html#361">set_err_io</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/transport.rs.html#331">e</a>);
-            <span class="op">-</span><span class="number">2</span>
-        },
-        <span class="prelude-val">None</span> =&gt; <span class="op">-</span><span class="number">1</span>,
+        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <span class="kw">unsafe </span>{
+            <a href="../../src/git2/transport.rs.html#361">set_err_io</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/transport.rs.html#331">e</a>);
+            -<span class="number">2
+        </span>},
+        <span class="prelude-val">None </span>=&gt; -<span class="number">1</span>,
     }
 }
 
-<span class="comment">// callback used by smart transports to write to a `SmartSubtransportStream`</span>
-<span class="comment">// object.</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">stream_write</span>(
-    <span class="ident">stream</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>,
-    <span class="ident">buffer</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">len</span>: <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">transport</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/transport.rs.html#342">stream</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/git2/transport.rs.html#98">RawSmartSubtransportStream</a>);
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../src/git2/transport.rs.html#343">buffer</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/git2/transport.rs.html#344">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <a class="ident" href="../../src/git2/transport.rs.html#347">transport</a>.<span class="ident">obj</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a class="ident" href="../../src/git2/transport.rs.html#348">buf</a>)
+<span class="comment">// callback used by smart transports to write to a `SmartSubtransportStream`
+// object.
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>stream_write(
+    stream: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>,
+    buffer: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    len: <a href="../../libc/unix/type.size_t.html">size_t</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">let </span>ret = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>transport = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/transport.rs.html#342">stream</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../src/git2/transport.rs.html#98">RawSmartSubtransportStream</a>);
+        <span class="kw">let </span>buf = slice::from_raw_parts(<a href="../../src/git2/transport.rs.html#343">buffer</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/git2/transport.rs.html#344">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a href="../../src/git2/transport.rs.html#347">transport</a>.obj.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="../../src/git2/transport.rs.html#348">buf</a>)
     });
-    <span class="kw">match</span> <a class="ident" href="../../src/git2/transport.rs.html#346">ret</a> {
+    <span class="kw">match </span><a href="../../src/git2/transport.rs.html#346">ret</a> {
         <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(())) =&gt; <span class="number">0</span>,
-        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/git2/transport.rs.html#361">set_err_io</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/transport.rs.html#353">e</a>);
-            <span class="op">-</span><span class="number">2</span>
-        },
-        <span class="prelude-val">None</span> =&gt; <span class="op">-</span><span class="number">1</span>,
+        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <span class="kw">unsafe </span>{
+            <a href="../../src/git2/transport.rs.html#361">set_err_io</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/transport.rs.html#353">e</a>);
+            -<span class="number">2
+        </span>},
+        <span class="prelude-val">None </span>=&gt; -<span class="number">1</span>,
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_err_io</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/git2/transport.rs.html#361">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<span class="ident">unwrap</span>();
-    <span class="ident">raw::git_error_set_str</span>(<span class="ident">raw::GIT_ERROR_NET</span> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../src/git2/transport.rs.html#362">s</a>.<span class="ident">as_ptr</span>());
+<span class="kw">unsafe fn </span>set_err_io(e: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) {
+    <span class="kw">let </span>s = CString::new(<a href="../../src/git2/transport.rs.html#361">e</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).unwrap();
+    raw::git_error_set_str(raw::GIT_ERROR_NET <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../src/git2/transport.rs.html#362">s</a>.as_ptr());
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_err</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/error.rs.html#12">Error</a>) {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/git2/transport.rs.html#366">e</a>.<a class="ident" href="../../src/git2/error.rs.html#347">message</a>()).<span class="ident">unwrap</span>();
-    <span class="ident">raw::git_error_set_str</span>(<a class="ident" href="../../src/git2/transport.rs.html#366">e</a>.<a class="ident" href="../../src/git2/error.rs.html#300">raw_class</a>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../src/git2/transport.rs.html#367">s</a>.<span class="ident">as_ptr</span>());
+<span class="kw">unsafe fn </span>set_err(e: <span class="kw-2">&amp;</span><a href="../../src/git2/error.rs.html#12">Error</a>) {
+    <span class="kw">let </span>s = CString::new(<a href="../../src/git2/transport.rs.html#366">e</a>.<a href="../../src/git2/error.rs.html#347">message</a>()).unwrap();
+    raw::git_error_set_str(<a href="../../src/git2/transport.rs.html#366">e</a>.<a href="../../src/git2/error.rs.html#300">raw_class</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../src/git2/transport.rs.html#367">s</a>.as_ptr());
 }
 
-<span class="comment">// callback used by smart transports to free a `SmartSubtransportStream`</span>
-<span class="comment">// object.</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">stream_free</span>(<span class="ident">stream</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>) {
-    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/transport.rs.html#98">RawSmartSubtransportStream</a><span class="op">&gt;</span><span class="op">&gt;</span>(<a class="ident" href="../../src/git2/transport.rs.html#373">stream</a>);
+<span class="comment">// callback used by smart transports to free a `SmartSubtransportStream`
+// object.
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>stream_free(stream: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_smart_subtransport_stream.html">raw::git_smart_subtransport_stream</a>) {
+    <span class="kw">let _ </span>= <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        mem::transmute::&lt;<span class="kw">_</span>, Box&lt;<a href="../../src/git2/transport.rs.html#98">RawSmartSubtransportStream</a>&gt;&gt;(<a href="../../src/git2/transport.rs.html#373">stream</a>);
     });
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ErrorClass</span>, <span class="ident">ErrorCode</span>};
-    <span class="kw">use</span> <span class="ident">std::sync::Once</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use crate</span>::{ErrorClass, ErrorCode};
+    <span class="kw">use </span>std::sync::Once;
 
-    <span class="kw">struct</span> <span class="ident">DummyTransport</span>;
+    <span class="kw">struct </span>DummyTransport;
 
-    <span class="comment">// in lieu of lazy_static</span>
-    <span class="kw">fn</span> <span class="ident">dummy_error</span>() -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::new</span>(<span class="ident">ErrorCode::Ambiguous</span>, <span class="ident">ErrorClass::Net</span>, <span class="string">&quot;bleh&quot;</span>)
+    <span class="comment">// in lieu of lazy_static
+    </span><span class="kw">fn </span>dummy_error() -&gt; Error {
+        Error::new(ErrorCode::Ambiguous, ErrorClass::Net, <span class="string">&quot;bleh&quot;</span>)
     }
 
-    <span class="kw">impl</span> <span class="ident">SmartSubtransport</span> <span class="kw">for</span> <span class="ident">DummyTransport</span> {
-        <span class="kw">fn</span> <span class="ident">action</span>(
+    <span class="kw">impl </span>SmartSubtransport <span class="kw">for </span>DummyTransport {
+        <span class="kw">fn </span>action(
             <span class="kw-2">&amp;</span><span class="self">self</span>,
-            <span class="ident">_url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-            <span class="ident">_service</span>: <span class="ident">Service</span>,
-        ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">SmartSubtransportStream</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">dummy_error</span>())
+            _url: <span class="kw-2">&amp;</span>str,
+            _service: Service,
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>SmartSubtransportStream&gt;, Error&gt; {
+            <span class="prelude-val">Err</span>(dummy_error())
         }
 
-        <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">transport_error_propagates</span>() {
-        <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once::new</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>transport_error_propagates() {
+        <span class="kw">static </span>INIT: Once = Once::new();
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">register</span>(<span class="string">&quot;dummy&quot;</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">remote</span><span class="op">|</span> {
-                    <span class="ident">Transport::smart</span>(<span class="kw-2">&amp;</span><span class="ident">remote</span>, <span class="bool-val">true</span>, <span class="ident">DummyTransport</span>)
+        <span class="kw">unsafe </span>{
+            INIT.call_once(|| {
+                register(<span class="string">&quot;dummy&quot;</span>, <span class="kw">move </span>|remote| {
+                    Transport::smart(<span class="kw-2">&amp;</span>remote, <span class="bool-val">true</span>, DummyTransport)
                 })
-                .<span class="ident">unwrap</span>();
+                .unwrap();
             })
         }
 
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">remote</span>(<span class="string">&quot;origin&quot;</span>, <span class="string">&quot;dummy://ball&quot;</span>));
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="macro">t!</span>(repo.remote(<span class="string">&quot;origin&quot;</span>, <span class="string">&quot;dummy://ball&quot;</span>));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">origin</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">find_remote</span>(<span class="string">&quot;origin&quot;</span>));
+        <span class="kw">let </span><span class="kw-2">mut </span>origin = <span class="macro">t!</span>(repo.find_remote(<span class="string">&quot;origin&quot;</span>));
 
-        <span class="kw">match</span> <span class="ident">origin</span>.<span class="ident">fetch</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;main&quot;</span>], <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) {
+        <span class="kw">match </span>origin.fetch(<span class="kw-2">&amp;</span>[<span class="string">&quot;main&quot;</span>], <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">e</span>, <span class="ident">dummy_error</span>()),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">assert_eq!</span>(e, dummy_error()),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

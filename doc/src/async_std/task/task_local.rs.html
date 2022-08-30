@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/task/task_local.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>task_local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/task/task_local.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>task_local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -213,218 +213,218 @@
 <span id="211">211</span>
 <span id="212">212</span>
 <span id="213">213</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/async_std/task/task_locals_wrapper.rs.html#13"><span class="kw">crate</span>::task::TaskLocalsWrapper</a>;
+<span class="kw">use </span><a href="../../../src/async_std/task/task_locals_wrapper.rs.html#13"><span class="kw">crate</span>::task::TaskLocalsWrapper</a>;
 
-<span class="doccomment">/// The key for accessing a task-local value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Every task-local value is lazily initialized on first access and destroyed when the task</span>
-<span class="doccomment">/// completes.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalKey</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">__init</span>: <span class="kw">fn</span>() -&gt; <span class="ident">T</span>,
+<span class="doccomment">/// The key for accessing a task-local value.
+///
+/// Every task-local value is lazily initialized on first access and destroyed when the task
+/// completes.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>LocalKey&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; {
+    <span class="attribute">#[doc(hidden)]
+    </span><span class="kw">pub </span>__init: <span class="kw">fn</span>() -&gt; T,
 
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">__key</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>,
+    <span class="attribute">#[doc(hidden)]
+    </span><span class="kw">pub </span>__key: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">LocalKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Gets a reference to the task-local value with this key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The passed closure receives a reference to the task-local value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The task-local value will be lazily initialized if this task has not accessed it before.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will panic if not called within the context of a task created by</span>
-    <span class="doccomment">/// [`block_on`], [`spawn`], or [`Builder::spawn`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`block_on`]: fn.block_on.html</span>
-    <span class="doccomment">/// [`spawn`]: fn.spawn.html</span>
-    <span class="doccomment">/// [`Builder::spawn`]: struct.Builder.html#method.spawn</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use std::cell::Cell;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use async_std::task;</span>
-    <span class="doccomment">/// use async_std::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// task_local! {</span>
-    <span class="doccomment">///     static NUMBER: Cell&lt;u32&gt; = Cell::new(5);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// task::block_on(async {</span>
-    <span class="doccomment">///     let v = NUMBER.with(|c| c.get());</span>
-    <span class="doccomment">///     assert_eq!(v, 5);</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>&gt; LocalKey&lt;T&gt; {
+    <span class="doccomment">/// Gets a reference to the task-local value with this key.
+    ///
+    /// The passed closure receives a reference to the task-local value.
+    ///
+    /// The task-local value will be lazily initialized if this task has not accessed it before.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if not called within the context of a task created by
+    /// [`block_on`], [`spawn`], or [`Builder::spawn`].
+    ///
+    /// [`block_on`]: fn.block_on.html
+    /// [`spawn`]: fn.spawn.html
+    /// [`Builder::spawn`]: struct.Builder.html#method.spawn
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// #
+    /// use std::cell::Cell;
+    ///
+    /// use async_std::task;
+    /// use async_std::prelude::*;
+    ///
+    /// task_local! {
+    ///     static NUMBER: Cell&lt;u32&gt; = Cell::new(5);
+    /// }
+    ///
+    /// task::block_on(async {
+    ///     let v = NUMBER.with(|c| c.get());
+    ///     assert_eq!(v, 5);
+    /// });
+    /// ```
+    </span><span class="kw">pub fn </span>with&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, f: F) -&gt; R
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; R,
     {
-        <a class="self" href="../../../src/async_std/task/task_local.rs.html#55">self</a>.<a class="ident" href="../../../src/async_std/task/task_local.rs.html#97-99">try_with</a>(<a class="ident" href="../../../src/async_std/task/task_local.rs.html#55">f</a>)
-            .<span class="ident">expect</span>(<span class="string">&quot;`LocalKey::with` called outside the context of a task&quot;</span>)
+        <a class="self" href="../../../src/async_std/task/task_local.rs.html#55">self</a>.<a href="../../../src/async_std/task/task_local.rs.html#97-99">try_with</a>(<a href="../../../src/async_std/task/task_local.rs.html#55">f</a>)
+            .expect(<span class="string">&quot;`LocalKey::with` called outside the context of a task&quot;</span>)
     }
 
-    <span class="doccomment">/// Attempts to get a reference to the task-local value with this key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The passed closure receives a reference to the task-local value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The task-local value will be lazily initialized if this task has not accessed it before.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function returns an error if not called within the context of a task created by</span>
-    <span class="doccomment">/// [`block_on`], [`spawn`], or [`Builder::spawn`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`block_on`]: fn.block_on.html</span>
-    <span class="doccomment">/// [`spawn`]: fn.spawn.html</span>
-    <span class="doccomment">/// [`Builder::spawn`]: struct.Builder.html#method.spawn</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use std::cell::Cell;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use async_std::task;</span>
-    <span class="doccomment">/// use async_std::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// task_local! {</span>
-    <span class="doccomment">///     static VAL: Cell&lt;u32&gt; = Cell::new(5);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// task::block_on(async {</span>
-    <span class="doccomment">///     let v = VAL.try_with(|c| c.get());</span>
-    <span class="doccomment">///     assert_eq!(v, Ok(5));</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Returns an error because not called within the context of a task.</span>
-    <span class="doccomment">/// assert!(VAL.try_with(|c| c.get()).is_err());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <a class="ident" href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>,
+    <span class="doccomment">/// Attempts to get a reference to the task-local value with this key.
+    ///
+    /// The passed closure receives a reference to the task-local value.
+    ///
+    /// The task-local value will be lazily initialized if this task has not accessed it before.
+    ///
+    /// This function returns an error if not called within the context of a task created by
+    /// [`block_on`], [`spawn`], or [`Builder::spawn`].
+    ///
+    /// [`block_on`]: fn.block_on.html
+    /// [`spawn`]: fn.spawn.html
+    /// [`Builder::spawn`]: struct.Builder.html#method.spawn
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// #
+    /// use std::cell::Cell;
+    ///
+    /// use async_std::task;
+    /// use async_std::prelude::*;
+    ///
+    /// task_local! {
+    ///     static VAL: Cell&lt;u32&gt; = Cell::new(5);
+    /// }
+    ///
+    /// task::block_on(async {
+    ///     let v = VAL.try_with(|c| c.get());
+    ///     assert_eq!(v, Ok(5));
+    /// });
+    ///
+    /// // Returns an error because not called within the context of a task.
+    /// assert!(VAL.try_with(|c| c.get()).is_err());
+    /// ```
+    </span><span class="kw">pub fn </span>try_with&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;R, <a href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a>&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; R,
     {
-        <span class="ident">TaskLocalsWrapper::get_current</span>(<span class="op">|</span><span class="ident">task</span><span class="op">|</span> <span class="kw">unsafe</span> {
-            <span class="comment">// Prepare the numeric key, initialization function, and the map of task-locals.</span>
-            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <a class="self" href="../../../src/async_std/task/task_local.rs.html#97">self</a>.<a class="ident" href="../../../src/async_std/task/task_local.rs.html#117">key</a>();
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">Box::new</span>((<a class="self" href="../../../src/async_std/task/task_local.rs.html#97">self</a>.<span class="ident">__init</span>)()) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>;
+        TaskLocalsWrapper::get_current(|task| <span class="kw">unsafe </span>{
+            <span class="comment">// Prepare the numeric key, initialization function, and the map of task-locals.
+            </span><span class="kw">let </span>key = <a class="self" href="../../../src/async_std/task/task_local.rs.html#97">self</a>.<a href="../../../src/async_std/task/task_local.rs.html#117">key</a>();
+            <span class="kw">let </span>init = || Box::new((<a class="self" href="../../../src/async_std/task/task_local.rs.html#97">self</a>.__init)()) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;;
 
-            <span class="comment">// Get the value in the map of task-locals, or initialize and insert one.</span>
-            <span class="kw">let</span> <span class="ident">value</span>: <span class="kw-2">*const</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">=</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#101">task</a>.<a class="ident" href="../../../src/async_std/task/task_locals_wrapper.rs.html#46">locals</a>().<a class="ident" href="../../../src/async_std/task/task_local.rs.html#187">get_or_insert</a>(<a class="ident" href="../../../src/async_std/task/task_local.rs.html#103">key</a>, <a class="ident" href="../../../src/async_std/task/task_local.rs.html#104">init</a>);
+            <span class="comment">// Get the value in the map of task-locals, or initialize and insert one.
+            </span><span class="kw">let </span>value: <span class="kw-2">*const </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> = <a href="../../../src/async_std/task/task_local.rs.html#101">task</a>.<a href="../../../src/async_std/task/task_locals_wrapper.rs.html#46">locals</a>().<a href="../../../src/async_std/task/task_local.rs.html#187">get_or_insert</a>(<a href="../../../src/async_std/task/task_local.rs.html#103">key</a>, <a href="../../../src/async_std/task/task_local.rs.html#104">init</a>);
 
-            <span class="comment">// Call the closure with the value passed as an argument.</span>
-            <a class="ident" href="../../../src/async_std/task/task_local.rs.html#97">f</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../../src/async_std/task/task_local.rs.html#107">value</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">T</span>))
+            <span class="comment">// Call the closure with the value passed as an argument.
+            </span><a href="../../../src/async_std/task/task_local.rs.html#97">f</a>(<span class="kw-2">&amp;*</span>(<a href="../../../src/async_std/task/task_local.rs.html#107">value</a> <span class="kw">as </span><span class="kw-2">*const </span>T))
         })
-        .<span class="ident">ok_or</span>(<a class="ident" href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a> { <span class="ident">_private</span>: () })
+        .ok_or(<a href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a> { _private: () })
     }
 
-    <span class="doccomment">/// Returns the numeric key associated with this task-local.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="attribute">#[<span class="ident">cold</span>]</span>
-        <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-            <span class="kw">static</span> <span class="ident">COUNTER</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a> <span class="op">=</span> <span class="ident">AtomicU32::new</span>(<span class="number">1</span>);
+    <span class="doccomment">/// Returns the numeric key associated with this task-local.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="attribute">#[cold]
+        </span><span class="kw">fn </span>init(key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+            <span class="kw">static </span>COUNTER: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU32.html">AtomicU32</a> = AtomicU32::new(<span class="number">1</span>);
 
-            <span class="kw">let</span> <span class="ident">counter</span> <span class="op">=</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#120">COUNTER</a>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>);
-            <span class="kw">if</span> <span class="ident">counter</span> <span class="op">&gt;</span> <span class="ident">u32::max_value</span>() <span class="op">/</span> <span class="number">2</span> {
-                <a class="ident" href="../../../async_std/process/fn.abort.html">std::process::abort</a>();
+            <span class="kw">let </span>counter = <a href="../../../src/async_std/task/task_local.rs.html#120">COUNTER</a>.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
+            <span class="kw">if </span>counter &gt; u32::max_value() / <span class="number">2 </span>{
+                <a href="../../../async_std/process/fn.abort.html">std::process::abort</a>();
             }
 
-            <span class="kw">match</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#119">key</a>.<span class="ident">compare_exchange</span>(<span class="number">0</span>, <a class="ident" href="../../../src/async_std/task/task_local.rs.html#122">counter</a>, <span class="ident">Ordering::AcqRel</span>, <span class="ident">Ordering::Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../src/async_std/task/task_local.rs.html#122">counter</a>,
-                <span class="prelude-val">Err</span>(<span class="ident">k</span>) =&gt; <a class="ident" href="../../../src/async_std/task/task_local.rs.html#129">k</a>,
+            <span class="kw">match </span><a href="../../../src/async_std/task/task_local.rs.html#119">key</a>.compare_exchange(<span class="number">0</span>, <a href="../../../src/async_std/task/task_local.rs.html#122">counter</a>, Ordering::AcqRel, Ordering::Acquire) {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <a href="../../../src/async_std/task/task_local.rs.html#122">counter</a>,
+                <span class="prelude-val">Err</span>(k) =&gt; <a href="../../../src/async_std/task/task_local.rs.html#129">k</a>,
             }
         }
 
-        <span class="kw">match</span> <a class="self" href="../../../src/async_std/task/task_local.rs.html#117">self</a>.<span class="ident">__key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) {
-            <span class="number">0</span> =&gt; <a class="ident" href="../../../src/async_std/task/task_local.rs.html#119">init</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/async_std/task/task_local.rs.html#117">self</a>.<span class="ident">__key</span>),
-            <span class="ident">k</span> =&gt; <a class="ident" href="../../../src/async_std/task/task_local.rs.html#135">k</a>,
+        <span class="kw">match </span><a class="self" href="../../../src/async_std/task/task_local.rs.html#117">self</a>.__key.load(Ordering::Acquire) {
+            <span class="number">0 </span>=&gt; <a href="../../../src/async_std/task/task_local.rs.html#119">init</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/async_std/task/task_local.rs.html#117">self</a>.__key),
+            k =&gt; <a href="../../../src/async_std/task/task_local.rs.html#135">k</a>,
         }
     }
 }
 
-<span class="doccomment">/// An error returned by [`LocalKey::try_with`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`LocalKey::try_with`]: struct.LocalKey.html#method.try_with</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AccessError</span> {
-    <span class="ident">_private</span>: (),
+<span class="doccomment">/// An error returned by [`LocalKey::try_with`].
+///
+/// [`LocalKey::try_with`]: struct.LocalKey.html#method.try_with
+</span><span class="attribute">#[derive(Clone, Copy, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>AccessError {
+    _private: (),
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/async_std/task/task_local.rs.html#149">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;AccessError&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/async_std/task/task_local.rs.html#149">f</a>.debug_struct(<span class="string">&quot;AccessError&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="string">&quot;already destroyed or called outside the context of a task&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a class="ident" href="../../../src/async_std/task/task_local.rs.html#155">f</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="string">&quot;already destroyed or called outside the context of a task&quot;</span>.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a href="../../../src/async_std/task/task_local.rs.html#155">f</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="../../../src/async_std/task/task_local.rs.html#144">AccessError</a> {}
 
-<span class="doccomment">/// A key-value entry in a map of task-locals.</span>
-<span class="kw">struct</span> <span class="ident">Entry</span> {
-    <span class="doccomment">/// Key identifying the task-local variable.</span>
-    <span class="ident">key</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+<span class="doccomment">/// A key-value entry in a map of task-locals.
+</span><span class="kw">struct </span>Entry {
+    <span class="doccomment">/// Key identifying the task-local variable.
+    </span>key: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 
-    <span class="doccomment">/// Value stored in this entry.</span>
-    <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Value stored in this entry.
+    </span>value: Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;,
 }
 
-<span class="doccomment">/// A map that holds task-locals.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LocalsMap</span> {
-    <span class="doccomment">/// A list of key-value entries sorted by the key.</span>
-    <span class="ident">entries</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/async_std/task/task_local.rs.html#163">Entry</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A map that holds task-locals.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>LocalsMap {
+    <span class="doccomment">/// A list of key-value entries sorted by the key.
+    </span>entries: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="../../../src/async_std/task/task_local.rs.html#163">Entry</a>&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#172">LocalsMap</a> {
-    <span class="doccomment">/// Creates an empty map of task-locals.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/async_std/task/task_local.rs.html#172">LocalsMap</a> {
-        <a class="ident" href="../../../src/async_std/task/task_local.rs.html#172">LocalsMap</a> {
-            <span class="ident">entries</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">Some</span>(<span class="ident">Vec::new</span>())),
+<span class="kw">impl </span><a href="../../../src/async_std/task/task_local.rs.html#172">LocalsMap</a> {
+    <span class="doccomment">/// Creates an empty map of task-locals.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/async_std/task/task_local.rs.html#172">LocalsMap</a> {
+        <a href="../../../src/async_std/task/task_local.rs.html#172">LocalsMap</a> {
+            entries: UnsafeCell::new(<span class="prelude-val">Some</span>(Vec::new())),
         }
     }
 
-    <span class="doccomment">/// Returns a task-local value associated with `key` or inserts one constructed by `init`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_insert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">init</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
-        <span class="kw">match</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../../src/async_std/task/task_local.rs.html#187">self</a>.<span class="ident">entries</span>.<span class="ident">get</span>()).<span class="ident">as_mut</span>() } {
-            <span class="prelude-val">None</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;can&#39;t access task-locals while the task is being dropped&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">entries</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#190">entries</a>.<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/async_std/task/task_local.rs.html#187">key</a>, <span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#191">e</a>.<span class="ident">key</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../../src/async_std/task/task_local.rs.html#192">i</a>,
-                    <span class="prelude-val">Err</span>(<span class="ident">i</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/async_std/task/task_local.rs.html#187">init</a>();
-                        <a class="ident" href="../../../src/async_std/task/task_local.rs.html#190">entries</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/async_std/task/task_local.rs.html#193">i</a>, <a class="ident" href="../../../src/async_std/task/task_local.rs.html#163">Entry</a> { <a class="ident" href="../../../src/async_std/task/task_local.rs.html#187">key</a>, <a class="ident" href="../../../src/async_std/task/task_local.rs.html#194">value</a> });
-                        <a class="ident" href="../../../src/async_std/task/task_local.rs.html#193">i</a>
+    <span class="doccomment">/// Returns a task-local value associated with `key` or inserts one constructed by `init`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_or_insert(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, init: <span class="kw">impl </span>FnOnce() -&gt; Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
+        <span class="kw">match unsafe </span>{ (<span class="kw-2">*</span><a class="self" href="../../../src/async_std/task/task_local.rs.html#187">self</a>.entries.get()).as_mut() } {
+            <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;can&#39;t access task-locals while the task is being dropped&quot;</span>),
+            <span class="prelude-val">Some</span>(entries) =&gt; {
+                <span class="kw">let </span>index = <span class="kw">match </span><a href="../../../src/async_std/task/task_local.rs.html#190">entries</a>.binary_search_by_key(<span class="kw-2">&amp;</span><a href="../../../src/async_std/task/task_local.rs.html#187">key</a>, |e| <a href="../../../src/async_std/task/task_local.rs.html#191">e</a>.key) {
+                    <span class="prelude-val">Ok</span>(i) =&gt; <a href="../../../src/async_std/task/task_local.rs.html#192">i</a>,
+                    <span class="prelude-val">Err</span>(i) =&gt; {
+                        <span class="kw">let </span>value = <a href="../../../src/async_std/task/task_local.rs.html#187">init</a>();
+                        <a href="../../../src/async_std/task/task_local.rs.html#190">entries</a>.insert(<a href="../../../src/async_std/task/task_local.rs.html#193">i</a>, <a href="../../../src/async_std/task/task_local.rs.html#163">Entry</a> { <a href="../../../src/async_std/task/task_local.rs.html#187">key</a>, <a href="../../../src/async_std/task/task_local.rs.html#194">value</a> });
+                        <a href="../../../src/async_std/task/task_local.rs.html#193">i</a>
                     }
                 };
-                <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/async_std/task/task_local.rs.html#190">entries</a>[<a class="ident" href="../../../src/async_std/task/task_local.rs.html#191">index</a>].<span class="ident">value</span>
+                <span class="kw-2">&amp;*</span><a href="../../../src/async_std/task/task_local.rs.html#190">entries</a>[<a href="../../../src/async_std/task/task_local.rs.html#191">index</a>].value
             }
         }
     }
 
-    <span class="doccomment">/// Clears the map and drops all task-locals.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is only safe to call at the end of the task.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Since destructors may attempt to access task-locals, we musnt&#39;t hold a mutable reference</span>
-        <span class="comment">// to the `Vec` while dropping them. Instead, we first take the `Vec` out and then drop it.</span>
-        <span class="kw">let</span> <span class="ident">entries</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="self" href="../../../src/async_std/task/task_local.rs.html#207">self</a>.<span class="ident">entries</span>.<span class="ident">get</span>()).<span class="ident">take</span>();
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/async_std/task/task_local.rs.html#210">entries</a>);
+    <span class="doccomment">/// Clears the map and drops all task-locals.
+    ///
+    /// This method is only safe to call at the end of the task.
+    </span><span class="kw">pub unsafe fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Since destructors may attempt to access task-locals, we musnt&#39;t hold a mutable reference
+        // to the `Vec` while dropping them. Instead, we first take the `Vec` out and then drop it.
+        </span><span class="kw">let </span>entries = (<span class="kw-2">*</span><a class="self" href="../../../src/async_std/task/task_local.rs.html#207">self</a>.entries.get()).take();
+        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/async_std/task/task_local.rs.html#210">entries</a>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/event/events.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>events.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../mio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/event/events.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>events.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../mio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -228,235 +228,235 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/mio/event/event.rs.html#17"><span class="kw">crate</span>::event::Event</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/mio/lib.rs.html#49"><span class="kw">crate</span>::sys</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/mio/event/event.rs.html#17"><span class="kw">crate</span>::event::Event</a>;
+<span class="kw">use </span><a href="../../../src/mio/lib.rs.html#49"><span class="kw">crate</span>::sys</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="doccomment">/// A collection of readiness events.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Events` is passed as an argument to [`Poll::poll`] and will be used to</span>
-<span class="doccomment">/// receive any new readiness events received since the last poll. Usually, a</span>
-<span class="doccomment">/// single `Events` instance is created at the same time as a [`Poll`] and</span>
-<span class="doccomment">/// reused on each call to [`Poll::poll`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`Poll`] for more documentation on polling.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Poll::poll`]: ../struct.Poll.html#method.poll</span>
-<span class="doccomment">/// [`Poll`]: ../struct.Poll.html</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-<span class="doccomment">/// # use std::error::Error;</span>
-<span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-<span class="doccomment">/// use mio::{Events, Poll};</span>
-<span class="doccomment">/// use std::time::Duration;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-<span class="doccomment">/// let mut poll = Poll::new()?;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # assert!(events.is_empty());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Register `event::Source`s with `poll`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// for event in events.iter() {</span>
-<span class="doccomment">///     println!(&quot;Got an event for {:?}&quot;, event.token());</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #     Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Events</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#151">sys::Events</a>,
+<span class="doccomment">/// A collection of readiness events.
+///
+/// `Events` is passed as an argument to [`Poll::poll`] and will be used to
+/// receive any new readiness events received since the last poll. Usually, a
+/// single `Events` instance is created at the same time as a [`Poll`] and
+/// reused on each call to [`Poll::poll`].
+///
+/// See [`Poll`] for more documentation on polling.
+///
+/// [`Poll::poll`]: ../struct.Poll.html#method.poll
+/// [`Poll`]: ../struct.Poll.html
+///
+/// # Examples
+///
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+#[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+</span><span class="doccomment">/// # use std::error::Error;
+/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+/// use mio::{Events, Poll};
+/// use std::time::Duration;
+///
+/// let mut events = Events::with_capacity(1024);
+/// let mut poll = Poll::new()?;
+/// #
+/// # assert!(events.is_empty());
+///
+/// // Register `event::Source`s with `poll`.
+///
+/// poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;
+///
+/// for event in events.iter() {
+///     println!(&quot;Got an event for {:?}&quot;, event.token());
+/// }
+/// #     Ok(())
+/// # }
+/// ```
+</span><span class="kw">pub struct </span>Events {
+    inner: <a href="../../../src/mio/sys/unix/selector/epoll.rs.html#151">sys::Events</a>,
 }
 
-<span class="doccomment">/// [`Events`] iterator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct is created by the [`iter`] method on [`Events`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Events`]: struct.Events.html</span>
-<span class="doccomment">/// [`iter`]: struct.Events.html#method.iter</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-<span class="doccomment">/// # use std::error::Error;</span>
-<span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-<span class="doccomment">/// use mio::{Events, Poll};</span>
-<span class="doccomment">/// use std::time::Duration;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-<span class="doccomment">/// let mut poll = Poll::new()?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Register handles with `poll`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// for event in events.iter() {</span>
-<span class="doccomment">///     println!(&quot;Got an event for {:?}&quot;, event.token());</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #     Ok(())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/mio/event/events.rs.html#42">Events</a>,
-    <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// [`Events`] iterator.
+///
+/// This struct is created by the [`iter`] method on [`Events`].
+///
+/// [`Events`]: struct.Events.html
+/// [`iter`]: struct.Events.html#method.iter
+///
+/// # Examples
+///
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+#[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+</span><span class="doccomment">/// # use std::error::Error;
+/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+/// use mio::{Events, Poll};
+/// use std::time::Duration;
+///
+/// let mut events = Events::with_capacity(1024);
+/// let mut poll = Poll::new()?;
+///
+/// // Register handles with `poll`.
+///
+/// poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;
+///
+/// for event in events.iter() {
+///     println!(&quot;Got an event for {:?}&quot;, event.token());
+/// }
+/// #     Ok(())
+/// # }
+/// ```
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/mio/event/events.rs.html#42">Events</a>,
+    pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/mio/event/events.rs.html#42">Events</a> {
-    <span class="doccomment">/// Return a new `Events` capable of holding up to `capacity` events.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use mio::Events;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let events = Events::with_capacity(1024);</span>
-    <span class="doccomment">/// assert_eq!(1024, events.capacity());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/mio/event/events.rs.html#42">Events</a> {
-        <a class="ident" href="../../../src/mio/event/events.rs.html#42">Events</a> {
-            <span class="ident">inner</span>: <span class="ident">sys::Events::with_capacity</span>(<a class="ident" href="../../../src/mio/event/events.rs.html#92">capacity</a>),
+<span class="kw">impl </span><a href="../../../src/mio/event/events.rs.html#42">Events</a> {
+    <span class="doccomment">/// Return a new `Events` capable of holding up to `capacity` events.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use mio::Events;
+    ///
+    /// let events = Events::with_capacity(1024);
+    /// assert_eq!(1024, events.capacity());
+    /// ```
+    </span><span class="kw">pub fn </span>with_capacity(capacity: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/mio/event/events.rs.html#42">Events</a> {
+        <a href="../../../src/mio/event/events.rs.html#42">Events</a> {
+            inner: sys::Events::with_capacity(<a href="../../../src/mio/event/events.rs.html#92">capacity</a>),
         }
     }
 
-    <span class="doccomment">/// Returns the number of `Event` values that `self` can hold.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use mio::Events;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let events = Events::with_capacity(1024);</span>
-    <span class="doccomment">/// assert_eq!(1024, events.capacity());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/mio/event/events.rs.html#106">self</a>.<span class="ident">inner</span>.<span class="ident">capacity</span>()
+    <span class="doccomment">/// Returns the number of `Event` values that `self` can hold.
+    ///
+    /// ```
+    /// use mio::Events;
+    ///
+    /// let events = Events::with_capacity(1024);
+    /// assert_eq!(1024, events.capacity());
+    /// ```
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/mio/event/events.rs.html#106">self</a>.inner.capacity()
     }
 
-    <span class="doccomment">/// Returns `true` if `self` contains no `Event` values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use mio::Events;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let events = Events::with_capacity(1024);</span>
-    <span class="doccomment">/// assert!(events.is_empty());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/mio/event/events.rs.html#120">self</a>.<span class="ident">inner</span>.<span class="ident">is_empty</span>()
+    <span class="doccomment">/// Returns `true` if `self` contains no `Event` values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use mio::Events;
+    ///
+    /// let events = Events::with_capacity(1024);
+    /// assert!(events.is_empty());
+    /// ```
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/mio/event/events.rs.html#120">self</a>.inner.is_empty()
     }
 
-    <span class="doccomment">/// Returns an iterator over the `Event` values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::{Events, Poll};</span>
-    <span class="doccomment">/// use std::time::Duration;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-    <span class="doccomment">/// let mut poll = Poll::new()?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Register handles with `poll`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// for event in events.iter() {</span>
-    <span class="doccomment">///     println!(&quot;Got an event for {:?}&quot;, event.token());</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #     Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/mio/event/events.rs.html#76">Iter</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../../src/mio/event/events.rs.html#148">self</a>,
-            <span class="ident">pos</span>: <span class="number">0</span>,
+    <span class="doccomment">/// Returns an iterator over the `Event` values.
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::{Events, Poll};
+    /// use std::time::Duration;
+    ///
+    /// let mut events = Events::with_capacity(1024);
+    /// let mut poll = Poll::new()?;
+    ///
+    /// // Register handles with `poll`.
+    ///
+    /// poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;
+    ///
+    /// for event in events.iter() {
+    ///     println!(&quot;Got an event for {:?}&quot;, event.token());
+    /// }
+    /// #     Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a href="../../../src/mio/event/events.rs.html#76">Iter</a> {
+            inner: <a class="self" href="../../../src/mio/event/events.rs.html#148">self</a>,
+            pos: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Clearing all `Event` values from container explicitly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Events are cleared before every `poll`, so it is not required to call</span>
-    <span class="doccomment">/// this manually.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;os-poll&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;```ignore&quot;</span>)]</span>
-    <span class="doccomment">/// # use std::error::Error;</span>
-    <span class="doccomment">/// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">/// use mio::{Events, Poll};</span>
-    <span class="doccomment">/// use std::time::Duration;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut events = Events::with_capacity(1024);</span>
-    <span class="doccomment">/// let mut poll = Poll::new()?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Register handles with `poll`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Clear all events.</span>
-    <span class="doccomment">/// events.clear();</span>
-    <span class="doccomment">/// assert!(events.is_empty());</span>
-    <span class="doccomment">/// #     Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/mio/event/events.rs.html#184">self</a>.<span class="ident">inner</span>.<span class="ident">clear</span>();
+    <span class="doccomment">/// Clearing all `Event` values from container explicitly.
+    ///
+    /// # Notes
+    ///
+    /// Events are cleared before every `poll`, so it is not required to call
+    /// this manually.
+    ///
+    /// # Examples
+    ///
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;os-poll&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
+    #[cfg_attr(not(feature = <span class="string">&quot;os-poll&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="doccomment">/// # use std::error::Error;
+    /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    /// use mio::{Events, Poll};
+    /// use std::time::Duration;
+    ///
+    /// let mut events = Events::with_capacity(1024);
+    /// let mut poll = Poll::new()?;
+    ///
+    /// // Register handles with `poll`.
+    ///
+    /// poll.poll(&amp;mut events, Some(Duration::from_millis(100)))?;
+    ///
+    /// // Clear all events.
+    /// events.clear();
+    /// assert!(events.is_empty());
+    /// #     Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/mio/event/events.rs.html#184">self</a>.inner.clear();
     }
 
-    <span class="doccomment">/// Returns the inner `sys::Events`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sys</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/mio/sys/unix/selector/epoll.rs.html#151">sys::Events</a> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/mio/event/events.rs.html#189">self</a>.<span class="ident">inner</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/mio/event/events.rs.html#42">Events</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/mio/event/event.rs.html#17">Event</a>;
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <a class="self" href="../../../src/mio/event/events.rs.html#198">self</a>.<a class="ident" href="../../../src/mio/event/events.rs.html#148">iter</a>()
+    <span class="doccomment">/// Returns the inner `sys::Events`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sys(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../src/mio/sys/unix/selector/epoll.rs.html#151">sys::Events</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/mio/event/events.rs.html#189">self</a>.inner
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/mio/event/event.rs.html#17">Event</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/mio/event/events.rs.html#42">Events</a> {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/mio/event/event.rs.html#17">Event</a>;
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="self" href="../../../src/mio/event/events.rs.html#206">self</a>
-            .<span class="ident">inner</span>
-            .<span class="ident">inner</span>
-            .<span class="ident">get</span>(<a class="self" href="../../../src/mio/event/events.rs.html#206">self</a>.<span class="ident">pos</span>)
-            .<span class="ident">map</span>(<span class="ident">Event::from_sys_event_ref</span>);
-        <a class="self" href="../../../src/mio/event/events.rs.html#206">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="ident" href="../../../src/mio/event/events.rs.html#207">ret</a>
-    }
-
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <a class="self" href="../../../src/mio/event/events.rs.html#216">self</a>.<span class="ident">inner</span>.<span class="ident">inner</span>.<span class="ident">len</span>();
-        (<a class="ident" href="../../../src/mio/event/events.rs.html#217">size</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/mio/event/events.rs.html#217">size</a>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/mio/event/events.rs.html#221">self</a>.<span class="ident">inner</span>.<span class="ident">inner</span>.<span class="ident">len</span>()
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
+        <a class="self" href="../../../src/mio/event/events.rs.html#198">self</a>.<a href="../../../src/mio/event/events.rs.html#148">iter</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/event/events.rs.html#42">Events</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/mio/event/events.rs.html#227">f</a>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<a class="self" href="../../../src/mio/event/events.rs.html#227">self</a>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/mio/event/event.rs.html#17">Event</a>;
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>ret = <span class="self"><a href="../../../src/mio/event/events.rs.html#206">self</a>
+            </span>.inner
+            .inner
+            .get(<a class="self" href="../../../src/mio/event/events.rs.html#206">self</a>.pos)
+            .map(Event::from_sys_event_ref);
+        <a class="self" href="../../../src/mio/event/events.rs.html#206">self</a>.pos += <span class="number">1</span>;
+        <a href="../../../src/mio/event/events.rs.html#207">ret</a>
+    }
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <span class="kw">let </span>size = <a class="self" href="../../../src/mio/event/events.rs.html#216">self</a>.inner.inner.len();
+        (<a href="../../../src/mio/event/events.rs.html#217">size</a>, <span class="prelude-val">Some</span>(<a href="../../../src/mio/event/events.rs.html#217">size</a>))
+    }
+
+    <span class="kw">fn </span>count(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/mio/event/events.rs.html#221">self</a>.inner.inner.len()
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/mio/event/events.rs.html#42">Events</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/mio/event/events.rs.html#227">f</a>.debug_list().entries(<a class="self" href="../../../src/mio/event/events.rs.html#227">self</a>).finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

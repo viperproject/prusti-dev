@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -343,350 +343,350 @@
 <span id="343">343</span>
 <span id="344">344</span>
 <span id="345">345</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Body filters</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Filters that extract a body for a route.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Body filters
+//!
+//! Filters that extract a body for a route.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>};
-<span class="kw">use</span> <span class="ident">futures_util</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <a class="ident" href="../../../futures_core/macro.ready.html">ready</a>, <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>, <a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a>};
-<span class="kw">use</span> <span class="ident">headers::ContentLength</span>;
-<span class="kw">use</span> <a class="ident" href="../../../http/header/name/constant.CONTENT_TYPE.html">http::header::CONTENT_TYPE</a>;
-<span class="kw">use</span> <a class="ident" href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>;
-<span class="kw">use</span> <a class="ident" href="../../../mime/index.html">mime</a>;
-<span class="kw">use</span> <a class="ident" href="../../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>;
-<span class="kw">use</span> <a class="ident" href="../../../serde_json/index.html">serde_json</a>;
-<span class="kw">use</span> <a class="ident" href="../../../serde_urlencoded/index.html">serde_urlencoded</a>;
+<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>};
+<span class="kw">use </span>futures_util::{<a href="../../../futures_util/future/index.html">future</a>, <a href="../../../futures_core/macro.ready.html">ready</a>, <a href="../../../futures_core/stream/trait.Stream.html">Stream</a>, <a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a>};
+<span class="kw">use </span>headers::ContentLength;
+<span class="kw">use </span><a href="../../../http/header/name/constant.CONTENT_TYPE.html">http::header::CONTENT_TYPE</a>;
+<span class="kw">use </span><a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>;
+<span class="kw">use </span><a href="../../../mime/index.html">mime</a>;
+<span class="kw">use </span><a href="../../../serde/de/trait.DeserializeOwned.html">serde::de::DeserializeOwned</a>;
+<span class="kw">use </span><a href="../../../serde_json/index.html">serde_json</a>;
+<span class="kw">use </span><a href="../../../serde_urlencoded/index.html">serde_urlencoded</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::filter</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reject</span>::{<a class="self" href="../../../src/warp/lib.rs.html#95">self</a>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a>};
+<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>, <a href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>, <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../../../src/warp/lib.rs.html#95">self</a>, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>};
 
-<span class="kw">type</span> <span class="ident">BoxError</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span>;
+<span class="kw">type </span>BoxError = Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;;
 
-<span class="comment">// Extracts the `Body` Stream from the route.</span>
-<span class="comment">//</span>
-<span class="comment">// Does not consume any of it.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">body</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<a class="ident" href="../../../hyper/body/body/struct.Body.html">Body</a>,), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="op">|</span><span class="ident">route</span><span class="op">|</span> {
-        <span class="ident">future::ready</span>(<a class="ident" href="../../../src/warp/filters/body.rs.html#29">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#130">take_body</a>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+<span class="comment">// Extracts the `Body` Stream from the route.
+//
+// Does not consume any of it.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>body() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<a href="../../../hyper/body/body/struct.Body.html">Body</a>,), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>(|route| {
+        future::ready(<a href="../../../src/warp/filters/body.rs.html#29">route</a>.<a href="../../../src/warp/route.rs.html#130">take_body</a>().ok_or_else(|| {
             <a class="macro" href="../../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;request body already taken in previous filter&quot;</span>);
-            <a class="ident" href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#343-345">BodyConsumedMultipleTimes</a> { <span class="ident">_p</span>: () })
+            <a href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a href="../../../src/warp/filters/body.rs.html#343-345">BodyConsumedMultipleTimes</a> { _p: () })
         }))
     })
 }
 
-<span class="doccomment">/// Require a `content-length` header to have a value no greater than some limit.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Rejects if `content-length` header is missing, is invalid, or has a number</span>
-<span class="doccomment">/// larger than the limit provided.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Limit the upload to 4kb...</span>
-<span class="doccomment">/// let upload = warp::body::content_length_limit(4096)</span>
-<span class="doccomment">///     .and(warp::body::aggregate());</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">content_length_limit</span>(<span class="ident">limit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filters/header.rs.html#52-53"><span class="kw">crate</span>::filters::header::header2</a>()
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#46-50">map_err</a>(<a class="ident" href="../../../src/warp/filter/mod.rs.html#70"><span class="kw">crate</span>::filter::Internal</a>, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+<span class="doccomment">/// Require a `content-length` header to have a value no greater than some limit.
+///
+/// Rejects if `content-length` header is missing, is invalid, or has a number
+/// larger than the limit provided.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// // Limit the upload to 4kb...
+/// let upload = warp::body::content_length_limit(4096)
+///     .and(warp::body::aggregate());
+/// ```
+</span><span class="kw">pub fn </span>content_length_limit(limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filters/header.rs.html#52-53"><span class="kw">crate</span>::filters::header::header2</a>()
+        .<a href="../../../src/warp/filter/mod.rs.html#46-50">map_err</a>(<a href="../../../src/warp/filter/mod.rs.html#70"><span class="kw">crate</span>::filter::Internal</a>, |<span class="kw">_</span>| {
             <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;content-length missing&quot;</span>);
-            <a class="ident" href="../../../src/warp/reject.rs.html#124">reject::length_required</a>()
+            <a href="../../../src/warp/reject.rs.html#124">reject::length_required</a>()
         })
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">ContentLength</span>(<span class="ident">length</span>)<span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">limit</span> {
-                <span class="ident">future::ok</span>(())
-            } <span class="kw">else</span> {
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;content-length: {} is over limit {}&quot;</span>, <span class="ident">length</span>, <span class="ident">limit</span>);
-                <span class="ident">future::err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#130">reject::payload_too_large</a>())
+        .<a href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="kw">move </span>|ContentLength(length)| {
+            <span class="kw">if </span>length &lt;= limit {
+                future::ok(())
+            } <span class="kw">else </span>{
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;content-length: {} is over limit {}&quot;</span>, length, limit);
+                future::err(<a href="../../../src/warp/reject.rs.html#130">reject::payload_too_large</a>())
             }
         })
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#370-373">untuple_one</a>()
+        .<a href="../../../src/warp/filter/mod.rs.html#370-373">untuple_one</a>()
 }
 
-<span class="doccomment">/// Create a `Filter` that extracts the request body as a `futures::Stream`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If other filters have already extracted the body, this filter will reject</span>
-<span class="doccomment">/// with a `500 Internal Server Error`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warning</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This does not have a default size limit, it would be wise to use one to</span>
-<span class="doccomment">/// prevent a overly large request from using too much memory.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span>(
-) -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">impl</span> <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span><span class="op">&gt;</span>,), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+<span class="doccomment">/// Create a `Filter` that extracts the request body as a `futures::Stream`.
+///
+/// If other filters have already extracted the body, this filter will reject
+/// with a `500 Internal Server Error`.
+///
+/// # Warning
+///
+/// This does not have a default size limit, it would be wise to use one to
+/// prevent a overly large request from using too much memory.
+</span><span class="kw">pub fn </span>stream(
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<span class="kw">impl </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;&gt;,), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
 {
-    <a class="ident" href="../../../src/warp/filters/body.rs.html#28">body</a>().<a class="ident" href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<span class="op">|</span><span class="ident">body</span>: <a class="ident" href="../../../hyper/body/body/struct.Body.html">Body</a><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#291">BodyStream</a> { <a class="ident" href="../../../src/warp/filters/body.rs.html#80">body</a> })
+    <a href="../../../src/warp/filters/body.rs.html#28">body</a>().<a href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(|body: <a href="../../../hyper/body/body/struct.Body.html">Body</a>| <a href="../../../src/warp/filters/body.rs.html#291">BodyStream</a> { <a href="../../../src/warp/filters/body.rs.html#80">body</a> })
 }
 
-<span class="doccomment">/// Returns a `Filter` that matches any request and extracts a `Future` of a</span>
-<span class="doccomment">/// concatenated body.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The contents of the body will be flattened into a single contiguous</span>
-<span class="doccomment">/// `Bytes`, which may require memory copies. If you don&#39;t require a</span>
-<span class="doccomment">/// contiguous buffer, using `aggregate` can be give better performance.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warning</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This does not have a default size limit, it would be wise to use one to</span>
-<span class="doccomment">/// prevent a overly large request from using too much memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::{Buf, Filter};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::body::content_length_limit(1024 * 32)</span>
-<span class="doccomment">///     .and(warp::body::bytes())</span>
-<span class="doccomment">///     .map(|bytes: bytes::Bytes| {</span>
-<span class="doccomment">///         println!(&quot;bytes = {:?}&quot;, bytes);</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>,), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filters/body.rs.html#28">body</a>().<a class="ident" href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="op">|</span><span class="ident">body</span>: <a class="ident" href="../../../hyper/body/body/struct.Body.html">hyper::Body</a><span class="op">|</span> {
-        <span class="ident">hyper::body::to_bytes</span>(<a class="ident" href="../../../src/warp/filters/body.rs.html#107">body</a>).<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;to_bytes error: {}&quot;</span>, <span class="ident">err</span>);
-            <a class="ident" href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#333">BodyReadError</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#108">err</a>))
+<span class="doccomment">/// Returns a `Filter` that matches any request and extracts a `Future` of a
+/// concatenated body.
+///
+/// The contents of the body will be flattened into a single contiguous
+/// `Bytes`, which may require memory copies. If you don&#39;t require a
+/// contiguous buffer, using `aggregate` can be give better performance.
+///
+/// # Warning
+///
+/// This does not have a default size limit, it would be wise to use one to
+/// prevent a overly large request from using too much memory.
+///
+/// # Example
+///
+/// ```
+/// use warp::{Buf, Filter};
+///
+/// let route = warp::body::content_length_limit(1024 * 32)
+///     .and(warp::body::bytes())
+///     .map(|bytes: bytes::Bytes| {
+///         println!(&quot;bytes = {:?}&quot;, bytes);
+///     });
+/// ```
+</span><span class="kw">pub fn </span>bytes() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>,), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filters/body.rs.html#28">body</a>().<a href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(|body: <a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>| {
+        hyper::body::to_bytes(<a href="../../../src/warp/filters/body.rs.html#107">body</a>).<a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(|err| {
+            <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;to_bytes error: {}&quot;</span>, err);
+            <a href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a href="../../../src/warp/filters/body.rs.html#333">BodyReadError</a>(<a href="../../../src/warp/filters/body.rs.html#108">err</a>))
         })
     })
 }
 
-<span class="doccomment">/// Returns a `Filter` that matches any request and extracts a `Future` of an</span>
-<span class="doccomment">/// aggregated body.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `Buf` may contain multiple, non-contiguous buffers. This can be more</span>
-<span class="doccomment">/// performant (by reducing copies) when receiving large bodies.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warning</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This does not have a default size limit, it would be wise to use one to</span>
-<span class="doccomment">/// prevent a overly large request from using too much memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::{Buf, Filter};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn full_body(mut body: impl Buf) {</span>
-<span class="doccomment">///     // It could have several non-contiguous slices of memory...</span>
-<span class="doccomment">///     while body.has_remaining() {</span>
-<span class="doccomment">///         println!(&quot;slice = {:?}&quot;, body.chunk());</span>
-<span class="doccomment">///         let cnt = body.chunk().len();</span>
-<span class="doccomment">///         body.advance(cnt);</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::body::content_length_limit(1024 * 32)</span>
-<span class="doccomment">///     .and(warp::body::aggregate())</span>
-<span class="doccomment">///     .map(full_body);</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aggregate</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="kw">impl</span> <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filters/body.rs.html#28">body</a>().<a class="ident" href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="op">|</span><span class="ident">body</span>: <a class="ident" href="../../../hyper/body/body/struct.Body.html">::hyper::Body</a><span class="op">|</span> {
-        <span class="ident">hyper::body::aggregate</span>(<a class="ident" href="../../../src/warp/filters/body.rs.html#145">body</a>).<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;aggregate error: {}&quot;</span>, <span class="ident">err</span>);
-            <a class="ident" href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#333">BodyReadError</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#146">err</a>))
+<span class="doccomment">/// Returns a `Filter` that matches any request and extracts a `Future` of an
+/// aggregated body.
+///
+/// The `Buf` may contain multiple, non-contiguous buffers. This can be more
+/// performant (by reducing copies) when receiving large bodies.
+///
+/// # Warning
+///
+/// This does not have a default size limit, it would be wise to use one to
+/// prevent a overly large request from using too much memory.
+///
+/// # Example
+///
+/// ```
+/// use warp::{Buf, Filter};
+///
+/// fn full_body(mut body: impl Buf) {
+///     // It could have several non-contiguous slices of memory...
+///     while body.has_remaining() {
+///         println!(&quot;slice = {:?}&quot;, body.chunk());
+///         let cnt = body.chunk().len();
+///         body.advance(cnt);
+///     }
+/// }
+///
+/// let route = warp::body::content_length_limit(1024 * 32)
+///     .and(warp::body::aggregate())
+///     .map(full_body);
+/// ```
+</span><span class="kw">pub fn </span>aggregate() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<span class="kw">impl </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filters/body.rs.html#28">body</a>().<a href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(|body: <a href="../../../hyper/body/body/struct.Body.html">::hyper::Body</a>| {
+        hyper::body::aggregate(<a href="../../../src/warp/filters/body.rs.html#145">body</a>).<a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(|err| {
+            <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;aggregate error: {}&quot;</span>, err);
+            <a href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a href="../../../src/warp/filters/body.rs.html#333">BodyReadError</a>(<a href="../../../src/warp/filters/body.rs.html#146">err</a>))
         })
     })
 }
 
-<span class="doccomment">/// Returns a `Filter` that matches any request and extracts a `Future` of a</span>
-<span class="doccomment">/// JSON-decoded body.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warning</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This does not have a default size limit, it would be wise to use one to</span>
-<span class="doccomment">/// prevent a overly large request from using too much memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use std::collections::HashMap;</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::body::content_length_limit(1024 * 32)</span>
-<span class="doccomment">///     .and(warp::body::json())</span>
-<span class="doccomment">///     .map(|simple_map: HashMap&lt;String, String&gt;| {</span>
-<span class="doccomment">///         &quot;Got a JSON body!&quot;</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">json</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="ident">T</span>,), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <span class="ident">is_content_type</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/body.rs.html#228">Json</a><span class="op">&gt;</span>()
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#106">bytes</a>())
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-            <span class="ident">Json::decode</span>(<a class="ident" href="../../../src/warp/filters/body.rs.html#176">buf</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;request json body error: {}&quot;</span>, <span class="ident">err</span>);
-                <a class="ident" href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#316">BodyDeserializeError</a> { <span class="ident">cause</span>: <a class="ident" href="../../../src/warp/filters/body.rs.html#177">err</a> })
+<span class="doccomment">/// Returns a `Filter` that matches any request and extracts a `Future` of a
+/// JSON-decoded body.
+///
+/// # Warning
+///
+/// This does not have a default size limit, it would be wise to use one to
+/// prevent a overly large request from using too much memory.
+///
+/// # Example
+///
+/// ```
+/// use std::collections::HashMap;
+/// use warp::Filter;
+///
+/// let route = warp::body::content_length_limit(1024 * 32)
+///     .and(warp::body::json())
+///     .map(|simple_map: HashMap&lt;String, String&gt;| {
+///         &quot;Got a JSON body!&quot;
+///     });
+/// ```
+</span><span class="kw">pub fn </span>json&lt;T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (T,), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    is_content_type::&lt;<a href="../../../src/warp/filters/body.rs.html#228">Json</a>&gt;()
+        .<a href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a href="../../../src/warp/filters/body.rs.html#106">bytes</a>())
+        .<a href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(|buf| <span class="kw">async move </span>{
+            Json::decode(<a href="../../../src/warp/filters/body.rs.html#176">buf</a>).map_err(|err| {
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;request json body error: {}&quot;</span>, err);
+                <a href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a href="../../../src/warp/filters/body.rs.html#316">BodyDeserializeError</a> { cause: <a href="../../../src/warp/filters/body.rs.html#177">err</a> })
             })
         })
 }
 
-<span class="doccomment">/// Returns a `Filter` that matches any request and extracts a</span>
-<span class="doccomment">/// `Future` of a form encoded body.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This filter is for the simpler `application/x-www-form-urlencoded` format,</span>
-<span class="doccomment">/// not `multipart/form-data`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warning</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This does not have a default size limit, it would be wise to use one to</span>
-<span class="doccomment">/// prevent a overly large request from using too much memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use std::collections::HashMap;</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::body::content_length_limit(1024 * 32)</span>
-<span class="doccomment">///     .and(warp::body::form())</span>
-<span class="doccomment">///     .map(|simple_map: HashMap&lt;String, String&gt;| {</span>
-<span class="doccomment">///         &quot;Got a urlencoded body!&quot;</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">form</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="ident">T</span>,), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <span class="ident">is_content_type</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/body.rs.html#239">Form</a><span class="op">&gt;</span>()
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#144">aggregate</a>())
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-            <span class="ident">Form::decode</span>(<a class="ident" href="../../../src/warp/filters/body.rs.html#211">buf</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;request form body error: {}&quot;</span>, <span class="ident">err</span>);
-                <a class="ident" href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#316">BodyDeserializeError</a> { <span class="ident">cause</span>: <a class="ident" href="../../../src/warp/filters/body.rs.html#212">err</a> })
+<span class="doccomment">/// Returns a `Filter` that matches any request and extracts a
+/// `Future` of a form encoded body.
+///
+/// # Note
+///
+/// This filter is for the simpler `application/x-www-form-urlencoded` format,
+/// not `multipart/form-data`.
+///
+/// # Warning
+///
+/// This does not have a default size limit, it would be wise to use one to
+/// prevent a overly large request from using too much memory.
+///
+///
+/// ```
+/// use std::collections::HashMap;
+/// use warp::Filter;
+///
+/// let route = warp::body::content_length_limit(1024 * 32)
+///     .and(warp::body::form())
+///     .map(|simple_map: HashMap&lt;String, String&gt;| {
+///         &quot;Got a urlencoded body!&quot;
+///     });
+/// ```
+</span><span class="kw">pub fn </span>form&lt;T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (T,), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    is_content_type::&lt;<a href="../../../src/warp/filters/body.rs.html#239">Form</a>&gt;()
+        .<a href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a href="../../../src/warp/filters/body.rs.html#144">aggregate</a>())
+        .<a href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(|buf| <span class="kw">async move </span>{
+            Form::decode(<a href="../../../src/warp/filters/body.rs.html#211">buf</a>).map_err(|err| {
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;request form body error: {}&quot;</span>, err);
+                <a href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a href="../../../src/warp/filters/body.rs.html#316">BodyDeserializeError</a> { cause: <a href="../../../src/warp/filters/body.rs.html#212">err</a> })
             })
         })
 }
 
-<span class="comment">// ===== Decoders =====</span>
+<span class="comment">// ===== Decoders =====
 
-<span class="kw">trait</span> <span class="ident">Decode</span> {
-    <span class="kw">const</span> <span class="ident">MIME</span>: (<span class="ident">mime::Name</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">mime::Name</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>);
-    <span class="kw">const</span> <span class="ident">WITH_NO_CONTENT_TYPE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+</span><span class="kw">trait </span>Decode {
+    <span class="kw">const </span>MIME: (mime::Name&lt;<span class="lifetime">&#39;static</span>&gt;, mime::Name&lt;<span class="lifetime">&#39;static</span>&gt;);
+    <span class="kw">const </span>WITH_NO_CONTENT_TYPE: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 
-    <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <span class="ident">T</span>: <a class="ident" href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a><span class="op">&gt;</span>(<span class="ident">buf</span>: <span class="ident">B</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/warp/filters/body.rs.html#23">BoxError</a><span class="op">&gt;</span>;
+    <span class="kw">fn </span>decode&lt;B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>&gt;(buf: B) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../../src/warp/filters/body.rs.html#23">BoxError</a>&gt;;
 }
 
-<span class="kw">struct</span> <span class="ident">Json</span>;
+<span class="kw">struct </span>Json;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#221">Decode</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#228">Json</a> {
-    <span class="kw">const</span> <span class="ident">MIME</span>: (<span class="ident">mime::Name</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">mime::Name</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) <span class="op">=</span> (<span class="ident">mime::APPLICATION</span>, <span class="ident">mime::JSON</span>);
-    <span class="kw">const</span> <span class="ident">WITH_NO_CONTENT_TYPE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">=</span> <span class="bool-val">true</span>;
+<span class="kw">impl </span><a href="../../../src/warp/filters/body.rs.html#221">Decode</a> <span class="kw">for </span><a href="../../../src/warp/filters/body.rs.html#228">Json</a> {
+    <span class="kw">const </span>MIME: (mime::Name&lt;<span class="lifetime">&#39;static</span>&gt;, mime::Name&lt;<span class="lifetime">&#39;static</span>&gt;) = (mime::APPLICATION, mime::JSON);
+    <span class="kw">const </span>WITH_NO_CONTENT_TYPE: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> = <span class="bool-val">true</span>;
 
-    <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <span class="ident">T</span>: <a class="ident" href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="ident">B</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/warp/filters/body.rs.html#23">BoxError</a><span class="op">&gt;</span> {
-        <span class="ident">serde_json::from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/warp/filters/body.rs.html#234">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">copy_to_bytes</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#234">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>())).<span class="ident">map_err</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+    <span class="kw">fn </span>decode&lt;B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>&gt;(<span class="kw-2">mut </span>buf: B) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../../src/warp/filters/body.rs.html#23">BoxError</a>&gt; {
+        serde_json::from_slice(<span class="kw-2">&amp;</span><a href="../../../src/warp/filters/body.rs.html#234">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">copy_to_bytes</a>(<a href="../../../src/warp/filters/body.rs.html#234">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>())).map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 }
 
-<span class="kw">struct</span> <span class="ident">Form</span>;
+<span class="kw">struct </span>Form;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#221">Decode</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#239">Form</a> {
-    <span class="kw">const</span> <span class="ident">MIME</span>: (<span class="ident">mime::Name</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">mime::Name</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) <span class="op">=</span>
-        (<span class="ident">mime::APPLICATION</span>, <span class="ident">mime::WWW_FORM_URLENCODED</span>);
-    <span class="kw">const</span> <span class="ident">WITH_NO_CONTENT_TYPE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">=</span> <span class="bool-val">true</span>;
+<span class="kw">impl </span><a href="../../../src/warp/filters/body.rs.html#221">Decode</a> <span class="kw">for </span><a href="../../../src/warp/filters/body.rs.html#239">Form</a> {
+    <span class="kw">const </span>MIME: (mime::Name&lt;<span class="lifetime">&#39;static</span>&gt;, mime::Name&lt;<span class="lifetime">&#39;static</span>&gt;) =
+        (mime::APPLICATION, mime::WWW_FORM_URLENCODED);
+    <span class="kw">const </span>WITH_NO_CONTENT_TYPE: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> = <span class="bool-val">true</span>;
 
-    <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <span class="ident">T</span>: <a class="ident" href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a><span class="op">&gt;</span>(<span class="ident">buf</span>: <span class="ident">B</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/warp/filters/body.rs.html#23">BoxError</a><span class="op">&gt;</span> {
-        <span class="ident">serde_urlencoded::from_reader</span>(<a class="ident" href="../../../src/warp/filters/body.rs.html#246">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">reader</a>()).<span class="ident">map_err</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+    <span class="kw">fn </span>decode&lt;B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>&gt;(buf: B) -&gt; <span class="prelude-ty">Result</span>&lt;T, <a href="../../../src/warp/filters/body.rs.html#23">BoxError</a>&gt; {
+        serde_urlencoded::from_reader(<a href="../../../src/warp/filters/body.rs.html#246">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">reader</a>()).map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 }
 
-<span class="comment">// Require the `content-type` header to be this type (or, if there&#39;s no `content-type`</span>
-<span class="comment">// header at all, optimistically hope it&#39;s the right type).</span>
-<span class="kw">fn</span> <span class="ident">is_content_type</span><span class="op">&lt;</span><span class="ident">D</span>: <a class="ident" href="../../../src/warp/filters/body.rs.html#221">Decode</a><span class="op">&gt;</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
-    <a class="ident" href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">route</span><span class="op">|</span> {
-        <span class="kw">let</span> (<span class="ident">type_</span>, <span class="ident">subtype</span>) <span class="op">=</span> <span class="ident">D::MIME</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#254">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#65">headers</a>().<span class="ident">get</span>(<a class="ident" href="../../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>) {
-            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;is_content_type {}/{}? {:?}&quot;</span>, <span class="ident">type_</span>, <span class="ident">subtype</span>, <span class="ident">value</span>);
-            <span class="kw">let</span> <span class="ident">ct</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#256">value</a>
-                .<span class="ident">to_str</span>()
-                .<span class="ident">ok</span>()
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#261">s</a>.<span class="ident">parse</span>::<span class="op">&lt;</span><a class="ident" href="../../../mime/struct.Mime.html">mime::Mime</a><span class="op">&gt;</span>().<span class="ident">ok</span>());
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ct</span>) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#258">ct</a> {
-                <span class="kw">if</span> <span class="ident">ct</span>.<span class="ident">type_</span>() <span class="op">==</span> <span class="ident">type_</span> <span class="op">&amp;&amp;</span> <span class="ident">ct</span>.<span class="ident">subtype</span>() <span class="op">==</span> <span class="ident">subtype</span> {
-                    <span class="ident">future::ok</span>(())
-                } <span class="kw">else</span> {
+<span class="comment">// Require the `content-type` header to be this type (or, if there&#39;s no `content-type`
+// header at all, optimistically hope it&#39;s the right type).
+</span><span class="kw">fn </span>is_content_type&lt;D: <a href="../../../src/warp/filters/body.rs.html#221">Decode</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a href="../../../src/warp/filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
+        <span class="kw">let </span>(type_, subtype) = D::MIME;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="../../../src/warp/filters/body.rs.html#254">route</a>.<a href="../../../src/warp/route.rs.html#65">headers</a>().get(<a href="../../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>) {
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;is_content_type {}/{}? {:?}&quot;</span>, type_, subtype, value);
+            <span class="kw">let </span>ct = <a href="../../../src/warp/filters/body.rs.html#256">value</a>
+                .to_str()
+                .ok()
+                .and_then(|s| <a href="../../../src/warp/filters/body.rs.html#261">s</a>.parse::&lt;<a href="../../../mime/struct.Mime.html">mime::Mime</a>&gt;().ok());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ct) = <a href="../../../src/warp/filters/body.rs.html#258">ct</a> {
+                <span class="kw">if </span>ct.type_() == type_ &amp;&amp; ct.subtype() == subtype {
+                    future::ok(())
+                } <span class="kw">else </span>{
                     <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(
                         <span class="string">&quot;content-type {:?} doesn&#39;t match {}/{}&quot;</span>,
-                        <span class="ident">value</span>,
-                        <span class="ident">type_</span>,
-                        <span class="ident">subtype</span>
+                        value,
+                        type_,
+                        subtype
                     );
-                    <span class="ident">future::err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#139">reject::unsupported_media_type</a>())
+                    future::err(<a href="../../../src/warp/reject.rs.html#139">reject::unsupported_media_type</a>())
                 }
-            } <span class="kw">else</span> {
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;content-type {:?} couldn&#39;t be parsed&quot;</span>, <span class="ident">value</span>);
-                <span class="ident">future::err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#139">reject::unsupported_media_type</a>())
+            } <span class="kw">else </span>{
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;content-type {:?} couldn&#39;t be parsed&quot;</span>, value);
+                future::err(<a href="../../../src/warp/reject.rs.html#139">reject::unsupported_media_type</a>())
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">D::WITH_NO_CONTENT_TYPE</span> {
-            <span class="comment">// Optimistically assume its correct!</span>
-            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;no content-type header, assuming {}/{}&quot;</span>, <span class="ident">type_</span>, <span class="ident">subtype</span>);
-            <span class="ident">future::ok</span>(())
-        } <span class="kw">else</span> {
+        } <span class="kw">else if </span>D::WITH_NO_CONTENT_TYPE {
+            <span class="comment">// Optimistically assume its correct!
+            </span><a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;no content-type header, assuming {}/{}&quot;</span>, type_, subtype);
+            future::ok(())
+        } <span class="kw">else </span>{
             <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;no content-type found&quot;</span>);
-            <span class="ident">future::err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#139">reject::unsupported_media_type</a>())
+            future::err(<a href="../../../src/warp/reject.rs.html#139">reject::unsupported_media_type</a>())
         }
     })
 }
 
-<span class="comment">// ===== BodyStream =====</span>
+<span class="comment">// ===== BodyStream =====
 
-<span class="kw">struct</span> <span class="ident">BodyStream</span> {
-    <span class="ident">body</span>: <a class="ident" href="../../../hyper/body/body/struct.Body.html">Body</a>,
+</span><span class="kw">struct </span>BodyStream {
+    body: <a href="../../../hyper/body/body/struct.Body.html">Body</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#291">BodyStream</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>;
+<span class="kw">impl </span><a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span><a href="../../../src/warp/filters/body.rs.html#291">BodyStream</a> {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../src/warp/error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">opt_item</span> <span class="op">=</span> <a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">body</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>));
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span>opt_item = <a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.get_mut().body).poll_next(cx));
 
-        <span class="kw">match</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#299">opt_item</a> {
-            <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">stream_buf</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#303">item</a>.<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>);
+        <span class="kw">match </span><a href="../../../src/warp/filters/body.rs.html#299">opt_item</a> {
+            <span class="prelude-val">None </span>=&gt; Poll::Ready(<span class="prelude-val">None</span>),
+            <span class="prelude-val">Some</span>(item) =&gt; {
+                <span class="kw">let </span>stream_buf = <a href="../../../src/warp/filters/body.rs.html#303">item</a>.map_err(<span class="kw">crate</span>::Error::new);
 
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/body.rs.html#304">stream_buf</a>))
+                Poll::Ready(<span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/body.rs.html#304">stream_buf</a>))
             }
         }
     }
 }
 
-<span class="comment">// ===== Rejections =====</span>
+<span class="comment">// ===== Rejections =====
 
-<span class="doccomment">/// An error used in rejections when deserializing a request body fails.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BodyDeserializeError</span> {
-    <span class="ident">cause</span>: <a class="ident" href="../../../src/warp/filters/body.rs.html#23">BoxError</a>,
+</span><span class="doccomment">/// An error used in rejections when deserializing a request body fails.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>BodyDeserializeError {
+    cause: <a href="../../../src/warp/filters/body.rs.html#23">BoxError</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#316">BodyDeserializeError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#321">f</a>, <span class="string">&quot;Request body deserialize error: {}&quot;</span>, <span class="self">self</span>.<span class="ident">cause</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/warp/filters/body.rs.html#316">BodyDeserializeError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/warp/filters/body.rs.html#321">f</a>, <span class="string">&quot;Request body deserialize error: {}&quot;</span>, <span class="self">self</span>.cause)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#316">BodyDeserializeError</a> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/warp/filters/body.rs.html#327">self</a>.<span class="ident">cause</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../../src/warp/filters/body.rs.html#316">BodyDeserializeError</a> {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/warp/filters/body.rs.html#327">self</a>.cause.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>())
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">BodyReadError</span>(<a class="ident" href="../../../hyper/error/struct.Error.html">::hyper::Error</a>);
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BodyReadError(<a href="../../../hyper/error/struct.Error.html">::hyper::Error</a>);
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#333">BodyReadError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#336">f</a>, <span class="string">&quot;Request body read error: {}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/warp/filters/body.rs.html#333">BodyReadError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/warp/filters/body.rs.html#336">f</a>, <span class="string">&quot;Request body read error: {}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/body.rs.html#333">BodyReadError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../../src/warp/filters/body.rs.html#333">BodyReadError</a> {}
 
-<a class="macro" href="../../../src/warp/error.rs.html#57-79">unit_error!</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">BodyConsumedMultipleTimes</span>: <span class="string">&quot;Request body consumed multiple times&quot;</span>
-}
+<a class="macro" href="../../../src/warp/error.rs.html#57-79">unit_error! </a>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) BodyConsumedMultipleTimes: <span class="string">&quot;Request body consumed multiple times&quot;
+</span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

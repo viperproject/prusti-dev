@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.0/src/chunked_encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chunked_encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../base64/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.13.0/src/chunked_encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chunked_encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../base64/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../base64/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -245,252 +245,252 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">encode</span>::{<a class="ident" href="../../src/base64/encode.rs.html#311">add_padding</a>, <a class="ident" href="../../src/base64/encode.rs.html#167">encode_to_slice</a>},
-    <a class="ident" href="../../src/base64/lib.rs.html#153">Config</a>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    encode::{<a href="../../src/base64/encode.rs.html#311">add_padding</a>, <a href="../../src/base64/encode.rs.html#167">encode_to_slice</a>},
+    <a href="../../src/base64/lib.rs.html#153">Config</a>,
 };
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">core::cmp</a>;
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
 
-<span class="doccomment">/// The output mechanism for ChunkedEncoder&#39;s encoded bytes.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sink</span> {
-    <span class="kw">type</span> <span class="ident">Error</span>;
+<span class="doccomment">/// The output mechanism for ChunkedEncoder&#39;s encoded bytes.
+</span><span class="kw">pub trait </span>Sink {
+    <span class="kw">type </span>Error;
 
-    <span class="doccomment">/// Handle a chunk of encoded base64 data (as UTF-8 bytes)</span>
-    <span class="kw">fn</span> <span class="ident">write_encoded_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">encoded</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Handle a chunk of encoded base64 data (as UTF-8 bytes)
+    </span><span class="kw">fn </span>write_encoded_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, encoded: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;;
 }
 
-<span class="kw">const</span> <span class="ident">BUF_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1024</span>;
+<span class="kw">const </span>BUF_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">1024</span>;
 
-<span class="doccomment">/// A base64 encoder that emits encoded bytes in chunks without heap allocation.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChunkedEncoder</span> {
-    <span class="ident">config</span>: <a class="ident" href="../../src/base64/lib.rs.html#153">Config</a>,
-    <span class="ident">max_input_chunk_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// A base64 encoder that emits encoded bytes in chunks without heap allocation.
+</span><span class="kw">pub struct </span>ChunkedEncoder {
+    config: <a href="../../src/base64/lib.rs.html#153">Config</a>,
+    max_input_chunk_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/base64/chunked_encoder.rs.html#22">ChunkedEncoder</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <a class="ident" href="../../src/base64/lib.rs.html#153">Config</a>) -&gt; <a class="ident" href="../../src/base64/chunked_encoder.rs.html#22">ChunkedEncoder</a> {
-        <a class="ident" href="../../src/base64/chunked_encoder.rs.html#22">ChunkedEncoder</a> {
-            <a class="ident" href="../../src/base64/chunked_encoder.rs.html#28">config</a>,
-            <span class="ident">max_input_chunk_len</span>: <a class="ident" href="../../src/base64/chunked_encoder.rs.html#72">max_input_length</a>(<a class="ident" href="../../src/base64/chunked_encoder.rs.html#19">BUF_SIZE</a>, <a class="ident" href="../../src/base64/chunked_encoder.rs.html#28">config</a>),
+<span class="kw">impl </span><a href="../../src/base64/chunked_encoder.rs.html#22">ChunkedEncoder</a> {
+    <span class="kw">pub fn </span>new(config: <a href="../../src/base64/lib.rs.html#153">Config</a>) -&gt; <a href="../../src/base64/chunked_encoder.rs.html#22">ChunkedEncoder</a> {
+        <a href="../../src/base64/chunked_encoder.rs.html#22">ChunkedEncoder</a> {
+            <a href="../../src/base64/chunked_encoder.rs.html#28">config</a>,
+            max_input_chunk_len: <a href="../../src/base64/chunked_encoder.rs.html#72">max_input_length</a>(<a href="../../src/base64/chunked_encoder.rs.html#19">BUF_SIZE</a>, <a href="../../src/base64/chunked_encoder.rs.html#28">config</a>),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/base64/chunked_encoder.rs.html#12">Sink</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encode_buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a class="ident" href="../../src/base64/chunked_encoder.rs.html#19">BUF_SIZE</a>] <span class="op">=</span> [<span class="number">0</span>; <a class="ident" href="../../src/base64/chunked_encoder.rs.html#19">BUF_SIZE</a>];
-        <span class="kw">let</span> <span class="ident">encode_table</span> <span class="op">=</span> <a class="self" href="../../src/base64/chunked_encoder.rs.html#35">self</a>.<span class="ident">config</span>.<span class="ident">char_set</span>.<a class="ident" href="../../src/base64/lib.rs.html#128">encode_table</a>();
+    <span class="kw">pub fn </span>encode&lt;S: <a href="../../src/base64/chunked_encoder.rs.html#12">Sink</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], sink: <span class="kw-2">&amp;mut </span>S) -&gt; <span class="prelude-ty">Result</span>&lt;(), S::Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>encode_buf: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a href="../../src/base64/chunked_encoder.rs.html#19">BUF_SIZE</a>] = [<span class="number">0</span>; <a href="../../src/base64/chunked_encoder.rs.html#19">BUF_SIZE</a>];
+        <span class="kw">let </span>encode_table = <a class="self" href="../../src/base64/chunked_encoder.rs.html#35">self</a>.config.char_set.<a href="../../src/base64/lib.rs.html#128">encode_table</a>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input_index</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>input_index = <span class="number">0</span>;
 
-        <span class="kw">while</span> <span class="ident">input_index</span> <span class="op">&lt;</span> <span class="ident">bytes</span>.<span class="ident">len</span>() {
-            <span class="comment">// either the full input chunk size, or it&#39;s the last iteration</span>
-            <span class="kw">let</span> <span class="ident">input_chunk_len</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="self">self</span>.<span class="ident">max_input_chunk_len</span>, <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">input_index</span>);
+        <span class="kw">while </span>input_index &lt; bytes.len() {
+            <span class="comment">// either the full input chunk size, or it&#39;s the last iteration
+            </span><span class="kw">let </span>input_chunk_len = cmp::min(<span class="self">self</span>.max_input_chunk_len, bytes.len() - input_index);
 
-            <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="ident">input_index</span>..(<span class="ident">input_index</span> <span class="op">+</span> <span class="ident">input_chunk_len</span>)];
+            <span class="kw">let </span>chunk = <span class="kw-2">&amp;</span>bytes[input_index..(input_index + input_chunk_len)];
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b64_bytes_written</span> <span class="op">=</span> <span class="ident">encode_to_slice</span>(<span class="ident">chunk</span>, <span class="kw-2">&amp;mut</span> <span class="ident">encode_buf</span>, <span class="ident">encode_table</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>b64_bytes_written = encode_to_slice(chunk, <span class="kw-2">&amp;mut </span>encode_buf, encode_table);
 
-            <span class="ident">input_index</span> <span class="op">+</span><span class="op">=</span> <span class="ident">input_chunk_len</span>;
-            <span class="kw">let</span> <span class="ident">more_input_left</span> <span class="op">=</span> <span class="ident">input_index</span> <span class="op">&lt;</span> <span class="ident">bytes</span>.<span class="ident">len</span>();
+            input_index += input_chunk_len;
+            <span class="kw">let </span>more_input_left = input_index &lt; bytes.len();
 
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">pad</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">more_input_left</span> {
-                <span class="comment">// no more input, add padding if needed. Buffer will have room because</span>
-                <span class="comment">// max_input_length leaves room for it.</span>
-                <span class="ident">b64_bytes_written</span> <span class="op">+</span><span class="op">=</span> <span class="ident">add_padding</span>(<span class="ident">bytes</span>.<span class="ident">len</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">encode_buf</span>[<span class="ident">b64_bytes_written</span>..]);
+            <span class="kw">if </span><span class="self">self</span>.config.pad &amp;&amp; !more_input_left {
+                <span class="comment">// no more input, add padding if needed. Buffer will have room because
+                // max_input_length leaves room for it.
+                </span>b64_bytes_written += add_padding(bytes.len(), <span class="kw-2">&amp;mut </span>encode_buf[b64_bytes_written..]);
             }
 
-            <span class="ident">sink</span>.<span class="ident">write_encoded_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">encode_buf</span>[<span class="number">0</span>..<span class="ident">b64_bytes_written</span>])<span class="question-mark">?</span>;
+            sink.write_encoded_bytes(<span class="kw-2">&amp;</span>encode_buf[<span class="number">0</span>..b64_bytes_written])<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="doccomment">/// Calculate the longest input that can be encoded for the given output buffer size.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the config requires padding, two bytes of buffer space will be set aside so that the last</span>
-<span class="doccomment">/// chunk of input can be encoded safely.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The input length will always be a multiple of 3 so that no encoding state has to be carried over</span>
-<span class="doccomment">/// between chunks.</span>
-<span class="kw">fn</span> <span class="ident">max_input_length</span>(<span class="ident">encoded_buf_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">config</span>: <a class="ident" href="../../src/base64/lib.rs.html#153">Config</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let</span> <span class="ident">effective_buf_len</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">pad</span> {
-        <span class="comment">// make room for padding</span>
-        <a class="ident" href="../../src/base64/chunked_encoder.rs.html#72">encoded_buf_len</a>
-            .<span class="ident">checked_sub</span>(<span class="number">2</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Don&#39;t use a tiny buffer&quot;</span>)
-    } <span class="kw">else</span> {
-        <a class="ident" href="../../src/base64/chunked_encoder.rs.html#72">encoded_buf_len</a>
+<span class="doccomment">/// Calculate the longest input that can be encoded for the given output buffer size.
+///
+/// If the config requires padding, two bytes of buffer space will be set aside so that the last
+/// chunk of input can be encoded safely.
+///
+/// The input length will always be a multiple of 3 so that no encoding state has to be carried over
+/// between chunks.
+</span><span class="kw">fn </span>max_input_length(encoded_buf_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, config: <a href="../../src/base64/lib.rs.html#153">Config</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">let </span>effective_buf_len = <span class="kw">if </span>config.pad {
+        <span class="comment">// make room for padding
+        </span><a href="../../src/base64/chunked_encoder.rs.html#72">encoded_buf_len</a>
+            .checked_sub(<span class="number">2</span>)
+            .expect(<span class="string">&quot;Don&#39;t use a tiny buffer&quot;</span>)
+    } <span class="kw">else </span>{
+        <a href="../../src/base64/chunked_encoder.rs.html#72">encoded_buf_len</a>
     };
 
-    <span class="comment">// No padding, so just normal base64 expansion.</span>
-    (<a class="ident" href="../../src/base64/chunked_encoder.rs.html#73">effective_buf_len</a> <span class="op">/</span> <span class="number">4</span>) <span class="op">*</span> <span class="number">3</span>
+    <span class="comment">// No padding, so just normal base64 expansion.
+    </span>(<a href="../../src/base64/chunked_encoder.rs.html#73">effective_buf_len</a> / <span class="number">4</span>) * <span class="number">3
+</span>}
+
+<span class="comment">// A really simple sink that just appends to a string
+</span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>StringSink&lt;<span class="lifetime">&#39;a</span>&gt; {
+    string: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="comment">// A really simple sink that just appends to a string</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">StringSink</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">StringSink</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">s</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a class="ident" href="../../src/base64/chunked_encoder.rs.html#88">StringSink</a> {
-        <a class="ident" href="../../src/base64/chunked_encoder.rs.html#88">StringSink</a> { <span class="ident">string</span>: <a class="ident" href="../../src/base64/chunked_encoder.rs.html#94">s</a> }
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; StringSink&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(s: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="../../src/base64/chunked_encoder.rs.html#88">StringSink</a> {
+        <a href="../../src/base64/chunked_encoder.rs.html#88">StringSink</a> { string: <a href="../../src/base64/chunked_encoder.rs.html#94">s</a> }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/base64/chunked_encoder.rs.html#12">Sink</a> <span class="kw">for</span> <span class="ident">StringSink</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../src/base64/chunked_encoder.rs.html#12">Sink</a> <span class="kw">for </span>StringSink&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Error = ();
 
-    <span class="kw">fn</span> <span class="ident">write_encoded_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/base64/chunked_encoder.rs.html#103">self</a>.<span class="ident">string</span>.<span class="ident">push_str</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="ident" href="../../src/base64/chunked_encoder.rs.html#103">s</a>).<span class="ident">unwrap</span>());
+    <span class="kw">fn </span>write_encoded_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="self" href="../../src/base64/chunked_encoder.rs.html#103">self</a>.string.push_str(<a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/base64/chunked_encoder.rs.html#103">s</a>).unwrap());
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">encode_config_buf</span>, <span class="ident">tests::random_config</span>, <span class="ident">CharacterSet</span>, <span class="ident">STANDARD</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">pub mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use crate</span>::{encode_config_buf, tests::random_config, CharacterSet, STANDARD};
 
-    <span class="kw">use</span> <span class="ident">rand</span>::{
-        <span class="ident">distributions</span>::{<span class="ident">Distribution</span>, <span class="ident">Uniform</span>},
-        <span class="ident">FromEntropy</span>, <span class="ident">Rng</span>,
+    <span class="kw">use </span>rand::{
+        distributions::{Distribution, Uniform},
+        FromEntropy, Rng,
     };
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunked_encode_empty</span>() {
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, <span class="ident">chunked_encode_str</span>(<span class="kw-2">&amp;</span>[], <span class="ident">STANDARD</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>chunked_encode_empty() {
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, chunked_encode_str(<span class="kw-2">&amp;</span>[], STANDARD));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunked_encode_intermediate_fast_loop</span>() {
-        <span class="comment">// &gt; 8 bytes input, will enter the pretty fast loop</span>
-        <span class="macro">assert_eq!</span>(
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>chunked_encode_intermediate_fast_loop() {
+        <span class="comment">// &gt; 8 bytes input, will enter the pretty fast loop
+        </span><span class="macro">assert_eq!</span>(
             <span class="string">&quot;Zm9vYmFyYmF6cXV4&quot;</span>,
-            <span class="ident">chunked_encode_str</span>(<span class="string">b&quot;foobarbazqux&quot;</span>, <span class="ident">STANDARD</span>)
+            chunked_encode_str(<span class="string">b&quot;foobarbazqux&quot;</span>, STANDARD)
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunked_encode_fast_loop</span>() {
-        <span class="comment">// &gt; 32 bytes input, will enter the uber fast loop</span>
-        <span class="macro">assert_eq!</span>(
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>chunked_encode_fast_loop() {
+        <span class="comment">// &gt; 32 bytes input, will enter the uber fast loop
+        </span><span class="macro">assert_eq!</span>(
             <span class="string">&quot;Zm9vYmFyYmF6cXV4cXV1eGNvcmdlZ3JhdWx0Z2FycGx5eg==&quot;</span>,
-            <span class="ident">chunked_encode_str</span>(<span class="string">b&quot;foobarbazquxquuxcorgegraultgarplyz&quot;</span>, <span class="ident">STANDARD</span>)
+            chunked_encode_str(<span class="string">b&quot;foobarbazquxquuxcorgegraultgarplyz&quot;</span>, STANDARD)
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunked_encode_slow_loop_only</span>() {
-        <span class="comment">// &lt; 8 bytes input, slow loop only</span>
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;Zm9vYmFy&quot;</span>, <span class="ident">chunked_encode_str</span>(<span class="string">b&quot;foobar&quot;</span>, <span class="ident">STANDARD</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>chunked_encode_slow_loop_only() {
+        <span class="comment">// &lt; 8 bytes input, slow loop only
+        </span><span class="macro">assert_eq!</span>(<span class="string">&quot;Zm9vYmFy&quot;</span>, chunked_encode_str(<span class="string">b&quot;foobar&quot;</span>, STANDARD));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunked_encode_matches_normal_encode_random_string_sink</span>() {
-        <span class="kw">let</span> <span class="ident">helper</span> <span class="op">=</span> <span class="ident">StringSinkTestHelper</span>;
-        <span class="ident">chunked_encode_matches_normal_encode_random</span>(<span class="kw-2">&amp;</span><span class="ident">helper</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>chunked_encode_matches_normal_encode_random_string_sink() {
+        <span class="kw">let </span>helper = StringSinkTestHelper;
+        chunked_encode_matches_normal_encode_random(<span class="kw-2">&amp;</span>helper);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_input_length_no_pad</span>() {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">config_with_pad</span>(<span class="bool-val">false</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">768</span>, <span class="ident">max_input_length</span>(<span class="number">1024</span>, <span class="ident">config</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>max_input_length_no_pad() {
+        <span class="kw">let </span>config = config_with_pad(<span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">768</span>, max_input_length(<span class="number">1024</span>, config));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_input_length_with_pad_decrements_one_triple</span>() {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">config_with_pad</span>(<span class="bool-val">true</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">765</span>, <span class="ident">max_input_length</span>(<span class="number">1024</span>, <span class="ident">config</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>max_input_length_with_pad_decrements_one_triple() {
+        <span class="kw">let </span>config = config_with_pad(<span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">765</span>, max_input_length(<span class="number">1024</span>, config));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_input_length_with_pad_one_byte_short</span>() {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">config_with_pad</span>(<span class="bool-val">true</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">765</span>, <span class="ident">max_input_length</span>(<span class="number">1025</span>, <span class="ident">config</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>max_input_length_with_pad_one_byte_short() {
+        <span class="kw">let </span>config = config_with_pad(<span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">765</span>, max_input_length(<span class="number">1025</span>, config));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_input_length_with_pad_fits_exactly</span>() {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">config_with_pad</span>(<span class="bool-val">true</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">768</span>, <span class="ident">max_input_length</span>(<span class="number">1026</span>, <span class="ident">config</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>max_input_length_with_pad_fits_exactly() {
+        <span class="kw">let </span>config = config_with_pad(<span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">768</span>, max_input_length(<span class="number">1026</span>, config));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_input_length_cant_use_extra_single_encoded_byte</span>() {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Config::new</span>(<span class="ident"><span class="kw">crate</span>::CharacterSet::Standard</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">300</span>, <span class="ident">max_input_length</span>(<span class="number">401</span>, <span class="ident">config</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>max_input_length_cant_use_extra_single_encoded_byte() {
+        <span class="kw">let </span>config = Config::new(<span class="kw">crate</span>::CharacterSet::Standard, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">300</span>, max_input_length(<span class="number">401</span>, config));
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chunked_encode_matches_normal_encode_random</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">SinkTestHelper</span><span class="op">&gt;</span>(<span class="ident">sink_test_helper</span>: <span class="kw-2">&amp;</span><span class="ident">S</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input_buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output_buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">rand::rngs::SmallRng::from_entropy</span>();
-        <span class="kw">let</span> <span class="ident">input_len_range</span> <span class="op">=</span> <span class="ident">Uniform::new</span>(<span class="number">1</span>, <span class="number">10_000</span>);
+    <span class="kw">pub fn </span>chunked_encode_matches_normal_encode_random&lt;S: SinkTestHelper&gt;(sink_test_helper: <span class="kw-2">&amp;</span>S) {
+        <span class="kw">let </span><span class="kw-2">mut </span>input_buf: Vec&lt;u8&gt; = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>output_buf = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>rng = rand::rngs::SmallRng::from_entropy();
+        <span class="kw">let </span>input_len_range = Uniform::new(<span class="number">1</span>, <span class="number">10_000</span>);
 
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">5_000</span> {
-            <span class="ident">input_buf</span>.<span class="ident">clear</span>();
-            <span class="ident">output_buf</span>.<span class="ident">clear</span>();
+        <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">5_000 </span>{
+            input_buf.clear();
+            output_buf.clear();
 
-            <span class="kw">let</span> <span class="ident">buf_len</span> <span class="op">=</span> <span class="ident">input_len_range</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rng</span>);
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">buf_len</span> {
-                <span class="ident">input_buf</span>.<span class="ident">push</span>(<span class="ident">rng</span>.<span class="ident">gen</span>());
+            <span class="kw">let </span>buf_len = input_len_range.sample(<span class="kw-2">&amp;mut </span>rng);
+            <span class="kw">for _ in </span><span class="number">0</span>..buf_len {
+                input_buf.push(rng.gen());
             }
 
-            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">random_config</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rng</span>);
+            <span class="kw">let </span>config = random_config(<span class="kw-2">&amp;mut </span>rng);
 
-            <span class="kw">let</span> <span class="ident">chunk_encoded_string</span> <span class="op">=</span> <span class="ident">sink_test_helper</span>.<span class="ident">encode_to_string</span>(<span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="ident">input_buf</span>);
-            <span class="ident">encode_config_buf</span>(<span class="kw-2">&amp;</span><span class="ident">input_buf</span>, <span class="ident">config</span>, <span class="kw-2">&amp;mut</span> <span class="ident">output_buf</span>);
+            <span class="kw">let </span>chunk_encoded_string = sink_test_helper.encode_to_string(config, <span class="kw-2">&amp;</span>input_buf);
+            encode_config_buf(<span class="kw-2">&amp;</span>input_buf, config, <span class="kw-2">&amp;mut </span>output_buf);
 
             <span class="macro">assert_eq!</span>(
-                <span class="ident">output_buf</span>, <span class="ident">chunk_encoded_string</span>,
+                output_buf, chunk_encoded_string,
                 <span class="string">&quot;input len={}, config: pad={}&quot;</span>,
-                <span class="ident">buf_len</span>, <span class="ident">config</span>.<span class="ident">pad</span>
+                buf_len, config.pad
             );
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">chunked_encode_str</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="kw">fn </span>chunked_encode_str(bytes: <span class="kw-2">&amp;</span>[u8], config: Config) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sink</span> <span class="op">=</span> <span class="ident">StringSink::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>);
-            <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">ChunkedEncoder::new</span>(<span class="ident">config</span>);
-            <span class="ident">encoder</span>.<span class="ident">encode</span>(<span class="ident">bytes</span>, <span class="kw-2">&amp;mut</span> <span class="ident">sink</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>sink = StringSink::new(<span class="kw-2">&amp;mut </span>s);
+            <span class="kw">let </span>encoder = ChunkedEncoder::new(config);
+            encoder.encode(bytes, <span class="kw-2">&amp;mut </span>sink).unwrap();
         }
 
-        <span class="kw">return</span> <span class="ident">s</span>;
+        <span class="kw">return </span>s;
     }
 
-    <span class="kw">fn</span> <span class="ident">config_with_pad</span>(<span class="ident">pad</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Config</span> {
-        <span class="ident">Config::new</span>(<span class="ident">CharacterSet::Standard</span>, <span class="ident">pad</span>)
+    <span class="kw">fn </span>config_with_pad(pad: bool) -&gt; Config {
+        Config::new(CharacterSet::Standard, pad)
     }
 
-    <span class="comment">// An abstraction around sinks so that we can have tests that easily to any sink implementation</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SinkTestHelper</span> {
-        <span class="kw">fn</span> <span class="ident">encode_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">String</span>;
+    <span class="comment">// An abstraction around sinks so that we can have tests that easily to any sink implementation
+    </span><span class="kw">pub trait </span>SinkTestHelper {
+        <span class="kw">fn </span>encode_to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; String;
     }
 
-    <span class="kw">struct</span> <span class="ident">StringSinkTestHelper</span>;
+    <span class="kw">struct </span>StringSinkTestHelper;
 
-    <span class="kw">impl</span> <span class="ident">SinkTestHelper</span> <span class="kw">for</span> <span class="ident">StringSinkTestHelper</span> {
-        <span class="kw">fn</span> <span class="ident">encode_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">String</span> {
-            <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">ChunkedEncoder::new</span>(<span class="ident">config</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="kw">impl </span>SinkTestHelper <span class="kw">for </span>StringSinkTestHelper {
+        <span class="kw">fn </span>encode_to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; String {
+            <span class="kw">let </span>encoder = ChunkedEncoder::new(config);
+            <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
             {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sink</span> <span class="op">=</span> <span class="ident">StringSink::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>);
-                <span class="ident">encoder</span>.<span class="ident">encode</span>(<span class="ident">bytes</span>, <span class="kw-2">&amp;mut</span> <span class="ident">sink</span>).<span class="ident">unwrap</span>();
+                <span class="kw">let </span><span class="kw-2">mut </span>sink = StringSink::new(<span class="kw-2">&amp;mut </span>s);
+                encoder.encode(bytes, <span class="kw-2">&amp;mut </span>sink).unwrap();
             }
 
-            <span class="ident">s</span>
+            s
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="base64" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="base64" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

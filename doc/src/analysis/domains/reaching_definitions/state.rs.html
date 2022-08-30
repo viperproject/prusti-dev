@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/domains/reaching_definitions/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../analysis/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../analysis/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../analysis/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/domains/reaching_definitions/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../analysis/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../analysis/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../analysis/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -195,202 +195,202 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
-</pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45">abstract_interpretation::AbstractState</a>, <a class="ident" href="../../../../src/analysis/mir_utils.rs.html#86">mir_utils::location_to_stmt_str</a>, <a class="ident" href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>,
+</span><span class="kw">use crate</span>::{
+    <a href="../../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45">abstract_interpretation::AbstractState</a>, <a href="../../../../src/analysis/mir_utils.rs.html#86">mir_utils::location_to_stmt_str</a>, <a href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>,
 };
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{
-    <span class="ident">data_structures</span>::{
-        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/fingerprint/struct.Fingerprint.html">fingerprint::Fingerprint</a>,
-        <span class="ident">fx</span>::{<a class="ident" href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a class="ident" href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>},
-        <span class="ident">stable_hasher</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/stable_hasher/trait.HashStable.html">HashStable</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/stable_hasher/struct.StableHasher.html">StableHasher</a>},
+<span class="kw">use </span>prusti_rustc_interface::{
+    data_structures::{
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/fingerprint/struct.Fingerprint.html">fingerprint::Fingerprint</a>,
+        fx::{<a href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>},
+        stable_hasher::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/stable_hasher/trait.HashStable.html">HashStable</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/stable_hasher/struct.StableHasher.html">StableHasher</a>},
     },
-    <span class="ident">middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
+    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
 };
-<span class="kw">use</span> <span class="ident">serde</span>::{<a class="ident" href="../../../../serde/ser/trait.SerializeMap.html">ser::SerializeMap</a>, <a class="ident" href="../../../../serde_derive/derive.Serialize.html">Serialize</a>, <a class="ident" href="../../../../serde/ser/trait.Serializer.html">Serializer</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
+<span class="kw">use </span>serde::{<a href="../../../../serde/ser/trait.SerializeMap.html">ser::SerializeMap</a>, <a href="../../../../serde_derive/derive.Serialize.html">Serialize</a>, <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>};
+<span class="kw">use </span>std::{
+    collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>},
+    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
 };
 
-<span class="doccomment">/// A set of definition locations and function parameter indices per Local,</span>
-<span class="doccomment">/// meaning that the Local might still have the value</span>
-<span class="doccomment">/// which was assigned at the location or passed as a parameter</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// derived from prusti-interface/.../mir_analyses/liveness</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReachingDefsState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> {
-    <span class="comment">// Local -&gt; Location OR index of function parameter</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">reaching_defs</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#38">DefLocation</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="comment">// just for context</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A set of definition locations and function parameter indices per Local,
+/// meaning that the Local might still have the value
+/// which was assigned at the location or passed as a parameter
+///
+/// derived from prusti-interface/.../mir_analyses/liveness
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>ReachingDefsState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; {
+    <span class="comment">// Local -&gt; Location OR index of function parameter
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) reaching_defs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, FxHashSet&lt;<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#38">DefLocation</a>&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="comment">// just for context
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Hash</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DefLocation</span> {
-    <span class="ident">Assignment</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>),
-    <span class="doccomment">/// The value is the index of the function parameter in ``mir.args_iter()``</span>
-    <span class="ident">Parameter</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+<span class="attribute">#[derive(Hash, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="kw">pub enum </span>DefLocation {
+    Assignment(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>),
+    <span class="doccomment">/// The value is the index of the function parameter in ``mir.args_iter()``
+    </span>Parameter(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ReachingDefsState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="comment">// ignore mir</span>
-        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#45">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ReachingDefsState&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;reaching_defs&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#45">self</a>.<span class="ident">reaching_defs</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReachingDefsState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="comment">// ignore mir
+        </span><a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#45">f</a>.debug_struct(<span class="string">&quot;ReachingDefsState&quot;</span>)
+            .field(<span class="string">&quot;reaching_defs&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#45">self</a>.reaching_defs)
+            .finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <span class="ident">ReachingDefsState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span>ReachingDefsState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
             {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stable_hasher</span> <span class="op">=</span> <span class="ident">StableHasher::new</span>();
-                <span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">with_stable_hashing_context</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">ctx</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">hash_stable</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ctx</span>, <span class="kw-2">&amp;mut</span> <span class="ident">stable_hasher</span>)
+                <span class="kw">let </span><span class="kw-2">mut </span>stable_hasher = StableHasher::new();
+                <span class="self">self</span>.tcx.with_stable_hashing_context(|<span class="kw-2">mut </span>ctx| {
+                    <span class="self">self</span>.mir.hash_stable(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;mut </span>stable_hasher)
                 });
-                <span class="ident">stable_hasher</span>.<span class="ident">finish</span>::<span class="op">&lt;</span><span class="ident">Fingerprint</span><span class="op">&gt;</span>()
+                stable_hasher.finish::&lt;Fingerprint&gt;()
             },
             {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stable_hasher</span> <span class="op">=</span> <span class="ident">StableHasher::new</span>();
-                <span class="ident">other</span>.<span class="ident">tcx</span>.<span class="ident">with_stable_hashing_context</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">ctx</span><span class="op">|</span> {
-                    <span class="ident">other</span>.<span class="ident">mir</span>.<span class="ident">hash_stable</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ctx</span>, <span class="kw-2">&amp;mut</span> <span class="ident">stable_hasher</span>)
+                <span class="kw">let </span><span class="kw-2">mut </span>stable_hasher = StableHasher::new();
+                other.tcx.with_stable_hashing_context(|<span class="kw-2">mut </span>ctx| {
+                    other.mir.hash_stable(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;mut </span>stable_hasher)
                 });
-                <span class="ident">stable_hasher</span>.<span class="ident">finish</span>::<span class="op">&lt;</span><span class="ident">Fingerprint</span><span class="op">&gt;</span>()
+                stable_hasher.finish::&lt;Fingerprint&gt;()
             },
         );
-        <span class="comment">// Ignore the `mir` field.</span>
-        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#54">self</a>.<span class="ident">reaching_defs</span> <span class="op">==</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#54">other</a>.<span class="ident">reaching_defs</span>
+        <span class="comment">// Ignore the `mir` field.
+        </span><a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#54">self</a>.reaching_defs == <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#54">other</a>.reaching_defs
     }
 }
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <span class="ident">ReachingDefsState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span>ReachingDefsState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for</span> <span class="ident">ReachingDefsState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">Se</span>: <a class="ident" href="../../../../serde/ser/trait.Serializer.html">Serializer</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">Se</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Se::Ok</span>, <span class="ident">Se::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">serializer</span>.<span class="ident">serialize_map</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">reaching_defs</span>.<span class="ident">len</span>()))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">ordered_ass_map</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#78">self</a>.<span class="ident">reaching_defs</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">for</span> (<span class="ident">local</span>, <span class="ident">location_set</span>) <span class="kw">in</span> <span class="ident">ordered_ass_map</span> {
-            <span class="kw">let</span> <span class="ident">ordered_loc_set</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">location_set</span>.<span class="ident">iter</span>().<span class="ident">collect</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location_vec</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">for</span> <span class="ident">location</span> <span class="kw">in</span> <span class="ident">ordered_loc_set</span> {
-                <span class="kw">match</span> <span class="ident">location</span> {
-                    <span class="ident">DefLocation::Assignment</span>(<span class="ident">l</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">stmt</span> <span class="op">=</span> <span class="ident">location_to_stmt_str</span>(<span class="kw-2">*</span><span class="ident">l</span>, <span class="self">self</span>.<span class="ident">mir</span>);
-                        <span class="comment">// Include the location to differentiate between same statement on</span>
-                        <span class="comment">// different lines.</span>
-                        <span class="ident">location_vec</span>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}: {}&quot;</span>, <span class="ident">l</span>, <span class="ident">stmt</span>));
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for </span>ReachingDefsState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>serialize&lt;Se: <a href="../../../../serde/ser/trait.Serializer.html">Serializer</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: Se) -&gt; <span class="prelude-ty">Result</span>&lt;Se::Ok, Se::Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>map = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="self">self</span>.reaching_defs.len()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>ordered_ass_map: BTreeMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#78">self</a>.reaching_defs.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">for </span>(local, location_set) <span class="kw">in </span>ordered_ass_map {
+            <span class="kw">let </span>ordered_loc_set: BTreeSet&lt;<span class="kw">_</span>&gt; = location_set.iter().collect();
+            <span class="kw">let </span><span class="kw-2">mut </span>location_vec = Vec::new();
+            <span class="kw">for </span>location <span class="kw">in </span>ordered_loc_set {
+                <span class="kw">match </span>location {
+                    DefLocation::Assignment(l) =&gt; {
+                        <span class="kw">let </span>stmt = location_to_stmt_str(<span class="kw-2">*</span>l, <span class="self">self</span>.mir);
+                        <span class="comment">// Include the location to differentiate between same statement on
+                        // different lines.
+                        </span>location_vec.push(<span class="macro">format!</span>(<span class="string">&quot;{:?}: {}&quot;</span>, l, stmt));
                     }
-                    <span class="ident">DefLocation::Parameter</span>(<span class="ident">idx</span>) =&gt; <span class="ident">location_vec</span>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;arg{}&quot;</span>, <span class="ident">idx</span>)),
+                    DefLocation::Parameter(idx) =&gt; location_vec.push(<span class="macro">format!</span>(<span class="string">&quot;arg{}&quot;</span>, idx)),
                 }
             }
-            <span class="ident">map</span>.<span class="ident">serialize_entry</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">local</span>), <span class="kw-2">&amp;</span><span class="ident">location_vec</span>)<span class="question-mark">?</span>;
+            map.serialize_entry(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, local), <span class="kw-2">&amp;</span>location_vec)<span class="question-mark">?</span>;
         }
-        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#79">map</a>.<a class="ident" href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
+        <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#79">map</a>.<a href="../../../../serde/ser/trait.SerializeMap.html">end</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <span class="ident">ReachingDefsState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">apply_statement_effect</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">stmt</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#103">self</a>.<span class="ident">mir</span>[<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#104">location</a>.<span class="ident">block</span>].<span class="ident">statements</span>[<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#104">location</a>.<span class="ident">statement_index</span>];
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">mir::StatementKind::Assign</span>(<span class="kw">box</span> (<span class="kw-2">ref</span> <span class="ident">target</span>, <span class="kw">_</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#106">stmt</a>.<span class="ident">kind</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#107">target</a>.<span class="ident">as_local</span>() {
-                <span class="kw">let</span> <span class="ident">location_set</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#103">self</a>
-                    .<span class="ident">reaching_defs</span>
-                    .<span class="ident">entry</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#108">local</a>)
-                    .<span class="ident">or_insert_with</span>(<span class="ident">FxHashSet::default</span>);
-                <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#109">location_set</a>.<span class="ident">clear</span>();
-                <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#109">location_set</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#39">DefLocation::Assignment</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#104">location</a>));
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; ReachingDefsState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>apply_statement_effect(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>&gt; {
+        <span class="kw">let </span>stmt = <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#103">self</a>.mir[<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#104">location</a>.block].statements[<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#104">location</a>.statement_index];
+        <span class="kw">if let </span>mir::StatementKind::Assign(<span class="kw">box </span>(<span class="kw-2">ref </span>target, <span class="kw">_</span>)) = <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#106">stmt</a>.kind {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(local) = <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#107">target</a>.as_local() {
+                <span class="kw">let </span>location_set = <span class="self"><a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#103">self</a>
+                    </span>.reaching_defs
+                    .entry(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#108">local</a>)
+                    .or_insert_with(FxHashSet::default);
+                <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#109">location_set</a>.clear();
+                <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#109">location_set</a>.insert(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#39">DefLocation::Assignment</a>(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#104">location</a>));
             }
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">apply_terminator_effect</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>apply_terminator_effect(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="self">Self</span>)<span class="op">&gt;</span>, <a class="ident" href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res_vec</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#122">self</a>.<span class="ident">mir</span>[<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123">location</a>.<span class="ident">block</span>].<span class="ident">terminator</span>();
-        <span class="kw">match</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#126">terminator</a>.<span class="ident">kind</span> {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Call</a> {
-                <span class="kw-2">ref</span> <span class="ident">destination</span>,
-                <span class="ident">target</span>,
-                <span class="ident">cleanup</span>,
+        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="self">Self</span>)&gt;, <a href="../../../../src/analysis/analysis_error.rs.html#11">AnalysisError</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>res_vec = Vec::new();
+        <span class="kw">let </span>terminator = <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#122">self</a>.mir[<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123">location</a>.block].terminator();
+        <span class="kw">match </span><a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#126">terminator</a>.kind {
+            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::Call</a> {
+                <span class="kw-2">ref </span>destination,
+                target,
+                cleanup,
                 ..
             } =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bb</span>) <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#130">target</a> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dest_state</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#122">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#129">destination</a>.<span class="ident">as_local</span>() {
-                        <span class="kw">let</span> <span class="ident">location_set</span> <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#135">dest_state</a>
-                            .<span class="ident">reaching_defs</span>
-                            .<span class="ident">entry</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#136">local</a>)
-                            .<span class="ident">or_insert_with</span>(<span class="ident">FxHashSet::default</span>);
-                        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#137">location_set</a>.<span class="ident">clear</span>();
-                        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#137">location_set</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#39">DefLocation::Assignment</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123">location</a>));
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#130">target</a> {
+                    <span class="kw">let </span><span class="kw-2">mut </span>dest_state = <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#122">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(local) = <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#129">destination</a>.as_local() {
+                        <span class="kw">let </span>location_set = <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#135">dest_state</a>
+                            .reaching_defs
+                            .entry(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#136">local</a>)
+                            .or_insert_with(FxHashSet::default);
+                        <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#137">location_set</a>.clear();
+                        <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#137">location_set</a>.insert(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#39">DefLocation::Assignment</a>(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123">location</a>));
                     }
-                    <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#125">res_vec</a>.<span class="ident">push</span>((<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#134">bb</a>, <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#135">dest_state</a>));
+                    <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#125">res_vec</a>.push((<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#134">bb</a>, <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#135">dest_state</a>));
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bb</span>) <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#131">cleanup</a> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cleanup_state</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#122">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    <span class="comment">// error state -&gt; be conservative &amp; add destination as possible reaching def</span>
-                    <span class="comment">// while keeping all others</span>
-                    <span class="kw">if</span> <span class="ident">target</span>.<span class="ident">is_some</span>() {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#129">destination</a>.<span class="ident">as_local</span>() {
-                            <span class="kw">let</span> <span class="ident">location_set</span> <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#148">cleanup_state</a>
-                                .<span class="ident">reaching_defs</span>
-                                .<span class="ident">entry</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#152">local</a>)
-                                .<span class="ident">or_insert_with</span>(<span class="ident">FxHashSet::default</span>);
-                            <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#153">location_set</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#39">DefLocation::Assignment</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123">location</a>));
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bb) = <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#131">cleanup</a> {
+                    <span class="kw">let </span><span class="kw-2">mut </span>cleanup_state = <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#122">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <span class="comment">// error state -&gt; be conservative &amp; add destination as possible reaching def
+                    // while keeping all others
+                    </span><span class="kw">if </span>target.is_some() {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(local) = <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#129">destination</a>.as_local() {
+                            <span class="kw">let </span>location_set = <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#148">cleanup_state</a>
+                                .reaching_defs
+                                .entry(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#152">local</a>)
+                                .or_insert_with(FxHashSet::default);
+                            <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#153">location_set</a>.insert(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#39">DefLocation::Assignment</a>(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123">location</a>));
                         }
                     }
-                    <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#125">res_vec</a>.<span class="ident">push</span>((<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#147">bb</a>, <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#148">cleanup_state</a>));
+                    <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#125">res_vec</a>.push((<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#147">bb</a>, <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#148">cleanup_state</a>));
                 }
             }
-            <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::InlineAsm</a> { .. } =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/analysis/analysis_error.rs.html#12">AnalysisError::UnsupportedStatement</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123">location</a>));
+            <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">mir::TerminatorKind::InlineAsm</a> { .. } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../../src/analysis/analysis_error.rs.html#12">AnalysisError::UnsupportedStatement</a>(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123">location</a>));
             }
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">for</span> <span class="ident">bb</span> <span class="kw">in</span> <span class="ident">terminator</span>.<span class="ident">successors</span>() {
-                    <span class="comment">// no assignment -&gt; no change of state</span>
-                    <span class="ident">res_vec</span>.<span class="ident">push</span>((<span class="ident">bb</span>, <span class="self">self</span>.<span class="ident">clone</span>()));
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">for </span>bb <span class="kw">in </span>terminator.successors() {
+                    <span class="comment">// no assignment -&gt; no change of state
+                    </span>res_vec.push((bb, <span class="self">self</span>.clone()));
                 }
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#125">res_vec</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#125">res_vec</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45">AbstractState</a> <span class="kw">for</span> <span class="ident">ReachingDefsState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_bottom</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#179">self</a>.<span class="ident">reaching_defs</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">set</span>)<span class="op">|</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#180">set</a>.<span class="ident">is_empty</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span>&gt; <a href="../../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45">AbstractState</a> <span class="kw">for </span>ReachingDefsState&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>is_bottom(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#179">self</a>.reaching_defs.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|(<span class="kw">_</span>, set)| <a href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#180">set</a>.is_empty())
     }
 
-    <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <span class="kw">for</span> (<span class="ident">local</span>, <span class="ident">other_locations</span>) <span class="kw">in</span> <span class="ident">other</span>.<span class="ident">reaching_defs</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="ident">location_set</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">reaching_defs</span>
-                .<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">local</span>)
-                .<span class="ident">or_insert_with</span>(<span class="ident">FxHashSet::default</span>);
-            <span class="ident">location_set</span>.<span class="ident">extend</span>(<span class="ident">other_locations</span>);
+    <span class="kw">fn </span>join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+        <span class="kw">for </span>(local, other_locations) <span class="kw">in </span>other.reaching_defs.iter() {
+            <span class="kw">let </span>location_set = <span class="self">self
+                </span>.reaching_defs
+                .entry(<span class="kw-2">*</span>local)
+                .or_insert_with(FxHashSet::default);
+            location_set.extend(other_locations);
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">widen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_previous</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <span class="comment">// assignments are static info =&gt; cannot grow infinitely =&gt; widening should not be needed</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>()
+    <span class="kw">fn </span>widen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _previous: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+        <span class="comment">// assignments are static info =&gt; cannot grow infinitely =&gt; widening should not be needed
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

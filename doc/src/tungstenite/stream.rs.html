@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -89,96 +89,96 @@
 <span id="89">89</span>
 <span id="90">90</span>
 <span id="91">91</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Convenience wrapper for streams to switch between plain TCP and TLS at runtime.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!  There is no dependency on actual TLS implementations. Everything like</span>
-<span class="doccomment">//! `native_tls` or `openssl` will work as long as there is a TLS stream supporting standard</span>
-<span class="doccomment">//! `Read + Write` traits.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Convenience wrapper for streams to switch between plain TCP and TLS at runtime.
+//!
+//!  There is no dependency on actual TLS implementations. Everything like
+//! `native_tls` or `openssl` will work as long as there is a TLS stream supporting standard
+//! `Read + Write` traits.
 
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+</span><span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <span class="prelude-ty">Result </span><span class="kw">as </span>IoResult, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">native_tls_crate::TlsStream</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">rustls::StreamOwned</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+</span><span class="kw">use </span>native_tls_crate::TlsStream;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;rustls-tls&quot;</span>)]
+</span><span class="kw">use </span>rustls::StreamOwned;
 
-<span class="doccomment">/// Stream mode, either plain TCP or TLS.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Mode</span> {
-    <span class="doccomment">/// Plain mode (`ws://` URL).</span>
-    <span class="ident">Plain</span>,
-    <span class="doccomment">/// TLS mode (`wss://` URL).</span>
-    <span class="ident">Tls</span>,
+<span class="doccomment">/// Stream mode, either plain TCP or TLS.
+</span><span class="attribute">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">pub enum </span>Mode {
+    <span class="doccomment">/// Plain mode (`ws://` URL).
+    </span>Plain,
+    <span class="doccomment">/// TLS mode (`wss://` URL).
+    </span>Tls,
 }
 
-<span class="doccomment">/// Trait to switch TCP_NODELAY.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NoDelay</span> {
-    <span class="doccomment">/// Set the TCP_NODELAY option to the given value.</span>
-    <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nodelay</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="doccomment">/// Trait to switch TCP_NODELAY.
+</span><span class="kw">pub trait </span>NoDelay {
+    <span class="doccomment">/// Set the TCP_NODELAY option to the given value.
+    </span><span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; IoResult&lt;()&gt;;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/tungstenite/stream.rs.html#26">NoDelay</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a> {
-    <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nodelay</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="ident">TcpStream::set_nodelay</span>(<a class="self" href="../../src/tungstenite/stream.rs.html#32">self</a>, <a class="ident" href="../../src/tungstenite/stream.rs.html#32">nodelay</a>)
+<span class="kw">impl </span><a href="../../src/tungstenite/stream.rs.html#26">NoDelay</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a> {
+    <span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; IoResult&lt;()&gt; {
+        TcpStream::set_nodelay(<a class="self" href="../../src/tungstenite/stream.rs.html#32">self</a>, <a href="../../src/tungstenite/stream.rs.html#32">nodelay</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Write</span> <span class="op">+</span> <span class="ident">NoDelay</span><span class="op">&gt;</span> <span class="ident">NoDelay</span> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nodelay</span>: <span class="ident">bool</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">set_nodelay</span>(<span class="ident">nodelay</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+</span><span class="kw">impl</span>&lt;S: Read + Write + NoDelay&gt; NoDelay <span class="kw">for </span>TlsStream&lt;S&gt; {
+    <span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: bool) -&gt; IoResult&lt;()&gt; {
+        <span class="self">self</span>.get_mut().set_nodelay(nodelay)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">rustls::Session</span>, <span class="ident">T</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Write</span> <span class="op">+</span> <span class="ident">NoDelay</span><span class="op">&gt;</span> <span class="ident">NoDelay</span> <span class="kw">for</span> <span class="ident">StreamOwned</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nodelay</span>: <span class="ident">bool</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">sock</span>.<span class="ident">set_nodelay</span>(<span class="ident">nodelay</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;rustls-tls&quot;</span>)]
+</span><span class="kw">impl</span>&lt;S: rustls::Session, T: Read + Write + NoDelay&gt; NoDelay <span class="kw">for </span>StreamOwned&lt;S, T&gt; {
+    <span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: bool) -&gt; IoResult&lt;()&gt; {
+        <span class="self">self</span>.sock.set_nodelay(nodelay)
     }
 }
 
-<span class="doccomment">/// Stream, either plain TCP or TLS.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Unencrypted socket stream.</span>
-    <span class="ident">Plain</span>(<span class="ident">S</span>),
-    <span class="doccomment">/// Encrypted socket stream.</span>
-    <span class="ident">Tls</span>(<span class="ident">T</span>),
+<span class="doccomment">/// Stream, either plain TCP or TLS.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Stream&lt;S, T&gt; {
+    <span class="doccomment">/// Unencrypted socket stream.
+    </span>Plain(S),
+    <span class="doccomment">/// Encrypted socket stream.
+    </span>Tls(T),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/tungstenite/stream.rs.html#61">self</a> {
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#55">Stream::Plain</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tungstenite/stream.rs.html#63">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../src/tungstenite/stream.rs.html#61">buf</a>),
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#57">Stream::Tls</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tungstenite/stream.rs.html#64">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../src/tungstenite/stream.rs.html#61">buf</a>),
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, T: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>Stream&lt;S, T&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; IoResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/tungstenite/stream.rs.html#61">self</a> </span>{
+            <a href="../../src/tungstenite/stream.rs.html#55">Stream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/tungstenite/stream.rs.html#63">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../src/tungstenite/stream.rs.html#61">buf</a>),
+            <a href="../../src/tungstenite/stream.rs.html#57">Stream::Tls</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/tungstenite/stream.rs.html#64">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../src/tungstenite/stream.rs.html#61">buf</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/tungstenite/stream.rs.html#70">self</a> {
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#55">Stream::Plain</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tungstenite/stream.rs.html#72">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../src/tungstenite/stream.rs.html#70">buf</a>),
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#57">Stream::Tls</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tungstenite/stream.rs.html#73">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../src/tungstenite/stream.rs.html#70">buf</a>),
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, T: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>Stream&lt;S, T&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; IoResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/tungstenite/stream.rs.html#70">self</a> </span>{
+            <a href="../../src/tungstenite/stream.rs.html#55">Stream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/tungstenite/stream.rs.html#72">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../src/tungstenite/stream.rs.html#70">buf</a>),
+            <a href="../../src/tungstenite/stream.rs.html#57">Stream::Tls</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/tungstenite/stream.rs.html#73">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../src/tungstenite/stream.rs.html#70">buf</a>),
         }
     }
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/tungstenite/stream.rs.html#76">self</a> {
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#55">Stream::Plain</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tungstenite/stream.rs.html#78">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#57">Stream::Tls</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tungstenite/stream.rs.html#79">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IoResult&lt;()&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/tungstenite/stream.rs.html#76">self</a> </span>{
+            <a href="../../src/tungstenite/stream.rs.html#55">Stream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/tungstenite/stream.rs.html#78">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+            <a href="../../src/tungstenite/stream.rs.html#57">Stream::Tls</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/tungstenite/stream.rs.html#79">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/tungstenite/stream.rs.html#26">NoDelay</a>, <span class="ident">T</span>: <a class="ident" href="../../src/tungstenite/stream.rs.html#26">NoDelay</a><span class="op">&gt;</span> <a class="ident" href="../../src/tungstenite/stream.rs.html#26">NoDelay</a> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nodelay</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/tungstenite/stream.rs.html#85">self</a> {
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#55">Stream::Plain</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tungstenite/stream.rs.html#87">s</a>.<a class="ident" href="../../src/tungstenite/stream.rs.html#28">set_nodelay</a>(<a class="ident" href="../../src/tungstenite/stream.rs.html#85">nodelay</a>),
-            <a class="ident" href="../../src/tungstenite/stream.rs.html#57">Stream::Tls</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/tungstenite/stream.rs.html#88">s</a>.<a class="ident" href="../../src/tungstenite/stream.rs.html#28">set_nodelay</a>(<a class="ident" href="../../src/tungstenite/stream.rs.html#85">nodelay</a>),
+<span class="kw">impl</span>&lt;S: <a href="../../src/tungstenite/stream.rs.html#26">NoDelay</a>, T: <a href="../../src/tungstenite/stream.rs.html#26">NoDelay</a>&gt; <a href="../../src/tungstenite/stream.rs.html#26">NoDelay</a> <span class="kw">for </span>Stream&lt;S, T&gt; {
+    <span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; IoResult&lt;()&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/tungstenite/stream.rs.html#85">self</a> </span>{
+            <a href="../../src/tungstenite/stream.rs.html#55">Stream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/tungstenite/stream.rs.html#87">s</a>.<a href="../../src/tungstenite/stream.rs.html#28">set_nodelay</a>(<a href="../../src/tungstenite/stream.rs.html#85">nodelay</a>),
+            <a href="../../src/tungstenite/stream.rs.html#57">Stream::Tls</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="../../src/tungstenite/stream.rs.html#88">s</a>.<a href="../../src/tungstenite/stream.rs.html#28">set_nodelay</a>(<a href="../../src/tungstenite/stream.rs.html#85">nodelay</a>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

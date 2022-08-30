@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/signal/unix/driver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/signal/unix/driver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -207,208 +207,208 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rt&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;rt&quot;</span>), allow(dead_code))]
 
-<span class="doccomment">//! Signal driver</span>
+</span><span class="doccomment">//! Signal driver
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::driver</span>::{<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#31">Driver</a> <span class="kw">as</span> <span class="ident">IoDriver</span>, <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/poll_evented.rs.html#62"><span class="kw">crate</span>::io::PollEvented</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/park/mod.rs.html#49"><span class="kw">crate</span>::park::Park</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/signal/registry.rs.html#155-158"><span class="kw">crate</span>::signal::registry::globals</a>;
+</span><span class="kw">use </span><span class="kw">crate</span>::io::driver::{<a href="../../../../src/tokio/io/driver/mod.rs.html#31">Driver</a> <span class="kw">as </span>IoDriver, <a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/io/poll_evented.rs.html#62"><span class="kw">crate</span>::io::PollEvented</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/park/mod.rs.html#49"><span class="kw">crate</span>::park::Park</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/signal/registry.rs.html#155-158"><span class="kw">crate</span>::signal::registry::globals</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../mio/net/uds/stream/struct.UnixStream.html">mio::net::UnixStream</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <span class="ident">std::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>};
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span><a href="../../../../mio/net/uds/stream/struct.UnixStream.html">mio::net::UnixStream</a>;
+<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>};
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="doccomment">/// Responsible for registering wakeups when an OS signal is received, and</span>
-<span class="doccomment">/// subsequently dispatching notifications to any signal listeners as appropriate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note: this driver relies on having an enabled IO driver in order to listen to</span>
-<span class="doccomment">/// pipe write wakeups.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Driver</span> {
-    <span class="doccomment">/// Thread parker. The `Driver` park implementation delegates to this.</span>
-    <span class="ident">park</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#31">IoDriver</a>,
+<span class="doccomment">/// Responsible for registering wakeups when an OS signal is received, and
+/// subsequently dispatching notifications to any signal listeners as appropriate.
+///
+/// Note: this driver relies on having an enabled IO driver in order to listen to
+/// pipe write wakeups.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Driver {
+    <span class="doccomment">/// Thread parker. The `Driver` park implementation delegates to this.
+    </span>park: <a href="../../../../src/tokio/io/driver/mod.rs.html#31">IoDriver</a>,
 
-    <span class="doccomment">/// A pipe for receiving wake events from the signal handler</span>
-    <span class="ident">receiver</span>: <span class="ident">PollEvented</span><span class="op">&lt;</span><a class="ident" href="../../../../mio/net/uds/stream/struct.UnixStream.html">UnixStream</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// A pipe for receiving wake events from the signal handler
+    </span>receiver: PollEvented&lt;<a href="../../../../mio/net/uds/stream/struct.UnixStream.html">UnixStream</a>&gt;,
 
-    <span class="doccomment">/// Shared state</span>
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#40">Inner</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Shared state
+    </span>inner: Arc&lt;<a href="../../../../src/tokio/signal/unix/driver.rs.html#40">Inner</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Handle</span> {
-    <span class="ident">inner</span>: <span class="ident">Weak</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#40">Inner</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug, Default)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Handle {
+    inner: Weak&lt;<a href="../../../../src/tokio/signal/unix/driver.rs.html#40">Inner</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Inner</span>(());
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Inner(());
 
-<span class="comment">// ===== impl Driver =====</span>
+<span class="comment">// ===== impl Driver =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#23">Driver</a> {
-    <span class="doccomment">/// Creates a new signal `Driver` instance that delegates wakeups to `park`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">park</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#31">IoDriver</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
-        <span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>};
+</span><span class="kw">impl </span><a href="../../../../src/tokio/signal/unix/driver.rs.html#23">Driver</a> {
+    <span class="doccomment">/// Creates a new signal `Driver` instance that delegates wakeups to `park`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(park: <a href="../../../../src/tokio/io/driver/mod.rs.html#31">IoDriver</a>) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
+        <span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>};
 
-        <span class="comment">// NB: We give each driver a &quot;fresh&quot; receiver file descriptor to avoid</span>
-        <span class="comment">// the issues described in alexcrichton/tokio-process#42.</span>
-        <span class="comment">//</span>
-        <span class="comment">// In the past we would reuse the actual receiver file descriptor and</span>
-        <span class="comment">// swallow any errors around double registration of the same descriptor.</span>
-        <span class="comment">// I&#39;m not sure if the second (failed) registration simply doesn&#39;t end</span>
-        <span class="comment">// up receiving wake up notifications, or there could be some race</span>
-        <span class="comment">// condition when consuming readiness events, but having distinct</span>
-        <span class="comment">// descriptors for distinct PollEvented instances appears to mitigate</span>
-        <span class="comment">// this.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Unfortunately we cannot just use a single global PollEvented instance</span>
-        <span class="comment">// either, since we can&#39;t compare Handles or assume they will always</span>
-        <span class="comment">// point to the exact same reactor.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Mio 0.7 removed `try_clone()` as an API due to unexpected behavior</span>
-        <span class="comment">// with registering dups with the same reactor. In this case, duping is</span>
-        <span class="comment">// safe as each dup is registered with separate reactors **and** we</span>
-        <span class="comment">// only expect at least one dup to receive the notification.</span>
+        <span class="comment">// NB: We give each driver a &quot;fresh&quot; receiver file descriptor to avoid
+        // the issues described in alexcrichton/tokio-process#42.
+        //
+        // In the past we would reuse the actual receiver file descriptor and
+        // swallow any errors around double registration of the same descriptor.
+        // I&#39;m not sure if the second (failed) registration simply doesn&#39;t end
+        // up receiving wake up notifications, or there could be some race
+        // condition when consuming readiness events, but having distinct
+        // descriptors for distinct PollEvented instances appears to mitigate
+        // this.
+        //
+        // Unfortunately we cannot just use a single global PollEvented instance
+        // either, since we can&#39;t compare Handles or assume they will always
+        // point to the exact same reactor.
+        //
+        // Mio 0.7 removed `try_clone()` as an API due to unexpected behavior
+        // with registering dups with the same reactor. In this case, duping is
+        // safe as each dup is registered with separate reactors **and** we
+        // only expect at least one dup to receive the notification.
 
-        <span class="comment">// Manually drop as we don&#39;t actually own this instance of UnixStream.</span>
-        <span class="kw">let</span> <span class="ident">receiver_fd</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/signal/registry.rs.html#155-158">globals</a>().<span class="ident">receiver</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
+        // Manually drop as we don&#39;t actually own this instance of UnixStream.
+        </span><span class="kw">let </span>receiver_fd = <a href="../../../../src/tokio/signal/registry.rs.html#155-158">globals</a>().receiver.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>();
 
-        <span class="comment">// safety: there is nothing unsafe about this, but the `from_raw_fd` fn is marked as unsafe.</span>
-        <span class="kw">let</span> <span class="ident">original</span> <span class="op">=</span>
-            <span class="ident">ManuallyDrop::new</span>(<span class="kw">unsafe</span> { <span class="ident">std::os::unix::net::UnixStream::from_raw_fd</span>(<a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#71">receiver_fd</a>) });
-        <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="ident">UnixStream::from_std</span>(<span class="ident">original</span>.<span class="ident">try_clone</span>()<span class="question-mark">?</span>);
-        <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="ident">PollEvented::new_with_interest_and_handle</span>(
-            <span class="ident">receiver</span>,
-            <span class="ident">Interest::READABLE</span> <span class="op">|</span> <span class="ident">Interest::WRITABLE</span>,
-            <span class="ident">park</span>.<span class="ident">handle</span>(),
+        <span class="comment">// safety: there is nothing unsafe about this, but the `from_raw_fd` fn is marked as unsafe.
+        </span><span class="kw">let </span>original =
+            ManuallyDrop::new(<span class="kw">unsafe </span>{ std::os::unix::net::UnixStream::from_raw_fd(<a href="../../../../src/tokio/signal/unix/driver.rs.html#71">receiver_fd</a>) });
+        <span class="kw">let </span>receiver = UnixStream::from_std(original.try_clone()<span class="question-mark">?</span>);
+        <span class="kw">let </span>receiver = PollEvented::new_with_interest_and_handle(
+            receiver,
+            Interest::READABLE | Interest::WRITABLE,
+            park.handle(),
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#46">park</a>,
-            <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#77">receiver</a>,
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#40">Inner</a>(())),
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            <a href="../../../../src/tokio/signal/unix/driver.rs.html#46">park</a>,
+            <a href="../../../../src/tokio/signal/unix/driver.rs.html#77">receiver</a>,
+            inner: Arc::new(<a href="../../../../src/tokio/signal/unix/driver.rs.html#40">Inner</a>(())),
         })
     }
 
-    <span class="doccomment">/// Returns a handle to this event loop which can be sent across threads</span>
-    <span class="doccomment">/// and can be used as a proxy to the event loop itself.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a> {
-        <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a> {
-            <span class="ident">inner</span>: <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#92">self</a>.<span class="ident">inner</span>),
+    <span class="doccomment">/// Returns a handle to this event loop which can be sent across threads
+    /// and can be used as a proxy to the event loop itself.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a> {
+        <a href="../../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a> {
+            inner: Arc::downgrade(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#92">self</a>.inner),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">process</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Check if the pipe is ready to read and therefore has &quot;woken&quot; us up</span>
-        <span class="comment">//</span>
-        <span class="comment">// To do so, we will `poll_read_ready` with a noop waker, since we don&#39;t</span>
-        <span class="comment">// need to actually be notified when read ready...</span>
-        <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Waker::from_raw</span>(<span class="ident">RawWaker::new</span>(<span class="ident">ptr::null</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#131">NOOP_WAKER_VTABLE</a>)) };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#103">waker</a>);
+    <span class="kw">fn </span>process(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Check if the pipe is ready to read and therefore has &quot;woken&quot; us up
+        //
+        // To do so, we will `poll_read_ready` with a noop waker, since we don&#39;t
+        // need to actually be notified when read ready...
+        </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ Waker::from_raw(RawWaker::new(ptr::null(), <span class="kw-2">&amp;</span><a href="../../../../src/tokio/signal/unix/driver.rs.html#131">NOOP_WAKER_VTABLE</a>)) };
+        <span class="kw">let </span><span class="kw-2">mut </span>cx = Context::from_waker(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/signal/unix/driver.rs.html#103">waker</a>);
 
-        <span class="kw">let</span> <span class="ident">ev</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#98">self</a>.<span class="ident">receiver</span>.<a class="ident" href="../../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#106">poll_read_ready</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#104">cx</a>) {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">ev</span>)) =&gt; <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#107">ev</a>,
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;reactor gone: {}&quot;</span>, <span class="ident">e</span>),
-            <span class="ident">Poll::Pending</span> =&gt; <span class="kw">return</span>, <span class="comment">// No wake has arrived, bail</span>
-        };
+        <span class="kw">let </span>ev = <span class="kw">match </span><a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#98">self</a>.receiver.<a href="../../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a href="../../../../src/tokio/io/driver/registration.rs.html#106">poll_read_ready</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/signal/unix/driver.rs.html#104">cx</a>) {
+            Poll::Ready(<span class="prelude-val">Ok</span>(ev)) =&gt; <a href="../../../../src/tokio/signal/unix/driver.rs.html#107">ev</a>,
+            Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;reactor gone: {}&quot;</span>, e),
+            Poll::Pending =&gt; <span class="kw">return</span>, <span class="comment">// No wake has arrived, bail
+        </span>};
 
-        <span class="comment">// Drain the pipe completely so we can receive a new readiness event</span>
-        <span class="comment">// if another signal has come in.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">128</span>];
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#98">self</a>.<span class="ident">receiver</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#114">buf</a>) {
+        <span class="comment">// Drain the pipe completely so we can receive a new readiness event
+        // if another signal has come in.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">128</span>];
+        <span class="kw">loop </span>{
+            <span class="kw">match </span>(<span class="kw-2">&amp;*</span><a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#98">self</a>.receiver).<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/tokio/signal/unix/driver.rs.html#114">buf</a>) {
                 <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;EOF on self-pipe&quot;</span>),
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>, <span class="comment">// Keep reading</span>
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#119">e</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; <span class="kw">break</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Bad read on self-pipe: {}&quot;</span>, <span class="ident">e</span>),
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>, <span class="comment">// Keep reading
+                </span><span class="prelude-val">Err</span>(e) <span class="kw">if </span><a href="../../../../src/tokio/signal/unix/driver.rs.html#119">e</a>.kind() == io::ErrorKind::WouldBlock =&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Err</span>(e) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Bad read on self-pipe: {}&quot;</span>, e),
             }
         }
 
-        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#98">self</a>.<span class="ident">receiver</span>.<a class="ident" href="../../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#106">ev</a>);
+        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#98">self</a>.receiver.<a href="../../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a href="../../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a href="../../../../src/tokio/signal/unix/driver.rs.html#106">ev</a>);
 
-        <span class="comment">// Broadcast any signals which were received</span>
-        <a class="ident" href="../../../../src/tokio/signal/registry.rs.html#155-158">globals</a>().<a class="ident" href="../../../../src/tokio/signal/registry.rs.html#145">broadcast</a>();
+        <span class="comment">// Broadcast any signals which were received
+        </span><a href="../../../../src/tokio/signal/registry.rs.html#155-158">globals</a>().<a href="../../../../src/tokio/signal/registry.rs.html#145">broadcast</a>();
     }
 }
 
-<span class="kw">const</span> <span class="ident">NOOP_WAKER_VTABLE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a> <span class="op">=</span> <span class="ident">RawWakerVTable::new</span>(<a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#133">noop_clone</a>, <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#137">noop</a>, <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#137">noop</a>, <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#137">noop</a>);
+<span class="kw">const </span>NOOP_WAKER_VTABLE: <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWakerVTable.html">RawWakerVTable</a> = RawWakerVTable::new(<a href="../../../../src/tokio/signal/unix/driver.rs.html#133">noop_clone</a>, <a href="../../../../src/tokio/signal/unix/driver.rs.html#137">noop</a>, <a href="../../../../src/tokio/signal/unix/driver.rs.html#137">noop</a>, <a href="../../../../src/tokio/signal/unix/driver.rs.html#137">noop</a>);
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">noop_clone</span>(<span class="ident">_data</span>: <span class="kw-2">*const</span> ()) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
-    <span class="ident">RawWaker::new</span>(<span class="ident">ptr::null</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#131">NOOP_WAKER_VTABLE</a>)
+<span class="kw">unsafe fn </span>noop_clone(_data: <span class="kw-2">*const </span>()) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.RawWaker.html">RawWaker</a> {
+    RawWaker::new(ptr::null(), <span class="kw-2">&amp;</span><a href="../../../../src/tokio/signal/unix/driver.rs.html#131">NOOP_WAKER_VTABLE</a>)
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">noop</span>(<span class="ident">_data</span>: <span class="kw-2">*const</span> ()) {}
+<span class="kw">unsafe fn </span>noop(_data: <span class="kw-2">*const </span>()) {}
 
-<span class="comment">// ===== impl Park for Driver =====</span>
+<span class="comment">// ===== impl Park for Driver =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#23">Driver</a> {
-    <span class="kw">type</span> <span class="ident">Unpark</span> <span class="op">=</span> <span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#31">IoDriver</a> <span class="kw">as</span> <span class="ident">Park</span><span class="op">&gt;</span><span class="ident">::Unpark</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+</span><span class="kw">impl </span><a href="../../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for </span><a href="../../../../src/tokio/signal/unix/driver.rs.html#23">Driver</a> {
+    <span class="kw">type </span>Unpark = &lt;<a href="../../../../src/tokio/io/driver/mod.rs.html#31">IoDriver</a> <span class="kw">as </span>Park&gt;::Unpark;
+    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Unpark</span> {
-        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#145">self</a>.<span class="ident">park</span>.<a class="ident" href="../../../../src/tokio/park/mod.rs.html#57">unpark</a>()
+    <span class="kw">fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Unpark {
+        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#145">self</a>.park.<a href="../../../../src/tokio/park/mod.rs.html#57">unpark</a>()
     }
 
-    <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">park</span>.<span class="ident">park</span>()<span class="question-mark">?</span>;
-        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#149">self</a>.<a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#98">process</a>();
+    <span class="kw">fn </span>park(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.park.park()<span class="question-mark">?</span>;
+        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#149">self</a>.<a href="../../../../src/tokio/signal/unix/driver.rs.html#98">process</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">park</span>.<span class="ident">park_timeout</span>(<span class="ident">duration</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#155">self</a>.<a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#98">process</a>();
+    <span class="kw">fn </span>park_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.park.park_timeout(duration)<span class="question-mark">?</span>;
+        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#155">self</a>.<a href="../../../../src/tokio/signal/unix/driver.rs.html#98">process</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#161">self</a>.<span class="ident">park</span>.<a class="ident" href="../../../../src/tokio/park/mod.rs.html#89">shutdown</a>()
+    <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/signal/unix/driver.rs.html#161">self</a>.park.<a href="../../../../src/tokio/park/mod.rs.html#89">shutdown</a>()
     }
 }
 
-<span class="comment">// ===== impl Handle =====</span>
+<span class="comment">// ===== impl Handle =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">check_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">strong_count</span>() <span class="op">&gt;</span> <span class="number">0</span> {
+</span><span class="kw">impl </span><a href="../../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>check_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if </span><span class="self">self</span>.inner.strong_count() &gt; <span class="number">0 </span>{
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;signal driver gone&quot;</span>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Other, <span class="string">&quot;signal driver gone&quot;</span>))
         }
     }
 }
 
-<span class="macro">cfg_rt!</span> {
-    <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a> {
-        <span class="doccomment">/// Returns a handle to the current driver</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Panics</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function panics if there is no current signal driver set.</span>
-        <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">current</span>() -&gt; <span class="self">Self</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/context.rs.html#40"><span class="kw">crate</span>::runtime::context::signal_handle</a>().<span class="ident">expect</span>(
+<span class="macro">cfg_rt! </span>{
+    <span class="kw">impl </span><a href="../../../../src/tokio/signal/unix/driver.rs.html#35">Handle</a> {
+        <span class="doccomment">/// Returns a handle to the current driver
+        ///
+        /// # Panics
+        ///
+        /// This function panics if there is no current signal driver set.
+        </span><span class="attribute">#[track_caller]
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>current() -&gt; <span class="self">Self </span>{
+            <a href="../../../../src/tokio/runtime/context.rs.html#40"><span class="kw">crate</span>::runtime::context::signal_handle</a>().expect(
                 <span class="string">&quot;there is no signal driver running, must be called from the context of Tokio runtime&quot;</span>,
             )
         }
     }
 }
 
-<span class="macro">cfg_not_rt!</span> {
-    <span class="kw">impl</span> <span class="ident">Handle</span> {
-        <span class="doccomment">/// Returns a handle to the current driver</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Panics</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function panics if there is no current signal driver set.</span>
-        <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">current</span>() -&gt; <span class="self">Self</span> {
+<span class="macro">cfg_not_rt! </span>{
+    <span class="kw">impl </span>Handle {
+        <span class="doccomment">/// Returns a handle to the current driver
+        ///
+        /// # Panics
+        ///
+        /// This function panics if there is no current signal driver set.
+        </span><span class="attribute">#[track_caller]
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>current() -&gt; <span class="self">Self </span>{
             <span class="macro">panic!</span>(
                 <span class="string">&quot;there is no signal driver running, must be called from the context of Tokio runtime or with\
                 `rt` enabled.&quot;</span>,
@@ -417,4 +417,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

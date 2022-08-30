@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/unicode/grapheme.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grapheme.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bstr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bstr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bstr/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bstr-0.2.17/src/unicode/grapheme.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grapheme.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bstr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bstr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bstr/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -353,360 +353,360 @@
 <span id="353">353</span>
 <span id="354">354</span>
 <span id="355">355</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../regex_automata/dfa/trait.DFA.html">regex_automata::DFA</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../regex_automata/dfa/trait.DFA.html">regex_automata::DFA</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/bstr/ext_slice.rs.html#92"><span class="kw">crate</span>::ext_slice::ByteSlice</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/bstr/unicode/fsm/grapheme_break_fwd.rs.html#28-45"><span class="kw">crate</span>::unicode::fsm::grapheme_break_fwd::GRAPHEME_BREAK_FWD</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/bstr/unicode/fsm/grapheme_break_rev.rs.html#28-45"><span class="kw">crate</span>::unicode::fsm::grapheme_break_rev::GRAPHEME_BREAK_REV</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/bstr/unicode/fsm/regional_indicator_rev.rs.html#28-45"><span class="kw">crate</span>::unicode::fsm::regional_indicator_rev::REGIONAL_INDICATOR_REV</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/bstr/lib.rs.html#407"><span class="kw">crate</span>::utf8</a>;
+<span class="kw">use </span><a href="../../../src/bstr/ext_slice.rs.html#92"><span class="kw">crate</span>::ext_slice::ByteSlice</a>;
+<span class="kw">use </span><a href="../../../src/bstr/unicode/fsm/grapheme_break_fwd.rs.html#28-45"><span class="kw">crate</span>::unicode::fsm::grapheme_break_fwd::GRAPHEME_BREAK_FWD</a>;
+<span class="kw">use </span><a href="../../../src/bstr/unicode/fsm/grapheme_break_rev.rs.html#28-45"><span class="kw">crate</span>::unicode::fsm::grapheme_break_rev::GRAPHEME_BREAK_REV</a>;
+<span class="kw">use </span><a href="../../../src/bstr/unicode/fsm/regional_indicator_rev.rs.html#28-45"><span class="kw">crate</span>::unicode::fsm::regional_indicator_rev::REGIONAL_INDICATOR_REV</a>;
+<span class="kw">use </span><a href="../../../src/bstr/lib.rs.html#407"><span class="kw">crate</span>::utf8</a>;
 
-<span class="doccomment">/// An iterator over grapheme clusters in a byte string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator is typically constructed by</span>
-<span class="doccomment">/// [`ByteSlice::graphemes`](trait.ByteSlice.html#method.graphemes).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Unicode defines a grapheme cluster as an *approximation* to a single user</span>
-<span class="doccomment">/// visible character. A grapheme cluster, or just &quot;grapheme,&quot; is made up of</span>
-<span class="doccomment">/// one or more codepoints. For end user oriented tasks, one should generally</span>
-<span class="doccomment">/// prefer using graphemes instead of [`Chars`](struct.Chars.html), which</span>
-<span class="doccomment">/// always yields one codepoint at a time.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Since graphemes are made up of one or more codepoints, this iterator yields</span>
-<span class="doccomment">/// `&amp;str` elements. When invalid UTF-8 is encountered, replacement codepoints</span>
-<span class="doccomment">/// are [substituted](index.html#handling-of-invalid-utf-8).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator can be used in reverse. When reversed, exactly the same</span>
-<span class="doccomment">/// set of grapheme clusters are yielded, but in reverse order.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator only yields *extended* grapheme clusters, in accordance with</span>
-<span class="doccomment">/// [UAX #29](https://www.unicode.org/reports/tr29/tr29-33.html#Grapheme_Cluster_Boundaries).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">bs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+<span class="doccomment">/// An iterator over grapheme clusters in a byte string.
+///
+/// This iterator is typically constructed by
+/// [`ByteSlice::graphemes`](trait.ByteSlice.html#method.graphemes).
+///
+/// Unicode defines a grapheme cluster as an *approximation* to a single user
+/// visible character. A grapheme cluster, or just &quot;grapheme,&quot; is made up of
+/// one or more codepoints. For end user oriented tasks, one should generally
+/// prefer using graphemes instead of [`Chars`](struct.Chars.html), which
+/// always yields one codepoint at a time.
+///
+/// Since graphemes are made up of one or more codepoints, this iterator yields
+/// `&amp;str` elements. When invalid UTF-8 is encountered, replacement codepoints
+/// are [substituted](index.html#handling-of-invalid-utf-8).
+///
+/// This iterator can be used in reverse. When reversed, exactly the same
+/// set of grapheme clusters are yielded, but in reverse order.
+///
+/// This iterator only yields *extended* grapheme clusters, in accordance with
+/// [UAX #29](https://www.unicode.org/reports/tr29/tr29-33.html#Grapheme_Cluster_Boundaries).
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Graphemes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#30">Graphemes</a> { <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#35">bs</a> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Graphemes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Graphemes&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <a href="../../../src/bstr/unicode/grapheme.rs.html#30">Graphemes</a> { <a href="../../../src/bstr/unicode/grapheme.rs.html#35">bs</a> }
     }
 
-    <span class="doccomment">/// View the underlying data as a subslice of the original data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The slice returned has the same lifetime as the original slice, and so</span>
-    <span class="doccomment">/// the iterator can continue to be used while this exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bstr::ByteSlice;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut it = b&quot;abc&quot;.graphemes();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(b&quot;abc&quot;, it.as_bytes());</span>
-    <span class="doccomment">/// it.next();</span>
-    <span class="doccomment">/// assert_eq!(b&quot;bc&quot;, it.as_bytes());</span>
-    <span class="doccomment">/// it.next();</span>
-    <span class="doccomment">/// it.next();</span>
-    <span class="doccomment">/// assert_eq!(b&quot;&quot;, it.as_bytes());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#59">self</a>.<span class="ident">bs</span>
+    <span class="doccomment">/// View the underlying data as a subslice of the original data.
+    ///
+    /// The slice returned has the same lifetime as the original slice, and so
+    /// the iterator can continue to be used while this exists.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bstr::ByteSlice;
+    ///
+    /// let mut it = b&quot;abc&quot;.graphemes();
+    ///
+    /// assert_eq!(b&quot;abc&quot;, it.as_bytes());
+    /// it.next();
+    /// assert_eq!(b&quot;bc&quot;, it.as_bytes());
+    /// it.next();
+    /// it.next();
+    /// assert_eq!(b&quot;&quot;, it.as_bytes());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#59">self</a>.bs
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Graphemes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">grapheme</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#191">decode_grapheme</a>(<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#68">self</a>.<span class="ident">bs</span>);
-        <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <span class="kw">let </span>(grapheme, size) = <a href="../../../src/bstr/unicode/grapheme.rs.html#191">decode_grapheme</a>(<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#68">self</a>.bs);
+        <span class="kw">if </span>size == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#68">self</a>.<span class="ident">bs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#68">self</a>.<span class="ident">bs</span>[<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#69">size</a>..];
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#69">grapheme</a>)
+        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#68">self</a>.bs = <span class="kw-2">&amp;</span><a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#68">self</a>.bs[<a href="../../../src/bstr/unicode/grapheme.rs.html#69">size</a>..];
+        <span class="prelude-val">Some</span>(<a href="../../../src/bstr/unicode/grapheme.rs.html#69">grapheme</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">grapheme</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#206">decode_last_grapheme</a>(<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#80">self</a>.<span class="ident">bs</span>);
-        <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Graphemes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <span class="kw">let </span>(grapheme, size) = <a href="../../../src/bstr/unicode/grapheme.rs.html#206">decode_last_grapheme</a>(<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#80">self</a>.bs);
+        <span class="kw">if </span>size == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#80">self</a>.<span class="ident">bs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#80">self</a>.<span class="ident">bs</span>[..<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#80">self</a>.<span class="ident">bs</span>.<span class="ident">len</span>() <span class="op">-</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#81">size</a>];
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#81">grapheme</a>)
+        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#80">self</a>.bs = <span class="kw-2">&amp;</span><a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#80">self</a>.bs[..<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#80">self</a>.bs.len() - <a href="../../../src/bstr/unicode/grapheme.rs.html#81">size</a>];
+        <span class="prelude-val">Some</span>(<a href="../../../src/bstr/unicode/grapheme.rs.html#81">grapheme</a>)
     }
 }
 
-<span class="doccomment">/// An iterator over grapheme clusters in a byte string and their byte index</span>
-<span class="doccomment">/// positions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator is typically constructed by</span>
-<span class="doccomment">/// [`ByteSlice::grapheme_indices`](trait.ByteSlice.html#method.grapheme_indices).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Unicode defines a grapheme cluster as an *approximation* to a single user</span>
-<span class="doccomment">/// visible character. A grapheme cluster, or just &quot;grapheme,&quot; is made up of</span>
-<span class="doccomment">/// one or more codepoints. For end user oriented tasks, one should generally</span>
-<span class="doccomment">/// prefer using graphemes instead of [`Chars`](struct.Chars.html), which</span>
-<span class="doccomment">/// always yields one codepoint at a time.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Since graphemes are made up of one or more codepoints, this iterator</span>
-<span class="doccomment">/// yields `&amp;str` elements (along with their start and end byte offsets).</span>
-<span class="doccomment">/// When invalid UTF-8 is encountered, replacement codepoints are</span>
-<span class="doccomment">/// [substituted](index.html#handling-of-invalid-utf-8). Because of this, the</span>
-<span class="doccomment">/// indices yielded by this iterator may not correspond to the length of the</span>
-<span class="doccomment">/// grapheme cluster yielded with those indices. For example, when this</span>
-<span class="doccomment">/// iterator encounters `\xFF` in the byte string, then it will yield a pair</span>
-<span class="doccomment">/// of indices ranging over a single byte, but will provide an `&amp;str`</span>
-<span class="doccomment">/// equivalent to `&quot;\u{FFFD}&quot;`, which is three bytes in length. However, when</span>
-<span class="doccomment">/// given only valid UTF-8, then all indices are in exact correspondence with</span>
-<span class="doccomment">/// their paired grapheme cluster.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator can be used in reverse. When reversed, exactly the same</span>
-<span class="doccomment">/// set of grapheme clusters are yielded, but in reverse order.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator only yields *extended* grapheme clusters, in accordance with</span>
-<span class="doccomment">/// [UAX #29](https://www.unicode.org/reports/tr29/tr29-33.html#Grapheme_Cluster_Boundaries).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">bs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="ident">forward_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">reverse_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// An iterator over grapheme clusters in a byte string and their byte index
+/// positions.
+///
+/// This iterator is typically constructed by
+/// [`ByteSlice::grapheme_indices`](trait.ByteSlice.html#method.grapheme_indices).
+///
+/// Unicode defines a grapheme cluster as an *approximation* to a single user
+/// visible character. A grapheme cluster, or just &quot;grapheme,&quot; is made up of
+/// one or more codepoints. For end user oriented tasks, one should generally
+/// prefer using graphemes instead of [`Chars`](struct.Chars.html), which
+/// always yields one codepoint at a time.
+///
+/// Since graphemes are made up of one or more codepoints, this iterator
+/// yields `&amp;str` elements (along with their start and end byte offsets).
+/// When invalid UTF-8 is encountered, replacement codepoints are
+/// [substituted](index.html#handling-of-invalid-utf-8). Because of this, the
+/// indices yielded by this iterator may not correspond to the length of the
+/// grapheme cluster yielded with those indices. For example, when this
+/// iterator encounters `\xFF` in the byte string, then it will yield a pair
+/// of indices ranging over a single byte, but will provide an `&amp;str`
+/// equivalent to `&quot;\u{FFFD}&quot;`, which is three bytes in length. However, when
+/// given only valid UTF-8, then all indices are in exact correspondence with
+/// their paired grapheme cluster.
+///
+/// This iterator can be used in reverse. When reversed, exactly the same
+/// set of grapheme clusters are yielded, but in reverse order.
+///
+/// This iterator only yields *extended* grapheme clusters, in accordance with
+/// [UAX #29](https://www.unicode.org/reports/tr29/tr29-33.html#Grapheme_Cluster_Boundaries).
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>GraphemeIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    forward_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    reverse_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#120">GraphemeIndices</a> { <span class="ident">bs</span>: <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#127">bs</a>, <span class="ident">forward_index</span>: <span class="number">0</span>, <span class="ident">reverse_index</span>: <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#127">bs</a>.<span class="ident">len</span>() }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; GraphemeIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; GraphemeIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <a href="../../../src/bstr/unicode/grapheme.rs.html#120">GraphemeIndices</a> { bs: <a href="../../../src/bstr/unicode/grapheme.rs.html#127">bs</a>, forward_index: <span class="number">0</span>, reverse_index: <a href="../../../src/bstr/unicode/grapheme.rs.html#127">bs</a>.len() }
     }
 
-    <span class="doccomment">/// View the underlying data as a subslice of the original data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The slice returned has the same lifetime as the original slice, and so</span>
-    <span class="doccomment">/// the iterator can continue to be used while this exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bstr::ByteSlice;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut it = b&quot;abc&quot;.grapheme_indices();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(b&quot;abc&quot;, it.as_bytes());</span>
-    <span class="doccomment">/// it.next();</span>
-    <span class="doccomment">/// assert_eq!(b&quot;bc&quot;, it.as_bytes());</span>
-    <span class="doccomment">/// it.next();</span>
-    <span class="doccomment">/// it.next();</span>
-    <span class="doccomment">/// assert_eq!(b&quot;&quot;, it.as_bytes());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#151">self</a>.<span class="ident">bs</span>
+    <span class="doccomment">/// View the underlying data as a subslice of the original data.
+    ///
+    /// The slice returned has the same lifetime as the original slice, and so
+    /// the iterator can continue to be used while this exists.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bstr::ByteSlice;
+    ///
+    /// let mut it = b&quot;abc&quot;.grapheme_indices();
+    ///
+    /// assert_eq!(b&quot;abc&quot;, it.as_bytes());
+    /// it.next();
+    /// assert_eq!(b&quot;bc&quot;, it.as_bytes());
+    /// it.next();
+    /// it.next();
+    /// assert_eq!(b&quot;&quot;, it.as_bytes());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#151">self</a>.bs
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>GraphemeIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.<span class="ident">forward_index</span>;
-        <span class="kw">let</span> (<span class="ident">grapheme</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#191">decode_grapheme</a>(<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.<span class="ident">bs</span>);
-        <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)&gt; {
+        <span class="kw">let </span>index = <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.forward_index;
+        <span class="kw">let </span>(grapheme, size) = <a href="../../../src/bstr/unicode/grapheme.rs.html#191">decode_grapheme</a>(<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.bs);
+        <span class="kw">if </span>size == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.<span class="ident">bs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.<span class="ident">bs</span>[<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#162">size</a>..];
-        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.<span class="ident">forward_index</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#162">size</a>;
-        <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#161">index</a>, <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#161">index</a> <span class="op">+</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#162">size</a>, <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#162">grapheme</a>))
+        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.bs = <span class="kw-2">&amp;</span><a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.bs[<a href="../../../src/bstr/unicode/grapheme.rs.html#162">size</a>..];
+        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#160">self</a>.forward_index += <a href="../../../src/bstr/unicode/grapheme.rs.html#162">size</a>;
+        <span class="prelude-val">Some</span>((<a href="../../../src/bstr/unicode/grapheme.rs.html#161">index</a>, <a href="../../../src/bstr/unicode/grapheme.rs.html#161">index</a> + <a href="../../../src/bstr/unicode/grapheme.rs.html#162">size</a>, <a href="../../../src/bstr/unicode/grapheme.rs.html#162">grapheme</a>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for</span> <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">grapheme</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#206">decode_last_grapheme</a>(<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.<span class="ident">bs</span>);
-        <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>GraphemeIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)&gt; {
+        <span class="kw">let </span>(grapheme, size) = <a href="../../../src/bstr/unicode/grapheme.rs.html#206">decode_last_grapheme</a>(<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.bs);
+        <span class="kw">if </span>size == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.<span class="ident">bs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.<span class="ident">bs</span>[..<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.<span class="ident">bs</span>.<span class="ident">len</span>() <span class="op">-</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#175">size</a>];
-        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.<span class="ident">reverse_index</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#175">size</a>;
-        <span class="prelude-val">Some</span>((<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.<span class="ident">reverse_index</span>, <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.<span class="ident">reverse_index</span> <span class="op">+</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#175">size</a>, <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#175">grapheme</a>))
+        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.bs = <span class="kw-2">&amp;</span><a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.bs[..<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.bs.len() - <a href="../../../src/bstr/unicode/grapheme.rs.html#175">size</a>];
+        <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.reverse_index -= <a href="../../../src/bstr/unicode/grapheme.rs.html#175">size</a>;
+        <span class="prelude-val">Some</span>((<a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.reverse_index, <a class="self" href="../../../src/bstr/unicode/grapheme.rs.html#174">self</a>.reverse_index + <a href="../../../src/bstr/unicode/grapheme.rs.html#175">size</a>, <a href="../../../src/bstr/unicode/grapheme.rs.html#175">grapheme</a>))
     }
 }
 
-<span class="doccomment">/// Decode a grapheme from the given byte string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This returns the resulting grapheme (which may be a Unicode replacement</span>
-<span class="doccomment">/// codepoint if invalid UTF-8 was found), along with the number of bytes</span>
-<span class="doccomment">/// decoded in the byte string. The number of bytes decoded may not be the</span>
-<span class="doccomment">/// same as the length of grapheme in the case where invalid UTF-8 is found.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_grapheme</span>(<span class="ident">bs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">if</span> <span class="ident">bs</span>.<span class="ident">is_empty</span>() {
+<span class="doccomment">/// Decode a grapheme from the given byte string.
+///
+/// This returns the resulting grapheme (which may be a Unicode replacement
+/// codepoint if invalid UTF-8 was found), along with the number of bytes
+/// decoded in the byte string. The number of bytes decoded may not be the
+/// same as the length of grapheme in the case where invalid UTF-8 is found.
+</span><span class="kw">pub fn </span>decode_grapheme(bs: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">if </span>bs.is_empty() {
         (<span class="string">&quot;&quot;</span>, <span class="number">0</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>) <span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/fsm/grapheme_break_fwd.rs.html#28-45">GRAPHEME_BREAK_FWD</a>.<a class="ident" href="../../../regex_automata/dfa/trait.DFA.html">find</a>(<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#191">bs</a>) {
-        <span class="comment">// Safe because a match can only occur for valid UTF-8.</span>
-        <span class="kw">let</span> <span class="ident">grapheme</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#191">bs</a>[..<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#194">end</a>].<a class="ident" href="../../../src/bstr/ext_slice.rs.html#281">to_str_unchecked</a>() };
-        (<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#196">grapheme</a>, <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#196">grapheme</a>.<span class="ident">len</span>())
-    } <span class="kw">else</span> {
-        <span class="kw">const</span> <span class="ident">INVALID</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;\u{FFFD}&quot;</span>;
-        <span class="comment">// No match on non-empty bytes implies we found invalid UTF-8.</span>
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="ident" href="../../../src/bstr/utf8.rs.html#687">utf8::decode_lossy</a>(<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#191">bs</a>);
-        (<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#199">INVALID</a>, <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#201">size</a>)
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(end) = <a href="../../../src/bstr/unicode/fsm/grapheme_break_fwd.rs.html#28-45">GRAPHEME_BREAK_FWD</a>.<a href="../../../regex_automata/dfa/trait.DFA.html">find</a>(<a href="../../../src/bstr/unicode/grapheme.rs.html#191">bs</a>) {
+        <span class="comment">// Safe because a match can only occur for valid UTF-8.
+        </span><span class="kw">let </span>grapheme = <span class="kw">unsafe </span>{ <a href="../../../src/bstr/unicode/grapheme.rs.html#191">bs</a>[..<a href="../../../src/bstr/unicode/grapheme.rs.html#194">end</a>].<a href="../../../src/bstr/ext_slice.rs.html#281">to_str_unchecked</a>() };
+        (<a href="../../../src/bstr/unicode/grapheme.rs.html#196">grapheme</a>, <a href="../../../src/bstr/unicode/grapheme.rs.html#196">grapheme</a>.len())
+    } <span class="kw">else </span>{
+        <span class="kw">const </span>INVALID: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;\u{FFFD}&quot;</span>;
+        <span class="comment">// No match on non-empty bytes implies we found invalid UTF-8.
+        </span><span class="kw">let </span>(<span class="kw">_</span>, size) = <a href="../../../src/bstr/utf8.rs.html#687">utf8::decode_lossy</a>(<a href="../../../src/bstr/unicode/grapheme.rs.html#191">bs</a>);
+        (<a href="../../../src/bstr/unicode/grapheme.rs.html#199">INVALID</a>, <a href="../../../src/bstr/unicode/grapheme.rs.html#201">size</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">decode_last_grapheme</span>(<span class="ident">bs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">if</span> <span class="ident">bs</span>.<span class="ident">is_empty</span>() {
+<span class="kw">fn </span>decode_last_grapheme(bs: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="kw">if </span>bs.is_empty() {
         (<span class="string">&quot;&quot;</span>, <span class="number">0</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">start</span>) <span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/fsm/grapheme_break_rev.rs.html#28-45">GRAPHEME_BREAK_REV</a>.<a class="ident" href="../../../regex_automata/dfa/trait.DFA.html">rfind</a>(<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#206">bs</a>) {
-        <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#209">start</a> <span class="op">=</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#235">adjust_rev_for_regional_indicator</a>(<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#206">bs</a>, <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#209">start</a>);
-        <span class="comment">// Safe because a match can only occur for valid UTF-8.</span>
-        <span class="kw">let</span> <span class="ident">grapheme</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#206">bs</a>[<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#209">start</a>..].<a class="ident" href="../../../src/bstr/ext_slice.rs.html#281">to_str_unchecked</a>() };
-        (<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#212">grapheme</a>, <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#212">grapheme</a>.<span class="ident">len</span>())
-    } <span class="kw">else</span> {
-        <span class="kw">const</span> <span class="ident">INVALID</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;\u{FFFD}&quot;</span>;
-        <span class="comment">// No match on non-empty bytes implies we found invalid UTF-8.</span>
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">size</span>) <span class="op">=</span> <a class="ident" href="../../../src/bstr/utf8.rs.html#811">utf8::decode_last_lossy</a>(<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#206">bs</a>);
-        (<a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#215">INVALID</a>, <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#217">size</a>)
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>start) = <a href="../../../src/bstr/unicode/fsm/grapheme_break_rev.rs.html#28-45">GRAPHEME_BREAK_REV</a>.<a href="../../../regex_automata/dfa/trait.DFA.html">rfind</a>(<a href="../../../src/bstr/unicode/grapheme.rs.html#206">bs</a>) {
+        <a href="../../../src/bstr/unicode/grapheme.rs.html#209">start</a> = <a href="../../../src/bstr/unicode/grapheme.rs.html#235">adjust_rev_for_regional_indicator</a>(<a href="../../../src/bstr/unicode/grapheme.rs.html#206">bs</a>, <a href="../../../src/bstr/unicode/grapheme.rs.html#209">start</a>);
+        <span class="comment">// Safe because a match can only occur for valid UTF-8.
+        </span><span class="kw">let </span>grapheme = <span class="kw">unsafe </span>{ <a href="../../../src/bstr/unicode/grapheme.rs.html#206">bs</a>[<a href="../../../src/bstr/unicode/grapheme.rs.html#209">start</a>..].<a href="../../../src/bstr/ext_slice.rs.html#281">to_str_unchecked</a>() };
+        (<a href="../../../src/bstr/unicode/grapheme.rs.html#212">grapheme</a>, <a href="../../../src/bstr/unicode/grapheme.rs.html#212">grapheme</a>.len())
+    } <span class="kw">else </span>{
+        <span class="kw">const </span>INVALID: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;\u{FFFD}&quot;</span>;
+        <span class="comment">// No match on non-empty bytes implies we found invalid UTF-8.
+        </span><span class="kw">let </span>(<span class="kw">_</span>, size) = <a href="../../../src/bstr/utf8.rs.html#811">utf8::decode_last_lossy</a>(<a href="../../../src/bstr/unicode/grapheme.rs.html#206">bs</a>);
+        (<a href="../../../src/bstr/unicode/grapheme.rs.html#215">INVALID</a>, <a href="../../../src/bstr/unicode/grapheme.rs.html#217">size</a>)
     }
 }
 
-<span class="doccomment">/// Return the correct offset for the next grapheme decoded at the end of the</span>
-<span class="doccomment">/// given byte string, where `i` is the initial guess. In particular,</span>
-<span class="doccomment">/// `&amp;bs[i..]` represents the candidate grapheme.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `i` is returned by this function in all cases except when `&amp;bs[i..]` is</span>
-<span class="doccomment">/// a pair of regional indicator codepoints. In that case, if an odd number of</span>
-<span class="doccomment">/// additional regional indicator codepoints precedes `i`, then `i` is</span>
-<span class="doccomment">/// adjusted such that it points to only a single regional indicator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This &quot;fixing&quot; is necessary to handle the requirement that a break cannot</span>
-<span class="doccomment">/// occur between regional indicators where it would cause an odd number of</span>
-<span class="doccomment">/// regional indicators to exist before the break from the *start* of the</span>
-<span class="doccomment">/// string. A reverse regex cannot detect this case easily without look-around.</span>
-<span class="kw">fn</span> <span class="ident">adjust_rev_for_regional_indicator</span>(<span class="kw-2">mut</span> <span class="ident">bs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="comment">// All regional indicators use a 4 byte encoding, and we only care about</span>
-    <span class="comment">// the case where we found a pair of regional indicators.</span>
-    <span class="kw">if</span> <span class="ident">bs</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="number">8</span> {
-        <span class="kw">return</span> <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#235">i</a>;
+<span class="doccomment">/// Return the correct offset for the next grapheme decoded at the end of the
+/// given byte string, where `i` is the initial guess. In particular,
+/// `&amp;bs[i..]` represents the candidate grapheme.
+///
+/// `i` is returned by this function in all cases except when `&amp;bs[i..]` is
+/// a pair of regional indicator codepoints. In that case, if an odd number of
+/// additional regional indicator codepoints precedes `i`, then `i` is
+/// adjusted such that it points to only a single regional indicator.
+///
+/// This &quot;fixing&quot; is necessary to handle the requirement that a break cannot
+/// occur between regional indicators where it would cause an odd number of
+/// regional indicators to exist before the break from the *start* of the
+/// string. A reverse regex cannot detect this case easily without look-around.
+</span><span class="kw">fn </span>adjust_rev_for_regional_indicator(<span class="kw-2">mut </span>bs: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="comment">// All regional indicators use a 4 byte encoding, and we only care about
+    // the case where we found a pair of regional indicators.
+    </span><span class="kw">if </span>bs.len() - i != <span class="number">8 </span>{
+        <span class="kw">return </span><a href="../../../src/bstr/unicode/grapheme.rs.html#235">i</a>;
     }
-    <span class="comment">// Count all contiguous occurrences of regional indicators. If there&#39;s an</span>
-    <span class="comment">// even number of them, then we can accept the pair we found. Otherwise,</span>
-    <span class="comment">// we can only take one of them.</span>
-    <span class="comment">//</span>
-    <span class="comment">// FIXME: This is quadratic in the worst case, e.g., a string of just</span>
-    <span class="comment">// regional indicator codepoints. A fix probably requires refactoring this</span>
-    <span class="comment">// code a bit such that we don&#39;t rescan regional indicators.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start</span>) <span class="op">=</span> <span class="ident">REGIONAL_INDICATOR_REV</span>.<span class="ident">rfind</span>(<span class="ident">bs</span>) {
-        <span class="ident">bs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">bs</span>[..<span class="ident">start</span>];
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="comment">// Count all contiguous occurrences of regional indicators. If there&#39;s an
+    // even number of them, then we can accept the pair we found. Otherwise,
+    // we can only take one of them.
+    //
+    // FIXME: This is quadratic in the worst case, e.g., a string of just
+    // regional indicator codepoints. A fix probably requires refactoring this
+    // code a bit such that we don&#39;t rescan regional indicators.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(start) = REGIONAL_INDICATOR_REV.rfind(bs) {
+        bs = <span class="kw-2">&amp;</span>bs[..start];
+        count += <span class="number">1</span>;
     }
-    <span class="kw">if</span> <span class="ident">count</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
-        <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#235">i</a>
-    } <span class="kw">else</span> {
-        <a class="ident" href="../../../src/bstr/unicode/grapheme.rs.html#235">i</a> <span class="op">+</span> <span class="number">4</span>
-    }
+    <span class="kw">if </span>count % <span class="number">2 </span>== <span class="number">0 </span>{
+        <a href="../../../src/bstr/unicode/grapheme.rs.html#235">i</a>
+    } <span class="kw">else </span>{
+        <a href="../../../src/bstr/unicode/grapheme.rs.html#235">i</a> + <span class="number">4
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">ucd_parse::GraphemeClusterBreakTest</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>ucd_parse::GraphemeClusterBreakTest;
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ext_slice::ByteSlice</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tests::LOSSY_TESTS</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::ext_slice::ByteSlice;
+    <span class="kw">use </span><span class="kw">crate</span>::tests::LOSSY_TESTS;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">forward_ucd</span>() {
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">test</span>) <span class="kw">in</span> <span class="ident">ucdtests</span>().<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">given</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">grapheme_clusters</span>.<span class="ident">concat</span>();
-            <span class="kw">let</span> <span class="ident">got</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Graphemes::new</span>(<span class="ident">given</span>.<span class="ident">as_bytes</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cluster</span><span class="op">|</span> <span class="ident">cluster</span>.<span class="ident">to_string</span>())
-                .<span class="ident">collect</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>forward_ucd() {
+        <span class="kw">for </span>(i, test) <span class="kw">in </span>ucdtests().into_iter().enumerate() {
+            <span class="kw">let </span>given = test.grapheme_clusters.concat();
+            <span class="kw">let </span>got: Vec&lt;String&gt; = Graphemes::new(given.as_bytes())
+                .map(|cluster| cluster.to_string())
+                .collect();
             <span class="macro">assert_eq!</span>(
-                <span class="ident">test</span>.<span class="ident">grapheme_clusters</span>,
-                <span class="ident">got</span>,
+                test.grapheme_clusters,
+                got,
                 <span class="string">&quot;\ngrapheme forward break test {} failed:\n\
                  given:    {:?}\n\
                  expected: {:?}\n\
                  got:      {:?}\n&quot;</span>,
-                <span class="ident">i</span>,
-                <span class="ident">uniescape</span>(<span class="kw-2">&amp;</span><span class="ident">given</span>),
-                <span class="ident">uniescape_vec</span>(<span class="kw-2">&amp;</span><span class="ident">test</span>.<span class="ident">grapheme_clusters</span>),
-                <span class="ident">uniescape_vec</span>(<span class="kw-2">&amp;</span><span class="ident">got</span>),
+                i,
+                uniescape(<span class="kw-2">&amp;</span>given),
+                uniescape_vec(<span class="kw-2">&amp;</span>test.grapheme_clusters),
+                uniescape_vec(<span class="kw-2">&amp;</span>got),
             );
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reverse_ucd</span>() {
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">test</span>) <span class="kw">in</span> <span class="ident">ucdtests</span>().<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">given</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">grapheme_clusters</span>.<span class="ident">concat</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">got</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Graphemes::new</span>(<span class="ident">given</span>.<span class="ident">as_bytes</span>())
-                .<span class="ident">rev</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cluster</span><span class="op">|</span> <span class="ident">cluster</span>.<span class="ident">to_string</span>())
-                .<span class="ident">collect</span>();
-            <span class="ident">got</span>.<span class="ident">reverse</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>reverse_ucd() {
+        <span class="kw">for </span>(i, test) <span class="kw">in </span>ucdtests().into_iter().enumerate() {
+            <span class="kw">let </span>given = test.grapheme_clusters.concat();
+            <span class="kw">let </span><span class="kw-2">mut </span>got: Vec&lt;String&gt; = Graphemes::new(given.as_bytes())
+                .rev()
+                .map(|cluster| cluster.to_string())
+                .collect();
+            got.reverse();
             <span class="macro">assert_eq!</span>(
-                <span class="ident">test</span>.<span class="ident">grapheme_clusters</span>,
-                <span class="ident">got</span>,
+                test.grapheme_clusters,
+                got,
                 <span class="string">&quot;\n\ngrapheme reverse break test {} failed:\n\
                  given:    {:?}\n\
                  expected: {:?}\n\
                  got:      {:?}\n&quot;</span>,
-                <span class="ident">i</span>,
-                <span class="ident">uniescape</span>(<span class="kw-2">&amp;</span><span class="ident">given</span>),
-                <span class="ident">uniescape_vec</span>(<span class="kw-2">&amp;</span><span class="ident">test</span>.<span class="ident">grapheme_clusters</span>),
-                <span class="ident">uniescape_vec</span>(<span class="kw-2">&amp;</span><span class="ident">got</span>),
+                i,
+                uniescape(<span class="kw-2">&amp;</span>given),
+                uniescape_vec(<span class="kw-2">&amp;</span>test.grapheme_clusters),
+                uniescape_vec(<span class="kw-2">&amp;</span>got),
             );
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">forward_lossy</span>() {
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">expected</span>, <span class="ident">input</span>) <span class="kw">in</span> <span class="ident">LOSSY_TESTS</span> {
-            <span class="kw">let</span> <span class="ident">got</span> <span class="op">=</span> <span class="ident">Graphemes::new</span>(<span class="ident">input</span>.<span class="ident">as_bytes</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">got</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>forward_lossy() {
+        <span class="kw">for </span><span class="kw-2">&amp;</span>(expected, input) <span class="kw">in </span>LOSSY_TESTS {
+            <span class="kw">let </span>got = Graphemes::new(input.as_bytes()).collect::&lt;String&gt;();
+            <span class="macro">assert_eq!</span>(expected, got);
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reverse_lossy</span>() {
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">expected</span>, <span class="ident">input</span>) <span class="kw">in</span> <span class="ident">LOSSY_TESTS</span> {
-            <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">chars</span>().<span class="ident">rev</span>().<span class="ident">collect</span>();
-            <span class="kw">let</span> <span class="ident">got</span> <span class="op">=</span>
-                <span class="ident">Graphemes::new</span>(<span class="ident">input</span>.<span class="ident">as_bytes</span>()).<span class="ident">rev</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">got</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>reverse_lossy() {
+        <span class="kw">for </span><span class="kw-2">&amp;</span>(expected, input) <span class="kw">in </span>LOSSY_TESTS {
+            <span class="kw">let </span>expected: String = expected.chars().rev().collect();
+            <span class="kw">let </span>got =
+                Graphemes::new(input.as_bytes()).rev().collect::&lt;String&gt;();
+            <span class="macro">assert_eq!</span>(expected, got);
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">uniescape</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
-        <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">escape_unicode</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()
+    <span class="kw">fn </span>uniescape(s: <span class="kw-2">&amp;</span>str) -&gt; String {
+        s.chars().flat_map(|c| c.escape_unicode()).collect::&lt;String&gt;()
     }
 
-    <span class="kw">fn</span> <span class="ident">uniescape_vec</span>(<span class="ident">strs</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-        <span class="ident">strs</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">uniescape</span>(<span class="ident">s</span>)).<span class="ident">collect</span>()
+    <span class="kw">fn </span>uniescape_vec(strs: <span class="kw-2">&amp;</span>[String]) -&gt; Vec&lt;String&gt; {
+        strs.iter().map(|s| uniescape(s)).collect()
     }
 
-    <span class="doccomment">/// Return all of the UCD for grapheme breaks.</span>
-    <span class="kw">fn</span> <span class="ident">ucdtests</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GraphemeClusterBreakTest</span><span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">TESTDATA</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span>
+    <span class="doccomment">/// Return all of the UCD for grapheme breaks.
+    </span><span class="kw">fn </span>ucdtests() -&gt; Vec&lt;GraphemeClusterBreakTest&gt; {
+        <span class="kw">const </span>TESTDATA: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str =
             <span class="macro">include_str!</span>(<span class="string">&quot;data/GraphemeBreakTest.txt&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tests</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">TESTDATA</span>.<span class="ident">lines</span>() {
-            <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">trim</span>();
-            <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;#&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">line</span>.<span class="ident">contains</span>(<span class="string">&quot;surrogate&quot;</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>tests = <span class="macro">vec!</span>[];
+        <span class="kw">for </span><span class="kw-2">mut </span>line <span class="kw">in </span>TESTDATA.lines() {
+            line = line.trim();
+            <span class="kw">if </span>line.starts_with(<span class="string">&quot;#&quot;</span>) || line.contains(<span class="string">&quot;surrogate&quot;</span>) {
                 <span class="kw">continue</span>;
             }
-            <span class="ident">tests</span>.<span class="ident">push</span>(<span class="ident">line</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>());
+            tests.push(line.parse().unwrap());
         }
-        <span class="ident">tests</span>
+        tests
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bstr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bstr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

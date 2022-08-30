@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/server/shutdown.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>shutdown.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/server/shutdown.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>shutdown.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -126,133 +126,133 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
 
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
-<span class="kw">use</span> <a class="ident" href="../../../tracing/macro.debug.html">tracing::debug</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span><a href="../../../tracing/macro.debug.html">tracing::debug</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/hyper/server/accept.rs.html#20"><span class="kw">super</span>::accept::Accept</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/hyper/server/conn.rs.html#974"><span class="kw">super</span>::conn::UpgradeableConnection</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::server</span>::{<a class="ident" href="../../../src/hyper/server/server.rs.html#27-40">Server</a>, <a class="ident" href="../../../src/hyper/server/server.rs.html#607">Watcher</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::body</span>::{<a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a>, <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common::drain</span>::{<a class="self" href="../../../src/hyper/common/mod.rs.html#14">self</a>, <a class="ident" href="../../../src/hyper/common/drain.rs.html#17">Draining</a>, <a class="ident" href="../../../src/hyper/common/drain.rs.html#13">Signal</a>, <a class="ident" href="../../../src/hyper/common/drain.rs.html#20">Watch</a>, <a class="ident" href="../../../src/hyper/common/drain.rs.html#24-33">Watching</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common::exec</span>::{<a class="ident" href="../../../src/hyper/common/exec.rs.html#19">ConnStreamExec</a>, <a class="ident" href="../../../src/hyper/common/exec.rs.html#24">NewSvcExec</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::service</span>::{<a class="ident" href="../../../src/hyper/service/http.rs.html#8">HttpService</a>, <a class="ident" href="../../../src/hyper/service/make.rs.html#43">MakeServiceRef</a>};
+<span class="kw">use </span><a href="../../../src/hyper/server/accept.rs.html#20"><span class="kw">super</span>::accept::Accept</a>;
+<span class="kw">use </span><a href="../../../src/hyper/server/conn.rs.html#974"><span class="kw">super</span>::conn::UpgradeableConnection</a>;
+<span class="kw">use </span><span class="kw">super</span>::server::{<a href="../../../src/hyper/server/server.rs.html#27-40">Server</a>, <a href="../../../src/hyper/server/server.rs.html#607">Watcher</a>};
+<span class="kw">use </span><span class="kw">crate</span>::body::{<a href="../../../src/hyper/body/body.rs.html#36">Body</a>, <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::drain::{<a class="self" href="../../../src/hyper/common/mod.rs.html#14">self</a>, <a href="../../../src/hyper/common/drain.rs.html#17">Draining</a>, <a href="../../../src/hyper/common/drain.rs.html#13">Signal</a>, <a href="../../../src/hyper/common/drain.rs.html#20">Watch</a>, <a href="../../../src/hyper/common/drain.rs.html#24-33">Watching</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::exec::{<a href="../../../src/hyper/common/exec.rs.html#19">ConnStreamExec</a>, <a href="../../../src/hyper/common/exec.rs.html#24">NewSvcExec</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
+<span class="kw">use </span><span class="kw">crate</span>::service::{<a href="../../../src/hyper/service/http.rs.html#8">HttpService</a>, <a href="../../../src/hyper/service/make.rs.html#43">MakeServiceRef</a>};
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Graceful</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">state</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="attribute">#[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>Graceful&lt;I, S, F, E&gt; {
+        <span class="attribute">#[pin]
+        </span>state: State&lt;I, S, F, E&gt;,
     }
 }
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="attribute">#[<span class="ident">project</span> <span class="op">=</span> <span class="ident">StateProj</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="ident">Running</span> {
-            <span class="ident">drain</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#13">Signal</a>, <a class="ident" href="../../../src/hyper/common/drain.rs.html#20">Watch</a>)<span class="op">&gt;</span>,
-            <span class="attribute">#[<span class="ident">pin</span>]</span>
-            <span class="ident">server</span>: <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-            <span class="attribute">#[<span class="ident">pin</span>]</span>
-            <span class="ident">signal</span>: <span class="ident">F</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="attribute">#[project = StateProj]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>State&lt;I, S, F, E&gt; {
+        Running {
+            drain: <span class="prelude-ty">Option</span>&lt;(<a href="../../../src/hyper/common/drain.rs.html#13">Signal</a>, <a href="../../../src/hyper/common/drain.rs.html#20">Watch</a>)&gt;,
+            <span class="attribute">#[pin]
+            </span>server: Server&lt;I, S, E&gt;,
+            <span class="attribute">#[pin]
+            </span>signal: F,
         },
-        <span class="ident">Draining</span> { <span class="ident">draining</span>: <a class="ident" href="../../../src/hyper/common/drain.rs.html#17">Draining</a> },
+        Draining { draining: <a href="../../../src/hyper/common/drain.rs.html#17">Draining</a> },
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Graceful</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">server</span>: <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">signal</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">drain</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#8">drain::channel</a>());
-        <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#16-22">Graceful</a> {
-            <span class="ident">state</span>: <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#24-36">State::Running</a> {
-                <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#40">drain</a>,
-                <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#39">server</a>,
-                <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#39">signal</a>,
+<span class="kw">impl</span>&lt;I, S, F, E&gt; Graceful&lt;I, S, F, E&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(server: Server&lt;I, S, E&gt;, signal: F) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>drain = <span class="prelude-val">Some</span>(<a href="../../../src/hyper/common/drain.rs.html#8">drain::channel</a>());
+        <a href="../../../src/hyper/server/shutdown.rs.html#16-22">Graceful</a> {
+            state: <a href="../../../src/hyper/server/shutdown.rs.html#24-36">State::Running</a> {
+                <a href="../../../src/hyper/server/shutdown.rs.html#40">drain</a>,
+                <a href="../../../src/hyper/server/shutdown.rs.html#39">server</a>,
+                <a href="../../../src/hyper/server/shutdown.rs.html#39">signal</a>,
             },
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">IO</span>, <span class="ident">IE</span>, <span class="ident">S</span>, <span class="ident">B</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Graceful</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Accept</span><span class="op">&lt;</span><span class="ident">Conn</span> <span class="op">=</span> <span class="ident">IO</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">IE</span><span class="op">&gt;</span>,
-    <span class="ident">IE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">IO</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">S</span>: <span class="ident">MakeServiceRef</span><span class="op">&lt;</span><span class="ident">IO</span>, <a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">S::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">B</span>: <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">B::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">ConnStreamExec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">S::Service</span> <span class="kw">as</span> <span class="ident">HttpService</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">NewSvcExec</span><span class="op">&lt;</span><span class="ident">IO</span>, <span class="ident">S::Future</span>, <span class="ident">S::Service</span>, <span class="ident">E</span>, <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#100">GracefulWatcher</a><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;I, IO, IE, S, B, F, E&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Graceful&lt;I, S, F, E&gt;
+<span class="kw">where
+    </span>I: Accept&lt;Conn = IO, Error = IE&gt;,
+    IE: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    IO: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    S: MakeServiceRef&lt;IO, <a href="../../../src/hyper/body/body.rs.html#36">Body</a>, ResBody = B&gt;,
+    S::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    B: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a> + <span class="lifetime">&#39;static</span>,
+    B::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    F: Future&lt;Output = ()&gt;,
+    E: ConnStreamExec&lt;&lt;S::Service <span class="kw">as </span>HttpService&lt;<a href="../../../src/hyper/body/body.rs.html#36">Body</a>&gt;&gt;::Future, B&gt;,
+    E: NewSvcExec&lt;IO, S::Future, S::Service, E, <a href="../../../src/hyper/server/shutdown.rs.html#100">GracefulWatcher</a>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = <span class="kw">crate</span>::Result&lt;()&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/server/shutdown.rs.html#66">self</a>.<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#16-22">project</a>();
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> {
-                <span class="kw">match</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#67">me</a>.<span class="ident">state</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#24-36">project</a>() {
-                    <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#24-36">StateProj::Running</a> {
-                        <span class="ident">drain</span>,
-                        <span class="ident">server</span>,
-                        <span class="ident">signal</span>,
-                    } =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#74">signal</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#66">cx</a>) {
-                        <span class="ident">Poll::Ready</span>(()) =&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="../../../src/hyper/server/shutdown.rs.html#66">self</a>.<a href="../../../src/hyper/server/shutdown.rs.html#16-22">project</a>();
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>next = {
+                <span class="kw">match </span><a href="../../../src/hyper/server/shutdown.rs.html#67">me</a>.state.as_mut().<a href="../../../src/hyper/server/shutdown.rs.html#24-36">project</a>() {
+                    <a href="../../../src/hyper/server/shutdown.rs.html#24-36">StateProj::Running</a> {
+                        drain,
+                        server,
+                        signal,
+                    } =&gt; <span class="kw">match </span><a href="../../../src/hyper/server/shutdown.rs.html#74">signal</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/server/shutdown.rs.html#66">cx</a>) {
+                        Poll::Ready(()) =&gt; {
                             <a class="macro" href="../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;signal received, starting graceful shutdown&quot;</span>);
-                            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#72">drain</a>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;drain channel&quot;</span>).<span class="number">0</span>;
-                            <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#24-36">State::Draining</a> {
-                                <span class="ident">draining</span>: <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#78">sig</a>.<a class="ident" href="../../../src/hyper/common/drain.rs.html#41">drain</a>(),
+                            <span class="kw">let </span>sig = <a href="../../../src/hyper/server/shutdown.rs.html#72">drain</a>.take().expect(<span class="string">&quot;drain channel&quot;</span>).<span class="number">0</span>;
+                            <a href="../../../src/hyper/server/shutdown.rs.html#24-36">State::Draining</a> {
+                                draining: <a href="../../../src/hyper/server/shutdown.rs.html#78">sig</a>.<a href="../../../src/hyper/common/drain.rs.html#41">drain</a>(),
                             }
                         }
-                        <span class="ident">Poll::Pending</span> =&gt; {
-                            <span class="kw">let</span> <span class="ident">watch</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#72">drain</a>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;drain channel&quot;</span>).<span class="number">1</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                            <span class="kw">return</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#73">server</a>.<a class="ident" href="../../../src/hyper/server/server.rs.html#187-194">poll_watch</a>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#66">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/server/shutdown.rs.html#100">GracefulWatcher</a>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#84">watch</a>));
+                        Poll::Pending =&gt; {
+                            <span class="kw">let </span>watch = <a href="../../../src/hyper/server/shutdown.rs.html#72">drain</a>.as_ref().expect(<span class="string">&quot;drain channel&quot;</span>).<span class="number">1</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                            <span class="kw">return </span><a href="../../../src/hyper/server/shutdown.rs.html#73">server</a>.<a href="../../../src/hyper/server/server.rs.html#187-194">poll_watch</a>(<a href="../../../src/hyper/server/shutdown.rs.html#66">cx</a>, <span class="kw-2">&amp;</span><a href="../../../src/hyper/server/shutdown.rs.html#100">GracefulWatcher</a>(<a href="../../../src/hyper/server/shutdown.rs.html#84">watch</a>));
                         }
                     },
-                    <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#24-36">StateProj::Draining</a> { <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">draining</span> } =&gt; {
-                        <span class="kw">return</span> <span class="ident">Pin::new</span>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#88">draining</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#66">cx</a>).<span class="ident">map</span>(<span class="prelude-val">Ok</span>);
+                    <a href="../../../src/hyper/server/shutdown.rs.html#24-36">StateProj::Draining</a> { <span class="kw-2">ref mut </span>draining } =&gt; {
+                        <span class="kw">return </span>Pin::new(<a href="../../../src/hyper/server/shutdown.rs.html#88">draining</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/server/shutdown.rs.html#66">cx</a>).map(<span class="prelude-val">Ok</span>);
                     }
                 }
             };
-            <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#67">me</a>.<span class="ident">state</span>.<span class="ident">set</span>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#69">next</a>);
+            <a href="../../../src/hyper/server/shutdown.rs.html#67">me</a>.state.set(<a href="../../../src/hyper/server/shutdown.rs.html#69">next</a>);
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GracefulWatcher</span>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#20">Watch</a>);
+<span class="attribute">#[allow(missing_debug_implementations)]
+#[derive(Clone)]
+</span><span class="kw">pub struct </span>GracefulWatcher(<a href="../../../src/hyper/common/drain.rs.html#20">Watch</a>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#100">GracefulWatcher</a>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">ConnStreamExec</span><span class="op">&lt;</span><span class="ident">S::Future</span>, <span class="ident">S::ResBody</span><span class="op">&gt;</span>,
-    <span class="ident">S::ResBody</span>: <span class="lifetime">&#39;static</span>,
-    <span class="op">&lt;</span><span class="ident">S::ResBody</span> <span class="kw">as</span> <span class="ident">HttpBody</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;I, S, E&gt; Watcher&lt;I, S, E&gt; <span class="kw">for </span><a href="../../../src/hyper/server/shutdown.rs.html#100">GracefulWatcher</a>
+<span class="kw">where
+    </span>I: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+    S: HttpService&lt;<a href="../../../src/hyper/body/body.rs.html#36">Body</a>&gt;,
+    E: ConnStreamExec&lt;S::Future, S::ResBody&gt;,
+    S::ResBody: <span class="lifetime">&#39;static</span>,
+    &lt;S::ResBody <span class="kw">as </span>HttpBody&gt;::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span>
-        <span class="ident">Watching</span><span class="op">&lt;</span><span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="kw">fn</span>(<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>;
+    <span class="kw">type </span>Future =
+        Watching&lt;UpgradeableConnection&lt;I, S, E&gt;, <span class="kw">fn</span>(Pin&lt;<span class="kw-2">&amp;mut </span>UpgradeableConnection&lt;I, S, E&gt;&gt;)&gt;;
 
-    <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <a class="self" href="../../../src/hyper/server/shutdown.rs.html#113">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../../src/hyper/common/drain.rs.html#56-59">watch</a>(<a class="ident" href="../../../src/hyper/server/shutdown.rs.html#113">conn</a>, <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#118-125">on_drain</a>)
+    <span class="kw">fn </span>watch(<span class="kw-2">&amp;</span><span class="self">self</span>, conn: UpgradeableConnection&lt;I, S, E&gt;) -&gt; <span class="self">Self</span>::Future {
+        <a class="self" href="../../../src/hyper/server/shutdown.rs.html#113">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="../../../src/hyper/common/drain.rs.html#56-59">watch</a>(<a href="../../../src/hyper/server/shutdown.rs.html#113">conn</a>, <a href="../../../src/hyper/server/shutdown.rs.html#118-125">on_drain</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">on_drain</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">conn</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>)
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#36">Body</a><span class="op">&gt;</span>,
-    <span class="ident">S::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">I</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">S::ResBody</span>: <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="op">&lt;</span><span class="ident">S::ResBody</span> <span class="kw">as</span> <span class="ident">HttpBody</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">ConnStreamExec</span><span class="op">&lt;</span><span class="ident">S::Future</span>, <span class="ident">S::ResBody</span><span class="op">&gt;</span>,
+<span class="kw">fn </span>on_drain&lt;I, S, E&gt;(conn: Pin&lt;<span class="kw-2">&amp;mut </span>UpgradeableConnection&lt;I, S, E&gt;&gt;)
+<span class="kw">where
+    </span>S: HttpService&lt;<a href="../../../src/hyper/body/body.rs.html#36">Body</a>&gt;,
+    S::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    I: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    S::ResBody: <a href="../../../hyper/body/trait.HttpBody.html">HttpBody</a> + <span class="lifetime">&#39;static</span>,
+    &lt;S::ResBody <span class="kw">as </span>HttpBody&gt;::Error: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+    E: ConnStreamExec&lt;S::Future, S::ResBody&gt;,
 {
-    <a class="ident" href="../../../src/hyper/server/shutdown.rs.html#118">conn</a>.<a class="ident" href="../../../src/hyper/server/conn.rs.html#994">graceful_shutdown</a>()
+    <a href="../../../src/hyper/server/shutdown.rs.html#118">conn</a>.<a href="../../../src/hyper/server/conn.rs.html#994">graceful_shutdown</a>()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

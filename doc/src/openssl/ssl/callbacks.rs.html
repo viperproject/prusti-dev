@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/ssl/callbacks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>callbacks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/ssl/callbacks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>callbacks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -693,700 +693,700 @@
 <span id="693">693</span>
 <span id="694">694</span>
 <span id="695">695</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <a class="ident" href="../../../foreign_types_shared/trait.ForeignType.html">foreign_types::ForeignType</a>;
-<span class="kw">use</span> <a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>)))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">libc::c_char</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../libc/unix/type.size_t.html">libc::size_t</a>;
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>)))]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">std::ffi::CStr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span><a href="../../../foreign_types_shared/trait.ForeignType.html">foreign_types::ForeignType</a>;
+<span class="kw">use </span><a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
+<span class="attribute">#[cfg(any(ossl111, not(osslconf = <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>)))]
+</span><span class="kw">use </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">libc::c_char</a>;
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">use </span><a href="../../../libc/unix/type.size_t.html">libc::size_t</a>;
+<span class="kw">use </span>libc::{<a href="../../../libc/unix/type.c_int.html">c_int</a>, <a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <a href="../../../libc/unix/type.c_uint.html">c_uint</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
+<span class="attribute">#[cfg(any(ossl111, not(osslconf = <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>)))]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">std::ffi::CStr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/dh.rs.html#12-19"><span class="kw">crate</span>::dh::Dh</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl101</span>, <span class="ident">not</span>(<span class="ident">ossl110</span>)))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ec::EcKey</span>;
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/pkey.rs.html#67"><span class="kw">crate</span>::pkey::Params</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#565"><span class="kw">crate</span>::ssl::AlpnError</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ssl</span>::{
-    <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#518">try_get_session_ctx_index</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#537">SniError</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">Ssl</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>,
-    <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSession</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSessionRef</a>,
+<span class="kw">use </span><a href="../../../src/openssl/dh.rs.html#12-19"><span class="kw">crate</span>::dh::Dh</a>;
+<span class="attribute">#[cfg(all(ossl101, not(ossl110)))]
+</span><span class="kw">use </span><span class="kw">crate</span>::ec::EcKey;
+<span class="kw">use </span><a href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../../../src/openssl/pkey.rs.html#67"><span class="kw">crate</span>::pkey::Params</a>;
+<span class="attribute">#[cfg(any(ossl102, libressl261))]
+</span><span class="kw">use </span><a href="../../../src/openssl/ssl/mod.rs.html#565"><span class="kw">crate</span>::ssl::AlpnError</a>;
+<span class="kw">use </span><span class="kw">crate</span>::ssl::{
+    <a href="../../../src/openssl/ssl/mod.rs.html#518">try_get_session_ctx_index</a>, <a href="../../../src/openssl/ssl/mod.rs.html#537">SniError</a>, <a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">Ssl</a>, <a href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>, <a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContext</a>, <a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a>, <a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>,
+    <a href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSession</a>, <a href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSessionRef</a>,
 };
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ssl</span>::{<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#584">ClientHelloResponse</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#418-445">ExtensionContext</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/util.rs.html#80"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/x509/mod.rs.html#362-370"><span class="kw">crate</span>::x509::X509Ref</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../../src/openssl/x509/mod.rs.html#50-59">X509StoreContext</a>, <a class="ident" href="../../../src/openssl/x509/mod.rs.html#50-59">X509StoreContextRef</a>};
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">use </span><span class="kw">crate</span>::ssl::{<a href="../../../src/openssl/ssl/mod.rs.html#584">ClientHelloResponse</a>, <a href="../../../src/openssl/ssl/mod.rs.html#418-445">ExtensionContext</a>};
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">use </span><a href="../../../src/openssl/util.rs.html#80"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">use </span><a href="../../../src/openssl/x509/mod.rs.html#362-370"><span class="kw">crate</span>::x509::X509Ref</a>;
+<span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="../../../src/openssl/x509/mod.rs.html#50-59">X509StoreContext</a>, <a href="../../../src/openssl/x509/mod.rs.html#50-59">X509StoreContextRef</a>};
 
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_verify</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">preverify_ok</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">x509_ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509_STORE_CTX.html">ffi::X509_STORE_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/mod.rs.html#50-59">X509StoreContextRef</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_verify&lt;F&gt;(preverify_ok: <a href="../../../libc/unix/type.c_int.html">c_int</a>, x509_ctx: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.X509_STORE_CTX.html">ffi::X509_STORE_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/mod.rs.html#50-59">X509StoreContextRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">X509StoreContextRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#37">x509_ctx</a>);
-        <span class="kw">let</span> <span class="ident">ssl_idx</span> <span class="op">=</span> <span class="ident">X509StoreContext::ssl_idx</span>().<span class="ident">expect</span>(<span class="string">&quot;BUG: store context ssl index missing&quot;</span>);
-        <span class="kw">let</span> <span class="ident">verify_idx</span> <span class="op">=</span> <span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>();
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ctx = X509StoreContextRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#37">x509_ctx</a>);
+        <span class="kw">let </span>ssl_idx = X509StoreContext::ssl_idx().expect(<span class="string">&quot;BUG: store context ssl index missing&quot;</span>);
+        <span class="kw">let </span>verify_idx = SslContext::cached_ex_index::&lt;F&gt;();
 
-        <span class="comment">// raw pointer shenanigans to break the borrow of ctx</span>
-        <span class="comment">// the callback can&#39;t mess with its own ex_data slot so this is safe</span>
-        <span class="kw">let</span> <span class="ident">verify</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#42">ctx</a>
-            .<a class="ident" href="../../../src/openssl/x509/mod.rs.html#82">ex_data</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#43">ssl_idx</a>)
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: store context missing ssl&quot;</span>)
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#44">verify_idx</a>)
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: verify callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
+        <span class="comment">// raw pointer shenanigans to break the borrow of ctx
+        // the callback can&#39;t mess with its own ex_data slot so this is safe
+        </span><span class="kw">let </span>verify = <a href="../../../src/openssl/ssl/callbacks.rs.html#42">ctx</a>
+            .<a href="../../../src/openssl/x509/mod.rs.html#82">ex_data</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#43">ssl_idx</a>)
+            .expect(<span class="string">&quot;BUG: store context missing ssl&quot;</span>)
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+            .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#44">verify_idx</a>)
+            .expect(<span class="string">&quot;BUG: verify callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
 
-        (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#48">verify</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#37">preverify_ok</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#42">ctx</a>) <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
+        (<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#48">verify</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#37">preverify_ok</a> != <span class="number">0</span>, <a href="../../../src/openssl/ssl/callbacks.rs.html#42">ctx</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_client_psk</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">hint</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">identity</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">max_identity_len</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">psk</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">max_psk_len</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>, <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="lifetime">&#39;static</span>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>))]
+</span><span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_client_psk&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    hint: <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    identity: <span class="kw-2">*mut </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    max_identity_len: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    psk: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    max_psk_len: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+) -&gt; <a href="../../../libc/unix/type.c_uint.html">c_uint</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+        + <span class="lifetime">&#39;static
+        </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
+        + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#61">ssl</a>);
-        <span class="kw">let</span> <span class="ident">callback_idx</span> <span class="op">=</span> <span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>();
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#61">ssl</a>);
+        <span class="kw">let </span>callback_idx = SslContext::cached_ex_index::&lt;F&gt;();
 
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#75">ssl</a>
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#76">callback_idx</a>)
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: psk callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-        <span class="kw">let</span> <span class="ident">hint</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">hint</span>.<span class="ident">is_null</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#62">hint</a>).<span class="ident">to_bytes</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#75">ssl</a>
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+            .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#76">callback_idx</a>)
+            .expect(<span class="string">&quot;BUG: psk callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+        <span class="kw">let </span>hint = <span class="kw">if </span>!hint.is_null() {
+            <span class="prelude-val">Some</span>(CStr::from_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#62">hint</a>).to_bytes())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="comment">// Give the callback mutable slices into which it can write the identity and psk.
+        </span><span class="kw">let </span>identity_sl = slice::from_raw_parts_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#63">identity</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#64">max_identity_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">let </span>psk_sl = slice::from_raw_parts_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#65">psk</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#66">max_psk_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#78">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#75">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#82">hint</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#88">identity_sl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#89">psk_sl</a>) {
+            <span class="prelude-val">Ok</span>(psk_len) =&gt; <a href="../../../src/openssl/ssl/callbacks.rs.html#91">psk_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a href="../../../src/openssl/ssl/callbacks.rs.html#92">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+                <span class="number">0
+            </span>}
+        }
+    }
+}
+
+<span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>))]
+</span><span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_server_psk&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    identity: <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    psk: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    max_psk_len: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+) -&gt; <a href="../../../libc/unix/type.c_uint.html">c_uint</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;, <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+        + <span class="lifetime">&#39;static
+        </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
+        + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#102">ssl</a>);
+        <span class="kw">let </span>callback_idx = SslContext::cached_ex_index::&lt;F&gt;();
+
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#114">ssl</a>
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+            .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#115">callback_idx</a>)
+            .expect(<span class="string">&quot;BUG: psk callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+        <span class="kw">let </span>identity = <span class="kw">if </span>identity.is_null() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(CStr::from_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#103">identity</a>).to_bytes())
         };
-        <span class="comment">// Give the callback mutable slices into which it can write the identity and psk.</span>
-        <span class="kw">let</span> <span class="ident">identity_sl</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#63">identity</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#64">max_identity_len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="kw">let</span> <span class="ident">psk_sl</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#65">psk</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#66">max_psk_len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#78">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#75">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#82">hint</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#88">identity_sl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#89">psk_sl</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">psk_len</span>) =&gt; <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#91">psk_len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#92">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-                <span class="number">0</span>
+        <span class="comment">// Give the callback mutable slices into which it can write the psk.
+        </span><span class="kw">let </span>psk_sl = slice::from_raw_parts_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#104">psk</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#105">max_psk_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#117">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#114">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#121">identity</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#127">psk_sl</a>) {
+            <span class="prelude-val">Ok</span>(psk_len) =&gt; <a href="../../../src/openssl/ssl/callbacks.rs.html#129">psk_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a href="../../../src/openssl/ssl/callbacks.rs.html#130">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+                <span class="number">0
+            </span>}
+        }
+    }
+}
+
+<span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>ssl_raw_verify&lt;F&gt;(
+    preverify_ok: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    x509_ctx: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.X509_STORE_CTX.html">ffi::X509_STORE_CTX</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/x509/mod.rs.html#50-59">X509StoreContextRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ctx = X509StoreContextRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#140">x509_ctx</a>);
+        <span class="kw">let </span>ssl_idx = X509StoreContext::ssl_idx().expect(<span class="string">&quot;BUG: store context ssl index missing&quot;</span>);
+        <span class="kw">let </span>callback_idx = Ssl::cached_ex_index::&lt;Arc&lt;F&gt;&gt;();
+
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#146">ctx</a>
+            .<a href="../../../src/openssl/x509/mod.rs.html#82">ex_data</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#147">ssl_idx</a>)
+            .expect(<span class="string">&quot;BUG: store context missing ssl&quot;</span>)
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2826">ex_data</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#148">callback_idx</a>)
+            .expect(<span class="string">&quot;BUG: ssl verify callback missing&quot;</span>)
+            .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+
+        <a href="../../../src/openssl/ssl/callbacks.rs.html#150">callback</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#139">preverify_ok</a> != <span class="number">0</span>, <a href="../../../src/openssl/ssl/callbacks.rs.html#146">ctx</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>
+    }
+}
+
+<span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_sni&lt;F&gt;(ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>, al: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>, arg: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/ssl/mod.rs.html#537">SniError</a>&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#161">ssl</a>);
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#161">arg</a> <span class="kw">as </span><span class="kw-2">*const </span>F;
+        <span class="kw">let </span><span class="kw-2">mut </span>alert = <a href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#161">al</a>);
+
+        <span class="kw">let </span>r = (<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#167">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#166">ssl</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/callbacks.rs.html#168">alert</a>);
+        <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#161">al</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#168">alert</a>.<span class="number">0</span>;
+        <span class="kw">match </span><a href="../../../src/openssl/ssl/callbacks.rs.html#170">r</a> {
+            <span class="prelude-val">Ok</span>(()) =&gt; ffi::SSL_TLSEXT_ERR_OK,
+            <span class="prelude-val">Err</span>(e) =&gt; <a href="../../../src/openssl/ssl/callbacks.rs.html#174">e</a>.<span class="number">0</span>,
+        }
+    }
+}
+
+<span class="attribute">#[cfg(any(ossl102, libressl261))]
+</span><span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_alpn_select&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    out: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    outlen: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    inbuf: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    inlen: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    _arg: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a href="../../../src/openssl/ssl/mod.rs.html#565">AlpnError</a>&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#181">ssl</a>);
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#192">ssl</a>
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+            .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+            .expect(<span class="string">&quot;BUG: alpn callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+        <span class="kw">let </span>protos = slice::from_raw_parts(<a href="../../../src/openssl/ssl/callbacks.rs.html#184">inbuf</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#185">inlen</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+
+        <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#193">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#192">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#197">protos</a>) {
+            <span class="prelude-val">Ok</span>(proto) =&gt; {
+                <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#182">out</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#200">proto</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+                <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#183">outlen</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#200">proto</a>.len() <span class="kw">as </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+                ffi::SSL_TLSEXT_ERR_OK
+            }
+            <span class="prelude-val">Err</span>(e) =&gt; <a href="../../../src/openssl/ssl/callbacks.rs.html#205">e</a>.<span class="number">0</span>,
+        }
+    }
+}
+
+<span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_tmp_dh&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    is_export: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    keylength: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.DH.html">ffi::DH</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../../src/openssl/pkey.rs.html#67">Params</a>&gt;, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#211">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#218">ssl</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+        .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: tmp dh callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+
+    <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#219">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#218">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#212">is_export</a> != <span class="number">0</span>, <a href="../../../src/openssl/ssl/callbacks.rs.html#213">keylength</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <span class="prelude-val">Ok</span>(dh) =&gt; {
+            <span class="kw">let </span>ptr = <a href="../../../src/openssl/ssl/callbacks.rs.html#225">dh</a>.<a href="../../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
+            mem::forget(<a href="../../../src/openssl/ssl/callbacks.rs.html#225">dh</a>);
+            <a href="../../../src/openssl/ssl/callbacks.rs.html#226">ptr</a>
+        }
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            <a href="../../../src/openssl/ssl/callbacks.rs.html#230">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+            ptr::null_mut()
+        }
+    }
+}
+
+<span class="attribute">#[cfg(all(ossl101, not(ossl110)))]
+</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_tmp_ecdh&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span>ffi::SSL,
+    is_export: c_int,
+    keylength: c_int,
+) -&gt; <span class="kw-2">*mut </span>ffi::EC_KEY
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SslRef, bool, u32) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Params&gt;, ErrorStack&gt; + <span class="lifetime">&#39;static </span>+ Sync + Send,
+{
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(ssl);
+    <span class="kw">let </span>callback = ssl
+        .ssl_context()
+        .ex_data(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: tmp ecdh callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+
+    <span class="kw">match </span>(<span class="kw-2">*</span>callback)(ssl, is_export != <span class="number">0</span>, keylength <span class="kw">as </span>u32) {
+        <span class="prelude-val">Ok</span>(ec_key) =&gt; {
+            <span class="kw">let </span>ptr = ec_key.as_ptr();
+            mem::forget(ec_key);
+            ptr
+        }
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            e.put();
+            ptr::null_mut()
+        }
+    }
+}
+
+<span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_tmp_dh_ssl&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    is_export: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    keylength: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.DH.html">ffi::DH</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Dh&lt;<a href="../../../src/openssl/pkey.rs.html#67">Params</a>&gt;, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#266">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#273">ssl</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#2826">ex_data</a>(Ssl::cached_ex_index::&lt;Arc&lt;F&gt;&gt;())
+        .expect(<span class="string">&quot;BUG: ssl tmp dh callback missing&quot;</span>)
+        .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+
+    <span class="kw">match </span><a href="../../../src/openssl/ssl/callbacks.rs.html#274">callback</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#273">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#267">is_export</a> != <span class="number">0</span>, <a href="../../../src/openssl/ssl/callbacks.rs.html#268">keylength</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
+        <span class="prelude-val">Ok</span>(dh) =&gt; {
+            <span class="kw">let </span>ptr = <a href="../../../src/openssl/ssl/callbacks.rs.html#280">dh</a>.<a href="../../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
+            mem::forget(<a href="../../../src/openssl/ssl/callbacks.rs.html#280">dh</a>);
+            <a href="../../../src/openssl/ssl/callbacks.rs.html#281">ptr</a>
+        }
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            <a href="../../../src/openssl/ssl/callbacks.rs.html#285">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+            ptr::null_mut()
+        }
+    }
+}
+
+<span class="attribute">#[cfg(all(ossl101, not(ossl110)))]
+</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_tmp_ecdh_ssl&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span>ffi::SSL,
+    is_export: c_int,
+    keylength: c_int,
+) -&gt; <span class="kw-2">*mut </span>ffi::EC_KEY
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SslRef, bool, u32) -&gt; <span class="prelude-ty">Result</span>&lt;EcKey&lt;Params&gt;, ErrorStack&gt; + <span class="lifetime">&#39;static </span>+ Sync + Send,
+{
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(ssl);
+    <span class="kw">let </span>callback = ssl
+        .ex_data(Ssl::cached_ex_index::&lt;Arc&lt;F&gt;&gt;())
+        .expect(<span class="string">&quot;BUG: ssl tmp ecdh callback missing&quot;</span>)
+        .clone();
+
+    <span class="kw">match </span>callback(ssl, is_export != <span class="number">0</span>, keylength <span class="kw">as </span>u32) {
+        <span class="prelude-val">Ok</span>(ec_key) =&gt; {
+            <span class="kw">let </span>ptr = ec_key.as_ptr();
+            mem::forget(ec_key);
+            ptr
+        }
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            e.put();
+            ptr::null_mut()
+        }
+    }
+}
+
+<span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_tlsext_status&lt;F&gt;(ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>, <span class="kw">_</span>: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#320">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#324">ssl</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+        .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: ocsp callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+    <span class="kw">let </span>ret = (<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#325">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#324">ssl</a>);
+
+    <span class="kw">if </span>ssl.is_server() {
+        <span class="kw">match </span><a href="../../../src/openssl/ssl/callbacks.rs.html#329">ret</a> {
+            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; ffi::SSL_TLSEXT_ERR_OK,
+            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; ffi::SSL_TLSEXT_ERR_NOACK,
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a href="../../../src/openssl/ssl/callbacks.rs.html#335">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+                ffi::SSL_TLSEXT_ERR_ALERT_FATAL
             }
         }
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_server_psk</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">identity</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">psk</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">max_psk_len</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>, <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="lifetime">&#39;static</span>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#102">ssl</a>);
-        <span class="kw">let</span> <span class="ident">callback_idx</span> <span class="op">=</span> <span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>();
-
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#114">ssl</a>
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#115">callback_idx</a>)
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: psk callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-        <span class="kw">let</span> <span class="ident">identity</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">identity</span>.<span class="ident">is_null</span>() {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#103">identity</a>).<span class="ident">to_bytes</span>())
-        };
-        <span class="comment">// Give the callback mutable slices into which it can write the psk.</span>
-        <span class="kw">let</span> <span class="ident">psk_sl</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#104">psk</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#105">max_psk_len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#117">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#114">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#121">identity</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#127">psk_sl</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">psk_len</span>) =&gt; <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#129">psk_len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#130">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-                <span class="number">0</span>
-            }
-        }
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">ssl_raw_verify</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">preverify_ok</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="ident">x509_ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509_STORE_CTX.html">ffi::X509_STORE_CTX</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/x509/mod.rs.html#50-59">X509StoreContextRef</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">X509StoreContextRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#140">x509_ctx</a>);
-        <span class="kw">let</span> <span class="ident">ssl_idx</span> <span class="op">=</span> <span class="ident">X509StoreContext::ssl_idx</span>().<span class="ident">expect</span>(<span class="string">&quot;BUG: store context ssl index missing&quot;</span>);
-        <span class="kw">let</span> <span class="ident">callback_idx</span> <span class="op">=</span> <span class="ident">Ssl::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#146">ctx</a>
-            .<a class="ident" href="../../../src/openssl/x509/mod.rs.html#82">ex_data</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#147">ssl_idx</a>)
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: store context missing ssl&quot;</span>)
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2826">ex_data</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#148">callback_idx</a>)
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: ssl verify callback missing&quot;</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-
-        <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#150">callback</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#139">preverify_ok</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#146">ctx</a>) <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_sni</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>, <span class="ident">al</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">arg</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#537">SniError</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#161">ssl</a>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#161">arg</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">alert</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#161">al</a>);
-
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#167">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#166">ssl</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#168">alert</a>);
-        <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#161">al</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#168">alert</a>.<span class="number">0</span>;
-        <span class="kw">match</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#170">r</a> {
-            <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">ffi::SSL_TLSEXT_ERR_OK</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#174">e</a>.<span class="number">0</span>,
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_alpn_select</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">out</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">outlen</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">inbuf</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">inlen</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">_arg</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#565">AlpnError</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#181">ssl</a>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#192">ssl</a>
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: alpn callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-        <span class="kw">let</span> <span class="ident">protos</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#184">inbuf</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#185">inlen</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-
-        <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#193">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#192">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#197">protos</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">proto</span>) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#182">out</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#200">proto</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
-                <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#183">outlen</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#200">proto</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
-                <span class="ident">ffi::SSL_TLSEXT_ERR_OK</span>
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#205">e</a>.<span class="number">0</span>,
-        }
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_tmp_dh</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">is_export</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="ident">keylength</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.DH.html">ffi::DH</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#211">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#218">ssl</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: tmp dh callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-
-    <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#219">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#218">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#212">is_export</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#213">keylength</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">dh</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#225">dh</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#225">dh</a>);
-            <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#226">ptr</a>
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-            <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#230">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-            <span class="ident">ptr::null_mut</span>()
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl101</span>, <span class="ident">not</span>(<span class="ident">ossl110</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_tmp_ecdh</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::SSL</span>,
-    <span class="ident">is_export</span>: <span class="ident">c_int</span>,
-    <span class="ident">keylength</span>: <span class="ident">c_int</span>,
-) -&gt; <span class="kw-2">*mut</span> <span class="ident">ffi::EC_KEY</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">SslRef</span>, <span class="ident">bool</span>, <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">Params</span><span class="op">&gt;</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-{
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<span class="ident">ssl</span>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">ssl</span>
-        .<span class="ident">ssl_context</span>()
-        .<span class="ident">ex_data</span>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: tmp ecdh callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-
-    <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">callback</span>)(<span class="ident">ssl</span>, <span class="ident">is_export</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, <span class="ident">keylength</span> <span class="kw">as</span> <span class="ident">u32</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">ec_key</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ec_key</span>.<span class="ident">as_ptr</span>();
-            <span class="ident">mem::forget</span>(<span class="ident">ec_key</span>);
-            <span class="ident">ptr</span>
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-            <span class="ident">e</span>.<span class="ident">put</span>();
-            <span class="ident">ptr::null_mut</span>()
-        }
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_tmp_dh_ssl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">is_export</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="ident">keylength</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.DH.html">ffi::DH</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dh</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#266">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#273">ssl</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2826">ex_data</a>(<span class="ident">Ssl::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: ssl tmp dh callback missing&quot;</span>)
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-
-    <span class="kw">match</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#274">callback</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#273">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#267">is_export</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#268">keylength</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">dh</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#280">dh</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#280">dh</a>);
-            <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#281">ptr</a>
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-            <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#285">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-            <span class="ident">ptr::null_mut</span>()
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl101</span>, <span class="ident">not</span>(<span class="ident">ossl110</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_tmp_ecdh_ssl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::SSL</span>,
-    <span class="ident">is_export</span>: <span class="ident">c_int</span>,
-    <span class="ident">keylength</span>: <span class="ident">c_int</span>,
-) -&gt; <span class="kw-2">*mut</span> <span class="ident">ffi::EC_KEY</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">SslRef</span>, <span class="ident">bool</span>, <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">Params</span><span class="op">&gt;</span>, <span class="ident">ErrorStack</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-{
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<span class="ident">ssl</span>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">ssl</span>
-        .<span class="ident">ex_data</span>(<span class="ident">Ssl::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: ssl tmp ecdh callback missing&quot;</span>)
-        .<span class="ident">clone</span>();
-
-    <span class="kw">match</span> <span class="ident">callback</span>(<span class="ident">ssl</span>, <span class="ident">is_export</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, <span class="ident">keylength</span> <span class="kw">as</span> <span class="ident">u32</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">ec_key</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ec_key</span>.<span class="ident">as_ptr</span>();
-            <span class="ident">mem::forget</span>(<span class="ident">ec_key</span>);
-            <span class="ident">ptr</span>
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-            <span class="ident">e</span>.<span class="ident">put</span>();
-            <span class="ident">ptr::null_mut</span>()
-        }
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_tlsext_status</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>, <span class="kw">_</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#320">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#324">ssl</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: ocsp callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#325">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#324">ssl</a>);
-
-    <span class="kw">if</span> <span class="ident">ssl</span>.<span class="ident">is_server</span>() {
-        <span class="kw">match</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#329">ret</a> {
-            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="ident">ffi::SSL_TLSEXT_ERR_OK</span>,
-            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="ident">ffi::SSL_TLSEXT_ERR_NOACK</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#335">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-                <span class="ident">ffi::SSL_TLSEXT_ERR_ALERT_FATAL</span>
-            }
-        }
-    } <span class="kw">else</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#329">ret</a> {
+    } <span class="kw">else </span>{
+        <span class="kw">match </span><a href="../../../src/openssl/ssl/callbacks.rs.html#329">ret</a> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="number">1</span>,
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="number">0</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#344">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-                <span class="op">-</span><span class="number">1</span>
-            }
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a href="../../../src/openssl/ssl/callbacks.rs.html#344">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+                -<span class="number">1
+            </span>}
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_new_session</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">session</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/ssl/enum.SSL_SESSION.html">ffi::SSL_SESSION</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSession</a>) <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_new_session&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    session: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/ssl/enum.SSL_SESSION.html">ffi::SSL_SESSION</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSession</a>) + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">let</span> <span class="ident">session_ctx_index</span> <span class="op">=</span>
-        <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#518">try_get_session_ctx_index</a>().<span class="ident">expect</span>(<span class="string">&quot;BUG: session context index initialization failed&quot;</span>);
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#353">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#361">ssl</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2826">ex_data</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#359">session_ctx_index</a>)
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: session context missing&quot;</span>)
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: new session callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-    <span class="kw">let</span> <span class="ident">session</span> <span class="op">=</span> <span class="ident">SslSession::from_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#354">session</a>);
+    <span class="kw">let </span>session_ctx_index =
+        <a href="../../../src/openssl/ssl/mod.rs.html#518">try_get_session_ctx_index</a>().expect(<span class="string">&quot;BUG: session context index initialization failed&quot;</span>);
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#353">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#361">ssl</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#2826">ex_data</a>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#359">session_ctx_index</a>)
+        .expect(<span class="string">&quot;BUG: session context missing&quot;</span>)
+        .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: new session callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+    <span class="kw">let </span>session = SslSession::from_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#354">session</a>);
 
-    (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#362">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#361">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#367">session</a>);
+    (<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#362">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#361">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#367">session</a>);
 
-    <span class="comment">// the return code doesn&#39;t indicate error vs success, but whether or not we consumed the session</span>
-    <span class="number">1</span>
+    <span class="comment">// the return code doesn&#39;t indicate error vs success, but whether or not we consumed the session
+    </span><span class="number">1
+</span>}
+
+<span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_remove_session&lt;F&gt;(
+    ctx: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL_CTX.html">ffi::SSL_CTX</a>,
+    session: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/ssl/enum.SSL_SESSION.html">ffi::SSL_SESSION</a>,
+) <span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a>, <span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSessionRef</a>) + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">let </span>ctx = SslContextRef::from_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#376">ctx</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#381">ctx</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: remove session callback missing&quot;</span>);
+    <span class="kw">let </span>session = SslSessionRef::from_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#377">session</a>);
+
+    <a href="../../../src/openssl/ssl/callbacks.rs.html#382">callback</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#381">ctx</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#385">session</a>)
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_remove_session</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL_CTX.html">ffi::SSL_CTX</a>,
-    <span class="ident">session</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/ssl/enum.SSL_SESSION.html">ffi::SSL_SESSION</a>,
-) <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1640-1654">SslContextRef</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSessionRef</a>) <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">SslContextRef::from_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#376">ctx</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#381">ctx</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: remove session callback missing&quot;</span>);
-    <span class="kw">let</span> <span class="ident">session</span> <span class="op">=</span> <span class="ident">SslSessionRef::from_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#377">session</a>);
-
-    <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#382">callback</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#381">ctx</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#385">session</a>)
-}
-
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
-        <span class="kw">type</span> <span class="ident">DataPtr</span> <span class="op">=</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
-    } <span class="kw">else</span> {
-        <span class="kw">type</span> <span class="ident">DataPtr</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">c_uchar</span>;
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl280))] </span>{
+        <span class="kw">type </span>DataPtr = <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+    } <span class="kw">else </span>{
+        <span class="kw">type </span>DataPtr = <span class="kw-2">*mut </span>c_uchar;
     }
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_get_session</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">data</span>: <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#392">DataPtr</a>,
-    <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="ident">copy</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/ssl/enum.SSL_SESSION.html">ffi::SSL_SESSION</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSession</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_get_session&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    data: <a href="../../../src/openssl/ssl/callbacks.rs.html#392">DataPtr</a>,
+    len: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    copy: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+) -&gt; <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/ssl/enum.SSL_SESSION.html">ffi::SSL_SESSION</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/openssl/ssl/mod.rs.html#1969-1982">SslSession</a>&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">let</span> <span class="ident">session_ctx_index</span> <span class="op">=</span>
-        <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#518">try_get_session_ctx_index</a>().<span class="ident">expect</span>(<span class="string">&quot;BUG: session context index initialization failed&quot;</span>);
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#399">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#409">ssl</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2826">ex_data</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#407">session_ctx_index</a>)
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: session context missing&quot;</span>)
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: get session callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#400">data</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#401">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <span class="kw">let </span>session_ctx_index =
+        <a href="../../../src/openssl/ssl/mod.rs.html#518">try_get_session_ctx_index</a>().expect(<span class="string">&quot;BUG: session context index initialization failed&quot;</span>);
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#399">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#409">ssl</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#2826">ex_data</a>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#407">session_ctx_index</a>)
+        .expect(<span class="string">&quot;BUG: session context missing&quot;</span>)
+        .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: get session callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+    <span class="kw">let </span>data = slice::from_raw_parts(<a href="../../../src/openssl/ssl/callbacks.rs.html#400">data</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#401">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-    <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#410">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#409">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#415">data</a>) {
-        <span class="prelude-val">Some</span>(<span class="ident">session</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#418">session</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#418">session</a>);
-            <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#402">copy</a> <span class="op">=</span> <span class="number">0</span>;
-            <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#419">p</a>
+    <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#410">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#409">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#415">data</a>) {
+        <span class="prelude-val">Some</span>(session) =&gt; {
+            <span class="kw">let </span>p = <a href="../../../src/openssl/ssl/callbacks.rs.html#418">session</a>.<a href="../../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
+            mem::forget(<a href="../../../src/openssl/ssl/callbacks.rs.html#418">session</a>);
+            <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#402">copy</a> = <span class="number">0</span>;
+            <a href="../../../src/openssl/ssl/callbacks.rs.html#419">p</a>
         }
-        <span class="prelude-val">None</span> =&gt; <span class="ident">ptr::null_mut</span>(),
+        <span class="prelude-val">None </span>=&gt; ptr::null_mut(),
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_keylog</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">ssl</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>, <span class="ident">line</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>)
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_keylog&lt;F&gt;(ssl: <span class="kw-2">*const </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>, line: <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>)
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;</span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_const_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#429">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#433">ssl</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: get session callback missing&quot;</span>);
-    <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#429">line</a>).<span class="ident">to_bytes</span>();
-    <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">str::from_utf8_unchecked</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#438">line</a>);
+    <span class="kw">let </span>ssl = SslRef::from_const_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#429">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#433">ssl</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+        .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: get session callback missing&quot;</span>);
+    <span class="kw">let </span>line = CStr::from_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#429">line</a>).to_bytes();
+    <span class="kw">let </span>line = str::from_utf8_unchecked(<a href="../../../src/openssl/ssl/callbacks.rs.html#438">line</a>);
 
-    <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#434">callback</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#433">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#439">line</a>);
+    <a href="../../../src/openssl/ssl/callbacks.rs.html#434">callback</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#433">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#439">line</a>);
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_stateless_cookie_generate</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">cookie</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">cookie_len</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_stateless_cookie_generate&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    cookie: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    cookie_len: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.size_t.html">size_t</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#446">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#453">ssl</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: stateless cookie generate callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#447">cookie</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">ffi::SSL_COOKIE_LENGTH</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-    <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#454">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#453">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#458">slice</a>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">len</span>) =&gt; {
-            <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#448">cookie_len</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#460">len</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>;
-            <span class="number">1</span>
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#446">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#453">ssl</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+        .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: stateless cookie generate callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+    <span class="kw">let </span>slice = slice::from_raw_parts_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#447">cookie</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, ffi::SSL_COOKIE_LENGTH <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#454">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#453">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#458">slice</a>) {
+        <span class="prelude-val">Ok</span>(len) =&gt; {
+            <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#448">cookie_len</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#460">len</a> <span class="kw">as </span><a href="../../../libc/unix/type.size_t.html">size_t</a>;
+            <span class="number">1
+        </span>}
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            <a href="../../../src/openssl/ssl/callbacks.rs.html#464">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+            <span class="number">0
+        </span>}
+    }
+}
+
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_stateless_cookie_verify&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    cookie: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    cookie_len: <a href="../../../libc/unix/type.size_t.html">size_t</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#473">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#480">ssl</a>
+        .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+        .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+        .expect(<span class="string">&quot;BUG: stateless cookie verify callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+    <span class="kw">let </span>slice = slice::from_raw_parts(<a href="../../../src/openssl/ssl/callbacks.rs.html#474">cookie</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#475">cookie_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    (<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#481">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#480">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#485">slice</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>
+}
+
+<span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_cookie_generate&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    cookie: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    cookie_len: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#490">ssl</a>);
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#498">ssl</a>
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+            .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+            .expect(<span class="string">&quot;BUG: cookie generate callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+        <span class="comment">// We subtract 1 from DTLS1_COOKIE_LENGTH as the ostensible value, 256, is erroneous but retained for
+        // compatibility. See comments in dtls1.h.
+        </span><span class="kw">let </span>slice =
+            slice::from_raw_parts_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#491">cookie</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, ffi::DTLS1_COOKIE_LENGTH <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> - <span class="number">1</span>);
+        <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#499">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#498">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#505">slice</a>) {
+            <span class="prelude-val">Ok</span>(len) =&gt; {
+                <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#492">cookie_len</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#508">len</a> <span class="kw">as </span><a href="../../../libc/unix/type.c_uint.html">c_uint</a>;
+                <span class="number">1
+            </span>}
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <a href="../../../src/openssl/ssl/callbacks.rs.html#512">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+                <span class="number">0
+            </span>}
         }
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-            <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#464">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-            <span class="number">0</span>
-        }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_stateless_cookie_verify</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">cookie</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">cookie_len</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#473">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#480">ssl</a>
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-        .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;BUG: stateless cookie verify callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#474">cookie</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#475">cookie_len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-    (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#481">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#480">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#485">slice</a>) <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-}
-
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_cookie_generate</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">cookie</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">cookie_len</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#490">ssl</a>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#498">ssl</a>
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: cookie generate callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-        <span class="comment">// We subtract 1 from DTLS1_COOKIE_LENGTH as the ostensible value, 256, is erroneous but retained for</span>
-        <span class="comment">// compatibility. See comments in dtls1.h.</span>
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span>
-            <span class="ident">slice::from_raw_parts_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#491">cookie</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">ffi::DTLS1_COOKIE_LENGTH</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">-</span> <span class="number">1</span>);
-        <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#499">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#498">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#505">slice</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">len</span>) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#492">cookie_len</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#508">len</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>;
-                <span class="number">1</span>
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#512">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-                <span class="number">0</span>
-            }
-        }
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl280))] </span>{
+        <span class="kw">type </span>CookiePtr = <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
+    } <span class="kw">else </span>{
+        <span class="kw">type </span>CookiePtr = <span class="kw-2">*mut </span>c_uchar;
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
-        <span class="kw">type</span> <span class="ident">CookiePtr</span> <span class="op">=</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>;
-    } <span class="kw">else</span> {
-        <span class="kw">type</span> <span class="ident">CookiePtr</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">c_uchar</span>;
+<span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_cookie_verify&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    cookie: <a href="../../../src/openssl/ssl/callbacks.rs.html#522">CookiePtr</a>,
+    cookie_len: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+{
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#529">ssl</a>);
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#537">ssl</a>
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+            .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+            .expect(<span class="string">&quot;BUG: cookie verify callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+        <span class="kw">let </span>slice =
+            slice::from_raw_parts(<a href="../../../src/openssl/ssl/callbacks.rs.html#530">cookie</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#531">cookie_len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        (<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#538">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#537">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#542">slice</a>) <span class="kw">as </span><a href="../../../libc/unix/type.c_int.html">c_int</a>
     }
 }
 
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_cookie_verify</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">cookie</span>: <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#522">CookiePtr</a>,
-    <span class="ident">cookie_len</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-{
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#529">ssl</a>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#537">ssl</a>
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: cookie verify callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span>
-            <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#530">cookie</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#531">cookie_len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#538">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#537">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#542">slice</a>) <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-    }
-}
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">pub struct </span>CustomExtAddState&lt;T&gt;(<span class="prelude-ty">Option</span>&lt;T&gt;);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomExtAddState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_custom_ext_add</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="kw">_</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">context</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">out</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">outlen</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
-    <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509.html">ffi::X509</a>,
-    <span class="ident">chainidx</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
-    <span class="ident">al</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="kw">_</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#418-445">ExtensionContext</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>)<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="lifetime">&#39;static</span>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-    <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_custom_ext_add&lt;F, T&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    <span class="kw">_</span>: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    context: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    out: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    outlen: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.size_t.html">size_t</a>,
+    x: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.X509.html">ffi::X509</a>,
+    chainidx: <a href="../../../libc/unix/type.size_t.html">size_t</a>,
+    al: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    <span class="kw">_</span>: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a href="../../../src/openssl/ssl/mod.rs.html#418-445">ExtensionContext</a>, <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>)&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>&gt;
+        + <span class="lifetime">&#39;static
+        </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
+        + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; + <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#553">ssl</a>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#571">ssl</a>
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: custom ext add callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-        <span class="kw">let</span> <span class="ident">ectx</span> <span class="op">=</span> <span class="ident">ExtensionContext::from_bits_truncate</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#555">context</a>);
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ectx</span>.<span class="ident">contains</span>(<span class="ident">ExtensionContext::TLS1_3_CERTIFICATE</span>) {
-            <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#559">chainidx</a>, <span class="ident">X509Ref::from_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#558">x</a>)))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
-        <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#572">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#571">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#576">ectx</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#577">cert</a>) {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#553">ssl</a>);
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#571">ssl</a>
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+            .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+            .expect(<span class="string">&quot;BUG: custom ext add callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+        <span class="kw">let </span>ectx = ExtensionContext::from_bits_truncate(<a href="../../../src/openssl/ssl/callbacks.rs.html#555">context</a>);
+        <span class="kw">let </span>cert = <span class="kw">if </span>ectx.contains(ExtensionContext::TLS1_3_CERTIFICATE) {
+            <span class="prelude-val">Some</span>((<a href="../../../src/openssl/ssl/callbacks.rs.html#559">chainidx</a>, X509Ref::from_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#558">x</a>)))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#572">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#571">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#576">ectx</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#577">cert</a>) {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="number">0</span>,
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">buf</span>)) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#557">outlen</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#584">buf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>();
-                <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#556">out</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#584">buf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">as_ptr</span>();
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(buf)) =&gt; {
+                <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#557">outlen</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#584">buf</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().len();
+                <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#556">out</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#584">buf</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().as_ptr();
 
-                <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">Ssl::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">CustomExtAddState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#584">buf</a>);
-                <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#571">ssl</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2839">ex_data_mut</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#588">idx</a>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">state</span>) =&gt; {
-                        <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#591">state</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#589">buf</a>.<span class="ident">take</span>();
-                        <span class="bool-val">false</span>
-                    }
-                    <span class="prelude-val">None</span> =&gt; <span class="bool-val">true</span>,
+                <span class="kw">let </span>idx = Ssl::cached_ex_index::&lt;CustomExtAddState&lt;T&gt;&gt;();
+                <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="prelude-val">Some</span>(<a href="../../../src/openssl/ssl/callbacks.rs.html#584">buf</a>);
+                <span class="kw">let </span>new = <span class="kw">match </span><a href="../../../src/openssl/ssl/callbacks.rs.html#571">ssl</a>.<a href="../../../src/openssl/ssl/mod.rs.html#2839">ex_data_mut</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#588">idx</a>) {
+                    <span class="prelude-val">Some</span>(state) =&gt; {
+                        <a href="../../../src/openssl/ssl/callbacks.rs.html#591">state</a>.<span class="number">0 </span>= <a href="../../../src/openssl/ssl/callbacks.rs.html#589">buf</a>.take();
+                        <span class="bool-val">false
+                    </span>}
+                    <span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
                 };
-                <span class="kw">if</span> <span class="ident">new</span> {
-                    <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#571">ssl</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2813">set_ex_data</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#588">idx</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#549">CustomExtAddState</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#589">buf</a>));
+                <span class="kw">if </span>new {
+                    <a href="../../../src/openssl/ssl/callbacks.rs.html#571">ssl</a>.<a href="../../../src/openssl/ssl/mod.rs.html#2813">set_ex_data</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#588">idx</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#549">CustomExtAddState</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#589">buf</a>));
                 }
-                <span class="number">1</span>
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">alert</span>) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#560">al</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#602">alert</a>.<span class="number">0</span>;
-                <span class="op">-</span><span class="number">1</span>
-            }
+                <span class="number">1
+            </span>}
+            <span class="prelude-val">Err</span>(alert) =&gt; {
+                <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#560">al</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#602">alert</a>.<span class="number">0</span>;
+                -<span class="number">1
+            </span>}
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_custom_ext_free</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="kw">_</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="kw">_</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="kw">_</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="kw">_</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_custom_ext_free&lt;T&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    <span class="kw">_</span>: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    <span class="kw">_</span>: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    <span class="kw">_</span>: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    <span class="kw">_</span>: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) <span class="kw">where
+    </span>T: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#612">ssl</a>);
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">Ssl::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">CustomExtAddState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#621">ssl</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2839">ex_data_mut</a>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#622">idx</a>) {
-            <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#623">state</a>.<span class="number">0</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#612">ssl</a>);
+        <span class="kw">let </span>idx = Ssl::cached_ex_index::&lt;CustomExtAddState&lt;T&gt;&gt;();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <a href="../../../src/openssl/ssl/callbacks.rs.html#621">ssl</a>.<a href="../../../src/openssl/ssl/mod.rs.html#2839">ex_data_mut</a>(<a href="../../../src/openssl/ssl/callbacks.rs.html#622">idx</a>) {
+            <a href="../../../src/openssl/ssl/callbacks.rs.html#623">state</a>.<span class="number">0 </span>= <span class="prelude-val">None</span>;
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_custom_ext_parse</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="kw">_</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">context</span>: <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">input</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-    <span class="ident">inlen</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
-    <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509.html">ffi::X509</a>,
-    <span class="ident">chainidx</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
-    <span class="ident">al</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="kw">_</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#418-445">ExtensionContext</a>, <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>)<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="lifetime">&#39;static</span>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">pub extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_custom_ext_parse&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    <span class="kw">_</span>: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    context: <a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    input: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+    inlen: <a href="../../../libc/unix/type.size_t.html">size_t</a>,
+    x: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.X509.html">ffi::X509</a>,
+    chainidx: <a href="../../../libc/unix/type.size_t.html">size_t</a>,
+    al: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    <span class="kw">_</span>: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <a href="../../../src/openssl/ssl/mod.rs.html#418-445">ExtensionContext</a>, <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><a href="../../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>)&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>&gt;
+        + <span class="lifetime">&#39;static
+        </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
+        + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#631">ssl</a>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#648">ssl</a>
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
-            .<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(<span class="ident">SslContext::cached_ex_index</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;BUG: custom ext parse callback missing&quot;</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-        <span class="kw">let</span> <span class="ident">ectx</span> <span class="op">=</span> <span class="ident">ExtensionContext::from_bits_truncate</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#633">context</a>);
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#634">input</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#635">inlen</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ectx</span>.<span class="ident">contains</span>(<span class="ident">ExtensionContext::TLS1_3_CERTIFICATE</span>) {
-            <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#637">chainidx</a>, <span class="ident">X509Ref::from_ptr</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#636">x</a>)))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
-        <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#649">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#648">ssl</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#653">ectx</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#654">slice</a>, <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#655">cert</a>) {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#631">ssl</a>);
+        <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#648">ssl</a>
+            .<a href="../../../src/openssl/ssl/mod.rs.html#2614">ssl_context</a>()
+            .<a href="../../../src/openssl/ssl/mod.rs.html#1761">ex_data</a>(SslContext::cached_ex_index::&lt;F&gt;())
+            .expect(<span class="string">&quot;BUG: custom ext parse callback missing&quot;</span>) <span class="kw">as </span><span class="kw-2">*const </span>F;
+        <span class="kw">let </span>ectx = ExtensionContext::from_bits_truncate(<a href="../../../src/openssl/ssl/callbacks.rs.html#633">context</a>);
+        <span class="kw">let </span>slice = slice::from_raw_parts(<a href="../../../src/openssl/ssl/callbacks.rs.html#634">input</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#635">inlen</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">let </span>cert = <span class="kw">if </span>ectx.contains(ExtensionContext::TLS1_3_CERTIFICATE) {
+            <span class="prelude-val">Some</span>((<a href="../../../src/openssl/ssl/callbacks.rs.html#637">chainidx</a>, X509Ref::from_ptr(<a href="../../../src/openssl/ssl/callbacks.rs.html#636">x</a>)))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="kw">match </span>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#649">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#648">ssl</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#653">ectx</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#654">slice</a>, <a href="../../../src/openssl/ssl/callbacks.rs.html#655">cert</a>) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="number">1</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">alert</span>) =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#638">al</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#662">alert</a>.<span class="number">0</span>;
-                <span class="number">0</span>
-            }
+            <span class="prelude-val">Err</span>(alert) =&gt; {
+                <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#638">al</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#662">alert</a>.<span class="number">0</span>;
+                <span class="number">0
+            </span>}
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">raw_client_hello</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">ssl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
-    <span class="ident">al</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="ident">arg</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/ssl/mod.rs.html#584">ClientHelloResponse</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="lifetime">&#39;static</span>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
-        <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+<span class="attribute">#[cfg(ossl111)]
+</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>raw_client_hello&lt;F&gt;(
+    ssl: <span class="kw-2">*mut </span><a href="../../../openssl_sys/handwritten/types/enum.SSL.html">ffi::SSL</a>,
+    al: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    arg: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#2081-2097">SslRef</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/ssl/mod.rs.html#584">ClientHelloResponse</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+        + <span class="lifetime">&#39;static
+        </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>
+        + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
 {
-    <span class="kw">let</span> <span class="ident">ssl</span> <span class="op">=</span> <span class="ident">SslRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#672">ssl</a>);
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#674">arg</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">F</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">alert</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#673">al</a>);
+    <span class="kw">let </span>ssl = SslRef::from_ptr_mut(<a href="../../../src/openssl/ssl/callbacks.rs.html#672">ssl</a>);
+    <span class="kw">let </span>callback = <a href="../../../src/openssl/ssl/callbacks.rs.html#674">arg</a> <span class="kw">as </span><span class="kw-2">*const </span>F;
+    <span class="kw">let </span><span class="kw-2">mut </span>alert = <a href="../../../src/openssl/ssl/mod.rs.html#551">SslAlert</a>(<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#673">al</a>);
 
-    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#683">callback</a>)(<a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#682">ssl</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#684">alert</a>);
-    <span class="kw-2">*</span><a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#673">al</a> <span class="op">=</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#684">alert</a>.<span class="number">0</span>;
-    <span class="kw">match</span> <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#686">r</a> {
-        <span class="prelude-val">Ok</span>(<span class="ident">c</span>) =&gt; <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#689">c</a>.<span class="number">0</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-            <a class="ident" href="../../../src/openssl/ssl/callbacks.rs.html#690">e</a>.<a class="ident" href="../../../src/openssl/error.rs.html#45">put</a>();
-            <span class="ident">ffi::SSL_CLIENT_HELLO_ERROR</span>
+    <span class="kw">let </span>r = (<span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#683">callback</a>)(<a href="../../../src/openssl/ssl/callbacks.rs.html#682">ssl</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/openssl/ssl/callbacks.rs.html#684">alert</a>);
+    <span class="kw-2">*</span><a href="../../../src/openssl/ssl/callbacks.rs.html#673">al</a> = <a href="../../../src/openssl/ssl/callbacks.rs.html#684">alert</a>.<span class="number">0</span>;
+    <span class="kw">match </span><a href="../../../src/openssl/ssl/callbacks.rs.html#686">r</a> {
+        <span class="prelude-val">Ok</span>(c) =&gt; <a href="../../../src/openssl/ssl/callbacks.rs.html#689">c</a>.<span class="number">0</span>,
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            <a href="../../../src/openssl/ssl/callbacks.rs.html#690">e</a>.<a href="../../../src/openssl/error.rs.html#45">put</a>();
+            ffi::SSL_CLIENT_HELLO_ERROR
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

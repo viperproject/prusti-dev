@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/memcmp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>memcmp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/memcmp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>memcmp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -91,98 +91,98 @@
 <span id="91">91</span>
 <span id="92">92</span>
 <span id="93">93</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Utilities to safely compare cryptographic values.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Extra care must be taken when comparing values in</span>
-<span class="doccomment">//! cryptographic code. If done incorrectly, it can lead</span>
-<span class="doccomment">//! to a [timing attack](https://en.wikipedia.org/wiki/Timing_attack).</span>
-<span class="doccomment">//! By analyzing the time taken to execute parts of a cryptographic</span>
-<span class="doccomment">//! algorithm, and attacker can attempt to compromise the</span>
-<span class="doccomment">//! cryptosystem.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The utilities in this module are designed to be resistant</span>
-<span class="doccomment">//! to this type of attack.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! To perform a constant-time comparison of two arrays of the same length but different</span>
-<span class="doccomment">//! values:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use openssl::memcmp::eq;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // We want to compare `a` to `b` and `c`, without giving</span>
-<span class="doccomment">//! // away through timing analysis that `c` is more similar to `a`</span>
-<span class="doccomment">//! // than `b`.</span>
-<span class="doccomment">//! let a = [0, 0, 0];</span>
-<span class="doccomment">//! let b = [1, 1, 1];</span>
-<span class="doccomment">//! let c = [0, 0, 1];</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // These statements will execute in the same amount of time.</span>
-<span class="doccomment">//! assert!(!eq(&amp;a, &amp;b));</span>
-<span class="doccomment">//! assert!(!eq(&amp;a, &amp;c));</span>
-<span class="doccomment">//! ```</span>
-<span class="kw">use</span> <a class="ident" href="../../libc/unix/type.size_t.html">libc::size_t</a>;
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! Utilities to safely compare cryptographic values.
+//!
+//! Extra care must be taken when comparing values in
+//! cryptographic code. If done incorrectly, it can lead
+//! to a [timing attack](https://en.wikipedia.org/wiki/Timing_attack).
+//! By analyzing the time taken to execute parts of a cryptographic
+//! algorithm, and attacker can attempt to compromise the
+//! cryptosystem.
+//!
+//! The utilities in this module are designed to be resistant
+//! to this type of attack.
+//!
+//! # Examples
+//!
+//! To perform a constant-time comparison of two arrays of the same length but different
+//! values:
+//!
+//! ```
+//! use openssl::memcmp::eq;
+//!
+//! // We want to compare `a` to `b` and `c`, without giving
+//! // away through timing analysis that `c` is more similar to `a`
+//! // than `b`.
+//! let a = [0, 0, 0];
+//! let b = [1, 1, 1];
+//! let c = [0, 0, 1];
+//!
+//! // These statements will execute in the same amount of time.
+//! assert!(!eq(&amp;a, &amp;b));
+//! assert!(!eq(&amp;a, &amp;c));
+//! ```
+</span><span class="kw">use </span><a href="../../libc/unix/type.size_t.html">libc::size_t</a>;
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<span class="doccomment">/// Returns `true` iff `a` and `b` contain the same bytes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This operation takes an amount of time dependent on the length of the two</span>
-<span class="doccomment">/// arrays given, but is independent of the contents of a and b.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will panic the current task if `a` and `b` do not have the same</span>
-<span class="doccomment">/// length.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To perform a constant-time comparison of two arrays of the same length but different</span>
-<span class="doccomment">/// values:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use openssl::memcmp::eq;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // We want to compare `a` to `b` and `c`, without giving</span>
-<span class="doccomment">/// // away through timing analysis that `c` is more similar to `a`</span>
-<span class="doccomment">/// // than `b`.</span>
-<span class="doccomment">/// let a = [0, 0, 0];</span>
-<span class="doccomment">/// let b = [1, 1, 1];</span>
-<span class="doccomment">/// let c = [0, 0, 1];</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // These statements will execute in the same amount of time.</span>
-<span class="doccomment">/// assert!(!eq(&amp;a, &amp;b));</span>
-<span class="doccomment">/// assert!(!eq(&amp;a, &amp;c));</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CRYPTO_memcmp</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eq</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">a</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">b</span>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="ident">ffi::CRYPTO_memcmp</span>(
-            <a class="ident" href="../../src/openssl/memcmp.rs.html#65">a</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/memcmp.rs.html#65">b</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/memcmp.rs.html#65">a</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
+<span class="doccomment">/// Returns `true` iff `a` and `b` contain the same bytes.
+///
+/// This operation takes an amount of time dependent on the length of the two
+/// arrays given, but is independent of the contents of a and b.
+///
+/// # Panics
+///
+/// This function will panic the current task if `a` and `b` do not have the same
+/// length.
+///
+/// # Examples
+///
+/// To perform a constant-time comparison of two arrays of the same length but different
+/// values:
+///
+/// ```
+/// use openssl::memcmp::eq;
+///
+/// // We want to compare `a` to `b` and `c`, without giving
+/// // away through timing analysis that `c` is more similar to `a`
+/// // than `b`.
+/// let a = [0, 0, 0];
+/// let b = [1, 1, 1];
+/// let c = [0, 0, 1];
+///
+/// // These statements will execute in the same amount of time.
+/// assert!(!eq(&amp;a, &amp;b));
+/// assert!(!eq(&amp;a, &amp;c));
+/// ```
+</span><span class="attribute">#[corresponds(CRYPTO_memcmp)]
+</span><span class="kw">pub fn </span>eq(a: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], b: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(a.len() == b.len());
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{
+        ffi::CRYPTO_memcmp(
+            <a href="../../src/openssl/memcmp.rs.html#65">a</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <a href="../../src/openssl/memcmp.rs.html#65">b</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <a href="../../src/openssl/memcmp.rs.html#65">a</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>,
         )
     };
-    <a class="ident" href="../../src/openssl/memcmp.rs.html#67">ret</a> <span class="op">==</span> <span class="number">0</span>
-}
+    <a href="../../src/openssl/memcmp.rs.html#67">ret</a> == <span class="number">0
+</span>}
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::eq</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">super</span>::eq;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_eq</span>() {
-        <span class="macro">assert!</span>(<span class="ident">eq</span>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[]));
-        <span class="macro">assert!</span>(<span class="ident">eq</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>], <span class="kw-2">&amp;</span>[<span class="number">1</span>]));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">eq</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">4</span>]));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_eq() {
+        <span class="macro">assert!</span>(eq(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[]));
+        <span class="macro">assert!</span>(eq(<span class="kw-2">&amp;</span>[<span class="number">1</span>], <span class="kw-2">&amp;</span>[<span class="number">1</span>]));
+        <span class="macro">assert!</span>(!eq(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">4</span>]));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_diff_lens</span>() {
-        <span class="ident">eq</span>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[<span class="number">1</span>]);
+    <span class="attribute">#[test]
+    #[should_panic]
+    </span><span class="kw">fn </span>test_diff_lens() {
+        eq(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[<span class="number">1</span>]);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

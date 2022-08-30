@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/redirect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>redirect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/redirect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>redirect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -323,330 +323,330 @@
 <span id="323">323</span>
 <span id="324">324</span>
 <span id="325">325</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Redirect Handling</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! By default, a `Client` will automatically handle HTTP redirects, having a</span>
-<span class="doccomment">//! maximum redirect chain of 10 hops. To customize this behavior, a</span>
-<span class="doccomment">//! `redirect::Policy` can be used with a `ClientBuilder`.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Redirect Handling
+//!
+//! By default, a `Client` will automatically handle HTTP redirects, having a
+//! maximum redirect chain of 10 hops. To customize this behavior, a
+//! `redirect::Policy` can be used with a `ClientBuilder`.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::header</span>::{<a class="ident" href="../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, <a class="ident" href="../../reqwest/header/constant.AUTHORIZATION.html">AUTHORIZATION</a>, <a class="ident" href="../../reqwest/header/constant.COOKIE.html">COOKIE</a>, <a class="ident" href="../../reqwest/header/constant.PROXY_AUTHORIZATION.html">PROXY_AUTHORIZATION</a>, <a class="ident" href="../../reqwest/header/constant.WWW_AUTHENTICATE.html">WWW_AUTHENTICATE</a>};
-<span class="kw">use</span> <a class="ident" href="../../reqwest/struct.StatusCode.html">hyper::StatusCode</a>;
+<span class="kw">use </span><span class="kw">crate</span>::header::{<a href="../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, <a href="../../reqwest/header/constant.AUTHORIZATION.html">AUTHORIZATION</a>, <a href="../../reqwest/header/constant.COOKIE.html">COOKIE</a>, <a href="../../reqwest/header/constant.PROXY_AUTHORIZATION.html">PROXY_AUTHORIZATION</a>, <a href="../../reqwest/header/constant.WWW_AUTHENTICATE.html">WWW_AUTHENTICATE</a>};
+<span class="kw">use </span><a href="../../reqwest/struct.StatusCode.html">hyper::StatusCode</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../reqwest/struct.Url.html"><span class="kw">crate</span>::Url</a>;
+<span class="kw">use </span><a href="../../reqwest/struct.Url.html"><span class="kw">crate</span>::Url</a>;
 
-<span class="doccomment">/// A type that controls the policy on how to handle the following of redirects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The default value will catch redirect loops, and has a maximum of 10</span>
-<span class="doccomment">/// redirects it will follow in a chain before returning an error.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - `limited` can be used have the same as the default behavior, but adjust</span>
-<span class="doccomment">///   the allowed maximum redirect hops in a chain.</span>
-<span class="doccomment">/// - `none` can be used to disable all redirect behavior.</span>
-<span class="doccomment">/// - `custom` can be used to create a customized policy.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Policy</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#203">PolicyKind</a>,
+<span class="doccomment">/// A type that controls the policy on how to handle the following of redirects.
+///
+/// The default value will catch redirect loops, and has a maximum of 10
+/// redirects it will follow in a chain before returning an error.
+///
+/// - `limited` can be used have the same as the default behavior, but adjust
+///   the allowed maximum redirect hops in a chain.
+/// - `none` can be used to disable all redirect behavior.
+/// - `custom` can be used to create a customized policy.
+</span><span class="kw">pub struct </span>Policy {
+    inner: <a href="../../src/reqwest/redirect.rs.html#203">PolicyKind</a>,
 }
 
-<span class="doccomment">/// A type that holds information on the next request and previous requests</span>
-<span class="doccomment">/// in redirect chain.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Attempt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">status</span>: <a class="ident" href="../../reqwest/struct.StatusCode.html">StatusCode</a>,
-    <span class="ident">next</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../reqwest/struct.Url.html">Url</a>,
-    <span class="ident">previous</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../reqwest/struct.Url.html">Url</a>],
+<span class="doccomment">/// A type that holds information on the next request and previous requests
+/// in redirect chain.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Attempt&lt;<span class="lifetime">&#39;a</span>&gt; {
+    status: <a href="../../reqwest/struct.StatusCode.html">StatusCode</a>,
+    next: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../reqwest/struct.Url.html">Url</a>,
+    previous: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../reqwest/struct.Url.html">Url</a>],
 }
 
-<span class="doccomment">/// An action to perform when a redirect status code is found.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Action</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#228">ActionKind</a>,
+<span class="doccomment">/// An action to perform when a redirect status code is found.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Action {
+    inner: <a href="../../src/reqwest/redirect.rs.html#228">ActionKind</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#24">Policy</a> {
-    <span class="doccomment">/// Create a `Policy` with a maximum number of redirects.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An `Error` will be returned if the max is reached.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">limited</span>(<span class="ident">max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#205">PolicyKind::Limit</a>(<a class="ident" href="../../src/reqwest/redirect.rs.html#47">max</a>),
+<span class="kw">impl </span><a href="../../src/reqwest/redirect.rs.html#24">Policy</a> {
+    <span class="doccomment">/// Create a `Policy` with a maximum number of redirects.
+    ///
+    /// An `Error` will be returned if the max is reached.
+    </span><span class="kw">pub fn </span>limited(max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: <a href="../../src/reqwest/redirect.rs.html#205">PolicyKind::Limit</a>(<a href="../../src/reqwest/redirect.rs.html#47">max</a>),
         }
     }
 
-    <span class="doccomment">/// Create a `Policy` that does not follow any redirect.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#206">PolicyKind::None</a>,
+    <span class="doccomment">/// Create a `Policy` that does not follow any redirect.
+    </span><span class="kw">pub fn </span>none() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: <a href="../../src/reqwest/redirect.rs.html#206">PolicyKind::None</a>,
         }
     }
 
-    <span class="doccomment">/// Create a custom `Policy` using the passed function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default `Policy` handles a maximum loop</span>
-    <span class="doccomment">/// chain, but the custom variant does not do that for you automatically.</span>
-    <span class="doccomment">/// The custom policy should have some way of handling those.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Information on the next request and previous requests can be found</span>
-    <span class="doccomment">/// on the [`Attempt`] argument passed to the closure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Actions can be conveniently created from methods on the</span>
-    <span class="doccomment">/// [`Attempt`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use reqwest::{Error, redirect};</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn run() -&gt; Result&lt;(), Error&gt; {</span>
-    <span class="doccomment">/// let custom = redirect::Policy::custom(|attempt| {</span>
-    <span class="doccomment">///     if attempt.previous().len() &gt; 5 {</span>
-    <span class="doccomment">///         attempt.error(&quot;too many redirects&quot;)</span>
-    <span class="doccomment">///     } else if attempt.url().host_str() == Some(&quot;example.domain&quot;) {</span>
-    <span class="doccomment">///         // prevent redirects to &#39;example.domain&#39;</span>
-    <span class="doccomment">///         attempt.stop()</span>
-    <span class="doccomment">///     } else {</span>
-    <span class="doccomment">///         attempt.follow()</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// let client = reqwest::Client::builder()</span>
-    <span class="doccomment">///     .redirect(custom)</span>
-    <span class="doccomment">///     .build()?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Attempt`]: struct.Attempt.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">policy</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Fn</span>(<a class="ident" href="../../src/reqwest/redirect.rs.html#31">Attempt</a>) -&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Create a custom `Policy` using the passed function.
+    ///
+    /// # Note
+    ///
+    /// The default `Policy` handles a maximum loop
+    /// chain, but the custom variant does not do that for you automatically.
+    /// The custom policy should have some way of handling those.
+    ///
+    /// Information on the next request and previous requests can be found
+    /// on the [`Attempt`] argument passed to the closure.
+    ///
+    /// Actions can be conveniently created from methods on the
+    /// [`Attempt`].
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use reqwest::{Error, redirect};
+    /// #
+    /// # fn run() -&gt; Result&lt;(), Error&gt; {
+    /// let custom = redirect::Policy::custom(|attempt| {
+    ///     if attempt.previous().len() &gt; 5 {
+    ///         attempt.error(&quot;too many redirects&quot;)
+    ///     } else if attempt.url().host_str() == Some(&quot;example.domain&quot;) {
+    ///         // prevent redirects to &#39;example.domain&#39;
+    ///         attempt.stop()
+    ///     } else {
+    ///         attempt.follow()
+    ///     }
+    /// });
+    /// let client = reqwest::Client::builder()
+    ///     .redirect(custom)
+    ///     .build()?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// [`Attempt`]: struct.Attempt.html
+    </span><span class="kw">pub fn </span>custom&lt;T&gt;(policy: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Fn(<a href="../../src/reqwest/redirect.rs.html#31">Attempt</a>) -&gt; <a href="../../src/reqwest/redirect.rs.html#39">Action</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#204">PolicyKind::Custom</a>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/reqwest/redirect.rs.html#98">policy</a>)),
+        <span class="self">Self </span>{
+            inner: <a href="../../src/reqwest/redirect.rs.html#204">PolicyKind::Custom</a>(Box::new(<a href="../../src/reqwest/redirect.rs.html#98">policy</a>)),
         }
     }
 
-    <span class="doccomment">/// Apply this policy to a given [`Attempt`] to produce a [`Action`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method can be used together with `Policy::custom()`</span>
-    <span class="doccomment">/// to construct one `Policy` that wraps another.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use reqwest::{Error, redirect};</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # fn run() -&gt; Result&lt;(), Error&gt; {</span>
-    <span class="doccomment">/// let custom = redirect::Policy::custom(|attempt| {</span>
-    <span class="doccomment">///     eprintln!(&quot;{}, Location: {:?}&quot;, attempt.status(), attempt.url());</span>
-    <span class="doccomment">///     redirect::Policy::default().redirect(attempt)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">redirect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">attempt</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#31">Attempt</a>) -&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/reqwest/redirect.rs.html#127">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#204">PolicyKind::Custom</a>(<span class="kw-2">ref</span> <span class="ident">custom</span>) =&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#129">custom</a>(<a class="ident" href="../../src/reqwest/redirect.rs.html#127">attempt</a>),
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#205">PolicyKind::Limit</a>(<span class="ident">max</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">attempt</span>.<span class="ident">previous</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">max</span> {
-                    <a class="ident" href="../../src/reqwest/redirect.rs.html#127">attempt</a>.<a class="ident" href="../../src/reqwest/redirect.rs.html#196">error</a>(<a class="ident" href="../../src/reqwest/redirect.rs.html#249">TooManyRedirects</a>)
-                } <span class="kw">else</span> {
-                    <a class="ident" href="../../src/reqwest/redirect.rs.html#127">attempt</a>.<a class="ident" href="../../src/reqwest/redirect.rs.html#178">follow</a>()
+    <span class="doccomment">/// Apply this policy to a given [`Attempt`] to produce a [`Action`].
+    ///
+    /// # Note
+    ///
+    /// This method can be used together with `Policy::custom()`
+    /// to construct one `Policy` that wraps another.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use reqwest::{Error, redirect};
+    /// #
+    /// # fn run() -&gt; Result&lt;(), Error&gt; {
+    /// let custom = redirect::Policy::custom(|attempt| {
+    ///     eprintln!(&quot;{}, Location: {:?}&quot;, attempt.status(), attempt.url());
+    ///     redirect::Policy::default().redirect(attempt)
+    /// });
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>redirect(<span class="kw-2">&amp;</span><span class="self">self</span>, attempt: <a href="../../src/reqwest/redirect.rs.html#31">Attempt</a>) -&gt; <a href="../../src/reqwest/redirect.rs.html#39">Action</a> {
+        <span class="kw">match </span><a class="self" href="../../src/reqwest/redirect.rs.html#127">self</a>.inner {
+            <a href="../../src/reqwest/redirect.rs.html#204">PolicyKind::Custom</a>(<span class="kw-2">ref </span>custom) =&gt; <a href="../../src/reqwest/redirect.rs.html#129">custom</a>(<a href="../../src/reqwest/redirect.rs.html#127">attempt</a>),
+            <a href="../../src/reqwest/redirect.rs.html#205">PolicyKind::Limit</a>(max) =&gt; {
+                <span class="kw">if </span>attempt.previous.len() == max {
+                    <a href="../../src/reqwest/redirect.rs.html#127">attempt</a>.<a href="../../src/reqwest/redirect.rs.html#196">error</a>(<a href="../../src/reqwest/redirect.rs.html#249">TooManyRedirects</a>)
+                } <span class="kw">else </span>{
+                    <a href="../../src/reqwest/redirect.rs.html#127">attempt</a>.<a href="../../src/reqwest/redirect.rs.html#178">follow</a>()
                 }
             }
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#206">PolicyKind::None</a> =&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#127">attempt</a>.<a class="ident" href="../../src/reqwest/redirect.rs.html#187">stop</a>(),
+            <a href="../../src/reqwest/redirect.rs.html#206">PolicyKind::None</a> =&gt; <a href="../../src/reqwest/redirect.rs.html#127">attempt</a>.<a href="../../src/reqwest/redirect.rs.html#187">stop</a>(),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">status</span>: <a class="ident" href="../../reqwest/struct.StatusCode.html">StatusCode</a>, <span class="ident">next</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../reqwest/struct.Url.html">Url</a>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../reqwest/struct.Url.html">Url</a>]) -&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#228">ActionKind</a> {
-        <a class="self" href="../../src/reqwest/redirect.rs.html#141">self</a>.<a class="ident" href="../../src/reqwest/redirect.rs.html#127">redirect</a>(<a class="ident" href="../../src/reqwest/redirect.rs.html#31">Attempt</a> {
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#141">status</a>,
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#141">next</a>,
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#141">previous</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check(<span class="kw-2">&amp;</span><span class="self">self</span>, status: <a href="../../reqwest/struct.StatusCode.html">StatusCode</a>, next: <span class="kw-2">&amp;</span><a href="../../reqwest/struct.Url.html">Url</a>, previous: <span class="kw-2">&amp;</span>[<a href="../../reqwest/struct.Url.html">Url</a>]) -&gt; <a href="../../src/reqwest/redirect.rs.html#228">ActionKind</a> {
+        <a class="self" href="../../src/reqwest/redirect.rs.html#141">self</a>.<a href="../../src/reqwest/redirect.rs.html#127">redirect</a>(<a href="../../src/reqwest/redirect.rs.html#31">Attempt</a> {
+            <a href="../../src/reqwest/redirect.rs.html#141">status</a>,
+            <a href="../../src/reqwest/redirect.rs.html#141">next</a>,
+            <a href="../../src/reqwest/redirect.rs.html#141">previous</a>,
         })
-        .<span class="ident">inner</span>
+        .inner
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">PolicyKind::Limit</span>(<span class="number">10</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.inner, PolicyKind::Limit(<span class="number">10</span>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#24">Policy</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#24">Policy</a> {
-        <span class="comment">// Keep `is_default` in sync</span>
-        <span class="ident">Policy::limited</span>(<span class="number">10</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/reqwest/redirect.rs.html#24">Policy</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../src/reqwest/redirect.rs.html#24">Policy</a> {
+        <span class="comment">// Keep `is_default` in sync
+        </span>Policy::limited(<span class="number">10</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Attempt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Get the type of redirect.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../reqwest/struct.StatusCode.html">StatusCode</a> {
-        <a class="self" href="../../src/reqwest/redirect.rs.html#164">self</a>.<span class="ident">status</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Attempt&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Get the type of redirect.
+    </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../reqwest/struct.StatusCode.html">StatusCode</a> {
+        <a class="self" href="../../src/reqwest/redirect.rs.html#164">self</a>.status
     }
 
-    <span class="doccomment">/// Get the next URL to redirect to.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">url</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../reqwest/struct.Url.html">Url</a> {
-        <a class="self" href="../../src/reqwest/redirect.rs.html#169">self</a>.<span class="ident">next</span>
+    <span class="doccomment">/// Get the next URL to redirect to.
+    </span><span class="kw">pub fn </span>url(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../reqwest/struct.Url.html">Url</a> {
+        <a class="self" href="../../src/reqwest/redirect.rs.html#169">self</a>.next
     }
 
-    <span class="doccomment">/// Get the list of previous URLs that have already been requested in this chain.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">previous</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../reqwest/struct.Url.html">Url</a>] {
-        <a class="self" href="../../src/reqwest/redirect.rs.html#174">self</a>.<span class="ident">previous</span>
+    <span class="doccomment">/// Get the list of previous URLs that have already been requested in this chain.
+    </span><span class="kw">pub fn </span>previous(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../reqwest/struct.Url.html">Url</a>] {
+        <a class="self" href="../../src/reqwest/redirect.rs.html#174">self</a>.previous
     }
-    <span class="doccomment">/// Returns an action meaning reqwest should follow the next URL.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">follow</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> {
-        <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#229">ActionKind::Follow</a>,
+    <span class="doccomment">/// Returns an action meaning reqwest should follow the next URL.
+    </span><span class="kw">pub fn </span>follow(<span class="self">self</span>) -&gt; <a href="../../src/reqwest/redirect.rs.html#39">Action</a> {
+        <a href="../../src/reqwest/redirect.rs.html#39">Action</a> {
+            inner: <a href="../../src/reqwest/redirect.rs.html#229">ActionKind::Follow</a>,
         }
     }
 
-    <span class="doccomment">/// Returns an action meaning reqwest should not follow the next URL.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The 30x response will be returned as the `Ok` result.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> {
-        <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#230">ActionKind::Stop</a>,
+    <span class="doccomment">/// Returns an action meaning reqwest should not follow the next URL.
+    ///
+    /// The 30x response will be returned as the `Ok` result.
+    </span><span class="kw">pub fn </span>stop(<span class="self">self</span>) -&gt; <a href="../../src/reqwest/redirect.rs.html#39">Action</a> {
+        <a href="../../src/reqwest/redirect.rs.html#39">Action</a> {
+            inner: <a href="../../src/reqwest/redirect.rs.html#230">ActionKind::Stop</a>,
         }
     }
 
-    <span class="doccomment">/// Returns an action failing the redirect with an error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `Error` will be returned for the result of the sent request.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">error</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> {
-        <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/redirect.rs.html#231">ActionKind::Error</a>(<a class="ident" href="../../src/reqwest/redirect.rs.html#196">error</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+    <span class="doccomment">/// Returns an action failing the redirect with an error.
+    ///
+    /// The `Error` will be returned for the result of the sent request.
+    </span><span class="kw">pub fn </span>error&lt;E: Into&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;&gt;(<span class="self">self</span>, error: E) -&gt; <a href="../../src/reqwest/redirect.rs.html#39">Action</a> {
+        <a href="../../src/reqwest/redirect.rs.html#39">Action</a> {
+            inner: <a href="../../src/reqwest/redirect.rs.html#231">ActionKind::Error</a>(<a href="../../src/reqwest/redirect.rs.html#196">error</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 }
 
-<span class="kw">enum</span> <span class="ident">PolicyKind</span> {
-    <span class="ident">Custom</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<a class="ident" href="../../src/reqwest/redirect.rs.html#31">Attempt</a>) -&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#39">Action</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>),
-    <span class="ident">Limit</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+<span class="kw">enum </span>PolicyKind {
+    Custom(Box&lt;<span class="kw">dyn </span>Fn(<a href="../../src/reqwest/redirect.rs.html#31">Attempt</a>) -&gt; <a href="../../src/reqwest/redirect.rs.html#39">Action</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;),
+    Limit(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
     <span class="prelude-val">None</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#24">Policy</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/reqwest/redirect.rs.html#210">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Policy&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/reqwest/redirect.rs.html#210">self</a>.<span class="ident">inner</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/reqwest/redirect.rs.html#24">Policy</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/reqwest/redirect.rs.html#210">f</a>.debug_tuple(<span class="string">&quot;Policy&quot;</span>).field(<span class="kw-2">&amp;</span><a class="self" href="../../src/reqwest/redirect.rs.html#210">self</a>.inner).finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#203">PolicyKind</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/reqwest/redirect.rs.html#216">self</a> {
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#204">PolicyKind::Custom</a>(..) =&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#216">f</a>.<span class="ident">pad</span>(<span class="string">&quot;Custom&quot;</span>),
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#205">PolicyKind::Limit</a>(<span class="ident">max</span>) =&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#216">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Limit&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/reqwest/redirect.rs.html#219">max</a>).<span class="ident">finish</span>(),
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#206">PolicyKind::None</a> =&gt; <a class="ident" href="../../src/reqwest/redirect.rs.html#216">f</a>.<span class="ident">pad</span>(<span class="string">&quot;None&quot;</span>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../src/reqwest/redirect.rs.html#203">PolicyKind</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/reqwest/redirect.rs.html#216">self</a> </span>{
+            <a href="../../src/reqwest/redirect.rs.html#204">PolicyKind::Custom</a>(..) =&gt; <a href="../../src/reqwest/redirect.rs.html#216">f</a>.pad(<span class="string">&quot;Custom&quot;</span>),
+            <a href="../../src/reqwest/redirect.rs.html#205">PolicyKind::Limit</a>(max) =&gt; <a href="../../src/reqwest/redirect.rs.html#216">f</a>.debug_tuple(<span class="string">&quot;Limit&quot;</span>).field(<span class="kw-2">&amp;</span><a href="../../src/reqwest/redirect.rs.html#219">max</a>).finish(),
+            <a href="../../src/reqwest/redirect.rs.html#206">PolicyKind::None</a> =&gt; <a href="../../src/reqwest/redirect.rs.html#216">f</a>.pad(<span class="string">&quot;None&quot;</span>),
         }
     }
 }
 
-<span class="comment">// pub(crate)</span>
+<span class="comment">// pub(crate)
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ActionKind</span> {
-    <span class="ident">Follow</span>,
-    <span class="ident">Stop</span>,
-    <span class="ident">Error</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span>),
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ActionKind {
+    Follow,
+    Stop,
+    Error(Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;),
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove_sensitive_headers</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, <span class="ident">next</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../reqwest/struct.Url.html">Url</a>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../reqwest/struct.Url.html">Url</a>]) {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">previous</span>) <span class="op">=</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#234">previous</a>.<span class="ident">last</span>() {
-        <span class="kw">let</span> <span class="ident">cross_host</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#234">next</a>.<span class="ident">host_str</span>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#235">previous</a>.<span class="ident">host_str</span>()
-            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#234">next</a>.<span class="ident">port_or_known_default</span>() <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#235">previous</a>.<span class="ident">port_or_known_default</span>();
-        <span class="kw">if</span> <span class="ident">cross_host</span> {
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#234">headers</a>.<span class="ident">remove</span>(<a class="ident" href="../../reqwest/header/constant.AUTHORIZATION.html">AUTHORIZATION</a>);
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#234">headers</a>.<span class="ident">remove</span>(<a class="ident" href="../../reqwest/header/constant.COOKIE.html">COOKIE</a>);
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#234">headers</a>.<span class="ident">remove</span>(<span class="string">&quot;cookie2&quot;</span>);
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#234">headers</a>.<span class="ident">remove</span>(<a class="ident" href="../../reqwest/header/constant.PROXY_AUTHORIZATION.html">PROXY_AUTHORIZATION</a>);
-            <a class="ident" href="../../src/reqwest/redirect.rs.html#234">headers</a>.<span class="ident">remove</span>(<a class="ident" href="../../reqwest/header/constant.WWW_AUTHENTICATE.html">WWW_AUTHENTICATE</a>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove_sensitive_headers(headers: <span class="kw-2">&amp;mut </span><a href="../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, next: <span class="kw-2">&amp;</span><a href="../../reqwest/struct.Url.html">Url</a>, previous: <span class="kw-2">&amp;</span>[<a href="../../reqwest/struct.Url.html">Url</a>]) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(previous) = <a href="../../src/reqwest/redirect.rs.html#234">previous</a>.last() {
+        <span class="kw">let </span>cross_host = <a href="../../src/reqwest/redirect.rs.html#234">next</a>.host_str() != <a href="../../src/reqwest/redirect.rs.html#235">previous</a>.host_str()
+            || <a href="../../src/reqwest/redirect.rs.html#234">next</a>.port_or_known_default() != <a href="../../src/reqwest/redirect.rs.html#235">previous</a>.port_or_known_default();
+        <span class="kw">if </span>cross_host {
+            <a href="../../src/reqwest/redirect.rs.html#234">headers</a>.remove(<a href="../../reqwest/header/constant.AUTHORIZATION.html">AUTHORIZATION</a>);
+            <a href="../../src/reqwest/redirect.rs.html#234">headers</a>.remove(<a href="../../reqwest/header/constant.COOKIE.html">COOKIE</a>);
+            <a href="../../src/reqwest/redirect.rs.html#234">headers</a>.remove(<span class="string">&quot;cookie2&quot;</span>);
+            <a href="../../src/reqwest/redirect.rs.html#234">headers</a>.remove(<a href="../../reqwest/header/constant.PROXY_AUTHORIZATION.html">PROXY_AUTHORIZATION</a>);
+            <a href="../../src/reqwest/redirect.rs.html#234">headers</a>.remove(<a href="../../reqwest/header/constant.WWW_AUTHENTICATE.html">WWW_AUTHENTICATE</a>);
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">TooManyRedirects</span>;
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>TooManyRedirects;
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#249">TooManyRedirects</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/reqwest/redirect.rs.html#252">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;too many redirects&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../src/reqwest/redirect.rs.html#249">TooManyRedirects</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../src/reqwest/redirect.rs.html#252">f</a>.write_str(<span class="string">&quot;too many redirects&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/redirect.rs.html#249">TooManyRedirects</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../src/reqwest/redirect.rs.html#249">TooManyRedirects</a> {}
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_redirect_policy_limit</span>() {
-    <span class="kw">let</span> <span class="ident">policy</span> <span class="op">=</span> <span class="ident">Policy::default</span>();
-    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">Url::parse</span>(<span class="string">&quot;http://x.y/z&quot;</span>).<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previous</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">9</span>)
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">Url::parse</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;http://a.b/c/{}&quot;</span>, <span class="ident">i</span>)).<span class="ident">unwrap</span>())
-        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_redirect_policy_limit() {
+    <span class="kw">let </span>policy = Policy::default();
+    <span class="kw">let </span>next = Url::parse(<span class="string">&quot;http://x.y/z&quot;</span>).unwrap();
+    <span class="kw">let </span><span class="kw-2">mut </span>previous = (<span class="number">0</span>..<span class="number">9</span>)
+        .map(|i| Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;http://a.b/c/{}&quot;</span>, i)).unwrap())
+        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-    <span class="kw">match</span> <span class="ident">policy</span>.<span class="ident">check</span>(<span class="ident">StatusCode::FOUND</span>, <span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="kw-2">&amp;</span><span class="ident">previous</span>) {
-        <span class="ident">ActionKind::Follow</span> =&gt; (),
-        <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected {:?}&quot;</span>, <span class="ident">other</span>),
+    <span class="kw">match </span>policy.check(StatusCode::FOUND, <span class="kw-2">&amp;</span>next, <span class="kw-2">&amp;</span>previous) {
+        ActionKind::Follow =&gt; (),
+        other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected {:?}&quot;</span>, other),
     }
 
-    <span class="ident">previous</span>.<span class="ident">push</span>(<span class="ident">Url::parse</span>(<span class="string">&quot;http://a.b.d/e/33&quot;</span>).<span class="ident">unwrap</span>());
+    previous.push(Url::parse(<span class="string">&quot;http://a.b.d/e/33&quot;</span>).unwrap());
 
-    <span class="kw">match</span> <span class="ident">policy</span>.<span class="ident">check</span>(<span class="ident">StatusCode::FOUND</span>, <span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="kw-2">&amp;</span><span class="ident">previous</span>) {
-        <span class="ident">ActionKind::Error</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">TooManyRedirects</span><span class="op">&gt;</span>() =&gt; (),
-        <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected {:?}&quot;</span>, <span class="ident">other</span>),
+    <span class="kw">match </span>policy.check(StatusCode::FOUND, <span class="kw-2">&amp;</span>next, <span class="kw-2">&amp;</span>previous) {
+        ActionKind::Error(err) <span class="kw">if </span>err.is::&lt;TooManyRedirects&gt;() =&gt; (),
+        other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected {:?}&quot;</span>, other),
     }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_redirect_policy_custom</span>() {
-    <span class="kw">let</span> <span class="ident">policy</span> <span class="op">=</span> <span class="ident">Policy::custom</span>(<span class="op">|</span><span class="ident">attempt</span><span class="op">|</span> {
-        <span class="kw">if</span> <span class="ident">attempt</span>.<span class="ident">url</span>().<span class="ident">host_str</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>) {
-            <span class="ident">attempt</span>.<span class="ident">stop</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">attempt</span>.<span class="ident">follow</span>()
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_redirect_policy_custom() {
+    <span class="kw">let </span>policy = Policy::custom(|attempt| {
+        <span class="kw">if </span>attempt.url().host_str() == <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>) {
+            attempt.stop()
+        } <span class="kw">else </span>{
+            attempt.follow()
         }
     });
 
-    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">Url::parse</span>(<span class="string">&quot;http://bar/baz&quot;</span>).<span class="ident">unwrap</span>();
-    <span class="kw">match</span> <span class="ident">policy</span>.<span class="ident">check</span>(<span class="ident">StatusCode::FOUND</span>, <span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="kw-2">&amp;</span>[]) {
-        <span class="ident">ActionKind::Follow</span> =&gt; (),
-        <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected {:?}&quot;</span>, <span class="ident">other</span>),
+    <span class="kw">let </span>next = Url::parse(<span class="string">&quot;http://bar/baz&quot;</span>).unwrap();
+    <span class="kw">match </span>policy.check(StatusCode::FOUND, <span class="kw-2">&amp;</span>next, <span class="kw-2">&amp;</span>[]) {
+        ActionKind::Follow =&gt; (),
+        other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected {:?}&quot;</span>, other),
     }
 
-    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">Url::parse</span>(<span class="string">&quot;http://foo/baz&quot;</span>).<span class="ident">unwrap</span>();
-    <span class="kw">match</span> <span class="ident">policy</span>.<span class="ident">check</span>(<span class="ident">StatusCode::FOUND</span>, <span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="kw-2">&amp;</span>[]) {
-        <span class="ident">ActionKind::Stop</span> =&gt; (),
-        <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected {:?}&quot;</span>, <span class="ident">other</span>),
+    <span class="kw">let </span>next = Url::parse(<span class="string">&quot;http://foo/baz&quot;</span>).unwrap();
+    <span class="kw">match </span>policy.check(StatusCode::FOUND, <span class="kw-2">&amp;</span>next, <span class="kw-2">&amp;</span>[]) {
+        ActionKind::Stop =&gt; (),
+        other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected {:?}&quot;</span>, other),
     }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_remove_sensitive_headers</span>() {
-    <span class="kw">use</span> <span class="ident">hyper::header</span>::{<span class="ident">HeaderValue</span>, <span class="ident">ACCEPT</span>, <span class="ident">AUTHORIZATION</span>, <span class="ident">COOKIE</span>};
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_remove_sensitive_headers() {
+    <span class="kw">use </span>hyper::header::{HeaderValue, ACCEPT, AUTHORIZATION, COOKIE};
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-    <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="ident">ACCEPT</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;*/*&quot;</span>));
-    <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="ident">AUTHORIZATION</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;let me in&quot;</span>));
-    <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="ident">COOKIE</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;foo=bar&quot;</span>));
+    <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+    headers.insert(ACCEPT, HeaderValue::from_static(<span class="string">&quot;*/*&quot;</span>));
+    headers.insert(AUTHORIZATION, HeaderValue::from_static(<span class="string">&quot;let me in&quot;</span>));
+    headers.insert(COOKIE, HeaderValue::from_static(<span class="string">&quot;foo=bar&quot;</span>));
 
-    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">Url::parse</span>(<span class="string">&quot;http://initial-domain.com/path&quot;</span>).<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">Url::parse</span>(<span class="string">&quot;http://initial-domain.com/new_path&quot;</span>).<span class="ident">unwrap</span>()];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">filtered_headers</span> <span class="op">=</span> <span class="ident">headers</span>.<span class="ident">clone</span>();
+    <span class="kw">let </span>next = Url::parse(<span class="string">&quot;http://initial-domain.com/path&quot;</span>).unwrap();
+    <span class="kw">let </span><span class="kw-2">mut </span>prev = <span class="macro">vec!</span>[Url::parse(<span class="string">&quot;http://initial-domain.com/new_path&quot;</span>).unwrap()];
+    <span class="kw">let </span><span class="kw-2">mut </span>filtered_headers = headers.clone();
 
-    <span class="ident">remove_sensitive_headers</span>(<span class="kw-2">&amp;mut</span> <span class="ident">headers</span>, <span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="kw-2">&amp;</span><span class="ident">prev</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">headers</span>, <span class="ident">filtered_headers</span>);
+    remove_sensitive_headers(<span class="kw-2">&amp;mut </span>headers, <span class="kw-2">&amp;</span>next, <span class="kw-2">&amp;</span>prev);
+    <span class="macro">assert_eq!</span>(headers, filtered_headers);
 
-    <span class="ident">prev</span>.<span class="ident">push</span>(<span class="ident">Url::parse</span>(<span class="string">&quot;http://new-domain.com/path&quot;</span>).<span class="ident">unwrap</span>());
-    <span class="ident">filtered_headers</span>.<span class="ident">remove</span>(<span class="ident">AUTHORIZATION</span>);
-    <span class="ident">filtered_headers</span>.<span class="ident">remove</span>(<span class="ident">COOKIE</span>);
+    prev.push(Url::parse(<span class="string">&quot;http://new-domain.com/path&quot;</span>).unwrap());
+    filtered_headers.remove(AUTHORIZATION);
+    filtered_headers.remove(COOKIE);
 
-    <span class="ident">remove_sensitive_headers</span>(<span class="kw-2">&amp;mut</span> <span class="ident">headers</span>, <span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="kw-2">&amp;</span><span class="ident">prev</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">headers</span>, <span class="ident">filtered_headers</span>);
+    remove_sensitive_headers(<span class="kw-2">&amp;mut </span>headers, <span class="kw-2">&amp;</span>next, <span class="kw-2">&amp;</span>prev);
+    <span class="macro">assert_eq!</span>(headers, filtered_headers);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

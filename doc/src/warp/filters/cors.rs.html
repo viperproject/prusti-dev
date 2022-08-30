@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/cors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cors.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/cors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cors.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -624,631 +624,631 @@
 <span id="624">624</span>
 <span id="625">625</span>
 <span id="626">626</span>
-</pre><pre class="rust"><code><span class="doccomment">//! CORS Filters</span>
+</pre><pre class="rust"><code><span class="doccomment">//! CORS Filters
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">std::collections::HashSet</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">std::collections::HashSet</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">use</span> <span class="ident">headers</span>::{
-    <a class="ident" href="../../../headers/common/access_control_allow_headers/struct.AccessControlAllowHeaders.html">AccessControlAllowHeaders</a>, <a class="ident" href="../../../headers/common/access_control_allow_methods/struct.AccessControlAllowMethods.html">AccessControlAllowMethods</a>, <a class="ident" href="../../../headers/common/access_control_expose_headers/struct.AccessControlExposeHeaders.html">AccessControlExposeHeaders</a>, <a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">HeaderMapExt</a>,
+<span class="kw">use </span>headers::{
+    <a href="../../../headers/common/access_control_allow_headers/struct.AccessControlAllowHeaders.html">AccessControlAllowHeaders</a>, <a href="../../../headers/common/access_control_allow_methods/struct.AccessControlAllowMethods.html">AccessControlAllowMethods</a>, <a href="../../../headers/common/access_control_expose_headers/struct.AccessControlExposeHeaders.html">AccessControlExposeHeaders</a>, <a href="../../../headers/map_ext/trait.HeaderMapExt.html">HeaderMapExt</a>,
 };
-<span class="kw">use</span> <span class="ident">http</span>::{
+<span class="kw">use </span>http::{
     <a class="self" href="../../../http/index.html">self</a>,
-    <span class="ident">header</span>::{<a class="self" href="../../../http/header/index.html">self</a>, <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>},
+    header::{<a class="self" href="../../../http/header/index.html">self</a>, <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>},
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::filter</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a class="ident" href="../../../src/warp/filter/wrap.rs.html#3">WrapSealed</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reject</span>::{<a class="ident" href="../../../src/warp/reject.rs.html#631">CombineRejection</a>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
+<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/wrap.rs.html#3">WrapSealed</a>};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<a href="../../../src/warp/reject.rs.html#631">CombineRejection</a>, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>};
+<span class="kw">use </span><a href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::internal</span>::{<a class="ident" href="../../../src/warp/filters/cors.rs.html#474">CorsFilter</a>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#613">IntoOrigin</a>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#597">Seconds</a>};
+<span class="kw">use </span><span class="self">self</span>::internal::{<a href="../../../src/warp/filters/cors.rs.html#474">CorsFilter</a>, <a href="../../../src/warp/filters/cors.rs.html#613">IntoOrigin</a>, <a href="../../../src/warp/filters/cors.rs.html#597">Seconds</a>};
 
-<span class="doccomment">/// Create a wrapping filter that exposes [CORS][] behavior for a wrapped</span>
-<span class="doccomment">/// filter.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [CORS]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let cors = warp::cors()</span>
-<span class="doccomment">///     .allow_origin(&quot;https://hyper.rs&quot;)</span>
-<span class="doccomment">///     .allow_methods(vec![&quot;GET&quot;, &quot;POST&quot;, &quot;DELETE&quot;]);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let route = warp::any()</span>
-<span class="doccomment">///     .map(warp::reply)</span>
-<span class="doccomment">///     .with(cors);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// If you want to allow any route:</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">/// let cors = warp::cors()</span>
-<span class="doccomment">///     .allow_any_origin();</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// You can find more usage examples [here](https://github.com/seanmonstar/warp/blob/7fa54eaecd0fe12687137372791ff22fc7995766/tests/cors.rs).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cors</span>() -&gt; <a class="ident" href="../../../src/warp/filters/cors.rs.html#67">Builder</a> {
-    <a class="ident" href="../../../src/warp/filters/cors.rs.html#67">Builder</a> {
-        <span class="ident">credentials</span>: <span class="bool-val">false</span>,
-        <span class="ident">allowed_headers</span>: <span class="ident">HashSet::new</span>(),
-        <span class="ident">exposed_headers</span>: <span class="ident">HashSet::new</span>(),
-        <span class="ident">max_age</span>: <span class="prelude-val">None</span>,
-        <span class="ident">methods</span>: <span class="ident">HashSet::new</span>(),
-        <span class="ident">origins</span>: <span class="prelude-val">None</span>,
+<span class="doccomment">/// Create a wrapping filter that exposes [CORS][] behavior for a wrapped
+/// filter.
+///
+/// [CORS]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// let cors = warp::cors()
+///     .allow_origin(&quot;https://hyper.rs&quot;)
+///     .allow_methods(vec![&quot;GET&quot;, &quot;POST&quot;, &quot;DELETE&quot;]);
+///
+/// let route = warp::any()
+///     .map(warp::reply)
+///     .with(cors);
+/// ```
+/// If you want to allow any route:
+/// ```
+/// use warp::Filter;
+/// let cors = warp::cors()
+///     .allow_any_origin();
+/// ```
+/// You can find more usage examples [here](https://github.com/seanmonstar/warp/blob/7fa54eaecd0fe12687137372791ff22fc7995766/tests/cors.rs).
+</span><span class="kw">pub fn </span>cors() -&gt; <a href="../../../src/warp/filters/cors.rs.html#67">Builder</a> {
+    <a href="../../../src/warp/filters/cors.rs.html#67">Builder</a> {
+        credentials: <span class="bool-val">false</span>,
+        allowed_headers: HashSet::new(),
+        exposed_headers: HashSet::new(),
+        max_age: <span class="prelude-val">None</span>,
+        methods: HashSet::new(),
+        origins: <span class="prelude-val">None</span>,
     }
 }
 
-<span class="doccomment">/// A wrapping filter constructed via `warp::cors()`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cors</span> {
-    <span class="ident">config</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#344">Configured</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A wrapping filter constructed via `warp::cors()`.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Cors {
+    config: Arc&lt;<a href="../../../src/warp/filters/cors.rs.html#344">Configured</a>&gt;,
 }
 
-<span class="doccomment">/// A constructed via `warp::cors()`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span> {
-    <span class="ident">credentials</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">allowed_headers</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a><span class="op">&gt;</span>,
-    <span class="ident">exposed_headers</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a><span class="op">&gt;</span>,
-    <span class="ident">max_age</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
-    <span class="ident">methods</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../http/method/struct.Method.html">http::Method</a><span class="op">&gt;</span>,
-    <span class="ident">origins</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A constructed via `warp::cors()`.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Builder {
+    credentials: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    allowed_headers: HashSet&lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt;,
+    exposed_headers: HashSet&lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>&gt;,
+    max_age: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
+    methods: HashSet&lt;<a href="../../../http/method/struct.Method.html">http::Method</a>&gt;,
+    origins: <span class="prelude-ty">Option</span>&lt;HashSet&lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#67">Builder</a> {
-    <span class="doccomment">/// Sets whether to add the `Access-Control-Allow-Credentials` header.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_credentials</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">allow</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#78">self</a>.<span class="ident">credentials</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#78">allow</a>;
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#78">self</a>
-    }
+<span class="kw">impl </span><a href="../../../src/warp/filters/cors.rs.html#67">Builder</a> {
+    <span class="doccomment">/// Sets whether to add the `Access-Control-Allow-Credentials` header.
+    </span><span class="kw">pub fn </span>allow_credentials(<span class="kw-2">mut </span><span class="self">self</span>, allow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#78">self</a>.credentials = <a href="../../../src/warp/filters/cors.rs.html#78">allow</a>;
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#78">self</a>
+    </span>}
 
-    <span class="doccomment">/// Adds a method to the existing list of allowed request methods.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the provided argument is not a valid `http::Method`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_method</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">method</span>: <span class="ident">M</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <a class="ident" href="../../../http/method/struct.Method.html">http::Method</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds a method to the existing list of allowed request methods.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the provided argument is not a valid `http::Method`.
+    </span><span class="kw">pub fn </span>allow_method&lt;M&gt;(<span class="kw-2">mut </span><span class="self">self</span>, method: M) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span><a href="../../../http/method/struct.Method.html">http::Method</a>: TryFrom&lt;M&gt;,
     {
-        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#88">method</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">m</span>) =&gt; <a class="ident" href="../../../src/warp/filters/cors.rs.html#93">m</a>,
+        <span class="kw">let </span>method = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="../../../src/warp/filters/cors.rs.html#88">method</a>) {
+            <span class="prelude-val">Ok</span>(m) =&gt; <a href="../../../src/warp/filters/cors.rs.html#93">m</a>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;illegal Method&quot;</span>),
         };
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#88">self</a>.<span class="ident">methods</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#92">method</a>);
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#88">self</a>
-    }
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#88">self</a>.methods.insert(<a href="../../../src/warp/filters/cors.rs.html#92">method</a>);
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#88">self</a>
+    </span>}
 
-    <span class="doccomment">/// Adds multiple methods to the existing list of allowed request methods.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the provided argument is not a valid `http::Method`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_methods</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">methods</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-        <a class="ident" href="../../../http/method/struct.Method.html">http::Method</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds multiple methods to the existing list of allowed request methods.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the provided argument is not a valid `http::Method`.
+    </span><span class="kw">pub fn </span>allow_methods&lt;I&gt;(<span class="kw-2">mut </span><span class="self">self</span>, methods: I) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
+        <a href="../../../http/method/struct.Method.html">http::Method</a>: TryFrom&lt;I::Item&gt;,
     {
-        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#105">methods</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#110">m</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">m</span>) =&gt; <a class="ident" href="../../../src/warp/filters/cors.rs.html#111">m</a>,
+        <span class="kw">let </span>iter = <a href="../../../src/warp/filters/cors.rs.html#105">methods</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|m| <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="../../../src/warp/filters/cors.rs.html#110">m</a>) {
+            <span class="prelude-val">Ok</span>(m) =&gt; <a href="../../../src/warp/filters/cors.rs.html#111">m</a>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;illegal Method&quot;</span>),
         });
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#105">self</a>.<span class="ident">methods</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#110">iter</a>);
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#105">self</a>
-    }
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#105">self</a>.methods.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/warp/filters/cors.rs.html#110">iter</a>);
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#105">self</a>
+    </span>}
 
-    <span class="doccomment">/// Adds a header to the list of allowed request headers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: These should match the values the browser sends via `Access-Control-Request-Headers`, e.g. `content-type`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the provided argument is not a valid `http::header::HeaderName`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_header</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">header</span>: <span class="ident">H</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds a header to the list of allowed request headers.
+    ///
+    /// **Note**: These should match the values the browser sends via `Access-Control-Request-Headers`, e.g. `content-type`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the provided argument is not a valid `http::header::HeaderName`.
+    </span><span class="kw">pub fn </span>allow_header&lt;H&gt;(<span class="kw-2">mut </span><span class="self">self</span>, header: H) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;H&gt;,
     {
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#125">header</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">m</span>) =&gt; <a class="ident" href="../../../src/warp/filters/cors.rs.html#130">m</a>,
+        <span class="kw">let </span>header = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="../../../src/warp/filters/cors.rs.html#125">header</a>) {
+            <span class="prelude-val">Ok</span>(m) =&gt; <a href="../../../src/warp/filters/cors.rs.html#130">m</a>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;illegal Header&quot;</span>),
         };
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#125">self</a>.<span class="ident">allowed_headers</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#129">header</a>);
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#125">self</a>
-    }
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#125">self</a>.allowed_headers.insert(<a href="../../../src/warp/filters/cors.rs.html#129">header</a>);
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#125">self</a>
+    </span>}
 
-    <span class="doccomment">/// Adds multiple headers to the list of allowed request headers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: These should match the values the browser sends via `Access-Control-Request-Headers`, e.g.`content-type`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if any of the headers are not a valid `http::header::HeaderName`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_headers</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">headers</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-        <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds multiple headers to the list of allowed request headers.
+    ///
+    /// **Note**: These should match the values the browser sends via `Access-Control-Request-Headers`, e.g.`content-type`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any of the headers are not a valid `http::header::HeaderName`.
+    </span><span class="kw">pub fn </span>allow_headers&lt;I&gt;(<span class="kw-2">mut </span><span class="self">self</span>, headers: I) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
+        <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;I::Item&gt;,
     {
-        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#144">headers</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#149">h</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">h</span>) =&gt; <a class="ident" href="../../../src/warp/filters/cors.rs.html#150">h</a>,
+        <span class="kw">let </span>iter = <a href="../../../src/warp/filters/cors.rs.html#144">headers</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|h| <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="../../../src/warp/filters/cors.rs.html#149">h</a>) {
+            <span class="prelude-val">Ok</span>(h) =&gt; <a href="../../../src/warp/filters/cors.rs.html#150">h</a>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;illegal Header&quot;</span>),
         });
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#144">self</a>.<span class="ident">allowed_headers</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#149">iter</a>);
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#144">self</a>
-    }
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#144">self</a>.allowed_headers.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/warp/filters/cors.rs.html#149">iter</a>);
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#144">self</a>
+    </span>}
 
-    <span class="doccomment">/// Adds a header to the list of exposed headers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the provided argument is not a valid `http::header::HeaderName`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expose_header</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">header</span>: <span class="ident">H</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds a header to the list of exposed headers.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the provided argument is not a valid `http::header::HeaderName`.
+    </span><span class="kw">pub fn </span>expose_header&lt;H&gt;(<span class="kw-2">mut </span><span class="self">self</span>, header: H) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;H&gt;,
     {
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#162">header</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">m</span>) =&gt; <a class="ident" href="../../../src/warp/filters/cors.rs.html#167">m</a>,
+        <span class="kw">let </span>header = <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="../../../src/warp/filters/cors.rs.html#162">header</a>) {
+            <span class="prelude-val">Ok</span>(m) =&gt; <a href="../../../src/warp/filters/cors.rs.html#167">m</a>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;illegal Header&quot;</span>),
         };
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#162">self</a>.<span class="ident">exposed_headers</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#166">header</a>);
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#162">self</a>
-    }
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#162">self</a>.exposed_headers.insert(<a href="../../../src/warp/filters/cors.rs.html#166">header</a>);
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#162">self</a>
+    </span>}
 
-    <span class="doccomment">/// Adds multiple headers to the list of exposed headers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if any of the headers are not a valid `http::header::HeaderName`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expose_headers</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">headers</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-        <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds multiple headers to the list of exposed headers.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any of the headers are not a valid `http::header::HeaderName`.
+    </span><span class="kw">pub fn </span>expose_headers&lt;I&gt;(<span class="kw-2">mut </span><span class="self">self</span>, headers: I) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
+        <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;I::Item&gt;,
     {
-        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#179">headers</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#184">h</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">h</span>) =&gt; <a class="ident" href="../../../src/warp/filters/cors.rs.html#185">h</a>,
+        <span class="kw">let </span>iter = <a href="../../../src/warp/filters/cors.rs.html#179">headers</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|h| <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom::try_from</a>(<a href="../../../src/warp/filters/cors.rs.html#184">h</a>) {
+            <span class="prelude-val">Ok</span>(h) =&gt; <a href="../../../src/warp/filters/cors.rs.html#185">h</a>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;illegal Header&quot;</span>),
         });
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#179">self</a>.<span class="ident">exposed_headers</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#184">iter</a>);
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#179">self</a>
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#179">self</a>.exposed_headers.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/warp/filters/cors.rs.html#184">iter</a>);
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#179">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets that *any* `Origin` header is allowed.
+    ///
+    /// # Warning
+    ///
+    /// This can allow websites you didn&#39;t intend to access this resource,
+    /// it is usually better to set an explicit list.
+    </span><span class="kw">pub fn </span>allow_any_origin(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#198">self</a>.origins = <span class="prelude-val">None</span>;
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#198">self</a>
+    </span>}
+
+    <span class="doccomment">/// Add an origin to the existing list of allowed `Origin`s.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the provided argument is not a valid `Origin`.
+    </span><span class="kw">pub fn </span>allow_origin(<span class="self">self</span>, origin: <span class="kw">impl </span><a href="../../../src/warp/filters/cors.rs.html#613">IntoOrigin</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#208">self</a>.<a href="../../../src/warp/filters/cors.rs.html#217-220">allow_origins</a>(<span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/cors.rs.html#208">origin</a>))
     }
 
-    <span class="doccomment">/// Sets that *any* `Origin` header is allowed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Warning</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can allow websites you didn&#39;t intend to access this resource,</span>
-    <span class="doccomment">/// it is usually better to set an explicit list.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_any_origin</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#198">self</a>.<span class="ident">origins</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#198">self</a>
-    }
-
-    <span class="doccomment">/// Add an origin to the existing list of allowed `Origin`s.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the provided argument is not a valid `Origin`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_origin</span>(<span class="self">self</span>, <span class="ident">origin</span>: <span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#613">IntoOrigin</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#208">self</a>.<a class="ident" href="../../../src/warp/filters/cors.rs.html#217-220">allow_origins</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#208">origin</a>))
-    }
-
-    <span class="doccomment">/// Add multiple origins to the existing list of allowed `Origin`s.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the provided argument is not a valid `Origin`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_origins</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">origins</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-        <span class="ident">I::Item</span>: <a class="ident" href="../../../src/warp/filters/cors.rs.html#613">IntoOrigin</a>,
+    <span class="doccomment">/// Add multiple origins to the existing list of allowed `Origin`s.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the provided argument is not a valid `Origin`.
+    </span><span class="kw">pub fn </span>allow_origins&lt;I&gt;(<span class="kw-2">mut </span><span class="self">self</span>, origins: I) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
+        I::Item: <a href="../../../src/warp/filters/cors.rs.html#613">IntoOrigin</a>,
     {
-        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#217">origins</a>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#614">IntoOrigin::into_origin</a>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">origin</span><span class="op">|</span> {
-                <a class="ident" href="../../../src/warp/filters/cors.rs.html#225">origin</a>
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
-                    .<span class="ident">parse</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;Origin is always a valid HeaderValue&quot;</span>)
+        <span class="kw">let </span>iter = <a href="../../../src/warp/filters/cors.rs.html#217">origins</a>
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="../../../src/warp/filters/cors.rs.html#614">IntoOrigin::into_origin</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|origin| {
+                <a href="../../../src/warp/filters/cors.rs.html#225">origin</a>
+                    .<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+                    .parse()
+                    .expect(<span class="string">&quot;Origin is always a valid HeaderValue&quot;</span>)
             });
 
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#217">self</a>.<span class="ident">origins</span>.<span class="ident">get_or_insert_with</span>(<span class="ident">HashSet::new</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#222">iter</a>);
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#217">self</a>.origins.get_or_insert_with(HashSet::new).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/warp/filters/cors.rs.html#222">iter</a>);
 
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#217">self</a>
-    }
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#217">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the `Access-Control-Max-Age` header.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::time::Duration;</span>
-    <span class="doccomment">/// use warp::Filter;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let cors = warp::cors()</span>
-    <span class="doccomment">///     .max_age(30) // 30u32 seconds</span>
-    <span class="doccomment">///     .max_age(Duration::from_secs(30)); // or a Duration</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_age</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">seconds</span>: <span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#597">Seconds</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#250">self</a>.<span class="ident">max_age</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#250">seconds</a>.<a class="ident" href="../../../src/warp/filters/cors.rs.html#598">seconds</a>());
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#250">self</a>
-    }
+    <span class="doccomment">/// Sets the `Access-Control-Max-Age` header.
+    ///
+    /// # Example
+    ///
+    ///
+    /// ```
+    /// use std::time::Duration;
+    /// use warp::Filter;
+    ///
+    /// let cors = warp::cors()
+    ///     .max_age(30) // 30u32 seconds
+    ///     .max_age(Duration::from_secs(30)); // or a Duration
+    /// ```
+    </span><span class="kw">pub fn </span>max_age(<span class="kw-2">mut </span><span class="self">self</span>, seconds: <span class="kw">impl </span><a href="../../../src/warp/filters/cors.rs.html#597">Seconds</a>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#250">self</a>.max_age = <span class="prelude-val">Some</span>(<a href="../../../src/warp/filters/cors.rs.html#250">seconds</a>.<a href="../../../src/warp/filters/cors.rs.html#598">seconds</a>());
+        <span class="self"><a href="../../../src/warp/filters/cors.rs.html#250">self</a>
+    </span>}
 
-    <span class="doccomment">/// Builds the `Cors` wrapper from the configured settings.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This step isn&#39;t *required*, as the `Builder` itself can be passed</span>
-    <span class="doccomment">/// to `Filter::with`. This just allows constructing once, thus not needing</span>
-    <span class="doccomment">/// to pay the cost of &quot;building&quot; every time.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/warp/filters/cors.rs.html#61">Cors</a> {
-        <span class="kw">let</span> <span class="ident">expose_headers_header</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">exposed_headers</span>.<span class="ident">is_empty</span>() {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../src/warp/filters/cors.rs.html#260">self</a>.<span class="ident">exposed_headers</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+    <span class="doccomment">/// Builds the `Cors` wrapper from the configured settings.
+    ///
+    /// This step isn&#39;t *required*, as the `Builder` itself can be passed
+    /// to `Filter::with`. This just allows constructing once, thus not needing
+    /// to pay the cost of &quot;building&quot; every time.
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="../../../src/warp/filters/cors.rs.html#61">Cors</a> {
+        <span class="kw">let </span>expose_headers_header = <span class="kw">if </span><span class="self">self</span>.exposed_headers.is_empty() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../src/warp/filters/cors.rs.html#260">self</a>.exposed_headers.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
         };
-        <span class="kw">let</span> <span class="ident">allowed_headers_header</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#260">self</a>.<span class="ident">allowed_headers</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="ident">methods_header</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#260">self</a>.<span class="ident">methods</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>allowed_headers_header = <a class="self" href="../../../src/warp/filters/cors.rs.html#260">self</a>.allowed_headers.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>methods_header = <a class="self" href="../../../src/warp/filters/cors.rs.html#260">self</a>.methods.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#344">Configured</a> {
-            <span class="ident">cors</span>: <a class="self" href="../../../src/warp/filters/cors.rs.html#260">self</a>,
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#266">allowed_headers_header</a>,
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#261">expose_headers_header</a>,
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#267">methods_header</a>,
+        <span class="kw">let </span>config = Arc::new(<a href="../../../src/warp/filters/cors.rs.html#344">Configured</a> {
+            cors: <a class="self" href="../../../src/warp/filters/cors.rs.html#260">self</a>,
+            <a href="../../../src/warp/filters/cors.rs.html#266">allowed_headers_header</a>,
+            <a href="../../../src/warp/filters/cors.rs.html#261">expose_headers_header</a>,
+            <a href="../../../src/warp/filters/cors.rs.html#267">methods_header</a>,
         });
 
-        <a class="ident" href="../../../src/warp/filters/cors.rs.html#61">Cors</a> { <a class="ident" href="../../../src/warp/filters/cors.rs.html#269">config</a> }
+        <a href="../../../src/warp/filters/cors.rs.html#61">Cors</a> { <a href="../../../src/warp/filters/cors.rs.html#269">config</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">WrapSealed</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#67">Builder</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">F::Extract</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a>,
-    <span class="ident">F::Error</span>: <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><span class="ident">F::Error</span> <span class="kw">as</span> <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::One</span>: <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;F&gt; WrapSealed&lt;F&gt; <span class="kw">for </span><a href="../../../src/warp/filters/cors.rs.html#67">Builder</a>
+<span class="kw">where
+    </span>F: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    F::Extract: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
+    F::Error: CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;,
+    &lt;F::Error <span class="kw">as </span>CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;&gt;::One: CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Wrapped</span> <span class="op">=</span> <span class="ident">CorsFilter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Wrapped = CorsFilter&lt;F&gt;;
 
-    <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">inner</span>: <span class="ident">F</span>) -&gt; <span class="ident"><span class="self">Self</span>::Wrapped</span> {
-        <span class="kw">let</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#61">Cors</a> { <span class="ident">config</span> } <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#289">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../../src/warp/filters/cors.rs.html#260">build</a>();
+    <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: F) -&gt; <span class="self">Self</span>::Wrapped {
+        <span class="kw">let </span><a href="../../../src/warp/filters/cors.rs.html#61">Cors</a> { config } = <a class="self" href="../../../src/warp/filters/cors.rs.html#289">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="../../../src/warp/filters/cors.rs.html#260">build</a>();
 
-        <a class="ident" href="../../../src/warp/filters/cors.rs.html#474">CorsFilter</a> { <a class="ident" href="../../../src/warp/filters/cors.rs.html#290">config</a>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#289">inner</a> }
+        <a href="../../../src/warp/filters/cors.rs.html#474">CorsFilter</a> { <a href="../../../src/warp/filters/cors.rs.html#290">config</a>, <a href="../../../src/warp/filters/cors.rs.html#289">inner</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">WrapSealed</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#61">Cors</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">F::Extract</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a>,
-    <span class="ident">F::Error</span>: <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><span class="ident">F::Error</span> <span class="kw">as</span> <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::One</span>: <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;F&gt; WrapSealed&lt;F&gt; <span class="kw">for </span><a href="../../../src/warp/filters/cors.rs.html#61">Cors</a>
+<span class="kw">where
+    </span>F: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
+    F::Extract: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
+    F::Error: CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;,
+    &lt;F::Error <span class="kw">as </span>CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;&gt;::One: CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Wrapped</span> <span class="op">=</span> <span class="ident">CorsFilter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Wrapped = CorsFilter&lt;F&gt;;
 
-    <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">inner</span>: <span class="ident">F</span>) -&gt; <span class="ident"><span class="self">Self</span>::Wrapped</span> {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#305">self</a>.<span class="ident">config</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: F) -&gt; <span class="self">Self</span>::Wrapped {
+        <span class="kw">let </span>config = <a class="self" href="../../../src/warp/filters/cors.rs.html#305">self</a>.config.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-        <a class="ident" href="../../../src/warp/filters/cors.rs.html#474">CorsFilter</a> { <a class="ident" href="../../../src/warp/filters/cors.rs.html#306">config</a>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#305">inner</a> }
+        <a href="../../../src/warp/filters/cors.rs.html#474">CorsFilter</a> { <a href="../../../src/warp/filters/cors.rs.html#306">config</a>, <a href="../../../src/warp/filters/cors.rs.html#305">inner</a> }
     }
 }
 
-<span class="doccomment">/// An error used to reject requests that are forbidden by a `cors` filter.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CorsForbidden</span> {
-    <span class="ident">kind</span>: <a class="ident" href="../../../src/warp/filters/cors.rs.html#318">Forbidden</a>,
+<span class="doccomment">/// An error used to reject requests that are forbidden by a `cors` filter.
+</span><span class="kw">pub struct </span>CorsForbidden {
+    kind: <a href="../../../src/warp/filters/cors.rs.html#318">Forbidden</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Forbidden</span> {
-    <span class="ident">OriginNotAllowed</span>,
-    <span class="ident">MethodNotAllowed</span>,
-    <span class="ident">HeaderNotAllowed</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>Forbidden {
+    OriginNotAllowed,
+    MethodNotAllowed,
+    HeaderNotAllowed,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/warp/filters/cors.rs.html#325">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;CorsForbidden&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/cors.rs.html#325">self</a>.<span class="ident">kind</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/warp/filters/cors.rs.html#325">f</a>.debug_tuple(<span class="string">&quot;CorsForbidden&quot;</span>).field(<span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/cors.rs.html#325">self</a>.kind).finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">detail</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#331">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#319">Forbidden::OriginNotAllowed</a> =&gt; <span class="string">&quot;origin not allowed&quot;</span>,
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#320">Forbidden::MethodNotAllowed</a> =&gt; <span class="string">&quot;request-method not allowed&quot;</span>,
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#321">Forbidden::HeaderNotAllowed</a> =&gt; <span class="string">&quot;header not allowed&quot;</span>,
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span>detail = <span class="kw">match </span><a class="self" href="../../../src/warp/filters/cors.rs.html#331">self</a>.kind {
+            <a href="../../../src/warp/filters/cors.rs.html#319">Forbidden::OriginNotAllowed</a> =&gt; <span class="string">&quot;origin not allowed&quot;</span>,
+            <a href="../../../src/warp/filters/cors.rs.html#320">Forbidden::MethodNotAllowed</a> =&gt; <span class="string">&quot;request-method not allowed&quot;</span>,
+            <a href="../../../src/warp/filters/cors.rs.html#321">Forbidden::HeaderNotAllowed</a> =&gt; <span class="string">&quot;header not allowed&quot;</span>,
         };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#331">f</a>, <span class="string">&quot;CORS request forbidden: {}&quot;</span>, <span class="ident">detail</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/warp/filters/cors.rs.html#331">f</a>, <span class="string">&quot;CORS request forbidden: {}&quot;</span>, detail)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a> {}
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Configured</span> {
-    <span class="ident">cors</span>: <a class="ident" href="../../../src/warp/filters/cors.rs.html#67">Builder</a>,
-    <span class="ident">allowed_headers_header</span>: <a class="ident" href="../../../headers/common/access_control_allow_headers/struct.AccessControlAllowHeaders.html">AccessControlAllowHeaders</a>,
-    <span class="ident">expose_headers_header</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../headers/common/access_control_expose_headers/struct.AccessControlExposeHeaders.html">AccessControlExposeHeaders</a><span class="op">&gt;</span>,
-    <span class="ident">methods_header</span>: <a class="ident" href="../../../headers/common/access_control_allow_methods/struct.AccessControlAllowMethods.html">AccessControlAllowMethods</a>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">struct </span>Configured {
+    cors: <a href="../../../src/warp/filters/cors.rs.html#67">Builder</a>,
+    allowed_headers_header: <a href="../../../headers/common/access_control_allow_headers/struct.AccessControlAllowHeaders.html">AccessControlAllowHeaders</a>,
+    expose_headers_header: <span class="prelude-ty">Option</span>&lt;<a href="../../../headers/common/access_control_expose_headers/struct.AccessControlExposeHeaders.html">AccessControlExposeHeaders</a>&gt;,
+    methods_header: <a href="../../../headers/common/access_control_allow_methods/struct.AccessControlAllowMethods.html">AccessControlAllowMethods</a>,
 }
 
-<span class="kw">enum</span> <span class="ident">Validated</span> {
-    <span class="ident">Preflight</span>(<a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>),
-    <span class="ident">Simple</span>(<a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>),
-    <span class="ident">NotCors</span>,
+<span class="kw">enum </span>Validated {
+    Preflight(<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>),
+    Simple(<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>),
+    NotCors,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#344">Configured</a> {
-    <span class="kw">fn</span> <span class="ident">check_request</span>(
+<span class="kw">impl </span><a href="../../../src/warp/filters/cors.rs.html#344">Configured</a> {
+    <span class="kw">fn </span>check_request(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">method</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../http/method/struct.Method.html">http::Method</a>,
-        <span class="ident">headers</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#351">Validated</a>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#318">Forbidden</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<a class="ident" href="../../../src/warp/filters/cors.rs.html#361">headers</a>.<span class="ident">get</span>(<span class="ident">header::ORIGIN</span>), <a class="ident" href="../../../src/warp/filters/cors.rs.html#360">method</a>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">origin</span>), <span class="kw-2">&amp;</span><span class="ident">http::Method::OPTIONS</span>) =&gt; {
-                <span class="comment">// OPTIONS requests are preflight CORS requests...</span>
+        method: <span class="kw-2">&amp;</span><a href="../../../http/method/struct.Method.html">http::Method</a>,
+        headers: <span class="kw-2">&amp;</span><a href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/warp/filters/cors.rs.html#351">Validated</a>, <a href="../../../src/warp/filters/cors.rs.html#318">Forbidden</a>&gt; {
+        <span class="kw">match </span>(<a href="../../../src/warp/filters/cors.rs.html#361">headers</a>.get(header::ORIGIN), <a href="../../../src/warp/filters/cors.rs.html#360">method</a>) {
+            (<span class="prelude-val">Some</span>(origin), <span class="kw-2">&amp;</span>http::Method::OPTIONS) =&gt; {
+                <span class="comment">// OPTIONS requests are preflight CORS requests...
 
-                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_origin_allowed</span>(<span class="ident">origin</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#319">Forbidden::OriginNotAllowed</a>);
+                </span><span class="kw">if </span>!<span class="self">self</span>.is_origin_allowed(origin) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/warp/filters/cors.rs.html#319">Forbidden::OriginNotAllowed</a>);
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">req_method</span>) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#361">headers</a>.<span class="ident">get</span>(<span class="ident">header::ACCESS_CONTROL_REQUEST_METHOD</span>) {
-                    <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_method_allowed</span>(<span class="ident">req_method</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#320">Forbidden::MethodNotAllowed</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(req_method) = <a href="../../../src/warp/filters/cors.rs.html#361">headers</a>.get(header::ACCESS_CONTROL_REQUEST_METHOD) {
+                    <span class="kw">if </span>!<span class="self">self</span>.is_method_allowed(req_method) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/warp/filters/cors.rs.html#320">Forbidden::MethodNotAllowed</a>);
                     }
-                } <span class="kw">else</span> {
+                } <span class="kw">else </span>{
                     <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
-                        <span class="string">&quot;preflight request missing access-control-request-method header&quot;</span>
-                    );
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#320">Forbidden::MethodNotAllowed</a>);
+                        <span class="string">&quot;preflight request missing access-control-request-method header&quot;
+                    </span>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/warp/filters/cors.rs.html#320">Forbidden::MethodNotAllowed</a>);
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">req_headers</span>) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#361">headers</a>.<span class="ident">get</span>(<span class="ident">header::ACCESS_CONTROL_REQUEST_HEADERS</span>) {
-                    <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">req_headers</span>
-                        .<span class="ident">to_str</span>()
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Forbidden::HeaderNotAllowed</span>)<span class="question-mark">?</span>;
-                    <span class="kw">for</span> <span class="ident">header</span> <span class="kw">in</span> <span class="ident">headers</span>.<span class="ident">split</span>(<span class="string">&#39;,&#39;</span>) {
-                        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_header_allowed</span>(<span class="ident">header</span>.<span class="ident">trim</span>()) {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Forbidden::HeaderNotAllowed</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(req_headers) = <a href="../../../src/warp/filters/cors.rs.html#361">headers</a>.get(header::ACCESS_CONTROL_REQUEST_HEADERS) {
+                    <span class="kw">let </span>headers = req_headers
+                        .to_str()
+                        .map_err(|<span class="kw">_</span>| Forbidden::HeaderNotAllowed)<span class="question-mark">?</span>;
+                    <span class="kw">for </span>header <span class="kw">in </span>headers.split(<span class="string">&#39;,&#39;</span>) {
+                        <span class="kw">if </span>!<span class="self">self</span>.is_header_allowed(header.trim()) {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(Forbidden::HeaderNotAllowed);
                         }
                     }
                 }
 
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#352">Validated::Preflight</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#364">origin</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+                <span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/cors.rs.html#352">Validated::Preflight</a>(<a href="../../../src/warp/filters/cors.rs.html#364">origin</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
             }
-            (<span class="prelude-val">Some</span>(<span class="ident">origin</span>), <span class="kw">_</span>) =&gt; {
-                <span class="comment">// Any other method, simply check for a valid origin...</span>
+            (<span class="prelude-val">Some</span>(origin), <span class="kw">_</span>) =&gt; {
+                <span class="comment">// Any other method, simply check for a valid origin...
 
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;origin header: {:?}&quot;</span>, <span class="ident">origin</span>);
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_origin_allowed</span>(<span class="ident">origin</span>) {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#353">Validated::Simple</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#395">origin</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#319">Forbidden::OriginNotAllowed</a>)
+                </span><a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;origin header: {:?}&quot;</span>, origin);
+                <span class="kw">if </span><span class="self">self</span>.is_origin_allowed(origin) {
+                    <span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/cors.rs.html#353">Validated::Simple</a>(<a href="../../../src/warp/filters/cors.rs.html#395">origin</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Err</span>(<a href="../../../src/warp/filters/cors.rs.html#319">Forbidden::OriginNotAllowed</a>)
                 }
             }
             (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; {
-                <span class="comment">// No `ORIGIN` header means this isn&#39;t CORS!</span>
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#354">Validated::NotCors</a>)
+                <span class="comment">// No `ORIGIN` header means this isn&#39;t CORS!
+                </span><span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/cors.rs.html#354">Validated::NotCors</a>)
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_method_allowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">header</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="ident">http::Method::from_bytes</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#412">header</a>.<span class="ident">as_bytes</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">method</span><span class="op">|</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#412">self</a>.<span class="ident">cors</span>.<span class="ident">methods</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#414">method</a>))
-            .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+    <span class="kw">fn </span>is_method_allowed(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span><a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        http::Method::from_bytes(<a href="../../../src/warp/filters/cors.rs.html#412">header</a>.as_bytes())
+            .map(|method| <a class="self" href="../../../src/warp/filters/cors.rs.html#412">self</a>.cors.methods.contains(<span class="kw-2">&amp;</span><a href="../../../src/warp/filters/cors.rs.html#414">method</a>))
+            .unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_header_allowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">header</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="ident">HeaderName::from_bytes</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#418">header</a>.<span class="ident">as_bytes</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">header</span><span class="op">|</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#418">self</a>.<span class="ident">cors</span>.<span class="ident">allowed_headers</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#420">header</a>))
-            .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+    <span class="kw">fn </span>is_header_allowed(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        HeaderName::from_bytes(<a href="../../../src/warp/filters/cors.rs.html#418">header</a>.as_bytes())
+            .map(|header| <a class="self" href="../../../src/warp/filters/cors.rs.html#418">self</a>.cors.allowed_headers.contains(<span class="kw-2">&amp;</span><a href="../../../src/warp/filters/cors.rs.html#420">header</a>))
+            .unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_origin_allowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">origin</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">allowed</span>) <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#424">self</a>.<span class="ident">cors</span>.<span class="ident">origins</span> {
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#425">allowed</a>.<span class="ident">contains</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#424">origin</a>)
-        } <span class="kw">else</span> {
-            <span class="bool-val">true</span>
+    <span class="kw">fn </span>is_origin_allowed(<span class="kw-2">&amp;</span><span class="self">self</span>, origin: <span class="kw-2">&amp;</span><a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>allowed) = <a class="self" href="../../../src/warp/filters/cors.rs.html#424">self</a>.cors.origins {
+            <a href="../../../src/warp/filters/cors.rs.html#425">allowed</a>.contains(<a href="../../../src/warp/filters/cors.rs.html#424">origin</a>)
+        } <span class="kw">else </span>{
+            <span class="bool-val">true
+        </span>}
+    }
+
+    <span class="kw">fn </span>append_preflight_headers(<span class="kw-2">&amp;</span><span class="self">self</span>, headers: <span class="kw-2">&amp;mut </span><a href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>) {
+        <a class="self" href="../../../src/warp/filters/cors.rs.html#432">self</a>.<a href="../../../src/warp/filters/cors.rs.html#443">append_common_headers</a>(<a href="../../../src/warp/filters/cors.rs.html#432">headers</a>);
+
+        <a href="../../../src/warp/filters/cors.rs.html#432">headers</a>.<a href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<a class="self" href="../../../src/warp/filters/cors.rs.html#432">self</a>.allowed_headers_header.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="../../../src/warp/filters/cors.rs.html#432">headers</a>.<a href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<a class="self" href="../../../src/warp/filters/cors.rs.html#432">self</a>.methods_header.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(max_age) = <a class="self" href="../../../src/warp/filters/cors.rs.html#432">self</a>.cors.max_age {
+            <a href="../../../src/warp/filters/cors.rs.html#432">headers</a>.insert(header::ACCESS_CONTROL_MAX_AGE, <a href="../../../src/warp/filters/cors.rs.html#438">max_age</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">append_preflight_headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">headers</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>) {
-        <a class="self" href="../../../src/warp/filters/cors.rs.html#432">self</a>.<a class="ident" href="../../../src/warp/filters/cors.rs.html#443">append_common_headers</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#432">headers</a>);
-
-        <a class="ident" href="../../../src/warp/filters/cors.rs.html#432">headers</a>.<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<a class="self" href="../../../src/warp/filters/cors.rs.html#432">self</a>.<span class="ident">allowed_headers_header</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="ident" href="../../../src/warp/filters/cors.rs.html#432">headers</a>.<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<a class="self" href="../../../src/warp/filters/cors.rs.html#432">self</a>.<span class="ident">methods_header</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">max_age</span>) <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#432">self</a>.<span class="ident">cors</span>.<span class="ident">max_age</span> {
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#432">headers</a>.<span class="ident">insert</span>(<span class="ident">header::ACCESS_CONTROL_MAX_AGE</span>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#438">max_age</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">append_common_headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">headers</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cors</span>.<span class="ident">credentials</span> {
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#443">headers</a>.<span class="ident">insert</span>(
-                <span class="ident">header::ACCESS_CONTROL_ALLOW_CREDENTIALS</span>,
-                <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;true&quot;</span>),
+    <span class="kw">fn </span>append_common_headers(<span class="kw-2">&amp;</span><span class="self">self</span>, headers: <span class="kw-2">&amp;mut </span><a href="../../../http/header/map/struct.HeaderMap.html">http::HeaderMap</a>) {
+        <span class="kw">if </span><span class="self">self</span>.cors.credentials {
+            <a href="../../../src/warp/filters/cors.rs.html#443">headers</a>.insert(
+                header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
+                HeaderValue::from_static(<span class="string">&quot;true&quot;</span>),
             );
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expose_headers_header</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/cors.rs.html#443">self</a>.<span class="ident">expose_headers_header</span> {
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#443">headers</a>.<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#450">expose_headers_header</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(expose_headers_header) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/cors.rs.html#443">self</a>.expose_headers_header {
+            <a href="../../../src/warp/filters/cors.rs.html#443">headers</a>.<a href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<a href="../../../src/warp/filters/cors.rs.html#450">expose_headers_header</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         }
     }
 }
 
-<span class="kw">mod</span> <span class="ident">internal</span> {
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-    <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">mod </span>internal {
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+    <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-    <span class="kw">use</span> <span class="ident">futures_util</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <a class="ident" href="../../../futures_core/macro.ready.html">ready</a>, <a class="ident" href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>};
-    <span class="kw">use</span> <a class="ident" href="../../../headers/common/origin/struct.Origin.html">headers::Origin</a>;
-    <span class="kw">use</span> <a class="ident" href="../../../http/header/index.html">http::header</a>;
-    <span class="kw">use</span> <a class="ident" href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
+    <span class="kw">use </span>futures_util::{<a href="../../../futures_util/future/index.html">future</a>, <a href="../../../futures_core/macro.ready.html">ready</a>, <a href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>};
+    <span class="kw">use </span><a href="../../../headers/common/origin/struct.Origin.html">headers::Origin</a>;
+    <span class="kw">use </span><a href="../../../http/header/index.html">http::header</a>;
+    <span class="kw">use </span><a href="../../../pin_project_internal/attr.pin_project.html">pin_project::pin_project</a>;
 
-    <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/warp/filters/cors.rs.html#344">Configured</a>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#351">Validated</a>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::filter</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>, <a class="ident" href="../../../src/warp/generic.rs.html#4">One</a>};
-    <span class="kw">use</span> <a class="ident" href="../../../src/warp/generic.rs.html#12"><span class="kw">crate</span>::generic::Either</a>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reject</span>::{<a class="ident" href="../../../src/warp/reject.rs.html#631">CombineRejection</a>, <a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a>};
-    <span class="kw">use</span> <a class="ident" href="../../../src/warp/lib.rs.html#97"><span class="kw">crate</span>::route</a>;
+    <span class="kw">use super</span>::{<a href="../../../src/warp/filters/cors.rs.html#344">Configured</a>, <a href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a>, <a href="../../../src/warp/filters/cors.rs.html#351">Validated</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a>, <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>, <a href="../../../src/warp/generic.rs.html#4">One</a>};
+    <span class="kw">use </span><a href="../../../src/warp/generic.rs.html#12"><span class="kw">crate</span>::generic::Either</a>;
+    <span class="kw">use </span><span class="kw">crate</span>::reject::{<a href="../../../src/warp/reject.rs.html#631">CombineRejection</a>, <a href="../../../src/warp/reject.rs.html#210">Rejection</a>};
+    <span class="kw">use </span><a href="../../../src/warp/lib.rs.html#97"><span class="kw">crate</span>::route</a>;
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CorsFilter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">config</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#344">Configured</a><span class="op">&gt;</span>,
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">inner</span>: <span class="ident">F</span>,
+    <span class="attribute">#[derive(Clone, Debug)]
+    </span><span class="kw">pub struct </span>CorsFilter&lt;F&gt; {
+        <span class="kw">pub</span>(<span class="kw">super</span>) config: Arc&lt;<a href="../../../src/warp/filters/cors.rs.html#344">Configured</a>&gt;,
+        <span class="kw">pub</span>(<span class="kw">super</span>) inner: F,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for</span> <span class="ident">CorsFilter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
-        <span class="ident">F::Extract</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
-        <span class="ident">F::Future</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-        <span class="ident">F::Error</span>: <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span>,
+    <span class="kw">impl</span>&lt;F&gt; <a href="../../../src/warp/filter/mod.rs.html#39">FilterBase</a> <span class="kw">for </span>CorsFilter&lt;F&gt;
+    <span class="kw">where
+        </span>F: <a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>,
+        F::Extract: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+        F::Future: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+        F::Error: CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;,
     {
-        <span class="kw">type</span> <span class="ident">Extract</span> <span class="op">=</span>
-            <span class="ident">One</span><span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span><span class="ident">One</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#523">Preflight</a><span class="op">&gt;</span>, <span class="ident">One</span><span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span><span class="ident">One</span><span class="op">&lt;</span><span class="ident">Wrapped</span><span class="op">&lt;</span><span class="ident">F::Extract</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">F::Extract</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-        <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">F::Error</span> <span class="kw">as</span> <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::One</span>;
-        <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">future::Either</span><span class="op">&lt;</span>
-            <span class="ident">future::Ready</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Extract</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-            <span class="ident">WrappedFuture</span><span class="op">&lt;</span><span class="ident">F::Future</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span>;
+        <span class="kw">type </span>Extract =
+            One&lt;Either&lt;One&lt;<a href="../../../src/warp/filters/cors.rs.html#523">Preflight</a>&gt;, One&lt;Either&lt;One&lt;Wrapped&lt;F::Extract&gt;&gt;, F::Extract&gt;&gt;&gt;&gt;;
+        <span class="kw">type </span>Error = &lt;F::Error <span class="kw">as </span>CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;&gt;::One;
+        <span class="kw">type </span>Future = future::Either&lt;
+            future::Ready&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Extract, <span class="self">Self</span>::Error&gt;&gt;,
+            WrappedFuture&lt;F::Future&gt;,
+        &gt;;
 
-        <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-            <span class="kw">let</span> <span class="ident">validated</span> <span class="op">=</span>
-                <a class="ident" href="../../../src/warp/route.rs.html#23-25">route::with</a>(<span class="op">|</span><span class="ident">route</span><span class="op">|</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.<span class="ident">config</span>.<a class="ident" href="../../../src/warp/filters/cors.rs.html#358-362">check_request</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#496">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#61">method</a>(), <a class="ident" href="../../../src/warp/filters/cors.rs.html#496">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#65">headers</a>()));
+        <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>) -&gt; <span class="self">Self</span>::Future {
+            <span class="kw">let </span>validated =
+                <a href="../../../src/warp/route.rs.html#23-25">route::with</a>(|route| <a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.config.<a href="../../../src/warp/filters/cors.rs.html#358-362">check_request</a>(<a href="../../../src/warp/filters/cors.rs.html#496">route</a>.<a href="../../../src/warp/route.rs.html#61">method</a>(), <a href="../../../src/warp/filters/cors.rs.html#496">route</a>.<a href="../../../src/warp/route.rs.html#65">headers</a>()));
 
-            <span class="kw">match</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#495">validated</a> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#352">Validated::Preflight</a>(<span class="ident">origin</span>)) =&gt; {
-                    <span class="kw">let</span> <span class="ident">preflight</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#523">Preflight</a> {
-                        <span class="ident">config</span>: <a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.<span class="ident">config</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a class="ident" href="../../../src/warp/filters/cors.rs.html#499">origin</a>,
+            <span class="kw">match </span><a href="../../../src/warp/filters/cors.rs.html#495">validated</a> {
+                <span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/cors.rs.html#352">Validated::Preflight</a>(origin)) =&gt; {
+                    <span class="kw">let </span>preflight = <a href="../../../src/warp/filters/cors.rs.html#523">Preflight</a> {
+                        config: <a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.config.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        <a href="../../../src/warp/filters/cors.rs.html#499">origin</a>,
                     };
-                    <span class="ident">future::Either::Left</span>(<span class="ident">future::ok</span>((<a class="ident" href="../../../src/warp/generic.rs.html#13">Either::A</a>((<a class="ident" href="../../../src/warp/filters/cors.rs.html#500">preflight</a>,)),)))
+                    future::Either::Left(future::ok((<a href="../../../src/warp/generic.rs.html#13">Either::A</a>((<a href="../../../src/warp/filters/cors.rs.html#500">preflight</a>,)),)))
                 }
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#353">Validated::Simple</a>(<span class="ident">origin</span>)) =&gt; <span class="ident">future::Either::Right</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#560">WrappedFuture</a> {
-                    <span class="ident">inner</span>: <a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>),
-                    <span class="ident">wrapped</span>: <span class="prelude-val">Some</span>((<a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.<span class="ident">config</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/warp/filters/cors.rs.html#506">origin</a>)),
+                <span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/cors.rs.html#353">Validated::Simple</a>(origin)) =&gt; future::Either::Right(<a href="../../../src/warp/filters/cors.rs.html#560">WrappedFuture</a> {
+                    inner: <a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.inner.<a href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>),
+                    wrapped: <span class="prelude-val">Some</span>((<a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.config.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../src/warp/filters/cors.rs.html#506">origin</a>)),
                 }),
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#354">Validated::NotCors</a>) =&gt; <span class="ident">future::Either::Right</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#560">WrappedFuture</a> {
-                    <span class="ident">inner</span>: <a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a class="ident" href="../../../src/warp/filter/mod.rs.html#70">Internal</a>),
-                    <span class="ident">wrapped</span>: <span class="prelude-val">None</span>,
+                <span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/cors.rs.html#354">Validated::NotCors</a>) =&gt; future::Either::Right(<a href="../../../src/warp/filters/cors.rs.html#560">WrappedFuture</a> {
+                    inner: <a class="self" href="../../../src/warp/filters/cors.rs.html#494">self</a>.inner.<a href="../../../src/warp/filter/mod.rs.html#44">filter</a>(<a href="../../../src/warp/filter/mod.rs.html#70">Internal</a>),
+                    wrapped: <span class="prelude-val">None</span>,
                 }),
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">rejection</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#203"><span class="kw">crate</span>::reject::known</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a> { <span class="ident">kind</span>: <a class="ident" href="../../../src/warp/filters/cors.rs.html#514">err</a> });
-                    <span class="ident">future::Either::Left</span>(<span class="ident">future::err</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#515">rejection</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+                <span class="prelude-val">Err</span>(err) =&gt; {
+                    <span class="kw">let </span>rejection = <a href="../../../src/warp/reject.rs.html#203"><span class="kw">crate</span>::reject::known</a>(<a href="../../../src/warp/filters/cors.rs.html#313">CorsForbidden</a> { kind: <a href="../../../src/warp/filters/cors.rs.html#514">err</a> });
+                    future::Either::Left(future::err(<a href="../../../src/warp/filters/cors.rs.html#515">rejection</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
                 }
             }
         }
     }
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Preflight</span> {
-        <span class="ident">config</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#344">Configured</a><span class="op">&gt;</span>,
-        <span class="ident">origin</span>: <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">header::HeaderValue</a>,
+    <span class="attribute">#[derive(Debug)]
+    </span><span class="kw">pub struct </span>Preflight {
+        config: Arc&lt;<a href="../../../src/warp/filters/cors.rs.html#344">Configured</a>&gt;,
+        origin: <a href="../../../http/header/value/struct.HeaderValue.html">header::HeaderValue</a>,
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#523">Preflight</a> {
-        <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/warp/reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::reply::Response::default</span>();
-            <a class="self" href="../../../src/warp/filters/cors.rs.html#529">self</a>.<span class="ident">config</span>.<a class="ident" href="../../../src/warp/filters/cors.rs.html#432">append_preflight_headers</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#530">res</a>.<span class="ident">headers_mut</span>());
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#530">res</a>.<span class="ident">headers_mut</span>()
-                .<span class="ident">insert</span>(<span class="ident">header::ACCESS_CONTROL_ALLOW_ORIGIN</span>, <a class="self" href="../../../src/warp/filters/cors.rs.html#529">self</a>.<span class="ident">origin</span>);
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#530">res</a>
+    <span class="kw">impl </span><a href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a> <span class="kw">for </span><a href="../../../src/warp/filters/cors.rs.html#523">Preflight</a> {
+        <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../../src/warp/reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a> {
+            <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="kw">crate</span>::reply::Response::default();
+            <a class="self" href="../../../src/warp/filters/cors.rs.html#529">self</a>.config.<a href="../../../src/warp/filters/cors.rs.html#432">append_preflight_headers</a>(<a href="../../../src/warp/filters/cors.rs.html#530">res</a>.headers_mut());
+            <a href="../../../src/warp/filters/cors.rs.html#530">res</a>.headers_mut()
+                .insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, <a class="self" href="../../../src/warp/filters/cors.rs.html#529">self</a>.origin);
+            <a href="../../../src/warp/filters/cors.rs.html#530">res</a>
         }
     }
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Wrapped</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="ident">config</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#344">Configured</a><span class="op">&gt;</span>,
-        <span class="ident">inner</span>: <span class="ident">R</span>,
-        <span class="ident">origin</span>: <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">header::HeaderValue</a>,
+    <span class="attribute">#[derive(Debug)]
+    </span><span class="kw">pub struct </span>Wrapped&lt;R&gt; {
+        config: Arc&lt;<a href="../../../src/warp/filters/cors.rs.html#344">Configured</a>&gt;,
+        inner: R,
+        origin: <a href="../../../http/header/value/struct.HeaderValue.html">header::HeaderValue</a>,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a> <span class="kw">for</span> <span class="ident">Wrapped</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>,
+    <span class="kw">impl</span>&lt;R&gt; <a href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a> <span class="kw">for </span>Wrapped&lt;R&gt;
+    <span class="kw">where
+        </span>R: <a href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>,
     {
-        <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/warp/reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#549">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/warp/reply.rs.html#232">into_response</a>();
-            <a class="self" href="../../../src/warp/filters/cors.rs.html#549">self</a>.<span class="ident">config</span>.<a class="ident" href="../../../src/warp/filters/cors.rs.html#443">append_common_headers</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#550">res</a>.<span class="ident">headers_mut</span>());
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#550">res</a>.<span class="ident">headers_mut</span>()
-                .<span class="ident">insert</span>(<span class="ident">header::ACCESS_CONTROL_ALLOW_ORIGIN</span>, <a class="self" href="../../../src/warp/filters/cors.rs.html#549">self</a>.<span class="ident">origin</span>);
-            <a class="ident" href="../../../src/warp/filters/cors.rs.html#550">res</a>
+        <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; <a href="../../../src/warp/reply.rs.html#55"><span class="kw">crate</span>::reply::Response</a> {
+            <span class="kw">let </span><span class="kw-2">mut </span>res = <a class="self" href="../../../src/warp/filters/cors.rs.html#549">self</a>.inner.<a href="../../../src/warp/reply.rs.html#232">into_response</a>();
+            <a class="self" href="../../../src/warp/filters/cors.rs.html#549">self</a>.config.<a href="../../../src/warp/filters/cors.rs.html#443">append_common_headers</a>(<a href="../../../src/warp/filters/cors.rs.html#550">res</a>.headers_mut());
+            <a href="../../../src/warp/filters/cors.rs.html#550">res</a>.headers_mut()
+                .insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, <a class="self" href="../../../src/warp/filters/cors.rs.html#549">self</a>.origin);
+            <a href="../../../src/warp/filters/cors.rs.html#550">res</a>
         }
     }
 
-    <span class="attribute">#[<span class="ident">pin_project</span>]</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WrappedFuture</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">inner</span>: <span class="ident">F</span>,
-        <span class="ident">wrapped</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#344">Configured</a><span class="op">&gt;</span>, <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">header::HeaderValue</a>)<span class="op">&gt;</span>,
+    <span class="attribute">#[pin_project]
+    #[derive(Debug)]
+    </span><span class="kw">pub struct </span>WrappedFuture&lt;F&gt; {
+        <span class="attribute">#[pin]
+        </span>inner: F,
+        wrapped: <span class="prelude-ty">Option</span>&lt;(Arc&lt;<a href="../../../src/warp/filters/cors.rs.html#344">Configured</a>&gt;, <a href="../../../http/header/value/struct.HeaderValue.html">header::HeaderValue</a>)&gt;,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">WrappedFuture</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <a class="ident" href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>,
-        <span class="ident">F::Error</span>: <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span>,
+    <span class="kw">impl</span>&lt;F&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>WrappedFuture&lt;F&gt;
+    <span class="kw">where
+        </span>F: <a href="../../../futures_core/future/trait.TryFuture.html">TryFuture</a>,
+        F::Error: CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;,
     {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-            <span class="ident">One</span><span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span><span class="ident">One</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/cors.rs.html#523">Preflight</a><span class="op">&gt;</span>, <span class="ident">One</span><span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span><span class="ident">One</span><span class="op">&lt;</span><span class="ident">Wrapped</span><span class="op">&lt;</span><span class="ident">F::Ok</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">F::Ok</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-            <span class="op">&lt;</span><span class="ident">F::Error</span> <span class="kw">as</span> <span class="ident">CombineRejection</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/reject.rs.html#210">Rejection</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::One</span>,
-        <span class="op">&gt;</span>;
+        <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;
+            One&lt;Either&lt;One&lt;<a href="../../../src/warp/filters/cors.rs.html#523">Preflight</a>&gt;, One&lt;Either&lt;One&lt;Wrapped&lt;F::Ok&gt;&gt;, F::Ok&gt;&gt;&gt;&gt;,
+            &lt;F::Error <span class="kw">as </span>CombineRejection&lt;<a href="../../../src/warp/reject.rs.html#210">Rejection</a>&gt;&gt;::One,
+        &gt;;
 
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">pin</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#576">self</a>.<a class="ident" href="../../../src/warp/filters/cors.rs.html#560">project</a>();
-            <span class="kw">match</span> <a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(<span class="ident">pin</span>.<span class="ident">inner</span>.<span class="ident">try_poll</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Ok</span>(<span class="ident">inner</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">config</span>, <span class="ident">origin</span>)) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#577">pin</a>.<span class="ident">wrapped</span>.<span class="ident">take</span>() {
-                        (<a class="ident" href="../../../src/warp/generic.rs.html#13">Either::A</a>((<a class="ident" href="../../../src/warp/filters/cors.rs.html#539">Wrapped</a> {
-                            <a class="ident" href="../../../src/warp/filters/cors.rs.html#580">config</a>,
-                            <a class="ident" href="../../../src/warp/filters/cors.rs.html#579">inner</a>,
-                            <a class="ident" href="../../../src/warp/filters/cors.rs.html#580">origin</a>,
+        <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+            <span class="kw">let </span>pin = <a class="self" href="../../../src/warp/filters/cors.rs.html#576">self</a>.<a href="../../../src/warp/filters/cors.rs.html#560">project</a>();
+            <span class="kw">match </span><a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(pin.inner.try_poll(cx)) {
+                <span class="prelude-val">Ok</span>(inner) =&gt; {
+                    <span class="kw">let </span>item = <span class="kw">if let </span><span class="prelude-val">Some</span>((config, origin)) = <a href="../../../src/warp/filters/cors.rs.html#577">pin</a>.wrapped.take() {
+                        (<a href="../../../src/warp/generic.rs.html#13">Either::A</a>((<a href="../../../src/warp/filters/cors.rs.html#539">Wrapped</a> {
+                            <a href="../../../src/warp/filters/cors.rs.html#580">config</a>,
+                            <a href="../../../src/warp/filters/cors.rs.html#579">inner</a>,
+                            <a href="../../../src/warp/filters/cors.rs.html#580">origin</a>,
                         },)),)
-                    } <span class="kw">else</span> {
-                        (<a class="ident" href="../../../src/warp/generic.rs.html#14">Either::B</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#579">inner</a>),)
+                    } <span class="kw">else </span>{
+                        (<a href="../../../src/warp/generic.rs.html#14">Either::B</a>(<a href="../../../src/warp/filters/cors.rs.html#579">inner</a>),)
                     };
-                    <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> (<a class="ident" href="../../../src/warp/generic.rs.html#14">Either::B</a>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#580">item</a>),);
-                    <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#589">item</a>))
+                    <span class="kw">let </span>item = (<a href="../../../src/warp/generic.rs.html#14">Either::B</a>(<a href="../../../src/warp/filters/cors.rs.html#580">item</a>),);
+                    Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../src/warp/filters/cors.rs.html#589">item</a>))
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#592">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+                <span class="prelude-val">Err</span>(err) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/warp/filters/cors.rs.html#592">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Seconds</span> {
-        <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">pub trait </span>Seconds {
+        <span class="kw">fn </span>seconds(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#597">Seconds</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-            <a class="self" href="../../../src/warp/filters/cors.rs.html#602">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <span class="kw">impl </span><a href="../../../src/warp/filters/cors.rs.html#597">Seconds</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <span class="kw">fn </span>seconds(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+            <a class="self" href="../../../src/warp/filters/cors.rs.html#602">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#597">Seconds</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">::std::time::Duration</a> {
-        <span class="kw">fn</span> <span class="ident">seconds</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-            <a class="self" href="../../../src/warp/filters/cors.rs.html#608">self</a>.<span class="ident">as_secs</span>()
+    <span class="kw">impl </span><a href="../../../src/warp/filters/cors.rs.html#597">Seconds</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">::std::time::Duration</a> {
+        <span class="kw">fn </span>seconds(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+            <a class="self" href="../../../src/warp/filters/cors.rs.html#608">self</a>.as_secs()
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoOrigin</span> {
-        <span class="kw">fn</span> <span class="ident">into_origin</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../headers/common/origin/struct.Origin.html">Origin</a>;
+    <span class="kw">pub trait </span>IntoOrigin {
+        <span class="kw">fn </span>into_origin(<span class="self">self</span>) -&gt; <a href="../../../headers/common/origin/struct.Origin.html">Origin</a>;
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#613">IntoOrigin</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">fn</span> <span class="ident">into_origin</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../headers/common/origin/struct.Origin.html">Origin</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/cors.rs.html#618">self</a>.<span class="ident">splitn</span>(<span class="number">2</span>, <span class="string">&quot;://&quot;</span>);
-            <span class="kw">let</span> <span class="ident">scheme</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#619">parts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">expect</span>(<span class="string">&quot;missing scheme&quot;</span>);
-            <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/cors.rs.html#619">parts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">expect</span>(<span class="string">&quot;missing scheme&quot;</span>);
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../src/warp/filters/cors.rs.html#613">IntoOrigin</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw">fn </span>into_origin(<span class="self">self</span>) -&gt; <a href="../../../headers/common/origin/struct.Origin.html">Origin</a> {
+            <span class="kw">let </span><span class="kw-2">mut </span>parts = <a class="self" href="../../../src/warp/filters/cors.rs.html#618">self</a>.splitn(<span class="number">2</span>, <span class="string">&quot;://&quot;</span>);
+            <span class="kw">let </span>scheme = <a href="../../../src/warp/filters/cors.rs.html#619">parts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().expect(<span class="string">&quot;missing scheme&quot;</span>);
+            <span class="kw">let </span>rest = <a href="../../../src/warp/filters/cors.rs.html#619">parts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().expect(<span class="string">&quot;missing scheme&quot;</span>);
 
-            <span class="ident">Origin::try_from_parts</span>(<a class="ident" href="../../../src/warp/filters/cors.rs.html#620">scheme</a>, <a class="ident" href="../../../src/warp/filters/cors.rs.html#621">rest</a>, <span class="prelude-val">None</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid Origin&quot;</span>)
+            Origin::try_from_parts(<a href="../../../src/warp/filters/cors.rs.html#620">scheme</a>, <a href="../../../src/warp/filters/cors.rs.html#621">rest</a>, <span class="prelude-val">None</span>).expect(<span class="string">&quot;invalid Origin&quot;</span>)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/borrowck/facts/patch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>patch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_body/borrowck/facts/patch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>patch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -444,451 +444,451 @@
 <span id="444">444</span>
 <span id="445">445</span>
 <span id="446">446</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#24"><span class="kw">crate</span>::environment::mir_body::patch::MirPatch</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>};
+<span class="kw">use </span><a href="../../../../../../src/prusti_interface/environment/mir_body/patch/compiler.rs.html#24"><span class="kw">crate</span>::environment::mir_body::patch::MirPatch</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
+<span class="kw">use </span><a href="../../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 
-<span class="doccomment">/// FIXME: Currently, this function patches only `borrowck_input_facts.cfg_edge`.</span>
-<span class="doccomment">/// It probably should also patch other facts. For example, added drop flag</span>
-<span class="doccomment">/// assignment statements may mark some lifetimes as dead and result in premature</span>
-<span class="doccomment">/// ending of borrows. Potential example:</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// fn test6() {</span>
-<span class="doccomment">///     let a = T { f: 4 };</span>
-<span class="doccomment">///     let b = T3 { g: a };</span>
-<span class="doccomment">///     let mut c = 4;</span>
-<span class="doccomment">///     let x = &amp;mut c;</span>
-<span class="doccomment">///     if random() {</span>
-<span class="doccomment">///         drop(b.g);</span>
-<span class="doccomment">///         *x = 5;</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply_patch_to_borrowck</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-    <span class="ident">borrowck_input_facts</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>,
-    <span class="ident">location_table</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>,
-    <span class="ident">patch</span>: <span class="kw-2">&amp;</span><span class="ident">MirPatch</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">old_body</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">patched_body</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+<span class="doccomment">/// FIXME: Currently, this function patches only `borrowck_input_facts.cfg_edge`.
+/// It probably should also patch other facts. For example, added drop flag
+/// assignment statements may mark some lifetimes as dead and result in premature
+/// ending of borrows. Potential example:
+/// ```ignore
+/// fn test6() {
+///     let a = T { f: 4 };
+///     let b = T3 { g: a };
+///     let mut c = 4;
+///     let x = &amp;mut c;
+///     if random() {
+///         drop(b.g);
+///         *x = 5;
+///     }
+/// }
+/// ```
+</span><span class="kw">pub fn </span>apply_patch_to_borrowck&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+    borrowck_input_facts: <span class="kw-2">&amp;mut </span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#15">AllInputFacts</a>,
+    location_table: <span class="kw-2">&amp;mut </span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>,
+    patch: <span class="kw-2">&amp;</span>MirPatch&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    old_body: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    patched_body: <span class="kw-2">&amp;mut </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lt_patcher</span> <span class="op">=</span> <span class="ident">LocationTablePatcher::new</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#24">location_table</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>lt_patcher = LocationTablePatcher::new(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#24">location_table</a>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cfg_edges</span> <span class="op">=</span> <span class="ident">FxHashMap</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::default</span>();
-    <span class="kw">for</span> (<span class="ident">from</span>, <span class="ident">to</span>) <span class="kw">in</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">borrowck_input_facts</span>.<span class="ident">cfg_edge</span>) {
-        <span class="ident">cfg_edges</span>.<span class="ident">entry</span>(<span class="ident">from</span>).<span class="ident">or_default</span>().<span class="ident">push</span>(<span class="ident">to</span>);
-        <span class="ident">cfg_edges</span>.<span class="ident">entry</span>(<span class="ident">to</span>).<span class="ident">or_default</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>cfg_edges = FxHashMap::&lt;<span class="kw">_</span>, Vec&lt;<span class="kw">_</span>&gt;&gt;::default();
+    <span class="kw">for </span>(from, to) <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>borrowck_input_facts.cfg_edge) {
+        cfg_edges.entry(from).or_default().push(to);
+        cfg_edges.entry(to).or_default();
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block_sizes</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#26">old_body</a>
-        .<span class="ident">basic_blocks</span>()
-        .<span class="ident">iter_enumerated</span>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">bb</span>, <span class="ident">data</span>)<span class="op">|</span> (<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#40">bb</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#40">data</a>.<span class="ident">statements</span>.<span class="ident">len</span>()))
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>block_sizes: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#26">old_body</a>
+        .basic_blocks
+        .iter_enumerated()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(bb, data)| (<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#40">bb</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#40">data</a>.statements.len()))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-    <span class="comment">// Create cfg_edge facts for the new basic blocks.</span>
-    <span class="kw">let</span> <span class="ident">bb_base</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#26">old_body</a>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>();
-    <span class="kw">for</span> (<span class="ident">offset</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="ident">patch</span>.<span class="ident">new_blocks</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="comment">// +1 is for terminator.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statement_indices</span> <span class="op">=</span> <span class="number">0usize</span>..<span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">statement_indices</span>.<span class="ident">next</span>() {
-            <span class="ident">cfg_edges</span>.<span class="ident">insert</span>(
-                <span class="ident">lt_patcher</span>.<span class="ident">next_start_point</span>(<span class="ident">bb_base</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">first</span>),
-                <span class="macro">vec!</span>[<span class="ident">lt_patcher</span>.<span class="ident">next_mid_point</span>(<span class="ident">bb_base</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">first</span>)],
+    <span class="comment">// Create cfg_edge facts for the new basic blocks.
+    </span><span class="kw">let </span>bb_base = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#26">old_body</a>.basic_blocks.len();
+    <span class="kw">for </span>(offset, block) <span class="kw">in </span>patch.new_blocks.iter().enumerate() {
+        <span class="comment">// +1 is for terminator.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>statement_indices = <span class="number">0usize</span>..block.statements.len() + <span class="number">1</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = statement_indices.next() {
+            cfg_edges.insert(
+                lt_patcher.next_start_point(bb_base + offset, first),
+                <span class="macro">vec!</span>[lt_patcher.next_mid_point(bb_base + offset, first)],
             );
         }
-        <span class="kw">for</span> <span class="ident">statement_index</span> <span class="kw">in</span> <span class="ident">statement_indices</span> {
-            <span class="ident">cfg_edges</span>.<span class="ident">insert</span>(
-                <span class="ident">lt_patcher</span>.<span class="ident">next_start_point</span>(<span class="ident">bb_base</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">statement_index</span>),
-                <span class="macro">vec!</span>[<span class="ident">lt_patcher</span>.<span class="ident">next_mid_point</span>(<span class="ident">bb_base</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">statement_index</span>)],
+        <span class="kw">for </span>statement_index <span class="kw">in </span>statement_indices {
+            cfg_edges.insert(
+                lt_patcher.next_start_point(bb_base + offset, statement_index),
+                <span class="macro">vec!</span>[lt_patcher.next_mid_point(bb_base + offset, statement_index)],
             );
-            <span class="ident">cfg_edges</span>.<span class="ident">insert</span>(
-                <span class="ident">lt_patcher</span>.<span class="ident">next_mid_point</span>(<span class="ident">bb_base</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">statement_index</span> <span class="op">-</span> <span class="number">1</span>),
-                <span class="macro">vec!</span>[<span class="ident">lt_patcher</span>.<span class="ident">next_start_point</span>(<span class="ident">bb_base</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">statement_index</span>)],
+            cfg_edges.insert(
+                lt_patcher.next_mid_point(bb_base + offset, statement_index - <span class="number">1</span>),
+                <span class="macro">vec!</span>[lt_patcher.next_start_point(bb_base + offset, statement_index)],
             );
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">successor_points</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">successor</span> <span class="kw">in</span> <span class="ident">block</span>.<span class="ident">terminator</span>().<span class="ident">successors</span>() {
-            <span class="kw">let</span> <span class="ident">following_start_point</span> <span class="op">=</span> <span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">successor</span>.<span class="ident">index</span>(), <span class="number">0</span>);
-            <span class="ident">successor_points</span>.<span class="ident">push</span>(<span class="ident">following_start_point</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>successor_points = Vec::new();
+        <span class="kw">for </span>successor <span class="kw">in </span>block.terminator().successors() {
+            <span class="kw">let </span>following_start_point = lt_patcher.start_point(successor.index(), <span class="number">0</span>);
+            successor_points.push(following_start_point);
         }
-        <span class="ident">cfg_edges</span>.<span class="ident">insert</span>(
-            <span class="ident">lt_patcher</span>.<span class="ident">mid_point</span>(<span class="ident">bb_base</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">len</span>()),
-            <span class="ident">successor_points</span>,
+        cfg_edges.insert(
+            lt_patcher.mid_point(bb_base + offset, block.statements.len()),
+            successor_points,
         );
-        <span class="ident">block_sizes</span>.<span class="ident">insert</span>((<span class="ident">bb_base</span> <span class="op">+</span> <span class="ident">offset</span>).<span class="ident">into</span>(), <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">len</span>());
+        block_sizes.insert((bb_base + offset).into(), block.statements.len());
     }
 
-    <span class="comment">// Patch cfg_edge facts for the inserted statements.</span>
-    <span class="kw">let</span> <span class="ident">predecessors</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#27">patched_body</a>.<span class="ident">basic_blocks</span>.<span class="ident">predecessors</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_statements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#25">patch</a>
-        .<span class="ident">new_statements</span>
-        .<span class="ident">iter</span>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">location</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#81">location</a>)
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#78">new_statements</a>.<span class="ident">sort</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delta</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_bb</span> <span class="op">=</span> <span class="ident">mir::START_BLOCK</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">predecessors_to_patch</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">loc</span> <span class="kw">in</span> <span class="ident">new_statements</span> {
-        <span class="kw">if</span> <span class="ident">loc</span>.<span class="ident">block</span> <span class="op">!</span><span class="op">=</span> <span class="ident">last_bb</span> {
-            <span class="ident">delta</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="ident">last_bb</span> <span class="op">=</span> <span class="ident">loc</span>.<span class="ident">block</span>;
+    <span class="comment">// Patch cfg_edge facts for the inserted statements.
+    </span><span class="kw">let </span>predecessors = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#27">patched_body</a>.basic_blocks.predecessors();
+    <span class="kw">let </span><span class="kw-2">mut </span>new_statements: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#25">patch</a>
+        .new_statements
+        .iter()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(location, <span class="kw">_</span>)| <span class="kw-2">*</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#81">location</a>)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#78">new_statements</a>.sort();
+    <span class="kw">let </span><span class="kw-2">mut </span>delta = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>last_bb = mir::START_BLOCK;
+    <span class="kw">let </span><span class="kw-2">mut </span>predecessors_to_patch = Vec::new();
+    <span class="kw">for </span><span class="kw-2">mut </span>loc <span class="kw">in </span>new_statements {
+        <span class="kw">if </span>loc.block != last_bb {
+            delta = <span class="number">0</span>;
+            last_bb = loc.block;
         }
-        <span class="ident">loc</span>.<span class="ident">statement_index</span> <span class="op">+</span><span class="op">=</span> <span class="ident">delta</span>;
+        loc.statement_index += delta;
 
-        <span class="kw">let</span> <span class="ident">old_statement_start_point</span> <span class="op">=</span>
-            <span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">loc</span>.<span class="ident">block</span>.<span class="ident">index</span>(), <span class="ident">loc</span>.<span class="ident">statement_index</span>);
+        <span class="kw">let </span>old_statement_start_point =
+            lt_patcher.start_point(loc.block.index(), loc.statement_index);
 
-        <span class="comment">// Shift all points by one statement down.</span>
-        <span class="ident">lt_patcher</span>.<span class="ident">insert_statement_at</span>(<span class="ident">loc</span>, <span class="kw-2">&amp;mut</span> <span class="ident">block_sizes</span>);
+        <span class="comment">// Shift all points by one statement down.
+        </span>lt_patcher.insert_statement_at(loc, <span class="kw-2">&amp;mut </span>block_sizes);
 
-        <span class="kw">let</span> <span class="ident">statement_start_point</span> <span class="op">=</span> <span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">loc</span>.<span class="ident">block</span>.<span class="ident">index</span>(), <span class="ident">loc</span>.<span class="ident">statement_index</span>);
-        <span class="kw">let</span> <span class="ident">statement_mid_point</span> <span class="op">=</span> <span class="ident">lt_patcher</span>.<span class="ident">mid_point</span>(<span class="ident">loc</span>.<span class="ident">block</span>.<span class="ident">index</span>(), <span class="ident">loc</span>.<span class="ident">statement_index</span>);
-        <span class="kw">let</span> <span class="ident">next_statement_start_point</span> <span class="op">=</span>
-            <span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">loc</span>.<span class="ident">block</span>.<span class="ident">index</span>(), <span class="ident">loc</span>.<span class="ident">statement_index</span> <span class="op">+</span> <span class="number">1</span>);
-        <span class="kw">if</span> <span class="ident">loc</span>.<span class="ident">statement_index</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="ident">predecessors_to_patch</span>.<span class="ident">push</span>((<span class="ident">loc</span>, <span class="ident">old_statement_start_point</span>, <span class="ident">statement_start_point</span>));
-        } <span class="kw">else</span> {
-            <span class="comment">// Insert the statement and patch the links with the previous and following statements.</span>
-            <span class="kw">let</span> <span class="ident">previous_statement_mid_point</span> <span class="op">=</span>
-                <span class="ident">lt_patcher</span>.<span class="ident">mid_point</span>(<span class="ident">loc</span>.<span class="ident">block</span>.<span class="ident">index</span>(), <span class="ident">loc</span>.<span class="ident">statement_index</span> <span class="op">-</span> <span class="number">1</span>);
-            <span class="macro">assert!</span>(<span class="ident">cfg_edges</span>
-                .<span class="ident">insert</span>(<span class="ident">previous_statement_mid_point</span>, <span class="macro">vec!</span>[<span class="ident">statement_start_point</span>])
-                .<span class="ident">is_some</span>());
+        <span class="kw">let </span>statement_start_point = lt_patcher.start_point(loc.block.index(), loc.statement_index);
+        <span class="kw">let </span>statement_mid_point = lt_patcher.mid_point(loc.block.index(), loc.statement_index);
+        <span class="kw">let </span>next_statement_start_point =
+            lt_patcher.start_point(loc.block.index(), loc.statement_index + <span class="number">1</span>);
+        <span class="kw">if </span>loc.statement_index == <span class="number">0 </span>{
+            predecessors_to_patch.push((loc, old_statement_start_point, statement_start_point));
+        } <span class="kw">else </span>{
+            <span class="comment">// Insert the statement and patch the links with the previous and following statements.
+            </span><span class="kw">let </span>previous_statement_mid_point =
+                lt_patcher.mid_point(loc.block.index(), loc.statement_index - <span class="number">1</span>);
+            <span class="macro">assert!</span>(cfg_edges
+                .insert(previous_statement_mid_point, <span class="macro">vec!</span>[statement_start_point])
+                .is_some());
         }
-        <span class="macro">assert!</span>(<span class="ident">cfg_edges</span>
-            .<span class="ident">insert</span>(<span class="ident">statement_start_point</span>, <span class="macro">vec!</span>[<span class="ident">statement_mid_point</span>])
-            .<span class="ident">is_none</span>());
-        <span class="macro">assert!</span>(<span class="ident">cfg_edges</span>
-            .<span class="ident">insert</span>(<span class="ident">statement_mid_point</span>, <span class="macro">vec!</span>[<span class="ident">next_statement_start_point</span>])
-            .<span class="ident">is_none</span>());
+        <span class="macro">assert!</span>(cfg_edges
+            .insert(statement_start_point, <span class="macro">vec!</span>[statement_mid_point])
+            .is_none());
+        <span class="macro">assert!</span>(cfg_edges
+            .insert(statement_mid_point, <span class="macro">vec!</span>[next_statement_start_point])
+            .is_none());
 
-        <span class="ident">delta</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        delta += <span class="number">1</span>;
     }
-    <span class="kw">for</span> (<span class="ident">loc</span>, <span class="ident">old_statement_start_point</span>, <span class="ident">statement_start_point</span>) <span class="kw">in</span> <span class="ident">predecessors_to_patch</span> {
-        <span class="kw">for</span> <span class="ident">predecessor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">predecessors</span>[<span class="ident">loc</span>.<span class="ident">block</span>] {
-            <span class="kw">let</span> <span class="ident">terminator_mid_point</span> <span class="op">=</span> <span class="ident">lt_patcher</span>.<span class="ident">mid_point</span>(
-                <span class="ident">predecessor</span>.<span class="ident">index</span>(),
-                <span class="ident">patched_body</span>[<span class="kw-2">*</span><span class="ident">predecessor</span>].<span class="ident">statements</span>.<span class="ident">len</span>(),
+    <span class="kw">for </span>(loc, old_statement_start_point, statement_start_point) <span class="kw">in </span>predecessors_to_patch {
+        <span class="kw">for </span>predecessor <span class="kw">in </span><span class="kw-2">&amp;</span>predecessors[loc.block] {
+            <span class="kw">let </span>terminator_mid_point = lt_patcher.mid_point(
+                predecessor.index(),
+                patched_body[<span class="kw-2">*</span>predecessor].statements.len(),
             );
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">for</span> <span class="ident">target_point</span> <span class="kw">in</span> <span class="ident">cfg_edges</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">terminator_mid_point</span>).<span class="ident">unwrap</span>() {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">target_point</span> <span class="op">==</span> <span class="ident">old_statement_start_point</span> {
-                    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">found</span>);
-                    <span class="kw-2">*</span><span class="ident">target_point</span> <span class="op">=</span> <span class="ident">statement_start_point</span>;
-                    <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
+            <span class="kw">for </span>target_point <span class="kw">in </span>cfg_edges.get_mut(<span class="kw-2">&amp;</span>terminator_mid_point).unwrap() {
+                <span class="kw">if </span><span class="kw-2">*</span>target_point == old_statement_start_point {
+                    <span class="macro">assert!</span>(!found);
+                    <span class="kw-2">*</span>target_point = statement_start_point;
+                    found = <span class="bool-val">true</span>;
                 }
             }
 
             <span class="macro">assert!</span>(
-                <span class="ident">found</span>,
+                found,
                 <span class="string">&quot;location: {:?}, predecessor: {:?} target_points: {:?} \
                 terminator_mid_point: {:?} old_statement_start_point: {:?}&quot;</span>,
-                <span class="ident">loc</span>,
-                <span class="ident">predecessor</span>,
-                <span class="ident">cfg_edges</span>[<span class="kw-2">&amp;</span><span class="ident">terminator_mid_point</span>],
-                <span class="ident">terminator_mid_point</span>,
-                <span class="ident">old_statement_start_point</span>
+                loc,
+                predecessor,
+                cfg_edges[<span class="kw-2">&amp;</span>terminator_mid_point],
+                terminator_mid_point,
+                old_statement_start_point
             );
         }
     }
 
-    <span class="comment">// Patch cfg_edge facts for the replaced terminators.</span>
-    <span class="kw">for</span> (<span class="ident">src</span>, <span class="ident">patch</span>) <span class="kw">in</span> <span class="ident">patch</span>.<span class="ident">patch_map</span>.<span class="ident">iter_enumerated</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">patch</span>) <span class="op">=</span> <span class="ident">patch</span> {
-            <span class="kw">match</span> <span class="ident">patch</span> {
-                <span class="ident">mir::TerminatorKind::Goto</span> { <span class="ident">target</span> } =&gt; {
-                    <span class="macro">assert!</span>(<span class="ident">cfg_edges</span>
-                        .<span class="ident">insert</span>(
-                            <span class="ident">lt_patcher</span>.<span class="ident">mid_point</span>(<span class="ident">src</span>.<span class="ident">index</span>(), <span class="ident">block_sizes</span>[<span class="kw-2">&amp;</span><span class="ident">src</span>]),
-                            <span class="macro">vec!</span>[<span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">target</span>.<span class="ident">index</span>(), <span class="number">0</span>),]
+    <span class="comment">// Patch cfg_edge facts for the replaced terminators.
+    </span><span class="kw">for </span>(src, patch) <span class="kw">in </span>patch.patch_map.iter_enumerated() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(patch) = patch {
+            <span class="kw">match </span>patch {
+                mir::TerminatorKind::Goto { target } =&gt; {
+                    <span class="macro">assert!</span>(cfg_edges
+                        .insert(
+                            lt_patcher.mid_point(src.index(), block_sizes[<span class="kw-2">&amp;</span>src]),
+                            <span class="macro">vec!</span>[lt_patcher.start_point(target.index(), <span class="number">0</span>),]
                         )
-                        .<span class="ident">is_some</span>());
+                        .is_some());
                 }
-                <span class="ident">mir::TerminatorKind::Drop</span> { <span class="ident">target</span>, <span class="ident">unwind</span>, .. } =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target_points</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">target</span>.<span class="ident">index</span>(), <span class="number">0</span>)];
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">unwind</span>) <span class="op">=</span> <span class="ident">unwind</span> {
-                        <span class="ident">target_points</span>.<span class="ident">push</span>(<span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">unwind</span>.<span class="ident">index</span>(), <span class="number">0</span>));
+                mir::TerminatorKind::Drop { target, unwind, .. } =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>target_points = <span class="macro">vec!</span>[lt_patcher.start_point(target.index(), <span class="number">0</span>)];
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(unwind) = unwind {
+                        target_points.push(lt_patcher.start_point(unwind.index(), <span class="number">0</span>));
                     }
-                    <span class="macro">assert!</span>(<span class="ident">cfg_edges</span>
-                        .<span class="ident">insert</span>(
-                            <span class="ident">lt_patcher</span>.<span class="ident">mid_point</span>(<span class="ident">src</span>.<span class="ident">index</span>(), <span class="ident">block_sizes</span>[<span class="kw-2">&amp;</span><span class="ident">src</span>]),
-                            <span class="ident">target_points</span>
+                    <span class="macro">assert!</span>(cfg_edges
+                        .insert(
+                            lt_patcher.mid_point(src.index(), block_sizes[<span class="kw-2">&amp;</span>src]),
+                            target_points
                         )
-                        .<span class="ident">is_some</span>());
+                        .is_some());
                 }
-                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;patch: {:?}&quot;</span>, <span class="ident">patch</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;patch: {:?}&quot;</span>, patch),
             }
         }
     }
 
-    <span class="comment">// Patch cfg_edge facts to account for removed basic blocks.</span>
-    <span class="kw">let</span> <span class="ident">reachable</span> <span class="op">=</span> <span class="ident">mir::traversal::reachable_as_bitset</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#27">patched_body</a>);
-    <span class="kw">if</span> <span class="ident">patched_body</span>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">reachable</span>.<span class="ident">count</span>() {
-        <span class="comment">// Delete cfg_edges of removed blocks.</span>
-        <span class="kw">for</span> (<span class="ident">src</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="ident">patched_body</span>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">reachable</span>.<span class="ident">contains</span>(<span class="ident">src</span>) {
-                <span class="kw">for</span> <span class="ident">statement_index</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span> {
-                    <span class="macro">assert!</span>(<span class="ident">cfg_edges</span>
-                        .<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">src</span>.<span class="ident">into</span>(), <span class="ident">statement_index</span>))
-                        .<span class="ident">is_some</span>());
-                    <span class="ident">lt_patcher</span>.<span class="ident">delete_start_point</span>(<span class="ident">src</span>.<span class="ident">into</span>(), <span class="ident">statement_index</span>);
-                    <span class="macro">assert!</span>(<span class="ident">cfg_edges</span>
-                        .<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">lt_patcher</span>.<span class="ident">mid_point</span>(<span class="ident">src</span>.<span class="ident">into</span>(), <span class="ident">statement_index</span>))
-                        .<span class="ident">is_some</span>());
-                    <span class="ident">lt_patcher</span>.<span class="ident">delete_mid_point</span>(<span class="ident">src</span>.<span class="ident">into</span>(), <span class="ident">statement_index</span>);
+    <span class="comment">// Patch cfg_edge facts to account for removed basic blocks.
+    </span><span class="kw">let </span>reachable = mir::traversal::reachable_as_bitset(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#27">patched_body</a>);
+    <span class="kw">if </span>patched_body.basic_blocks.len() &gt; reachable.count() {
+        <span class="comment">// Delete cfg_edges of removed blocks.
+        </span><span class="kw">for </span>(src, block) <span class="kw">in </span>patched_body.basic_blocks.iter_enumerated() {
+            <span class="kw">if </span>!reachable.contains(src) {
+                <span class="kw">for </span>statement_index <span class="kw">in </span><span class="number">0</span>..block.statements.len() + <span class="number">1 </span>{
+                    <span class="macro">assert!</span>(cfg_edges
+                        .remove(<span class="kw-2">&amp;</span>lt_patcher.start_point(src.into(), statement_index))
+                        .is_some());
+                    lt_patcher.delete_start_point(src.into(), statement_index);
+                    <span class="macro">assert!</span>(cfg_edges
+                        .remove(<span class="kw-2">&amp;</span>lt_patcher.mid_point(src.into(), statement_index))
+                        .is_some());
+                    lt_patcher.delete_mid_point(src.into(), statement_index);
                 }
             }
         }
-        <span class="kw">let</span> <span class="ident">basic_block_inverse_replacements</span> <span class="op">=</span>
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/dead_blocks.rs.html#10-13"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::dead_blocks::remove_dead_blocks</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#27">patched_body</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#181">reachable</a>);
-        <span class="comment">// Update the location table to reflect moved blocks.</span>
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">new_index</span>, <span class="kw-2">&amp;</span><span class="ident">old_index</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">basic_block_inverse_replacements</span> {
-            <span class="kw">if</span> <span class="ident">new_index</span> <span class="op">!</span><span class="op">=</span> <span class="ident">old_index</span> {
-                <span class="kw">for</span> <span class="ident">statement_index</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">patched_body</span>[<span class="ident">new_index</span>].<span class="ident">statements</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span> {
-                    <span class="ident">lt_patcher</span>.<span class="ident">move_start_point</span>(
-                        <span class="ident">old_index</span>,
-                        <span class="ident">statement_index</span>,
-                        <span class="ident">new_index</span>,
-                        <span class="ident">statement_index</span>,
+        <span class="kw">let </span>basic_block_inverse_replacements =
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/dead_blocks.rs.html#10-13"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::dead_blocks::remove_dead_blocks</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#27">patched_body</a>, <span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#181">reachable</a>);
+        <span class="comment">// Update the location table to reflect moved blocks.
+        </span><span class="kw">for </span>(<span class="kw-2">&amp;</span>new_index, <span class="kw-2">&amp;</span>old_index) <span class="kw">in </span><span class="kw-2">&amp;</span>basic_block_inverse_replacements {
+            <span class="kw">if </span>new_index != old_index {
+                <span class="kw">for </span>statement_index <span class="kw">in </span><span class="number">0</span>..patched_body[new_index].statements.len() + <span class="number">1 </span>{
+                    lt_patcher.move_start_point(
+                        old_index,
+                        statement_index,
+                        new_index,
+                        statement_index,
                     );
-                    <span class="ident">lt_patcher</span>.<span class="ident">move_mid_point</span>(
-                        <span class="ident">old_index</span>,
-                        <span class="ident">statement_index</span>,
-                        <span class="ident">new_index</span>,
-                        <span class="ident">statement_index</span>,
+                    lt_patcher.move_mid_point(
+                        old_index,
+                        statement_index,
+                        new_index,
+                        statement_index,
                     );
                 }
             }
         }
-        <span class="comment">// Remap cfg_edges of moved blocks.</span>
-        <span class="kw">for</span> (<span class="ident">src</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="ident">patched_body</span>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target_points</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">for</span> <span class="ident">target</span> <span class="kw">in</span> <span class="ident">block</span>.<span class="ident">terminator</span>().<span class="ident">successors</span>() {
-                <span class="ident">target_points</span>.<span class="ident">push</span>(<span class="ident">lt_patcher</span>.<span class="ident">start_point</span>(<span class="ident">target</span>.<span class="ident">index</span>(), <span class="number">0</span>));
+        <span class="comment">// Remap cfg_edges of moved blocks.
+        </span><span class="kw">for </span>(src, block) <span class="kw">in </span>patched_body.basic_blocks.iter_enumerated() {
+            <span class="kw">let </span><span class="kw-2">mut </span>target_points = Vec::new();
+            <span class="kw">for </span>target <span class="kw">in </span>block.terminator().successors() {
+                target_points.push(lt_patcher.start_point(target.index(), <span class="number">0</span>));
             }
-            <span class="kw">let</span> <span class="ident">terminator_mid_point</span> <span class="op">=</span> <span class="ident">lt_patcher</span>.<span class="ident">mid_point</span>(<span class="ident">src</span>.<span class="ident">index</span>(), <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">len</span>());
+            <span class="kw">let </span>terminator_mid_point = lt_patcher.mid_point(src.index(), block.statements.len());
             <span class="macro">assert!</span>(
-                <span class="ident">cfg_edges</span>
-                    .<span class="ident">insert</span>(<span class="ident">terminator_mid_point</span>, <span class="ident">target_points</span>)
-                    .<span class="ident">is_some</span>()
-                    <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">reachable</span>.<span class="ident">contains</span>(<span class="ident">src</span>),
+                cfg_edges
+                    .insert(terminator_mid_point, target_points)
+                    .is_some()
+                    || !reachable.contains(src),
                 <span class="string">&quot;block: {:?} statement_index: {}&quot;</span>,
-                <span class="ident">src</span>,
-                <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">len</span>()
+                src,
+                block.statements.len()
             );
         }
     }
 
-    <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#23">borrowck_input_facts</a>.<span class="ident">cfg_edge</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#31">cfg_edges</a>
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">|</span>(<span class="ident">from</span>, <span class="ident">targets</span>)<span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#240">targets</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">target</span><span class="op">|</span> (<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#240">from</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#240">target</a>)))
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#23">borrowck_input_facts</a>.cfg_edge = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#31">cfg_edges</a>
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|(from, targets)| <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#240">targets</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw">move </span>|target| (<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#240">from</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#240">target</a>)))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-    <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#23">borrowck_input_facts</a>.<span class="ident">cfg_edge</span>.<span class="ident">sort</span>();
+    <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#23">borrowck_input_facts</a>.cfg_edge.sort();
 }
 
-<span class="kw">struct</span> <span class="ident">LocationTablePatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">location_table</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>,
-    <span class="ident">next_point</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="kw">struct </span>LocationTablePatcher&lt;<span class="lifetime">&#39;a</span>&gt; {
+    location_table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>,
+    next_point: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">LocationTablePatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">location_table</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">next_point</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#252">location_table</a>
-            .<span class="ident">locations</span>
-            .<span class="ident">keys</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">point</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#257">point</a>.<span class="ident">index</span>())
-            .<span class="ident">unwrap_or</span>(<span class="number">1usize</span>)
-            <span class="op">+</span> <span class="number">1</span>;
-        <span class="self">Self</span> {
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#252">location_table</a>,
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#253">next_point</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; LocationTablePatcher&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>new(location_table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#83">LocationTable</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>next_point = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#252">location_table</a>
+            .locations
+            .keys()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>()
+            .map(|point| <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#257">point</a>.index())
+            .unwrap_or(<span class="number">1usize</span>)
+            + <span class="number">1</span>;
+        <span class="self">Self </span>{
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#252">location_table</a>,
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#253">next_point</a>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">point</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>) -&gt; <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">self</a>.<span class="ident">location_table</span>.<span class="ident">points</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">location</a>]
+    <span class="kw">fn </span>point(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>) -&gt; <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">self</a>.location_table.points[<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">location</a>]
     }
 
-    <span class="kw">fn</span> <span class="ident">start_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#270">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#270">block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#270">statement_index</a>,
+    <span class="kw">fn </span>start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#270">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#270">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#270">statement_index</a>,
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">mid_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#277">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#277">block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#277">statement_index</a>,
+    <span class="kw">fn </span>mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#277">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#277">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#277">statement_index</a>,
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">delete_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>, <span class="ident">point</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.<span class="ident">location_table</span>.<span class="ident">points</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>), <span class="prelude-val">Some</span>(<span class="ident">point</span>));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.<span class="ident">location_table</span>.<span class="ident">locations</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">point</span>), <span class="prelude-val">Some</span>(<span class="ident">location</span>));
+    <span class="kw">fn </span>delete_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>, point: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.location_table.points.remove(<span class="kw-2">&amp;</span>location), <span class="prelude-val">Some</span>(point));
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.location_table.locations.remove(<span class="kw-2">&amp;</span>point), <span class="prelude-val">Some</span>(location));
     }
 
-    <span class="kw">fn</span> <span class="ident">delete_start_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#289">block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#289">statement_index</a>,
+    <span class="kw">fn </span>delete_start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>location = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#289">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#289">statement_index</a>,
         });
-        <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#289">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#290">location</a>);
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#289">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#284">delete_point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#290">location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#294">point</a>);
+        <span class="kw">let </span>point = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#289">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#290">location</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#289">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#284">delete_point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#290">location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#294">point</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">delete_mid_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#298">block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#298">statement_index</a>,
+    <span class="kw">fn </span>delete_mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>location = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#298">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#298">statement_index</a>,
         });
-        <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#298">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#299">location</a>);
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#298">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#284">delete_point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#299">location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#303">point</a>);
+        <span class="kw">let </span>point = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#298">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#299">location</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#298">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#284">delete_point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#299">location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#303">point</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">move_start_point</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">old_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        <span class="ident">old_statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">new_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        <span class="ident">new_statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">fn </span>move_start_point(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        old_index: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        old_statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        new_index: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        new_statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) {
-        <span class="kw">let</span> <span class="ident">old_location</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#309">old_index</a>,
-            <span class="ident">statement_index</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#310">old_statement_index</a>,
+        <span class="kw">let </span>old_location = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#309">old_index</a>,
+            statement_index: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#310">old_statement_index</a>,
         });
-        <span class="kw">let</span> <span class="ident">old_point</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#308">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#314">old_location</a>);
-        <span class="kw">let</span> <span class="ident">new_location</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#311">new_index</a>,
-            <span class="ident">statement_index</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#312">new_statement_index</a>,
+        <span class="kw">let </span>old_point = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#308">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#314">old_location</a>);
+        <span class="kw">let </span>new_location = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#311">new_index</a>,
+            statement_index: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#312">new_statement_index</a>,
         });
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#308">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#284">delete_point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#314">old_location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#318">old_point</a>);
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#308">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#347">set_point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#319">new_location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#318">old_point</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#308">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#284">delete_point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#314">old_location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#318">old_point</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#308">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#347">set_point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#319">new_location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#318">old_point</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">move_mid_point</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">old_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        <span class="ident">old_statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">new_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        <span class="ident">new_statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">fn </span>move_mid_point(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        old_index: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        old_statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        new_index: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        new_statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) {
-        <span class="kw">let</span> <span class="ident">old_location</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#329">old_index</a>,
-            <span class="ident">statement_index</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#330">old_statement_index</a>,
+        <span class="kw">let </span>old_location = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#329">old_index</a>,
+            statement_index: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#330">old_statement_index</a>,
         });
-        <span class="kw">let</span> <span class="ident">old_point</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#328">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#334">old_location</a>);
-        <span class="kw">let</span> <span class="ident">new_location</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#331">new_index</a>,
-            <span class="ident">statement_index</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#332">new_statement_index</a>,
+        <span class="kw">let </span>old_point = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#328">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#266">point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#334">old_location</a>);
+        <span class="kw">let </span>new_location = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#331">new_index</a>,
+            statement_index: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#332">new_statement_index</a>,
         });
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#328">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#284">delete_point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#334">old_location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#338">old_point</a>);
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#328">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#347">set_point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#339">new_location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#338">old_point</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#328">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#284">delete_point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#334">old_location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#338">old_point</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#328">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#347">set_point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#339">new_location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#338">old_point</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">set_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>, <span class="ident">point</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a>) {
+    <span class="kw">fn </span>set_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>, point: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">location_table</span>
-                .<span class="ident">locations</span>
-                .<span class="ident">insert</span>(<span class="ident">point</span>, <span class="ident">location</span>)
-                .<span class="ident">is_none</span>(),
+            <span class="self">self</span>.location_table
+                .locations
+                .insert(point, location)
+                .is_none(),
             <span class="string">&quot;location: {:?} point: {:?}&quot;</span>,
-            <span class="ident">location</span>,
-            <span class="ident">point</span>
+            location,
+            point
         );
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">location_table</span>.<span class="ident">points</span>.<span class="ident">insert</span>(<span class="ident">location</span>, <span class="ident">point</span>).<span class="ident">is_none</span>(),
+            <span class="self">self</span>.location_table.points.insert(location, point).is_none(),
             <span class="string">&quot;location: {:?} point: {:?}&quot;</span>,
-            <span class="ident">location</span>,
-            <span class="ident">point</span>
+            location,
+            point
         );
     }
 
-    <span class="kw">fn</span> <span class="ident">fresh_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
-        <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">self</a>.<span class="ident">next_point</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">self</a>.<span class="ident">next_point</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#366">point</a>
+    <span class="kw">fn </span>fresh_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
+        <span class="kw">let </span>point = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">self</a>.next_point.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">self</a>.next_point += <span class="number">1</span>;
+        <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#366">point</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">next_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">location</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>) -&gt; <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">point</span>) <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">self</a>.<span class="ident">location_table</span>.<span class="ident">points</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">location</a>) {
-            <span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#372">point</a>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">fresh_point</a>();
-            <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">self</a>.<span class="ident">location_table</span>.<span class="ident">locations</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#375">point</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">location</a>);
-            <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">self</a>.<span class="ident">location_table</span>.<span class="ident">points</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#375">point</a>);
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#375">point</a>
+    <span class="kw">fn </span>next_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#42">RichLocation</a>) -&gt; <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(point) = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">self</a>.location_table.points.get(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">location</a>) {
+            <span class="kw-2">*</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#372">point</a>
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>point = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">fresh_point</a>();
+            <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">self</a>.location_table.locations.insert(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#375">point</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">location</a>);
+            <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">self</a>.location_table.points.insert(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#375">point</a>);
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#375">point</a>
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">next_start_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#382">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">next_point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#382">block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#382">statement_index</a>,
+    <span class="kw">fn </span>next_start_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#382">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">next_point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#43">RichLocation::Start</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#382">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#382">statement_index</a>,
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">next_mid_point</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">statement_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#389">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">next_point</a>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#389">block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#389">statement_index</a>,
+    <span class="kw">fn </span>next_mid_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, statement_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#11">Point</a> {
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#389">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#371">next_point</a>(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/mod.rs.html#44">RichLocation::Mid</a>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
+            block: <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#389">block</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#389">statement_index</a>,
         }))
     }
 
-    <span class="doccomment">/// Shift locations of all statements by 1 and insert the provided point at that location.</span>
-    <span class="kw">fn</span> <span class="ident">insert_statement_at</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        <span class="ident">block_sizes</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// Shift locations of all statements by 1 and insert the provided point at that location.
+    </span><span class="kw">fn </span>insert_statement_at(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+        block_sizes: <span class="kw-2">&amp;mut </span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
     ) {
-        <span class="comment">// Shift all the statements by one.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target_statement_index</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#400">block_sizes</a>[<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#399">location</a>.<span class="ident">block</span>] <span class="op">+</span> <span class="number">1</span>; <span class="comment">// +1 for terminator;</span>
-        <span class="kw">while</span> <span class="ident">target_statement_index</span> <span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">statement_index</span> {
-            <span class="kw">let</span> <span class="ident">statement_index</span> <span class="op">=</span> <span class="ident">target_statement_index</span> <span class="op">-</span> <span class="number">1</span>;
-            <span class="kw">let</span> <span class="ident">old_start_location</span> <span class="op">=</span> <span class="ident">RichLocation::start</span>(<span class="ident">location</span>.<span class="ident">block</span>, <span class="ident">statement_index</span>);
-            <span class="kw">let</span> <span class="ident">old_mid_location</span> <span class="op">=</span> <span class="ident">RichLocation::mid</span>(<span class="ident">location</span>.<span class="ident">block</span>, <span class="ident">statement_index</span>);
-            <span class="kw">let</span> <span class="ident">old_start_point</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">location_table</span>.<span class="ident">points</span>[<span class="kw-2">&amp;</span><span class="ident">old_start_location</span>];
-            <span class="kw">let</span> <span class="ident">old_mid_point</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">location_table</span>.<span class="ident">points</span>[<span class="kw-2">&amp;</span><span class="ident">old_mid_location</span>];
-            <span class="kw">let</span> <span class="ident">start_location</span> <span class="op">=</span> <span class="ident">RichLocation::start</span>(<span class="ident">location</span>.<span class="ident">block</span>, <span class="ident">target_statement_index</span>);
-            <span class="kw">let</span> <span class="ident">mid_location</span> <span class="op">=</span> <span class="ident">RichLocation::mid</span>(<span class="ident">location</span>.<span class="ident">block</span>, <span class="ident">target_statement_index</span>);
-            <span class="self">self</span>.<span class="ident">location_table</span>
-                .<span class="ident">locations</span>
-                .<span class="ident">insert</span>(<span class="ident">old_start_point</span>, <span class="ident">start_location</span>);
-            <span class="self">self</span>.<span class="ident">location_table</span>
-                .<span class="ident">points</span>
-                .<span class="ident">insert</span>(<span class="ident">start_location</span>, <span class="ident">old_start_point</span>);
-            <span class="self">self</span>.<span class="ident">location_table</span>
-                .<span class="ident">locations</span>
-                .<span class="ident">insert</span>(<span class="ident">old_mid_point</span>, <span class="ident">mid_location</span>);
-            <span class="self">self</span>.<span class="ident">location_table</span>
-                .<span class="ident">points</span>
-                .<span class="ident">insert</span>(<span class="ident">mid_location</span>, <span class="ident">old_mid_point</span>);
-            <span class="ident">target_statement_index</span> <span class="op">=</span> <span class="ident">statement_index</span>;
+        <span class="comment">// Shift all the statements by one.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>target_statement_index = <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#400">block_sizes</a>[<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#399">location</a>.block] + <span class="number">1</span>; <span class="comment">// +1 for terminator;
+        </span><span class="kw">while </span>target_statement_index &gt; location.statement_index {
+            <span class="kw">let </span>statement_index = target_statement_index - <span class="number">1</span>;
+            <span class="kw">let </span>old_start_location = RichLocation::start(location.block, statement_index);
+            <span class="kw">let </span>old_mid_location = RichLocation::mid(location.block, statement_index);
+            <span class="kw">let </span>old_start_point = <span class="self">self</span>.location_table.points[<span class="kw-2">&amp;</span>old_start_location];
+            <span class="kw">let </span>old_mid_point = <span class="self">self</span>.location_table.points[<span class="kw-2">&amp;</span>old_mid_location];
+            <span class="kw">let </span>start_location = RichLocation::start(location.block, target_statement_index);
+            <span class="kw">let </span>mid_location = RichLocation::mid(location.block, target_statement_index);
+            <span class="self">self</span>.location_table
+                .locations
+                .insert(old_start_point, start_location);
+            <span class="self">self</span>.location_table
+                .points
+                .insert(start_location, old_start_point);
+            <span class="self">self</span>.location_table
+                .locations
+                .insert(old_mid_point, mid_location);
+            <span class="self">self</span>.location_table
+                .points
+                .insert(mid_location, old_mid_point);
+            target_statement_index = statement_index;
         }
 
-        <span class="comment">// Insert.</span>
-        <span class="kw">let</span> <span class="ident">start_point</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">fresh_point</a>();
-        <span class="kw">let</span> <span class="ident">mid_point</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">fresh_point</a>();
-        <span class="kw">let</span> <span class="ident">start_location</span> <span class="op">=</span> <span class="ident">RichLocation::start</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#399">location</a>.<span class="ident">block</span>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#403">target_statement_index</a>);
-        <span class="kw">let</span> <span class="ident">mid_location</span> <span class="op">=</span> <span class="ident">RichLocation::mid</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#399">location</a>.<span class="ident">block</span>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#403">target_statement_index</a>);
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.<span class="ident">location_table</span>
-            .<span class="ident">locations</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#428">start_point</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#430">start_location</a>);
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.<span class="ident">location_table</span>
-            .<span class="ident">points</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#430">start_location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#428">start_point</a>);
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.<span class="ident">location_table</span>
-            .<span class="ident">locations</span>
-            .<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#429">mid_point</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#431">mid_location</a>);
-        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.<span class="ident">location_table</span>.<span class="ident">points</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#431">mid_location</a>, <a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#429">mid_point</a>);
+        <span class="comment">// Insert.
+        </span><span class="kw">let </span>start_point = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">fresh_point</a>();
+        <span class="kw">let </span>mid_point = <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#365">fresh_point</a>();
+        <span class="kw">let </span>start_location = RichLocation::start(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#399">location</a>.block, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#403">target_statement_index</a>);
+        <span class="kw">let </span>mid_location = RichLocation::mid(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#399">location</a>.block, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#403">target_statement_index</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.location_table
+            .locations
+            .insert(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#428">start_point</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#430">start_location</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.location_table
+            .points
+            .insert(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#430">start_location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#428">start_point</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.location_table
+            .locations
+            .insert(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#429">mid_point</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#431">mid_location</a>);
+        <a class="self" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#398">self</a>.location_table.points.insert(<a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#431">mid_location</a>, <a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#429">mid_point</a>);
 
-        <span class="comment">// Update the sizes map.</span>
-        <span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#400">block_sizes</a>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#399">location</a>.<span class="ident">block</span>).<span class="ident">unwrap</span>() <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="comment">// Update the sizes map.
+        </span><span class="kw-2">*</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#400">block_sizes</a>.get_mut(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_interface/environment/mir_body/borrowck/facts/patch.rs.html#399">location</a>.block).unwrap() += <span class="number">1</span>;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

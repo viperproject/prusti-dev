@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -966,973 +966,973 @@
 <span id="966">966</span>
 <span id="967">967</span>
 <span id="968">968</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>), <span class="ident">allow</span>(<span class="ident">unreachable_pub</span>, <span class="ident">dead_code</span>))]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;sync&quot;</span>), allow(unreachable_pub, dead_code))]
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/mod.rs.html#451"><span class="kw">crate</span>::sync::batch_semaphore</a> <span class="kw">as</span> <span class="ident">semaphore</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::trace</span>;
+</span><span class="kw">use </span><a href="../../../src/tokio/sync/mod.rs.html#451"><span class="kw">crate</span>::sync::batch_semaphore</a> <span class="kw">as </span>semaphore;
+<span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::util::trace;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use</span> <span class="ident">std::ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">marker</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
+<span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/marker/index.html">marker</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-<span class="doccomment">/// An asynchronous `Mutex`-like type.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type acts similarly to [`std::sync::Mutex`], with two major</span>
-<span class="doccomment">/// differences: [`lock`] is an async method so does not block, and the lock</span>
-<span class="doccomment">/// guard is designed to be held across `.await` points.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Which kind of mutex should you use?</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Contrary to popular belief, it is ok and often preferred to use the ordinary</span>
-<span class="doccomment">/// [`Mutex`][std] from the standard library in asynchronous code.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The feature that the async mutex offers over the blocking mutex is the</span>
-<span class="doccomment">/// ability to keep it locked across an `.await` point. This makes the async</span>
-<span class="doccomment">/// mutex more expensive than the blocking mutex, so the blocking mutex should</span>
-<span class="doccomment">/// be preferred in the cases where it can be used. The primary use case for the</span>
-<span class="doccomment">/// async mutex is to provide shared mutable access to IO resources such as a</span>
-<span class="doccomment">/// database connection. If the value behind the mutex is just data, it&#39;s</span>
-<span class="doccomment">/// usually appropriate to use a blocking mutex such as the one in the standard</span>
-<span class="doccomment">/// library or [`parking_lot`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that, although the compiler will not prevent the std `Mutex` from holding</span>
-<span class="doccomment">/// its guard across `.await` points in situations where the task is not movable</span>
-<span class="doccomment">/// between threads, this virtually never leads to correct concurrent code in</span>
-<span class="doccomment">/// practice as it can easily lead to deadlocks.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A common pattern is to wrap the `Arc&lt;Mutex&lt;...&gt;&gt;` in a struct that provides</span>
-<span class="doccomment">/// non-async methods for performing operations on the data within, and only</span>
-<span class="doccomment">/// lock the mutex inside these methods. The [mini-redis] example provides an</span>
-<span class="doccomment">/// illustration of this pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Additionally, when you _do_ want shared access to an IO resource, it is</span>
-<span class="doccomment">/// often better to spawn a task to manage the IO resource, and to use message</span>
-<span class="doccomment">/// passing to communicate with that task.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [std]: std::sync::Mutex</span>
-<span class="doccomment">/// [`parking_lot`]: https://docs.rs/parking_lot</span>
-<span class="doccomment">/// [mini-redis]: https://github.com/tokio-rs/mini-redis/blob/master/src/db.rs</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust,no_run</span>
-<span class="doccomment">/// use tokio::sync::Mutex;</span>
-<span class="doccomment">/// use std::sync::Arc;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     let data1 = Arc::new(Mutex::new(0));</span>
-<span class="doccomment">///     let data2 = Arc::clone(&amp;data1);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     tokio::spawn(async move {</span>
-<span class="doccomment">///         let mut lock = data2.lock().await;</span>
-<span class="doccomment">///         *lock += 1;</span>
-<span class="doccomment">///     });</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     let mut lock = data1.lock().await;</span>
-<span class="doccomment">///     *lock += 1;</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust,no_run</span>
-<span class="doccomment">/// use tokio::sync::Mutex;</span>
-<span class="doccomment">/// use std::sync::Arc;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[tokio::main]</span>
-<span class="doccomment">/// async fn main() {</span>
-<span class="doccomment">///     let count = Arc::new(Mutex::new(0));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     for i in 0..5 {</span>
-<span class="doccomment">///         let my_count = Arc::clone(&amp;count);</span>
-<span class="doccomment">///         tokio::spawn(async move {</span>
-<span class="doccomment">///             for j in 0..10 {</span>
-<span class="doccomment">///                 let mut lock = my_count.lock().await;</span>
-<span class="doccomment">///                 *lock += 1;</span>
-<span class="doccomment">///                 println!(&quot;{} {} {}&quot;, i, j, lock);</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///         });</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     loop {</span>
-<span class="doccomment">///         if *count.lock().await &gt;= 50 {</span>
-<span class="doccomment">///             break;</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///     println!(&quot;Count hit 50.&quot;);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// There are a few things of note here to pay attention to in this example.</span>
-<span class="doccomment">/// 1. The mutex is wrapped in an [`Arc`] to allow it to be shared across</span>
-<span class="doccomment">///    threads.</span>
-<span class="doccomment">/// 2. Each spawned task obtains a lock and releases it on every iteration.</span>
-<span class="doccomment">/// 3. Mutation of the data protected by the Mutex is done by de-referencing</span>
-<span class="doccomment">///    the obtained lock as seen on lines 12 and 19.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Tokio&#39;s Mutex works in a simple FIFO (first in, first out) style where all</span>
-<span class="doccomment">/// calls to [`lock`] complete in the order they were performed. In that way the</span>
-<span class="doccomment">/// Mutex is &quot;fair&quot; and predictable in how it distributes the locks to inner</span>
-<span class="doccomment">/// data. Locks are released and reacquired after every iteration, so basically,</span>
-<span class="doccomment">/// each thread goes to the back of the line after it increments the value once.</span>
-<span class="doccomment">/// Note that there&#39;s some unpredictability to the timing between when the</span>
-<span class="doccomment">/// threads are started, but once they are going they alternate predictably.</span>
-<span class="doccomment">/// Finally, since there is only a single valid lock at any given time, there is</span>
-<span class="doccomment">/// no possibility of a race condition when mutating the inner value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that in contrast to [`std::sync::Mutex`], this implementation does not</span>
-<span class="doccomment">/// poison the mutex when a thread holding the [`MutexGuard`] panics. In such a</span>
-<span class="doccomment">/// case, the mutex will be unlocked. If the panic is caught, this might leave</span>
-<span class="doccomment">/// the data protected by the mutex in an inconsistent state.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Mutex`]: struct@Mutex</span>
-<span class="doccomment">/// [`MutexGuard`]: struct@MutexGuard</span>
-<span class="doccomment">/// [`Arc`]: struct@std::sync::Arc</span>
-<span class="doccomment">/// [`std::sync::Mutex`]: struct@std::sync::Mutex</span>
-<span class="doccomment">/// [`Send`]: trait@std::marker::Send</span>
-<span class="doccomment">/// [`lock`]: method@Mutex::lock</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
-    <span class="ident">s</span>: <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">semaphore::Semaphore</a>,
-    <span class="ident">c</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An asynchronous `Mutex`-like type.
+///
+/// This type acts similarly to [`std::sync::Mutex`], with two major
+/// differences: [`lock`] is an async method so does not block, and the lock
+/// guard is designed to be held across `.await` points.
+///
+/// # Which kind of mutex should you use?
+///
+/// Contrary to popular belief, it is ok and often preferred to use the ordinary
+/// [`Mutex`][std] from the standard library in asynchronous code.
+///
+/// The feature that the async mutex offers over the blocking mutex is the
+/// ability to keep it locked across an `.await` point. This makes the async
+/// mutex more expensive than the blocking mutex, so the blocking mutex should
+/// be preferred in the cases where it can be used. The primary use case for the
+/// async mutex is to provide shared mutable access to IO resources such as a
+/// database connection. If the value behind the mutex is just data, it&#39;s
+/// usually appropriate to use a blocking mutex such as the one in the standard
+/// library or [`parking_lot`].
+///
+/// Note that, although the compiler will not prevent the std `Mutex` from holding
+/// its guard across `.await` points in situations where the task is not movable
+/// between threads, this virtually never leads to correct concurrent code in
+/// practice as it can easily lead to deadlocks.
+///
+/// A common pattern is to wrap the `Arc&lt;Mutex&lt;...&gt;&gt;` in a struct that provides
+/// non-async methods for performing operations on the data within, and only
+/// lock the mutex inside these methods. The [mini-redis] example provides an
+/// illustration of this pattern.
+///
+/// Additionally, when you _do_ want shared access to an IO resource, it is
+/// often better to spawn a task to manage the IO resource, and to use message
+/// passing to communicate with that task.
+///
+/// [std]: std::sync::Mutex
+/// [`parking_lot`]: https://docs.rs/parking_lot
+/// [mini-redis]: https://github.com/tokio-rs/mini-redis/blob/master/src/db.rs
+///
+/// # Examples:
+///
+/// ```rust,no_run
+/// use tokio::sync::Mutex;
+/// use std::sync::Arc;
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let data1 = Arc::new(Mutex::new(0));
+///     let data2 = Arc::clone(&amp;data1);
+///
+///     tokio::spawn(async move {
+///         let mut lock = data2.lock().await;
+///         *lock += 1;
+///     });
+///
+///     let mut lock = data1.lock().await;
+///     *lock += 1;
+/// }
+/// ```
+///
+///
+/// ```rust,no_run
+/// use tokio::sync::Mutex;
+/// use std::sync::Arc;
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let count = Arc::new(Mutex::new(0));
+///
+///     for i in 0..5 {
+///         let my_count = Arc::clone(&amp;count);
+///         tokio::spawn(async move {
+///             for j in 0..10 {
+///                 let mut lock = my_count.lock().await;
+///                 *lock += 1;
+///                 println!(&quot;{} {} {}&quot;, i, j, lock);
+///             }
+///         });
+///     }
+///
+///     loop {
+///         if *count.lock().await &gt;= 50 {
+///             break;
+///         }
+///     }
+///     println!(&quot;Count hit 50.&quot;);
+/// }
+/// ```
+/// There are a few things of note here to pay attention to in this example.
+/// 1. The mutex is wrapped in an [`Arc`] to allow it to be shared across
+///    threads.
+/// 2. Each spawned task obtains a lock and releases it on every iteration.
+/// 3. Mutation of the data protected by the Mutex is done by de-referencing
+///    the obtained lock as seen on lines 12 and 19.
+///
+/// Tokio&#39;s Mutex works in a simple FIFO (first in, first out) style where all
+/// calls to [`lock`] complete in the order they were performed. In that way the
+/// Mutex is &quot;fair&quot; and predictable in how it distributes the locks to inner
+/// data. Locks are released and reacquired after every iteration, so basically,
+/// each thread goes to the back of the line after it increments the value once.
+/// Note that there&#39;s some unpredictability to the timing between when the
+/// threads are started, but once they are going they alternate predictably.
+/// Finally, since there is only a single valid lock at any given time, there is
+/// no possibility of a race condition when mutating the inner value.
+///
+/// Note that in contrast to [`std::sync::Mutex`], this implementation does not
+/// poison the mutex when a thread holding the [`MutexGuard`] panics. In such a
+/// case, the mutex will be unlocked. If the panic is caught, this might leave
+/// the data protected by the mutex in an inconsistent state.
+///
+/// [`Mutex`]: struct@Mutex
+/// [`MutexGuard`]: struct@MutexGuard
+/// [`Arc`]: struct@std::sync::Arc
+/// [`std::sync::Mutex`]: struct@std::sync::Mutex
+/// [`Send`]: trait@std::marker::Send
+/// [`lock`]: method@Mutex::lock
+</span><span class="kw">pub struct </span>Mutex&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span>resource_span: tracing::Span,
+    s: <a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">semaphore::Semaphore</a>,
+    c: UnsafeCell&lt;T&gt;,
 }
 
-<span class="doccomment">/// A handle to a held `Mutex`. The guard can be held across any `.await` point</span>
-<span class="doccomment">/// as it is [`Send`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// As long as you have this guard, you have exclusive access to the underlying</span>
-<span class="doccomment">/// `T`. The guard internally borrows the `Mutex`, so the mutex will not be</span>
-<span class="doccomment">/// dropped while a guard exists.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The lock is automatically released whenever the guard is dropped, at which</span>
-<span class="doccomment">/// point `lock` will succeed yet again.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
-    <span class="ident">lock</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A handle to a held `Mutex`. The guard can be held across any `.await` point
+/// as it is [`Send`].
+///
+/// As long as you have this guard, you have exclusive access to the underlying
+/// `T`. The guard internally borrows the `Mutex`, so the mutex will not be
+/// dropped while a guard exists.
+///
+/// The lock is automatically released whenever the guard is dropped, at which
+/// point `lock` will succeed yet again.
+</span><span class="kw">pub struct </span>MutexGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span>resource_span: tracing::Span,
+    lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;,
 }
 
-<span class="doccomment">/// An owned handle to a held `Mutex`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This guard is only available from a `Mutex` that is wrapped in an [`Arc`]. It</span>
-<span class="doccomment">/// is identical to `MutexGuard`, except that rather than borrowing the `Mutex`,</span>
-<span class="doccomment">/// it clones the `Arc`, incrementing the reference count. This means that</span>
-<span class="doccomment">/// unlike `MutexGuard`, it will have the `&#39;static` lifetime.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// As long as you have this guard, you have exclusive access to the underlying</span>
-<span class="doccomment">/// `T`. The guard internally keeps a reference-counted pointer to the original</span>
-<span class="doccomment">/// `Mutex`, so even if the lock goes away, the guard remains valid.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The lock is automatically released whenever the guard is dropped, at which</span>
-<span class="doccomment">/// point `lock` will succeed yet again.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Arc`]: std::sync::Arc</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
-    <span class="ident">lock</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An owned handle to a held `Mutex`.
+///
+/// This guard is only available from a `Mutex` that is wrapped in an [`Arc`]. It
+/// is identical to `MutexGuard`, except that rather than borrowing the `Mutex`,
+/// it clones the `Arc`, incrementing the reference count. This means that
+/// unlike `MutexGuard`, it will have the `&#39;static` lifetime.
+///
+/// As long as you have this guard, you have exclusive access to the underlying
+/// `T`. The guard internally keeps a reference-counted pointer to the original
+/// `Mutex`, so even if the lock goes away, the guard remains valid.
+///
+/// The lock is automatically released whenever the guard is dropped, at which
+/// point `lock` will succeed yet again.
+///
+/// [`Arc`]: std::sync::Arc
+</span><span class="kw">pub struct </span>OwnedMutexGuard&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span>resource_span: tracing::Span,
+    lock: Arc&lt;Mutex&lt;T&gt;&gt;,
 }
 
-<span class="doccomment">/// A handle to a held `Mutex` that has had a function applied to it via [`MutexGuard::map`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This can be used to hold a subfield of the protected data.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`MutexGuard::map`]: method@MutexGuard::map</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;if unused the Mutex will immediately unlock&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
-    <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">semaphore::Semaphore</a>,
-    <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>,
-    <span class="comment">// Needed to tell the borrow checker that we are holding a `&amp;mut T`</span>
-    <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A handle to a held `Mutex` that has had a function applied to it via [`MutexGuard::map`].
+///
+/// This can be used to hold a subfield of the protected data.
+///
+/// [`MutexGuard::map`]: method@MutexGuard::map
+</span><span class="attribute">#[must_use = <span class="string">&quot;if unused the Mutex will immediately unlock&quot;</span>]
+</span><span class="kw">pub struct </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; {
+    s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/tokio/sync/batch_semaphore.rs.html#36">semaphore::Semaphore</a>,
+    data: <span class="kw-2">*mut </span>T,
+    <span class="comment">// Needed to tell the borrow checker that we are holding a `&amp;mut T`
+    </span>marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T&gt;,
 }
 
-<span class="comment">// As long as T: Send, it&#39;s fine to send and share Mutex&lt;T&gt; between threads.</span>
-<span class="comment">// If T was not Send, sending and sharing a Mutex&lt;T&gt; would be bad, since you can</span>
-<span class="comment">// access T through Mutex&lt;T&gt;.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;a</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;a</span> {}
+<span class="comment">// As long as T: Send, it&#39;s fine to send and share Mutex&lt;T&gt; between threads.
+// If T was not Send, sending and sharing a Mutex&lt;T&gt; would be bad, since you can
+// access T through Mutex&lt;T&gt;.
+</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>Mutex&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>Mutex&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;a </span>{}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a </span>{}
 
-<span class="doccomment">/// Error returned from the [`Mutex::try_lock`], [`RwLock::try_read`] and</span>
-<span class="doccomment">/// [`RwLock::try_write`] functions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Mutex::try_lock` operation will only fail if the mutex is already locked.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `RwLock::try_read` operation will only fail if the lock is currently held</span>
-<span class="doccomment">/// by an exclusive writer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `RwLock::try_write` operation will if lock is held by any reader or by an</span>
-<span class="doccomment">/// exclusive writer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Mutex::try_lock`]: Mutex::try_lock</span>
-<span class="doccomment">/// [`RwLock::try_read`]: fn@super::RwLock::try_read</span>
-<span class="doccomment">/// [`RwLock::try_write`]: fn@super::RwLock::try_write</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TryLockError</span>(<span class="kw">pub</span>(<span class="kw">super</span>) ());
+<span class="doccomment">/// Error returned from the [`Mutex::try_lock`], [`RwLock::try_read`] and
+/// [`RwLock::try_write`] functions.
+///
+/// `Mutex::try_lock` operation will only fail if the mutex is already locked.
+///
+/// `RwLock::try_read` operation will only fail if the lock is currently held
+/// by an exclusive writer.
+///
+/// `RwLock::try_write` operation will if lock is held by any reader or by an
+/// exclusive writer.
+///
+/// [`Mutex::try_lock`]: Mutex::try_lock
+/// [`RwLock::try_read`]: fn@super::RwLock::try_read
+/// [`RwLock::try_write`]: fn@super::RwLock::try_write
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>TryLockError(<span class="kw">pub</span>(<span class="kw">super</span>) ());
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#212">fmt</a>, <span class="string">&quot;operation would block&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tokio/sync/mutex.rs.html#212">fmt</a>, <span class="string">&quot;operation would block&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span><a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a> {}
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">loom</span>))]</span>
-<span class="kw">fn</span> <span class="ident">bounds</span>() {
-    <span class="kw">fn</span> <span class="ident">check_send</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span>() {}
-    <span class="kw">fn</span> <span class="ident">check_unpin</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Unpin</span><span class="op">&gt;</span>() {}
-    <span class="comment">// This has to take a value, since the async fn&#39;s return type is unnameable.</span>
-    <span class="kw">fn</span> <span class="ident">check_send_sync_val</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">_t</span>: <span class="ident">T</span>) {}
-    <span class="kw">fn</span> <span class="ident">check_send_sync</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>() {}
-    <span class="kw">fn</span> <span class="ident">check_static</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>() {}
-    <span class="kw">fn</span> <span class="ident">check_static_val</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">_t</span>: <span class="ident">T</span>) {}
+<span class="attribute">#[test]
+#[cfg(not(loom))]
+</span><span class="kw">fn </span>bounds() {
+    <span class="kw">fn </span>check_send&lt;T: Send&gt;() {}
+    <span class="kw">fn </span>check_unpin&lt;T: Unpin&gt;() {}
+    <span class="comment">// This has to take a value, since the async fn&#39;s return type is unnameable.
+    </span><span class="kw">fn </span>check_send_sync_val&lt;T: Send + Sync&gt;(_t: T) {}
+    <span class="kw">fn </span>check_send_sync&lt;T: Send + Sync&gt;() {}
+    <span class="kw">fn </span>check_static&lt;T: <span class="lifetime">&#39;static</span>&gt;() {}
+    <span class="kw">fn </span>check_static_val&lt;T: <span class="lifetime">&#39;static</span>&gt;(_t: T) {}
 
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_send</span>::<span class="op">&lt;</span><span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_unpin</span>::<span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_send_sync</span>::<span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">check_static</span>::<span class="op">&lt;</span><span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    check_send::&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, u32&gt;&gt;();
+    check_send::&lt;OwnedMutexGuard&lt;u32&gt;&gt;();
+    check_unpin::&lt;Mutex&lt;u32&gt;&gt;();
+    check_send_sync::&lt;Mutex&lt;u32&gt;&gt;();
+    check_static::&lt;OwnedMutexGuard&lt;u32&gt;&gt;();
 
-    <span class="kw">let</span> <span class="ident">mutex</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<span class="number">1</span>);
-    <span class="ident">check_send_sync_val</span>(<span class="ident">mutex</span>.<span class="ident">lock</span>());
-    <span class="kw">let</span> <span class="ident">arc_mutex</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="number">1</span>));
-    <span class="ident">check_send_sync_val</span>(<span class="ident">arc_mutex</span>.<span class="ident">clone</span>().<span class="ident">lock_owned</span>());
-    <span class="ident">check_static_val</span>(<span class="ident">arc_mutex</span>.<span class="ident">lock_owned</span>());
+    <span class="kw">let </span>mutex = Mutex::new(<span class="number">1</span>);
+    check_send_sync_val(mutex.lock());
+    <span class="kw">let </span>arc_mutex = Arc::new(Mutex::new(<span class="number">1</span>));
+    check_send_sync_val(arc_mutex.clone().lock_owned());
+    check_static_val(arc_mutex.lock_owned());
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new lock in an unlocked state ready for use.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let lock = Mutex::new(5);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; Mutex&lt;T&gt; {
+    <span class="doccomment">/// Creates a new lock in an unlocked state ready for use.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::Mutex;
+    ///
+    /// let lock = Mutex::new(5);
+    /// ```
+    </span><span class="attribute">#[track_caller]
+    </span><span class="kw">pub fn </span>new(t: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">std::panic::Location::caller</span>();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = {
+            <span class="kw">let </span>location = std::panic::Location::caller();
 
             <span class="macro">tracing::trace_span!</span>(
                 <span class="string">&quot;runtime.resource&quot;</span>,
-                <span class="ident">concrete_type</span> <span class="op">=</span> <span class="string">&quot;Mutex&quot;</span>,
-                <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;Sync&quot;</span>,
-                <span class="ident">loc</span>.<span class="ident">file</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">file</span>(),
-                <span class="ident">loc</span>.<span class="ident">line</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">line</span>(),
-                <span class="ident">loc</span>.<span class="ident">col</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">column</span>(),
+                concrete_type = <span class="string">&quot;Mutex&quot;</span>,
+                kind = <span class="string">&quot;Sync&quot;</span>,
+                loc.file = location.file(),
+                loc.line = location.line(),
+                loc.col = location.column(),
             )
         };
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>s = resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                <span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">false</span>,
+                target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                locked = <span class="bool-val">false</span>,
             );
-            <span class="ident">semaphore::Semaphore::new</span>(<span class="number">1</span>)
+            semaphore::Semaphore::new(<span class="number">1</span>)
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">semaphore::Semaphore::new</span>(<span class="number">1</span>);
+        <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="kw">let </span>s = semaphore::Semaphore::new(<span class="number">1</span>);
 
-        <span class="self">Self</span> {
-            <span class="ident">c</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#254">t</a>),
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#282">s</a>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        <span class="self">Self </span>{
+            c: UnsafeCell::new(<a href="../../../src/tokio/sync/mutex.rs.html#254">t</a>),
+            <a href="../../../src/tokio/sync/mutex.rs.html#282">s</a>,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 
-    <span class="doccomment">/// Creates a new lock in an unlocked state ready for use.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// static LOCK: Mutex&lt;i32&gt; = Mutex::const_new(5);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parking_lot&quot;</span>, <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">loom</span>, <span class="ident">test</span>)),))]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parking_lot&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">const_new</span>(<span class="ident">t</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Sized</span>,
+    <span class="doccomment">/// Creates a new lock in an unlocked state ready for use.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::Mutex;
+    ///
+    /// static LOCK: Mutex&lt;i32&gt; = Mutex::const_new(5);
+    /// ```
+    </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;parking_lot&quot;</span>, not(all(loom, test)),))]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;parking_lot&quot;</span>)))]
+    </span><span class="kw">pub const fn </span>const_new(t: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Sized,
     {
-        <span class="self">Self</span> {
-            <span class="ident">c</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">t</span>),
-            <span class="ident">s</span>: <span class="ident">semaphore::Semaphore::const_new</span>(<span class="number">1</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="ident">tracing::Span::none</span>(),
+        <span class="self">Self </span>{
+            c: UnsafeCell::new(t),
+            s: semaphore::Semaphore::const_new(<span class="number">1</span>),
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: tracing::Span::none(),
         }
     }
 
-    <span class="doccomment">/// Locks this mutex, causing the current task to yield until the lock has</span>
-    <span class="doccomment">/// been acquired.  When the lock has been acquired, function returns a</span>
-    <span class="doccomment">/// [`MutexGuard`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method uses a queue to fairly distribute locks in the order they</span>
-    <span class="doccomment">/// were requested. Cancelling a call to `lock` makes you lose your place in</span>
-    <span class="doccomment">/// the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let mutex = Mutex::new(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let mut n = mutex.lock().await;</span>
-    <span class="doccomment">///     *n = 2;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="ident">trace::async_op</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">acquire</span>(),
-            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+    <span class="doccomment">/// Locks this mutex, causing the current task to yield until the lock has
+    /// been acquired.  When the lock has been acquired, function returns a
+    /// [`MutexGuard`].
+    ///
+    /// # Cancel safety
+    ///
+    /// This method uses a queue to fairly distribute locks in the order they
+    /// were requested. Cancelling a call to `lock` makes you lose your place in
+    /// the queue.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::Mutex;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let mutex = Mutex::new(1);
+    ///
+    ///     let mut n = mutex.lock().await;
+    ///     *n = 2;
+    /// }
+    /// ```
+    </span><span class="kw">pub async fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span>trace::async_op(
+            || <span class="self">self</span>.acquire(),
+            <span class="self">self</span>.resource_span.clone(),
             <span class="string">&quot;Mutex::lock&quot;</span>,
             <span class="string">&quot;poll&quot;</span>,
             <span class="bool-val">false</span>,
         )
         .<span class="kw">await</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                <span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                locked = <span class="bool-val">true</span>,
             );
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="self">self</span>.<span class="ident">acquire</span>().<span class="kw">await</span>;
+        <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="self">self</span>.acquire().<span class="kw">await</span>;
 
-        <span class="ident">MutexGuard</span> {
-            <span class="ident">lock</span>: <span class="self">self</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>: <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+        MutexGuard {
+            lock: <span class="self">self</span>,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span: <span class="self">self</span>.resource_span.clone(),
         }
     }
 
-    <span class="doccomment">/// Blockingly locks this `Mutex`. When the lock has been acquired, function returns a</span>
-    <span class="doccomment">/// [`MutexGuard`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is intended for use cases where you</span>
-    <span class="doccomment">/// need to use this mutex in asynchronous code as well as in synchronous code.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if called within an asynchronous execution context.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///   - If you find yourself in an asynchronous execution context and needing</span>
-    <span class="doccomment">///     to call some (synchronous) function which performs one of these</span>
-    <span class="doccomment">///     `blocking_` operations, then consider wrapping that call inside</span>
-    <span class="doccomment">///     [`spawn_blocking()`][crate::runtime::Handle::spawn_blocking]</span>
-    <span class="doccomment">///     (or [`block_in_place()`][crate::task::block_in_place]).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let mutex =  Arc::new(Mutex::new(1));</span>
-    <span class="doccomment">///     let lock = mutex.lock().await;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let mutex1 = Arc::clone(&amp;mutex);</span>
-    <span class="doccomment">///     let blocking_task = tokio::task::spawn_blocking(move || {</span>
-    <span class="doccomment">///         // This shall block until the `lock` is released.</span>
-    <span class="doccomment">///         let mut n = mutex1.blocking_lock();</span>
-    <span class="doccomment">///         *n = 2;</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     assert_eq!(*lock, 1);</span>
-    <span class="doccomment">///     // Release the lock.</span>
-    <span class="doccomment">///     drop(lock);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Await the completion of the blocking task.</span>
-    <span class="doccomment">///     blocking_task.await.unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Assert uncontended.</span>
-    <span class="doccomment">///     let n = mutex.try_lock().unwrap();</span>
-    <span class="doccomment">///     assert_eq!(*n, 2);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blocking_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/mutex.rs.html#416">self</a>.<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#338">lock</a>())
+    <span class="doccomment">/// Blockingly locks this `Mutex`. When the lock has been acquired, function returns a
+    /// [`MutexGuard`].
+    ///
+    /// This method is intended for use cases where you
+    /// need to use this mutex in asynchronous code as well as in synchronous code.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if called within an asynchronous execution context.
+    ///
+    ///   - If you find yourself in an asynchronous execution context and needing
+    ///     to call some (synchronous) function which performs one of these
+    ///     `blocking_` operations, then consider wrapping that call inside
+    ///     [`spawn_blocking()`][crate::runtime::Handle::spawn_blocking]
+    ///     (or [`block_in_place()`][crate::task::block_in_place]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::Mutex;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let mutex =  Arc::new(Mutex::new(1));
+    ///     let lock = mutex.lock().await;
+    ///
+    ///     let mutex1 = Arc::clone(&amp;mutex);
+    ///     let blocking_task = tokio::task::spawn_blocking(move || {
+    ///         // This shall block until the `lock` is released.
+    ///         let mut n = mutex1.blocking_lock();
+    ///         *n = 2;
+    ///     });
+    ///
+    ///     assert_eq!(*lock, 1);
+    ///     // Release the lock.
+    ///     drop(lock);
+    ///
+    ///     // Await the completion of the blocking task.
+    ///     blocking_task.await.unwrap();
+    ///
+    ///     // Assert uncontended.
+    ///     let n = mutex.try_lock().unwrap();
+    ///     assert_eq!(*n, 2);
+    /// }
+    ///
+    /// ```
+    </span><span class="attribute">#[track_caller]
+    #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
+    </span><span class="kw">pub fn </span>blocking_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <a href="../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../src/tokio/sync/mutex.rs.html#416">self</a>.<a href="../../../src/tokio/sync/mutex.rs.html#338">lock</a>())
     }
 
-    <span class="doccomment">/// Locks this mutex, causing the current task to yield until the lock has</span>
-    <span class="doccomment">/// been acquired. When the lock has been acquired, this returns an</span>
-    <span class="doccomment">/// [`OwnedMutexGuard`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is identical to [`Mutex::lock`], except that the returned</span>
-    <span class="doccomment">/// guard references the `Mutex` with an [`Arc`] rather than by borrowing</span>
-    <span class="doccomment">/// it. Therefore, the `Mutex` must be wrapped in an `Arc` to call this</span>
-    <span class="doccomment">/// method, and the guard will live for the `&#39;static` lifetime, as it keeps</span>
-    <span class="doccomment">/// the `Mutex` alive by holding an `Arc`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method uses a queue to fairly distribute locks in the order they</span>
-    <span class="doccomment">/// were requested. Cancelling a call to `lock_owned` makes you lose your</span>
-    <span class="doccomment">/// place in the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let mutex = Arc::new(Mutex::new(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let mut n = mutex.clone().lock_owned().await;</span>
-    <span class="doccomment">///     *n = 2;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Arc`]: std::sync::Arc</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">lock_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="ident">trace::async_op</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">acquire</span>(),
-            <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+    <span class="doccomment">/// Locks this mutex, causing the current task to yield until the lock has
+    /// been acquired. When the lock has been acquired, this returns an
+    /// [`OwnedMutexGuard`].
+    ///
+    /// This method is identical to [`Mutex::lock`], except that the returned
+    /// guard references the `Mutex` with an [`Arc`] rather than by borrowing
+    /// it. Therefore, the `Mutex` must be wrapped in an `Arc` to call this
+    /// method, and the guard will live for the `&#39;static` lifetime, as it keeps
+    /// the `Mutex` alive by holding an `Arc`.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method uses a queue to fairly distribute locks in the order they
+    /// were requested. Cancelling a call to `lock_owned` makes you lose your
+    /// place in the queue.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::Mutex;
+    /// use std::sync::Arc;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let mutex = Arc::new(Mutex::new(1));
+    ///
+    ///     let mut n = mutex.clone().lock_owned().await;
+    ///     *n = 2;
+    /// }
+    /// ```
+    ///
+    /// [`Arc`]: std::sync::Arc
+    </span><span class="kw">pub async fn </span>lock_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; OwnedMutexGuard&lt;T&gt; {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span>trace::async_op(
+            || <span class="self">self</span>.acquire(),
+            <span class="self">self</span>.resource_span.clone(),
             <span class="string">&quot;Mutex::lock_owned&quot;</span>,
             <span class="string">&quot;poll&quot;</span>,
             <span class="bool-val">false</span>,
         )
         .<span class="kw">await</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                <span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                locked = <span class="bool-val">true</span>,
             );
         });
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">tokio_unstable</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>)))]</span>
-        <span class="self">self</span>.<span class="ident">acquire</span>().<span class="kw">await</span>;
+        <span class="attribute">#[cfg(any(not(tokio_unstable), not(feature = <span class="string">&quot;tracing&quot;</span>)))]
+        </span><span class="self">self</span>.acquire().<span class="kw">await</span>;
 
-        <span class="ident">OwnedMutexGuard</span> {
-            <span class="ident">lock</span>: <span class="self">self</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-            <span class="ident">resource_span</span>,
+        OwnedMutexGuard {
+            lock: <span class="self">self</span>,
+            <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+            </span>resource_span,
         }
     }
 
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">acquire</span>(<span class="number">1</span>).<span class="kw">await</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and</span>
-            <span class="comment">// we own it exclusively, which means that this can never happen.</span>
-            <span class="macro">unreachable!</span>()
+    <span class="kw">async fn </span>acquire(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.s.acquire(<span class="number">1</span>).<span class="kw">await</span>.unwrap_or_else(|<span class="kw">_</span>| {
+            <span class="comment">// The semaphore was closed. but, we never explicitly close it, and
+            // we own it exclusively, which means that this can never happen.
+            </span><span class="macro">unreachable!</span>()
         });
     }
 
-    <span class="doccomment">/// Attempts to acquire the lock, and returns [`TryLockError`] if the</span>
-    <span class="doccomment">/// lock is currently held somewhere else.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TryLockError`]: TryLockError</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">/// # async fn dox() -&gt; Result&lt;(), tokio::sync::TryLockError&gt; {</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mutex = Mutex::new(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let n = mutex.try_lock()?;</span>
-    <span class="doccomment">/// assert_eq!(*n, 1);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/mutex.rs.html#509">self</a>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+    <span class="doccomment">/// Attempts to acquire the lock, and returns [`TryLockError`] if the
+    /// lock is currently held somewhere else.
+    ///
+    /// [`TryLockError`]: TryLockError
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::Mutex;
+    /// # async fn dox() -&gt; Result&lt;(), tokio::sync::TryLockError&gt; {
+    ///
+    /// let mutex = Mutex::new(1);
+    ///
+    /// let n = mutex.try_lock()?;
+    /// assert_eq!(*n, 1);
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>try_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#509">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                </span><span class="self">self</span>.resource_span.in_scope(|| {
                     <span class="macro">tracing::trace!</span>(
-                        <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                        <span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                        target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                        locked = <span class="bool-val">true</span>,
                     );
                 });
 
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#144">MutexGuard</a> {
-                    <span class="ident">lock</span>: <a class="self" href="../../../src/tokio/sync/mutex.rs.html#509">self</a>,
-                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                    <span class="ident">resource_span</span>: <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>(),
+                <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/mutex.rs.html#144">MutexGuard</a> {
+                    lock: <a class="self" href="../../../src/tokio/sync/mutex.rs.html#509">self</a>,
+                    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                    </span>resource_span: <span class="self">self</span>.resource_span.clone(),
                 })
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
         }
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the underlying data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Since this call borrows the `Mutex` mutably, no actual locking needs to</span>
-    <span class="doccomment">/// take place -- the mutable borrow statically guarantees no locks exist.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn main() {</span>
-    <span class="doccomment">///     let mut mutex = Mutex::new(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let n = mutex.get_mut();</span>
-    <span class="doccomment">///     *n = 2;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw">unsafe</span> {
-            <span class="comment">// Safety: This is https://github.com/rust-lang/rust/pull/76936</span>
-            <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#547">self</a>.<span class="ident">c</span>.<span class="ident">get</span>()
+    <span class="doccomment">/// Returns a mutable reference to the underlying data.
+    ///
+    /// Since this call borrows the `Mutex` mutably, no actual locking needs to
+    /// take place -- the mutable borrow statically guarantees no locks exist.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::Mutex;
+    ///
+    /// fn main() {
+    ///     let mut mutex = Mutex::new(1);
+    ///
+    ///     let n = mutex.get_mut();
+    ///     *n = 2;
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">unsafe </span>{
+            <span class="comment">// Safety: This is https://github.com/rust-lang/rust/pull/76936
+            </span><span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#547">self</a>.c.get()
         }
     }
 
-    <span class="doccomment">/// Attempts to acquire the lock, and returns [`TryLockError`] if the lock</span>
-    <span class="doccomment">/// is currently held somewhere else.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is identical to [`Mutex::try_lock`], except that the</span>
-    <span class="doccomment">/// returned  guard references the `Mutex` with an [`Arc`] rather than by</span>
-    <span class="doccomment">/// borrowing it. Therefore, the `Mutex` must be wrapped in an `Arc` to call</span>
-    <span class="doccomment">/// this method, and the guard will live for the `&#39;static` lifetime, as it</span>
-    <span class="doccomment">/// keeps the `Mutex` alive by holding an `Arc`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TryLockError`]: TryLockError</span>
-    <span class="doccomment">/// [`Arc`]: std::sync::Arc</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// # async fn dox() -&gt; Result&lt;(), tokio::sync::TryLockError&gt; {</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mutex = Arc::new(Mutex::new(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let n = mutex.clone().try_lock_owned()?;</span>
-    <span class="doccomment">/// assert_eq!(*n, 1);</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/mutex.rs.html#578">self</a>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
+    <span class="doccomment">/// Attempts to acquire the lock, and returns [`TryLockError`] if the lock
+    /// is currently held somewhere else.
+    ///
+    /// This method is identical to [`Mutex::try_lock`], except that the
+    /// returned  guard references the `Mutex` with an [`Arc`] rather than by
+    /// borrowing it. Therefore, the `Mutex` must be wrapped in an `Arc` to call
+    /// this method, and the guard will live for the `&#39;static` lifetime, as it
+    /// keeps the `Mutex` alive by holding an `Arc`.
+    ///
+    /// [`TryLockError`]: TryLockError
+    /// [`Arc`]: std::sync::Arc
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::Mutex;
+    /// use std::sync::Arc;
+    /// # async fn dox() -&gt; Result&lt;(), tokio::sync::TryLockError&gt; {
+    ///
+    /// let mutex = Arc::new(Mutex::new(1));
+    ///
+    /// let n = mutex.clone().try_lock_owned()?;
+    /// assert_eq!(*n, 1);
+    /// # Ok(())
+    /// # }
+    </span><span class="kw">pub fn </span>try_lock_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedMutexGuard&lt;T&gt;, <a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#578">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                </span><span class="self">self</span>.resource_span.in_scope(|| {
                     <span class="macro">tracing::trace!</span>(
-                        <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                        <span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                        target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                        locked = <span class="bool-val">true</span>,
                     );
                 });
 
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
+                <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                </span><span class="kw">let </span>resource_span = <span class="self">self</span>.resource_span.clone();
 
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#165">OwnedMutexGuard</a> {
-                    <span class="ident">lock</span>: <a class="self" href="../../../src/tokio/sync/mutex.rs.html#578">self</a>,
-                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-                    <span class="ident">resource_span</span>,
+                <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/mutex.rs.html#165">OwnedMutexGuard</a> {
+                    lock: <a class="self" href="../../../src/tokio/sync/mutex.rs.html#578">self</a>,
+                    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+                    </span>resource_span,
                 })
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#209">TryLockError</a>(())),
         }
     }
 
-    <span class="doccomment">/// Consumes the mutex, returning the underlying data.</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::Mutex;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     let mutex = Mutex::new(1);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let n = mutex.into_inner();</span>
-    <span class="doccomment">///     assert_eq!(n, 1);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="doccomment">/// Consumes the mutex, returning the underlying data.
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::Mutex;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let mutex = Mutex::new(1);
+    ///
+    ///     let n = mutex.into_inner();
+    ///     assert_eq!(n, 1);
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#616">self</a>.<span class="ident">c</span>.<span class="ident">into_inner</span>()
+        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#616">self</a>.c.into_inner()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#625">s</a>)
+<span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>Mutex&lt;T&gt; {
+    <span class="kw">fn </span>from(s: T) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(<a href="../../../src/tokio/sync/mutex.rs.html#625">s</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Mutex&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
 {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">T::default</span>())
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(T::default())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a>,
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for </span>Mutex&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#643">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Mutex&quot;</span>);
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/mutex.rs.html#643">self</a>.<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#509">try_lock</a>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">inner</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.<span class="ident">field</span>(<span class="string">&quot;data&quot;</span>, <span class="op">&amp;&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/mutex.rs.html#646">inner</a>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.<span class="ident">field</span>(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;&lt;locked&gt;&quot;</span>)),
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>d = <a href="../../../src/tokio/sync/mutex.rs.html#643">f</a>.debug_struct(<span class="string">&quot;Mutex&quot;</span>);
+        <span class="kw">match </span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#643">self</a>.<a href="../../../src/tokio/sync/mutex.rs.html#509">try_lock</a>() {
+            <span class="prelude-val">Ok</span>(inner) =&gt; <a href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">*</span><a href="../../../src/tokio/sync/mutex.rs.html#646">inner</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;&lt;locked&gt;&quot;</span>)),
         };
-        <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.<span class="ident">finish</span>()
+        <a href="../../../src/tokio/sync/mutex.rs.html#644">d</a>.finish()
     }
 }
 
-<span class="comment">// === impl MutexGuard ===</span>
+<span class="comment">// === impl MutexGuard ===
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Makes a new [`MappedMutexGuard`] for a component of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operation cannot fail as the [`MutexGuard`] passed in already locked the mutex.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an associated function that needs to be used as `MutexGuard::map(...)`. A method</span>
-    <span class="doccomment">/// would interfere with methods of the same name on the contents of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::{Mutex, MutexGuard};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[derive(Debug, Clone, Copy, PartialEq, Eq)]</span>
-    <span class="doccomment">/// struct Foo(u32);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # #[tokio::main]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// let foo = Mutex::new(Foo(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// {</span>
-    <span class="doccomment">///     let mut mapped = MutexGuard::map(foo.lock().await, |f| &amp;mut f.0);</span>
-    <span class="doccomment">///     *mapped = 2;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(Foo(2), *foo.lock().await);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`MutexGuard`]: struct@MutexGuard</span>
-    <span class="doccomment">/// [`MappedMutexGuard`]: struct@MappedMutexGuard</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">U</span>,
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="doccomment">/// Makes a new [`MappedMutexGuard`] for a component of the locked data.
+    ///
+    /// This operation cannot fail as the [`MutexGuard`] passed in already locked the mutex.
+    ///
+    /// This is an associated function that needs to be used as `MutexGuard::map(...)`. A method
+    /// would interfere with methods of the same name on the contents of the locked data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::{Mutex, MutexGuard};
+    ///
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    /// struct Foo(u32);
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let foo = Mutex::new(Foo(1));
+    ///
+    /// {
+    ///     let mut mapped = MutexGuard::map(foo.lock().await, |f| &amp;mut f.0);
+    ///     *mapped = 2;
+    /// }
+    ///
+    /// assert_eq!(Foo(2), *foo.lock().await);
+    /// # }
+    /// ```
+    ///
+    /// [`MutexGuard`]: struct@MutexGuard
+    /// [`MappedMutexGuard`]: struct@MappedMutexGuard
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>map&lt;U, F&gt;(<span class="kw-2">mut </span>this: <span class="self">Self</span>, f: F) -&gt; MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, U&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="kw-2">&amp;mut </span>U,
     {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#687">f</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/mutex.rs.html#687">this</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">U</span>;
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/mutex.rs.html#687">this</a>.<span class="ident">lock</span>.<span class="ident">s</span>;
-        <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#687">this</a>);
-        <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#692">s</a>,
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#691">data</a>,
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
+        <span class="kw">let </span>data = <a href="../../../src/tokio/sync/mutex.rs.html#687">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/mutex.rs.html#687">this</a>) <span class="kw">as </span><span class="kw-2">*mut </span>U;
+        <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/mutex.rs.html#687">this</a>.lock.s;
+        mem::forget(<a href="../../../src/tokio/sync/mutex.rs.html#687">this</a>);
+        <a href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
+            <a href="../../../src/tokio/sync/mutex.rs.html#692">s</a>,
+            <a href="../../../src/tokio/sync/mutex.rs.html#691">data</a>,
+            marker: marker::PhantomData,
         }
     }
 
-    <span class="doccomment">/// Attempts to make a new [`MappedMutexGuard`] for a component of the locked data. The</span>
-    <span class="doccomment">/// original guard is returned if the closure returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operation cannot fail as the [`MutexGuard`] passed in already locked the mutex.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an associated function that needs to be used as `MutexGuard::try_map(...)`. A</span>
-    <span class="doccomment">/// method would interfere with methods of the same name on the contents of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::{Mutex, MutexGuard};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[derive(Debug, Clone, Copy, PartialEq, Eq)]</span>
-    <span class="doccomment">/// struct Foo(u32);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # #[tokio::main]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// let foo = Mutex::new(Foo(1));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// {</span>
-    <span class="doccomment">///     let mut mapped = MutexGuard::try_map(foo.lock().await, |f| Some(&amp;mut f.0))</span>
-    <span class="doccomment">///         .expect(&quot;should not fail&quot;);</span>
-    <span class="doccomment">///     *mapped = 2;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(Foo(2), *foo.lock().await);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`MutexGuard`]: struct@MutexGuard</span>
-    <span class="doccomment">/// [`MappedMutexGuard`]: struct@MappedMutexGuard</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">U</span><span class="op">&gt;</span>, <span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">U</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Attempts to make a new [`MappedMutexGuard`] for a component of the locked data. The
+    /// original guard is returned if the closure returns `None`.
+    ///
+    /// This operation cannot fail as the [`MutexGuard`] passed in already locked the mutex.
+    ///
+    /// This is an associated function that needs to be used as `MutexGuard::try_map(...)`. A
+    /// method would interfere with methods of the same name on the contents of the locked data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::{Mutex, MutexGuard};
+    ///
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    /// struct Foo(u32);
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let foo = Mutex::new(Foo(1));
+    ///
+    /// {
+    ///     let mut mapped = MutexGuard::try_map(foo.lock().await, |f| Some(&amp;mut f.0))
+    ///         .expect(&quot;should not fail&quot;);
+    ///     *mapped = 2;
+    /// }
+    ///
+    /// assert_eq!(Foo(2), *foo.lock().await);
+    /// # }
+    /// ```
+    ///
+    /// [`MutexGuard`]: struct@MutexGuard
+    /// [`MappedMutexGuard`]: struct@MappedMutexGuard
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_map&lt;U, F&gt;(<span class="kw-2">mut </span>this: <span class="self">Self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, U&gt;, <span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>U&gt;,
     {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#734">f</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/mutex.rs.html#734">this</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#739">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">U</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#734">this</a>),
+        <span class="kw">let </span>data = <span class="kw">match </span><a href="../../../src/tokio/sync/mutex.rs.html#734">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/mutex.rs.html#734">this</a>) {
+            <span class="prelude-val">Some</span>(data) =&gt; <a href="../../../src/tokio/sync/mutex.rs.html#739">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>U,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#734">this</a>),
         };
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/mutex.rs.html#734">this</a>.<span class="ident">lock</span>.<span class="ident">s</span>;
-        <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#734">this</a>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#742">s</a>,
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#738">data</a>,
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
+        <span class="kw">let </span>s = <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/mutex.rs.html#734">this</a>.lock.s;
+        mem::forget(<a href="../../../src/tokio/sync/mutex.rs.html#734">this</a>);
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
+            <a href="../../../src/tokio/sync/mutex.rs.html#742">s</a>,
+            <a href="../../../src/tokio/sync/mutex.rs.html#738">data</a>,
+            marker: marker::PhantomData,
         })
     }
 
-    <span class="doccomment">/// Returns a reference to the original `Mutex`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::sync::{Mutex, MutexGuard};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// async fn unlock_and_relock&lt;&#39;l&gt;(guard: MutexGuard&lt;&#39;l, u32&gt;) -&gt; MutexGuard&lt;&#39;l, u32&gt; {</span>
-    <span class="doccomment">///     println!(&quot;1. contains: {:?}&quot;, *guard);</span>
-    <span class="doccomment">///     let mutex = MutexGuard::mutex(&amp;guard);</span>
-    <span class="doccomment">///     drop(guard);</span>
-    <span class="doccomment">///     let guard = mutex.lock().await;</span>
-    <span class="doccomment">///     println!(&quot;2. contains: {:?}&quot;, *guard);</span>
-    <span class="doccomment">///     guard</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # #[tokio::main]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// #     let mutex = Mutex::new(0u32);</span>
-    <span class="doccomment">/// #     let guard = mutex.lock().await;</span>
-    <span class="doccomment">/// #     unlock_and_relock(guard).await;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mutex</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#773">this</a>.<span class="ident">lock</span>
+    <span class="doccomment">/// Returns a reference to the original `Mutex`.
+    ///
+    /// ```
+    /// use tokio::sync::{Mutex, MutexGuard};
+    ///
+    /// async fn unlock_and_relock&lt;&#39;l&gt;(guard: MutexGuard&lt;&#39;l, u32&gt;) -&gt; MutexGuard&lt;&#39;l, u32&gt; {
+    ///     println!(&quot;1. contains: {:?}&quot;, *guard);
+    ///     let mutex = MutexGuard::mutex(&amp;guard);
+    ///     drop(guard);
+    ///     let guard = mutex.lock().await;
+    ///     println!(&quot;2. contains: {:?}&quot;, *guard);
+    ///     guard
+    /// }
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// #     let mutex = Mutex::new(0u32);
+    /// #     let guard = mutex.lock().await;
+    /// #     unlock_and_relock(guard).await;
+    /// # }
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>mutex(this: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt; {
+        <a href="../../../src/tokio/sync/mutex.rs.html#773">this</a>.lock
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                <span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">false</span>,
+                target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                locked = <span class="bool-val">false</span>,
             );
         });
-        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#779">self</a>.<span class="ident">lock</span>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>);
+        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#779">self</a>.lock.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#793">self</a>.<span class="ident">lock</span>.<span class="ident">c</span>.<span class="ident">get</span>() }
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">type </span>Target = T;
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#793">self</a>.lock.c.get() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#799">self</a>.<span class="ident">lock</span>.<span class="ident">c</span>.<span class="ident">get</span>() }
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#799">self</a>.lock.c.get() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#805">self</a>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#805">f</a>)
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#805">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#805">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#811">self</a>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#811">f</a>)
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#811">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#811">f</a>)
     }
 }
 
-<span class="comment">// === impl OwnedMutexGuard ===</span>
+<span class="comment">// === impl OwnedMutexGuard ===
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Returns a reference to the original `Arc&lt;Mutex&gt;`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::sync::Arc;</span>
-    <span class="doccomment">/// use tokio::sync::{Mutex, OwnedMutexGuard};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// async fn unlock_and_relock(guard: OwnedMutexGuard&lt;u32&gt;) -&gt; OwnedMutexGuard&lt;u32&gt; {</span>
-    <span class="doccomment">///     println!(&quot;1. contains: {:?}&quot;, *guard);</span>
-    <span class="doccomment">///     let mutex: Arc&lt;Mutex&lt;u32&gt;&gt; = OwnedMutexGuard::mutex(&amp;guard).clone();</span>
-    <span class="doccomment">///     drop(guard);</span>
-    <span class="doccomment">///     let guard = mutex.lock_owned().await;</span>
-    <span class="doccomment">///     println!(&quot;2. contains: {:?}&quot;, *guard);</span>
-    <span class="doccomment">///     guard</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # #[tokio::main]</span>
-    <span class="doccomment">/// # async fn main() {</span>
-    <span class="doccomment">/// #     let mutex = Arc::new(Mutex::new(0u32));</span>
-    <span class="doccomment">/// #     let guard = mutex.lock_owned().await;</span>
-    <span class="doccomment">/// #     unlock_and_relock(guard).await;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mutex</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/mutex.rs.html#842">this</a>.<span class="ident">lock</span>
+</span><span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; OwnedMutexGuard&lt;T&gt; {
+    <span class="doccomment">/// Returns a reference to the original `Arc&lt;Mutex&gt;`.
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use tokio::sync::{Mutex, OwnedMutexGuard};
+    ///
+    /// async fn unlock_and_relock(guard: OwnedMutexGuard&lt;u32&gt;) -&gt; OwnedMutexGuard&lt;u32&gt; {
+    ///     println!(&quot;1. contains: {:?}&quot;, *guard);
+    ///     let mutex: Arc&lt;Mutex&lt;u32&gt;&gt; = OwnedMutexGuard::mutex(&amp;guard).clone();
+    ///     drop(guard);
+    ///     let guard = mutex.lock_owned().await;
+    ///     println!(&quot;2. contains: {:?}&quot;, *guard);
+    ///     guard
+    /// }
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// #     let mutex = Arc::new(Mutex::new(0u32));
+    /// #     let guard = mutex.lock_owned().await;
+    /// #     unlock_and_relock(guard).await;
+    /// # }
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>mutex(this: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;Mutex&lt;T&gt;&gt; {
+        <span class="kw-2">&amp;</span><a href="../../../src/tokio/sync/mutex.rs.html#842">this</a>.lock
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-        <span class="self">self</span>.<span class="ident">resource_span</span>.<span class="ident">in_scope</span>(<span class="op">|</span><span class="op">|</span> {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+        </span><span class="self">self</span>.resource_span.in_scope(|| {
             <span class="macro">tracing::trace!</span>(
-                <span class="ident">target</span>: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
-                <span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">false</span>,
+                target: <span class="string">&quot;runtime::resource::state_update&quot;</span>,
+                locked = <span class="bool-val">false</span>,
             );
         });
-        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#848">self</a>.<span class="ident">lock</span>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>)
+        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#848">self</a>.lock.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#862">self</a>.<span class="ident">lock</span>.<span class="ident">c</span>.<span class="ident">get</span>() }
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
+    <span class="kw">type </span>Target = T;
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#862">self</a>.lock.c.get() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#868">self</a>.<span class="ident">lock</span>.<span class="ident">c</span>.<span class="ident">get</span>() }
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#868">self</a>.lock.c.get() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#874">self</a>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#874">f</a>)
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#874">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#874">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">OwnedMutexGuard</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#880">self</a>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#880">f</a>)
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>OwnedMutexGuard&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#880">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#880">f</a>)
     }
 }
 
-<span class="comment">// === impl MappedMutexGuard ===</span>
+<span class="comment">// === impl MappedMutexGuard ===
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Makes a new [`MappedMutexGuard`] for a component of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operation cannot fail as the [`MappedMutexGuard`] passed in already locked the mutex.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an associated function that needs to be used as `MappedMutexGuard::map(...)`. A</span>
-    <span class="doccomment">/// method would interfere with methods of the same name on the contents of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`MappedMutexGuard`]: struct@MappedMutexGuard</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">U</span>,
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="doccomment">/// Makes a new [`MappedMutexGuard`] for a component of the locked data.
+    ///
+    /// This operation cannot fail as the [`MappedMutexGuard`] passed in already locked the mutex.
+    ///
+    /// This is an associated function that needs to be used as `MappedMutexGuard::map(...)`. A
+    /// method would interfere with methods of the same name on the contents of the locked data.
+    ///
+    /// [`MappedMutexGuard`]: struct@MappedMutexGuard
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>map&lt;U, F&gt;(<span class="kw-2">mut </span>this: <span class="self">Self</span>, f: F) -&gt; MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, U&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="kw-2">&amp;mut </span>U,
     {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#897">f</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/mutex.rs.html#897">this</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">U</span>;
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#897">this</a>.<span class="ident">s</span>;
-        <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#897">this</a>);
-        <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#902">s</a>,
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#901">data</a>,
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
+        <span class="kw">let </span>data = <a href="../../../src/tokio/sync/mutex.rs.html#897">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/mutex.rs.html#897">this</a>) <span class="kw">as </span><span class="kw-2">*mut </span>U;
+        <span class="kw">let </span>s = <a href="../../../src/tokio/sync/mutex.rs.html#897">this</a>.s;
+        mem::forget(<a href="../../../src/tokio/sync/mutex.rs.html#897">this</a>);
+        <a href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
+            <a href="../../../src/tokio/sync/mutex.rs.html#902">s</a>,
+            <a href="../../../src/tokio/sync/mutex.rs.html#901">data</a>,
+            marker: marker::PhantomData,
         }
     }
 
-    <span class="doccomment">/// Attempts to make a new [`MappedMutexGuard`] for a component of the locked data. The</span>
-    <span class="doccomment">/// original guard is returned if the closure returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operation cannot fail as the [`MappedMutexGuard`] passed in already locked the mutex.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an associated function that needs to be used as `MappedMutexGuard::try_map(...)`. A</span>
-    <span class="doccomment">/// method would interfere with methods of the same name on the contents of the locked data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`MappedMutexGuard`]: struct@MappedMutexGuard</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">this</span>: <span class="self">Self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">U</span><span class="op">&gt;</span>, <span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">U</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Attempts to make a new [`MappedMutexGuard`] for a component of the locked data. The
+    /// original guard is returned if the closure returns `None`.
+    ///
+    /// This operation cannot fail as the [`MappedMutexGuard`] passed in already locked the mutex.
+    ///
+    /// This is an associated function that needs to be used as `MappedMutexGuard::try_map(...)`. A
+    /// method would interfere with methods of the same name on the contents of the locked data.
+    ///
+    /// [`MappedMutexGuard`]: struct@MappedMutexGuard
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_map&lt;U, F&gt;(<span class="kw-2">mut </span>this: <span class="self">Self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, U&gt;, <span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>U&gt;,
     {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#921">f</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/mutex.rs.html#921">this</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#926">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">U</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#921">this</a>),
+        <span class="kw">let </span>data = <span class="kw">match </span><a href="../../../src/tokio/sync/mutex.rs.html#921">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/sync/mutex.rs.html#921">this</a>) {
+            <span class="prelude-val">Some</span>(data) =&gt; <a href="../../../src/tokio/sync/mutex.rs.html#926">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>U,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio/sync/mutex.rs.html#921">this</a>),
         };
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#921">this</a>.<span class="ident">s</span>;
-        <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#921">this</a>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#929">s</a>,
-            <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#925">data</a>,
-            <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
+        <span class="kw">let </span>s = <a href="../../../src/tokio/sync/mutex.rs.html#921">this</a>.s;
+        mem::forget(<a href="../../../src/tokio/sync/mutex.rs.html#921">this</a>);
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tokio/sync/mutex.rs.html#177">MappedMutexGuard</a> {
+            <a href="../../../src/tokio/sync/mutex.rs.html#929">s</a>,
+            <a href="../../../src/tokio/sync/mutex.rs.html#925">data</a>,
+            marker: marker::PhantomData,
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#940">self</a>.<span class="ident">s</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/tokio/sync/mutex.rs.html#940">self</a>.s.<a href="../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<span class="number">1</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#947">self</a>.<span class="ident">data</span> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">type </span>Target = T;
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#947">self</a>.data }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#953">self</a>.<span class="ident">data</span> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#953">self</a>.data }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#959">self</a>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#959">f</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#959">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#959">f</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">MappedMutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#965">self</a>, <a class="ident" href="../../../src/tokio/sync/mutex.rs.html#965">f</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>MappedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;**</span><a class="self" href="../../../src/tokio/sync/mutex.rs.html#965">self</a>, <a href="../../../src/tokio/sync/mutex.rs.html#965">f</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

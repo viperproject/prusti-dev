@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/split.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/split.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -119,126 +119,126 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/util/read_until.rs.html#46-52"><span class="kw">crate</span>::io::util::read_until::read_until_internal</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23"><span class="kw">crate</span>::io::AsyncBufRead</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../src/tokio/io/util/read_until.rs.html#46-52"><span class="kw">crate</span>::io::util::read_until::read_until_internal</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/io/async_buf_read.rs.html#23"><span class="kw">crate</span>::io::AsyncBufRead</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Splitter for the [`split`](crate::io::AsyncBufReadExt::split) method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A `Split` can be turned into a `Stream` with [`SplitStream`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`SplitStream`]: https://docs.rs/tokio-stream/0.1/tokio_stream/wrappers/struct.SplitStream.html</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io-util&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Split</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">reader</span>: <span class="ident">R</span>,
-        <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-        <span class="ident">delim</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-        <span class="ident">read</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Splitter for the [`split`](crate::io::AsyncBufReadExt::split) method.
+    ///
+    /// A `Split` can be turned into a `Stream` with [`SplitStream`].
+    ///
+    /// [`SplitStream`]: https://docs.rs/tokio-stream/0.1/tokio_stream/wrappers/struct.SplitStream.html
+    </span><span class="attribute">#[derive(Debug)]
+    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;io-util&quot;</span>)))]
+    </span><span class="kw">pub struct </span>Split&lt;R&gt; {
+        <span class="attribute">#[pin]
+        </span>reader: R,
+        buf: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+        delim: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+        read: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">split</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">delim</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">Split</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>split&lt;R&gt;(reader: R, delim: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; Split&lt;R&gt;
+<span class="kw">where
+    </span>R: <a href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a>,
 {
-    <a class="ident" href="../../../../src/tokio/io/util/split.rs.html#10-26">Split</a> {
-        <a class="ident" href="../../../../src/tokio/io/util/split.rs.html#28">reader</a>,
-        <span class="ident">buf</span>: <span class="ident">Vec::new</span>(),
-        <a class="ident" href="../../../../src/tokio/io/util/split.rs.html#28">delim</a>,
-        <span class="ident">read</span>: <span class="number">0</span>,
+    <a href="../../../../src/tokio/io/util/split.rs.html#10-26">Split</a> {
+        <a href="../../../../src/tokio/io/util/split.rs.html#28">reader</a>,
+        buf: Vec::new(),
+        <a href="../../../../src/tokio/io/util/split.rs.html#28">delim</a>,
+        read: <span class="number">0</span>,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Split</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;R&gt; Split&lt;R&gt;
+<span class="kw">where
+    </span>R: <a href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="doccomment">/// Returns the next segment in the stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncBufRead;</span>
-    <span class="doccomment">/// use tokio::io::AsyncBufReadExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # async fn dox(my_buf_read: impl AsyncBufRead + Unpin) -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let mut segments = my_buf_read.split(b&#39;f&#39;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(segment) = segments.next_segment().await? {</span>
-    <span class="doccomment">///     println!(&quot;length = {}&quot;, segment.len())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">next_segment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::future::poll_fn</span>;
+    <span class="doccomment">/// Returns the next segment in the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncBufRead;
+    /// use tokio::io::AsyncBufReadExt;
+    ///
+    /// # async fn dox(my_buf_read: impl AsyncBufRead + Unpin) -&gt; std::io::Result&lt;()&gt; {
+    /// let mut segments = my_buf_read.split(b&#39;f&#39;);
+    ///
+    /// while let Some(segment) = segments.next_segment().await? {
+    ///     println!(&quot;length = {}&quot;, segment.len())
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="kw">pub async fn </span>next_segment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
 
-        <span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">poll_next_segment</span>(<span class="ident">cx</span>)).<span class="kw">await</span>
-    }
+        poll_fn(|cx| Pin::new(<span class="kw-2">&amp;mut *</span><span class="self">self</span>).poll_next_segment(cx)).<span class="kw">await
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Split</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a>,
+<span class="kw">impl</span>&lt;R&gt; Split&lt;R&gt;
+<span class="kw">where
+    </span>R: <a href="../../../../src/tokio/io/async_buf_read.rs.html#23">AsyncBufRead</a>,
 {
-    <span class="doccomment">/// Polls for the next segment in the stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///  * `Poll::Pending` if the next segment is not yet available.</span>
-    <span class="doccomment">///  * `Poll::Ready(Ok(Some(segment)))` if the next segment is available.</span>
-    <span class="doccomment">///  * `Poll::Ready(Ok(None))` if there are no more segments in this stream.</span>
-    <span class="doccomment">///  * `Poll::Ready(Err(err))` if an IO error occurred while reading the</span>
-    <span class="doccomment">///    next segment.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When the method returns `Poll::Pending`, the `Waker` in the provided</span>
-    <span class="doccomment">/// `Context` is scheduled to receive a wakeup when more bytes become</span>
-    <span class="doccomment">/// available on the underlying IO resource.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that on multiple calls to `poll_next_segment`, only the `Waker`</span>
-    <span class="doccomment">/// from the `Context` passed to the most recent call is scheduled to</span>
-    <span class="doccomment">/// receive a wakeup.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_next_segment</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/split.rs.html#90">self</a>.<a class="ident" href="../../../../src/tokio/io/util/split.rs.html#10-26">project</a>();
+    <span class="doccomment">/// Polls for the next segment in the stream.
+    ///
+    /// This method returns:
+    ///
+    ///  * `Poll::Pending` if the next segment is not yet available.
+    ///  * `Poll::Ready(Ok(Some(segment)))` if the next segment is available.
+    ///  * `Poll::Ready(Ok(None))` if there are no more segments in this stream.
+    ///  * `Poll::Ready(Err(err))` if an IO error occurred while reading the
+    ///    next segment.
+    ///
+    /// When the method returns `Poll::Pending`, the `Waker` in the provided
+    /// `Context` is scheduled to receive a wakeup when more bytes become
+    /// available on the underlying IO resource.
+    ///
+    /// Note that on multiple calls to `poll_next_segment`, only the `Waker`
+    /// from the `Context` passed to the most recent call is scheduled to
+    /// receive a wakeup.
+    </span><span class="kw">pub fn </span>poll_next_segment(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;&gt;&gt; {
+        <span class="kw">let </span>me = <a class="self" href="../../../../src/tokio/io/util/split.rs.html#90">self</a>.<a href="../../../../src/tokio/io/util/split.rs.html#10-26">project</a>();
 
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">read_until_internal</span>(
-            <span class="ident">me</span>.<span class="ident">reader</span>, <span class="ident">cx</span>, <span class="kw-2">*</span><span class="ident">me</span>.<span class="ident">delim</span>, <span class="ident">me</span>.<span class="ident">buf</span>, <span class="ident">me</span>.<span class="ident">read</span>,
+        <span class="kw">let </span>n = <span class="macro">ready!</span>(read_until_internal(
+            me.reader, cx, <span class="kw-2">*</span>me.delim, me.buf, me.read,
         ))<span class="question-mark">?</span>;
-        <span class="comment">// read_until_internal resets me.read to zero once it finds the delimiter</span>
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="kw-2">*</span><span class="ident">me</span>.<span class="ident">read</span>, <span class="number">0</span>);
+        <span class="comment">// read_until_internal resets me.read to zero once it finds the delimiter
+        </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="kw-2">*</span>me.read, <span class="number">0</span>);
 
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">me</span>.<span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>));
+        <span class="kw">if </span>n == <span class="number">0 </span>&amp;&amp; me.buf.is_empty() {
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>));
         }
 
-        <span class="kw">if</span> <span class="ident">me</span>.<span class="ident">buf</span>.<span class="ident">last</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">me</span>.<span class="ident">delim</span>) {
-            <a class="ident" href="../../../../src/tokio/io/util/split.rs.html#93">me</a>.<span class="ident">buf</span>.<span class="ident">pop</span>();
+        <span class="kw">if </span>me.buf.last() == <span class="prelude-val">Some</span>(me.delim) {
+            <a href="../../../../src/tokio/io/util/split.rs.html#93">me</a>.buf.pop();
         }
 
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">mem::take</span>(<a class="ident" href="../../../../src/tokio/io/util/split.rs.html#93">me</a>.<span class="ident">buf</span>))))
+        Poll::Ready(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(mem::take(<a href="../../../../src/tokio/io/util/split.rs.html#93">me</a>.buf))))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">assert_unpin</span>() {
-        <span class="ident"><span class="kw">crate</span>::is_unpin</span>::<span class="op">&lt;</span><span class="ident">Split</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>assert_unpin() {
+        <span class="kw">crate</span>::is_unpin::&lt;Split&lt;()&gt;&gt;();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

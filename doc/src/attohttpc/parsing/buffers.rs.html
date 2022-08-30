@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/parsing/buffers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/parsing/buffers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -253,260 +253,260 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_line</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="ident">max_buf_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
+<span class="kw">pub fn </span>read_line&lt;R&gt;(reader: <span class="kw-2">&amp;mut </span>BufReader&lt;R&gt;, buf: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, max_buf_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;
+<span class="kw">where
+    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
 {
-    <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.<span class="ident">clear</span>();
-    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">take</span>(<span class="ident">max_buf_len</span>).<span class="ident">read_until</span>(<span class="string">b&#39;\n&#39;</span>, <span class="ident">buf</span>)<span class="question-mark">?</span>;
+    <a href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.clear();
+    <span class="kw">let </span>n = reader.take(max_buf_len).read_until(<span class="string">b&#39;\n&#39;</span>, buf)<span class="question-mark">?</span>;
 
-    <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">ends_with</span>(<span class="string">b&quot;\r\n&quot;</span>) {
-        <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>);
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">ends_with</span>(<span class="string">b&quot;\n&quot;</span>) {
-        <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
-    } <span class="kw">else</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+    <span class="kw">if </span>buf.ends_with(<span class="string">b&quot;\r\n&quot;</span>) {
+        <a href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.truncate(<a href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.len() - <span class="number">2</span>);
+    } <span class="kw">else if </span>buf.ends_with(<span class="string">b&quot;\n&quot;</span>) {
+        <a href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.truncate(<a href="../../../src/attohttpc/parsing/buffers.rs.html#3">buf</a>.len() - <span class="number">1</span>);
+    } <span class="kw">else </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(io::ErrorKind::UnexpectedEof.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
     }
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#8">n</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/buffers.rs.html#8">n</a>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_line_strict</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="ident">max_buf_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
+<span class="kw">pub fn </span>read_line_strict&lt;R&gt;(reader: <span class="kw-2">&amp;mut </span>BufReader&lt;R&gt;, buf: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, max_buf_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;
+<span class="kw">where
+    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
 {
-    <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#21">buf</a>.<span class="ident">clear</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#21">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#21">max_buf_len</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
+    <a href="../../../src/attohttpc/parsing/buffers.rs.html#21">buf</a>.clear();
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = <a href="../../../src/attohttpc/parsing/buffers.rs.html#21">reader</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<a href="../../../src/attohttpc/parsing/buffers.rs.html#21">max_buf_len</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
 
-    <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_until</span>(<span class="string">b&#39;\n&#39;</span>, <span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#27">n</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#30">k</a>;
+    <span class="kw">loop </span>{
+        <span class="kw">let </span>k = reader.read_until(<span class="string">b&#39;\n&#39;</span>, buf)<span class="question-mark">?</span>;
+        <a href="../../../src/attohttpc/parsing/buffers.rs.html#27">n</a> += <a href="../../../src/attohttpc/parsing/buffers.rs.html#30">k</a>;
 
-        <span class="kw">if</span> <span class="ident">k</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">buf</span>[<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="kw">if </span>k == <span class="number">0 </span>|| buf[buf.len() - <span class="number">1</span>] != <span class="string">b&#39;\n&#39; </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(io::ErrorKind::UnexpectedEof.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
-        <span class="kw">if</span> <span class="ident">k</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> <span class="op">&amp;&amp;</span> <span class="ident">buf</span>[<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>] <span class="op">==</span> <span class="string">b&#39;\r&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">buf</span>[<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="string">b&#39;\n&#39;</span> {
-            <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#21">buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#21">buf</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>);
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#27">n</a>);
+        <span class="kw">if </span>k &gt;= <span class="number">2 </span>&amp;&amp; buf[buf.len() - <span class="number">2</span>] == <span class="string">b&#39;\r&#39; </span>&amp;&amp; buf[buf.len() - <span class="number">1</span>] == <span class="string">b&#39;\n&#39; </span>{
+            <a href="../../../src/attohttpc/parsing/buffers.rs.html#21">buf</a>.truncate(<a href="../../../src/attohttpc/parsing/buffers.rs.html#21">buf</a>.len() - <span class="number">2</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/buffers.rs.html#27">n</a>);
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_line_ending</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
+<span class="kw">pub fn </span>read_line_ending&lt;R&gt;(reader: <span class="kw-2">&amp;mut </span>BufReader&lt;R&gt;) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;
+<span class="kw">where
+    </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> [<span class="number">0</span>];
-    <span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">b</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>b = [<span class="number">0</span>];
+    reader.read_exact(<span class="kw-2">&amp;mut </span>b)<span class="question-mark">?</span>;
 
-    <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">b</span> <span class="op">==</span> <span class="string">b&quot;\r&quot;</span> {
-        <span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">b</span>)<span class="question-mark">?</span>;
+    <span class="kw">if </span><span class="kw-2">&amp;</span>b == <span class="string">b&quot;\r&quot; </span>{
+        reader.read_exact(<span class="kw-2">&amp;mut </span>b)<span class="question-mark">?</span>;
     }
 
-    <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#48">b</a> <span class="op">==</span> <span class="string">b&quot;\n&quot;</span>)
+    <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="../../../src/attohttpc/parsing/buffers.rs.html#48">b</a> == <span class="string">b&quot;\n&quot;</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_byte</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#62">trim_byte_left</a>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#58">byte</a>, <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#66">trim_byte_right</a>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#58">byte</a>, <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#58">buf</a>))
+<span class="kw">pub fn </span>trim_byte(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <a href="../../../src/attohttpc/parsing/buffers.rs.html#62">trim_byte_left</a>(<a href="../../../src/attohttpc/parsing/buffers.rs.html#58">byte</a>, <a href="../../../src/attohttpc/parsing/buffers.rs.html#66">trim_byte_right</a>(<a href="../../../src/attohttpc/parsing/buffers.rs.html#58">byte</a>, <a href="../../../src/attohttpc/parsing/buffers.rs.html#58">buf</a>))
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_byte_left</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#62">buf</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#63">b</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#62">byte</a>).<span class="ident">map_or</span>(<span class="kw-2">&amp;</span>[], <span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#62">buf</a>[<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#63">n</a>..])
+<span class="kw">pub fn </span>trim_byte_left(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <a href="../../../src/attohttpc/parsing/buffers.rs.html#62">buf</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(|b| <span class="kw-2">*</span><a href="../../../src/attohttpc/parsing/buffers.rs.html#63">b</a> != <a href="../../../src/attohttpc/parsing/buffers.rs.html#62">byte</a>).map_or(<span class="kw-2">&amp;</span>[], |n| <span class="kw-2">&amp;</span><a href="../../../src/attohttpc/parsing/buffers.rs.html#62">buf</a>[<a href="../../../src/attohttpc/parsing/buffers.rs.html#63">n</a>..])
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_byte_right</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#66">buf</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#67">b</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#66">byte</a>).<span class="ident">map_or</span>(<span class="kw-2">&amp;</span>[], <span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#66">buf</a>[..<span class="op">=</span><a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#67">n</a>])
+<span class="kw">pub fn </span>trim_byte_right(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <a href="../../../src/attohttpc/parsing/buffers.rs.html#66">buf</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(|b| <span class="kw-2">*</span><a href="../../../src/attohttpc/parsing/buffers.rs.html#67">b</a> != <a href="../../../src/attohttpc/parsing/buffers.rs.html#66">byte</a>).map_or(<span class="kw-2">&amp;</span>[], |n| <span class="kw-2">&amp;</span><a href="../../../src/attohttpc/parsing/buffers.rs.html#66">buf</a>[..=<a href="../../../src/attohttpc/parsing/buffers.rs.html#67">n</a>])
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_byte</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">replace</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-    <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="ident">buf</span> {
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">val</span> <span class="op">==</span> <span class="ident">byte</span> {
-            <span class="kw-2">*</span><span class="ident">val</span> <span class="op">=</span> <span class="ident">replace</span>;
+<span class="kw">pub fn </span>replace_byte(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, replace: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+    <span class="kw">for </span>val <span class="kw">in </span>buf {
+        <span class="kw">if </span><span class="kw-2">*</span>val == byte {
+            <span class="kw-2">*</span>val = replace;
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BufReaderWrite</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>BufReaderWrite&lt;R&gt; {
+    inner: BufReader&lt;R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <span class="ident">BufReaderWrite</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">R</span>) -&gt; <span class="ident">BufReaderWrite</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#79">BufReaderWrite</a> {
-            <span class="ident">inner</span>: <span class="ident">BufReader::new</span>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#84">inner</a>),
+<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; BufReaderWrite&lt;R&gt; {
+    <span class="kw">pub fn </span>new(inner: R) -&gt; BufReaderWrite&lt;R&gt; {
+        <a href="../../../src/attohttpc/parsing/buffers.rs.html#79">BufReaderWrite</a> {
+            inner: BufReader::new(<a href="../../../src/attohttpc/parsing/buffers.rs.html#84">inner</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">BufReaderWrite</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#93">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#93">buf</a>)
+<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>BufReaderWrite&lt;R&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#93">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/buffers.rs.html#93">buf</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">BufReaderWrite</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#100">self</a>.<span class="ident">inner</span>.<span class="ident">get_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/attohttpc/parsing/buffers.rs.html#100">buf</a>)
+<span class="kw">impl</span>&lt;R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>BufReaderWrite&lt;R&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#100">self</a>.inner.get_mut().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../src/attohttpc/parsing/buffers.rs.html#100">buf</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#105">self</a>.<span class="ident">inner</span>.<span class="ident">get_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a> <span class="kw">for</span> <span class="ident">BufReaderWrite</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#112">self</a>.<span class="ident">inner</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#105">self</a>.inner.get_mut().<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">std::ops::DerefMut</a> <span class="kw">for</span> <span class="ident">BufReaderWrite</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#118">self</a>.<span class="ident">inner</span>
+<span class="kw">impl</span>&lt;R&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">std::ops::Deref</a> <span class="kw">for </span>BufReaderWrite&lt;R&gt; {
+    <span class="kw">type </span>Target = BufReader&lt;R&gt;;
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BufReader&lt;R&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#112">self</a>.inner
     }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_lf</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;hello\nworld\n&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-
-    <span class="macro">assert_eq!</span>(<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="number">6</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;hello&quot;</span>);
-
-    <span class="macro">assert_eq!</span>(<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="number">6</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;world&quot;</span>);
+<span class="kw">impl</span>&lt;R&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">std::ops::DerefMut</a> <span class="kw">for </span>BufReaderWrite&lt;R&gt; {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>BufReader&lt;R&gt; {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/attohttpc/parsing/buffers.rs.html#118">self</a>.inner
+    }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_crlf</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;hello\r\nworld\r\n&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_lf() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;hello\nworld\n&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
-    <span class="macro">assert_eq!</span>(<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="number">7</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;hello&quot;</span>);
+    <span class="macro">assert_eq!</span>(read_line(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(), <span class="prelude-val">Some</span>(<span class="number">6</span>));
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;hello&quot;</span>);
 
-    <span class="macro">assert_eq!</span>(<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="number">7</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;world&quot;</span>);
+    <span class="macro">assert_eq!</span>(read_line(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(), <span class="prelude-val">Some</span>(<span class="number">6</span>));
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;world&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_empty_crlf</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;\r\n&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_crlf() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;hello\r\nworld\r\n&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
-    <span class="macro">assert_eq!</span>(<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;&quot;</span>);
+    <span class="macro">assert_eq!</span>(read_line(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(), <span class="prelude-val">Some</span>(<span class="number">7</span>));
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;hello&quot;</span>);
+
+    <span class="macro">assert_eq!</span>(read_line(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(), <span class="prelude-val">Some</span>(<span class="number">7</span>));
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;world&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_empty_lf</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;\n&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_empty_crlf() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;\r\n&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
-    <span class="macro">assert_eq!</span>(<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;&quot;</span>);
+    <span class="macro">assert_eq!</span>(read_line(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_beyond_limit</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;1234567890\n&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_empty_lf() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;\n&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
+
+    <span class="macro">assert_eq!</span>(read_line(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;&quot;</span>);
+}
+
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_beyond_limit() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;1234567890\n&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="number">5</span>).<span class="ident">unwrap_err</span>().<span class="ident">kind</span>(),
-        <span class="ident">io::ErrorKind::UnexpectedEof</span>
+        read_line(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, <span class="number">5</span>).unwrap_err().kind(),
+        io::ErrorKind::UnexpectedEof
     );
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;12345&quot;</span>);
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;12345&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_strict</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;foo\r\nbar\r\n&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_strict() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;foo\r\nbar\r\n&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">read_line_strict</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="number">3</span> <span class="op">+</span> <span class="number">2</span>)
+        read_line_strict(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(),
+        <span class="prelude-val">Some</span>(<span class="number">3 </span>+ <span class="number">2</span>)
     );
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;foo&quot;</span>);
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;foo&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_strict_empty_crlf</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;\r\n&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_strict_empty_crlf() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;\r\n&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
-    <span class="macro">assert_eq!</span>(<span class="ident">read_line_strict</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;&quot;</span>);
+    <span class="macro">assert_eq!</span>(read_line_strict(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_strict_missing_crlf</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;foo\n&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_strict_missing_crlf() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;foo\n&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">read_line_strict</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>())
-            .<span class="ident">unwrap_err</span>()
-            .<span class="ident">kind</span>(),
-        <span class="ident">io::ErrorKind::UnexpectedEof</span>
+        read_line_strict(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value())
+            .unwrap_err()
+            .kind(),
+        io::ErrorKind::UnexpectedEof
     );
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;foo\n&quot;</span>);
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;foo\n&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_strict_inner_lf</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;123\n456\n789\n0\r\nABC&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_strict_inner_lf() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;123\n456\n789\n0\r\nABC&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">read_line_strict</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="number">10</span> <span class="op">+</span> <span class="number">3</span> <span class="op">+</span> <span class="number">2</span>)
+        read_line_strict(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(),
+        <span class="prelude-val">Some</span>(<span class="number">10 </span>+ <span class="number">3 </span>+ <span class="number">2</span>)
     );
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;123\n456\n789\n0&quot;</span>);
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;123\n456\n789\n0&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_read_line_strict_inner_cr</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;123\r456\r789\r0\r\nXYZ&quot;</span>[..]);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_read_line_strict_inner_cr() {
+    <span class="kw">let </span><span class="kw-2">mut </span>reader = BufReader::new(<span class="kw-2">&amp;</span><span class="string">b&quot;123\r456\r789\r0\r\nXYZ&quot;</span>[..]);
+    <span class="kw">let </span><span class="kw-2">mut </span>line = Vec::new();
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">read_line_strict</span>(<span class="kw-2">&amp;mut</span> <span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line</span>, <span class="ident">u64::max_value</span>()).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="number">10</span> <span class="op">+</span> <span class="number">3</span> <span class="op">+</span> <span class="number">2</span>)
+        read_line_strict(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>line, u64::max_value()).ok(),
+        <span class="prelude-val">Some</span>(<span class="number">10 </span>+ <span class="number">3 </span>+ <span class="number">2</span>)
     );
-    <span class="macro">assert_eq!</span>(<span class="ident">line</span>, <span class="string">b&quot;123\r456\r789\r0&quot;</span>);
+    <span class="macro">assert_eq!</span>(line, <span class="string">b&quot;123\r456\r789\r0&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_trim_byte</span>() {
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;  hello  &quot;</span>), <span class="string">b&quot;hello&quot;</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;hello&quot;</span>), <span class="string">b&quot;hello&quot;</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;&quot;</span>), <span class="string">b&quot;&quot;</span>);
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_trim_byte() {
+    <span class="macro">assert_eq!</span>(trim_byte(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;  hello  &quot;</span>), <span class="string">b&quot;hello&quot;</span>);
+    <span class="macro">assert_eq!</span>(trim_byte(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;hello&quot;</span>), <span class="string">b&quot;hello&quot;</span>);
+    <span class="macro">assert_eq!</span>(trim_byte(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;&quot;</span>), <span class="string">b&quot;&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_trim_byte_left</span>() {
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte_left</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;  hello&quot;</span>), <span class="string">b&quot;hello&quot;</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte_left</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;hello&quot;</span>), <span class="string">b&quot;hello&quot;</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte_left</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;&quot;</span>), <span class="string">b&quot;&quot;</span>);
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_trim_byte_left() {
+    <span class="macro">assert_eq!</span>(trim_byte_left(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;  hello&quot;</span>), <span class="string">b&quot;hello&quot;</span>);
+    <span class="macro">assert_eq!</span>(trim_byte_left(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;hello&quot;</span>), <span class="string">b&quot;hello&quot;</span>);
+    <span class="macro">assert_eq!</span>(trim_byte_left(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;&quot;</span>), <span class="string">b&quot;&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_trim_byte_right</span>() {
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte_right</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;hello  &quot;</span>), <span class="string">b&quot;hello&quot;</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte_right</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;hello&quot;</span>), <span class="string">b&quot;hello&quot;</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">trim_byte_right</span>(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;&quot;</span>), <span class="string">b&quot;&quot;</span>);
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_trim_byte_right() {
+    <span class="macro">assert_eq!</span>(trim_byte_right(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;hello  &quot;</span>), <span class="string">b&quot;hello&quot;</span>);
+    <span class="macro">assert_eq!</span>(trim_byte_right(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;hello&quot;</span>), <span class="string">b&quot;hello&quot;</span>);
+    <span class="macro">assert_eq!</span>(trim_byte_right(<span class="string">b&#39; &#39;</span>, <span class="string">b&quot;&quot;</span>), <span class="string">b&quot;&quot;</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

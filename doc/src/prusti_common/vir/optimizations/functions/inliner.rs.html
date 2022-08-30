@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/functions/inliner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inliner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common/src/vir/optimizations/functions/inliner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inliner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_common/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -170,177 +170,177 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="doccomment">//! Inliner of pure functions.</span>
+</span><span class="doccomment">//! Inliner of pure functions.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::vir::polymorphic_vir</span>::{<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/ast/index.html">ast</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/cfg/index.html">cfg</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../../log/macro.trace.html">log::trace</a>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir::{<a href="../../../../../prusti_common/vir/polymorphic_vir/ast/index.html">ast</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/cfg/index.html">cfg</a>};
+<span class="kw">use </span><a href="../../../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-<span class="doccomment">/// Convert functions whose body does not depend on arguments such as</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```viper</span>
-<span class="doccomment">/// function foo(this: Ref): Bool</span>
-<span class="doccomment">///     requires Foo(this)</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     true</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// to pure functions:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```viper</span>
-<span class="doccomment">/// function foo(this: Ref): Bool</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     true</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// And then inline them on call sites.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The optimization is performed until a fix-point.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inline_constant_functions</span>(
-    <span class="kw-2">mut</span> <span class="ident">methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a><span class="op">&gt;</span>,
-    <span class="kw-2">mut</span> <span class="ident">functions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a><span class="op">&gt;</span>,
-) -&gt; (<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a><span class="op">&gt;</span>) {
+<span class="doccomment">/// Convert functions whose body does not depend on arguments such as
+///
+/// ```viper
+/// function foo(this: Ref): Bool
+///     requires Foo(this)
+/// {
+///     true
+/// }
+/// ```
+///
+/// to pure functions:
+///
+/// ```viper
+/// function foo(this: Ref): Bool
+/// {
+///     true
+/// }
+/// ```
+///
+/// And then inline them on call sites.
+///
+/// The optimization is performed until a fix-point.
+</span><span class="kw">pub fn </span>inline_constant_functions(
+    <span class="kw-2">mut </span>methods: Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>&gt;,
+    <span class="kw-2">mut </span>functions: Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a>&gt;,
+) -&gt; (Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>&gt;, Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a>&gt;) {
     <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] purify_constant_functions&quot;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">non_pure_functions</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pure_function_map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">changed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-    <span class="kw">while</span> <span class="ident">changed</span> {
-        <span class="ident">changed</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="kw">in</span> <span class="ident">functions</span>.<span class="ident">into_iter</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="ident">try_purify</span>(<span class="kw-2">&amp;mut</span> <span class="ident">function</span>) {
-                <span class="ident">pure_function_map</span>.<span class="ident">insert</span>(<span class="ident">function</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">body</span>);
-                <span class="ident">changed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            } <span class="kw">else</span> {
-                <span class="ident">non_pure_functions</span>.<span class="ident">push</span>(<span class="ident">function</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>non_pure_functions = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>pure_function_map = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>changed = <span class="bool-val">true</span>;
+    <span class="kw">while </span>changed {
+        changed = <span class="bool-val">false</span>;
+        <span class="kw">for </span><span class="kw-2">mut </span>function <span class="kw">in </span>functions.into_iter() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = try_purify(<span class="kw-2">&amp;mut </span>function) {
+                pure_function_map.insert(function.name.clone(), body);
+                changed = <span class="bool-val">true</span>;
+            } <span class="kw">else </span>{
+                non_pure_functions.push(function);
             }
         }
-        <span class="ident">functions</span> <span class="op">=</span> <span class="ident">non_pure_functions</span>
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">function</span><span class="op">|</span> <span class="ident">inline_into</span>(<span class="ident">function</span>, <span class="kw-2">&amp;</span><span class="ident">pure_function_map</span>))
-            .<span class="ident">collect</span>();
-        <span class="ident">non_pure_functions</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        functions = non_pure_functions
+            .into_iter()
+            .map(|function| inline_into(function, <span class="kw-2">&amp;</span>pure_function_map))
+            .collect();
+        non_pure_functions = Vec::new();
     }
-    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#36">methods</a> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#151-154">inline_into_methods</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#36">methods</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#41">pure_function_map</a>);
-    (<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#36">methods</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#37">functions</a>)
+    <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#36">methods</a> = <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#151-154">inline_into_methods</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#36">methods</a>, <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#41">pure_function_map</a>);
+    (<a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#36">methods</a>, <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#37">functions</a>)
 }
 
-<span class="doccomment">/// Try converting the function to pure by removing permissions from the</span>
-<span class="doccomment">/// precondition. Returns true if successful.</span>
-<span class="kw">fn</span> <span class="ident">try_purify</span>(<span class="ident">function</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a><span class="op">&gt;</span> {
-    <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] try_purify(name={})&quot;</span>, <span class="ident">function</span>.<span class="ident">name</span>);
-    <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">has_constant_body</span>()
-        <span class="op">&amp;&amp;</span> <span class="ident">function</span>.<span class="ident">pres</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">cond</span><span class="op">|</span> <span class="ident">cond</span>.<span class="ident">is_only_permissions</span>())
-        <span class="op">&amp;&amp;</span> <span class="ident">function</span>.<span class="ident">posts</span>.<span class="ident">is_empty</span>()
+<span class="doccomment">/// Try converting the function to pure by removing permissions from the
+/// precondition. Returns true if successful.
+</span><span class="kw">fn </span>try_purify(function: <span class="kw-2">&amp;mut </span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt; {
+    <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] try_purify(name={})&quot;</span>, function.name);
+    <span class="kw">if </span>function.has_constant_body()
+        &amp;&amp; function.pres.iter().all(|cond| cond.is_only_permissions())
+        &amp;&amp; function.posts.is_empty()
     {
-        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#65">function</a>.<span class="ident">pres</span>.<span class="ident">clear</span>();
-        <span class="kw">return</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#65">function</a>.<span class="ident">body</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#65">function</a>.pres.clear();
+        <span class="kw">return </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#65">function</a>.body.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     }
-    <span class="prelude-val">None</span>
+    <span class="prelude-val">None
+</span>}
+
+<span class="doccomment">/// Inline all calls to constant functions.
+</span><span class="kw">struct </span>ConstantFunctionInliner&lt;<span class="lifetime">&#39;a</span>&gt; {
+    pure_function_map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;,
 }
 
-<span class="doccomment">/// Inline all calls to constant functions.</span>
-<span class="kw">struct</span> <span class="ident">ConstantFunctionInliner</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">pure_function_map</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a><span class="op">&gt;</span>,
-}
-
-<span class="kw">fn</span> <span class="ident">inline_into</span>(
-    <span class="kw-2">mut</span> <span class="ident">function</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a>,
-    <span class="ident">pure_function_map</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a><span class="op">&gt;</span>,
-) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a> {
-    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#83">function</a>.<span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#83">function</a>.<span class="ident">body</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">body</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inliner</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#78">ConstantFunctionInliner</a> { <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#84">pure_function_map</a> };
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#87">inliner</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#86">body</a>)
+<span class="kw">fn </span>inline_into(
+    <span class="kw-2">mut </span>function: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a>,
+    pure_function_map: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;,
+) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">ast::Function</a> {
+    <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#83">function</a>.body = <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#83">function</a>.body.map(|body| {
+        <span class="kw">let </span><span class="kw-2">mut </span>inliner = <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#78">ConstantFunctionInliner</a> { <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#84">pure_function_map</a> };
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<span class="kw-2">&amp;mut </span><a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#87">inliner</a>, <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#86">body</a>)
     });
-    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#83">function</a>
+    <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#83">function</a>
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">ast::StmtFolder</a> <span class="kw">for</span> <span class="ident">ConstantFunctionInliner</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fold_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#94">self</a>, <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#94">expr</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">ast::StmtFolder</a> <span class="kw">for </span>ConstantFunctionInliner&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#94">self</a>, <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#94">expr</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder</a> <span class="kw">for</span> <span class="ident">ConstantFunctionInliner</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fold_func_app</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.FuncApp.html">ast::FuncApp</a> {
-            <span class="ident">function_name</span>,
-            <span class="ident">type_arguments</span>,
-            <span class="ident">arguments</span>,
-            <span class="ident">formal_arguments</span>,
-            <span class="ident">return_type</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.FuncApp.html">ast::FuncApp</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">pure_function_map</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">function_name</span>) {
-            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#101">self</a>.<span class="ident">pure_function_map</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#103">function_name</a>].<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-        } <span class="kw">else</span> {
-            <span class="ident">ast::Expr::FuncApp</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.FuncApp.html">ast::FuncApp</a> {
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#103">function_name</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#104">type_arguments</a>,
-                <span class="ident">arguments</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#105">arguments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#101">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#117">e</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#106">formal_arguments</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#107">return_type</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#108">position</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder</a> <span class="kw">for </span>ConstantFunctionInliner&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fold_func_app(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FuncApp.html">ast::FuncApp</a> {
+            function_name,
+            type_arguments,
+            arguments,
+            formal_arguments,
+            return_type,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FuncApp.html">ast::FuncApp</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+        <span class="kw">if </span><span class="self">self</span>.pure_function_map.contains_key(<span class="kw-2">&amp;</span>function_name) {
+            <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#101">self</a>.pure_function_map[<span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#103">function_name</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        } <span class="kw">else </span>{
+            ast::Expr::FuncApp(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FuncApp.html">ast::FuncApp</a> {
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#103">function_name</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#104">type_arguments</a>,
+                arguments: <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#105">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#101">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#117">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#106">formal_arguments</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#107">return_type</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#108">position</a>,
             })
         }
     }
-    <span class="kw">fn</span> <span class="ident">fold_unfolding</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a> {
-            <span class="ident">predicate</span>,
-            <span class="ident">arguments</span>,
-            <span class="kw-2">mut</span> <span class="ident">base</span>,
-            <span class="ident">permission</span>,
-            <span class="ident">variant</span>,
-            <span class="ident">position</span>,
-        }: <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a>,
-    ) -&gt; <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#129">base</a> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#125">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#129">base</a>);
-        <span class="kw">if</span> <span class="ident">base</span>.<span class="ident">is_constant</span>() {
-            <span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#129">base</a>
-        } <span class="kw">else</span> {
-            <span class="ident">ast::Expr::Unfolding</span>(<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a> {
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#127">predicate</a>,
-                <span class="ident">arguments</span>: <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#128">arguments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#125">self</a>.<a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#141">e</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#129">base</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#130">permission</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#131">variant</a>,
-                <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#132">position</a>,
+    <span class="kw">fn </span>fold_unfolding(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a> {
+            predicate,
+            arguments,
+            <span class="kw-2">mut </span>base,
+            permission,
+            variant,
+            position,
+        }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a>,
+    ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
+        <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#129">base</a> = <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#125">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold_boxed</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#129">base</a>);
+        <span class="kw">if </span>base.is_constant() {
+            <span class="kw-2">*</span><a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#129">base</a>
+        } <span class="kw">else </span>{
+            ast::Expr::Unfolding(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">ast::Unfolding</a> {
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#127">predicate</a>,
+                arguments: <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#128">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#125">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">fold</a>(<a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#141">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#129">base</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#130">permission</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#131">variant</a>,
+                <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#132">position</a>,
             })
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">inline_into_methods</span>(
-    <span class="ident">methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a><span class="op">&gt;</span>,
-    <span class="ident">pure_function_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a><span class="op">&gt;</span>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inliner</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#78">ConstantFunctionInliner</a> {
-        <span class="ident">pure_function_map</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#153">pure_function_map</a>,
+<span class="kw">fn </span>inline_into_methods(
+    methods: Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>&gt;,
+    pure_function_map: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>&gt;,
+) -&gt; Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>inliner = <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#78">ConstantFunctionInliner</a> {
+        pure_function_map: <span class="kw-2">&amp;</span><a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#153">pure_function_map</a>,
     };
-    <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#152">methods</a>
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">method</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sentinel_stmt</span> <span class="op">=</span> <span class="ident">ast::Stmt::comment</span>(<span class="string">&quot;moved out stmt&quot;</span>);
-            <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">method</span>.<span class="ident">basic_blocks</span> {
-                <span class="kw">for</span> <span class="ident">stmt</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">block</span>.<span class="ident">stmts</span> {
-                    <span class="ident">mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sentinel_stmt</span>, <span class="ident">stmt</span>);
-                    <span class="ident">sentinel_stmt</span> <span class="op">=</span> <span class="ident">ast::StmtFolder::fold</span>(<span class="kw-2">&amp;mut</span> <span class="ident">inliner</span>, <span class="ident">sentinel_stmt</span>);
-                    <span class="ident">mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sentinel_stmt</span>, <span class="ident">stmt</span>);
+    <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#152">methods</a>
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">mut </span>method| {
+            <span class="kw">let </span><span class="kw-2">mut </span>sentinel_stmt = ast::Stmt::comment(<span class="string">&quot;moved out stmt&quot;</span>);
+            <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span>method.basic_blocks {
+                <span class="kw">for </span>stmt <span class="kw">in </span><span class="kw-2">&amp;mut </span>block.stmts {
+                    mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
+                    sentinel_stmt = ast::StmtFolder::fold(<span class="kw-2">&amp;mut </span>inliner, sentinel_stmt);
+                    mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
                 }
             }
-            <a class="ident" href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#160">method</a>
+            <a href="../../../../../src/prusti_common/vir/optimizations/functions/inliner.rs.html#160">method</a>
         })
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

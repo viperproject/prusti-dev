@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/task/atomic_waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic_waker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/sync/task/atomic_waker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic_waker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -380,151 +380,151 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">any</span>(<span class="ident">loom</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>)), <span class="ident">allow</span>(<span class="ident">dead_code</span>, <span class="ident">unreachable_pub</span>))]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg_attr(any(loom, not(feature = <span class="string">&quot;sync&quot;</span>)), allow(dead_code, unreachable_pub))]
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mod.rs.html#28"><span class="kw">crate</span>::loom::hint</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+</span><span class="kw">use </span><a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/loom/std/mod.rs.html#28"><span class="kw">crate</span>::loom::hint</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <span class="ident">std::panic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">resume_unwind</a>, <span class="ident">AssertUnwindSafe</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
-<span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering</span>::{<span class="ident">AcqRel</span>, <span class="ident">Acquire</span>, <span class="ident">Release</span>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">std::task::Waker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span>std::panic::{<a href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">resume_unwind</a>, AssertUnwindSafe, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a>, <a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a>};
+<span class="kw">use </span>std::sync::atomic::Ordering::{AcqRel, Acquire, Release};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">std::task::Waker</a>;
 
-<span class="doccomment">/// A synchronization primitive for task waking.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `AtomicWaker` will coordinate concurrent wakes with the consumer</span>
-<span class="doccomment">/// potentially &quot;waking&quot; the underlying task. This is useful in scenarios</span>
-<span class="doccomment">/// where a computation completes in another thread and wants to wake the</span>
-<span class="doccomment">/// consumer, but the consumer is in the process of being migrated to a new</span>
-<span class="doccomment">/// logical task.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Consumers should call `register` before checking the result of a computation</span>
-<span class="doccomment">/// and producers should call `wake` after producing the computation (this</span>
-<span class="doccomment">/// differs from the usual `thread::park` pattern). It is also permitted for</span>
-<span class="doccomment">/// `wake` to be called **before** `register`. This results in a no-op.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A single `AtomicWaker` may be reused for any number of calls to `register` or</span>
-<span class="doccomment">/// `wake`.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AtomicWaker</span> {
-    <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
-    <span class="ident">waker</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A synchronization primitive for task waking.
+///
+/// `AtomicWaker` will coordinate concurrent wakes with the consumer
+/// potentially &quot;waking&quot; the underlying task. This is useful in scenarios
+/// where a computation completes in another thread and wants to wake the
+/// consumer, but the consumer is in the process of being migrated to a new
+/// logical task.
+///
+/// Consumers should call `register` before checking the result of a computation
+/// and producers should call `wake` after producing the computation (this
+/// differs from the usual `thread::park` pattern). It is also permitted for
+/// `wake` to be called **before** `register`. This results in a no-op.
+///
+/// A single `AtomicWaker` may be reused for any number of calls to `register` or
+/// `wake`.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AtomicWaker {
+    state: <a href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
+    waker: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {}
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html">UnwindSafe</a> <span class="kw">for </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {}
 
-<span class="comment">// `AtomicWaker` is a multi-consumer, single-producer transfer cell. The cell</span>
-<span class="comment">// stores a `Waker` value produced by calls to `register` and many threads can</span>
-<span class="comment">// race to take the waker by calling `wake`.</span>
-<span class="comment">//</span>
-<span class="comment">// If a new `Waker` instance is produced by calling `register` before an existing</span>
-<span class="comment">// one is consumed, then the existing one is overwritten.</span>
-<span class="comment">//</span>
-<span class="comment">// While `AtomicWaker` is single-producer, the implementation ensures memory</span>
-<span class="comment">// safety. In the event of concurrent calls to `register`, there will be a</span>
-<span class="comment">// single winner whose waker will get stored in the cell. The losers will not</span>
-<span class="comment">// have their tasks woken. As such, callers should ensure to add synchronization</span>
-<span class="comment">// to calls to `register`.</span>
-<span class="comment">//</span>
-<span class="comment">// The implementation uses a single `AtomicUsize` value to coordinate access to</span>
-<span class="comment">// the `Waker` cell. There are two bits that are operated on independently. These</span>
-<span class="comment">// are represented by `REGISTERING` and `WAKING`.</span>
-<span class="comment">//</span>
-<span class="comment">// The `REGISTERING` bit is set when a producer enters the critical section. The</span>
-<span class="comment">// `WAKING` bit is set when a consumer enters the critical section. Neither</span>
-<span class="comment">// bit being set is represented by `WAITING`.</span>
-<span class="comment">//</span>
-<span class="comment">// A thread obtains an exclusive lock on the waker cell by transitioning the</span>
-<span class="comment">// state from `WAITING` to `REGISTERING` or `WAKING`, depending on the</span>
-<span class="comment">// operation the thread wishes to perform. When this transition is made, it is</span>
-<span class="comment">// guaranteed that no other thread will access the waker cell.</span>
-<span class="comment">//</span>
-<span class="comment">// # Registering</span>
-<span class="comment">//</span>
-<span class="comment">// On a call to `register`, an attempt to transition the state from WAITING to</span>
-<span class="comment">// REGISTERING is made. On success, the caller obtains a lock on the waker cell.</span>
-<span class="comment">//</span>
-<span class="comment">// If the lock is obtained, then the thread sets the waker cell to the waker</span>
-<span class="comment">// provided as an argument. Then it attempts to transition the state back from</span>
-<span class="comment">// `REGISTERING` -&gt; `WAITING`.</span>
-<span class="comment">//</span>
-<span class="comment">// If this transition is successful, then the registering process is complete</span>
-<span class="comment">// and the next call to `wake` will observe the waker.</span>
-<span class="comment">//</span>
-<span class="comment">// If the transition fails, then there was a concurrent call to `wake` that</span>
-<span class="comment">// was unable to access the waker cell (due to the registering thread holding the</span>
-<span class="comment">// lock). To handle this, the registering thread removes the waker it just set</span>
-<span class="comment">// from the cell and calls `wake` on it. This call to wake represents the</span>
-<span class="comment">// attempt to wake by the other thread (that set the `WAKING` bit). The</span>
-<span class="comment">// state is then transitioned from `REGISTERING | WAKING` back to `WAITING`.</span>
-<span class="comment">// This transition must succeed because, at this point, the state cannot be</span>
-<span class="comment">// transitioned by another thread.</span>
-<span class="comment">//</span>
-<span class="comment">// # Waking</span>
-<span class="comment">//</span>
-<span class="comment">// On a call to `wake`, an attempt to transition the state from `WAITING` to</span>
-<span class="comment">// `WAKING` is made. On success, the caller obtains a lock on the waker cell.</span>
-<span class="comment">//</span>
-<span class="comment">// If the lock is obtained, then the thread takes ownership of the current value</span>
-<span class="comment">// in the waker cell, and calls `wake` on it. The state is then transitioned</span>
-<span class="comment">// back to `WAITING`. This transition must succeed as, at this point, the state</span>
-<span class="comment">// cannot be transitioned by another thread.</span>
-<span class="comment">//</span>
-<span class="comment">// If the thread is unable to obtain the lock, the `WAKING` bit is still set.</span>
-<span class="comment">// This is because it has either been set by the current thread but the previous</span>
-<span class="comment">// value included the `REGISTERING` bit **or** a concurrent thread is in the</span>
-<span class="comment">// `WAKING` critical section. Either way, no action must be taken.</span>
-<span class="comment">//</span>
-<span class="comment">// If the current thread is the only concurrent call to `wake` and another</span>
-<span class="comment">// thread is in the `register` critical section, when the other thread **exits**</span>
-<span class="comment">// the `register` critical section, it will observe the `WAKING` bit and</span>
-<span class="comment">// handle the waker itself.</span>
-<span class="comment">//</span>
-<span class="comment">// If another thread is in the `waker` critical section, then it will handle</span>
-<span class="comment">// waking the caller task.</span>
-<span class="comment">//</span>
-<span class="comment">// # A potential race (is safely handled).</span>
-<span class="comment">//</span>
-<span class="comment">// Imagine the following situation:</span>
-<span class="comment">//</span>
-<span class="comment">// * Thread A obtains the `wake` lock and wakes a task.</span>
-<span class="comment">//</span>
-<span class="comment">// * Before thread A releases the `wake` lock, the woken task is scheduled.</span>
-<span class="comment">//</span>
-<span class="comment">// * Thread B attempts to wake the task. In theory this should result in the</span>
-<span class="comment">//   task being woken, but it cannot because thread A still holds the wake</span>
-<span class="comment">//   lock.</span>
-<span class="comment">//</span>
-<span class="comment">// This case is handled by requiring users of `AtomicWaker` to call `register`</span>
-<span class="comment">// **before** attempting to observe the application state change that resulted</span>
-<span class="comment">// in the task being woken. The wakers also change the application state</span>
-<span class="comment">// before calling wake.</span>
-<span class="comment">//</span>
-<span class="comment">// Because of this, the task will do one of two things.</span>
-<span class="comment">//</span>
-<span class="comment">// 1) Observe the application state change that Thread B is waking on. In</span>
-<span class="comment">//    this case, it is OK for Thread B&#39;s wake to be lost.</span>
-<span class="comment">//</span>
-<span class="comment">// 2) Call register before attempting to observe the application state. Since</span>
-<span class="comment">//    Thread A still holds the `wake` lock, the call to `register` will result</span>
-<span class="comment">//    in the task waking itself and get scheduled again.</span>
+<span class="comment">// `AtomicWaker` is a multi-consumer, single-producer transfer cell. The cell
+// stores a `Waker` value produced by calls to `register` and many threads can
+// race to take the waker by calling `wake`.
+//
+// If a new `Waker` instance is produced by calling `register` before an existing
+// one is consumed, then the existing one is overwritten.
+//
+// While `AtomicWaker` is single-producer, the implementation ensures memory
+// safety. In the event of concurrent calls to `register`, there will be a
+// single winner whose waker will get stored in the cell. The losers will not
+// have their tasks woken. As such, callers should ensure to add synchronization
+// to calls to `register`.
+//
+// The implementation uses a single `AtomicUsize` value to coordinate access to
+// the `Waker` cell. There are two bits that are operated on independently. These
+// are represented by `REGISTERING` and `WAKING`.
+//
+// The `REGISTERING` bit is set when a producer enters the critical section. The
+// `WAKING` bit is set when a consumer enters the critical section. Neither
+// bit being set is represented by `WAITING`.
+//
+// A thread obtains an exclusive lock on the waker cell by transitioning the
+// state from `WAITING` to `REGISTERING` or `WAKING`, depending on the
+// operation the thread wishes to perform. When this transition is made, it is
+// guaranteed that no other thread will access the waker cell.
+//
+// # Registering
+//
+// On a call to `register`, an attempt to transition the state from WAITING to
+// REGISTERING is made. On success, the caller obtains a lock on the waker cell.
+//
+// If the lock is obtained, then the thread sets the waker cell to the waker
+// provided as an argument. Then it attempts to transition the state back from
+// `REGISTERING` -&gt; `WAITING`.
+//
+// If this transition is successful, then the registering process is complete
+// and the next call to `wake` will observe the waker.
+//
+// If the transition fails, then there was a concurrent call to `wake` that
+// was unable to access the waker cell (due to the registering thread holding the
+// lock). To handle this, the registering thread removes the waker it just set
+// from the cell and calls `wake` on it. This call to wake represents the
+// attempt to wake by the other thread (that set the `WAKING` bit). The
+// state is then transitioned from `REGISTERING | WAKING` back to `WAITING`.
+// This transition must succeed because, at this point, the state cannot be
+// transitioned by another thread.
+//
+// # Waking
+//
+// On a call to `wake`, an attempt to transition the state from `WAITING` to
+// `WAKING` is made. On success, the caller obtains a lock on the waker cell.
+//
+// If the lock is obtained, then the thread takes ownership of the current value
+// in the waker cell, and calls `wake` on it. The state is then transitioned
+// back to `WAITING`. This transition must succeed as, at this point, the state
+// cannot be transitioned by another thread.
+//
+// If the thread is unable to obtain the lock, the `WAKING` bit is still set.
+// This is because it has either been set by the current thread but the previous
+// value included the `REGISTERING` bit **or** a concurrent thread is in the
+// `WAKING` critical section. Either way, no action must be taken.
+//
+// If the current thread is the only concurrent call to `wake` and another
+// thread is in the `register` critical section, when the other thread **exits**
+// the `register` critical section, it will observe the `WAKING` bit and
+// handle the waker itself.
+//
+// If another thread is in the `waker` critical section, then it will handle
+// waking the caller task.
+//
+// # A potential race (is safely handled).
+//
+// Imagine the following situation:
+//
+// * Thread A obtains the `wake` lock and wakes a task.
+//
+// * Before thread A releases the `wake` lock, the woken task is scheduled.
+//
+// * Thread B attempts to wake the task. In theory this should result in the
+//   task being woken, but it cannot because thread A still holds the wake
+//   lock.
+//
+// This case is handled by requiring users of `AtomicWaker` to call `register`
+// **before** attempting to observe the application state change that resulted
+// in the task being woken. The wakers also change the application state
+// before calling wake.
+//
+// Because of this, the task will do one of two things.
+//
+// 1) Observe the application state change that Thread B is waking on. In
+//    this case, it is OK for Thread B&#39;s wake to be lost.
+//
+// 2) Call register before attempting to observe the application state. Since
+//    Thread A still holds the `wake` lock, the call to `register` will result
+//    in the task waking itself and get scheduled again.
 
-<span class="doccomment">/// Idle state.</span>
-<span class="kw">const</span> <span class="ident">WAITING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
+</span><span class="doccomment">/// Idle state.
+</span><span class="kw">const </span>WAITING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0</span>;
 
-<span class="doccomment">/// A new waker value is being registered with the `AtomicWaker` cell.</span>
-<span class="kw">const</span> <span class="ident">REGISTERING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0b01</span>;
+<span class="doccomment">/// A new waker value is being registered with the `AtomicWaker` cell.
+</span><span class="kw">const </span>REGISTERING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0b01</span>;
 
-<span class="doccomment">/// The task currently registered with the `AtomicWaker` cell is being woken.</span>
-<span class="kw">const</span> <span class="ident">WAKING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0b10</span>;
+<span class="doccomment">/// The task currently registered with the `AtomicWaker` cell is being woken.
+</span><span class="kw">const </span>WAKING: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">0b10</span>;
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
-    <span class="doccomment">/// Create an `AtomicWaker`</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
-        <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
-            <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a>),
-            <span class="ident">waker</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
+<span class="kw">impl </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
+    <span class="doccomment">/// Create an `AtomicWaker`
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
+        <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
+            state: AtomicUsize::new(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a>),
+            waker: UnsafeCell::new(<span class="prelude-val">None</span>),
         }
     }
 
@@ -533,234 +533,234 @@
     pub(crate) fn register(&amp;self, waker: Waker) {
         self.do_register(waker);
     }
-    */</span>
+    */
 
-    <span class="doccomment">/// Registers the provided waker to be notified on calls to `wake`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The new waker will take place of any previous wakers that were registered</span>
-    <span class="doccomment">/// by previous calls to `register`. Any calls to `wake` that happen after</span>
-    <span class="doccomment">/// a call to `register` (as defined by the memory ordering rules), will</span>
-    <span class="doccomment">/// wake the `register` caller&#39;s task.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is safe to call `register` with multiple other threads concurrently</span>
-    <span class="doccomment">/// calling `wake`. This will result in the `register` caller&#39;s current</span>
-    <span class="doccomment">/// task being woken once.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is safe to call concurrently, but this is generally a bad</span>
-    <span class="doccomment">/// idea. Concurrent calls to `register` will attempt to register different</span>
-    <span class="doccomment">/// tasks to be woken. One of the callers will win and have its task set,</span>
-    <span class="doccomment">/// but there is no guarantee as to which caller will succeed.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_by_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
-        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">self</a>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175-177">do_register</a>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">waker</a>);
+    </span><span class="doccomment">/// Registers the provided waker to be notified on calls to `wake`.
+    ///
+    /// The new waker will take place of any previous wakers that were registered
+    /// by previous calls to `register`. Any calls to `wake` that happen after
+    /// a call to `register` (as defined by the memory ordering rules), will
+    /// wake the `register` caller&#39;s task.
+    ///
+    /// It is safe to call `register` with multiple other threads concurrently
+    /// calling `wake`. This will result in the `register` caller&#39;s current
+    /// task being woken once.
+    ///
+    /// This function is safe to call concurrently, but this is generally a bad
+    /// idea. Concurrent calls to `register` will attempt to register different
+    /// tasks to be woken. One of the callers will win and have its task set,
+    /// but there is no guarantee as to which caller will succeed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_by_ref(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
+        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">self</a>.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175-177">do_register</a>(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">waker</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">do_register</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waker</span>: <span class="ident">W</span>)
-    <span class="kw">where</span>
-        <span class="ident">W</span>: <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#359">WakerRef</a>,
+    <span class="kw">fn </span>do_register&lt;W&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: W)
+    <span class="kw">where
+        </span>W: <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#359">WakerRef</a>,
     {
-        <span class="kw">fn</span> <span class="ident">catch_unwind</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">std::thread::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-            <span class="ident">std::panic::catch_unwind</span>(<span class="ident">AssertUnwindSafe</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#179">f</a>))
+        <span class="kw">fn </span>catch_unwind&lt;F: FnOnce() -&gt; R, R&gt;(f: F) -&gt; std::thread::Result&lt;R&gt; {
+            std::panic::catch_unwind(AssertUnwindSafe(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#179">f</a>))
         }
 
-        <span class="kw">match</span> <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>
-            .<span class="ident">state</span>
-            .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a>, <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#135">REGISTERING</a>, <span class="ident">Acquire</span>, <span class="ident">Acquire</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#186">x</a>)
+        <span class="kw">match </span><span class="self"><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>
+            </span>.state
+            .compare_exchange(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a>, <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#135">REGISTERING</a>, Acquire, Acquire)
+            .unwrap_or_else(|x| <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#186">x</a>)
         {
-            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a> =&gt; {
-                <span class="kw">unsafe</span> {
-                    <span class="comment">// If `into_waker` panics (because it&#39;s code outside of</span>
-                    <span class="comment">// AtomicWaker) we need to prime a guard that is called on</span>
-                    <span class="comment">// unwind to restore the waker to a WAITING state. Otherwise</span>
-                    <span class="comment">// any future calls to register will incorrectly be stuck</span>
-                    <span class="comment">// believing it&#39;s being updated by someone else.</span>
-                    <span class="kw">let</span> <span class="ident">new_waker_or_panic</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#179">catch_unwind</a>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">waker</a>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#361">into_waker</a>());
+            <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a> =&gt; {
+                <span class="kw">unsafe </span>{
+                    <span class="comment">// If `into_waker` panics (because it&#39;s code outside of
+                    // AtomicWaker) we need to prime a guard that is called on
+                    // unwind to restore the waker to a WAITING state. Otherwise
+                    // any future calls to register will incorrectly be stuck
+                    // believing it&#39;s being updated by someone else.
+                    </span><span class="kw">let </span>new_waker_or_panic = <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#179">catch_unwind</a>(<span class="kw">move </span>|| <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">waker</a>.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#361">into_waker</a>());
 
-                    <span class="comment">// Set the field to contain the new waker, or if</span>
-                    <span class="comment">// `into_waker` panicked, leave the old value.</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">maybe_panic</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_waker</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                    <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#195">new_waker_or_panic</a> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">new_waker</span>) =&gt; {
-                            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#200">old_waker</a> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#203">t</a>).<span class="ident">take</span>());
-                            <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#204">t</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#202">new_waker</a>));
+                    <span class="comment">// Set the field to contain the new waker, or if
+                    // `into_waker` panicked, leave the old value.
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>maybe_panic = <span class="prelude-val">None</span>;
+                    <span class="kw">let </span><span class="kw-2">mut </span>old_waker = <span class="prelude-val">None</span>;
+                    <span class="kw">match </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#195">new_waker_or_panic</a> {
+                        <span class="prelude-val">Ok</span>(new_waker) =&gt; {
+                            <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#200">old_waker</a> = <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>.waker.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|t| (<span class="kw-2">*</span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#203">t</a>).take());
+                            <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>.waker.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|t| <span class="kw-2">*</span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#204">t</a> = <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#202">new_waker</a>));
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">panic</span>) =&gt; <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#199">maybe_panic</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#206">panic</a>),
+                        <span class="prelude-val">Err</span>(panic) =&gt; <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#199">maybe_panic</a> = <span class="prelude-val">Some</span>(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#206">panic</a>),
                     }
 
-                    <span class="comment">// Release the lock. If the state transitioned to include</span>
-                    <span class="comment">// the `WAKING` bit, this means that a wake has been</span>
-                    <span class="comment">// called concurrently, so we have to remove the waker and</span>
-                    <span class="comment">// wake it.`</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// Start by assuming that the state is `REGISTERING` as this</span>
-                    <span class="comment">// is what we jut set it to.</span>
-                    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>
-                        .<span class="ident">state</span>
-                        .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#135">REGISTERING</a>, <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>);
+                    <span class="comment">// Release the lock. If the state transitioned to include
+                    // the `WAKING` bit, this means that a wake has been
+                    // called concurrently, so we have to remove the waker and
+                    // wake it.`
+                    //
+                    // Start by assuming that the state is `REGISTERING` as this
+                    // is what we jut set it to.
+                    </span><span class="kw">let </span>res = <span class="self"><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>
+                        </span>.state
+                        .compare_exchange(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#135">REGISTERING</a>, <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a>, AcqRel, Acquire);
 
-                    <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#216">res</a> {
+                    <span class="kw">match </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#216">res</a> {
                         <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                            <span class="comment">// We don&#39;t want to give the caller the panic if it</span>
-                            <span class="comment">// was someone else who put in that waker.</span>
-                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#179">catch_unwind</a>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#200">old_waker</a>);
+                            <span class="comment">// We don&#39;t want to give the caller the panic if it
+                            // was someone else who put in that waker.
+                            </span><span class="kw">let _ </span>= <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#179">catch_unwind</a>(<span class="kw">move </span>|| {
+                                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#200">old_waker</a>);
                             });
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
-                            <span class="comment">// This branch can only be reached if a</span>
-                            <span class="comment">// concurrent thread called `wake`. In this</span>
-                            <span class="comment">// case, `actual` **must** be `REGISTERING |</span>
-                            <span class="comment">// WAKING`.</span>
-                            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">actual</span>, <span class="ident">REGISTERING</span> <span class="op">|</span> <span class="ident">WAKING</span>);
+                        <span class="prelude-val">Err</span>(actual) =&gt; {
+                            <span class="comment">// This branch can only be reached if a
+                            // concurrent thread called `wake`. In this
+                            // case, `actual` **must** be `REGISTERING |
+                            // WAKING`.
+                            </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(actual, REGISTERING | WAKING);
 
-                            <span class="comment">// Take the waker to wake once the atomic operation has</span>
-                            <span class="comment">// completed.</span>
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waker</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#237">t</a>).<span class="ident">take</span>());
+                            <span class="comment">// Take the waker to wake once the atomic operation has
+                            // completed.
+                            </span><span class="kw">let </span><span class="kw-2">mut </span>waker = <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>.waker.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|t| (<span class="kw-2">*</span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#237">t</a>).take());
 
-                            <span class="comment">// Just swap, because no one could change state</span>
-                            <span class="comment">// while state == `Registering | `Waking`</span>
-                            <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a>, <span class="ident">AcqRel</span>);
+                            <span class="comment">// Just swap, because no one could change state
+                            // while state == `Registering | `Waking`
+                            </span><a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">self</a>.state.swap(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a>, AcqRel);
 
-                            <span class="comment">// If `into_waker` panicked, then the waker in the</span>
-                            <span class="comment">// waker slot is actually the old waker.</span>
-                            <span class="kw">if</span> <span class="ident">maybe_panic</span>.<span class="ident">is_some</span>() {
-                                <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#200">old_waker</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#237">waker</a>.<span class="ident">take</span>();
+                            <span class="comment">// If `into_waker` panicked, then the waker in the
+                            // waker slot is actually the old waker.
+                            </span><span class="kw">if </span>maybe_panic.is_some() {
+                                <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#200">old_waker</a> = <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#237">waker</a>.take();
                             }
 
-                            <span class="comment">// We don&#39;t want to give the caller the panic if it</span>
-                            <span class="comment">// was someone else who put in that waker.</span>
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">old_waker</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#200">old_waker</a> {
-                                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#179">catch_unwind</a>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                                    <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#251">old_waker</a>.<span class="ident">wake</span>();
+                            <span class="comment">// We don&#39;t want to give the caller the panic if it
+                            // was someone else who put in that waker.
+                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(old_waker) = <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#200">old_waker</a> {
+                                <span class="kw">let _ </span>= <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#179">catch_unwind</a>(<span class="kw">move </span>|| {
+                                    <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#251">old_waker</a>.wake();
                                 });
                             }
 
-                            <span class="comment">// The atomic swap was complete, now wake the waker</span>
-                            <span class="comment">// and return.</span>
-                            <span class="comment">//</span>
-                            <span class="comment">// If this panics, we end up in a consumed state and</span>
-                            <span class="comment">// return the panic to the caller.</span>
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#237">waker</a> {
-                                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">maybe_panic</span>.<span class="ident">is_none</span>());
-                                <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#262">waker</a>.<span class="ident">wake</span>();
+                            <span class="comment">// The atomic swap was complete, now wake the waker
+                            // and return.
+                            //
+                            // If this panics, we end up in a consumed state and
+                            // return the panic to the caller.
+                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#237">waker</a> {
+                                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(maybe_panic.is_none());
+                                <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#262">waker</a>.wake();
                             }
                         }
                     }
 
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">panic</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#199">maybe_panic</a> {
-                        <span class="comment">// If `into_waker` panicked, return the panic to the caller.</span>
-                        <a class="ident" href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">resume_unwind</a>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#269">panic</a>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(panic) = <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#199">maybe_panic</a> {
+                        <span class="comment">// If `into_waker` panicked, return the panic to the caller.
+                        </span><a href="https://doc.rust-lang.org/nightly/std/panic/fn.resume_unwind.html">resume_unwind</a>(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#269">panic</a>);
                     }
                 }
             }
-            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#138">WAKING</a> =&gt; {
-                <span class="comment">// Currently in the process of waking the task, i.e.,</span>
-                <span class="comment">// `wake` is currently being called on the old waker.</span>
-                <span class="comment">// So, we call wake on the new waker.</span>
-                <span class="comment">//</span>
-                <span class="comment">// If this panics, someone else is responsible for restoring the</span>
-                <span class="comment">// state of the waker.</span>
-                <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">waker</a>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#360">wake</a>();
+            <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#138">WAKING</a> =&gt; {
+                <span class="comment">// Currently in the process of waking the task, i.e.,
+                // `wake` is currently being called on the old waker.
+                // So, we call wake on the new waker.
+                //
+                // If this panics, someone else is responsible for restoring the
+                // state of the waker.
+                </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#175">waker</a>.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#360">wake</a>();
 
-                <span class="comment">// This is equivalent to a spin lock, so use a spin hint.</span>
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/hint/fn.spin_loop.html">hint::spin_loop</a>();
+                <span class="comment">// This is equivalent to a spin lock, so use a spin hint.
+                </span><a href="https://doc.rust-lang.org/nightly/core/hint/fn.spin_loop.html">hint::spin_loop</a>();
             }
-            <span class="ident">state</span> =&gt; {
-                <span class="comment">// In this case, a concurrent thread is holding the</span>
-                <span class="comment">// &quot;registering&quot; lock. This probably indicates a bug in the</span>
-                <span class="comment">// caller&#39;s code as racing to call `register` doesn&#39;t make much</span>
-                <span class="comment">// sense.</span>
-                <span class="comment">//</span>
-                <span class="comment">// We just want to maintain memory safety. It is ok to drop the</span>
-                <span class="comment">// call to `register`.</span>
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">state</span> <span class="op">==</span> <span class="ident">REGISTERING</span> <span class="op">|</span><span class="op">|</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">REGISTERING</span> <span class="op">|</span> <span class="ident">WAKING</span>);
+            state =&gt; {
+                <span class="comment">// In this case, a concurrent thread is holding the
+                // &quot;registering&quot; lock. This probably indicates a bug in the
+                // caller&#39;s code as racing to call `register` doesn&#39;t make much
+                // sense.
+                //
+                // We just want to maintain memory safety. It is ok to drop the
+                // call to `register`.
+                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(state == REGISTERING || state == REGISTERING | WAKING);
             }
         }
     }
 
-    <span class="doccomment">/// Wakes the task that last called `register`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `register` has not been called yet, then this does nothing.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">wake</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#303">self</a>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">take_waker</a>() {
-            <span class="comment">// If wake panics, we&#39;ve consumed the waker which is a legitimate</span>
-            <span class="comment">// outcome.</span>
-            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#304">waker</a>.<span class="ident">wake</span>();
+    <span class="doccomment">/// Wakes the task that last called `register`.
+    ///
+    /// If `register` has not been called yet, then this does nothing.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wake(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#303">self</a>.<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">take_waker</a>() {
+            <span class="comment">// If wake panics, we&#39;ve consumed the waker which is a legitimate
+            // outcome.
+            </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#304">waker</a>.wake();
         }
     }
 
-    <span class="doccomment">/// Attempts to take the `Waker` value out of the `AtomicWaker` with the</span>
-    <span class="doccomment">/// intention that the caller will wake the task later.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span> {
-        <span class="comment">// AcqRel ordering is used in order to acquire the value of the `waker`</span>
-        <span class="comment">// cell as well as to establish a `release` ordering with whatever</span>
-        <span class="comment">// memory the `AtomicWaker` is associated with.</span>
-        <span class="kw">match</span> <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#138">WAKING</a>, <span class="ident">AcqRel</span>) {
-            <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a> =&gt; {
-                <span class="comment">// The waking lock has been acquired.</span>
-                <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#320">t</a>).<span class="ident">take</span>()) };
+    <span class="doccomment">/// Attempts to take the `Waker` value out of the `AtomicWaker` with the
+    /// intention that the caller will wake the task later.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_waker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt; {
+        <span class="comment">// AcqRel ordering is used in order to acquire the value of the `waker`
+        // cell as well as to establish a `release` ordering with whatever
+        // memory the `AtomicWaker` is associated with.
+        </span><span class="kw">match </span><a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">self</a>.state.fetch_or(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#138">WAKING</a>, AcqRel) {
+            <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#132">WAITING</a> =&gt; {
+                <span class="comment">// The waking lock has been acquired.
+                </span><span class="kw">let </span>waker = <span class="kw">unsafe </span>{ <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">self</a>.waker.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|t| (<span class="kw-2">*</span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#320">t</a>).take()) };
 
-                <span class="comment">// Release the lock</span>
-                <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">self</a>.<span class="ident">state</span>.<span class="ident">fetch_and</span>(<span class="op">!</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#138">WAKING</a>, <span class="ident">Release</span>);
+                <span class="comment">// Release the lock
+                </span><a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#313">self</a>.state.fetch_and(!<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#138">WAKING</a>, Release);
 
-                <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#320">waker</a>
+                <a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#320">waker</a>
             }
-            <span class="ident">state</span> =&gt; {
-                <span class="comment">// There is a concurrent thread currently updating the</span>
-                <span class="comment">// associated waker.</span>
-                <span class="comment">//</span>
-                <span class="comment">// Nothing more to do as the `WAKING` bit has been set. It</span>
-                <span class="comment">// doesn&#39;t matter if there are concurrent registering threads or</span>
-                <span class="comment">// not.</span>
-                <span class="comment">//</span>
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
-                    <span class="ident">state</span> <span class="op">==</span> <span class="ident">REGISTERING</span> <span class="op">|</span><span class="op">|</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">REGISTERING</span> <span class="op">|</span> <span class="ident">WAKING</span> <span class="op">|</span><span class="op">|</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">WAKING</span>
+            state =&gt; {
+                <span class="comment">// There is a concurrent thread currently updating the
+                // associated waker.
+                //
+                // Nothing more to do as the `WAKING` bit has been set. It
+                // doesn&#39;t matter if there are concurrent registering threads or
+                // not.
+                //
+                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+                    state == REGISTERING || state == REGISTERING | WAKING || state == WAKING
                 );
-                <span class="prelude-val">None</span>
-            }
+                <span class="prelude-val">None
+            </span>}
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">AtomicWaker::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        AtomicWaker::new()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#351">fmt</a>, <span class="string">&quot;AtomicWaker&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#351">fmt</a>, <span class="string">&quot;AtomicWaker&quot;</span>)
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {}
+<span class="kw">unsafe impl </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a> {}
 
-<span class="kw">trait</span> <span class="ident">WakerRef</span> {
-    <span class="kw">fn</span> <span class="ident">wake</span>(<span class="self">self</span>);
-    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>;
+<span class="kw">trait </span>WakerRef {
+    <span class="kw">fn </span>wake(<span class="self">self</span>);
+    <span class="kw">fn </span>into_waker(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#359">WakerRef</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-    <span class="kw">fn</span> <span class="ident">wake</span>(<span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#365">self</a>.<span class="ident">wake</span>()
+<span class="kw">impl </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#359">WakerRef</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
+    <span class="kw">fn </span>wake(<span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#365">self</a>.wake()
     }
 
-    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#369">self</a>
-    }
+    <span class="kw">fn </span>into_waker(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
+        <span class="self"><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#369">self</a>
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#359">WakerRef</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-    <span class="kw">fn</span> <span class="ident">wake</span>(<span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#375">self</a>.<span class="ident">wake_by_ref</span>()
+<span class="kw">impl </span><a href="../../../../src/tokio/sync/task/atomic_waker.rs.html#359">WakerRef</a> <span class="kw">for </span><span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
+    <span class="kw">fn </span>wake(<span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#375">self</a>.wake_by_ref()
     }
 
-    <span class="kw">fn</span> <span class="ident">into_waker</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
-        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#379">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+    <span class="kw">fn </span>into_waker(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a> {
+        <a class="self" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#379">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

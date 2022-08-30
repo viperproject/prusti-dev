@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/ocsp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ocsp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/ocsp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ocsp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -87,94 +87,94 @@
 <span id="87">87</span>
 <span id="88">88</span>
 <span id="89">89</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OCSP_CERTID</span> {}
+<span class="kw">pub enum </span>OCSP_CERTID {}
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OCSP_ONEREQ</span> {}
+<span class="kw">pub enum </span>OCSP_ONEREQ {}
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OCSP_REQUEST</span> {}
+<span class="kw">pub enum </span>OCSP_REQUEST {}
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OCSP_BASICRESP</span> {}
+<span class="kw">pub enum </span>OCSP_BASICRESP {}
 
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_cert_to_id</span>(
-            <span class="ident">dgst</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>,
-            <span class="ident">subject</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl281</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
-            <span class="ident">issuer</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl281</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
-        ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#4">OCSP_CERTID</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>OCSP_cert_to_id(
+            dgst: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>,
+            subject: <span class="attribute">#[const_ptr_if(any(ossl110, libressl281))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
+            issuer: <span class="attribute">#[const_ptr_if(any(ossl110, libressl281))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
+        ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#4">OCSP_CERTID</a>;
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_request_add0_id</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>, <span class="ident">id</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#4">OCSP_CERTID</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#6">OCSP_ONEREQ</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>OCSP_request_add0_id(r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>, id: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#4">OCSP_CERTID</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#6">OCSP_ONEREQ</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_resp_find_status</span>(
-        <span class="ident">bs</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>,
-        <span class="ident">id</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#4">OCSP_CERTID</a>,
-        <span class="ident">status</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">reason</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">revtime</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
-        <span class="ident">thisupd</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
-        <span class="ident">nextupd</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_check_validity</span>(
-        <span class="ident">thisupd</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
-        <span class="ident">nextupd</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
-        <span class="ident">sec</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-        <span class="ident">maxsec</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>OCSP_resp_find_status(
+        bs: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>,
+        id: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#4">OCSP_CERTID</a>,
+        status: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        reason: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        revtime: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
+        thisupd: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
+        nextupd: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>OCSP_check_validity(
+        thisupd: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
+        nextupd: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#7">ASN1_GENERALIZEDTIME</a>,
+        sec: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+        maxsec: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_status</span>(<span class="ident">resp</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_get1_basic</span>(<span class="ident">resp</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>;
+    <span class="kw">pub fn </span>OCSP_response_status(resp: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>OCSP_response_get1_basic(resp: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_create</span>(<span class="ident">status</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">bs</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>;
+    <span class="kw">pub fn </span>OCSP_response_create(status: <a href="../../../libc/unix/type.c_int.html">c_int</a>, bs: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_BASICRESP_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_BASICRESP_free</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_RESPONSE_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_RESPONSE_free</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>);
+    <span class="kw">pub fn </span>OCSP_BASICRESP_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>;
+    <span class="kw">pub fn </span>OCSP_BASICRESP_free(r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>);
+    <span class="kw">pub fn </span>OCSP_RESPONSE_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>;
+    <span class="kw">pub fn </span>OCSP_RESPONSE_free(r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>);
 }
 
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_OCSP_RESPONSE</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>, <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>i2d_OCSP_RESPONSE(a: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>, pp: <span class="kw-2">*mut *mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_OCSP_RESPONSE</span>(
-        <span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>,
-        <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_ONEREQ_free</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#6">OCSP_ONEREQ</a>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_CERTID_free</span>(<span class="ident">id</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#4">OCSP_CERTID</a>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_REQUEST_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_REQUEST_free</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>);
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>d2i_OCSP_RESPONSE(
+        a: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>,
+        pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#1072">OCSP_RESPONSE</a>;
+    <span class="kw">pub fn </span>OCSP_ONEREQ_free(r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#6">OCSP_ONEREQ</a>);
+    <span class="kw">pub fn </span>OCSP_CERTID_free(id: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#4">OCSP_CERTID</a>);
+    <span class="kw">pub fn </span>OCSP_REQUEST_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>;
+    <span class="kw">pub fn </span>OCSP_REQUEST_free(r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>);
 }
 
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_OCSP_REQUEST</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>, <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>i2d_OCSP_REQUEST(a: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>, pp: <span class="kw-2">*mut *mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_OCSP_REQUEST</span>(
-        <span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>,
-        <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>d2i_OCSP_REQUEST(
+        a: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>,
+        pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#8">OCSP_REQUEST</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_basic_verify</span>(
-        <span class="ident">bs</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>,
-        <span class="ident">certs</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#133">stack_st_X509</a>,
-        <span class="ident">st</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#334">X509_STORE</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>OCSP_basic_verify(
+        bs: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/ocsp.rs.html#10">OCSP_BASICRESP</a>,
+        certs: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#133">stack_st_X509</a>,
+        st: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#334">X509_STORE</a>,
+        flags: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

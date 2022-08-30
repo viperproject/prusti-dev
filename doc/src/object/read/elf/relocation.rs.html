@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/relocation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>relocation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/elf/relocation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>relocation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -537,544 +537,544 @@
 <span id="537">537</span>
 <span id="538">538</span>
 <span id="539">539</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">alloc::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">alloc::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endian</span>::{<a class="self" href="../../../../src/object/lib.rs.html#90">self</a>, <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{
-    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>, <a class="ident" href="../../../../src/object/common.rs.html#316">RelocationEncoding</a>, <a class="ident" href="../../../../src/object/common.rs.html#276">RelocationKind</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#529">RelocationTarget</a>,
-    <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#108"><span class="kw">crate</span>::elf</a>;
+<span class="kw">use </span><span class="kw">crate</span>::endian::{<a class="self" href="../../../../src/object/lib.rs.html#90">self</a>, <a href="../../../../src/object/endian.rs.html#278">Endianness</a>};
+<span class="kw">use </span><a href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::{
+    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a href="../../../../src/object/read/mod.rs.html#64">Error</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>, <a href="../../../../src/object/common.rs.html#316">RelocationEncoding</a>, <a href="../../../../src/object/common.rs.html#276">RelocationKind</a>, <a href="../../../../src/object/read/mod.rs.html#529">RelocationTarget</a>,
+    <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/object/read/elf/file.rs.html#30">ElfFile</a>, <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>, <a class="ident" href="../../../../src/object/read/elf/section.rs.html#605">SectionHeader</a>, <a class="ident" href="../../../../src/object/read/elf/section.rs.html#21">SectionTable</a>};
+<span class="kw">use super</span>::{<a href="../../../../src/object/read/elf/file.rs.html#30">ElfFile</a>, <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>, <a href="../../../../src/object/read/elf/section.rs.html#605">SectionHeader</a>, <a href="../../../../src/object/read/elf/section.rs.html#21">SectionTable</a>};
 
-<span class="doccomment">/// A mapping from section index to associated relocation sections.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RelocationSections</span> {
-    <span class="ident">relocations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A mapping from section index to associated relocation sections.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>RelocationSections {
+    relocations: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#18">RelocationSections</a> {
-    <span class="doccomment">/// Create a new mapping using the section table.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Skips relocation sections that do not use the given symbol table section.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="ident">endian</span>: <span class="ident">Elf::Endian</span>,
-        <span class="ident">sections</span>: <span class="kw-2">&amp;</span><span class="ident">SectionTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">symbol_section</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
-    ) -&gt; <span class="ident">read::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">relocations</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="ident">sections</span>.<span class="ident">len</span>()];
-        <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">section</span>) <span class="kw">in</span> <span class="ident">sections</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>() {
-            <span class="kw">let</span> <span class="ident">sh_type</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">sh_type</span>(<span class="ident">endian</span>);
-            <span class="kw">if</span> <span class="ident">sh_type</span> <span class="op">==</span> <span class="ident">elf::SHT_REL</span> <span class="op">|</span><span class="op">|</span> <span class="ident">sh_type</span> <span class="op">==</span> <span class="ident">elf::SHT_RELA</span> {
-                <span class="comment">// The symbol indices used in relocations must be for the symbol table</span>
-                <span class="comment">// we are expecting to use.</span>
-                <span class="kw">let</span> <span class="ident">sh_link</span> <span class="op">=</span> <span class="ident">SectionIndex</span>(<span class="ident">section</span>.<span class="ident">sh_link</span>(<span class="ident">endian</span>) <span class="kw">as</span> <span class="ident">usize</span>);
-                <span class="kw">if</span> <span class="ident">sh_link</span> <span class="op">!</span><span class="op">=</span> <span class="ident">symbol_section</span> {
+<span class="kw">impl </span><a href="../../../../src/object/read/elf/relocation.rs.html#18">RelocationSections</a> {
+    <span class="doccomment">/// Create a new mapping using the section table.
+    ///
+    /// Skips relocation sections that do not use the given symbol table section.
+    </span><span class="kw">pub fn </span>parse&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
+        endian: Elf::Endian,
+        sections: <span class="kw-2">&amp;</span>SectionTable&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
+        symbol_section: <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
+    ) -&gt; read::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>relocations = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; sections.len()];
+        <span class="kw">for </span>(index, section) <span class="kw">in </span>sections.iter().enumerate().rev() {
+            <span class="kw">let </span>sh_type = section.sh_type(endian);
+            <span class="kw">if </span>sh_type == elf::SHT_REL || sh_type == elf::SHT_RELA {
+                <span class="comment">// The symbol indices used in relocations must be for the symbol table
+                // we are expecting to use.
+                </span><span class="kw">let </span>sh_link = SectionIndex(section.sh_link(endian) <span class="kw">as </span>usize);
+                <span class="kw">if </span>sh_link != symbol_section {
                     <span class="kw">continue</span>;
                 }
 
-                <span class="kw">let</span> <span class="ident">sh_info</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">sh_info</span>(<span class="ident">endian</span>) <span class="kw">as</span> <span class="ident">usize</span>;
-                <span class="kw">if</span> <span class="ident">sh_info</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="comment">// Skip dynamic relocations.</span>
-                    <span class="kw">continue</span>;
+                <span class="kw">let </span>sh_info = section.sh_info(endian) <span class="kw">as </span>usize;
+                <span class="kw">if </span>sh_info == <span class="number">0 </span>{
+                    <span class="comment">// Skip dynamic relocations.
+                    </span><span class="kw">continue</span>;
                 }
-                <span class="kw">if</span> <span class="ident">sh_info</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">relocations</span>.<span class="ident">len</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(<span class="string">&quot;Invalid ELF sh_info for relocation section&quot;</span>));
+                <span class="kw">if </span>sh_info &gt;= relocations.len() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error(<span class="string">&quot;Invalid ELF sh_info for relocation section&quot;</span>));
                 }
 
-                <span class="comment">// Handle multiple relocation sections by chaining them.</span>
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">relocations</span>[<span class="ident">sh_info</span>];
-                <span class="ident">relocations</span>[<span class="ident">sh_info</span>] <span class="op">=</span> <span class="ident">index</span>;
-                <span class="ident">relocations</span>[<span class="ident">index</span>] <span class="op">=</span> <span class="ident">next</span>;
+                <span class="comment">// Handle multiple relocation sections by chaining them.
+                </span><span class="kw">let </span>next = relocations[sh_info];
+                relocations[sh_info] = index;
+                relocations[index] = next;
             }
         }
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#31">relocations</a> })
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ <a href="../../../../src/object/read/elf/relocation.rs.html#31">relocations</a> })
     }
 
-    <span class="doccomment">/// Given a section index, return the section index of the associated relocation section.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may also be called with a relocation section index, and it will return the</span>
-    <span class="doccomment">/// next associated relocation section.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#64">self</a>.<span class="ident">relocations</span>.<span class="ident">get</span>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#64">index</a>).<span class="ident">cloned</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#65">x</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>)
+    <span class="doccomment">/// Given a section index, return the section index of the associated relocation section.
+    ///
+    /// This may also be called with a relocation section index, and it will return the
+    /// next associated relocation section.
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#64">self</a>.relocations.get(<a href="../../../../src/object/read/elf/relocation.rs.html#64">index</a>).cloned().filter(|x| <span class="kw-2">*</span><a href="../../../../src/object/read/elf/relocation.rs.html#65">x</a> != <span class="number">0</span>)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">ElfRelaIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a><span class="op">&gt;</span> {
-    <span class="ident">Rel</span>(<span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf::Rel</span><span class="op">&gt;</span>),
-    <span class="ident">Rela</span>(<span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf::Rela</span><span class="op">&gt;</span>),
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>ElfRelaIterator&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; {
+    Rel(slice::Iter&lt;<span class="lifetime">&#39;data</span>, Elf::Rel&gt;),
+    Rela(slice::Iter&lt;<span class="lifetime">&#39;data</span>, Elf::Rela&gt;),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a><span class="op">&gt;</span> <span class="ident">ElfRelaIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">is_rel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#75">self</a> {
-            <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#70">ElfRelaIterator::Rel</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#71">ElfRelaIterator::Rela</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; ElfRelaIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+    <span class="kw">fn </span>is_rel(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/object/read/elf/relocation.rs.html#75">self</a> </span>{
+            <a href="../../../../src/object/read/elf/relocation.rs.html#70">ElfRelaIterator::Rel</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <a href="../../../../src/object/read/elf/relocation.rs.html#71">ElfRelaIterator::Rela</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">ElfRelaIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Elf::Rela</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ElfRelaIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt; {
+    <span class="kw">type </span>Item = Elf::Rela;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#86">self</a> {
-            <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#70">ElfRelaIterator::Rel</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">i</span>) =&gt; <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#88">i</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">cloned</span>().<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Item::from</span>),
-            <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#71">ElfRelaIterator::Rela</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">i</span>) =&gt; <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#89">i</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">cloned</span>(),
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../../src/object/read/elf/relocation.rs.html#86">self</a> </span>{
+            <a href="../../../../src/object/read/elf/relocation.rs.html#70">ElfRelaIterator::Rel</a>(<span class="kw-2">ref mut </span>i) =&gt; <a href="../../../../src/object/read/elf/relocation.rs.html#88">i</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().cloned().map(<span class="self">Self</span>::Item::from),
+            <a href="../../../../src/object/read/elf/relocation.rs.html#71">ElfRelaIterator::Rela</a>(<span class="kw-2">ref mut </span>i) =&gt; <a href="../../../../src/object/read/elf/relocation.rs.html#89">i</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().cloned(),
         }
     }
 }
 
-<span class="doccomment">/// An iterator over the dynamic relocations for an `ElfFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ElfDynamicRelocationIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">ElfDynamicRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">elf::FileHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// An iterator over the dynamic relocations for an `ElfFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ElfDynamicRelocationIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">ElfDynamicRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">elf::FileHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator over the dynamic relocations for an `ElfFile32`.
+</span><span class="kw">pub type </span>ElfDynamicRelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    ElfDynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
+<span class="doccomment">/// An iterator over the dynamic relocations for an `ElfFile64`.
+</span><span class="kw">pub type </span>ElfDynamicRelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    ElfDynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// An iterator over the dynamic relocations for an `ElfFile`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ElfDynamicRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the dynamic relocations for an `ElfFile`.
+</span><span class="kw">pub struct </span>ElfDynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="doccomment">/// The current relocation section index.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">section_index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">ElfFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">relocations</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ElfRelaIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The current relocation section index.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) section_index: <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) relocations: <span class="prelude-ty">Option</span>&lt;ElfRelaIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">ElfDynamicRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ElfDynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
+    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">endian</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">relocations</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">relocations</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reloc</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#123">relocations</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <span class="kw">let</span> <span class="ident">relocation</span> <span class="op">=</span>
-                        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#234-239">parse_relocation</a>(<a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">file</span>.<span class="ident">header</span>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#124">reloc</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#123">relocations</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#75">is_rel</a>());
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#124">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#472">r_offset</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#125">relocation</a>));
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>endian = <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.file.endian;
+        <span class="kw">loop </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>relocations) = <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.relocations {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(reloc) = <a href="../../../../src/object/read/elf/relocation.rs.html#123">relocations</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                    <span class="kw">let </span>relocation =
+                        <a href="../../../../src/object/read/elf/relocation.rs.html#234-239">parse_relocation</a>(<a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.file.header, <a href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#124">reloc</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#123">relocations</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#75">is_rel</a>());
+                    <span class="kw">return </span><span class="prelude-val">Some</span>((<a href="../../../../src/object/read/elf/relocation.rs.html#124">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#472">r_offset</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../../src/object/read/elf/relocation.rs.html#125">relocation</a>));
                 }
-                <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">relocations</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.relocations = <span class="prelude-val">None</span>;
             }
 
-            <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">sections</span>.<span class="ident">section</span>(<span class="self">self</span>.<span class="ident">section_index</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-            <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">section_index</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">let </span>section = <span class="self">self</span>.file.sections.section(<span class="self">self</span>.section_index).ok()<span class="question-mark">?</span>;
+            <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.section_index.<span class="number">0 </span>+= <span class="number">1</span>;
 
-            <span class="kw">let</span> <span class="ident">sh_link</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#132">section</a>.<a class="ident" href="../../../../src/object/read/elf/section.rs.html#616">sh_link</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-            <span class="kw">if</span> <span class="ident">sh_link</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">dynamic_symbols</span>.<span class="ident">section</span>() {
+            <span class="kw">let </span>sh_link = <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#132">section</a>.<a href="../../../../src/object/read/elf/section.rs.html#616">sh_link</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+            <span class="kw">if </span>sh_link != <span class="self">self</span>.file.dynamic_symbols.section() {
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#132">section</a>.<a class="ident" href="../../../../src/object/read/elf/section.rs.html#611">sh_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>) {
-                <a class="ident" href="../../../../src/object/elf.rs.html#695">elf::SHT_REL</a> =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">relocations</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#132">section</a>.<a class="ident" href="../../../../src/object/read/elf/section.rs.html#665-669">data_as_array</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>, <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">file</span>.<span class="ident">data</span>) {
-                        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">relocations</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#70">ElfRelaIterator::Rel</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#142">relocations</a>.<span class="ident">iter</span>()));
+            <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#132">section</a>.<a href="../../../../src/object/read/elf/section.rs.html#611">sh_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>) {
+                <a href="../../../../src/object/elf.rs.html#695">elf::SHT_REL</a> =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(relocations) = <a href="../../../../src/object/read/elf/relocation.rs.html#132">section</a>.<a href="../../../../src/object/read/elf/section.rs.html#665-669">data_as_array</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>, <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.file.data) {
+                        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.relocations = <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/elf/relocation.rs.html#70">ElfRelaIterator::Rel</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#142">relocations</a>.iter()));
                     }
                 }
-                <a class="ident" href="../../../../src/object/elf.rs.html#685">elf::SHT_RELA</a> =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">relocations</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#132">section</a>.<a class="ident" href="../../../../src/object/read/elf/section.rs.html#665-669">data_as_array</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>, <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">file</span>.<span class="ident">data</span>) {
-                        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.<span class="ident">relocations</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#71">ElfRelaIterator::Rela</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#147">relocations</a>.<span class="ident">iter</span>()));
+                <a href="../../../../src/object/elf.rs.html#685">elf::SHT_RELA</a> =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(relocations) = <a href="../../../../src/object/read/elf/relocation.rs.html#132">section</a>.<a href="../../../../src/object/read/elf/section.rs.html#665-669">data_as_array</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#121">endian</a>, <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.file.data) {
+                        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#120">self</a>.relocations = <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/elf/relocation.rs.html#71">ElfRelaIterator::Rela</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#147">relocations</a>.iter()));
                     }
                 }
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ElfDynamicRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ElfDynamicRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#162">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ElfDynamicRelocationIterator&quot;</span>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/object/read/elf/relocation.rs.html#162">f</a>.debug_struct(<span class="string">&quot;ElfDynamicRelocationIterator&quot;</span>).finish()
     }
 }
 
-<span class="doccomment">/// An iterator over the relocations for an `ElfSection32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ElfSectionRelocationIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">ElfSectionRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">elf::FileHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
-<span class="doccomment">/// An iterator over the relocations for an `ElfSection64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ElfSectionRelocationIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">ElfSectionRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">elf::FileHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator over the relocations for an `ElfSection32`.
+</span><span class="kw">pub type </span>ElfSectionRelocationIterator32&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    ElfSectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader32&lt;Endian&gt;, R&gt;;
+<span class="doccomment">/// An iterator over the relocations for an `ElfSection64`.
+</span><span class="kw">pub type </span>ElfSectionRelocationIterator64&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Endian = <a href="../../../../src/object/endian.rs.html#278">Endianness</a>, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; =
+    ElfSectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, elf::FileHeader64&lt;Endian&gt;, R&gt;;
 
-<span class="doccomment">/// An iterator over the relocations for an `ElfSection`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ElfSectionRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the relocations for an `ElfSection`.
+</span><span class="kw">pub struct </span>ElfSectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="doccomment">/// The current pointer in the chain of relocation sections.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">section_index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">ElfFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">relocations</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ElfRelaIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Elf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The current pointer in the chain of relocation sections.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) section_index: <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file </span>ElfFile&lt;<span class="lifetime">&#39;data</span>, Elf, R&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) relocations: <span class="prelude-ty">Option</span>&lt;ElfRelaIterator&lt;<span class="lifetime">&#39;data</span>, Elf&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">ElfSectionRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>ElfSectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
+    <span class="kw">type </span>Item = (<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">endian</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">relocations</span>) <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">relocations</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reloc</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#196">relocations</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <span class="kw">let</span> <span class="ident">relocation</span> <span class="op">=</span>
-                        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#234-239">parse_relocation</a>(<a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">file</span>.<span class="ident">header</span>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#197">reloc</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#196">relocations</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#75">is_rel</a>());
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#197">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#472">r_offset</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#198">relocation</a>));
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>endian = <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.file.endian;
+        <span class="kw">loop </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>relocations) = <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.relocations {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(reloc) = <a href="../../../../src/object/read/elf/relocation.rs.html#196">relocations</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                    <span class="kw">let </span>relocation =
+                        <a href="../../../../src/object/read/elf/relocation.rs.html#234-239">parse_relocation</a>(<a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.file.header, <a href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#197">reloc</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#196">relocations</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#75">is_rel</a>());
+                    <span class="kw">return </span><span class="prelude-val">Some</span>((<a href="../../../../src/object/read/elf/relocation.rs.html#197">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#472">r_offset</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../../src/object/read/elf/relocation.rs.html#198">relocation</a>));
                 }
-                <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">relocations</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.relocations = <span class="prelude-val">None</span>;
             }
-            <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">section_index</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<span class="self">self</span>.<span class="ident">file</span>.<span class="ident">relocations</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">section_index</span>.<span class="number">0</span>)<span class="question-mark">?</span>);
-            <span class="comment">// The construction of RelocationSections ensures section_index is valid.</span>
-            <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">file</span>.<span class="ident">sections</span>.<a class="ident" href="../../../../src/object/read/elf/section.rs.html#55">section</a>(<a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">section_index</span>).<span class="ident">unwrap</span>();
-            <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#206">section</a>.<a class="ident" href="../../../../src/object/read/elf/section.rs.html#611">sh_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>) {
-                <a class="ident" href="../../../../src/object/elf.rs.html#695">elf::SHT_REL</a> =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">relocations</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#206">section</a>.<a class="ident" href="../../../../src/object/read/elf/section.rs.html#665-669">data_as_array</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>, <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">file</span>.<span class="ident">data</span>) {
-                        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">relocations</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#70">ElfRelaIterator::Rel</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#209">relocations</a>.<span class="ident">iter</span>()));
+            <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.section_index = <a href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<span class="self">self</span>.file.relocations.get(<span class="self">self</span>.section_index.<span class="number">0</span>)<span class="question-mark">?</span>);
+            <span class="comment">// The construction of RelocationSections ensures section_index is valid.
+            </span><span class="kw">let </span>section = <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.file.sections.<a href="../../../../src/object/read/elf/section.rs.html#55">section</a>(<a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.section_index).unwrap();
+            <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#206">section</a>.<a href="../../../../src/object/read/elf/section.rs.html#611">sh_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>) {
+                <a href="../../../../src/object/elf.rs.html#695">elf::SHT_REL</a> =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(relocations) = <a href="../../../../src/object/read/elf/relocation.rs.html#206">section</a>.<a href="../../../../src/object/read/elf/section.rs.html#665-669">data_as_array</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>, <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.file.data) {
+                        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.relocations = <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/elf/relocation.rs.html#70">ElfRelaIterator::Rel</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#209">relocations</a>.iter()));
                     }
                 }
-                <a class="ident" href="../../../../src/object/elf.rs.html#685">elf::SHT_RELA</a> =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">relocations</span>) <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#206">section</a>.<a class="ident" href="../../../../src/object/read/elf/section.rs.html#665-669">data_as_array</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>, <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">file</span>.<span class="ident">data</span>) {
-                        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.<span class="ident">relocations</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#71">ElfRelaIterator::Rela</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#214">relocations</a>.<span class="ident">iter</span>()));
+                <a href="../../../../src/object/elf.rs.html#685">elf::SHT_RELA</a> =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(relocations) = <a href="../../../../src/object/read/elf/relocation.rs.html#206">section</a>.<a href="../../../../src/object/read/elf/section.rs.html#665-669">data_as_array</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#194">endian</a>, <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.file.data) {
+                        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#193">self</a>.relocations = <span class="prelude-val">Some</span>(<a href="../../../../src/object/read/elf/relocation.rs.html#71">ElfRelaIterator::Rela</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#214">relocations</a>.iter()));
                     }
                 }
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ElfSectionRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Elf</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
-    <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ElfSectionRelocationIterator&lt;<span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, Elf, R&gt;
+<span class="kw">where
+    </span>Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>,
+    R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#229">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ElfSectionRelocationIterator&quot;</span>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/object/read/elf/relocation.rs.html#229">f</a>.debug_struct(<span class="string">&quot;ElfSectionRelocationIterator&quot;</span>).finish()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_relocation</span><span class="op">&lt;</span><span class="ident">Elf</span>: <a class="ident" href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a><span class="op">&gt;</span>(
-    <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="ident">Elf</span>,
-    <span class="ident">endian</span>: <span class="ident">Elf::Endian</span>,
-    <span class="ident">reloc</span>: <span class="ident">Elf::Rela</span>,
-    <span class="ident">implicit_addend</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoding</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#318">RelocationEncoding::Generic</a>;
-    <span class="kw">let</span> <span class="ident">is_mips64el</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#235">header</a>.<a class="ident" href="../../../../src/object/read/elf/file.rs.html#701">is_mips64el</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>);
-    <span class="kw">let</span> (<span class="ident">kind</span>, <span class="ident">size</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#235">header</a>.<a class="ident" href="../../../../src/object/read/elf/file.rs.html#458">e_machine</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>) {
-        <a class="ident" href="../../../../src/object/elf.rs.html#500">elf::EM_AARCH64</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#3995">elf::R_AARCH64_ABS64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#3997">elf::R_AARCH64_ABS32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#3999">elf::R_AARCH64_ABS16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4001">elf::R_AARCH64_PREL64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4003">elf::R_AARCH64_PREL32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4005">elf::R_AARCH64_PREL16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4045">elf::R_AARCH64_CALL26</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#345">RelocationEncoding::AArch64Call</a>;
-                (<a class="ident" href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">26</span>)
+<span class="kw">fn </span>parse_relocation&lt;Elf: <a href="../../../../src/object/read/elf/file.rs.html#437">FileHeader</a>&gt;(
+    header: <span class="kw-2">&amp;</span>Elf,
+    endian: Elf::Endian,
+    reloc: Elf::Rela,
+    implicit_addend: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+) -&gt; <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>encoding = <a href="../../../../src/object/common.rs.html#318">RelocationEncoding::Generic</a>;
+    <span class="kw">let </span>is_mips64el = <a href="../../../../src/object/read/elf/relocation.rs.html#235">header</a>.<a href="../../../../src/object/read/elf/file.rs.html#701">is_mips64el</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>);
+    <span class="kw">let </span>(kind, size) = <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#235">header</a>.<a href="../../../../src/object/read/elf/file.rs.html#458">e_machine</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>) {
+        <a href="../../../../src/object/elf.rs.html#500">elf::EM_AARCH64</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#3995">elf::R_AARCH64_ABS64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#3997">elf::R_AARCH64_ABS32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#3999">elf::R_AARCH64_ABS16</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#4001">elf::R_AARCH64_PREL64</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#4003">elf::R_AARCH64_PREL32</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#4005">elf::R_AARCH64_PREL16</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#4045">elf::R_AARCH64_CALL26</a> =&gt; {
+                <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> = <a href="../../../../src/object/common.rs.html#345">RelocationEncoding::AArch64Call</a>;
+                (<a href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">26</span>)
             }
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#254">r_type</a>), <span class="number">0</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#254">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#266">elf::EM_ARM</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#4265">elf::R_ARM_ABS32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#258">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#266">elf::EM_ARM</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#4265">elf::R_ARM_ABS32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#258">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#352">elf::EM_AVR</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#4242">elf::R_AVR_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4244">elf::R_AVR_16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#263">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#352">elf::EM_AVR</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#4242">elf::R_AVR_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#4244">elf::R_AVR_16</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#263">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#574">elf::EM_BPF</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#6121">elf::R_BPF_64_64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#6123">elf::R_BPF_64_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#268">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#574">elf::EM_BPF</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#6121">elf::R_BPF_64_64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#6123">elf::R_BPF_64_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#268">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#226">elf::EM_386</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#2052">elf::R_386_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2054">elf::R_386_PC32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2056">elf::R_386_GOT32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2058">elf::R_386_PLT32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2068">elf::R_386_GOTOFF</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#288">RelocationKind::GotBaseOffset</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2070">elf::R_386_GOTPC</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#286">RelocationKind::GotBaseRelative</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2086">elf::R_386_16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2088">elf::R_386_PC16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2090">elf::R_386_8</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">8</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2092">elf::R_386_PC8</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">8</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#281">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#226">elf::EM_386</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#2052">elf::R_386_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#2054">elf::R_386_PC32</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#2056">elf::R_386_GOT32</a> =&gt; (<a href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#2058">elf::R_386_PLT32</a> =&gt; (<a href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#2068">elf::R_386_GOTOFF</a> =&gt; (<a href="../../../../src/object/common.rs.html#288">RelocationKind::GotBaseOffset</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#2070">elf::R_386_GOTPC</a> =&gt; (<a href="../../../../src/object/common.rs.html#286">RelocationKind::GotBaseRelative</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#2086">elf::R_386_16</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#2088">elf::R_386_PC16</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#2090">elf::R_386_8</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">8</span>),
+            <a href="../../../../src/object/elf.rs.html#2092">elf::R_386_PC8</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">8</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#281">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#310">elf::EM_X86_64</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#5152">elf::R_X86_64_64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5154">elf::R_X86_64_PC32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5156">elf::R_X86_64_GOT32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5158">elf::R_X86_64_PLT32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5168">elf::R_X86_64_GOTPCREL</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#284">RelocationKind::GotRelative</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5170">elf::R_X86_64_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5172">elf::R_X86_64_32S</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#323">RelocationEncoding::X86Signed</a>;
-                (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>)
+        <a href="../../../../src/object/elf.rs.html#310">elf::EM_X86_64</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#5152">elf::R_X86_64_64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#5154">elf::R_X86_64_PC32</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5156">elf::R_X86_64_GOT32</a> =&gt; (<a href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5158">elf::R_X86_64_PLT32</a> =&gt; (<a href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5168">elf::R_X86_64_GOTPCREL</a> =&gt; (<a href="../../../../src/object/common.rs.html#284">RelocationKind::GotRelative</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5170">elf::R_X86_64_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5172">elf::R_X86_64_32S</a> =&gt; {
+                <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> = <a href="../../../../src/object/common.rs.html#323">RelocationEncoding::X86Signed</a>;
+                (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>)
             }
-            <a class="ident" href="../../../../src/object/elf.rs.html#5174">elf::R_X86_64_16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5176">elf::R_X86_64_PC16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5178">elf::R_X86_64_8</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">8</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5180">elf::R_X86_64_PC8</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">8</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#298">r_type</a>), <span class="number">0</span>),
+            <a href="../../../../src/object/elf.rs.html#5174">elf::R_X86_64_16</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#5176">elf::R_X86_64_PC16</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#5178">elf::R_X86_64_8</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">8</span>),
+            <a href="../../../../src/object/elf.rs.html#5180">elf::R_X86_64_PC8</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">8</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#298">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#464">elf::EM_HEXAGON</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#4256">elf::R_HEX_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#302">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#464">elf::EM_HEXAGON</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#4256">elf::R_HEX_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#302">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#578">elf::EM_LOONGARCH</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#6271">elf::R_LARCH_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#6273">elf::R_LARCH_64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#307">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#578">elf::EM_LOONGARCH</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#6271">elf::R_LARCH_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#6273">elf::R_LARCH_64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#307">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#236">elf::EM_MIPS</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#241">is_mips64el</a>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#2634">elf::R_MIPS_16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2636">elf::R_MIPS_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#2663">elf::R_MIPS_64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#313">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#236">elf::EM_MIPS</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#241">is_mips64el</a>) {
+            <a href="../../../../src/object/elf.rs.html#2634">elf::R_MIPS_16</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#2636">elf::R_MIPS_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#2663">elf::R_MIPS_64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#313">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#396">elf::EM_MSP430</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#4249">elf::R_MSP430_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4251">elf::R_MSP430_16_BYTE</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#318">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#396">elf::EM_MSP430</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#4249">elf::R_MSP430_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#4251">elf::R_MSP430_16_BYTE</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#318">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#250">elf::EM_PPC</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#3379">elf::R_PPC_ADDR32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#322">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#250">elf::EM_PPC</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#3379">elf::R_PPC_ADDR32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#322">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#252">elf::EM_PPC64</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#3592">elf::R_PPC64_ADDR32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#3663">elf::R_PPC64_ADDR64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#327">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#252">elf::EM_PPC64</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#3592">elf::R_PPC64_ADDR32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#3663">elf::R_PPC64_ADDR64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#327">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#572">elf::EM_RISCV</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#6011">elf::R_RISCV_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#6013">elf::R_RISCV_64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#332">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#572">elf::EM_RISCV</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#6011">elf::R_RISCV_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#6013">elf::R_RISCV_64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#332">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#254">elf::EM_S390</a> =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-            <a class="ident" href="../../../../src/object/elf.rs.html#4984">elf::R_390_8</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">8</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4988">elf::R_390_16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4990">elf::R_390_32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5026">elf::R_390_64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5014">elf::R_390_PC16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4992">elf::R_390_PC32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5028">elf::R_390_PC64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5016">elf::R_390_PC16DBL</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
-                (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>)
+        <a href="../../../../src/object/elf.rs.html#254">elf::EM_S390</a> =&gt; <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+            <a href="../../../../src/object/elf.rs.html#4984">elf::R_390_8</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">8</span>),
+            <a href="../../../../src/object/elf.rs.html#4988">elf::R_390_16</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#4990">elf::R_390_32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5026">elf::R_390_64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#5014">elf::R_390_PC16</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#4992">elf::R_390_PC32</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5028">elf::R_390_PC64</a> =&gt; (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#5016">elf::R_390_PC16DBL</a> =&gt; {
+                <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> = <a href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
+                (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">16</span>)
             }
-            <a class="ident" href="../../../../src/object/elf.rs.html#5020">elf::R_390_PC32DBL</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
-                (<a class="ident" href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>)
+            <a href="../../../../src/object/elf.rs.html#5020">elf::R_390_PC32DBL</a> =&gt; {
+                <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> = <a href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
+                (<a href="../../../../src/object/common.rs.html#280">RelocationKind::Relative</a>, <span class="number">32</span>)
             }
-            <a class="ident" href="../../../../src/object/elf.rs.html#5018">elf::R_390_PLT16DBL</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
-                (<a class="ident" href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">16</span>)
+            <a href="../../../../src/object/elf.rs.html#5018">elf::R_390_PLT16DBL</a> =&gt; {
+                <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> = <a href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
+                (<a href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">16</span>)
             }
-            <a class="ident" href="../../../../src/object/elf.rs.html#5022">elf::R_390_PLT32DBL</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
-                (<a class="ident" href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">32</span>)
+            <a href="../../../../src/object/elf.rs.html#5022">elf::R_390_PLT32DBL</a> =&gt; {
+                <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> = <a href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
+                (<a href="../../../../src/object/common.rs.html#290">RelocationKind::PltRelative</a>, <span class="number">32</span>)
             }
-            <a class="ident" href="../../../../src/object/elf.rs.html#5012">elf::R_390_GOT16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#4996">elf::R_390_GOT32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5030">elf::R_390_GOT64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5034">elf::R_390_GOTENT</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
-                (<a class="ident" href="../../../../src/object/common.rs.html#284">RelocationKind::GotRelative</a>, <span class="number">32</span>)
+            <a href="../../../../src/object/elf.rs.html#5012">elf::R_390_GOT16</a> =&gt; (<a href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#4996">elf::R_390_GOT32</a> =&gt; (<a href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5030">elf::R_390_GOT64</a> =&gt; (<a href="../../../../src/object/common.rs.html#282">RelocationKind::Got</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#5034">elf::R_390_GOTENT</a> =&gt; {
+                <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> = <a href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
+                (<a href="../../../../src/object/common.rs.html#284">RelocationKind::GotRelative</a>, <span class="number">32</span>)
             }
-            <a class="ident" href="../../../../src/object/elf.rs.html#5036">elf::R_390_GOTOFF16</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#288">RelocationKind::GotBaseOffset</a>, <span class="number">16</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5008">elf::R_390_GOTOFF32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#288">RelocationKind::GotBaseOffset</a>, <span class="number">32</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5038">elf::R_390_GOTOFF64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#288">RelocationKind::GotBaseOffset</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5010">elf::R_390_GOTPC</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#286">RelocationKind::GotBaseRelative</a>, <span class="number">64</span>),
-            <a class="ident" href="../../../../src/object/elf.rs.html#5024">elf::R_390_GOTPCDBL</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> <span class="op">=</span> <a class="ident" href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
-                (<a class="ident" href="../../../../src/object/common.rs.html#286">RelocationKind::GotBaseRelative</a>, <span class="number">32</span>)
+            <a href="../../../../src/object/elf.rs.html#5036">elf::R_390_GOTOFF16</a> =&gt; (<a href="../../../../src/object/common.rs.html#288">RelocationKind::GotBaseOffset</a>, <span class="number">16</span>),
+            <a href="../../../../src/object/elf.rs.html#5008">elf::R_390_GOTOFF32</a> =&gt; (<a href="../../../../src/object/common.rs.html#288">RelocationKind::GotBaseOffset</a>, <span class="number">32</span>),
+            <a href="../../../../src/object/elf.rs.html#5038">elf::R_390_GOTOFF64</a> =&gt; (<a href="../../../../src/object/common.rs.html#288">RelocationKind::GotBaseOffset</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#5010">elf::R_390_GOTPC</a> =&gt; (<a href="../../../../src/object/common.rs.html#286">RelocationKind::GotBaseRelative</a>, <span class="number">64</span>),
+            <a href="../../../../src/object/elf.rs.html#5024">elf::R_390_GOTPCDBL</a> =&gt; {
+                <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a> = <a href="../../../../src/object/common.rs.html#340">RelocationEncoding::S390xDbl</a>;
+                (<a href="../../../../src/object/common.rs.html#286">RelocationKind::GotBaseRelative</a>, <span class="number">32</span>)
             }
-            <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#373">r_type</a>), <span class="number">0</span>),
+            r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#373">r_type</a>), <span class="number">0</span>),
         },
-        <a class="ident" href="../../../../src/object/elf.rs.html#224">elf::EM_SPARC</a> <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#246">elf::EM_SPARC32PLUS</a> <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#272">elf::EM_SPARCV9</a> =&gt; {
-            <span class="kw">match</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
-                <a class="ident" href="../../../../src/object/elf.rs.html#2173">elf::R_SPARC_32</a> <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#2213">elf::R_SPARC_UA32</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
-                <a class="ident" href="../../../../src/object/elf.rs.html#2234">elf::R_SPARC_64</a> <span class="op">|</span> <a class="ident" href="../../../../src/object/elf.rs.html#2278">elf::R_SPARC_UA64</a> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
-                <span class="ident">r_type</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#379">r_type</a>), <span class="number">0</span>),
+        <a href="../../../../src/object/elf.rs.html#224">elf::EM_SPARC</a> | <a href="../../../../src/object/elf.rs.html#246">elf::EM_SPARC32PLUS</a> | <a href="../../../../src/object/elf.rs.html#272">elf::EM_SPARCV9</a> =&gt; {
+            <span class="kw">match </span><a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>) {
+                <a href="../../../../src/object/elf.rs.html#2173">elf::R_SPARC_32</a> | <a href="../../../../src/object/elf.rs.html#2213">elf::R_SPARC_UA32</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">32</span>),
+                <a href="../../../../src/object/elf.rs.html#2234">elf::R_SPARC_64</a> | <a href="../../../../src/object/elf.rs.html#2278">elf::R_SPARC_UA64</a> =&gt; (<a href="../../../../src/object/common.rs.html#278">RelocationKind::Absolute</a>, <span class="number">64</span>),
+                r_type =&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#379">r_type</a>), <span class="number">0</span>),
             }
         }
-        <span class="kw">_</span> =&gt; (<a class="ident" href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>)), <span class="number">0</span>),
+        <span class="kw">_ </span>=&gt; (<a href="../../../../src/object/common.rs.html#298">RelocationKind::Elf</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#476">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <span class="bool-val">false</span>)), <span class="number">0</span>),
     };
-    <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#475">r_sym</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#241">is_mips64el</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">sym</span> <span class="op">==</span> <span class="number">0</span> {
-        <a class="ident" href="../../../../src/object/read/mod.rs.html#535">RelocationTarget::Absolute</a>
-    } <span class="kw">else</span> {
-        <a class="ident" href="../../../../src/object/read/mod.rs.html#531">RelocationTarget::Symbol</a>(<a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#384">sym</a>))
+    <span class="kw">let </span>sym = <a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#475">r_sym</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#241">is_mips64el</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">let </span>target = <span class="kw">if </span>sym == <span class="number">0 </span>{
+        <a href="../../../../src/object/read/mod.rs.html#535">RelocationTarget::Absolute</a>
+    } <span class="kw">else </span>{
+        <a href="../../../../src/object/read/mod.rs.html#531">RelocationTarget::Symbol</a>(<a href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#384">sym</a>))
     };
-    <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a> {
-        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#242">kind</a>,
-        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a>,
-        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#242">size</a>,
-        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#385">target</a>,
-        <span class="ident">addend</span>: <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#474">r_addend</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-        <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#238">implicit_addend</a>,
+    <a href="../../../../src/object/read/mod.rs.html#540">Relocation</a> {
+        <a href="../../../../src/object/read/elf/relocation.rs.html#242">kind</a>,
+        <a href="../../../../src/object/read/elf/relocation.rs.html#240">encoding</a>,
+        <a href="../../../../src/object/read/elf/relocation.rs.html#242">size</a>,
+        <a href="../../../../src/object/read/elf/relocation.rs.html#385">target</a>,
+        addend: <a href="../../../../src/object/read/elf/relocation.rs.html#237">reloc</a>.<a href="../../../../src/object/read/elf/relocation.rs.html#474">r_addend</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#236">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        <a href="../../../../src/object/read/elf/relocation.rs.html#238">implicit_addend</a>,
     }
 }
 
-<span class="doccomment">/// A trait for generic access to `Rel32` and `Rel64`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Rel</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
-    <span class="kw">type</span> <span class="ident">Word</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Sword</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
+<span class="doccomment">/// A trait for generic access to `Rel32` and `Rel64`.
+</span><span class="attribute">#[allow(missing_docs)]
+</span><span class="kw">pub trait </span>Rel: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../../../src/object/pod.rs.html#21">Pod</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
+    <span class="kw">type </span>Word: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
+    <span class="kw">type </span>Sword: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;;
+    <span class="kw">type </span>Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
 
-    <span class="kw">fn</span> <span class="ident">r_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>r_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>r_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>r_sym(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>r_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#402">Rel</a> <span class="kw">for</span> <span class="ident">elf::Rel32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">type</span> <span class="ident">Sword</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/elf/relocation.rs.html#402">Rel</a> <span class="kw">for </span>elf::Rel32&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">type </span>Sword = <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+    <span class="kw">type </span>Endian = Endian;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#419">self</a>.<span class="ident">r_offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#419">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#419">self</a>.r_offset.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#419">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#424">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#424">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#424">self</a>.r_info.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#424">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#429">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1046">r_sym</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#429">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_sym(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#429">self</a>.<a href="../../../../src/object/elf.rs.html#1046">r_sym</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#429">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#434">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1052">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#434">endian</a>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#402">Rel</a> <span class="kw">for</span> <span class="ident">elf::Rel64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <span class="kw">type</span> <span class="ident">Sword</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#445">self</a>.<span class="ident">r_offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#445">endian</a>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#450">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#450">endian</a>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#455">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1126">r_sym</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#455">endian</a>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#460">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1132">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#460">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#434">self</a>.<a href="../../../../src/object/elf.rs.html#1052">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#434">endian</a>)
     }
 }
 
-<span class="doccomment">/// A trait for generic access to `Rela32` and `Rela64`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Rela</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
-    <span class="kw">type</span> <span class="ident">Word</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Sword</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/elf/relocation.rs.html#402">Rel</a> <span class="kw">for </span>elf::Rel64&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">type </span>Sword = <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+    <span class="kw">type </span>Endian = Endian;
 
-    <span class="kw">fn</span> <span class="ident">r_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span>;
-    <span class="kw">fn</span> <span class="ident">r_addend</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Sword</span>;
-    <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#467">Rela</a> <span class="kw">for</span> <span class="ident">elf::Rela32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-    <span class="kw">type</span> <span class="ident">Sword</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#485">self</a>.<span class="ident">r_offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#485">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#445">self</a>.r_offset.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#445">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">_is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#490">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#490">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#450">self</a>.r_info.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#450">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_addend</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Sword</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#495">self</a>.<span class="ident">r_addend</span>.<a class="ident" href="../../../../src/object/endian.rs.html#687">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#495">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_sym(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#455">self</a>.<a href="../../../../src/object/elf.rs.html#1126">r_sym</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#455">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">_is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#500">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1082">r_sym</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#500">endian</a>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">_is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#505">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1088">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#505">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#460">self</a>.<a href="../../../../src/object/elf.rs.html#1132">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#460">endian</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#467">Rela</a> <span class="kw">for</span> <span class="ident">elf::Rela64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-    <span class="kw">type</span> <span class="ident">Sword</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
-    <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
+<span class="doccomment">/// A trait for generic access to `Rela32` and `Rela64`.
+</span><span class="attribute">#[allow(missing_docs)]
+</span><span class="kw">pub trait </span>Rela: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="../../../../src/object/pod.rs.html#21">Pod</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
+    <span class="kw">type </span>Word: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;;
+    <span class="kw">type </span>Sword: Into&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;;
+    <span class="kw">type </span>Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#516">self</a>.<span class="ident">r_offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#516">endian</a>)
+    <span class="kw">fn </span>r_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>r_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span>::Word;
+    <span class="kw">fn </span>r_addend(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Sword;
+    <span class="kw">fn </span>r_sym(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">fn </span>r_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+}
+
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/elf/relocation.rs.html#467">Rela</a> <span class="kw">for </span>elf::Rela32&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+    <span class="kw">type </span>Sword = <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+    <span class="kw">type </span>Endian = Endian;
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#485">self</a>.r_offset.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#485">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident"><span class="self">Self</span>::Word</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#521">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1170">get_r_info</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#521">endian</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#521">is_mips64el</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, _is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#490">self</a>.r_info.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#490">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_addend</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <span class="ident"><span class="self">Self</span>::Sword</span> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#526">self</a>.<span class="ident">r_addend</span>.<a class="ident" href="../../../../src/object/endian.rs.html#709">get</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#526">endian</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_addend(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Sword {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#495">self</a>.r_addend.<a href="../../../../src/object/endian.rs.html#687">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#495">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#531">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1184">r_sym</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#531">endian</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#531">is_mips64el</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_sym(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, _is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#500">self</a>.<a href="../../../../src/object/elf.rs.html#1082">r_sym</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#500">endian</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#536">self</a>.<a class="ident" href="../../../../src/object/elf.rs.html#1190">r_type</a>(<a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#536">endian</a>, <a class="ident" href="../../../../src/object/read/elf/relocation.rs.html#536">is_mips64el</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, _is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#505">self</a>.<a href="../../../../src/object/elf.rs.html#1088">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#505">endian</a>)
+    }
+}
+
+<span class="kw">impl</span>&lt;Endian: <a href="../../../../src/object/endian.rs.html#13">endian::Endian</a>&gt; <a href="../../../../src/object/read/elf/relocation.rs.html#467">Rela</a> <span class="kw">for </span>elf::Rela64&lt;Endian&gt; {
+    <span class="kw">type </span>Word = <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+    <span class="kw">type </span>Sword = <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+    <span class="kw">type </span>Endian = Endian;
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#516">self</a>.r_offset.<a href="../../../../src/object/endian.rs.html#643">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#516">endian</a>)
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_info(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span>::Word {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#521">self</a>.<a href="../../../../src/object/elf.rs.html#1170">get_r_info</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#521">endian</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#521">is_mips64el</a>)
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_addend(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian) -&gt; <span class="self">Self</span>::Sword {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#526">self</a>.r_addend.<a href="../../../../src/object/endian.rs.html#709">get</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#526">endian</a>)
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_sym(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#531">self</a>.<a href="../../../../src/object/elf.rs.html#1184">r_sym</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#531">endian</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#531">is_mips64el</a>)
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>r_type(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: <span class="self">Self</span>::Endian, is_mips64el: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/elf/relocation.rs.html#536">self</a>.<a href="../../../../src/object/elf.rs.html#1190">r_type</a>(<a href="../../../../src/object/read/elf/relocation.rs.html#536">endian</a>, <a href="../../../../src/object/read/elf/relocation.rs.html#536">is_mips64el</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

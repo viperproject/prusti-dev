@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/harness.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>harness.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/runtime/task/harness.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>harness.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -503,510 +503,510 @@
 <span id="503">503</span>
 <span id="504">504</span>
 <span id="505">505</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task::core</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#28">Cell</a>, <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#46">Core</a>, <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#39">CoreStage</a>, <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>, <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13"><span class="kw">crate</span>::runtime::task::state::Snapshot</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/task/waker.rs.html#18-21"><span class="kw">crate</span>::runtime::task::waker::waker_ref</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/error.rs.html#9">JoinError</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#210">Task</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::core::{<a href="../../../../src/tokio/runtime/task/core.rs.html#28">Cell</a>, <a href="../../../../src/tokio/runtime/task/core.rs.html#46">Core</a>, <a href="../../../../src/tokio/runtime/task/core.rs.html#39">CoreStage</a>, <a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>, <a href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/runtime/task/state.rs.html#13"><span class="kw">crate</span>::runtime::task::state::Snapshot</a>;
+<span class="kw">use </span><a href="../../../../src/tokio/runtime/task/waker.rs.html#18-21"><span class="kw">crate</span>::runtime::task::waker::waker_ref</a>;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<a href="../../../../src/tokio/runtime/task/error.rs.html#9">JoinError</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>, <a href="../../../../src/tokio/runtime/task/mod.rs.html#210">Task</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">std::panic</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/macro.panic.html">std::panic</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="doccomment">/// Typed raw task handle.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Harness</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="ident">cell</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Typed raw task handle.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Harness&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, S: <span class="lifetime">&#39;static</span>&gt; {
+    cell: NonNull&lt;Cell&lt;T, S&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Harness</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">S</span>: <span class="lifetime">&#39;static</span>,
+<span class="kw">impl</span>&lt;T, S&gt; Harness&lt;T, S&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    S: <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a><span class="op">&gt;</span>) -&gt; <span class="ident">Harness</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#14">Harness</a> {
-            <span class="ident">cell</span>: <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#23">ptr</a>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;<a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>&gt;) -&gt; Harness&lt;T, S&gt; {
+        <a href="../../../../src/tokio/runtime/task/harness.rs.html#14">Harness</a> {
+            cell: <a href="../../../../src/tokio/runtime/task/harness.rs.html#23">ptr</a>.cast::&lt;Cell&lt;T, S&gt;&gt;(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">header_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#29">self</a>.<span class="ident">cell</span>.<span class="ident">cast</span>()
+    <span class="kw">fn </span>header_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;<a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>&gt; {
+        <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#29">self</a>.cell.cast()
     }
 
-    <span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#33">self</a>.<span class="ident">cell</span>.<span class="ident">as_ref</span>().<span class="ident">header</span> }
+    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#33">self</a>.cell.as_ref().header }
     }
 
-    <span class="kw">fn</span> <span class="ident">trailer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#37">self</a>.<span class="ident">cell</span>.<span class="ident">as_ref</span>().<span class="ident">trailer</span> }
+    <span class="kw">fn </span>trailer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a> {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#37">self</a>.cell.as_ref().trailer }
     }
 
-    <span class="kw">fn</span> <span class="ident">core</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Core</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#41">self</a>.<span class="ident">cell</span>.<span class="ident">as_ref</span>().<span class="ident">core</span> }
+    <span class="kw">fn </span>core(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Core&lt;T, S&gt; {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#41">self</a>.cell.as_ref().core }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Harness</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
+<span class="kw">impl</span>&lt;T, S&gt; Harness&lt;T, S&gt;
+<span class="kw">where
+    </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>,
 {
-    <span class="doccomment">/// Polls the inner future. A ref-count is consumed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// All necessary state checks and transitions are performed.</span>
-    <span class="doccomment">/// Panics raised while polling the future are handled.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>) {
-        <span class="comment">// We pass our ref-count to `poll_inner`.</span>
-        <span class="kw">match</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#95">poll_inner</a>() {
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#437">PollFuture::Notified</a> =&gt; {
-                <span class="comment">// The `poll_inner` call has given us two ref-counts back.</span>
-                <span class="comment">// We give one of them to a new task and call `yield_now`.</span>
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>()
-                    .<span class="ident">scheduler</span>
-                    .<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#262">yield_now</a>(<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>()));
+    <span class="doccomment">/// Polls the inner future. A ref-count is consumed.
+    ///
+    /// All necessary state checks and transitions are performed.
+    /// Panics raised while polling the future are handled.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>poll(<span class="self">self</span>) {
+        <span class="comment">// We pass our ref-count to `poll_inner`.
+        </span><span class="kw">match </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#95">poll_inner</a>() {
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#437">PollFuture::Notified</a> =&gt; {
+                <span class="comment">// The `poll_inner` call has given us two ref-counts back.
+                // We give one of them to a new task and call `yield_now`.
+                </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>()
+                    .scheduler
+                    .<a href="../../../../src/tokio/runtime/task/mod.rs.html#262">yield_now</a>(<a href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>()));
 
-                <span class="comment">// The remaining ref-count is now dropped. We kept the extra</span>
-                <span class="comment">// ref-count until now to ensure that even if the `yield_now`</span>
-                <span class="comment">// call drops the provided task, the task isn&#39;t deallocated</span>
-                <span class="comment">// before after `yield_now` returns.</span>
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
+                <span class="comment">// The remaining ref-count is now dropped. We kept the extra
+                // ref-count until now to ensure that even if the `yield_now`
+                // call drops the provided task, the task isn&#39;t deallocated
+                // before after `yield_now` returns.
+                </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
             }
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#436">PollFuture::Complete</a> =&gt; {
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#298">complete</a>();
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#436">PollFuture::Complete</a> =&gt; {
+                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#298">complete</a>();
             }
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#439">PollFuture::Dealloc</a> =&gt; {
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#159">dealloc</a>();
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#439">PollFuture::Dealloc</a> =&gt; {
+                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#55">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#159">dealloc</a>();
             }
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#438">PollFuture::Done</a> =&gt; (),
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#438">PollFuture::Done</a> =&gt; (),
         }
     }
 
-    <span class="doccomment">/// Polls the task and cancel it if necessary. This takes ownership of a</span>
-    <span class="doccomment">/// ref-count.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the return value is Notified, the caller is given ownership of two</span>
-    <span class="doccomment">/// ref-counts.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the return value is Complete, the caller is given ownership of a</span>
-    <span class="doccomment">/// single ref-count, which should be passed on to `complete`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the return value is Dealloc, then this call consumed the last</span>
-    <span class="doccomment">/// ref-count and the caller should call `dealloc`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Otherwise the ref-count is consumed and the caller should not access</span>
-    <span class="doccomment">/// `self` again.</span>
-    <span class="kw">fn</span> <span class="ident">poll_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#435">PollFuture</a> {
-        <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::state</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#76">TransitionToIdle</a>, <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#68">TransitionToRunning</a>};
+    <span class="doccomment">/// Polls the task and cancel it if necessary. This takes ownership of a
+    /// ref-count.
+    ///
+    /// If the return value is Notified, the caller is given ownership of two
+    /// ref-counts.
+    ///
+    /// If the return value is Complete, the caller is given ownership of a
+    /// single ref-count, which should be passed on to `complete`.
+    ///
+    /// If the return value is Dealloc, then this call consumed the last
+    /// ref-count and the caller should call `dealloc`.
+    ///
+    /// Otherwise the ref-count is consumed and the caller should not access
+    /// `self` again.
+    </span><span class="kw">fn </span>poll_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../src/tokio/runtime/task/harness.rs.html#435">PollFuture</a> {
+        <span class="kw">use </span><span class="kw">super</span>::state::{<a href="../../../../src/tokio/runtime/task/state.rs.html#76">TransitionToIdle</a>, <a href="../../../../src/tokio/runtime/task/state.rs.html#68">TransitionToRunning</a>};
 
-        <span class="kw">match</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#115">transition_to_running</a>() {
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#69">TransitionToRunning::Success</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">header_ptr</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#29">header_ptr</a>();
-                <span class="kw">let</span> <span class="ident">waker_ref</span> <span class="op">=</span> <span class="ident">waker_ref</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#100">header_ptr</a>);
-                <span class="kw">let</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#101">waker_ref</a>);
-                <span class="kw">let</span> <span class="ident">core</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
-                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#461-466">poll_future</a>(
-                    <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#103">core</a>.<span class="ident">stage</span>,
-                    <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().<span class="ident">scheduler</span>,
-                    <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#103">core</a>.<span class="ident">task_id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#102">cx</a>,
+        <span class="kw">match </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().state.<a href="../../../../src/tokio/runtime/task/state.rs.html#115">transition_to_running</a>() {
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#69">TransitionToRunning::Success</a> =&gt; {
+                <span class="kw">let </span>header_ptr = <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#29">header_ptr</a>();
+                <span class="kw">let </span>waker_ref = waker_ref::&lt;T, S&gt;(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/harness.rs.html#100">header_ptr</a>);
+                <span class="kw">let </span>cx = Context::from_waker(<span class="kw-2">&amp;*</span><a href="../../../../src/tokio/runtime/task/harness.rs.html#101">waker_ref</a>);
+                <span class="kw">let </span>core = <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
+                <span class="kw">let </span>res = <a href="../../../../src/tokio/runtime/task/harness.rs.html#461-466">poll_future</a>(
+                    <span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/harness.rs.html#103">core</a>.stage,
+                    <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().scheduler,
+                    <a href="../../../../src/tokio/runtime/task/harness.rs.html#103">core</a>.task_id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="../../../../src/tokio/runtime/task/harness.rs.html#102">cx</a>,
                 );
 
-                <span class="kw">if</span> <span class="ident">res</span> <span class="op">==</span> <span class="ident">Poll::Ready</span>(()) {
-                    <span class="comment">// The future completed. Move on to complete the task.</span>
-                    <span class="kw">return</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#436">PollFuture::Complete</a>;
+                <span class="kw">if </span>res == Poll::Ready(()) {
+                    <span class="comment">// The future completed. Move on to complete the task.
+                    </span><span class="kw">return </span><a href="../../../../src/tokio/runtime/task/harness.rs.html#436">PollFuture::Complete</a>;
                 }
 
-                <span class="kw">match</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#150">transition_to_idle</a>() {
-                    <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#77">TransitionToIdle::Ok</a> =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#438">PollFuture::Done</a>,
-                    <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#78">TransitionToIdle::OkNotified</a> =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#437">PollFuture::Notified</a>,
-                    <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#79">TransitionToIdle::OkDealloc</a> =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#439">PollFuture::Dealloc</a>,
-                    <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#80">TransitionToIdle::Cancelled</a> =&gt; {
-                        <span class="comment">// The transition to idle failed because the task was</span>
-                        <span class="comment">// cancelled during the poll.</span>
-                        <span class="kw">let</span> <span class="ident">core</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
-                        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#443">cancel_task</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#123">core</a>.<span class="ident">stage</span>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#123">core</a>.<span class="ident">task_id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#436">PollFuture::Complete</a>
+                <span class="kw">match </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().state.<a href="../../../../src/tokio/runtime/task/state.rs.html#150">transition_to_idle</a>() {
+                    <a href="../../../../src/tokio/runtime/task/state.rs.html#77">TransitionToIdle::Ok</a> =&gt; <a href="../../../../src/tokio/runtime/task/harness.rs.html#438">PollFuture::Done</a>,
+                    <a href="../../../../src/tokio/runtime/task/state.rs.html#78">TransitionToIdle::OkNotified</a> =&gt; <a href="../../../../src/tokio/runtime/task/harness.rs.html#437">PollFuture::Notified</a>,
+                    <a href="../../../../src/tokio/runtime/task/state.rs.html#79">TransitionToIdle::OkDealloc</a> =&gt; <a href="../../../../src/tokio/runtime/task/harness.rs.html#439">PollFuture::Dealloc</a>,
+                    <a href="../../../../src/tokio/runtime/task/state.rs.html#80">TransitionToIdle::Cancelled</a> =&gt; {
+                        <span class="comment">// The transition to idle failed because the task was
+                        // cancelled during the poll.
+                        </span><span class="kw">let </span>core = <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
+                        <a href="../../../../src/tokio/runtime/task/harness.rs.html#443">cancel_task</a>(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/harness.rs.html#123">core</a>.stage, <a href="../../../../src/tokio/runtime/task/harness.rs.html#123">core</a>.task_id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                        <a href="../../../../src/tokio/runtime/task/harness.rs.html#436">PollFuture::Complete</a>
                     }
                 }
             }
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#70">TransitionToRunning::Cancelled</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">core</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
-                <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#443">cancel_task</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#130">core</a>.<span class="ident">stage</span>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#130">core</a>.<span class="ident">task_id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#436">PollFuture::Complete</a>
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#70">TransitionToRunning::Cancelled</a> =&gt; {
+                <span class="kw">let </span>core = <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
+                <a href="../../../../src/tokio/runtime/task/harness.rs.html#443">cancel_task</a>(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/harness.rs.html#130">core</a>.stage, <a href="../../../../src/tokio/runtime/task/harness.rs.html#130">core</a>.task_id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <a href="../../../../src/tokio/runtime/task/harness.rs.html#436">PollFuture::Complete</a>
             }
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#71">TransitionToRunning::Failed</a> =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#438">PollFuture::Done</a>,
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#72">TransitionToRunning::Dealloc</a> =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#439">PollFuture::Dealloc</a>,
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#71">TransitionToRunning::Failed</a> =&gt; <a href="../../../../src/tokio/runtime/task/harness.rs.html#438">PollFuture::Done</a>,
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#72">TransitionToRunning::Dealloc</a> =&gt; <a href="../../../../src/tokio/runtime/task/harness.rs.html#439">PollFuture::Dealloc</a>,
         }
     }
 
-    <span class="doccomment">/// Forcibly shuts down the task.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Attempt to transition to `Running` in order to forcibly shutdown the</span>
-    <span class="doccomment">/// task. If the task is currently running or in a state of completion, then</span>
-    <span class="doccomment">/// there is nothing further to do. When the task completes running, it will</span>
-    <span class="doccomment">/// notice the `CANCELLED` bit and finalize the task.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="self">self</span>) {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">transition_to_shutdown</span>() {
-            <span class="comment">// The task is concurrently running. No further work needed.</span>
-            <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#145">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
+    <span class="doccomment">/// Forcibly shuts down the task.
+    ///
+    /// Attempt to transition to `Running` in order to forcibly shutdown the
+    /// task. If the task is currently running or in a state of completion, then
+    /// there is nothing further to do. When the task completes running, it will
+    /// notice the `CANCELLED` bit and finalize the task.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>shutdown(<span class="self">self</span>) {
+        <span class="kw">if </span>!<span class="self">self</span>.header().state.transition_to_shutdown() {
+            <span class="comment">// The task is concurrently running. No further work needed.
+            </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#145">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// By transitioning the lifecycle to `Running`, we have permission to</span>
-        <span class="comment">// drop the future.</span>
-        <span class="kw">let</span> <span class="ident">core</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#145">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
-        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#443">cancel_task</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#154">core</a>.<span class="ident">stage</span>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#154">core</a>.<span class="ident">task_id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#145">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#298">complete</a>();
+        <span class="comment">// By transitioning the lifecycle to `Running`, we have permission to
+        // drop the future.
+        </span><span class="kw">let </span>core = <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#145">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
+        <a href="../../../../src/tokio/runtime/task/harness.rs.html#443">cancel_task</a>(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/harness.rs.html#154">core</a>.stage, <a href="../../../../src/tokio/runtime/task/harness.rs.html#154">core</a>.task_id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#145">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#298">complete</a>();
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="self">self</span>) {
-        <span class="comment">// Release the join waker, if there is one.</span>
-        <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#159">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#37">trailer</a>().<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dealloc(<span class="self">self</span>) {
+        <span class="comment">// Release the join waker, if there is one.
+        </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#159">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#37">trailer</a>().waker.<a href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>);
 
-        <span class="comment">// Check causality</span>
-        <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#159">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#136">with_mut</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>);
+        <span class="comment">// Check causality
+        </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#159">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().stage.<a href="../../../../src/tokio/runtime/task/core.rs.html#136">with_mut</a>(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>);
 
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="ident">Box::from_raw</span>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#159">self</a>.<span class="ident">cell</span>.<span class="ident">as_ptr</span>()));
+        <span class="kw">unsafe </span>{
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(Box::from_raw(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#159">self</a>.cell.as_ptr()));
         }
     }
 
-    <span class="comment">// ===== join handle =====</span>
+    <span class="comment">// ===== join handle =====
 
-    <span class="doccomment">/// Read the task output into `dst`.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_read_output</span>(<span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::Result</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
-        <span class="kw">if</span> <span class="ident">can_read_output</span>(<span class="self">self</span>.<span class="ident">header</span>(), <span class="self">self</span>.<span class="ident">trailer</span>(), <span class="ident">waker</span>) {
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#174">dst</a> <span class="op">=</span> <span class="ident">Poll::Ready</span>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#174">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#205">take_output</a>());
+    </span><span class="doccomment">/// Read the task output into `dst`.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>try_read_output(<span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>Poll&lt;<span class="kw">super</span>::Result&lt;T::Output&gt;&gt;, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
+        <span class="kw">if </span>can_read_output(<span class="self">self</span>.header(), <span class="self">self</span>.trailer(), waker) {
+            <span class="kw-2">*</span><a href="../../../../src/tokio/runtime/task/harness.rs.html#174">dst</a> = Poll::Ready(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#174">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().stage.<a href="../../../../src/tokio/runtime/task/core.rs.html#205">take_output</a>());
         }
     }
 
-    <span class="doccomment">/// Try to set the waker notified when the task is complete. Returns true if</span>
-    <span class="doccomment">/// the task has already completed. If this call returns false, then the</span>
-    <span class="doccomment">/// waker will not be notified.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_set_join_waker</span>(<span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">can_read_output</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#183">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>(), <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#183">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#37">trailer</a>(), <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#183">waker</a>)
+    <span class="doccomment">/// Try to set the waker notified when the task is complete. Returns true if
+    /// the task has already completed. If this call returns false, then the
+    /// waker will not be notified.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>try_set_join_waker(<span class="self">self</span>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../../src/tokio/runtime/task/harness.rs.html#357">can_read_output</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#183">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>(), <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#183">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#37">trailer</a>(), <a href="../../../../src/tokio/runtime/task/harness.rs.html#183">waker</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">drop_join_handle_slow</span>(<span class="self">self</span>) {
-        <span class="comment">// Try to unset `JOIN_INTEREST`. This must be done as a first step in</span>
-        <span class="comment">// case the task concurrently completed.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">unset_join_interested</span>().<span class="ident">is_err</span>() {
-            <span class="comment">// It is our responsibility to drop the output. This is critical as</span>
-            <span class="comment">// the task output may not be `Send` and as such must remain with</span>
-            <span class="comment">// the scheduler or `JoinHandle`. i.e. if the output remains in the</span>
-            <span class="comment">// task structure until the task is deallocated, it may be dropped</span>
-            <span class="comment">// by a Waker on any arbitrary thread.</span>
-            <span class="comment">//</span>
-            <span class="comment">// Panics are delivered to the user via the `JoinHandle`. Given that</span>
-            <span class="comment">// they are dropping the `JoinHandle`, we assume they are not</span>
-            <span class="comment">// interested in the panic and swallow it.</span>
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="ident">panic::AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#187">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>drop_join_handle_slow(<span class="self">self</span>) {
+        <span class="comment">// Try to unset `JOIN_INTEREST`. This must be done as a first step in
+        // case the task concurrently completed.
+        </span><span class="kw">if </span><span class="self">self</span>.header().state.unset_join_interested().is_err() {
+            <span class="comment">// It is our responsibility to drop the output. This is critical as
+            // the task output may not be `Send` and as such must remain with
+            // the scheduler or `JoinHandle`. i.e. if the output remains in the
+            // task structure until the task is deallocated, it may be dropped
+            // by a Waker on any arbitrary thread.
+            //
+            // Panics are delivered to the user via the `JoinHandle`. Given that
+            // they are dropping the `JoinHandle`, we assume they are not
+            // interested in the panic and swallow it.
+            </span><span class="kw">let _ </span>= panic::catch_unwind(panic::AssertUnwindSafe(|| {
+                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#187">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().stage.<a href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
             }));
         }
 
-        <span class="comment">// Drop the `JoinHandle` reference, possibly deallocating the task</span>
-        <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#187">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
+        <span class="comment">// Drop the `JoinHandle` reference, possibly deallocating the task
+        </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#187">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
     }
 
-    <span class="doccomment">/// Remotely aborts the task.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller should hold a ref-count, but we do not consume it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is similar to `shutdown` except that it asks the runtime to perform</span>
-    <span class="doccomment">/// the shutdown. This is necessary to avoid the shutdown happening in the</span>
-    <span class="doccomment">/// wrong thread for non-Send tasks.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">remote_abort</span>(<span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">transition_to_notified_and_cancel</span>() {
-            <span class="comment">// The transition has created a new ref-count, which we turn into</span>
-            <span class="comment">// a Notified and pass to the task.</span>
-            <span class="comment">//</span>
-            <span class="comment">// Since the caller holds a ref-count, the task cannot be destroyed</span>
-            <span class="comment">// before the call to `schedule` returns even if the call drops the</span>
-            <span class="comment">// `Notified` internally.</span>
-            <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#216">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>()
-                .<span class="ident">scheduler</span>
-                .<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#258">schedule</a>(<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#216">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>()));
+    <span class="doccomment">/// Remotely aborts the task.
+    ///
+    /// The caller should hold a ref-count, but we do not consume it.
+    ///
+    /// This is similar to `shutdown` except that it asks the runtime to perform
+    /// the shutdown. This is necessary to avoid the shutdown happening in the
+    /// wrong thread for non-Send tasks.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remote_abort(<span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.header().state.transition_to_notified_and_cancel() {
+            <span class="comment">// The transition has created a new ref-count, which we turn into
+            // a Notified and pass to the task.
+            //
+            // Since the caller holds a ref-count, the task cannot be destroyed
+            // before the call to `schedule` returns even if the call drops the
+            // `Notified` internally.
+            </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#216">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>()
+                .scheduler
+                .<a href="../../../../src/tokio/runtime/task/mod.rs.html#258">schedule</a>(<a href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#216">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>()));
         }
     }
 
-    <span class="comment">// ===== waker behavior =====</span>
+    <span class="comment">// ===== waker behavior =====
 
-    <span class="doccomment">/// This call consumes a ref-count and notifies the task. This will create a</span>
-    <span class="doccomment">/// new Notified and submit it if necessary.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller does not need to hold a ref-count besides the one that was</span>
-    <span class="doccomment">/// passed to this call.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wake_by_val</span>(<span class="self">self</span>) {
-        <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#84"><span class="kw">super</span>::state::TransitionToNotifiedByVal</a>;
+    </span><span class="doccomment">/// This call consumes a ref-count and notifies the task. This will create a
+    /// new Notified and submit it if necessary.
+    ///
+    /// The caller does not need to hold a ref-count besides the one that was
+    /// passed to this call.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wake_by_val(<span class="self">self</span>) {
+        <span class="kw">use </span><a href="../../../../src/tokio/runtime/task/state.rs.html#84"><span class="kw">super</span>::state::TransitionToNotifiedByVal</a>;
 
-        <span class="kw">match</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#214">transition_to_notified_by_val</a>() {
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#86">TransitionToNotifiedByVal::Submit</a> =&gt; {
-                <span class="comment">// The caller has given us a ref-count, and the transition has</span>
-                <span class="comment">// created a new ref-count, so we now hold two. We turn the new</span>
-                <span class="comment">// ref-count Notified and pass it to the call to `schedule`.</span>
-                <span class="comment">//</span>
-                <span class="comment">// The old ref-count is retained for now to ensure that the task</span>
-                <span class="comment">// is not dropped during the call to `schedule` if the call</span>
-                <span class="comment">// drops the task it was given.</span>
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>()
-                    .<span class="ident">scheduler</span>
-                    .<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#258">schedule</a>(<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>()));
+        <span class="kw">match </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().state.<a href="../../../../src/tokio/runtime/task/state.rs.html#214">transition_to_notified_by_val</a>() {
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#86">TransitionToNotifiedByVal::Submit</a> =&gt; {
+                <span class="comment">// The caller has given us a ref-count, and the transition has
+                // created a new ref-count, so we now hold two. We turn the new
+                // ref-count Notified and pass it to the call to `schedule`.
+                //
+                // The old ref-count is retained for now to ensure that the task
+                // is not dropped during the call to `schedule` if the call
+                // drops the task it was given.
+                </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>()
+                    .scheduler
+                    .<a href="../../../../src/tokio/runtime/task/mod.rs.html#258">schedule</a>(<a href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>()));
 
-                <span class="comment">// Now that we have completed the call to schedule, we can</span>
-                <span class="comment">// release our ref-count.</span>
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
+                <span class="comment">// Now that we have completed the call to schedule, we can
+                // release our ref-count.
+                </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#284">drop_reference</a>();
             }
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#87">TransitionToNotifiedByVal::Dealloc</a> =&gt; {
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#159">dealloc</a>();
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#87">TransitionToNotifiedByVal::Dealloc</a> =&gt; {
+                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#237">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#159">dealloc</a>();
             }
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#85">TransitionToNotifiedByVal::DoNothing</a> =&gt; {}
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#85">TransitionToNotifiedByVal::DoNothing</a> =&gt; {}
         }
     }
 
-    <span class="doccomment">/// This call notifies the task. It will not consume any ref-counts, but the</span>
-    <span class="doccomment">/// caller should hold a ref-count.  This will create a new Notified and</span>
-    <span class="doccomment">/// submit it if necessary.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wake_by_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#91"><span class="kw">super</span>::state::TransitionToNotifiedByRef</a>;
+    <span class="doccomment">/// This call notifies the task. It will not consume any ref-counts, but the
+    /// caller should hold a ref-count.  This will create a new Notified and
+    /// submit it if necessary.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wake_by_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">use </span><a href="../../../../src/tokio/runtime/task/state.rs.html#91"><span class="kw">super</span>::state::TransitionToNotifiedByRef</a>;
 
-        <span class="kw">match</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#267">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#252">transition_to_notified_by_ref</a>() {
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#93">TransitionToNotifiedByRef::Submit</a> =&gt; {
-                <span class="comment">// The transition above incremented the ref-count for a new task</span>
-                <span class="comment">// and the caller also holds a ref-count. The caller&#39;s ref-count</span>
-                <span class="comment">// ensures that the task is not destroyed even if the new task</span>
-                <span class="comment">// is dropped before `schedule` returns.</span>
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#267">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>()
-                    .<span class="ident">scheduler</span>
-                    .<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#258">schedule</a>(<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#267">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>()));
+        <span class="kw">match </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#267">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().state.<a href="../../../../src/tokio/runtime/task/state.rs.html#252">transition_to_notified_by_ref</a>() {
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#93">TransitionToNotifiedByRef::Submit</a> =&gt; {
+                <span class="comment">// The transition above incremented the ref-count for a new task
+                // and the caller also holds a ref-count. The caller&#39;s ref-count
+                // ensures that the task is not destroyed even if the new task
+                // is dropped before `schedule` returns.
+                </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#267">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>()
+                    .scheduler
+                    .<a href="../../../../src/tokio/runtime/task/mod.rs.html#258">schedule</a>(<a href="../../../../src/tokio/runtime/task/mod.rs.html#220">Notified</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#267">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>()));
             }
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#92">TransitionToNotifiedByRef::DoNothing</a> =&gt; {}
+            <a href="../../../../src/tokio/runtime/task/state.rs.html#92">TransitionToNotifiedByRef::DoNothing</a> =&gt; {}
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">drop_reference</span>(<span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">ref_dec</span>() {
-            <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#284">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#159">dealloc</a>();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>drop_reference(<span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.header().state.ref_dec() {
+            <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#284">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#159">dealloc</a>();
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">tracing::Id</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">id</span>.<span class="ident">as_ref</span>()
+    <span class="attribute">#[cfg(all(tokio_unstable, feature = <span class="string">&quot;tracing&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tracing::Id&gt; {
+        <span class="self">self</span>.header().id.as_ref()
     }
 
-    <span class="comment">// ====== internal ======</span>
+    <span class="comment">// ====== internal ======
 
-    <span class="doccomment">/// Completes the task. This method assumes that the state is RUNNING.</span>
-    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) {
-        <span class="comment">// The future has completed and its output has been written to the task</span>
-        <span class="comment">// stage. We transition from running to complete.</span>
+    </span><span class="doccomment">/// Completes the task. This method assumes that the state is RUNNING.
+    </span><span class="kw">fn </span>complete(<span class="self">self</span>) {
+        <span class="comment">// The future has completed and its output has been written to the task
+        // stage. We transition from running to complete.
 
-        <span class="kw">let</span> <span class="ident">snapshot</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#183">transition_to_complete</a>();
+        </span><span class="kw">let </span>snapshot = <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().state.<a href="../../../../src/tokio/runtime/task/state.rs.html#183">transition_to_complete</a>();
 
-        <span class="comment">// We catch panics here in case dropping the future or waking the</span>
-        <span class="comment">// JoinHandle panics.</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="ident">panic::AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">snapshot</span>.<span class="ident">is_join_interested</span>() {
-                <span class="comment">// The `JoinHandle` is not interested in the output of</span>
-                <span class="comment">// this task. It is our responsibility to drop the</span>
-                <span class="comment">// output.</span>
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">has_join_waker</span>() {
-                <span class="comment">// Notify the join handle. The previous transition obtains the</span>
-                <span class="comment">// lock on the waker cell.</span>
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#37">trailer</a>().<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#257">wake_join</a>();
+        <span class="comment">// We catch panics here in case dropping the future or waking the
+        // JoinHandle panics.
+        </span><span class="kw">let _ </span>= panic::catch_unwind(panic::AssertUnwindSafe(|| {
+            <span class="kw">if </span>!snapshot.is_join_interested() {
+                <span class="comment">// The `JoinHandle` is not interested in the output of
+                // this task. It is our responsibility to drop the
+                // output.
+                </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().stage.<a href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
+            } <span class="kw">else if </span>snapshot.has_join_waker() {
+                <span class="comment">// Notify the join handle. The previous transition obtains the
+                // lock on the waker cell.
+                </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#37">trailer</a>().<a href="../../../../src/tokio/runtime/task/core.rs.html#257">wake_join</a>();
             }
         }));
 
-        <span class="comment">// The task has completed execution and will no longer be scheduled.</span>
-        <span class="kw">let</span> <span class="ident">num_release</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#329">release</a>();
+        <span class="comment">// The task has completed execution and will no longer be scheduled.
+        </span><span class="kw">let </span>num_release = <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#329">release</a>();
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">transition_to_terminal</span>(<span class="ident">num_release</span>) {
-            <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#159">dealloc</a>();
+        <span class="kw">if </span><span class="self">self</span>.header().state.transition_to_terminal(num_release) {
+            <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#298">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#159">dealloc</a>();
         }
     }
 
-    <span class="doccomment">/// Releases the task from the scheduler. Returns the number of ref-counts</span>
-    <span class="doccomment">/// that should be decremented.</span>
-    <span class="kw">fn</span> <span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="comment">// We don&#39;t actually increment the ref-count here, but the new task is</span>
-        <span class="comment">// never destroyed, so that&#39;s ok.</span>
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="ident">ManuallyDrop::new</span>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#329">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>());
+    <span class="doccomment">/// Releases the task from the scheduler. Returns the number of ref-counts
+    /// that should be decremented.
+    </span><span class="kw">fn </span>release(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="comment">// We don&#39;t actually increment the ref-count here, but the new task is
+        // never destroyed, so that&#39;s ok.
+        </span><span class="kw">let </span>me = ManuallyDrop::new(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#329">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#350">get_new_task</a>());
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#329">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().<span class="ident">scheduler</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#255">release</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#332">me</a>) {
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#334">task</a>);
-            <span class="number">2</span>
-        } <span class="kw">else</span> {
-            <span class="number">1</span>
-        }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(task) = <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#329">self</a>.<a href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().scheduler.<a href="../../../../src/tokio/runtime/task/mod.rs.html#255">release</a>(<span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/harness.rs.html#332">me</a>) {
+            mem::forget(<a href="../../../../src/tokio/runtime/task/harness.rs.html#334">task</a>);
+            <span class="number">2
+        </span>} <span class="kw">else </span>{
+            <span class="number">1
+        </span>}
     }
 
-    <span class="doccomment">/// Creates a new task that holds its own ref-count.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Any use of `self` after this call must ensure that a ref-count to the</span>
-    <span class="doccomment">/// task holds the task alive until after the use of `self`. Passing the</span>
-    <span class="doccomment">/// returned Task to any method on `self` is unsound if dropping the Task</span>
-    <span class="doccomment">/// could drop `self` before the call on `self` returned.</span>
-    <span class="kw">fn</span> <span class="ident">get_new_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="comment">// safety: The header is at the beginning of the cell, so this cast is</span>
-        <span class="comment">// safe.</span>
-        <span class="kw">unsafe</span> { <span class="ident">Task::from_raw</span>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#350">self</a>.<span class="ident">cell</span>.<span class="ident">cast</span>()) }
+    <span class="doccomment">/// Creates a new task that holds its own ref-count.
+    ///
+    /// # Safety
+    ///
+    /// Any use of `self` after this call must ensure that a ref-count to the
+    /// task holds the task alive until after the use of `self`. Passing the
+    /// returned Task to any method on `self` is unsound if dropping the Task
+    /// could drop `self` before the call on `self` returned.
+    </span><span class="kw">fn </span>get_new_task(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Task&lt;S&gt; {
+        <span class="comment">// safety: The header is at the beginning of the cell, so this cast is
+        // safe.
+        </span><span class="kw">unsafe </span>{ Task::from_raw(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#350">self</a>.cell.cast()) }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">can_read_output</span>(<span class="ident">header</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>, <span class="ident">trailer</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="comment">// Load a snapshot of the current task state</span>
-    <span class="kw">let</span> <span class="ident">snapshot</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">header</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#109">load</a>();
+<span class="kw">fn </span>can_read_output(header: <span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>, trailer: <span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="comment">// Load a snapshot of the current task state
+    </span><span class="kw">let </span>snapshot = <a href="../../../../src/tokio/runtime/task/harness.rs.html#357">header</a>.state.<a href="../../../../src/tokio/runtime/task/state.rs.html#109">load</a>();
 
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">snapshot</span>.<span class="ident">is_join_interested</span>());
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(snapshot.is_join_interested());
 
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">snapshot</span>.<span class="ident">is_complete</span>() {
-        <span class="comment">// The waker must be stored in the task struct.</span>
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">has_join_waker</span>() {
-            <span class="comment">// There already is a waker stored in the struct. If it matches</span>
-            <span class="comment">// the provided waker, then there is no further work to do.</span>
-            <span class="comment">// Otherwise, the waker must be swapped.</span>
-            <span class="kw">let</span> <span class="ident">will_wake</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="comment">// Safety: when `JOIN_INTEREST` is set, only `JOIN_HANDLE`</span>
-                <span class="comment">// may mutate the `waker` field.</span>
-                <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">trailer</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#252">will_wake</a>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">waker</a>)
+    <span class="kw">if </span>!snapshot.is_complete() {
+        <span class="comment">// The waker must be stored in the task struct.
+        </span><span class="kw">let </span>res = <span class="kw">if </span>snapshot.has_join_waker() {
+            <span class="comment">// There already is a waker stored in the struct. If it matches
+            // the provided waker, then there is no further work to do.
+            // Otherwise, the waker must be swapped.
+            </span><span class="kw">let </span>will_wake = <span class="kw">unsafe </span>{
+                <span class="comment">// Safety: when `JOIN_INTEREST` is set, only `JOIN_HANDLE`
+                // may mutate the `waker` field.
+                </span><a href="../../../../src/tokio/runtime/task/harness.rs.html#357">trailer</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#252">will_wake</a>(<a href="../../../../src/tokio/runtime/task/harness.rs.html#357">waker</a>)
             };
 
-            <span class="kw">if</span> <span class="ident">will_wake</span> {
-                <span class="comment">// The task is not complete **and** the waker is up to date,</span>
-                <span class="comment">// there is nothing further that needs to be done.</span>
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+            <span class="kw">if </span>will_wake {
+                <span class="comment">// The task is not complete **and** the waker is up to date,
+                // there is nothing further that needs to be done.
+                </span><span class="kw">return </span><span class="bool-val">false</span>;
             }
 
-            <span class="comment">// Unset the `JOIN_WAKER` to gain mutable access to the `waker`</span>
-            <span class="comment">// field then update the field with the new join worker.</span>
-            <span class="comment">//</span>
-            <span class="comment">// This requires two atomic operations, unsetting the bit and</span>
-            <span class="comment">// then resetting it. If the task transitions to complete</span>
-            <span class="comment">// concurrently to either one of those operations, then setting</span>
-            <span class="comment">// the join waker fails and we proceed to reading the task</span>
-            <span class="comment">// output.</span>
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">header</a>
-                .<span class="ident">state</span>
-                .<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#398">unset_waker</a>()
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">snapshot</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#407-412">set_join_waker</a>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">header</a>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">trailer</a>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">waker</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#392">snapshot</a>))
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#407-412">set_join_waker</a>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">header</a>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">trailer</a>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#357">waker</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#359">snapshot</a>)
+            <span class="comment">// Unset the `JOIN_WAKER` to gain mutable access to the `waker`
+            // field then update the field with the new join worker.
+            //
+            // This requires two atomic operations, unsetting the bit and
+            // then resetting it. If the task transitions to complete
+            // concurrently to either one of those operations, then setting
+            // the join waker fails and we proceed to reading the task
+            // output.
+            </span><a href="../../../../src/tokio/runtime/task/harness.rs.html#357">header</a>
+                .state
+                .<a href="../../../../src/tokio/runtime/task/state.rs.html#398">unset_waker</a>()
+                .and_then(|snapshot| <a href="../../../../src/tokio/runtime/task/harness.rs.html#407-412">set_join_waker</a>(<a href="../../../../src/tokio/runtime/task/harness.rs.html#357">header</a>, <a href="../../../../src/tokio/runtime/task/harness.rs.html#357">trailer</a>, <a href="../../../../src/tokio/runtime/task/harness.rs.html#357">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../src/tokio/runtime/task/harness.rs.html#392">snapshot</a>))
+        } <span class="kw">else </span>{
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#407-412">set_join_waker</a>(<a href="../../../../src/tokio/runtime/task/harness.rs.html#357">header</a>, <a href="../../../../src/tokio/runtime/task/harness.rs.html#357">trailer</a>, <a href="../../../../src/tokio/runtime/task/harness.rs.html#357">waker</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../src/tokio/runtime/task/harness.rs.html#359">snapshot</a>)
         };
 
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#365">res</a> {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">snapshot</span>) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">snapshot</span>.<span class="ident">is_complete</span>());
+        <span class="kw">match </span><a href="../../../../src/tokio/runtime/task/harness.rs.html#365">res</a> {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
+            <span class="prelude-val">Err</span>(snapshot) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(snapshot.is_complete());
             }
         }
     }
-    <span class="bool-val">true</span>
-}
+    <span class="bool-val">true
+</span>}
 
-<span class="kw">fn</span> <span class="ident">set_join_waker</span>(
-    <span class="ident">header</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>,
-    <span class="ident">trailer</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>,
-    <span class="ident">waker</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>,
-    <span class="ident">snapshot</span>: <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>, <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a><span class="op">&gt;</span> {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">snapshot</span>.<span class="ident">is_join_interested</span>());
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">snapshot</span>.<span class="ident">has_join_waker</span>());
+<span class="kw">fn </span>set_join_waker(
+    header: <span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>,
+    trailer: <span class="kw-2">&amp;</span><a href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>,
+    waker: <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>,
+    snapshot: <a href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>, <a href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>&gt; {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(snapshot.is_join_interested());
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!snapshot.has_join_waker());
 
-    <span class="comment">// Safety: Only the `JoinHandle` may set the `waker` field. When</span>
-    <span class="comment">// `JOIN_INTEREST` is **not** set, nothing else will touch the field.</span>
-    <span class="kw">unsafe</span> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#409">trailer</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#246">set_waker</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#410">waker</a>));
+    <span class="comment">// Safety: Only the `JoinHandle` may set the `waker` field. When
+    // `JOIN_INTEREST` is **not** set, nothing else will touch the field.
+    </span><span class="kw">unsafe </span>{
+        <a href="../../../../src/tokio/runtime/task/harness.rs.html#409">trailer</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#246">set_waker</a>(<span class="prelude-val">Some</span>(<a href="../../../../src/tokio/runtime/task/harness.rs.html#410">waker</a>));
     }
 
-    <span class="comment">// Update the `JoinWaker` state accordingly</span>
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#408">header</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#378">set_join_waker</a>();
+    <span class="comment">// Update the `JoinWaker` state accordingly
+    </span><span class="kw">let </span>res = <a href="../../../../src/tokio/runtime/task/harness.rs.html#408">header</a>.state.<a href="../../../../src/tokio/runtime/task/state.rs.html#378">set_join_waker</a>();
 
-    <span class="comment">// If the state could not be updated, then clear the join waker</span>
-    <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_err</span>() {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#409">trailer</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#246">set_waker</a>(<span class="prelude-val">None</span>);
+    <span class="comment">// If the state could not be updated, then clear the join waker
+    </span><span class="kw">if </span>res.is_err() {
+        <span class="kw">unsafe </span>{
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#409">trailer</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#246">set_waker</a>(<span class="prelude-val">None</span>);
         }
     }
 
-    <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#423">res</a>
+    <a href="../../../../src/tokio/runtime/task/harness.rs.html#423">res</a>
 }
 
-<span class="kw">enum</span> <span class="ident">PollFuture</span> {
-    <span class="ident">Complete</span>,
-    <span class="ident">Notified</span>,
-    <span class="ident">Done</span>,
-    <span class="ident">Dealloc</span>,
+<span class="kw">enum </span>PollFuture {
+    Complete,
+    Notified,
+    Done,
+    Dealloc,
 }
 
-<span class="doccomment">/// Cancels the task and store the appropriate error in the stage field.</span>
-<span class="kw">fn</span> <span class="ident">cancel_task</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span>(<span class="ident">stage</span>: <span class="kw-2">&amp;</span><span class="ident">CoreStage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">super</span>::Id</a>) {
-    <span class="comment">// Drop the future from a panic guard.</span>
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="ident">panic::AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#443">stage</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
+<span class="doccomment">/// Cancels the task and store the appropriate error in the stage field.
+</span><span class="kw">fn </span>cancel_task&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt;(stage: <span class="kw-2">&amp;</span>CoreStage&lt;T&gt;, id: <a href="../../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">super</span>::Id</a>) {
+    <span class="comment">// Drop the future from a panic guard.
+    </span><span class="kw">let </span>res = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+        <a href="../../../../src/tokio/runtime/task/harness.rs.html#443">stage</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
     }));
 
-    <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#445">res</a> {
+    <span class="kw">match </span><a href="../../../../src/tokio/runtime/task/harness.rs.html#445">res</a> {
         <span class="prelude-val">Ok</span>(()) =&gt; {
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#443">stage</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#193">store_output</a>(<span class="prelude-val">Err</span>(<span class="ident">JoinError::cancelled</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#443">id</a>)));
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#443">stage</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#193">store_output</a>(<span class="prelude-val">Err</span>(JoinError::cancelled(<a href="../../../../src/tokio/runtime/task/harness.rs.html#443">id</a>)));
         }
-        <span class="prelude-val">Err</span>(<span class="ident">panic</span>) =&gt; {
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#443">stage</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#193">store_output</a>(<span class="prelude-val">Err</span>(<span class="ident">JoinError::panic</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#443">id</a>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#453">panic</a>)));
+        <span class="prelude-val">Err</span>(panic) =&gt; {
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#443">stage</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#193">store_output</a>(<span class="prelude-val">Err</span>(JoinError::panic(<a href="../../../../src/tokio/runtime/task/harness.rs.html#443">id</a>, <a href="../../../../src/tokio/runtime/task/harness.rs.html#453">panic</a>)));
         }
     }
 }
 
-<span class="doccomment">/// Polls the future. If the future completes, the output is written to the</span>
-<span class="doccomment">/// stage field.</span>
-<span class="kw">fn</span> <span class="ident">poll_future</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a><span class="op">&gt;</span>(
-    <span class="ident">core</span>: <span class="kw-2">&amp;</span><span class="ident">CoreStage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">scheduler</span>: <span class="kw-2">&amp;</span><span class="ident">S</span>,
-    <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">super</span>::Id</a>,
-    <span class="ident">cx</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="comment">// Poll the future.</span>
-    <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="ident">panic::AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="kw">struct</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> {
-            <span class="ident">core</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CoreStage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Polls the future. If the future completes, the output is written to the
+/// stage field.
+</span><span class="kw">fn </span>poll_future&lt;T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, S: <a href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>&gt;(
+    core: <span class="kw-2">&amp;</span>CoreStage&lt;T&gt;,
+    scheduler: <span class="kw-2">&amp;</span>S,
+    id: <a href="../../../../src/tokio/runtime/task/mod.rs.html#206"><span class="kw">super</span>::Id</a>,
+    cx: Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+) -&gt; Poll&lt;()&gt; {
+    <span class="comment">// Poll the future.
+    </span><span class="kw">let </span>output = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+        <span class="kw">struct </span>Guard&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; {
+            core: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CoreStage&lt;T&gt;,
         }
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-                <span class="comment">// If the future panics on poll, we drop it inside the panic</span>
-                <span class="comment">// guard.</span>
-                <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#473">self</a>.<span class="ident">core</span>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Guard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+            <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+                <span class="comment">// If the future panics on poll, we drop it inside the panic
+                // guard.
+                </span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#473">self</a>.core.<a href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
             }
         }
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#469">Guard</a> { <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#462">core</a> };
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#479">guard</a>.<span class="ident">core</span>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#153">poll</a>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#465">cx</a>);
-        <span class="ident">mem::forget</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#479">guard</a>);
-        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#480">res</a>
+        <span class="kw">let </span>guard = <a href="../../../../src/tokio/runtime/task/harness.rs.html#469">Guard</a> { <a href="../../../../src/tokio/runtime/task/harness.rs.html#462">core</a> };
+        <span class="kw">let </span>res = <a href="../../../../src/tokio/runtime/task/harness.rs.html#479">guard</a>.core.<a href="../../../../src/tokio/runtime/task/core.rs.html#153">poll</a>(<a href="../../../../src/tokio/runtime/task/harness.rs.html#465">cx</a>);
+        mem::forget(<a href="../../../../src/tokio/runtime/task/harness.rs.html#479">guard</a>);
+        <a href="../../../../src/tokio/runtime/task/harness.rs.html#480">res</a>
     }));
 
-    <span class="comment">// Prepare output for being placed in the core stage.</span>
-    <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#468">output</a> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Poll::Pending</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
-        <span class="prelude-val">Ok</span>(<span class="ident">Poll::Ready</span>(<span class="ident">output</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#488">output</a>),
-        <span class="prelude-val">Err</span>(<span class="ident">panic</span>) =&gt; {
-            <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#463">scheduler</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#267">unhandled_panic</a>();
-            <span class="prelude-val">Err</span>(<span class="ident">JoinError::panic</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#464">id</a>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#489">panic</a>))
+    <span class="comment">// Prepare output for being placed in the core stage.
+    </span><span class="kw">let </span>output = <span class="kw">match </span><a href="../../../../src/tokio/runtime/task/harness.rs.html#468">output</a> {
+        <span class="prelude-val">Ok</span>(Poll::Pending) =&gt; <span class="kw">return </span>Poll::Pending,
+        <span class="prelude-val">Ok</span>(Poll::Ready(output)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/runtime/task/harness.rs.html#488">output</a>),
+        <span class="prelude-val">Err</span>(panic) =&gt; {
+            <a href="../../../../src/tokio/runtime/task/harness.rs.html#463">scheduler</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#267">unhandled_panic</a>();
+            <span class="prelude-val">Err</span>(JoinError::panic(<a href="../../../../src/tokio/runtime/task/harness.rs.html#464">id</a>, <a href="../../../../src/tokio/runtime/task/harness.rs.html#489">panic</a>))
         }
     };
 
-    <span class="comment">// Catch and ignore panics if the future panics on drop.</span>
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="ident">panic::AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#462">core</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#193">store_output</a>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#486">output</a>);
+    <span class="comment">// Catch and ignore panics if the future panics on drop.
+    </span><span class="kw">let </span>res = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+        <a href="../../../../src/tokio/runtime/task/harness.rs.html#462">core</a>.<a href="../../../../src/tokio/runtime/task/core.rs.html#193">store_output</a>(<a href="../../../../src/tokio/runtime/task/harness.rs.html#486">output</a>);
     }));
 
-    <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_err</span>() {
-        <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#463">scheduler</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#267">unhandled_panic</a>();
+    <span class="kw">if </span>res.is_err() {
+        <a href="../../../../src/tokio/runtime/task/harness.rs.html#463">scheduler</a>.<a href="../../../../src/tokio/runtime/task/mod.rs.html#267">unhandled_panic</a>();
     }
 
-    <span class="ident">Poll::Ready</span>(())
+    Poll::Ready(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

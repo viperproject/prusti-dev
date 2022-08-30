@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-contracts/prusti-specs/src/predicate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>predicate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_specs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_specs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_specs/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-contracts/prusti-specs/src/predicate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>predicate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_specs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_specs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_specs/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -186,193 +186,193 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Predicate parsing</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Predicate parsing
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/prusti_specs/lib.rs.html#18">rewriter</a>, <a class="ident" href="../../src/prusti_specs/specifications/common.rs.html#52">SpecificationId</a>, <a class="ident" href="../../src/prusti_specs/lib.rs.html#42">SPECS_VERSION</a>};
-<span class="kw">use</span> <span class="ident">proc_macro2</span>::{<a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
-<span class="kw">use</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
-<span class="kw">use</span> <span class="ident">syn</span>::{<a class="ident" href="../../syn/parse/trait.Parse.html">parse::Parse</a>, <a class="ident" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned</a>, <a class="ident" href="../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../src/prusti_specs/common.rs.html#100">HasMacro</a>, <a class="ident" href="../../src/prusti_specs/common.rs.html#54">HasSignature</a>};
+</span><span class="kw">use crate</span>::{<a href="../../src/prusti_specs/lib.rs.html#18">rewriter</a>, <a href="../../src/prusti_specs/specifications/common.rs.html#52">SpecificationId</a>, <a href="../../src/prusti_specs/lib.rs.html#42">SPECS_VERSION</a>};
+<span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/struct.Span.html">Span</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
+<span class="kw">use </span><a href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
+<span class="kw">use </span>syn::{<a href="../../syn/parse/trait.Parse.html">parse::Parse</a>, <a href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned</a>, <a href="../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../src/prusti_specs/common.rs.html#100">HasMacro</a>, <a href="../../src/prusti_specs/common.rs.html#54">HasSignature</a>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PredicateWithBody</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a><span class="op">&gt;</span> {
-    <span class="doccomment">/// The function which was inside the macro to be used at the definition-site of the macro</span>
-    <span class="doccomment">/// The body of the function is replaced (`unimplemented!()`)</span>
-    <span class="kw">pub</span> <span class="ident">patched_function</span>: <span class="ident">T</span>,
-    <span class="kw">pub</span> <span class="ident">spec_function</span>: <a class="ident" href="../../syn/item/enum.Item.html">syn::Item</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PredicateWithBody&lt;T: <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt; {
+    <span class="doccomment">/// The function which was inside the macro to be used at the definition-site of the macro
+    /// The body of the function is replaced (`unimplemented!()`)
+    </span><span class="kw">pub </span>patched_function: T,
+    <span class="kw">pub </span>spec_function: <a href="../../syn/item/enum.Item.html">syn::Item</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a><span class="op">&gt;</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <span class="ident">PredicateWithBody</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <a class="self" href="../../src/prusti_specs/predicate.rs.html#18">self</a>.<span class="ident">spec_function</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#18">tokens</a>);
-        <a class="self" href="../../src/prusti_specs/predicate.rs.html#18">self</a>.<span class="ident">patched_function</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#18">tokens</a>);
+<span class="kw">impl</span>&lt;T: <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt; <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span>PredicateWithBody&lt;T&gt; {
+    <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+        <a class="self" href="../../src/prusti_specs/predicate.rs.html#18">self</a>.spec_function.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/prusti_specs/predicate.rs.html#18">tokens</a>);
+        <a class="self" href="../../src/prusti_specs/predicate.rs.html#18">self</a>.patched_function.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/prusti_specs/predicate.rs.html#18">tokens</a>);
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PredicateWithoutBody</span> {
-    <span class="doccomment">/// The function which was inside the macro to be used at the definition-site of the macro</span>
-    <span class="ident">patched_function</span>: <a class="ident" href="../../syn/item/struct.TraitItemMethod.html">syn::TraitItemMethod</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PredicateWithoutBody {
+    <span class="doccomment">/// The function which was inside the macro to be used at the definition-site of the macro
+    </span>patched_function: <a href="../../syn/item/struct.TraitItemMethod.html">syn::TraitItemMethod</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#25">PredicateWithoutBody</a> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">let</span> <span class="ident">patched_function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_specs/predicate.rs.html#31">self</a>.<span class="ident">patched_function</span>;
-        <a class="ident" href="../../src/prusti_specs/predicate.rs.html#32">patched_function</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#31">tokens</a>);
+<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/prusti_specs/predicate.rs.html#25">PredicateWithoutBody</a> {
+    <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+        <span class="kw">let </span>patched_function = <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_specs/predicate.rs.html#31">self</a>.patched_function;
+        <a href="../../src/prusti_specs/predicate.rs.html#32">patched_function</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/prusti_specs/predicate.rs.html#31">tokens</a>);
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ParsedPredicate</span> {
-    <span class="doccomment">/// An abstract predicate, which can appear in trait methods</span>
-    <span class="ident">Abstract</span>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#25">PredicateWithoutBody</a>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ParsedPredicate {
+    <span class="doccomment">/// An abstract predicate, which can appear in trait methods
+    </span>Abstract(<a href="../../src/prusti_specs/predicate.rs.html#25">PredicateWithoutBody</a>),
 
-    <span class="doccomment">/// A predicate which implements an abstract predicate</span>
-    <span class="ident">Impl</span>(<span class="ident">PredicateWithBody</span><span class="op">&lt;</span><a class="ident" href="../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a><span class="op">&gt;</span>),
+    <span class="doccomment">/// A predicate which implements an abstract predicate
+    </span>Impl(PredicateWithBody&lt;<a href="../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a>&gt;),
 
-    <span class="doccomment">/// A free-standing predicate (for free-standing functions)</span>
-    <span class="ident">FreeStanding</span>(<span class="ident">PredicateWithBody</span><span class="op">&lt;</span><a class="ident" href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a><span class="op">&gt;</span>),
+    <span class="doccomment">/// A free-standing predicate (for free-standing functions)
+    </span>FreeStanding(PredicateWithBody&lt;<a href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a>&gt;),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#38">ParsedPredicate</a> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">match</span> <a class="self" href="../../src/prusti_specs/predicate.rs.html#50">self</a> {
-            <span class="ident"><span class="self">Self</span>::FreeStanding</span>(<span class="ident">p</span>) =&gt; <a class="ident" href="../../src/prusti_specs/predicate.rs.html#52">p</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#50">tokens</a>),
-            <span class="ident"><span class="self">Self</span>::Abstract</span>(<span class="ident">p</span>) =&gt; <a class="ident" href="../../src/prusti_specs/predicate.rs.html#53">p</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#50">tokens</a>),
-            <span class="ident"><span class="self">Self</span>::Impl</span>(<span class="ident">p</span>) =&gt; <a class="ident" href="../../src/prusti_specs/predicate.rs.html#54">p</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#50">tokens</a>),
+<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../src/prusti_specs/predicate.rs.html#38">ParsedPredicate</a> {
+    <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+        <span class="kw">match </span><span class="self"><a href="../../src/prusti_specs/predicate.rs.html#50">self</a> </span>{
+            <span class="self">Self</span>::FreeStanding(p) =&gt; <a href="../../src/prusti_specs/predicate.rs.html#52">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/prusti_specs/predicate.rs.html#50">tokens</a>),
+            <span class="self">Self</span>::Abstract(p) =&gt; <a href="../../src/prusti_specs/predicate.rs.html#53">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/prusti_specs/predicate.rs.html#50">tokens</a>),
+            <span class="self">Self</span>::Impl(p) =&gt; <a href="../../src/prusti_specs/predicate.rs.html#54">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../src/prusti_specs/predicate.rs.html#50">tokens</a>),
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_predicate_macro</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/prusti_specs/common.rs.html#100">HasMacro</a><span class="op">&gt;</span>(<span class="ident">makro</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_specs/predicate.rs.html#59">makro</a>
-        .<a class="ident" href="../../src/prusti_specs/common.rs.html#101">mac</a>()
-        .<span class="ident">path</span>
-        .<span class="ident">segments</span>
-        .<span class="ident">last</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">last</span><span class="op">|</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#65">last</a>.<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;predicate&quot;</span>)
-        .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_predicate_macro&lt;T: <a href="../../src/prusti_specs/common.rs.html#100">HasMacro</a>&gt;(makro: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="../../src/prusti_specs/predicate.rs.html#59">makro</a>
+        .<a href="../../src/prusti_specs/common.rs.html#101">mac</a>()
+        .path
+        .segments
+        .last()
+        .map(|last| <a href="../../src/prusti_specs/predicate.rs.html#65">last</a>.ident == <span class="string">&quot;predicate&quot;</span>)
+        .unwrap_or(<span class="bool-val">false</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_predicate_in_impl</span>(<span class="ident">tokens</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_specs/predicate.rs.html#38">ParsedPredicate</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/prusti_specs/predicate.rs.html#77-80">parse_predicate_internal</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#69">tokens</a>, <span class="bool-val">true</span>)
+<span class="kw">pub fn </span>parse_predicate_in_impl(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; syn::Result&lt;<a href="../../src/prusti_specs/predicate.rs.html#38">ParsedPredicate</a>&gt; {
+    <a href="../../src/prusti_specs/predicate.rs.html#77-80">parse_predicate_internal</a>(<a href="../../src/prusti_specs/predicate.rs.html#69">tokens</a>, <span class="bool-val">true</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_predicate</span>(<span class="ident">tokens</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_specs/predicate.rs.html#38">ParsedPredicate</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/prusti_specs/predicate.rs.html#77-80">parse_predicate_internal</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#73">tokens</a>, <span class="bool-val">false</span>)
+<span class="kw">pub fn </span>parse_predicate(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; syn::Result&lt;<a href="../../src/prusti_specs/predicate.rs.html#38">ParsedPredicate</a>&gt; {
+    <a href="../../src/prusti_specs/predicate.rs.html#77-80">parse_predicate_internal</a>(<a href="../../src/prusti_specs/predicate.rs.html#73">tokens</a>, <span class="bool-val">false</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse_predicate_internal</span>(
-    <span class="ident">tokens</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="ident">in_spec_refinement</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_specs/predicate.rs.html#38">ParsedPredicate</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#78">tokens</a>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>();
-    <span class="kw">let</span> <span class="ident">input</span>: <a class="ident" href="../../src/prusti_specs/predicate.rs.html#161">PredicateFnInput</a> <span class="op">=</span> <span class="ident">syn::parse2</span>(<span class="ident">tokens</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-        <span class="ident">syn::Error::new</span>(
-            <span class="ident">e</span>.<span class="ident">span</span>(),
+<span class="kw">fn </span>parse_predicate_internal(
+    tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    in_spec_refinement: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+) -&gt; syn::Result&lt;<a href="../../src/prusti_specs/predicate.rs.html#38">ParsedPredicate</a>&gt; {
+    <span class="kw">let </span>span = <a href="../../src/prusti_specs/predicate.rs.html#78">tokens</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
+    <span class="kw">let </span>input: <a href="../../src/prusti_specs/predicate.rs.html#161">PredicateFnInput</a> = syn::parse2(tokens).map_err(|e| {
+        syn::Error::new(
+            e.span(),
             <span class="string">&quot;`predicate!` can only be used on function definitions. it supports no attributes.&quot;</span>,
         )
     })<span class="question-mark">?</span>;
 
-    <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">body</span>.<span class="ident">is_some</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rewriter</span> <span class="op">=</span> <span class="ident">rewriter::AstRewriter::new</span>();
-        <span class="kw">let</span> <span class="ident">spec_id</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#90">rewriter</a>.<a class="ident" href="../../src/prusti_specs/rewriter.rs.html#43">generate_spec_id</a>();
+    <span class="kw">if </span>input.body.is_some() {
+        <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
+        <span class="kw">let </span>spec_id = <a href="../../src/prusti_specs/predicate.rs.html#90">rewriter</a>.<a href="../../src/prusti_specs/rewriter.rs.html#43">generate_spec_id</a>();
 
-        <span class="kw">if</span> <span class="ident">in_spec_refinement</span> {
-            <span class="kw">let</span> <span class="ident">patched_function</span>: <a class="ident" href="../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a> <span class="op">=</span>
-                <a class="ident" href="../../src/prusti_specs/predicate.rs.html#127-131">patch_predicate_macro_body</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/predicate.rs.html#82">input</a>, <a class="ident" href="../../src/prusti_specs/predicate.rs.html#81">span</a>, <a class="ident" href="../../src/prusti_specs/predicate.rs.html#91">spec_id</a>);
-            <span class="kw">let</span> <span class="ident">spec_function</span> <span class="op">=</span>
-                <span class="ident">generate_spec_function</span>(<span class="ident">input</span>.<span class="ident">body</span>.<span class="ident">unwrap</span>(), <span class="ident">spec_id</span>, <span class="kw-2">&amp;</span><span class="ident">patched_function</span>)<span class="question-mark">?</span>;
+        <span class="kw">if </span>in_spec_refinement {
+            <span class="kw">let </span>patched_function: <a href="../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a> =
+                <a href="../../src/prusti_specs/predicate.rs.html#127-131">patch_predicate_macro_body</a>(<span class="kw-2">&amp;</span><a href="../../src/prusti_specs/predicate.rs.html#82">input</a>, <a href="../../src/prusti_specs/predicate.rs.html#81">span</a>, <a href="../../src/prusti_specs/predicate.rs.html#91">spec_id</a>);
+            <span class="kw">let </span>spec_function =
+                generate_spec_function(input.body.unwrap(), spec_id, <span class="kw-2">&amp;</span>patched_function)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#43">ParsedPredicate::Impl</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#10">PredicateWithBody</a> {
-                <a class="ident" href="../../src/prusti_specs/predicate.rs.html#96">spec_function</a>,
-                <a class="ident" href="../../src/prusti_specs/predicate.rs.html#94">patched_function</a>,
+            <span class="prelude-val">Ok</span>(<a href="../../src/prusti_specs/predicate.rs.html#43">ParsedPredicate::Impl</a>(<a href="../../src/prusti_specs/predicate.rs.html#10">PredicateWithBody</a> {
+                <a href="../../src/prusti_specs/predicate.rs.html#96">spec_function</a>,
+                <a href="../../src/prusti_specs/predicate.rs.html#94">patched_function</a>,
             }))
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">patched_function</span>: <a class="ident" href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#127-131">patch_predicate_macro_body</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/predicate.rs.html#82">input</a>, <a class="ident" href="../../src/prusti_specs/predicate.rs.html#81">span</a>, <a class="ident" href="../../src/prusti_specs/predicate.rs.html#91">spec_id</a>);
-            <span class="kw">let</span> <span class="ident">spec_function</span> <span class="op">=</span>
-                <span class="ident">generate_spec_function</span>(<span class="ident">input</span>.<span class="ident">body</span>.<span class="ident">unwrap</span>(), <span class="ident">spec_id</span>, <span class="kw-2">&amp;</span><span class="ident">patched_function</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>patched_function: <a href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a> = <a href="../../src/prusti_specs/predicate.rs.html#127-131">patch_predicate_macro_body</a>(<span class="kw-2">&amp;</span><a href="../../src/prusti_specs/predicate.rs.html#82">input</a>, <a href="../../src/prusti_specs/predicate.rs.html#81">span</a>, <a href="../../src/prusti_specs/predicate.rs.html#91">spec_id</a>);
+            <span class="kw">let </span>spec_function =
+                generate_spec_function(input.body.unwrap(), spec_id, <span class="kw-2">&amp;</span>patched_function)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#46">ParsedPredicate::FreeStanding</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#10">PredicateWithBody</a> {
-                <a class="ident" href="../../src/prusti_specs/predicate.rs.html#105">spec_function</a>,
-                <a class="ident" href="../../src/prusti_specs/predicate.rs.html#104">patched_function</a>,
+            <span class="prelude-val">Ok</span>(<a href="../../src/prusti_specs/predicate.rs.html#46">ParsedPredicate::FreeStanding</a>(<a href="../../src/prusti_specs/predicate.rs.html#10">PredicateWithBody</a> {
+                <a href="../../src/prusti_specs/predicate.rs.html#105">spec_function</a>,
+                <a href="../../src/prusti_specs/predicate.rs.html#104">patched_function</a>,
             }))
         }
-    } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#82">input</a>.<span class="ident">fn_sig</span>;
-        <span class="kw">let</span> <span class="ident">patched_function</span> <span class="op">=</span> <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(<span class="ident">span</span>=&gt;
-            <span class="attribute">#[<span class="ident">prusti::abstract_predicate</span>]</span>
-            <span class="attribute">#[<span class="ident">prusti::specs_version</span> <span class="op">=</span> #<span class="ident">SPECS_VERSION</span>]</span>
-            #<span class="ident">signature</span>;
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>signature = <a href="../../src/prusti_specs/predicate.rs.html#82">input</a>.fn_sig;
+        <span class="kw">let </span>patched_function = <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(span=&gt;
+            <span class="attribute">#[prusti::abstract_predicate]
+            #[prusti::specs_version = #SPECS_VERSION]
+            </span>#signature;
         );
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#40">ParsedPredicate::Abstract</a>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#25">PredicateWithoutBody</a> {
-            <a class="ident" href="../../src/prusti_specs/predicate.rs.html#115">patched_function</a>,
+        <span class="prelude-val">Ok</span>(<a href="../../src/prusti_specs/predicate.rs.html#40">ParsedPredicate::Abstract</a>(<a href="../../src/prusti_specs/predicate.rs.html#25">PredicateWithoutBody</a> {
+            <a href="../../src/prusti_specs/predicate.rs.html#115">patched_function</a>,
         }))
     }
 }
 
-<span class="kw">fn</span> <span class="ident">patch_predicate_macro_body</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../syn/parse/trait.Parse.html">Parse</a><span class="op">&gt;</span>(
-    <span class="ident">predicate</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/predicate.rs.html#161">PredicateFnInput</a>,
-    <span class="ident">input_span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>,
-    <span class="ident">spec_id</span>: <a class="ident" href="../../src/prusti_specs/specifications/common.rs.html#52">SpecificationId</a>,
-) -&gt; <span class="ident">R</span> {
-    <span class="kw">let</span> <span class="ident">visibility</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/predicate.rs.html#128">predicate</a>.<span class="ident">visibility</span>;
-    <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/predicate.rs.html#128">predicate</a>.<span class="ident">fn_sig</span>;
-    <span class="kw">let</span> <span class="ident">spec_id_str</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#130">spec_id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+<span class="kw">fn </span>patch_predicate_macro_body&lt;R: <a href="../../syn/parse/trait.Parse.html">Parse</a>&gt;(
+    predicate: <span class="kw-2">&amp;</span><a href="../../src/prusti_specs/predicate.rs.html#161">PredicateFnInput</a>,
+    input_span: <a href="../../proc_macro2/struct.Span.html">Span</a>,
+    spec_id: <a href="../../src/prusti_specs/specifications/common.rs.html#52">SpecificationId</a>,
+) -&gt; R {
+    <span class="kw">let </span>visibility = <span class="kw-2">&amp;</span><a href="../../src/prusti_specs/predicate.rs.html#128">predicate</a>.visibility;
+    <span class="kw">let </span>signature = <span class="kw-2">&amp;</span><a href="../../src/prusti_specs/predicate.rs.html#128">predicate</a>.fn_sig;
+    <span class="kw">let </span>spec_id_str = <a href="../../src/prusti_specs/predicate.rs.html#130">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
-    <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(<span class="ident">input_span</span>=&gt;
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_must_use</span>, <span class="ident">unused_variables</span>, <span class="ident">dead_code</span>)]</span>
-        <span class="attribute">#[<span class="ident">prusti::pred_spec_id_ref</span> <span class="op">=</span> #<span class="ident">spec_id_str</span>]</span>
-        <span class="attribute">#[<span class="ident">prusti::specs_version</span> <span class="op">=</span> #<span class="ident">SPECS_VERSION</span>]</span>
-        #<span class="ident">visibility</span> #<span class="ident">signature</span> {
+    <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(input_span=&gt;
+        <span class="attribute">#[allow(unused_must_use, unused_variables, dead_code)]
+        #[prusti::pred_spec_id_ref = #spec_id_str]
+        #[prusti::specs_version = #SPECS_VERSION]
+        </span>#visibility #signature {
             <span class="macro">unimplemented!</span>(<span class="string">&quot;predicate&quot;</span>)
         }
     )
 }
 
-<span class="kw">fn</span> <span class="ident">generate_spec_function</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/prusti_specs/common.rs.html#54">HasSignature</a> <span class="op">+</span> <a class="ident" href="../../syn/spanned/trait.Spanned.html">Spanned</a><span class="op">&gt;</span>(
-    <span class="ident">body</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="ident">spec_id</span>: <a class="ident" href="../../src/prusti_specs/specifications/common.rs.html#52">SpecificationId</a>,
-    <span class="ident">patched_function</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><a class="ident" href="../../syn/item/enum.Item.html">syn::Item</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rewriter</span> <span class="op">=</span> <span class="ident">rewriter::AstRewriter::new</span>();
-    <a class="ident" href="../../src/prusti_specs/predicate.rs.html#151">rewriter</a>.<a class="ident" href="../../src/prusti_specs/rewriter.rs.html#135-141">process_assertion</a>(
-        <a class="ident" href="../../src/prusti_specs/rewriter.rs.html#22">rewriter::SpecItemType::Predicate</a>,
-        <a class="ident" href="../../src/prusti_specs/predicate.rs.html#148">spec_id</a>,
-        <a class="ident" href="../../src/prusti_specs/predicate.rs.html#147">body</a>,
-        <a class="ident" href="../../src/prusti_specs/predicate.rs.html#149">patched_function</a>,
+<span class="kw">fn </span>generate_spec_function&lt;T: <a href="../../src/prusti_specs/common.rs.html#54">HasSignature</a> + <a href="../../syn/spanned/trait.Spanned.html">Spanned</a>&gt;(
+    body: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
+    spec_id: <a href="../../src/prusti_specs/specifications/common.rs.html#52">SpecificationId</a>,
+    patched_function: <span class="kw-2">&amp;</span>T,
+) -&gt; syn::Result&lt;<a href="../../syn/item/enum.Item.html">syn::Item</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
+    <a href="../../src/prusti_specs/predicate.rs.html#151">rewriter</a>.<a href="../../src/prusti_specs/rewriter.rs.html#135-141">process_assertion</a>(
+        <a href="../../src/prusti_specs/rewriter.rs.html#22">rewriter::SpecItemType::Predicate</a>,
+        <a href="../../src/prusti_specs/predicate.rs.html#148">spec_id</a>,
+        <a href="../../src/prusti_specs/predicate.rs.html#147">body</a>,
+        <a href="../../src/prusti_specs/predicate.rs.html#149">patched_function</a>,
     )
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">PredicateFnInput</span> {
-    <span class="ident">visibility</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../syn/data/enum.Visibility.html">syn::Visibility</a><span class="op">&gt;</span>,
-    <span class="ident">fn_sig</span>: <a class="ident" href="../../syn/item/struct.Signature.html">syn::Signature</a>,
-    <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>PredicateFnInput {
+    visibility: <span class="prelude-ty">Option</span>&lt;<a href="../../syn/data/enum.Visibility.html">syn::Visibility</a>&gt;,
+    fn_sig: <a href="../../syn/item/struct.Signature.html">syn::Signature</a>,
+    body: <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../syn/parse/trait.Parse.html">syn::parse::Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#161">PredicateFnInput</a> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../syn/parse/type.ParseStream.html">syn::parse::ParseStream</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">visibility</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/predicate.rs.html#168">input</a>.<span class="ident">parse</span>().<span class="ident">ok</span>();
-        <span class="kw">let</span> <span class="ident">fn_sig</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../syn/parse/trait.Parse.html">syn::parse::Parse</a> <span class="kw">for </span><a href="../../src/prusti_specs/predicate.rs.html#161">PredicateFnInput</a> {
+    <span class="kw">fn </span>parse(input: <a href="../../syn/parse/type.ParseStream.html">syn::parse::ParseStream</a>) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>visibility = <a href="../../src/prusti_specs/predicate.rs.html#168">input</a>.parse().ok();
+        <span class="kw">let </span>fn_sig = input.parse()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">syn::Token!</span>[;]) {
-            <span class="kw">let</span> <span class="ident">_semi</span>: <a class="macro" href="../../syn/macro.Token.html">syn::Token!</a>[;] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">brace_content</span>;
-            <span class="kw">let</span> <span class="ident">_brace_token</span> <span class="op">=</span> <a class="macro" href="../../syn/syn/macro.braced.html">syn::braced!</a>(<span class="ident">brace_content</span> <span class="kw">in</span> <span class="ident">input</span>);
-            <span class="kw">let</span> <span class="ident">parsed_body</span> <span class="op">=</span> <span class="ident">brace_content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#178">parsed_body</a>)
+        <span class="kw">let </span>body = <span class="kw">if </span>input.peek(<span class="macro">syn::Token!</span>[;]) {
+            <span class="kw">let </span>_semi: <a class="macro" href="../../syn/macro.Token.html">syn::Token!</a>[;] = input.parse()<span class="question-mark">?</span>;
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="kw">let </span>brace_content;
+            <span class="kw">let </span>_brace_token = <a class="macro" href="../../syn/syn/macro.braced.html">syn::braced!</a>(brace_content <span class="kw">in </span>input);
+            <span class="kw">let </span>parsed_body = brace_content.parse()<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>(<a href="../../src/prusti_specs/predicate.rs.html#178">parsed_body</a>)
         };
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#161">PredicateFnInput</a> {
-            <a class="ident" href="../../src/prusti_specs/predicate.rs.html#169">visibility</a>,
-            <a class="ident" href="../../src/prusti_specs/predicate.rs.html#170">fn_sig</a>,
-            <a class="ident" href="../../src/prusti_specs/predicate.rs.html#172">body</a>,
+        <span class="prelude-val">Ok</span>(<a href="../../src/prusti_specs/predicate.rs.html#161">PredicateFnInput</a> {
+            <a href="../../src/prusti_specs/predicate.rs.html#169">visibility</a>,
+            <a href="../../src/prusti_specs/predicate.rs.html#170">fn_sig</a>,
+            <a href="../../src/prusti_specs/predicate.rs.html#172">body</a>,
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

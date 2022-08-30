@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/utf-8-0.7.6/src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../utf8/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../utf8/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../utf8/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/utf-8-0.7.6/src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../utf8/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../utf8/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../utf8/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -165,172 +165,172 @@
 <span id="165">165</span>
 <span id="166">166</span>
 <span id="167">167</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// Wraps a `std::io::BufRead` buffered byte stream and decode it as UTF-8.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BufReadDecoder</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a><span class="op">&gt;</span> {
-    <span class="ident">buf_read</span>: <span class="ident">B</span>,
-    <span class="ident">bytes_consumed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">incomplete</span>: <a class="ident" href="../../src/utf8/lib.rs.html#66">Incomplete</a>,
+<span class="doccomment">/// Wraps a `std::io::BufRead` buffered byte stream and decode it as UTF-8.
+</span><span class="kw">pub struct </span>BufReadDecoder&lt;B: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>&gt; {
+    buf_read: B,
+    bytes_consumed: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    incomplete: <a href="../../src/utf8/lib.rs.html#66">Incomplete</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BufReadDecoderError</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Represents one UTF-8 error in the byte stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In lossy decoding, each such error should be replaced with U+FFFD.</span>
-    <span class="doccomment">/// (See `BufReadDecoder::next_lossy` and `BufReadDecoderError::lossy`.)</span>
-    <span class="ident">InvalidByteSequence</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>BufReadDecoderError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Represents one UTF-8 error in the byte stream.
+    ///
+    /// In lossy decoding, each such error should be replaced with U+FFFD.
+    /// (See `BufReadDecoder::next_lossy` and `BufReadDecoderError::lossy`.)
+    </span>InvalidByteSequence(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
 
-    <span class="doccomment">/// An I/O error from the underlying byte stream</span>
-    <span class="ident">Io</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
+    <span class="doccomment">/// An I/O error from the underlying byte stream
+    </span>Io(<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">BufReadDecoderError</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Replace UTF-8 errors with U+FFFD</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lossy</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/utf8/read.rs.html#28">self</a> {
-            <a class="ident" href="../../src/utf8/read.rs.html#23">BufReadDecoderError::Io</a>(<span class="ident">error</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/utf8/read.rs.html#30">error</a>),
-            <a class="ident" href="../../src/utf8/read.rs.html#20">BufReadDecoderError::InvalidByteSequence</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/utf8/lib.rs.html#13">REPLACEMENT_CHARACTER</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; BufReadDecoderError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Replace UTF-8 errors with U+FFFD
+    </span><span class="kw">pub fn </span>lossy(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../src/utf8/read.rs.html#28">self</a> </span>{
+            <a href="../../src/utf8/read.rs.html#23">BufReadDecoderError::Io</a>(error) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/utf8/read.rs.html#30">error</a>),
+            <a href="../../src/utf8/read.rs.html#20">BufReadDecoderError::InvalidByteSequence</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="../../src/utf8/lib.rs.html#13">REPLACEMENT_CHARACTER</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">BufReadDecoderError</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/utf8/read.rs.html#37">self</a> {
-            <a class="ident" href="../../src/utf8/read.rs.html#20">BufReadDecoderError::InvalidByteSequence</a>(<span class="ident">bytes</span>) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/utf8/read.rs.html#37">f</a>, <span class="string">&quot;invalid byte sequence: {:02x?}&quot;</span>, <span class="ident">bytes</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>BufReadDecoderError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/utf8/read.rs.html#37">self</a> </span>{
+            <a href="../../src/utf8/read.rs.html#20">BufReadDecoderError::InvalidByteSequence</a>(bytes) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/utf8/read.rs.html#37">f</a>, <span class="string">&quot;invalid byte sequence: {:02x?}&quot;</span>, bytes)
             }
-            <a class="ident" href="../../src/utf8/read.rs.html#23">BufReadDecoderError::Io</a>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../src/utf8/read.rs.html#37">f</a>, <span class="string">&quot;underlying bytestream error: {}&quot;</span>, <span class="ident">err</span>),
+            <a href="../../src/utf8/read.rs.html#23">BufReadDecoderError::Io</a>(<span class="kw-2">ref </span>err) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../src/utf8/read.rs.html#37">f</a>, <span class="string">&quot;underlying bytestream error: {}&quot;</span>, err),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="kw">for</span> <span class="ident">BufReadDecoderError</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/utf8/read.rs.html#48">self</a> {
-            <a class="ident" href="../../src/utf8/read.rs.html#20">BufReadDecoderError::InvalidByteSequence</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a class="ident" href="../../src/utf8/read.rs.html#23">BufReadDecoderError::Io</a>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/utf8/read.rs.html#51">err</a>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> <span class="kw">for </span>BufReadDecoderError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a> + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../src/utf8/read.rs.html#48">self</a> </span>{
+            <a href="../../src/utf8/read.rs.html#20">BufReadDecoderError::InvalidByteSequence</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <a href="../../src/utf8/read.rs.html#23">BufReadDecoderError::Io</a>(<span class="kw-2">ref </span>err) =&gt; <span class="prelude-val">Some</span>(<a href="../../src/utf8/read.rs.html#51">err</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a><span class="op">&gt;</span> <span class="ident">BufReadDecoder</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// This is to `Read::read_to_string` what `String::from_utf8_lossy` is to `String::from_utf8`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_to_string_lossy</span>(<span class="ident">buf_read</span>: <span class="ident">B</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoder</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<a class="ident" href="../../src/utf8/read.rs.html#58">buf_read</a>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">decoder</span>.<span class="ident">next_lossy</span>() {
-            <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="ident">result</span><span class="question-mark">?</span>)
+<span class="kw">impl</span>&lt;B: <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>&gt; BufReadDecoder&lt;B&gt; {
+    <span class="doccomment">/// This is to `Read::read_to_string` what `String::from_utf8_lossy` is to `String::from_utf8`.
+    </span><span class="kw">pub fn </span>read_to_string_lossy(buf_read: B) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>decoder = <span class="self">Self</span>::new(<a href="../../src/utf8/read.rs.html#58">buf_read</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(result) = decoder.next_lossy() {
+            string.push_str(result<span class="question-mark">?</span>)
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/utf8/read.rs.html#60">string</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../src/utf8/read.rs.html#60">string</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">buf_read</span>: <span class="ident">B</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <a class="ident" href="../../src/utf8/read.rs.html#67">buf_read</a>,
-            <span class="ident">bytes_consumed</span>: <span class="number">0</span>,
-            <span class="ident">incomplete</span>: <span class="ident">Incomplete::empty</span>(),
+    <span class="kw">pub fn </span>new(buf_read: B) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            <a href="../../src/utf8/read.rs.html#67">buf_read</a>,
+            bytes_consumed: <span class="number">0</span>,
+            incomplete: Incomplete::empty(),
         }
     }
 
-    <span class="doccomment">/// Same as `BufReadDecoder::next_strict`, but replace UTF-8 errors with U+FFFD.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_lossy</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/utf8/read.rs.html#76">self</a>.<a class="ident" href="../../src/utf8/read.rs.html#87">next_strict</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <a class="ident" href="../../src/utf8/read.rs.html#77">result</a>.<span class="ident">or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../src/utf8/read.rs.html#77">e</a>.<a class="ident" href="../../src/utf8/read.rs.html#28">lossy</a>()))
+    <span class="doccomment">/// Same as `BufReadDecoder::next_strict`, but replace UTF-8 errors with U+FFFD.
+    </span><span class="kw">pub fn </span>next_lossy(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;io::Result&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
+        <a class="self" href="../../src/utf8/read.rs.html#76">self</a>.<a href="../../src/utf8/read.rs.html#87">next_strict</a>().map(|result| <a href="../../src/utf8/read.rs.html#77">result</a>.or_else(|e| <a href="../../src/utf8/read.rs.html#77">e</a>.<a href="../../src/utf8/read.rs.html#28">lossy</a>()))
     }
 
-    <span class="doccomment">/// Decode and consume the next chunk of UTF-8 input.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is intended to be called repeatedly until it returns `None`,</span>
-    <span class="doccomment">/// which represents EOF from the underlying byte stream.</span>
-    <span class="doccomment">/// This is similar to `Iterator::next`,</span>
-    <span class="doccomment">/// except that decoded chunks borrow the decoder (~iterator)</span>
-    <span class="doccomment">/// so they need to be handled or copied before the next chunk can start decoding.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_strict</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="../../src/utf8/read.rs.html#15">BufReadDecoderError</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">enum</span> <span class="ident">BytesSource</span> {
-            <span class="ident">BufRead</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
-            <span class="ident">Incomplete</span>,
+    <span class="doccomment">/// Decode and consume the next chunk of UTF-8 input.
+    ///
+    /// This method is intended to be called repeatedly until it returns `None`,
+    /// which represents EOF from the underlying byte stream.
+    /// This is similar to `Iterator::next`,
+    /// except that decoded chunks borrow the decoder (~iterator)
+    /// so they need to be handled or copied before the next chunk can start decoding.
+    </span><span class="kw">pub fn </span>next_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="../../src/utf8/read.rs.html#15">BufReadDecoderError</a>&gt;&gt; {
+        <span class="kw">enum </span>BytesSource {
+            BufRead(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+            Incomplete,
         }
-        <span class="macro">macro_rules!</span> <span class="ident">try_io</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">io_result</span>: <span class="ident">expr</span>) =&gt; {
-                <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">io_result</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">BufReadDecoderError::Io</span>(<span class="ident">error</span>)))
+        <span class="macro">macro_rules! </span>try_io {
+            (<span class="macro-nonterminal">$io_result</span>: expr) =&gt; {
+                <span class="kw">match </span><span class="macro-nonterminal">$io_result </span>{
+                    <span class="prelude-val">Ok</span>(value) =&gt; value,
+                    <span class="prelude-val">Err</span>(error) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(BufReadDecoderError::Io(error)))
                 }
             }
         }
-        <span class="kw">let</span> (<span class="ident">source</span>, <span class="ident">result</span>) <span class="op">=</span> <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">bytes_consumed</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">buf_read</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">bytes_consumed</span>);
-                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">bytes_consumed</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let </span>(source, result) = <span class="kw">loop </span>{
+            <span class="kw">if </span><span class="self">self</span>.bytes_consumed &gt; <span class="number">0 </span>{
+                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.buf_read.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="self" href="../../src/utf8/read.rs.html#87">self</a>.bytes_consumed);
+                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.bytes_consumed = <span class="number">0</span>;
             }
-            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="../../src/utf8/read.rs.html#92-99">try_io!</a>(<span class="self">self</span>.<span class="ident">buf_read</span>.<span class="ident">fill_buf</span>());
+            <span class="kw">let </span>buf = <a class="macro" href="../../src/utf8/read.rs.html#92-99">try_io!</a>(<span class="self">self</span>.buf_read.fill_buf());
 
-            <span class="comment">// Force loop iteration to go through an explicit `continue`</span>
-            <span class="kw">enum</span> <span class="ident">Unreachable</span> {}
-            <span class="kw">let</span> <span class="kw">_</span>: <a class="ident" href="../../src/utf8/read.rs.html#108">Unreachable</a> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">incomplete</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>  <span class="comment">// EOF</span>
-                }
-                <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="ident" href="../../src/utf8/read.rs.html#105">buf</a>) {
+            <span class="comment">// Force loop iteration to go through an explicit `continue`
+            </span><span class="kw">enum </span>Unreachable {}
+            <span class="kw">let _</span>: <a href="../../src/utf8/read.rs.html#108">Unreachable</a> = <span class="kw">if </span><span class="self">self</span>.incomplete.is_empty() {
+                <span class="kw">if </span>buf.is_empty() {
+                    <span class="kw">return </span><span class="prelude-val">None  </span><span class="comment">// EOF
+                </span>}
+                <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a href="../../src/utf8/read.rs.html#105">buf</a>) {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="kw">break</span> (<a class="ident" href="../../src/utf8/read.rs.html#89">BytesSource::BufRead</a>(<a class="ident" href="../../src/utf8/read.rs.html#105">buf</a>.<span class="ident">len</span>()), <span class="prelude-val">Ok</span>(()))
+                        <span class="kw">break </span>(<a href="../../src/utf8/read.rs.html#89">BytesSource::BufRead</a>(<a href="../../src/utf8/read.rs.html#105">buf</a>.len()), <span class="prelude-val">Ok</span>(()))
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">valid_up_to</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/read.rs.html#117">error</a>.<span class="ident">valid_up_to</span>();
-                        <span class="kw">if</span> <span class="ident">valid_up_to</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                            <span class="kw">break</span> (<a class="ident" href="../../src/utf8/read.rs.html#89">BytesSource::BufRead</a>(<a class="ident" href="../../src/utf8/read.rs.html#118">valid_up_to</a>), <span class="prelude-val">Ok</span>(()))
+                    <span class="prelude-val">Err</span>(error) =&gt; {
+                        <span class="kw">let </span>valid_up_to = <a href="../../src/utf8/read.rs.html#117">error</a>.valid_up_to();
+                        <span class="kw">if </span>valid_up_to &gt; <span class="number">0 </span>{
+                            <span class="kw">break </span>(<a href="../../src/utf8/read.rs.html#89">BytesSource::BufRead</a>(<a href="../../src/utf8/read.rs.html#118">valid_up_to</a>), <span class="prelude-val">Ok</span>(()))
                         }
-                        <span class="kw">match</span> <a class="ident" href="../../src/utf8/read.rs.html#117">error</a>.<span class="ident">error_len</span>() {
-                            <span class="prelude-val">Some</span>(<span class="ident">invalid_sequence_length</span>) =&gt; {
-                                <span class="kw">break</span> (<a class="ident" href="../../src/utf8/read.rs.html#89">BytesSource::BufRead</a>(<a class="ident" href="../../src/utf8/read.rs.html#123">invalid_sequence_length</a>), <span class="prelude-val">Err</span>(()))
+                        <span class="kw">match </span><a href="../../src/utf8/read.rs.html#117">error</a>.error_len() {
+                            <span class="prelude-val">Some</span>(invalid_sequence_length) =&gt; {
+                                <span class="kw">break </span>(<a href="../../src/utf8/read.rs.html#89">BytesSource::BufRead</a>(<a href="../../src/utf8/read.rs.html#123">invalid_sequence_length</a>), <span class="prelude-val">Err</span>(()))
                             }
-                            <span class="prelude-val">None</span> =&gt; {
-                                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">bytes_consumed</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/read.rs.html#105">buf</a>.<span class="ident">len</span>();
-                                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">incomplete</span> <span class="op">=</span> <span class="ident">Incomplete::new</span>(<a class="ident" href="../../src/utf8/read.rs.html#105">buf</a>);
-                                <span class="comment">// need more input bytes</span>
-                                <span class="kw">continue</span>
-                            }
+                            <span class="prelude-val">None </span>=&gt; {
+                                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.bytes_consumed = <a href="../../src/utf8/read.rs.html#105">buf</a>.len();
+                                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.incomplete = Incomplete::new(<a href="../../src/utf8/read.rs.html#105">buf</a>);
+                                <span class="comment">// need more input bytes
+                                </span><span class="kw">continue
+                            </span>}
                         }
                     }
                 }
-            } <span class="kw">else</span> {
-                <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">break</span> (<a class="ident" href="../../src/utf8/read.rs.html#90">BytesSource::Incomplete</a>, <span class="prelude-val">Err</span>(()))  <span class="comment">// EOF with incomplete code point</span>
-                }
-                <span class="kw">let</span> (<span class="ident">consumed</span>, <span class="ident">opt_result</span>) <span class="op">=</span> <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">incomplete</span>.<a class="ident" href="../../src/utf8/lib.rs.html#149">try_complete_offsets</a>(<a class="ident" href="../../src/utf8/read.rs.html#105">buf</a>);
-                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">bytes_consumed</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/read.rs.html#139">consumed</a>;
-                <span class="kw">match</span> <a class="ident" href="../../src/utf8/read.rs.html#139">opt_result</a> {
-                    <span class="prelude-val">None</span> =&gt; {
-                        <span class="comment">// need more input bytes</span>
-                        <span class="kw">continue</span>
-                    }
-                    <span class="prelude-val">Some</span>(<span class="ident">result</span>) =&gt; {
-                        <span class="kw">break</span> (<a class="ident" href="../../src/utf8/read.rs.html#90">BytesSource::Incomplete</a>, <a class="ident" href="../../src/utf8/read.rs.html#146">result</a>)
+            } <span class="kw">else </span>{
+                <span class="kw">if </span>buf.is_empty() {
+                    <span class="kw">break </span>(<a href="../../src/utf8/read.rs.html#90">BytesSource::Incomplete</a>, <span class="prelude-val">Err</span>(()))  <span class="comment">// EOF with incomplete code point
+                </span>}
+                <span class="kw">let </span>(consumed, opt_result) = <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.incomplete.<a href="../../src/utf8/lib.rs.html#149">try_complete_offsets</a>(<a href="../../src/utf8/read.rs.html#105">buf</a>);
+                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.bytes_consumed = <a href="../../src/utf8/read.rs.html#139">consumed</a>;
+                <span class="kw">match </span><a href="../../src/utf8/read.rs.html#139">opt_result</a> {
+                    <span class="prelude-val">None </span>=&gt; {
+                        <span class="comment">// need more input bytes
+                        </span><span class="kw">continue
+                    </span>}
+                    <span class="prelude-val">Some</span>(result) =&gt; {
+                        <span class="kw">break </span>(<a href="../../src/utf8/read.rs.html#90">BytesSource::Incomplete</a>, <a href="../../src/utf8/read.rs.html#146">result</a>)
                     }
                 }
             };
         };
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/utf8/read.rs.html#100">source</a> {
-            <a class="ident" href="../../src/utf8/read.rs.html#89">BytesSource::BufRead</a>(<span class="ident">byte_count</span>) =&gt; {
-                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">bytes_consumed</span> <span class="op">=</span> <a class="ident" href="../../src/utf8/read.rs.html#153">byte_count</a>;
-                <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="../../src/utf8/read.rs.html#92-99">try_io!</a>(<span class="self">self</span>.<span class="ident">buf_read</span>.<span class="ident">fill_buf</span>());
-                <span class="kw-2">&amp;</span><a class="ident" href="../../src/utf8/read.rs.html#155">buf</a>[..<a class="ident" href="../../src/utf8/read.rs.html#153">byte_count</a>]
+        <span class="kw">let </span>bytes = <span class="kw">match </span><a href="../../src/utf8/read.rs.html#100">source</a> {
+            <a href="../../src/utf8/read.rs.html#89">BytesSource::BufRead</a>(byte_count) =&gt; {
+                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.bytes_consumed = <a href="../../src/utf8/read.rs.html#153">byte_count</a>;
+                <span class="kw">let </span>buf = <a class="macro" href="../../src/utf8/read.rs.html#92-99">try_io!</a>(<span class="self">self</span>.buf_read.fill_buf());
+                <span class="kw-2">&amp;</span><a href="../../src/utf8/read.rs.html#155">buf</a>[..<a href="../../src/utf8/read.rs.html#153">byte_count</a>]
             }
-            <a class="ident" href="../../src/utf8/read.rs.html#90">BytesSource::Incomplete</a> =&gt; {
-                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.<span class="ident">incomplete</span>.<a class="ident" href="../../src/utf8/lib.rs.html#140">take_buffer</a>()
+            <a href="../../src/utf8/read.rs.html#90">BytesSource::Incomplete</a> =&gt; {
+                <a class="self" href="../../src/utf8/read.rs.html#87">self</a>.incomplete.<a href="../../src/utf8/lib.rs.html#140">take_buffer</a>()
             }
         };
-        <span class="kw">match</span> <a class="ident" href="../../src/utf8/read.rs.html#100">result</a> {
-            <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">str::from_utf8_unchecked</span>(<a class="ident" href="../../src/utf8/read.rs.html#152">bytes</a>) })),
-            <span class="prelude-val">Err</span>(()) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/utf8/read.rs.html#20">BufReadDecoderError::InvalidByteSequence</a>(<a class="ident" href="../../src/utf8/read.rs.html#152">bytes</a>))),
+        <span class="kw">match </span><a href="../../src/utf8/read.rs.html#100">result</a> {
+            <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(<a href="../../src/utf8/read.rs.html#152">bytes</a>) })),
+            <span class="prelude-val">Err</span>(()) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../src/utf8/read.rs.html#20">BufReadDecoderError::InvalidByteSequence</a>(<a href="../../src/utf8/read.rs.html#152">bytes</a>))),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="utf8" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="utf8" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

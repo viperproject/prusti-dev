@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/common/expression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expression.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../vir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/common/expression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expression.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../vir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -163,170 +163,170 @@
 <span id="163">163</span>
 <span id="164">164</span>
 <span id="165">165</span>
-</pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">VariableHelpers</span> {
-    <span class="kw">type</span> <span class="ident">VariableSymbol</span>;
-    <span class="kw">fn</span> <span class="ident">variable</span>(<span class="ident">name</span>: <span class="ident"><span class="self">Self</span>::VariableSymbol</span>) -&gt; <span class="self">Self</span>;
+</pre><pre class="rust"><code><span class="kw">pub trait </span>VariableHelpers {
+    <span class="kw">type </span>VariableSymbol;
+    <span class="kw">fn </span>variable(name: <span class="self">Self</span>::VariableSymbol) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ConstantHelpers</span> {
-    <span class="kw">fn</span> <span class="ident">bool</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">int</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span>;
+<span class="kw">pub trait </span>ConstantHelpers {
+    <span class="kw">fn </span>bool(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>int(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnaryOperationHelpers</span> {
-    <span class="kw">type</span> <span class="ident">UnaryOperationKind</span>;
-    <span class="kw">fn</span> <span class="ident">unary_operation</span>(<span class="ident">kind</span>: <span class="ident"><span class="self">Self</span>::UnaryOperationKind</span>, <span class="ident">arg</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">not</span>(<span class="ident">arg</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">minus</span>(<span class="ident">arg</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+<span class="kw">pub trait </span>UnaryOperationHelpers {
+    <span class="kw">type </span>UnaryOperationKind;
+    <span class="kw">fn </span>unary_operation(kind: <span class="self">Self</span>::UnaryOperationKind, arg: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>not(arg: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>minus(arg: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BinaryOperationHelpers</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/vir/common/expression.rs.html#11">UnaryOperationHelpers</a> {
-    <span class="kw">type</span> <span class="ident">BinaryOperationKind</span>;
-    <span class="kw">fn</span> <span class="ident">binary_operation</span>(<span class="ident">kind</span>: <span class="ident"><span class="self">Self</span>::BinaryOperationKind</span>, <span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">equals</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">not_equals</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">greater_than</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">greater_equals</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">less_than</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">less_equals</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">subtract</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">multiply</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">divide</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">module</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">and</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">or</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">xor</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::not</span>(<span class="ident"><span class="self">Self</span>::equals</span>(<a class="ident" href="../../../src/vir/common/expression.rs.html#34">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#34">right</a>))
+<span class="kw">pub trait </span>BinaryOperationHelpers: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../../src/vir/common/expression.rs.html#11">UnaryOperationHelpers</a> {
+    <span class="kw">type </span>BinaryOperationKind;
+    <span class="kw">fn </span>binary_operation(kind: <span class="self">Self</span>::BinaryOperationKind, left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>equals(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>not_equals(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>greater_than(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>greater_equals(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>less_than(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>less_equals(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>add(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>subtract(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>multiply(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>divide(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>module(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>and(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>or(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>xor(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::not(<span class="self">Self</span>::equals(<a href="../../../src/vir/common/expression.rs.html#34">left</a>, <a href="../../../src/vir/common/expression.rs.html#34">right</a>))
     }
-    <span class="kw">fn</span> <span class="ident">implies</span>(<span class="ident">left</span>: <span class="self">Self</span>, <span class="ident">right</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>implies(left: <span class="self">Self</span>, right: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equals</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#21">BinaryOperationHelpers::equals</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#40">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#40">right</a>)
+<span class="kw">pub fn </span>equals&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#21">BinaryOperationHelpers::equals</a>(<a href="../../../src/vir/common/expression.rs.html#40">left</a>, <a href="../../../src/vir/common/expression.rs.html#40">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">not_equals</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#22">BinaryOperationHelpers::not_equals</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#43">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#43">right</a>)
+<span class="kw">pub fn </span>not_equals&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#22">BinaryOperationHelpers::not_equals</a>(<a href="../../../src/vir/common/expression.rs.html#43">left</a>, <a href="../../../src/vir/common/expression.rs.html#43">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">greater_than</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#23">BinaryOperationHelpers::greater_than</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#46">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#46">right</a>)
+<span class="kw">pub fn </span>greater_than&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#23">BinaryOperationHelpers::greater_than</a>(<a href="../../../src/vir/common/expression.rs.html#46">left</a>, <a href="../../../src/vir/common/expression.rs.html#46">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">greater_equals</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#24">BinaryOperationHelpers::greater_equals</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#49">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#49">right</a>)
+<span class="kw">pub fn </span>greater_equals&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#24">BinaryOperationHelpers::greater_equals</a>(<a href="../../../src/vir/common/expression.rs.html#49">left</a>, <a href="../../../src/vir/common/expression.rs.html#49">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">less_than</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#25">BinaryOperationHelpers::less_than</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#52">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#52">right</a>)
+<span class="kw">pub fn </span>less_than&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#25">BinaryOperationHelpers::less_than</a>(<a href="../../../src/vir/common/expression.rs.html#52">left</a>, <a href="../../../src/vir/common/expression.rs.html#52">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">less_equals</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#26">BinaryOperationHelpers::less_equals</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#55">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#55">right</a>)
+<span class="kw">pub fn </span>less_equals&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#26">BinaryOperationHelpers::less_equals</a>(<a href="../../../src/vir/common/expression.rs.html#55">left</a>, <a href="../../../src/vir/common/expression.rs.html#55">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#27">BinaryOperationHelpers::add</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#58">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#58">right</a>)
+<span class="kw">pub fn </span>add&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#27">BinaryOperationHelpers::add</a>(<a href="../../../src/vir/common/expression.rs.html#58">left</a>, <a href="../../../src/vir/common/expression.rs.html#58">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subtract</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#28">BinaryOperationHelpers::subtract</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#61">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#61">right</a>)
+<span class="kw">pub fn </span>subtract&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#28">BinaryOperationHelpers::subtract</a>(<a href="../../../src/vir/common/expression.rs.html#61">left</a>, <a href="../../../src/vir/common/expression.rs.html#61">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiply</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#29">BinaryOperationHelpers::multiply</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#64">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#64">right</a>)
+<span class="kw">pub fn </span>multiply&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#29">BinaryOperationHelpers::multiply</a>(<a href="../../../src/vir/common/expression.rs.html#64">left</a>, <a href="../../../src/vir/common/expression.rs.html#64">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">divide</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#30">BinaryOperationHelpers::divide</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#67">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#67">right</a>)
+<span class="kw">pub fn </span>divide&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#30">BinaryOperationHelpers::divide</a>(<a href="../../../src/vir/common/expression.rs.html#67">left</a>, <a href="../../../src/vir/common/expression.rs.html#67">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">module</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#31">BinaryOperationHelpers::module</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#70">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#70">right</a>)
+<span class="kw">pub fn </span>module&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#31">BinaryOperationHelpers::module</a>(<a href="../../../src/vir/common/expression.rs.html#70">left</a>, <a href="../../../src/vir/common/expression.rs.html#70">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#32">BinaryOperationHelpers::and</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#73">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#73">right</a>)
+<span class="kw">pub fn </span>and&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#32">BinaryOperationHelpers::and</a>(<a href="../../../src/vir/common/expression.rs.html#73">left</a>, <a href="../../../src/vir/common/expression.rs.html#73">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">or</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#33">BinaryOperationHelpers::or</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#76">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#76">right</a>)
+<span class="kw">pub fn </span>or&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#33">BinaryOperationHelpers::or</a>(<a href="../../../src/vir/common/expression.rs.html#76">left</a>, <a href="../../../src/vir/common/expression.rs.html#76">right</a>)
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">implies</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">E</span>, <span class="ident">right</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-    <a class="ident" href="../../../src/vir/common/expression.rs.html#37">BinaryOperationHelpers::implies</a>(<a class="ident" href="../../../src/vir/common/expression.rs.html#79">left</a>, <a class="ident" href="../../../src/vir/common/expression.rs.html#79">right</a>)
+<span class="kw">pub fn </span>implies&lt;E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a>&gt;(left: E, right: E) -&gt; E {
+    <a href="../../../src/vir/common/expression.rs.html#37">BinaryOperationHelpers::implies</a>(<a href="../../../src/vir/common/expression.rs.html#79">left</a>, <a href="../../../src/vir/common/expression.rs.html#79">right</a>)
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">QuantifierHelpers</span> {
-    <span class="kw">type</span> <span class="ident">QuantifierKind</span>;
-    <span class="kw">type</span> <span class="ident">BoundedVariableDecl</span>;
-    <span class="kw">type</span> <span class="ident">Trigger</span>;
-    <span class="kw">fn</span> <span class="ident">quantifier</span>(
-        <span class="ident">kind</span>: <span class="ident"><span class="self">Self</span>::QuantifierKind</span>,
-        <span class="ident">variables</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BoundedVariableDecl</span><span class="op">&gt;</span>,
-        <span class="ident">triggers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Trigger</span><span class="op">&gt;</span>,
-        <span class="ident">body</span>: <span class="self">Self</span>,
+<span class="kw">pub trait </span>QuantifierHelpers {
+    <span class="kw">type </span>QuantifierKind;
+    <span class="kw">type </span>BoundedVariableDecl;
+    <span class="kw">type </span>Trigger;
+    <span class="kw">fn </span>quantifier(
+        kind: <span class="self">Self</span>::QuantifierKind,
+        variables: Vec&lt;<span class="self">Self</span>::BoundedVariableDecl&gt;,
+        triggers: Vec&lt;<span class="self">Self</span>::Trigger&gt;,
+        body: <span class="self">Self</span>,
     ) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">forall</span>(
-        <span class="ident">variables</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BoundedVariableDecl</span><span class="op">&gt;</span>,
-        <span class="ident">triggers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Trigger</span><span class="op">&gt;</span>,
-        <span class="ident">body</span>: <span class="self">Self</span>,
+    <span class="kw">fn </span>forall(
+        variables: Vec&lt;<span class="self">Self</span>::BoundedVariableDecl&gt;,
+        triggers: Vec&lt;<span class="self">Self</span>::Trigger&gt;,
+        body: <span class="self">Self</span>,
     ) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">exists</span>(
-        <span class="ident">variables</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BoundedVariableDecl</span><span class="op">&gt;</span>,
-        <span class="ident">triggers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Trigger</span><span class="op">&gt;</span>,
-        <span class="ident">body</span>: <span class="self">Self</span>,
+    <span class="kw">fn </span>exists(
+        variables: Vec&lt;<span class="self">Self</span>::BoundedVariableDecl&gt;,
+        triggers: Vec&lt;<span class="self">Self</span>::Trigger&gt;,
+        body: <span class="self">Self</span>,
     ) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FunctionApplicationHelpers</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="kw">type</span> <span class="ident">FunctionSymbol</span>;
-    <span class="kw">fn</span> <span class="ident">call</span>(<span class="ident">function</span>: <span class="ident"><span class="self">Self</span>::FunctionSymbol</span>, <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span>;
+<span class="kw">pub trait </span>FunctionApplicationHelpers: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+    <span class="kw">type </span>FunctionSymbol;
+    <span class="kw">fn </span>call(function: <span class="self">Self</span>::FunctionSymbol, args: Vec&lt;<span class="self">Self</span>&gt;) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LabelledExpressionHelpers</span> {
-    <span class="kw">type</span> <span class="ident">LabelPositivity</span>;
-    <span class="kw">type</span> <span class="ident">LabelSymbol</span>;
-    <span class="kw">fn</span> <span class="ident">labelled_expression</span>(
-        <span class="ident">positivity</span>: <span class="ident"><span class="self">Self</span>::LabelPositivity</span>,
-        <span class="ident">name</span>: <span class="ident"><span class="self">Self</span>::LabelSymbol</span>,
-        <span class="ident">expression</span>: <span class="self">Self</span>,
+<span class="kw">pub trait </span>LabelledExpressionHelpers {
+    <span class="kw">type </span>LabelPositivity;
+    <span class="kw">type </span>LabelSymbol;
+    <span class="kw">fn </span>labelled_expression(
+        positivity: <span class="self">Self</span>::LabelPositivity,
+        name: <span class="self">Self</span>::LabelSymbol,
+        expression: <span class="self">Self</span>,
     ) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">label_negative</span>(<span class="ident">name</span>: <span class="ident"><span class="self">Self</span>::LabelSymbol</span>, <span class="ident">expression</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">label_positive</span>(<span class="ident">name</span>: <span class="ident"><span class="self">Self</span>::LabelSymbol</span>, <span class="ident">expression</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>label_negative(name: <span class="self">Self</span>::LabelSymbol, expression: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>label_positive(name: <span class="self">Self</span>::LabelSymbol, expression: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SyntacticEvaluation</span> {
-    <span class="doccomment">/// Check whether the expression is syntactically known to be true.</span>
-    <span class="kw">fn</span> <span class="ident">is_true</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
-    <span class="doccomment">/// Check whether the expression is syntactically known to be false.</span>
-    <span class="kw">fn</span> <span class="ident">is_false</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+<span class="kw">pub trait </span>SyntacticEvaluation {
+    <span class="doccomment">/// Check whether the expression is syntactically known to be true.
+    </span><span class="kw">fn </span>is_true(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+    <span class="doccomment">/// Check whether the expression is syntactically known to be false.
+    </span><span class="kw">fn </span>is_false(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ExpressionIterator</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Conjoin a sequence of expressions into a single expression.</span>
-    <span class="doccomment">/// Returns true if the sequence has no elements.</span>
-    <span class="kw">fn</span> <span class="ident">conjoin</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">E</span>;
+<span class="kw">pub trait </span>ExpressionIterator&lt;E&gt; {
+    <span class="doccomment">/// Conjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    </span><span class="kw">fn </span>conjoin(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; E;
 
-    <span class="doccomment">/// Disjoin a sequence of expressions into a single expression.</span>
-    <span class="doccomment">/// Returns true if the sequence has no elements.</span>
-    <span class="kw">fn</span> <span class="ident">disjoin</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">E</span>;
+    <span class="doccomment">/// Disjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    </span><span class="kw">fn </span>disjoin(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; E;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">ExpressionIterator</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">I</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <a class="ident" href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a> <span class="op">+</span> <a class="ident" href="../../../src/vir/common/expression.rs.html#6">ConstantHelpers</a>,
+<span class="kw">impl</span>&lt;I, E&gt; ExpressionIterator&lt;E&gt; <span class="kw">for </span>I
+<span class="kw">where
+    </span>I: Iterator&lt;Item = E&gt;,
+    E: <a href="../../../src/vir/common/expression.rs.html#18">BinaryOperationHelpers</a> + <a href="../../../src/vir/common/expression.rs.html#6">ConstantHelpers</a>,
 {
-    <span class="kw">fn</span> <span class="ident">conjoin</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">E</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">conjunction</span>) <span class="op">=</span> <a class="self" href="../../../src/vir/common/expression.rs.html#144">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="kw">for</span> <span class="ident">conjunct</span> <span class="kw">in</span> <span class="self">self</span> {
-                <span class="ident">conjunction</span> <span class="op">=</span> <span class="ident">E::and</span>(<span class="ident">conjunction</span>, <span class="ident">conjunct</span>);
+    <span class="kw">fn </span>conjoin(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; E {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>conjunction) = <a class="self" href="../../../src/vir/common/expression.rs.html#144">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">for </span>conjunct <span class="kw">in </span><span class="self">self </span>{
+                conjunction = E::and(conjunction, conjunct);
             }
-            <a class="ident" href="../../../src/vir/common/expression.rs.html#145">conjunction</a>
-        } <span class="kw">else</span> {
-            <span class="ident">E::bool</span>(<span class="bool-val">true</span>)
+            <a href="../../../src/vir/common/expression.rs.html#145">conjunction</a>
+        } <span class="kw">else </span>{
+            E::bool(<span class="bool-val">true</span>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">disjoin</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">E</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">disjunction</span>) <span class="op">=</span> <a class="self" href="../../../src/vir/common/expression.rs.html#155">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="kw">for</span> <span class="ident">disjunct</span> <span class="kw">in</span> <span class="self">self</span> {
-                <span class="ident">disjunction</span> <span class="op">=</span> <span class="ident">E::and</span>(<span class="ident">disjunction</span>, <span class="ident">disjunct</span>);
+    <span class="kw">fn </span>disjoin(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; E {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>disjunction) = <a class="self" href="../../../src/vir/common/expression.rs.html#155">self</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="kw">for </span>disjunct <span class="kw">in </span><span class="self">self </span>{
+                disjunction = E::and(disjunction, disjunct);
             }
-            <a class="ident" href="../../../src/vir/common/expression.rs.html#156">disjunction</a>
-        } <span class="kw">else</span> {
-            <span class="ident">E::bool</span>(<span class="bool-val">false</span>)
+            <a href="../../../src/vir/common/expression.rs.html#156">disjunction</a>
+        } <span class="kw">else </span>{
+            E::bool(<span class="bool-val">false</span>)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

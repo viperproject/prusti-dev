@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/handshake/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tungstenite/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/handshake/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tungstenite/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -320,118 +320,118 @@
 <span id="320">320</span>
 <span id="321">321</span>
 <span id="322">322</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Client handshake machine.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Client handshake machine.
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
-    <span class="ident">marker::PhantomData</span>,
+</span><span class="kw">use </span>std::{
+    io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
+    marker::PhantomData,
 };
 
-<span class="kw">use</span> <span class="ident">http</span>::{<a class="ident" href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>, <a class="ident" href="../../../http/request/struct.Request.html">Request</a> <span class="kw">as</span> <span class="ident">HttpRequest</span>, <a class="ident" href="../../../http/response/struct.Response.html">Response</a> <span class="kw">as</span> <span class="ident">HttpResponse</span>, <a class="ident" href="../../../http/status/struct.StatusCode.html">StatusCode</a>};
-<span class="kw">use</span> <a class="ident" href="../../../httparse/enum.Status.html">httparse::Status</a>;
-<span class="kw">use</span> <a class="ident" href="../../../log/index.html">log</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span>http::{<a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../http/request/struct.Request.html">Request</a> <span class="kw">as </span>HttpRequest, <a href="../../../http/response/struct.Response.html">Response</a> <span class="kw">as </span>HttpResponse, <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>};
+<span class="kw">use </span><a href="../../../httparse/enum.Status.html">httparse::Status</a>;
+<span class="kw">use </span><a href="../../../log/index.html">log</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#117">derive_accept_key</a>,
-    <span class="ident">headers</span>::{<a class="ident" href="../../../src/tungstenite/handshake/headers.rs.html#13">FromHttparse</a>, <a class="ident" href="../../../src/tungstenite/handshake/headers.rs.html#10">MAX_HEADERS</a>},
-    <span class="ident">machine</span>::{<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a>, <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#102">StageResult</a>, <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a>},
-    <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>, <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a>, <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#108">ProcessingResult</a>,
+<span class="kw">use super</span>::{
+    <a href="../../../src/tungstenite/handshake/mod.rs.html#117">derive_accept_key</a>,
+    headers::{<a href="../../../src/tungstenite/handshake/headers.rs.html#13">FromHttparse</a>, <a href="../../../src/tungstenite/handshake/headers.rs.html#10">MAX_HEADERS</a>},
+    machine::{<a href="../../../src/tungstenite/handshake/machine.rs.html#13">HandshakeMachine</a>, <a href="../../../src/tungstenite/handshake/machine.rs.html#102">StageResult</a>, <a href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a>},
+    <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a>, <a href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a>, <a href="../../../src/tungstenite/handshake/mod.rs.html#108">ProcessingResult</a>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::{<a class="ident" href="../../../src/tungstenite/error.rs.html#14">Error</a>, <a class="ident" href="../../../src/tungstenite/error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/tungstenite/error.rs.html#222">UrlError</a>},
-    <span class="ident">protocol</span>::{<a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#30">Role</a>, <a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#77">WebSocket</a>, <a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>},
+<span class="kw">use crate</span>::{
+    error::{<a href="../../../src/tungstenite/error.rs.html#14">Error</a>, <a href="../../../src/tungstenite/error.rs.html#142">ProtocolError</a>, <span class="prelude-ty">Result</span>, <a href="../../../src/tungstenite/error.rs.html#222">UrlError</a>},
+    protocol::{<a href="../../../src/tungstenite/protocol/mod.rs.html#30">Role</a>, <a href="../../../src/tungstenite/protocol/mod.rs.html#77">WebSocket</a>, <a href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>},
 };
 
-<span class="doccomment">/// Client request type.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Request</span> <span class="op">=</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="doccomment">/// Client request type.
+</span><span class="kw">pub type </span>Request = HttpRequest&lt;()&gt;;
 
-<span class="doccomment">/// Client response type.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">HttpResponse</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="doccomment">/// Client response type.
+</span><span class="kw">pub type </span>Response = HttpResponse&lt;()&gt;;
 
-<span class="doccomment">/// Client handshake role.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">verify_data</span>: <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#141">VerifyData</a>,
-    <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a><span class="op">&gt;</span>,
-    <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Client handshake role.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ClientHandshake&lt;S&gt; {
+    verify_data: <a href="../../../src/tungstenite/handshake/client.rs.html#141">VerifyData</a>,
+    config: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>&gt;,
+    _marker: PhantomData&lt;S&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Initiate a client handshake.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(
-        <span class="ident">stream</span>: <span class="ident">S</span>,
-        <span class="ident">request</span>: <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#24">Request</a>,
-        <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MidHandshake</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">request</span>.<span class="ident">method</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">http::Method::GET</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#145">ProtocolError::WrongHttpMethod</a>));
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; ClientHandshake&lt;S&gt; {
+    <span class="doccomment">/// Initiate a client handshake.
+    </span><span class="kw">pub fn </span>start(
+        stream: S,
+        request: <a href="../../../src/tungstenite/handshake/client.rs.html#24">Request</a>,
+        config: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/tungstenite/protocol/mod.rs.html#39">WebSocketConfig</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;MidHandshake&lt;<span class="self">Self</span>&gt;&gt; {
+        <span class="kw">if </span>request.method() != http::Method::GET {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#145">ProtocolError::WrongHttpMethod</a>));
         }
 
-        <span class="kw">if</span> <span class="ident">request</span>.<span class="ident">version</span>() <span class="op">&lt;</span> <span class="ident">http::Version::HTTP_11</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#148">ProtocolError::WrongHttpVersion</a>));
+        <span class="kw">if </span>request.version() &lt; http::Version::HTTP_11 {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#148">ProtocolError::WrongHttpVersion</a>));
         }
 
-        <span class="comment">// Check the URI scheme: only ws or wss are supported</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::client::uri_mode</span>(<span class="ident">request</span>.<span class="ident">uri</span>())<span class="question-mark">?</span>;
+        <span class="comment">// Check the URI scheme: only ws or wss are supported
+        </span><span class="kw">let _ </span>= <span class="kw">crate</span>::client::uri_mode(request.uri())<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#236">generate_key</a>();
+        <span class="kw">let </span>key = <a href="../../../src/tungstenite/handshake/client.rs.html#236">generate_key</a>();
 
-        <span class="kw">let</span> <span class="ident">machine</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">generate_request</span>(<span class="ident">request</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>)<span class="question-mark">?</span>;
-            <span class="ident">HandshakeMachine::start_write</span>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#40">stream</a>, <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#58">req</a>)
+        <span class="kw">let </span>machine = {
+            <span class="kw">let </span>req = generate_request(request, <span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
+            HandshakeMachine::start_write(<a href="../../../src/tungstenite/handshake/client.rs.html#40">stream</a>, <a href="../../../src/tungstenite/handshake/client.rs.html#58">req</a>)
         };
 
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">accept_key</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#117">derive_accept_key</a>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#55">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
-            <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#31">ClientHandshake</a> { <span class="ident">verify_data</span>: <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#141">VerifyData</a> { <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#63">accept_key</a> }, <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#42">config</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
+        <span class="kw">let </span>client = {
+            <span class="kw">let </span>accept_key = <a href="../../../src/tungstenite/handshake/mod.rs.html#117">derive_accept_key</a>(<a href="../../../src/tungstenite/handshake/client.rs.html#55">key</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+            <a href="../../../src/tungstenite/handshake/client.rs.html#31">ClientHandshake</a> { verify_data: <a href="../../../src/tungstenite/handshake/client.rs.html#141">VerifyData</a> { <a href="../../../src/tungstenite/handshake/client.rs.html#63">accept_key</a> }, <a href="../../../src/tungstenite/handshake/client.rs.html#42">config</a>, _marker: PhantomData }
         };
 
         <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Client handshake initiated.&quot;</span>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a> { <span class="ident">role</span>: <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#62">client</a>, <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#57">machine</a> })
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/mod.rs.html#22">MidHandshake</a> { role: <a href="../../../src/tungstenite/handshake/client.rs.html#62">client</a>, <a href="../../../src/tungstenite/handshake/client.rs.html#57">machine</a> })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a> <span class="kw">for</span> <span class="ident">ClientHandshake</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">IncomingData</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a>;
-    <span class="kw">type</span> <span class="ident">InternalStream</span> <span class="op">=</span> <span class="ident">S</span>;
-    <span class="kw">type</span> <span class="ident">FinalResult</span> <span class="op">=</span> (<span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a>);
-    <span class="kw">fn</span> <span class="ident">stage_finished</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">finish</span>: <span class="ident">StageResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::IncomingData</span>, <span class="ident"><span class="self">Self</span>::InternalStream</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ProcessingResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::InternalStream</span>, <span class="ident"><span class="self">Self</span>::FinalResult</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#78">finish</a> {
-            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#106">StageResult::DoneWriting</a>(<span class="ident">stream</span>) =&gt; {
-                <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#109">ProcessingResult::Continue</a>(<span class="ident">HandshakeMachine::start_read</span>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#81">stream</a>))
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="../../../src/tungstenite/handshake/mod.rs.html#91">HandshakeRole</a> <span class="kw">for </span>ClientHandshake&lt;S&gt; {
+    <span class="kw">type </span>IncomingData = <a href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a>;
+    <span class="kw">type </span>InternalStream = S;
+    <span class="kw">type </span>FinalResult = (WebSocket&lt;S&gt;, <a href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a>);
+    <span class="kw">fn </span>stage_finished(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        finish: StageResult&lt;<span class="self">Self</span>::IncomingData, <span class="self">Self</span>::InternalStream&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ProcessingResult&lt;<span class="self">Self</span>::InternalStream, <span class="self">Self</span>::FinalResult&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="../../../src/tungstenite/handshake/client.rs.html#78">finish</a> {
+            <a href="../../../src/tungstenite/handshake/machine.rs.html#106">StageResult::DoneWriting</a>(stream) =&gt; {
+                <a href="../../../src/tungstenite/handshake/mod.rs.html#109">ProcessingResult::Continue</a>(HandshakeMachine::start_read(<a href="../../../src/tungstenite/handshake/client.rs.html#81">stream</a>))
             }
-            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#104">StageResult::DoneReading</a> { <span class="ident">stream</span>, <span class="ident">result</span>, <span class="ident">tail</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">verify_data</span>.<span class="ident">verify_response</span>(<span class="ident">result</span>)<span class="question-mark">?</span>;
+            <a href="../../../src/tungstenite/handshake/machine.rs.html#104">StageResult::DoneReading</a> { stream, result, tail } =&gt; {
+                <span class="kw">let </span>result = <span class="self">self</span>.verify_data.verify_response(result)<span class="question-mark">?</span>;
                 <a class="macro" href="../../../log/log/macro.debug.html">debug!</a>(<span class="string">&quot;Client handshake done.&quot;</span>);
-                <span class="kw">let</span> <span class="ident">websocket</span> <span class="op">=</span>
-                    <span class="ident">WebSocket::from_partially_read</span>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#84">stream</a>, <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#84">tail</a>, <a class="ident" href="../../../src/tungstenite/protocol/mod.rs.html#34">Role::Client</a>, <a class="self" href="../../../src/tungstenite/handshake/client.rs.html#77">self</a>.<span class="ident">config</span>);
-                <a class="ident" href="../../../src/tungstenite/handshake/mod.rs.html#110">ProcessingResult::Done</a>((<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#87">websocket</a>, <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#85">result</a>))
+                <span class="kw">let </span>websocket =
+                    WebSocket::from_partially_read(<a href="../../../src/tungstenite/handshake/client.rs.html#84">stream</a>, <a href="../../../src/tungstenite/handshake/client.rs.html#84">tail</a>, <a href="../../../src/tungstenite/protocol/mod.rs.html#34">Role::Client</a>, <a class="self" href="../../../src/tungstenite/handshake/client.rs.html#77">self</a>.config);
+                <a href="../../../src/tungstenite/handshake/mod.rs.html#110">ProcessingResult::Done</a>((<a href="../../../src/tungstenite/handshake/client.rs.html#87">websocket</a>, <a href="../../../src/tungstenite/handshake/client.rs.html#85">result</a>))
             }
         })
     }
 }
 
-<span class="doccomment">/// Generate client request.</span>
-<span class="kw">fn</span> <span class="ident">generate_request</span>(<span class="ident">request</span>: <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#24">Request</a>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#96">request</a>.<span class="ident">uri</span>();
+<span class="doccomment">/// Generate client request.
+</span><span class="kw">fn </span>generate_request(request: <a href="../../../src/tungstenite/handshake/client.rs.html#24">Request</a>, key: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>req = Vec::new();
+    <span class="kw">let </span>uri = <a href="../../../src/tungstenite/handshake/client.rs.html#96">request</a>.uri();
 
-    <span class="kw">let</span> <span class="ident">authority</span> <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">authority</span>().<span class="ident">ok_or</span>(<span class="ident">Error::Url</span>(<span class="ident">UrlError::NoHostName</span>))<span class="question-mark">?</span>.<span class="ident">as_str</span>();
-    <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#100">authority</a>.<span class="ident">find</span>(<span class="string">&#39;@&#39;</span>) {
-        <span class="comment">// handle possible name:password@</span>
-        <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#100">authority</a>.<span class="ident">split_at</span>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#101">idx</a> <span class="op">+</span> <span class="number">1</span>).<span class="number">1</span>
-    } <span class="kw">else</span> {
-        <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#100">authority</a>
+    <span class="kw">let </span>authority = uri.authority().ok_or(Error::Url(UrlError::NoHostName))<span class="question-mark">?</span>.as_str();
+    <span class="kw">let </span>host = <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <a href="../../../src/tungstenite/handshake/client.rs.html#100">authority</a>.find(<span class="string">&#39;@&#39;</span>) {
+        <span class="comment">// handle possible name:password@
+        </span><a href="../../../src/tungstenite/handshake/client.rs.html#100">authority</a>.split_at(<a href="../../../src/tungstenite/handshake/client.rs.html#101">idx</a> + <span class="number">1</span>).<span class="number">1
+    </span>} <span class="kw">else </span>{
+        <a href="../../../src/tungstenite/handshake/client.rs.html#100">authority</a>
     };
-    <span class="kw">if</span> <span class="ident">authority</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#63">Error::Url</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#237">UrlError::EmptyHostName</a>));
+    <span class="kw">if </span>authority.is_empty() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#63">Error::Url</a>(<a href="../../../src/tungstenite/error.rs.html#237">UrlError::EmptyHostName</a>));
     }
 
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-        <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#97">req</a>,
+        <a href="../../../src/tungstenite/handshake/client.rs.html#97">req</a>,
         <span class="string">&quot;\
          GET {path} {version:?}\r\n\
          Host: {host}\r\n\
@@ -439,155 +439,155 @@
          Upgrade: websocket\r\n\
          Sec-WebSocket-Version: 13\r\n\
          Sec-WebSocket-Key: {key}\r\n&quot;</span>,
-        <span class="ident">version</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">version</span>(),
-        <span class="ident">host</span> <span class="op">=</span> <span class="ident">host</span>,
-        <span class="ident">path</span> <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">path_and_query</span>().<span class="ident">ok_or</span>(<span class="ident">Error::Url</span>(<span class="ident">UrlError::NoPathOrQuery</span>))<span class="question-mark">?</span>.<span class="ident">as_str</span>(),
-        <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>
+        version = request.version(),
+        host = host,
+        path = uri.path_and_query().ok_or(Error::Url(UrlError::NoPathOrQuery))<span class="question-mark">?</span>.as_str(),
+        key = key
     )
-    .<span class="ident">unwrap</span>();
+    .unwrap();
 
-    <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">request</span>.<span class="ident">headers</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">as_str</span>();
-        <span class="kw">if</span> <span class="ident">k</span> <span class="op">==</span> <span class="string">&quot;sec-websocket-protocol&quot;</span> {
-            <span class="ident">k</span> <span class="op">=</span> <span class="string">&quot;Sec-WebSocket-Protocol&quot;</span>;
+    <span class="kw">for </span>(k, v) <span class="kw">in </span>request.headers() {
+        <span class="kw">let </span><span class="kw-2">mut </span>k = k.as_str();
+        <span class="kw">if </span>k == <span class="string">&quot;sec-websocket-protocol&quot; </span>{
+            k = <span class="string">&quot;Sec-WebSocket-Protocol&quot;</span>;
         }
-        <span class="macro">writeln!</span>(<span class="ident">req</span>, <span class="string">&quot;{}: {}\r&quot;</span>, <span class="ident">k</span>, <span class="ident">v</span>.<span class="ident">to_str</span>()<span class="question-mark">?</span>).<span class="ident">unwrap</span>();
+        <span class="macro">writeln!</span>(req, <span class="string">&quot;{}: {}\r&quot;</span>, k, v.to_str()<span class="question-mark">?</span>).unwrap();
     }
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#97">req</a>, <span class="string">&quot;\r&quot;</span>).<span class="ident">unwrap</span>();
-    <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Request: {:?}&quot;</span>, <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>));
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#97">req</a>)
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../../src/tungstenite/handshake/client.rs.html#97">req</a>, <span class="string">&quot;\r&quot;</span>).unwrap();
+    <a class="macro" href="../../../log/log/macro.trace.html">trace!</a>(<span class="string">&quot;Request: {:?}&quot;</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>req));
+    <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/client.rs.html#97">req</a>)
 }
 
-<span class="doccomment">/// Information for handshake verification.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">VerifyData</span> {
-    <span class="doccomment">/// Accepted server key.</span>
-    <span class="ident">accept_key</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+<span class="doccomment">/// Information for handshake verification.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>VerifyData {
+    <span class="doccomment">/// Accepted server key.
+    </span>accept_key: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#141">VerifyData</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_response</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">response</span>: <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a><span class="op">&gt;</span> {
-        <span class="comment">// 1. If the status code received from the server is not 101, the</span>
-        <span class="comment">// client handles the response per HTTP [RFC2616] procedures. (RFC 6455)</span>
-        <span class="kw">if</span> <span class="ident">response</span>.<span class="ident">status</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">StatusCode::SWITCHING_PROTOCOLS</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#66">Error::Http</a>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#147">response</a>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">None</span>)));
+<span class="kw">impl </span><a href="../../../src/tungstenite/handshake/client.rs.html#141">VerifyData</a> {
+    <span class="kw">pub fn </span>verify_response(<span class="kw-2">&amp;</span><span class="self">self</span>, response: <a href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a>&gt; {
+        <span class="comment">// 1. If the status code received from the server is not 101, the
+        // client handles the response per HTTP [RFC2616] procedures. (RFC 6455)
+        </span><span class="kw">if </span>response.status() != StatusCode::SWITCHING_PROTOCOLS {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#66">Error::Http</a>(<a href="../../../src/tungstenite/handshake/client.rs.html#147">response</a>.map(|<span class="kw">_</span>| <span class="prelude-val">None</span>)));
         }
 
-        <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#147">response</a>.<span class="ident">headers</span>();
+        <span class="kw">let </span>headers = <a href="../../../src/tungstenite/handshake/client.rs.html#147">response</a>.headers();
 
-        <span class="comment">// 2. If the response lacks an |Upgrade| header field or the |Upgrade|</span>
-        <span class="comment">// header field contains a value that is not an ASCII case-</span>
-        <span class="comment">// insensitive match for the value &quot;websocket&quot;, the client MUST</span>
-        <span class="comment">// _Fail the WebSocket Connection_. (RFC 6455)</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">headers</span>
-            .<span class="ident">get</span>(<span class="string">&quot;Upgrade&quot;</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">to_str</span>().<span class="ident">ok</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;websocket&quot;</span>))
-            .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+        <span class="comment">// 2. If the response lacks an |Upgrade| header field or the |Upgrade|
+        // header field contains a value that is not an ASCII case-
+        // insensitive match for the value &quot;websocket&quot;, the client MUST
+        // _Fail the WebSocket Connection_. (RFC 6455)
+        </span><span class="kw">if </span>!headers
+            .get(<span class="string">&quot;Upgrade&quot;</span>)
+            .and_then(|h| h.to_str().ok())
+            .map(|h| h.eq_ignore_ascii_case(<span class="string">&quot;websocket&quot;</span>))
+            .unwrap_or(<span class="bool-val">false</span>)
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#154">ProtocolError::MissingUpgradeWebSocketHeader</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#154">ProtocolError::MissingUpgradeWebSocketHeader</a>));
         }
-        <span class="comment">// 3.  If the response lacks a |Connection| header field or the</span>
-        <span class="comment">// |Connection| header field doesn&#39;t contain a token that is an</span>
-        <span class="comment">// ASCII case-insensitive match for the value &quot;Upgrade&quot;, the client</span>
-        <span class="comment">// MUST _Fail the WebSocket Connection_. (RFC 6455)</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">headers</span>
-            .<span class="ident">get</span>(<span class="string">&quot;Connection&quot;</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">to_str</span>().<span class="ident">ok</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;Upgrade&quot;</span>))
-            .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+        <span class="comment">// 3.  If the response lacks a |Connection| header field or the
+        // |Connection| header field doesn&#39;t contain a token that is an
+        // ASCII case-insensitive match for the value &quot;Upgrade&quot;, the client
+        // MUST _Fail the WebSocket Connection_. (RFC 6455)
+        </span><span class="kw">if </span>!headers
+            .get(<span class="string">&quot;Connection&quot;</span>)
+            .and_then(|h| h.to_str().ok())
+            .map(|h| h.eq_ignore_ascii_case(<span class="string">&quot;Upgrade&quot;</span>))
+            .unwrap_or(<span class="bool-val">false</span>)
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#151">ProtocolError::MissingConnectionUpgradeHeader</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#151">ProtocolError::MissingConnectionUpgradeHeader</a>));
         }
-        <span class="comment">// 4.  If the response lacks a |Sec-WebSocket-Accept| header field or</span>
-        <span class="comment">// the |Sec-WebSocket-Accept| contains a value other than the</span>
-        <span class="comment">// base64-encoded SHA-1 of ... the client MUST _Fail the WebSocket</span>
-        <span class="comment">// Connection_. (RFC 6455)</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">headers</span>.<span class="ident">get</span>(<span class="string">&quot;Sec-WebSocket-Accept&quot;</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">accept_key</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#163">ProtocolError::SecWebSocketAcceptKeyMismatch</a>));
+        <span class="comment">// 4.  If the response lacks a |Sec-WebSocket-Accept| header field or
+        // the |Sec-WebSocket-Accept| contains a value other than the
+        // base64-encoded SHA-1 of ... the client MUST _Fail the WebSocket
+        // Connection_. (RFC 6455)
+        </span><span class="kw">if </span>!headers.get(<span class="string">&quot;Sec-WebSocket-Accept&quot;</span>).map(|h| h == <span class="kw-2">&amp;</span><span class="self">self</span>.accept_key).unwrap_or(<span class="bool-val">false</span>) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#163">ProtocolError::SecWebSocketAcceptKeyMismatch</a>));
         }
-        <span class="comment">// 5.  If the response includes a |Sec-WebSocket-Extensions| header</span>
-        <span class="comment">// field and this header field indicates the use of an extension</span>
-        <span class="comment">// that was not present in the client&#39;s handshake (the server has</span>
-        <span class="comment">// indicated an extension not requested by the client), the client</span>
-        <span class="comment">// MUST _Fail the WebSocket Connection_. (RFC 6455)</span>
-        <span class="comment">// TODO</span>
+        <span class="comment">// 5.  If the response includes a |Sec-WebSocket-Extensions| header
+        // field and this header field indicates the use of an extension
+        // that was not present in the client&#39;s handshake (the server has
+        // indicated an extension not requested by the client), the client
+        // MUST _Fail the WebSocket Connection_. (RFC 6455)
+        // TODO
 
-        <span class="comment">// 6.  If the response includes a |Sec-WebSocket-Protocol| header field</span>
-        <span class="comment">// and this header field indicates the use of a subprotocol that was</span>
-        <span class="comment">// not present in the client&#39;s handshake (the server has indicated a</span>
-        <span class="comment">// subprotocol not requested by the client), the client MUST _Fail</span>
-        <span class="comment">// the WebSocket Connection_. (RFC 6455)</span>
-        <span class="comment">// TODO</span>
+        // 6.  If the response includes a |Sec-WebSocket-Protocol| header field
+        // and this header field indicates the use of a subprotocol that was
+        // not present in the client&#39;s handshake (the server has indicated a
+        // subprotocol not requested by the client), the client MUST _Fail
+        // the WebSocket Connection_. (RFC 6455)
+        // TODO
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#147">response</a>)
+        </span><span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/client.rs.html#147">response</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a> {
-    <span class="kw">fn</span> <span class="ident">try_parse</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="self">Self</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hbuffer</span> <span class="op">=</span> [<span class="ident">httparse::EMPTY_HEADER</span>; <a class="ident" href="../../../src/tungstenite/handshake/headers.rs.html#10">MAX_HEADERS</a>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">httparse::Response::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#207">hbuffer</a>);
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">req</span>.<span class="ident">parse</span>(<span class="ident">buf</span>)<span class="question-mark">?</span> {
-            <span class="ident">Status::Partial</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Status::Complete</span>(<span class="ident">size</span>) =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#211">size</a>, <span class="ident">Response::from_httparse</span>(<span class="ident">req</span>)<span class="question-mark">?</span>)),
+<span class="kw">impl </span><a href="../../../src/tungstenite/handshake/machine.rs.html#110">TryParse</a> <span class="kw">for </span><a href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a> {
+    <span class="kw">fn </span>try_parse(buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="self">Self</span>)&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>hbuffer = [httparse::EMPTY_HEADER; <a href="../../../src/tungstenite/handshake/headers.rs.html#10">MAX_HEADERS</a>];
+        <span class="kw">let </span><span class="kw-2">mut </span>req = httparse::Response::new(<span class="kw-2">&amp;mut </span><a href="../../../src/tungstenite/handshake/client.rs.html#207">hbuffer</a>);
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>req.parse(buf)<span class="question-mark">? </span>{
+            Status::Partial =&gt; <span class="prelude-val">None</span>,
+            Status::Complete(size) =&gt; <span class="prelude-val">Some</span>((<a href="../../../src/tungstenite/handshake/client.rs.html#211">size</a>, Response::from_httparse(req)<span class="question-mark">?</span>)),
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;h</span><span class="op">&gt;</span> <span class="ident">FromHttparse</span><span class="op">&lt;</span><span class="ident">httparse::Response</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a> {
-    <span class="kw">fn</span> <span class="ident">from_httparse</span>(<span class="ident">raw</span>: <span class="ident">httparse::Response</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">raw</span>.<span class="ident">version</span>.<span class="ident">expect</span>(<span class="string">&quot;Bug: no HTTP version&quot;</span>) <span class="op">&lt;</span> <span class="comment">/*1.*/</span><span class="number">1</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#145">ProtocolError::WrongHttpMethod</a>));
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;h</span>&gt; FromHttparse&lt;httparse::Response&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>&gt;&gt; <span class="kw">for </span><a href="../../../src/tungstenite/handshake/client.rs.html#27">Response</a> {
+    <span class="kw">fn </span>from_httparse(raw: httparse::Response&lt;<span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;b</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>raw.version.expect(<span class="string">&quot;Bug: no HTTP version&quot;</span>) &lt; <span class="comment">/*1.*/</span><span class="number">1 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a href="../../../src/tungstenite/error.rs.html#145">ProtocolError::WrongHttpMethod</a>));
         }
 
-        <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::from_httparse</span>(<span class="ident">raw</span>.<span class="ident">headers</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>headers = HeaderMap::from_httparse(raw.headers)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">Response::new</span>(());
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#224">response</a>.<span class="ident">status_mut</span>() <span class="op">=</span> <span class="ident">StatusCode::from_u16</span>(<span class="ident">raw</span>.<span class="ident">code</span>.<span class="ident">expect</span>(<span class="string">&quot;Bug: no HTTP status code&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#224">response</a>.<span class="ident">headers_mut</span>() <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#222">headers</a>;
-        <span class="comment">// TODO: httparse only supports HTTP 0.9/1.0/1.1 but not HTTP 2.0</span>
-        <span class="comment">// so the only valid value we could get in the response would be 1.1.</span>
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#224">response</a>.<span class="ident">version_mut</span>() <span class="op">=</span> <span class="ident">http::Version::HTTP_11</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>response = Response::new(());
+        <span class="kw-2">*</span><a href="../../../src/tungstenite/handshake/client.rs.html#224">response</a>.status_mut() = StatusCode::from_u16(raw.code.expect(<span class="string">&quot;Bug: no HTTP status code&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw-2">*</span><a href="../../../src/tungstenite/handshake/client.rs.html#224">response</a>.headers_mut() = <a href="../../../src/tungstenite/handshake/client.rs.html#222">headers</a>;
+        <span class="comment">// TODO: httparse only supports HTTP 0.9/1.0/1.1 but not HTTP 2.0
+        // so the only valid value we could get in the response would be 1.1.
+        </span><span class="kw-2">*</span><a href="../../../src/tungstenite/handshake/client.rs.html#224">response</a>.version_mut() = http::Version::HTTP_11;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#224">response</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/handshake/client.rs.html#224">response</a>)
     }
 }
 
-<span class="doccomment">/// Generate a random key for the `Sec-WebSocket-Key` header.</span>
-<span class="kw">fn</span> <span class="ident">generate_key</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="comment">// a base64-encoded (see Section 4 of [RFC4648]) value that,</span>
-    <span class="comment">// when decoded, is 16 bytes in length (RFC 6455)</span>
-    <span class="kw">let</span> <span class="ident">r</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] <span class="op">=</span> <span class="ident">rand::random</span>();
-    <span class="ident">base64::encode</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/client.rs.html#239">r</a>)
+<span class="doccomment">/// Generate a random key for the `Sec-WebSocket-Key` header.
+</span><span class="kw">fn </span>generate_key() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="comment">// a base64-encoded (see Section 4 of [RFC4648]) value that,
+    // when decoded, is 16 bytes in length (RFC 6455)
+    </span><span class="kw">let </span>r: [<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">16</span>] = rand::random();
+    base64::encode(<span class="kw-2">&amp;</span><a href="../../../src/tungstenite/handshake/client.rs.html#239">r</a>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident"><span class="kw">super</span>::machine::TryParse</span>, <span class="ident">generate_key</span>, <span class="ident">generate_request</span>, <span class="ident">Response</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::client::IntoClientRequest</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::{<span class="kw">super</span>::machine::TryParse, generate_key, generate_request, Response};
+    <span class="kw">use </span><span class="kw">crate</span>::client::IntoClientRequest;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">random_keys</span>() {
-        <span class="kw">let</span> <span class="ident">k1</span> <span class="op">=</span> <span class="ident">generate_key</span>();
-        <span class="macro">println!</span>(<span class="string">&quot;Generated random key 1: {}&quot;</span>, <span class="ident">k1</span>);
-        <span class="kw">let</span> <span class="ident">k2</span> <span class="op">=</span> <span class="ident">generate_key</span>();
-        <span class="macro">println!</span>(<span class="string">&quot;Generated random key 2: {}&quot;</span>, <span class="ident">k2</span>);
-        <span class="macro">assert_ne!</span>(<span class="ident">k1</span>, <span class="ident">k2</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">k1</span>.<span class="ident">len</span>(), <span class="ident">k2</span>.<span class="ident">len</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">k1</span>.<span class="ident">len</span>(), <span class="number">24</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">k2</span>.<span class="ident">len</span>(), <span class="number">24</span>);
-        <span class="macro">assert!</span>(<span class="ident">k1</span>.<span class="ident">ends_with</span>(<span class="string">&quot;==&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">k2</span>.<span class="ident">ends_with</span>(<span class="string">&quot;==&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">k1</span>[..<span class="number">22</span>].<span class="ident">find</span>(<span class="string">&#39;=&#39;</span>).<span class="ident">is_none</span>());
-        <span class="macro">assert!</span>(<span class="ident">k2</span>[..<span class="number">22</span>].<span class="ident">find</span>(<span class="string">&#39;=&#39;</span>).<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>random_keys() {
+        <span class="kw">let </span>k1 = generate_key();
+        <span class="macro">println!</span>(<span class="string">&quot;Generated random key 1: {}&quot;</span>, k1);
+        <span class="kw">let </span>k2 = generate_key();
+        <span class="macro">println!</span>(<span class="string">&quot;Generated random key 2: {}&quot;</span>, k2);
+        <span class="macro">assert_ne!</span>(k1, k2);
+        <span class="macro">assert_eq!</span>(k1.len(), k2.len());
+        <span class="macro">assert_eq!</span>(k1.len(), <span class="number">24</span>);
+        <span class="macro">assert_eq!</span>(k2.len(), <span class="number">24</span>);
+        <span class="macro">assert!</span>(k1.ends_with(<span class="string">&quot;==&quot;</span>));
+        <span class="macro">assert!</span>(k2.ends_with(<span class="string">&quot;==&quot;</span>));
+        <span class="macro">assert!</span>(k1[..<span class="number">22</span>].find(<span class="string">&#39;=&#39;</span>).is_none());
+        <span class="macro">assert!</span>(k2[..<span class="number">22</span>].find(<span class="string">&#39;=&#39;</span>).is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">request_formatting</span>() {
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="string">&quot;ws://localhost/getCaseCount&quot;</span>.<span class="ident">into_client_request</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="string">&quot;A70tsIbeMZUbJHh5BWFw6Q==&quot;</span>;
-        <span class="kw">let</span> <span class="ident">correct</span> <span class="op">=</span> <span class="string">b&quot;\
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>request_formatting() {
+        <span class="kw">let </span>request = <span class="string">&quot;ws://localhost/getCaseCount&quot;</span>.into_client_request().unwrap();
+        <span class="kw">let </span>key = <span class="string">&quot;A70tsIbeMZUbJHh5BWFw6Q==&quot;</span>;
+        <span class="kw">let </span>correct = <span class="string">b&quot;\
             GET /getCaseCount HTTP/1.1\r\n\
             Host: localhost\r\n\
             Connection: Upgrade\r\n\
@@ -595,16 +595,16 @@
             Sec-WebSocket-Version: 13\r\n\
             Sec-WebSocket-Key: A70tsIbeMZUbJHh5BWFw6Q==\r\n\
             \r\n&quot;</span>;
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">generate_request</span>(<span class="ident">request</span>, <span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">println!</span>(<span class="string">&quot;Request: {}&quot;</span>, <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>));
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>[..], <span class="kw-2">&amp;</span><span class="ident">correct</span>[..]);
+        <span class="kw">let </span>request = generate_request(request, key).unwrap();
+        <span class="macro">println!</span>(<span class="string">&quot;Request: {}&quot;</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>request));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>request[..], <span class="kw-2">&amp;</span>correct[..]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">request_formatting_with_host</span>() {
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="string">&quot;wss://localhost:9001/getCaseCount&quot;</span>.<span class="ident">into_client_request</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="string">&quot;A70tsIbeMZUbJHh5BWFw6Q==&quot;</span>;
-        <span class="kw">let</span> <span class="ident">correct</span> <span class="op">=</span> <span class="string">b&quot;\
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>request_formatting_with_host() {
+        <span class="kw">let </span>request = <span class="string">&quot;wss://localhost:9001/getCaseCount&quot;</span>.into_client_request().unwrap();
+        <span class="kw">let </span>key = <span class="string">&quot;A70tsIbeMZUbJHh5BWFw6Q==&quot;</span>;
+        <span class="kw">let </span>correct = <span class="string">b&quot;\
             GET /getCaseCount HTTP/1.1\r\n\
             Host: localhost:9001\r\n\
             Connection: Upgrade\r\n\
@@ -612,16 +612,16 @@
             Sec-WebSocket-Version: 13\r\n\
             Sec-WebSocket-Key: A70tsIbeMZUbJHh5BWFw6Q==\r\n\
             \r\n&quot;</span>;
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">generate_request</span>(<span class="ident">request</span>, <span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">println!</span>(<span class="string">&quot;Request: {}&quot;</span>, <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>));
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>[..], <span class="kw-2">&amp;</span><span class="ident">correct</span>[..]);
+        <span class="kw">let </span>request = generate_request(request, key).unwrap();
+        <span class="macro">println!</span>(<span class="string">&quot;Request: {}&quot;</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>request));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>request[..], <span class="kw-2">&amp;</span>correct[..]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">request_formatting_with_at</span>() {
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="string">&quot;wss://user:pass@localhost:9001/getCaseCount&quot;</span>.<span class="ident">into_client_request</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="string">&quot;A70tsIbeMZUbJHh5BWFw6Q==&quot;</span>;
-        <span class="kw">let</span> <span class="ident">correct</span> <span class="op">=</span> <span class="string">b&quot;\
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>request_formatting_with_at() {
+        <span class="kw">let </span>request = <span class="string">&quot;wss://user:pass@localhost:9001/getCaseCount&quot;</span>.into_client_request().unwrap();
+        <span class="kw">let </span>key = <span class="string">&quot;A70tsIbeMZUbJHh5BWFw6Q==&quot;</span>;
+        <span class="kw">let </span>correct = <span class="string">b&quot;\
             GET /getCaseCount HTTP/1.1\r\n\
             Host: localhost:9001\r\n\
             Connection: Upgrade\r\n\
@@ -629,18 +629,18 @@
             Sec-WebSocket-Version: 13\r\n\
             Sec-WebSocket-Key: A70tsIbeMZUbJHh5BWFw6Q==\r\n\
             \r\n&quot;</span>;
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">generate_request</span>(<span class="ident">request</span>, <span class="ident">key</span>).<span class="ident">unwrap</span>();
-        <span class="macro">println!</span>(<span class="string">&quot;Request: {}&quot;</span>, <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>));
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>[..], <span class="kw-2">&amp;</span><span class="ident">correct</span>[..]);
+        <span class="kw">let </span>request = generate_request(request, key).unwrap();
+        <span class="macro">println!</span>(<span class="string">&quot;Request: {}&quot;</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>request));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>request[..], <span class="kw-2">&amp;</span>correct[..]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">response_parsing</span>() {
-        <span class="kw">const</span> <span class="ident">DATA</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n&quot;</span>;
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">resp</span>) <span class="op">=</span> <span class="ident">Response::try_parse</span>(<span class="ident">DATA</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="ident">http::StatusCode::OK</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">resp</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="string">&quot;Content-Type&quot;</span>).<span class="ident">unwrap</span>(), <span class="kw-2">&amp;</span><span class="string">b&quot;text/html&quot;</span>[..],);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>response_parsing() {
+        <span class="kw">const </span>DATA: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n&quot;</span>;
+        <span class="kw">let </span>(<span class="kw">_</span>, resp) = Response::try_parse(DATA).unwrap().unwrap();
+        <span class="macro">assert_eq!</span>(resp.status(), http::StatusCode::OK);
+        <span class="macro">assert_eq!</span>(resp.headers().get(<span class="string">&quot;Content-Type&quot;</span>).unwrap(), <span class="kw-2">&amp;</span><span class="string">b&quot;text/html&quot;</span>[..],);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

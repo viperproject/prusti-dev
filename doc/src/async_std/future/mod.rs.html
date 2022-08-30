@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/future/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/future/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -74,79 +74,79 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Asynchronous values.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Base Futures Concurrency</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Often it&#39;s desirable to await multiple futures as if it was a single</span>
-<span class="doccomment">//! future. The `join` family of operations converts multiple futures into a</span>
-<span class="doccomment">//! single future that returns all of their outputs. The `race` family of</span>
-<span class="doccomment">//! operations converts multiple future into a single future that returns the</span>
-<span class="doccomment">//! first output.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! For operating on futures the following functions can be used:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! | Name               | Return signature | When does it return?     |</span>
-<span class="doccomment">//! | ---                | ---              | ---                      |</span>
-<span class="doccomment">//! | [`Future::join`]   | `(T1, T2)`       | Wait for all to complete</span>
-<span class="doccomment">//! | [`Future::race`]   | `T`              | Return on first value</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Fallible Futures Concurrency</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! For operating on futures that return `Result` additional `try_` variants of</span>
-<span class="doccomment">//! the functions mentioned before can be used. These functions are aware of `Result`,</span>
-<span class="doccomment">//! and will behave slightly differently from their base variants.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In the case of `try_join`, if any of the futures returns `Err` all</span>
-<span class="doccomment">//! futures are dropped and an error is returned. This is referred to as</span>
-<span class="doccomment">//! &quot;short-circuiting&quot;.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In the case of `try_race`, instead of returning the first future that</span>
-<span class="doccomment">//! completes it returns the first future that _successfully_ completes. This</span>
-<span class="doccomment">//! means `try_race` will keep going until any one of the futures returns</span>
-<span class="doccomment">//! `Ok`, or _all_ futures have returned `Err`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! However sometimes it can be useful to use the base variants of the functions</span>
-<span class="doccomment">//! even on futures that return `Result`. Here is an overview of operations that</span>
-<span class="doccomment">//! work on `Result`, and their respective semantics:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! | Name                   | Return signature               | When does it return? |</span>
-<span class="doccomment">//! | ---                    | ---                            | ---                  |</span>
-<span class="doccomment">//! | [`Future::join`]       | `(Result&lt;T, E&gt;, Result&lt;T, E&gt;)` | Wait for all to complete</span>
-<span class="doccomment">//! | [`Future::try_join`]   | `Result&lt;(T1, T2), E&gt;`          | Return on first `Err`, wait for all to complete</span>
-<span class="doccomment">//! | [`Future::race`]       | `Result&lt;T, E&gt;`                 | Return on first value</span>
-<span class="doccomment">//! | [`Future::try_race`]   | `Result&lt;T, E&gt;`                 | Return on first `Ok`, reject on last Err</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Future::join`]: trait.Future.html#method.join</span>
-<span class="doccomment">//! [`Future::try_join`]: trait.Future.html#method.try_join</span>
-<span class="doccomment">//! [`Future::race`]: trait.Future.html#method.race</span>
-<span class="doccomment">//! [`Future::try_race`]: trait.Future.html#method.try_race</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Asynchronous values.
+//!
+//! ## Base Futures Concurrency
+//!
+//! Often it&#39;s desirable to await multiple futures as if it was a single
+//! future. The `join` family of operations converts multiple futures into a
+//! single future that returns all of their outputs. The `race` family of
+//! operations converts multiple future into a single future that returns the
+//! first output.
+//!
+//! For operating on futures the following functions can be used:
+//!
+//! | Name               | Return signature | When does it return?     |
+//! | ---                | ---              | ---                      |
+//! | [`Future::join`]   | `(T1, T2)`       | Wait for all to complete
+//! | [`Future::race`]   | `T`              | Return on first value
+//!
+//! ## Fallible Futures Concurrency
+//!
+//! For operating on futures that return `Result` additional `try_` variants of
+//! the functions mentioned before can be used. These functions are aware of `Result`,
+//! and will behave slightly differently from their base variants.
+//!
+//! In the case of `try_join`, if any of the futures returns `Err` all
+//! futures are dropped and an error is returned. This is referred to as
+//! &quot;short-circuiting&quot;.
+//!
+//! In the case of `try_race`, instead of returning the first future that
+//! completes it returns the first future that _successfully_ completes. This
+//! means `try_race` will keep going until any one of the futures returns
+//! `Ok`, or _all_ futures have returned `Err`.
+//!
+//! However sometimes it can be useful to use the base variants of the functions
+//! even on futures that return `Result`. Here is an overview of operations that
+//! work on `Result`, and their respective semantics:
+//!
+//! | Name                   | Return signature               | When does it return? |
+//! | ---                    | ---                            | ---                  |
+//! | [`Future::join`]       | `(Result&lt;T, E&gt;, Result&lt;T, E&gt;)` | Wait for all to complete
+//! | [`Future::try_join`]   | `Result&lt;(T1, T2), E&gt;`          | Return on first `Err`, wait for all to complete
+//! | [`Future::race`]       | `Result&lt;T, E&gt;`                 | Return on first value
+//! | [`Future::try_race`]   | `Result&lt;T, E&gt;`                 | Return on first `Ok`, reject on last Err
+//!
+//! [`Future::join`]: trait.Future.html#method.join
+//! [`Future::try_join`]: trait.Future.html#method.try_join
+//! [`Future::race`]: trait.Future.html#method.race
+//! [`Future::try_race`]: trait.Future.html#method.try_race
 
-<span class="macro">cfg_alloc!</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../async_std/future/trait.Future.html">future::Future</a>;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/future/future/mod.rs.html#1-287">future</a>;
+</span><span class="macro">cfg_alloc! </span>{
+    <span class="kw">pub use </span><a href="../../../async_std/future/trait.Future.html">future::Future</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span><a href="../../../src/async_std/future/future/mod.rs.html#1-287">future</a>;
 }
 
-<span class="macro">cfg_std!</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/future/pending.rs.html#27">pending::pending</a>;
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/future/poll_fn.rs.html#26-28">poll_fn::poll_fn</a>;
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/future/ready.rs.html#18">ready::ready</a>;
+<span class="macro">cfg_std! </span>{
+    <span class="kw">pub use </span><a href="../../../src/async_std/future/pending.rs.html#27">pending::pending</a>;
+    <span class="kw">pub use </span><a href="../../../src/async_std/future/poll_fn.rs.html#26-28">poll_fn::poll_fn</a>;
+    <span class="kw">pub use </span><a href="../../../src/async_std/future/ready.rs.html#18">ready::ready</a>;
 
-    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/future/pending.rs.html#1-44">pending</a>;
-    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/future/poll_fn.rs.html#1-49">poll_fn</a>;
-    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/future/ready.rs.html#1-20">ready</a>;
+    <span class="kw">mod </span><a href="../../../src/async_std/future/pending.rs.html#1-44">pending</a>;
+    <span class="kw">mod </span><a href="../../../src/async_std/future/poll_fn.rs.html#1-49">poll_fn</a>;
+    <span class="kw">mod </span><a href="../../../src/async_std/future/ready.rs.html#1-20">ready</a>;
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">timeout</span>::{<a class="ident" href="../../../src/async_std/future/timeout.rs.html#32-34">timeout</a>, <a class="ident" href="../../../src/async_std/future/timeout.rs.html#76">TimeoutError</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default&quot;</span>))]</span>
-<span class="kw">mod</span> <a class="ident" href="../../../src/async_std/future/timeout.rs.html#1-86">timeout</a>;
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;unstable&quot;</span>, feature = <span class="string">&quot;default&quot;</span>))]
+</span><span class="kw">pub use </span>timeout::{<a href="../../../src/async_std/future/timeout.rs.html#32-34">timeout</a>, <a href="../../../src/async_std/future/timeout.rs.html#76">TimeoutError</a>};
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;unstable&quot;</span>, feature = <span class="string">&quot;default&quot;</span>))]
+</span><span class="kw">mod </span><a href="../../../src/async_std/future/timeout.rs.html#1-86">timeout</a>;
 
-<span class="macro">cfg_unstable!</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/future/into_future.rs.html#35">into_future::IntoFuture</a>;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../../src/async_std/future/maybe_done.rs.html#15">maybe_done::MaybeDone</a>;
-    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/future/into_future.rs.html#1-53">into_future</a>;
-    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/future/maybe_done.rs.html#1-79">maybe_done</a>;
+<span class="macro">cfg_unstable! </span>{
+    <span class="kw">pub use </span><a href="../../../src/async_std/future/into_future.rs.html#35">into_future::IntoFuture</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../../src/async_std/future/maybe_done.rs.html#15">maybe_done::MaybeDone</a>;
+    <span class="kw">mod </span><a href="../../../src/async_std/future/into_future.rs.html#1-53">into_future</a>;
+    <span class="kw">mod </span><a href="../../../src/async_std/future/maybe_done.rs.html#1-79">maybe_done</a>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

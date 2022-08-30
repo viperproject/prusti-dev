@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.141/src/internals/receiver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>receiver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.144/src/internals/receiver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>receiver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -283,290 +283,290 @@
 <span id="283">283</span>
 <span id="284">284</span>
 <span id="285">285</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/serde_derive/internals/respan.rs.html#3">internals::respan::respan</a>;
-<span class="kw">use</span> <a class="ident" href="../../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use</span> <a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="../../../syn/punctuated/struct.Punctuated.html">syn::punctuated::Punctuated</a>;
-<span class="kw">use</span> <span class="ident">syn</span>::{
-    <a class="ident" href="../../../syn/macro.parse_quote.html">parse_quote</a>, <a class="ident" href="../../../syn/derive/enum.Data.html">Data</a>, <a class="ident" href="../../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <a class="ident" href="../../../syn/expr/enum.Expr.html">Expr</a>, <a class="ident" href="../../../syn/expr/struct.ExprPath.html">ExprPath</a>, <a class="ident" href="../../../syn/path/enum.GenericArgument.html">GenericArgument</a>, <a class="ident" href="../../../syn/generics/enum.GenericParam.html">GenericParam</a>, <a class="ident" href="../../../syn/generics/struct.Generics.html">Generics</a>, <a class="ident" href="../../../syn/mac/struct.Macro.html">Macro</a>,
-    <a class="ident" href="../../../syn/path/struct.Path.html">Path</a>, <a class="ident" href="../../../syn/path/enum.PathArguments.html">PathArguments</a>, <a class="ident" href="../../../syn/path/struct.QSelf.html">QSelf</a>, <a class="ident" href="../../../syn/ty/enum.ReturnType.html">ReturnType</a>, <a class="ident" href="../../../syn/ty/enum.Type.html">Type</a>, <a class="ident" href="../../../syn/generics/enum.TypeParamBound.html">TypeParamBound</a>, <a class="ident" href="../../../syn/ty/struct.TypePath.html">TypePath</a>, <a class="ident" href="../../../syn/generics/enum.WherePredicate.html">WherePredicate</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/serde_derive/internals/respan.rs.html#3">internals::respan::respan</a>;
+<span class="kw">use </span><a href="../../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
+<span class="kw">use </span><a href="../../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="../../../syn/punctuated/struct.Punctuated.html">syn::punctuated::Punctuated</a>;
+<span class="kw">use </span>syn::{
+    <a href="../../../syn/macro.parse_quote.html">parse_quote</a>, <a href="../../../syn/derive/enum.Data.html">Data</a>, <a href="../../../syn/derive/struct.DeriveInput.html">DeriveInput</a>, <a href="../../../syn/expr/enum.Expr.html">Expr</a>, <a href="../../../syn/expr/struct.ExprPath.html">ExprPath</a>, <a href="../../../syn/path/enum.GenericArgument.html">GenericArgument</a>, <a href="../../../syn/generics/enum.GenericParam.html">GenericParam</a>, <a href="../../../syn/generics/struct.Generics.html">Generics</a>, <a href="../../../syn/mac/struct.Macro.html">Macro</a>,
+    <a href="../../../syn/path/struct.Path.html">Path</a>, <a href="../../../syn/path/enum.PathArguments.html">PathArguments</a>, <a href="../../../syn/path/struct.QSelf.html">QSelf</a>, <a href="../../../syn/ty/enum.ReturnType.html">ReturnType</a>, <a href="../../../syn/ty/enum.Type.html">Type</a>, <a href="../../../syn/generics/enum.TypeParamBound.html">TypeParamBound</a>, <a href="../../../syn/ty/struct.TypePath.html">TypePath</a>, <a href="../../../syn/generics/enum.WherePredicate.html">WherePredicate</a>,
 };
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_receiver</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/derive/struct.DeriveInput.html">DeriveInput</a>) {
-    <span class="kw">let</span> <span class="ident">self_ty</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#11">input</a>.<span class="ident">ident</span>;
-        <span class="kw">let</span> <span class="ident">ty_generics</span> <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#11">input</a>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>().<span class="number">1</span>;
-        <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a>(#<span class="ident">ident</span> #<span class="ident">ty_generics</span>)
+<span class="kw">pub fn </span>replace_receiver(input: <span class="kw-2">&amp;mut </span><a href="../../../syn/derive/struct.DeriveInput.html">DeriveInput</a>) {
+    <span class="kw">let </span>self_ty = {
+        <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/receiver.rs.html#11">input</a>.ident;
+        <span class="kw">let </span>ty_generics = <a href="../../../src/serde_derive/internals/receiver.rs.html#11">input</a>.generics.split_for_impl().<span class="number">1</span>;
+        <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a>(#ident #ty_generics)
     };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#22">ReplaceReceiver</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#12">self_ty</a>);
-    <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#17">visitor</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#212">visit_generics_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#11">input</a>.<span class="ident">generics</span>);
-    <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#17">visitor</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#238">visit_data_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#11">input</a>.<span class="ident">data</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="../../../src/serde_derive/internals/receiver.rs.html#22">ReplaceReceiver</a>(<span class="kw-2">&amp;</span><a href="../../../src/serde_derive/internals/receiver.rs.html#12">self_ty</a>);
+    <a href="../../../src/serde_derive/internals/receiver.rs.html#17">visitor</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#212">visit_generics_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#11">input</a>.generics);
+    <a href="../../../src/serde_derive/internals/receiver.rs.html#17">visitor</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#238">visit_data_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#11">input</a>.data);
 }
 
-<span class="kw">struct</span> <span class="ident">ReplaceReceiver</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../syn/ty/struct.TypePath.html">TypePath</a>);
+<span class="kw">struct </span>ReplaceReceiver&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../syn/ty/struct.TypePath.html">TypePath</a>);
 
-<span class="kw">impl</span> <span class="ident">ReplaceReceiver</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">self_ty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../../proc_macro2/struct.Span.html">Span</a>) -&gt; <a class="ident" href="../../../syn/ty/struct.TypePath.html">TypePath</a> {
-        <span class="kw">let</span> <span class="ident">tokens</span> <span class="op">=</span> <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#25">self</a>.<span class="number">0</span>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>();
-        <span class="kw">let</span> <span class="ident">respanned</span> <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/respan.rs.html#3">respan</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#26">tokens</a>, <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#25">span</a>);
-        <span class="ident">syn::parse2</span>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#27">respanned</a>).<span class="ident">unwrap</span>()
+<span class="kw">impl </span>ReplaceReceiver&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>self_ty(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="../../../proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="../../../syn/ty/struct.TypePath.html">TypePath</a> {
+        <span class="kw">let </span>tokens = <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#25">self</a>.<span class="number">0</span>.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_token_stream</a>();
+        <span class="kw">let </span>respanned = <a href="../../../src/serde_derive/internals/respan.rs.html#3">respan</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#26">tokens</a>, <a href="../../../src/serde_derive/internals/receiver.rs.html#25">span</a>);
+        syn::parse2(<a href="../../../src/serde_derive/internals/receiver.rs.html#27">respanned</a>).unwrap()
     }
 
-    <span class="kw">fn</span> <span class="ident">self_to_qself</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">qself</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../syn/path/struct.QSelf.html">QSelf</a><span class="op">&gt;</span>, <span class="ident">path</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/path/struct.Path.html">Path</a>) {
-        <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">leading_colon</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;Self&quot;</span> {
+    <span class="kw">fn </span>self_to_qself(<span class="kw-2">&amp;</span><span class="self">self</span>, qself: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="../../../syn/path/struct.QSelf.html">QSelf</a>&gt;, path: <span class="kw-2">&amp;mut </span><a href="../../../syn/path/struct.Path.html">Path</a>) {
+        <span class="kw">if </span>path.leading_colon.is_some() || path.segments[<span class="number">0</span>].ident != <span class="string">&quot;Self&quot; </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#31">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#56">self_to_expr_path</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>);
+        <span class="kw">if </span>path.segments.len() == <span class="number">1 </span>{
+            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#31">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#56">self_to_expr_path</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>);
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">span</span>();
-        <span class="kw-2">*</span><a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">qself</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../syn/path/struct.QSelf.html">QSelf</a> {
-            <span class="ident">lt_token</span>: <a class="macro" href="../../../syn/syn/macro.Token.html">Token!</a>[<span class="op">&lt;</span>](<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#41">span</a>),
-            <span class="ident">ty</span>: <span class="ident">Box::new</span>(<span class="ident">Type::Path</span>(<a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#31">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#25">self_ty</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#41">span</a>))),
-            <span class="ident">position</span>: <span class="number">0</span>,
-            <span class="ident">as_token</span>: <span class="prelude-val">None</span>,
-            <span class="ident">gt_token</span>: <a class="macro" href="../../../syn/syn/macro.Token.html">Token!</a>[<span class="op">&gt;</span>](<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#41">span</a>),
+        <span class="kw">let </span>span = <a href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.segments[<span class="number">0</span>].ident.span();
+        <span class="kw-2">*</span><a href="../../../src/serde_derive/internals/receiver.rs.html#31">qself</a> = <span class="prelude-val">Some</span>(<a href="../../../syn/path/struct.QSelf.html">QSelf</a> {
+            lt_token: <a class="macro" href="../../../syn/syn/macro.Token.html">Token!</a>[&lt;](<a href="../../../src/serde_derive/internals/receiver.rs.html#41">span</a>),
+            ty: Box::new(Type::Path(<a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#31">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#25">self_ty</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#41">span</a>))),
+            position: <span class="number">0</span>,
+            as_token: <span class="prelude-val">None</span>,
+            gt_token: <a class="macro" href="../../../syn/syn/macro.Token.html">Token!</a>[&gt;](<a href="../../../src/serde_derive/internals/receiver.rs.html#41">span</a>),
         });
 
-        <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.<span class="ident">leading_colon</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.<span class="ident">segments</span>.<span class="ident">pairs</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<span class="ident">punct</span>().<span class="ident">unwrap</span>());
+        <a href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.leading_colon = <span class="prelude-val">Some</span>(<span class="kw-2">**</span><a href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.segments.pairs().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap().punct().unwrap());
 
-        <span class="kw">let</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.<span class="ident">segments</span>, <span class="ident">Punctuated::new</span>());
-        <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.<span class="ident">segments</span> <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#52">segments</a>.<span class="ident">into_pairs</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>segments = mem::replace(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.segments, Punctuated::new());
+        <a href="../../../src/serde_derive/internals/receiver.rs.html#31">path</a>.segments = <a href="../../../src/serde_derive/internals/receiver.rs.html#52">segments</a>.into_pairs().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     }
 
-    <span class="kw">fn</span> <span class="ident">self_to_expr_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/path/struct.Path.html">Path</a>) {
-        <span class="kw">let</span> <span class="ident">self_ty</span> <span class="op">=</span> <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#56">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#25">self_ty</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#56">path</a>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">span</span>());
-        <span class="kw">let</span> <span class="ident">variant</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#56">path</a>, <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#57">self_ty</a>.<span class="ident">path</span>);
-        <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">path</span>.<span class="ident">segments</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">bracketed</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">segment</span>.<span class="ident">arguments</span> {
-                <span class="kw">if</span> <span class="ident">bracketed</span>.<span class="ident">colon2_token</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">bracketed</span>.<span class="ident">args</span>.<span class="ident">is_empty</span>() {
-                    <span class="ident">bracketed</span>.<span class="ident">colon2_token</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="op">&lt;</span><span class="macro">Token!</span>[::]<span class="op">&gt;</span><span class="ident">::default</span>());
+    <span class="kw">fn </span>self_to_expr_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;mut </span><a href="../../../syn/path/struct.Path.html">Path</a>) {
+        <span class="kw">let </span>self_ty = <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#56">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#25">self_ty</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#56">path</a>.segments[<span class="number">0</span>].ident.span());
+        <span class="kw">let </span>variant = mem::replace(<a href="../../../src/serde_derive/internals/receiver.rs.html#56">path</a>, <a href="../../../src/serde_derive/internals/receiver.rs.html#57">self_ty</a>.path);
+        <span class="kw">for </span>segment <span class="kw">in </span><span class="kw-2">&amp;mut </span>path.segments {
+            <span class="kw">if let </span>PathArguments::AngleBracketed(bracketed) = <span class="kw-2">&amp;mut </span>segment.arguments {
+                <span class="kw">if </span>bracketed.colon2_token.is_none() &amp;&amp; !bracketed.args.is_empty() {
+                    bracketed.colon2_token = <span class="prelude-val">Some</span>(&lt;<span class="macro">Token!</span>[::]&gt;::default());
                 }
             }
         }
-        <span class="kw">if</span> <span class="ident">variant</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
-            <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#56">path</a>.<span class="ident">segments</span>.<span class="ident">push_punct</span>(<span class="op">&lt;</span><a class="macro" href="../../../syn/syn/macro.Token.html">Token!</a>[::]<span class="op">&gt;</span><span class="ident">::default</span>());
-            <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#56">path</a>.<span class="ident">segments</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#58">variant</a>.<span class="ident">segments</span>.<span class="ident">into_pairs</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>));
+        <span class="kw">if </span>variant.segments.len() &gt; <span class="number">1 </span>{
+            <a href="../../../src/serde_derive/internals/receiver.rs.html#56">path</a>.segments.push_punct(&lt;<a class="macro" href="../../../syn/syn/macro.Token.html">Token!</a>[::]&gt;::default());
+            <a href="../../../src/serde_derive/internals/receiver.rs.html#56">path</a>.segments.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#58">variant</a>.segments.into_pairs().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>));
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ReplaceReceiver</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="comment">// `Self` -&gt; `Receiver`</span>
-    <span class="kw">fn</span> <span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/ty/enum.Type.html">Type</a>) {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type::Path</span>(<span class="ident">node</span>) <span class="op">=</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">ty</a> {
-            <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">qself</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">node</span>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;Self&quot;</span>) {
-                <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#76">node</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">span</span>()
-            } <span class="kw">else</span> {
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#75">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#91">visit_type_path_mut</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#76">node</a>);
+<span class="kw">impl </span>ReplaceReceiver&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="comment">// `Self` -&gt; `Receiver`
+    </span><span class="kw">fn </span>visit_type_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="../../../syn/ty/enum.Type.html">Type</a>) {
+        <span class="kw">let </span>span = <span class="kw">if let </span>Type::Path(node) = <a href="../../../src/serde_derive/internals/receiver.rs.html#75">ty</a> {
+            <span class="kw">if </span>node.qself.is_none() &amp;&amp; node.path.is_ident(<span class="string">&quot;Self&quot;</span>) {
+                <a href="../../../src/serde_derive/internals/receiver.rs.html#76">node</a>.path.segments[<span class="number">0</span>].ident.span()
+            } <span class="kw">else </span>{
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#75">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#91">visit_type_path_mut</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#76">node</a>);
                 <span class="kw">return</span>;
             }
-        } <span class="kw">else</span> {
-            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#75">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#108">visit_type_mut_impl</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">ty</a>);
+        } <span class="kw">else </span>{
+            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#75">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#108">visit_type_mut_impl</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#75">ty</a>);
             <span class="kw">return</span>;
         };
-        <span class="kw-2">*</span><a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">ty</a> <span class="op">=</span> <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#75">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#25">self_ty</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#76">span</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw-2">*</span><a href="../../../src/serde_derive/internals/receiver.rs.html#75">ty</a> = <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#75">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#25">self_ty</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#76">span</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
     }
 
-    <span class="comment">// `Self::Assoc` -&gt; `&lt;Receiver&gt;::Assoc`</span>
-    <span class="kw">fn</span> <span class="ident">visit_type_path_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/ty/struct.TypePath.html">TypePath</a>) {
-        <span class="kw">if</span> <span class="ident">ty</span>.<span class="ident">qself</span>.<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#91">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">self_to_qself</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#91">ty</a>.<span class="ident">qself</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#91">ty</a>.<span class="ident">path</span>);
+    <span class="comment">// `Self::Assoc` -&gt; `&lt;Receiver&gt;::Assoc`
+    </span><span class="kw">fn </span>visit_type_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="../../../syn/ty/struct.TypePath.html">TypePath</a>) {
+        <span class="kw">if </span>ty.qself.is_none() {
+            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#91">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#31">self_to_qself</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#91">ty</a>.qself, <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#91">ty</a>.path);
         }
-        <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#91">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#155">visit_type_path_mut_impl</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#91">ty</a>);
+        <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#91">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#155">visit_type_path_mut_impl</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#91">ty</a>);
     }
 
-    <span class="comment">// `Self::method` -&gt; `&lt;Receiver&gt;::method`</span>
-    <span class="kw">fn</span> <span class="ident">visit_expr_path_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/expr/struct.ExprPath.html">ExprPath</a>) {
-        <span class="kw">if</span> <span class="ident">expr</span>.<span class="ident">qself</span>.<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#99">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#31">self_to_qself</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#99">expr</a>.<span class="ident">qself</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#99">expr</a>.<span class="ident">path</span>);
+    <span class="comment">// `Self::method` -&gt; `&lt;Receiver&gt;::method`
+    </span><span class="kw">fn </span>visit_expr_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span><a href="../../../syn/expr/struct.ExprPath.html">ExprPath</a>) {
+        <span class="kw">if </span>expr.qself.is_none() {
+            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#99">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#31">self_to_qself</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#99">expr</a>.qself, <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#99">expr</a>.path);
         }
-        <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#99">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#162">visit_expr_path_mut_impl</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#99">expr</a>);
+        <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#99">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#162">visit_expr_path_mut_impl</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#99">expr</a>);
     }
 
-    <span class="comment">// Everything below is simply traversing the syntax tree.</span>
+    <span class="comment">// Everything below is simply traversing the syntax tree.
 
-    <span class="kw">fn</span> <span class="ident">visit_type_mut_impl</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/ty/enum.Type.html">Type</a>) {
-        <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#108">ty</a> {
-            <span class="ident">Type::Array</span>(<span class="ident">ty</span>) =&gt; {
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#110">ty</a>.<span class="ident">elem</span>);
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#110">ty</a>.<span class="ident">len</span>);
+    </span><span class="kw">fn </span>visit_type_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="../../../syn/ty/enum.Type.html">Type</a>) {
+        <span class="kw">match </span><a href="../../../src/serde_derive/internals/receiver.rs.html#108">ty</a> {
+            Type::Array(ty) =&gt; {
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#110">ty</a>.elem);
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#110">ty</a>.len);
             }
-            <span class="ident">Type::BareFn</span>(<span class="ident">ty</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">ty</span>.<span class="ident">inputs</span> {
-                    <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">arg</span>.<span class="ident">ty</span>);
+            Type::BareFn(ty) =&gt; {
+                <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;mut </span>ty.inputs {
+                    <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>arg.ty);
                 }
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#198">visit_return_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#114">ty</a>.<span class="ident">output</span>);
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#198">visit_return_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#114">ty</a>.output);
             }
-            <span class="ident">Type::Group</span>(<span class="ident">ty</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#120">ty</a>.<span class="ident">elem</span>),
-            <span class="ident">Type::ImplTrait</span>(<span class="ident">ty</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">ty</span>.<span class="ident">bounds</span> {
-                    <span class="self">self</span>.<span class="ident">visit_type_param_bound_mut</span>(<span class="ident">bound</span>);
-                }
-            }
-            <span class="ident">Type::Macro</span>(<span class="ident">ty</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#284">visit_macro_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#126">ty</a>.<span class="ident">mac</span>),
-            <span class="ident">Type::Paren</span>(<span class="ident">ty</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#127">ty</a>.<span class="ident">elem</span>),
-            <span class="ident">Type::Path</span>(<span class="ident">ty</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">qself</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#128">ty</a>.<span class="ident">qself</span> {
-                    <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#129">qself</a>.<span class="ident">ty</span>);
-                }
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#169">visit_path_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#128">ty</a>.<span class="ident">path</span>);
-            }
-            <span class="ident">Type::Ptr</span>(<span class="ident">ty</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#134">ty</a>.<span class="ident">elem</span>),
-            <span class="ident">Type::Reference</span>(<span class="ident">ty</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#135">ty</a>.<span class="ident">elem</span>),
-            <span class="ident">Type::Slice</span>(<span class="ident">ty</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#136">ty</a>.<span class="ident">elem</span>),
-            <span class="ident">Type::TraitObject</span>(<span class="ident">ty</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">ty</span>.<span class="ident">bounds</span> {
-                    <span class="self">self</span>.<span class="ident">visit_type_param_bound_mut</span>(<span class="ident">bound</span>);
+            Type::Group(ty) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#120">ty</a>.elem),
+            Type::ImplTrait(ty) =&gt; {
+                <span class="kw">for </span>bound <span class="kw">in </span><span class="kw-2">&amp;mut </span>ty.bounds {
+                    <span class="self">self</span>.visit_type_param_bound_mut(bound);
                 }
             }
-            <span class="ident">Type::Tuple</span>(<span class="ident">ty</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">elem</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">ty</span>.<span class="ident">elems</span> {
-                    <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">elem</span>);
+            Type::Macro(ty) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#284">visit_macro_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#126">ty</a>.mac),
+            Type::Paren(ty) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#127">ty</a>.elem),
+            Type::Path(ty) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#128">ty</a>.qself {
+                    <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#129">qself</a>.ty);
+                }
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#169">visit_path_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#128">ty</a>.path);
+            }
+            Type::Ptr(ty) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#134">ty</a>.elem),
+            Type::Reference(ty) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#135">ty</a>.elem),
+            Type::Slice(ty) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#108">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#136">ty</a>.elem),
+            Type::TraitObject(ty) =&gt; {
+                <span class="kw">for </span>bound <span class="kw">in </span><span class="kw-2">&amp;mut </span>ty.bounds {
+                    <span class="self">self</span>.visit_type_param_bound_mut(bound);
+                }
+            }
+            Type::Tuple(ty) =&gt; {
+                <span class="kw">for </span>elem <span class="kw">in </span><span class="kw-2">&amp;mut </span>ty.elems {
+                    <span class="self">self</span>.visit_type_mut(elem);
                 }
             }
 
-            <span class="ident">Type::Infer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Type::Never</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Type::Verbatim</span>(<span class="kw">_</span>) =&gt; {}
+            Type::Infer(<span class="kw">_</span>) | Type::Never(<span class="kw">_</span>) | Type::Verbatim(<span class="kw">_</span>) =&gt; {}
 
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">exhaustive</span>), <span class="ident">deny</span>(<span class="ident">non_exhaustive_omitted_patterns</span>))]</span>
-            <span class="kw">_</span> =&gt; {}
+            <span class="attribute">#[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            </span><span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_type_path_mut_impl</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/ty/struct.TypePath.html">TypePath</a>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">qself</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#155">ty</a>.<span class="ident">qself</span> {
-            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#155">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#156">qself</a>.<span class="ident">ty</span>);
+    <span class="kw">fn </span>visit_type_path_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span><a href="../../../syn/ty/struct.TypePath.html">TypePath</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#155">ty</a>.qself {
+            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#155">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#156">qself</a>.ty);
         }
-        <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#155">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#169">visit_path_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#155">ty</a>.<span class="ident">path</span>);
+        <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#155">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#169">visit_path_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#155">ty</a>.path);
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_expr_path_mut_impl</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/expr/struct.ExprPath.html">ExprPath</a>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">qself</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#162">expr</a>.<span class="ident">qself</span> {
-            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#162">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#163">qself</a>.<span class="ident">ty</span>);
+    <span class="kw">fn </span>visit_expr_path_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span><a href="../../../syn/expr/struct.ExprPath.html">ExprPath</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(qself) = <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#162">expr</a>.qself {
+            <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#162">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#163">qself</a>.ty);
         }
-        <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#162">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#169">visit_path_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#162">expr</a>.<span class="ident">path</span>);
+        <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#162">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#169">visit_path_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#162">expr</a>.path);
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_path_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/path/struct.Path.html">Path</a>) {
-        <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">path</span>.<span class="ident">segments</span> {
-            <span class="self">self</span>.<span class="ident">visit_path_arguments_mut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">segment</span>.<span class="ident">arguments</span>);
+    <span class="kw">fn </span>visit_path_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;mut </span><a href="../../../syn/path/struct.Path.html">Path</a>) {
+        <span class="kw">for </span>segment <span class="kw">in </span><span class="kw-2">&amp;mut </span>path.segments {
+            <span class="self">self</span>.visit_path_arguments_mut(<span class="kw-2">&amp;mut </span>segment.arguments);
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_path_arguments_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arguments</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/path/enum.PathArguments.html">PathArguments</a>) {
-        <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#175">arguments</a> {
-            <span class="ident">PathArguments::None</span> =&gt; {}
-            <span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">arguments</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">arguments</span>.<span class="ident">args</span> {
-                    <span class="kw">match</span> <span class="ident">arg</span> {
-                        <span class="ident">GenericArgument::Type</span>(<span class="ident">arg</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">arg</span>),
-                        <span class="ident">GenericArgument::Binding</span>(<span class="ident">arg</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">arg</span>.<span class="ident">ty</span>),
-                        <span class="ident">GenericArgument::Lifetime</span>(<span class="kw">_</span>)
-                        <span class="op">|</span> <span class="ident">GenericArgument::Constraint</span>(<span class="kw">_</span>)
-                        <span class="op">|</span> <span class="ident">GenericArgument::Const</span>(<span class="kw">_</span>) =&gt; {}
+    <span class="kw">fn </span>visit_path_arguments_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arguments: <span class="kw-2">&amp;mut </span><a href="../../../syn/path/enum.PathArguments.html">PathArguments</a>) {
+        <span class="kw">match </span><a href="../../../src/serde_derive/internals/receiver.rs.html#175">arguments</a> {
+            PathArguments::None =&gt; {}
+            PathArguments::AngleBracketed(arguments) =&gt; {
+                <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;mut </span>arguments.args {
+                    <span class="kw">match </span>arg {
+                        GenericArgument::Type(arg) =&gt; <span class="self">self</span>.visit_type_mut(arg),
+                        GenericArgument::Binding(arg) =&gt; <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>arg.ty),
+                        GenericArgument::Lifetime(<span class="kw">_</span>)
+                        | GenericArgument::Constraint(<span class="kw">_</span>)
+                        | GenericArgument::Const(<span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
-            <span class="ident">PathArguments::Parenthesized</span>(<span class="ident">arguments</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">argument</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">arguments</span>.<span class="ident">inputs</span> {
-                    <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">argument</span>);
+            PathArguments::Parenthesized(arguments) =&gt; {
+                <span class="kw">for </span>argument <span class="kw">in </span><span class="kw-2">&amp;mut </span>arguments.inputs {
+                    <span class="self">self</span>.visit_type_mut(argument);
                 }
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#175">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#198">visit_return_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#189">arguments</a>.<span class="ident">output</span>);
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#175">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#198">visit_return_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#189">arguments</a>.output);
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_return_type_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">return_type</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/ty/enum.ReturnType.html">ReturnType</a>) {
-        <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#198">return_type</a> {
-            <span class="ident">ReturnType::Default</span> =&gt; {}
-            <span class="ident">ReturnType::Type</span>(<span class="kw">_</span>, <span class="ident">output</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#198">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#201">output</a>),
+    <span class="kw">fn </span>visit_return_type_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, return_type: <span class="kw-2">&amp;mut </span><a href="../../../syn/ty/enum.ReturnType.html">ReturnType</a>) {
+        <span class="kw">match </span><a href="../../../src/serde_derive/internals/receiver.rs.html#198">return_type</a> {
+            ReturnType::Default =&gt; {}
+            ReturnType::Type(<span class="kw">_</span>, output) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#198">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#201">output</a>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_type_param_bound_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/generics/enum.TypeParamBound.html">TypeParamBound</a>) {
-        <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#205">bound</a> {
-            <span class="ident">TypeParamBound::Trait</span>(<span class="ident">bound</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#205">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#169">visit_path_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#207">bound</a>.<span class="ident">path</span>),
-            <span class="ident">TypeParamBound::Lifetime</span>(<span class="kw">_</span>) =&gt; {}
+    <span class="kw">fn </span>visit_type_param_bound_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bound: <span class="kw-2">&amp;mut </span><a href="../../../syn/generics/enum.TypeParamBound.html">TypeParamBound</a>) {
+        <span class="kw">match </span><a href="../../../src/serde_derive/internals/receiver.rs.html#205">bound</a> {
+            TypeParamBound::Trait(bound) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#205">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#169">visit_path_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#207">bound</a>.path),
+            TypeParamBound::Lifetime(<span class="kw">_</span>) =&gt; {}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_generics_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">generics</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/generics/struct.Generics.html">Generics</a>) {
-        <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">generics</span>.<span class="ident">params</span> {
-            <span class="kw">match</span> <span class="ident">param</span> {
-                <span class="ident">GenericParam::Type</span>(<span class="ident">param</span>) =&gt; {
-                    <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">param</span>.<span class="ident">bounds</span> {
-                        <span class="self">self</span>.<span class="ident">visit_type_param_bound_mut</span>(<span class="ident">bound</span>);
+    <span class="kw">fn </span>visit_generics_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, generics: <span class="kw-2">&amp;mut </span><a href="../../../syn/generics/struct.Generics.html">Generics</a>) {
+        <span class="kw">for </span>param <span class="kw">in </span><span class="kw-2">&amp;mut </span>generics.params {
+            <span class="kw">match </span>param {
+                GenericParam::Type(param) =&gt; {
+                    <span class="kw">for </span>bound <span class="kw">in </span><span class="kw-2">&amp;mut </span>param.bounds {
+                        <span class="self">self</span>.visit_type_param_bound_mut(bound);
                     }
                 }
-                <span class="ident">GenericParam::Lifetime</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">GenericParam::Const</span>(<span class="kw">_</span>) =&gt; {}
+                GenericParam::Lifetime(<span class="kw">_</span>) | GenericParam::Const(<span class="kw">_</span>) =&gt; {}
             }
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">where_clause</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#212">generics</a>.<span class="ident">where_clause</span> {
-            <span class="kw">for</span> <span class="ident">predicate</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">where_clause</span>.<span class="ident">predicates</span> {
-                <span class="kw">match</span> <span class="ident">predicate</span> {
-                    <span class="ident">WherePredicate::Type</span>(<span class="ident">predicate</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">predicate</span>.<span class="ident">bounded_ty</span>);
-                        <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">predicate</span>.<span class="ident">bounds</span> {
-                            <span class="self">self</span>.<span class="ident">visit_type_param_bound_mut</span>(<span class="ident">bound</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(where_clause) = <span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#212">generics</a>.where_clause {
+            <span class="kw">for </span>predicate <span class="kw">in </span><span class="kw-2">&amp;mut </span>where_clause.predicates {
+                <span class="kw">match </span>predicate {
+                    WherePredicate::Type(predicate) =&gt; {
+                        <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>predicate.bounded_ty);
+                        <span class="kw">for </span>bound <span class="kw">in </span><span class="kw-2">&amp;mut </span>predicate.bounds {
+                            <span class="self">self</span>.visit_type_param_bound_mut(bound);
                         }
                     }
-                    <span class="ident">WherePredicate::Lifetime</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">WherePredicate::Eq</span>(<span class="kw">_</span>) =&gt; {}
+                    WherePredicate::Lifetime(<span class="kw">_</span>) | WherePredicate::Eq(<span class="kw">_</span>) =&gt; {}
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_data_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/derive/enum.Data.html">Data</a>) {
-        <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#238">data</a> {
-            <span class="ident">Data::Struct</span>(<span class="ident">data</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">data</span>.<span class="ident">fields</span> {
-                    <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">field</span>.<span class="ident">ty</span>);
+    <span class="kw">fn </span>visit_data_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;mut </span><a href="../../../syn/derive/enum.Data.html">Data</a>) {
+        <span class="kw">match </span><a href="../../../src/serde_derive/internals/receiver.rs.html#238">data</a> {
+            Data::Struct(data) =&gt; {
+                <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;mut </span>data.fields {
+                    <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>field.ty);
                 }
             }
-            <span class="ident">Data::Enum</span>(<span class="ident">data</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">data</span>.<span class="ident">variants</span> {
-                    <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">variant</span>.<span class="ident">fields</span> {
-                        <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">field</span>.<span class="ident">ty</span>);
+            Data::Enum(data) =&gt; {
+                <span class="kw">for </span>variant <span class="kw">in </span><span class="kw-2">&amp;mut </span>data.variants {
+                    <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;mut </span>variant.fields {
+                        <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>field.ty);
                     }
                 }
             }
-            <span class="ident">Data::Union</span>(<span class="kw">_</span>) =&gt; {}
+            Data::Union(<span class="kw">_</span>) =&gt; {}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/expr/enum.Expr.html">Expr</a>) {
-        <span class="kw">match</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">expr</a> {
-            <span class="ident">Expr::Binary</span>(<span class="ident">expr</span>) =&gt; {
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#258">expr</a>.<span class="ident">left</span>);
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#258">expr</a>.<span class="ident">right</span>);
+    <span class="kw">fn </span>visit_expr_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;mut </span><a href="../../../syn/expr/enum.Expr.html">Expr</a>) {
+        <span class="kw">match </span><a href="../../../src/serde_derive/internals/receiver.rs.html#256">expr</a> {
+            Expr::Binary(expr) =&gt; {
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#258">expr</a>.left);
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#258">expr</a>.right);
             }
-            <span class="ident">Expr::Call</span>(<span class="ident">expr</span>) =&gt; {
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#262">expr</a>.<span class="ident">func</span>);
-                <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">expr</span>.<span class="ident">args</span> {
-                    <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="ident">arg</span>);
+            Expr::Call(expr) =&gt; {
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#262">expr</a>.func);
+                <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;mut </span>expr.args {
+                    <span class="self">self</span>.visit_expr_mut(arg);
                 }
             }
-            <span class="ident">Expr::Cast</span>(<span class="ident">expr</span>) =&gt; {
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#268">expr</a>.<span class="ident">expr</span>);
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#268">expr</a>.<span class="ident">ty</span>);
+            Expr::Cast(expr) =&gt; {
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#268">expr</a>.expr);
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#75">visit_type_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#268">expr</a>.ty);
             }
-            <span class="ident">Expr::Field</span>(<span class="ident">expr</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#272">expr</a>.<span class="ident">base</span>),
-            <span class="ident">Expr::Index</span>(<span class="ident">expr</span>) =&gt; {
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#273">expr</a>.<span class="ident">expr</span>);
-                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#273">expr</a>.<span class="ident">index</span>);
+            Expr::Field(expr) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#272">expr</a>.base),
+            Expr::Index(expr) =&gt; {
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#273">expr</a>.expr);
+                <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#273">expr</a>.index);
             }
-            <span class="ident">Expr::Paren</span>(<span class="ident">expr</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#277">expr</a>.<span class="ident">expr</span>),
-            <span class="ident">Expr::Path</span>(<span class="ident">expr</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#99">visit_expr_path_mut</a>(<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#278">expr</a>),
-            <span class="ident">Expr::Unary</span>(<span class="ident">expr</span>) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/serde_derive/internals/receiver.rs.html#279">expr</a>.<span class="ident">expr</span>),
-            <span class="kw">_</span> =&gt; {}
+            Expr::Paren(expr) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#277">expr</a>.expr),
+            Expr::Path(expr) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#99">visit_expr_path_mut</a>(<a href="../../../src/serde_derive/internals/receiver.rs.html#278">expr</a>),
+            Expr::Unary(expr) =&gt; <a class="self" href="../../../src/serde_derive/internals/receiver.rs.html#256">self</a>.<a href="../../../src/serde_derive/internals/receiver.rs.html#256">visit_expr_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/serde_derive/internals/receiver.rs.html#279">expr</a>.expr),
+            <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_macro_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_mac</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/mac/struct.Macro.html">Macro</a>) {}
+    <span class="kw">fn </span>visit_macro_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _mac: <span class="kw-2">&amp;mut </span><a href="../../../syn/mac/struct.Macro.html">Macro</a>) {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

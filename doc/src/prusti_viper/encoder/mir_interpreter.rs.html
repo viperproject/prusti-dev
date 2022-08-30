@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir_interpreter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_interpreter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir_interpreter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_interpreter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -270,277 +270,277 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <a class="ident" href="../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as</span> <span class="ident">vir</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<a class="ident" href="../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>};
-<span class="kw">use</span> <span class="ident">std::fmt</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">std::iter::FromIterator</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">std::marker::Sized</a>;
-<span class="kw">use</span> <a class="ident" href="../../../log/macro.trace.html">log::trace</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</span><span class="kw">use </span><a href="../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as </span>vir;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
+<span class="kw">use </span>rustc_hash::{<a href="../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>};
+<span class="kw">use </span>std::fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">std::iter::FromIterator</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">std::marker::Sized</a>;
+<span class="kw">use </span><a href="../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
 
-<span class="doccomment">/// Backward interpreter for a loop-less MIR</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BackwardMirInterpreter</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
-    <span class="kw">type</span> <span class="ident">State</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
-    <span class="kw">fn</span> <span class="ident">apply_terminator</span>(
+<span class="doccomment">/// Backward interpreter for a loop-less MIR
+</span><span class="kw">pub trait </span>BackwardMirInterpreter&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">type </span>Error: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
+    <span class="kw">type </span>State: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
+    <span class="kw">fn </span>apply_terminator(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        <span class="ident">terminator</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Terminator</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">states</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::State</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::State</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">apply_statement</span>(
+        bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        terminator: <span class="kw-2">&amp;</span>mir::Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        states: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="kw-2">&amp;</span><span class="self">Self</span>::State&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::State, <span class="self">Self</span>::Error&gt;;
+    <span class="kw">fn </span>apply_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-        <span class="ident">stmt_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Statement</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::State</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+        bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+        stmt_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        stmt: <span class="kw-2">&amp;</span>mir::Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;;
 }
 
-<span class="doccomment">/// Interpret a loop-less MIR starting from the end and return the **initial** state.</span>
-<span class="doccomment">/// The result is None if the CFG contains a loop.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_backward_interpretation</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">I</span><span class="op">&gt;</span>(
-    <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="ident">I</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
-    <span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
-    <span class="ident">I</span>: <span class="ident">BackwardMirInterpreter</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">State</span> <span class="op">=</span> <span class="ident">S</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>
+<span class="doccomment">/// Interpret a loop-less MIR starting from the end and return the **initial** state.
+/// The result is None if the CFG contains a loop.
+</span><span class="kw">pub fn </span>run_backward_interpretation&lt;<span class="lifetime">&#39;tcx</span>, S, E, I&gt;(
+    mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    interpreter: <span class="kw-2">&amp;</span>I,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;S&gt;, E&gt; <span class="kw">where
+    </span>S: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
+    E: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>,
+    I: BackwardMirInterpreter&lt;<span class="lifetime">&#39;tcx</span>, State = S, Error = E&gt;
 {
-    <span class="kw">let</span> <span class="ident">basic_blocks</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#39">mir</a>.<span class="ident">basic_blocks</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heads</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#39">mir</a>.basic_blocks;
+    <span class="kw">let </span><span class="kw-2">mut </span>heads: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, S&gt; = FxHashMap::default();
 
-    <span class="comment">// Find the final basic blocks</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#46">basic_blocks</a>
-        .<span class="ident">iter_enumerated</span>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">bb_data</span>)<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#52">bb_data</a>.<span class="ident">terminator</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">term</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#53">term</a>.<span class="ident">successors</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">is_none</span>(),
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    <span class="comment">// Find the final basic blocks
+    </span><span class="kw">let </span><span class="kw-2">mut </span>pending_blocks: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt; = <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#46">basic_blocks</a>
+        .iter_enumerated()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(<span class="kw">_</span>, bb_data)| <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#52">bb_data</a>.terminator {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>term) =&gt; <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#53">term</a>.successors().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().is_none(),
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         })
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">bb</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#56">bb</a>)
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(bb, <span class="kw">_</span>)| <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#56">bb</a>)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-    <span class="comment">// Interpret all the blocks in `pending_blocks`</span>
-    <span class="kw">while</span> <span class="op">!</span><span class="ident">pending_blocks</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">let</span> <span class="ident">curr_bb</span> <span class="op">=</span> <span class="ident">pending_blocks</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">bb_data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">basic_blocks</span>[<span class="ident">curr_bb</span>];
+    <span class="comment">// Interpret all the blocks in `pending_blocks`
+    </span><span class="kw">while </span>!pending_blocks.is_empty() {
+        <span class="kw">let </span>curr_bb = pending_blocks.pop().unwrap();
+        <span class="kw">let </span>bb_data = <span class="kw-2">&amp;</span>basic_blocks[curr_bb];
 
-        <span class="comment">// Apply the terminator</span>
-        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <span class="ident">bb_data</span>.<span class="ident">terminator</span>();
-        <span class="kw">let</span> <span class="ident">states</span> <span class="op">=</span> <span class="ident">FxHashMap::from_iter</span>(<span class="ident">terminator</span>.<span class="ident">successors</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<span class="ident">bb</span>, <span class="kw-2">&amp;</span><span class="ident">heads</span>[<span class="kw-2">&amp;</span><span class="ident">bb</span>])));
-        <span class="macro">trace!</span>(<span class="string">&quot;States before: {:?}&quot;</span>, <span class="ident">states</span>);
-        <span class="macro">trace!</span>(<span class="string">&quot;Apply terminator {:?}&quot;</span>, <span class="ident">terminator</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_state</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">apply_terminator</span>(<span class="ident">curr_bb</span>, <span class="ident">terminator</span>, <span class="ident">states</span>)<span class="question-mark">?</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <span class="ident">curr_state</span>);
+        <span class="comment">// Apply the terminator
+        </span><span class="kw">let </span>terminator = bb_data.terminator();
+        <span class="kw">let </span>states = FxHashMap::from_iter(terminator.successors().map(|bb| (bb, <span class="kw-2">&amp;</span>heads[<span class="kw-2">&amp;</span>bb])));
+        <span class="macro">trace!</span>(<span class="string">&quot;States before: {:?}&quot;</span>, states);
+        <span class="macro">trace!</span>(<span class="string">&quot;Apply terminator {:?}&quot;</span>, terminator);
+        <span class="kw">let </span><span class="kw-2">mut </span>curr_state = interpreter.apply_terminator(curr_bb, terminator, states)<span class="question-mark">?</span>;
+        <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, curr_state);
 
-        <span class="comment">// Apply each statement, from the last</span>
-        <span class="kw">for</span> (<span class="ident">stmt_index</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <span class="ident">bb_data</span>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>() {
-            <span class="macro">trace!</span>(<span class="string">&quot;State before: {:?}&quot;</span>, <span class="ident">curr_state</span>);
-            <span class="macro">trace!</span>(<span class="string">&quot;Apply statement {:?}&quot;</span>, <span class="ident">stmt</span>);
-            <span class="ident">interpreter</span>.<span class="ident">apply_statement</span>(<span class="ident">curr_bb</span>, <span class="ident">stmt_index</span>, <span class="ident">stmt</span>, <span class="kw-2">&amp;mut</span> <span class="ident">curr_state</span>)<span class="question-mark">?</span>;
-            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <span class="ident">curr_state</span>);
+        <span class="comment">// Apply each statement, from the last
+        </span><span class="kw">for </span>(stmt_index, stmt) <span class="kw">in </span>bb_data.statements.iter().enumerate().rev() {
+            <span class="macro">trace!</span>(<span class="string">&quot;State before: {:?}&quot;</span>, curr_state);
+            <span class="macro">trace!</span>(<span class="string">&quot;Apply statement {:?}&quot;</span>, stmt);
+            interpreter.apply_statement(curr_bb, stmt_index, stmt, <span class="kw-2">&amp;mut </span>curr_state)<span class="question-mark">?</span>;
+            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, curr_state);
         }
 
-        <span class="comment">// Store the state at the beginning of block `curr_bb`</span>
-        <span class="ident">heads</span>.<span class="ident">insert</span>(<span class="ident">curr_bb</span>, <span class="ident">curr_state</span>);
+        <span class="comment">// Store the state at the beginning of block `curr_bb`
+        </span>heads.insert(curr_bb, curr_state);
 
-        <span class="comment">// Put the preceding basic blocks</span>
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">pred_bb</span> <span class="kw">in</span> <span class="ident">mir</span>.<span class="ident">basic_blocks</span>.<span class="ident">predecessors</span>()[<span class="ident">curr_bb</span>].<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">term</span>) <span class="op">=</span> <span class="ident">basic_blocks</span>[<span class="ident">pred_bb</span>].<span class="ident">terminator</span> {
-                <span class="kw">if</span> <span class="ident">term</span>.<span class="ident">successors</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">succ_bb</span><span class="op">|</span> <span class="ident">heads</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">succ_bb</span>)) {
-                    <span class="ident">pending_blocks</span>.<span class="ident">push</span>(<span class="ident">pred_bb</span>);
+        <span class="comment">// Put the preceding basic blocks
+        </span><span class="kw">for </span><span class="kw-2">&amp;</span>pred_bb <span class="kw">in </span>mir.basic_blocks.predecessors()[curr_bb].iter() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>term) = basic_blocks[pred_bb].terminator {
+                <span class="kw">if </span>term.successors().all(|succ_bb| heads.contains_key(<span class="kw-2">&amp;</span>succ_bb)) {
+                    pending_blocks.push(pred_bb);
                 }
             }
         }
     }
 
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#47">heads</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#46">basic_blocks</a>.<span class="ident">indices</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>());
+    <span class="kw">let </span>result = <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#47">heads</a>.remove(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#46">basic_blocks</a>.indices().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap());
 
-    <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_none</span>() {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;heads: {:?}&quot;</span>, <span class="ident">heads</span>);
+    <span class="kw">if </span>result.is_none() {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;heads: {:?}&quot;</span>, heads);
     }
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#93">result</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#93">result</a>)
 }
 
-<span class="doccomment">/// Interpret a loop-less MIR starting from the end and return the **initial** state.</span>
-<span class="doccomment">/// The result is None if the CFG contains a loop.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_backward_interpretation_point_to_point</span><span class="op">&lt;</span>
+<span class="doccomment">/// Interpret a loop-less MIR starting from the end and return the **initial** state.
+/// The result is None if the CFG contains a loop.
+</span><span class="kw">pub fn </span>run_backward_interpretation_point_to_point&lt;
     <span class="lifetime">&#39;tcx</span>,
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
-    <span class="ident">E</span>,
-    <span class="ident">I</span>: <span class="ident">BackwardMirInterpreter</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">State</span> <span class="op">=</span> <span class="ident">S</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>,
-<span class="op">&gt;</span>(
-    <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="ident">I</span>,
-    <span class="ident">initial_bbi</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-    <span class="ident">final_bbi</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
-    <span class="ident">final_stmt_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">final_state</span>: <span class="ident">S</span>,
-    <span class="ident">undef_state</span>: <span class="ident">S</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">basic_blocks</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#110">mir</a>.<span class="ident">basic_blocks</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heads</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+    S: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
+    E,
+    I: BackwardMirInterpreter&lt;<span class="lifetime">&#39;tcx</span>, State = S, Error = E&gt;,
+&gt;(
+    mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    interpreter: <span class="kw-2">&amp;</span>I,
+    initial_bbi: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+    final_bbi: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
+    final_stmt_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    final_state: S,
+    undef_state: S,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;S&gt;, E&gt; {
+    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#110">mir</a>.basic_blocks;
+    <span class="kw">let </span><span class="kw-2">mut </span>heads: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, S&gt; = FxHashMap::default();
     <a class="macro" href="../../../log/macro.trace.html">trace!</a>(
         <span class="string">&quot;[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}&quot;</span>,
-        <span class="ident">final_bbi</span>,
-        <span class="ident">final_stmt_index</span>,
-        <span class="ident">final_state</span>,
-        <span class="ident">initial_bbi</span>,
-        <span class="ident">undef_state</span>,
+        final_bbi,
+        final_stmt_index,
+        final_state,
+        initial_bbi,
+        undef_state,
     );
 
-    <span class="comment">// Find the final basic blocks</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">final_bbi</span>];
+    <span class="comment">// Find the final basic blocks
+    </span><span class="kw">let </span><span class="kw-2">mut </span>pending_blocks: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[final_bbi];
 
-    <span class="comment">// Interpret all the blocks in `pending_blocks`</span>
-    <span class="kw">while</span> <span class="op">!</span><span class="ident">pending_blocks</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">let</span> <span class="ident">curr_bb</span> <span class="op">=</span> <span class="ident">pending_blocks</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">bb_data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">basic_blocks</span>[<span class="ident">curr_bb</span>];
-        <span class="macro">trace!</span>(<span class="string">&quot;curr_bb: {:?}&quot;</span>, <span class="ident">curr_bb</span>);
+    <span class="comment">// Interpret all the blocks in `pending_blocks`
+    </span><span class="kw">while </span>!pending_blocks.is_empty() {
+        <span class="kw">let </span>curr_bb = pending_blocks.pop().unwrap();
+        <span class="kw">let </span>bb_data = <span class="kw-2">&amp;</span>basic_blocks[curr_bb];
+        <span class="macro">trace!</span>(<span class="string">&quot;curr_bb: {:?}&quot;</span>, curr_bb);
 
-        <span class="comment">// Apply the terminator</span>
-        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <span class="ident">bb_data</span>.<span class="ident">terminator</span>();
-        <span class="kw">let</span> <span class="ident">terminator_index</span> <span class="op">=</span> <span class="ident">bb_data</span>.<span class="ident">statements</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="ident">states</span> <span class="op">=</span> {
-            <span class="comment">// HACK: when a successor is undefined, clone the first defined successor.</span>
-            <span class="comment">// This happens for example when Prusti skips the encoding of a cleanup CFG edge.</span>
-            <span class="kw">let</span> <span class="ident">default_state</span> <span class="op">=</span> <span class="ident">terminator</span>
-                .<span class="ident">successors</span>()
-                .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> <span class="ident">heads</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">bb</span>))
-                .<span class="ident">next</span>()
-                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">undef_state</span>);
-            <span class="ident">FxHashMap::from_iter</span>(
-                <span class="ident">terminator</span>
-                    .<span class="ident">successors</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<span class="ident">bb</span>, <span class="ident">heads</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">bb</span>).<span class="ident">unwrap_or</span>(<span class="ident">default_state</span>))),
+        <span class="comment">// Apply the terminator
+        </span><span class="kw">let </span>terminator = bb_data.terminator();
+        <span class="kw">let </span>terminator_index = bb_data.statements.len();
+        <span class="kw">let </span>states = {
+            <span class="comment">// HACK: when a successor is undefined, clone the first defined successor.
+            // This happens for example when Prusti skips the encoding of a cleanup CFG edge.
+            </span><span class="kw">let </span>default_state = terminator
+                .successors()
+                .flat_map(|bb| heads.get(<span class="kw-2">&amp;</span>bb))
+                .next()
+                .unwrap_or(<span class="kw-2">&amp;</span>undef_state);
+            FxHashMap::from_iter(
+                terminator
+                    .successors()
+                    .map(|bb| (bb, heads.get(<span class="kw-2">&amp;</span>bb).unwrap_or(default_state))),
             )
         };
-        <span class="macro">trace!</span>(<span class="string">&quot;States before: {:?}&quot;</span>, <span class="ident">states</span>);
-        <span class="macro">debug_assert_eq!</span>(<span class="ident">states</span>.<span class="ident">len</span>(), <span class="ident">terminator</span>.<span class="ident">successors</span>().<span class="ident">count</span>());
-        <span class="macro">trace!</span>(<span class="string">&quot;Apply terminator {:?}&quot;</span>, <span class="ident">terminator</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_state</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">apply_terminator</span>(
-            <span class="ident">curr_bb</span>,
-            <span class="ident">terminator</span>,
-            <span class="ident">states</span>
+        <span class="macro">trace!</span>(<span class="string">&quot;States before: {:?}&quot;</span>, states);
+        <span class="macro">debug_assert_eq!</span>(states.len(), terminator.successors().count());
+        <span class="macro">trace!</span>(<span class="string">&quot;Apply terminator {:?}&quot;</span>, terminator);
+        <span class="kw">let </span><span class="kw-2">mut </span>curr_state = interpreter.apply_terminator(
+            curr_bb,
+            terminator,
+            states
         )<span class="question-mark">?</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <span class="ident">curr_state</span>);
-        <span class="kw">if</span> <span class="ident">curr_bb</span> <span class="op">==</span> <span class="ident">final_bbi</span> <span class="op">&amp;&amp;</span> <span class="ident">final_stmt_index</span> <span class="op">==</span> <span class="ident">terminator_index</span> {
+        <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, curr_state);
+        <span class="kw">if </span>curr_bb == final_bbi &amp;&amp; final_stmt_index == terminator_index {
             <span class="macro">trace!</span>(<span class="string">&quot;Final location reached in terminator&quot;</span>);
-            <span class="ident">curr_state</span> <span class="op">=</span> <span class="ident">final_state</span>.<span class="ident">clone</span>();
-            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <span class="ident">curr_state</span>);
+            curr_state = final_state.clone();
+            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, curr_state);
         }
 
-        <span class="comment">// Apply each statement, from the last</span>
-        <span class="kw">for</span> (<span class="ident">stmt_index</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <span class="ident">bb_data</span>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>() {
-            <span class="macro">trace!</span>(<span class="string">&quot;State before: {:?}&quot;</span>, <span class="ident">curr_state</span>);
-            <span class="macro">trace!</span>(<span class="string">&quot;Apply statement {:?}&quot;</span>, <span class="ident">stmt</span>);
-            <span class="ident">interpreter</span>.<span class="ident">apply_statement</span>(<span class="ident">curr_bb</span>, <span class="ident">stmt_index</span>, <span class="ident">stmt</span>, <span class="kw-2">&amp;mut</span> <span class="ident">curr_state</span>)<span class="question-mark">?</span>;
-            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <span class="ident">curr_state</span>);
-            <span class="kw">if</span> <span class="ident">curr_bb</span> <span class="op">==</span> <span class="ident">final_bbi</span> <span class="op">&amp;&amp;</span> <span class="ident">final_stmt_index</span> <span class="op">==</span> <span class="ident">stmt_index</span> {
+        <span class="comment">// Apply each statement, from the last
+        </span><span class="kw">for </span>(stmt_index, stmt) <span class="kw">in </span>bb_data.statements.iter().enumerate().rev() {
+            <span class="macro">trace!</span>(<span class="string">&quot;State before: {:?}&quot;</span>, curr_state);
+            <span class="macro">trace!</span>(<span class="string">&quot;Apply statement {:?}&quot;</span>, stmt);
+            interpreter.apply_statement(curr_bb, stmt_index, stmt, <span class="kw-2">&amp;mut </span>curr_state)<span class="question-mark">?</span>;
+            <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, curr_state);
+            <span class="kw">if </span>curr_bb == final_bbi &amp;&amp; final_stmt_index == stmt_index {
                 <span class="macro">trace!</span>(<span class="string">&quot;Final location reached in statement&quot;</span>);
-                <span class="ident">curr_state</span> <span class="op">=</span> <span class="ident">final_state</span>.<span class="ident">clone</span>();
-                <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, <span class="ident">curr_state</span>);
+                curr_state = final_state.clone();
+                <span class="macro">trace!</span>(<span class="string">&quot;State after: {:?}&quot;</span>, curr_state);
             }
         }
 
-        <span class="comment">// Store the state at the beginning of block `curr_bb`</span>
-        <span class="ident">heads</span>.<span class="ident">insert</span>(<span class="ident">curr_bb</span>, <span class="ident">curr_state</span>);
+        <span class="comment">// Store the state at the beginning of block `curr_bb`
+        </span>heads.insert(curr_bb, curr_state);
 
-        <span class="kw">if</span> <span class="ident">curr_bb</span> <span class="op">!</span><span class="op">=</span> <span class="ident">initial_bbi</span> {
-            <span class="comment">// Put the preceding basic blocks</span>
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">pred_bb</span> <span class="kw">in</span> <span class="ident">mir</span>.<span class="ident">basic_blocks</span>.<span class="ident">predecessors</span>()[<span class="ident">curr_bb</span>].<span class="ident">iter</span>() {
-                <span class="comment">// Note: here we don&#39;t check that all the successors of `pred_bb` has been visited.</span>
-                <span class="comment">// It&#39;s a known limitation, because this is the point-to-point interpretation.</span>
-                <span class="comment">// Use `run_backward_interpretation` if the check is important.</span>
-                <span class="ident">pending_blocks</span>.<span class="ident">push</span>(<span class="ident">pred_bb</span>);
+        <span class="kw">if </span>curr_bb != initial_bbi {
+            <span class="comment">// Put the preceding basic blocks
+            </span><span class="kw">for </span><span class="kw-2">&amp;</span>pred_bb <span class="kw">in </span>mir.basic_blocks.predecessors()[curr_bb].iter() {
+                <span class="comment">// Note: here we don&#39;t check that all the successors of `pred_bb` has been visited.
+                // It&#39;s a known limitation, because this is the point-to-point interpretation.
+                // Use `run_backward_interpretation` if the check is important.
+                </span>pending_blocks.push(pred_bb);
             }
         }
     }
 
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#119">heads</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">initial_bbi</a>);
+    <span class="kw">let </span>result = <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#119">heads</a>.remove(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#112">initial_bbi</a>);
 
-    <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_none</span>() {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;heads: {:?}&quot;</span>, <span class="ident">heads</span>);
+    <span class="kw">if </span>result.is_none() {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;heads: {:?}&quot;</span>, heads);
     }
 
     <a class="macro" href="../../../log/macro.trace.html">trace!</a>(
         <span class="string">&quot;[end] run_backward_interpretation_point_to_point:\n - from final final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}\n - resulted in state {:?}&quot;</span>,
-        <span class="ident">final_bbi</span>,
-        <span class="ident">final_stmt_index</span>,
-        <span class="ident">final_state</span>,
-        <span class="ident">initial_bbi</span>,
-        <span class="ident">undef_state</span>,
-        <span class="ident">result</span>
+        final_bbi,
+        final_stmt_index,
+        final_state,
+        initial_bbi,
+        undef_state,
+        result
     );
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#197">result</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#197">result</a>)
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExprBackwardInterpreterState</span> {
-    <span class="doccomment">/// None if the expression is undefined.</span>
-    <span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span>,
-    <span class="ident">substs</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/common/struct.TypeVar.html">vir::TypeVar</a>, <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>ExprBackwardInterpreterState {
+    <span class="doccomment">/// None if the expression is undefined.
+    </span>expr: <span class="prelude-ty">Option</span>&lt;<a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;,
+    substs: FxHashMap&lt;<a href="../../../vir/gen/polymorphic/ast/common/struct.TypeVar.html">vir::TypeVar</a>, <a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217">ExprBackwardInterpreterState</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expr</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">self</a>.<span class="ident">expr</span>.<span class="ident">as_ref</span>() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">f</a>, <span class="string">&quot;expr={}&quot;</span>, <span class="ident">expr</span>)
-        } <span class="kw">else</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">f</a>, <span class="string">&quot;expr=undefined&quot;</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217">ExprBackwardInterpreterState</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">self</a>.expr.as_ref() {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">f</a>, <span class="string">&quot;expr={}&quot;</span>, expr)
+        } <span class="kw">else </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#224">f</a>, <span class="string">&quot;expr=undefined&quot;</span>)
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217">ExprBackwardInterpreterState</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217">ExprBackwardInterpreterState</a> { <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#234">expr</a>, <span class="ident">substs</span>: <span class="ident">FxHashMap::default</span>() }
+<span class="kw">impl </span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217">ExprBackwardInterpreterState</a> {
+    <span class="kw">pub fn </span>new(expr: <span class="prelude-ty">Option</span>&lt;<a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217">ExprBackwardInterpreterState</a> { <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#234">expr</a>, substs: FxHashMap::default() }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_defined</span>(<span class="ident">expr</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217">ExprBackwardInterpreterState</a> { <span class="ident">expr</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#238">expr</a>), <span class="ident">substs</span>: <span class="ident">FxHashMap::default</span>() }
+    <span class="kw">pub fn </span>new_defined(expr: <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#217">ExprBackwardInterpreterState</a> { expr: <span class="prelude-val">Some</span>(<a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#238">expr</a>), substs: FxHashMap::default() }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#242">self</a>.<span class="ident">expr</span>.<span class="ident">as_ref</span>()
+    <span class="kw">pub fn </span>expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
+        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#242">self</a>.expr.as_ref()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#246">self</a>.<span class="ident">expr</span>.<span class="ident">as_mut</span>()
+    <span class="kw">pub fn </span>expr_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
+        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#246">self</a>.expr.as_mut()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_expr</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#250">self</a>.<span class="ident">expr</span>
+    <span class="kw">pub fn </span>into_expr(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
+        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#250">self</a>.expr
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substitute_value</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">replacement</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;substitute_value {:?} --&gt; {:?}&quot;</span>, <span class="ident">target</span>, <span class="ident">replacement</span>);
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">target</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">self</a>.<span class="ident">substs</span>);
-        <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">replacement</a>.<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">self</a>.<span class="ident">substs</span>);
+    <span class="kw">pub fn </span>substitute_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, replacement: <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;substitute_value {:?} --&gt; {:?}&quot;</span>, target, replacement);
+        <span class="kw">let </span>target = <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">target</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().patch_types(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">self</a>.substs);
+        <span class="kw">let </span>replacement = <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">replacement</a>.patch_types(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">self</a>.substs);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">curr_expr</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">self</a>.<span class="ident">expr</span>.<span class="ident">as_mut</span>() {
-            <span class="comment">// Replace two times to avoid cloning `expr`, which could be big.</span>
-            <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#259">curr_expr</a>, <span class="bool-val">true</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-            <span class="kw">let</span> <span class="ident">new_expr</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#261">expr</a>.<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#256">target</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#257">replacement</a>).<span class="ident">simplify_addr_of</span>();
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#259">curr_expr</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#262">new_expr</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(curr_expr) = <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#254">self</a>.expr.as_mut() {
+            <span class="comment">// Replace two times to avoid cloning `expr`, which could be big.
+            </span><span class="kw">let </span>expr = mem::replace(<a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#259">curr_expr</a>, <span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">let </span>new_expr = <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#261">expr</a>.replace_place(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#256">target</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#257">replacement</a>).simplify_addr_of();
+            <span class="kw">let _ </span>= mem::replace(<a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#259">curr_expr</a>, <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#262">new_expr</a>);
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uses_place</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sub_target</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;use_place {:?}&quot;</span>, <span class="ident">sub_target</span>);
-        <span class="kw">let</span> <span class="ident">sub_target</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#267">sub_target</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">patch_types</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#267">self</a>.<span class="ident">substs</span>);
-        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#267">self</a>.<span class="ident">expr</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#270">expr</a>.<span class="ident">find</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#269">sub_target</a>)).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+    <span class="kw">pub fn </span>uses_place(<span class="kw-2">&amp;</span><span class="self">self</span>, sub_target: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;use_place {:?}&quot;</span>, sub_target);
+        <span class="kw">let </span>sub_target = <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#267">sub_target</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().patch_types(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#267">self</a>.substs);
+        <a class="self" href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#267">self</a>.expr.as_ref().map(|expr| <a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#270">expr</a>.find(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/mir_interpreter.rs.html#269">sub_target</a>)).unwrap_or(<span class="bool-val">false</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

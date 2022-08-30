@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/stream/take_until.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>take_until.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/stream/take_until.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>take_until.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -168,175 +168,175 @@
 <span id="168">168</span>
 <span id="169">169</span>
 <span id="170">170</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
+<span class="kw">use </span><a href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span>futures_core::stream::{<a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
+</span><span class="kw">use </span><a href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
+<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="comment">// FIXME: docs, tests</span>
+<span class="comment">// FIXME: docs, tests
 
-<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="doccomment">/// Stream for the [`take_until`](super::StreamExt::take_until) method.</span>
-    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TakeUntil</span><span class="op">&lt;</span><span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">stream</span>: <span class="ident">St</span>,
-        <span class="comment">// Contains the inner Future on start and None once the inner Future is resolved</span>
-        <span class="comment">// or taken out by the user.</span>
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">fut</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>,
-        <span class="comment">// Contains fut&#39;s return value once fut is resolved</span>
-        <span class="ident">fut_result</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Fut::Output</span><span class="op">&gt;</span>,
-        <span class="comment">// Whether the future was taken out by the user.</span>
-        <span class="ident">free</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+</span><a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Stream for the [`take_until`](super::StreamExt::take_until) method.
+    </span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    </span><span class="kw">pub struct </span>TakeUntil&lt;St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>, Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>&gt; {
+        <span class="attribute">#[pin]
+        </span>stream: St,
+        <span class="comment">// Contains the inner Future on start and None once the inner Future is resolved
+        // or taken out by the user.
+        </span><span class="attribute">#[pin]
+        </span>fut: <span class="prelude-ty">Option</span>&lt;Fut&gt;,
+        <span class="comment">// Contains fut&#39;s return value once fut is resolved
+        </span>fut_result: <span class="prelude-ty">Option</span>&lt;Fut::Output&gt;,
+        <span class="comment">// Whether the future was taken out by the user.
+        </span>free: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Fut</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">TakeUntil</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    <span class="ident">St::Item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
-    <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+<span class="kw">impl</span>&lt;St, Fut&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>TakeUntil&lt;St, Fut&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    St::Item: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
+    Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#36">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;TakeUntil&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#36">self</a>.<span class="ident">stream</span>).<span class="ident">field</span>(<span class="string">&quot;fut&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#36">self</a>.<span class="ident">fut</span>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/futures_util/stream/stream/take_until.rs.html#36">f</a>.debug_struct(<span class="string">&quot;TakeUntil&quot;</span>).field(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#36">self</a>.stream).field(<span class="string">&quot;fut&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#36">self</a>.fut).finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Fut</span><span class="op">&gt;</span> <span class="ident">TakeUntil</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="kw">impl</span>&lt;St, Fut&gt; TakeUntil&lt;St, Fut&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">St</span>, <span class="ident">fut</span>: <span class="ident">Fut</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#46">stream</a>, <span class="ident">fut</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#46">fut</a>), <span class="ident">fut_result</span>: <span class="prelude-val">None</span>, <span class="ident">free</span>: <span class="bool-val">false</span> }
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, fut: Fut) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../../../src/futures_util/stream/stream/take_until.rs.html#46">stream</a>, fut: <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/take_until.rs.html#46">fut</a>), fut_result: <span class="prelude-val">None</span>, free: <span class="bool-val">false </span>}
     }
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(<span class="ident">stream</span>, <span class="ident">St</span>, ());
+    <a class="macro" href="../../../../src/futures_util/lib.rs.html#182-216">delegate_access_inner!</a>(stream, St, ());
 
-    <span class="doccomment">/// Extract the stopping future out of the combinator.</span>
-    <span class="doccomment">/// The future is returned only if it isn&#39;t resolved yet, ie. if the stream isn&#39;t stopped yet.</span>
-    <span class="doccomment">/// Taking out the future means the combinator will be yielding</span>
-    <span class="doccomment">/// elements from the wrapped stream without ever stopping it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_future</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">is_some</span>() {
-            <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#56">self</a>.<span class="ident">free</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// Extract the stopping future out of the combinator.
+    /// The future is returned only if it isn&#39;t resolved yet, ie. if the stream isn&#39;t stopped yet.
+    /// Taking out the future means the combinator will be yielding
+    /// elements from the wrapped stream without ever stopping it.
+    </span><span class="kw">pub fn </span>take_future(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Fut&gt; {
+        <span class="kw">if </span><span class="self">self</span>.fut.is_some() {
+            <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#56">self</a>.free = <span class="bool-val">true</span>;
         }
 
-        <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#56">self</a>.<span class="ident">fut</span>.<span class="ident">take</span>()
+        <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#56">self</a>.fut.take()
     }
 
-    <span class="doccomment">/// Once the stopping future is resolved, this method can be used</span>
-    <span class="doccomment">/// to extract the value returned by the stopping future.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may be used to retrieve arbitrary data from the stopping</span>
-    <span class="doccomment">/// future, for example a reason why the stream was stopped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will return `None` if the future isn&#39;t resolved yet,</span>
-    <span class="doccomment">/// or if the result was already taken out.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # futures::executor::block_on(async {</span>
-    <span class="doccomment">/// use futures::future;</span>
-    <span class="doccomment">/// use futures::stream::{self, StreamExt};</span>
-    <span class="doccomment">/// use futures::task::Poll;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let stream = stream::iter(1..=10);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut i = 0;</span>
-    <span class="doccomment">/// let stop_fut = future::poll_fn(|_cx| {</span>
-    <span class="doccomment">///     i += 1;</span>
-    <span class="doccomment">///     if i &lt;= 5 {</span>
-    <span class="doccomment">///         Poll::Pending</span>
-    <span class="doccomment">///     } else {</span>
-    <span class="doccomment">///         Poll::Ready(&quot;reason&quot;)</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut stream = stream.take_until(stop_fut);</span>
-    <span class="doccomment">/// let _ = stream.by_ref().collect::&lt;Vec&lt;_&gt;&gt;().await;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let result = stream.take_result().unwrap();</span>
-    <span class="doccomment">/// assert_eq!(result, &quot;reason&quot;);</span>
-    <span class="doccomment">/// # });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_result</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Fut::Output</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#100">self</a>.<span class="ident">fut_result</span>.<span class="ident">take</span>()
+    <span class="doccomment">/// Once the stopping future is resolved, this method can be used
+    /// to extract the value returned by the stopping future.
+    ///
+    /// This may be used to retrieve arbitrary data from the stopping
+    /// future, for example a reason why the stream was stopped.
+    ///
+    /// This method will return `None` if the future isn&#39;t resolved yet,
+    /// or if the result was already taken out.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # futures::executor::block_on(async {
+    /// use futures::future;
+    /// use futures::stream::{self, StreamExt};
+    /// use futures::task::Poll;
+    ///
+    /// let stream = stream::iter(1..=10);
+    ///
+    /// let mut i = 0;
+    /// let stop_fut = future::poll_fn(|_cx| {
+    ///     i += 1;
+    ///     if i &lt;= 5 {
+    ///         Poll::Pending
+    ///     } else {
+    ///         Poll::Ready(&quot;reason&quot;)
+    ///     }
+    /// });
+    ///
+    /// let mut stream = stream.take_until(stop_fut);
+    /// let _ = stream.by_ref().collect::&lt;Vec&lt;_&gt;&gt;().await;
+    ///
+    /// let result = stream.take_result().unwrap();
+    /// assert_eq!(result, &quot;reason&quot;);
+    /// # });
+    /// ```
+    </span><span class="kw">pub fn </span>take_result(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Fut::Output&gt; {
+        <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#100">self</a>.fut_result.take()
     }
 
-    <span class="doccomment">/// Whether the stream was stopped yet by the stopping future</span>
-    <span class="doccomment">/// being resolved.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_stopped</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">!</span><a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#106">self</a>.<span class="ident">free</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#106">self</a>.<span class="ident">fut</span>.<span class="ident">is_none</span>()
+    <span class="doccomment">/// Whether the stream was stopped yet by the stopping future
+    /// being resolved.
+    </span><span class="kw">pub fn </span>is_stopped(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        !<a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#106">self</a>.free &amp;&amp; <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#106">self</a>.fut.is_none()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Fut</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">TakeUntil</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="kw">impl</span>&lt;St, Fut&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>TakeUntil&lt;St, Fut&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">St::Item</span>;
+    <span class="kw">type </span>Item = St::Item;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">St::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#118">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#13-28">project</a>();
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;St::Item&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#118">self</a>.<a href="../../../../src/futures_util/stream/stream/take_until.rs.html#13-28">project</a>();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#119">this</a>.<span class="ident">fut</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">result</span>) <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#121">f</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#118">cx</a>) {
-                <a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#119">this</a>.<span class="ident">fut</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
-                <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#119">this</a>.<span class="ident">fut_result</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#122">result</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <a href="../../../../src/futures_util/stream/stream/take_until.rs.html#119">this</a>.fut.as_mut().as_pin_mut() {
+            <span class="kw">if let </span>Poll::Ready(result) = <a href="../../../../src/futures_util/stream/stream/take_until.rs.html#121">f</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../../src/futures_util/stream/stream/take_until.rs.html#118">cx</a>) {
+                <a href="../../../../src/futures_util/stream/stream/take_until.rs.html#119">this</a>.fut.set(<span class="prelude-val">None</span>);
+                <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/stream/take_until.rs.html#119">this</a>.fut_result = <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/take_until.rs.html#122">result</a>);
             }
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">free</span> <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">fut</span>.<span class="ident">is_none</span>() {
-            <span class="comment">// Future resolved, inner stream stopped</span>
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// Future either not resolved yet or taken out by the user</span>
-            <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>));
-            <span class="kw">if</span> <span class="ident">item</span>.<span class="ident">is_none</span>() {
-                <a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#119">this</a>.<span class="ident">fut</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
+        <span class="kw">if </span>!<span class="kw-2">*</span>this.free &amp;&amp; this.fut.is_none() {
+            <span class="comment">// Future resolved, inner stream stopped
+            </span>Poll::Ready(<span class="prelude-val">None</span>)
+        } <span class="kw">else </span>{
+            <span class="comment">// Future either not resolved yet or taken out by the user
+            </span><span class="kw">let </span>item = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.stream.poll_next(cx));
+            <span class="kw">if </span>item.is_none() {
+                <a href="../../../../src/futures_util/stream/stream/take_until.rs.html#119">this</a>.fut.set(<span class="prelude-val">None</span>);
             }
-            <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#133">item</a>)
+            Poll::Ready(<a href="../../../../src/futures_util/stream/stream/take_until.rs.html#133">item</a>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_stopped</span>() {
-            <span class="kw">return</span> (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <span class="kw">if </span><span class="self">self</span>.is_stopped() {
+            <span class="kw">return </span>(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
         }
 
-        <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#141">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>()
+        <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#141">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Fut</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for</span> <span class="ident">TakeUntil</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-    <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="kw">impl</span>&lt;St, Fut&gt; <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> <span class="kw">for </span>TakeUntil&lt;St, Fut&gt;
+<span class="kw">where
+    </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
+    Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#155">self</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/take_until.rs.html#106">is_stopped</a>()
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../../src/futures_util/stream/stream/take_until.rs.html#155">self</a>.<a href="../../../../src/futures_util/stream/stream/take_until.rs.html#106">is_stopped</a>()
     }
 }
 
-<span class="comment">// Forwarding impl of Sink from the underlying stream</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Fut</span>, <span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TakeUntil</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Fut</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
-    <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="comment">// Forwarding impl of Sink from the underlying stream
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;sink&quot;</span>)]
+</span><span class="kw">impl</span>&lt;S, Fut, Item&gt; Sink&lt;Item&gt; <span class="kw">for </span>TakeUntil&lt;S, Fut&gt;
+<span class="kw">where
+    </span>S: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + Sink&lt;Item&gt;,
+    Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">S::Error</span>;
+    <span class="kw">type </span>Error = S::Error;
 
-    <a class="macro" href="../../../../src/futures_util/lib.rs.html#56-83">delegate_sink!</a>(<span class="ident">stream</span>, <span class="ident">Item</span>);
+    <a class="macro" href="../../../../src/futures_util/lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

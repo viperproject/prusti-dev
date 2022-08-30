@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/remote_callbacks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>remote_callbacks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/remote_callbacks.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>remote_callbacks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -450,457 +450,457 @@
 <span id="450">450</span>
 <span id="451">451</span>
 <span id="452">452</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>};
-<span class="kw">use</span> <span class="ident">std::ffi</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span>libc::{<a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>, <a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>};
+<span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/core/ffi/c_str/struct.CStr.html">CStr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/cert.rs.html#13"><span class="kw">crate</span>::cert::Cert</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../src/git2/lib.rs.html#655">panic</a>, <a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/cred.rs.html#14">Cred</a>, <a class="ident" href="../../src/git2/lib.rs.html#446-464">CredentialType</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/indexer.rs.html#25">IndexerProgress</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a class="ident" href="../../src/git2/indexer.rs.html#7">Progress</a>,
+<span class="kw">use </span><a href="../../src/git2/cert.rs.html#13"><span class="kw">crate</span>::cert::Cert</a>;
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{
+    <a href="../../src/git2/lib.rs.html#655">panic</a>, <a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/lib.rs.html#446-464">CredentialType</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/indexer.rs.html#25">IndexerProgress</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a href="../../src/git2/indexer.rs.html#7">Progress</a>,
 };
 
-<span class="doccomment">/// A structure to contain the callbacks which are invoked when a repository is</span>
-<span class="doccomment">/// being updated or downloaded.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// These callbacks are used to manage facilities such as authentication,</span>
-<span class="doccomment">/// transfer progress, etc.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">push_progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PushTransferProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">IndexerProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">pack_progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PackProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">credentials</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Credentials</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">sideband_progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TransportMessage</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">update_tips</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UpdateTips</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">certificate_check</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">CertificateCheck</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">push_update_reference</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PushUpdateReference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A structure to contain the callbacks which are invoked when a repository is
+/// being updated or downloaded.
+///
+/// These callbacks are used to manage facilities such as authentication,
+/// transfer progress, etc.
+</span><span class="kw">pub struct </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
+    push_progress: <span class="prelude-ty">Option</span>&lt;Box&lt;PushTransferProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+    progress: <span class="prelude-ty">Option</span>&lt;Box&lt;IndexerProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+    pack_progress: <span class="prelude-ty">Option</span>&lt;Box&lt;PackProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+    credentials: <span class="prelude-ty">Option</span>&lt;Box&lt;Credentials&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+    sideband_progress: <span class="prelude-ty">Option</span>&lt;Box&lt;TransportMessage&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+    update_tips: <span class="prelude-ty">Option</span>&lt;Box&lt;UpdateTips&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+    certificate_check: <span class="prelude-ty">Option</span>&lt;Box&lt;CertificateCheck&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+    push_update_reference: <span class="prelude-ty">Option</span>&lt;Box&lt;PushUpdateReference&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
 }
 
-<span class="doccomment">/// Callback used to acquire credentials for when a remote is fetched.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `url` - the resource for which the credentials are required.</span>
-<span class="doccomment">/// * `username_from_url` - the username that was embedded in the url, or `None`</span>
-<span class="doccomment">///                         if it was not included.</span>
-<span class="doccomment">/// * `allowed_types` - a bitmask stating which cred types are ok to return.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Credentials</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span>
-    <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/lib.rs.html#446-464">CredentialType</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/cred.rs.html#14">Cred</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="doccomment">/// Callback used to acquire credentials for when a remote is fetched.
+///
+/// * `url` - the resource for which the credentials are required.
+/// * `username_from_url` - the username that was embedded in the url, or `None`
+///                         if it was not included.
+/// * `allowed_types` - a bitmask stating which cred types are ok to return.
+</span><span class="kw">pub type </span>Credentials&lt;<span class="lifetime">&#39;a</span>&gt; =
+    <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="../../src/git2/lib.rs.html#446-464">CredentialType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; + <span class="lifetime">&#39;a</span>;
 
-<span class="doccomment">/// Callback for receiving messages delivered by the transport.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The return value indicates whether the network operation should continue.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TransportMessage</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="doccomment">/// Callback for receiving messages delivered by the transport.
+///
+/// The return value indicates whether the network operation should continue.
+</span><span class="kw">pub type </span>TransportMessage&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
 
-<span class="doccomment">/// Callback for whenever a reference is updated locally.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">UpdateTips</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="doccomment">/// Callback for whenever a reference is updated locally.
+</span><span class="kw">pub type </span>UpdateTips&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
 
-<span class="doccomment">/// Callback for a custom certificate check.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The first argument is the certificate receved on the connection.</span>
-<span class="doccomment">/// Certificates are typically either an SSH or X509 certificate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The second argument is the hostname for the connection is passed as the last</span>
-<span class="doccomment">/// argument.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CertificateCheck</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Cert</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="doccomment">/// Callback for a custom certificate check.
+///
+/// The first argument is the certificate receved on the connection.
+/// Certificates are typically either an SSH or X509 certificate.
+///
+/// The second argument is the hostname for the connection is passed as the last
+/// argument.
+</span><span class="kw">pub type </span>CertificateCheck&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span>Cert&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>;
 
-<span class="doccomment">/// Callback for each updated reference on push.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The first argument here is the `refname` of the reference, and the second is</span>
-<span class="doccomment">/// the status message sent by a server. If the status is `Some` then the update</span>
-<span class="doccomment">/// was rejected by the remote server with a reason why.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PushUpdateReference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="doccomment">/// Callback for each updated reference on push.
+///
+/// The first argument here is the `refname` of the reference, and the second is
+/// the status message sent by a server. If the status is `Some` then the update
+/// was rejected by the remote server with a reason why.
+</span><span class="kw">pub type </span>PushUpdateReference&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; + <span class="lifetime">&#39;a</span>;
 
-<span class="doccomment">/// Callback for push transfer progress</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Parameters:</span>
-<span class="doccomment">///     * current</span>
-<span class="doccomment">///     * total</span>
-<span class="doccomment">///     * bytes</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PushTransferProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="doccomment">/// Callback for push transfer progress
+///
+/// Parameters:
+///     * current
+///     * total
+///     * bytes
+</span><span class="kw">pub type </span>PushTransferProgress&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) + <span class="lifetime">&#39;a</span>;
 
-<span class="doccomment">/// Callback for pack progress</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Parameters:</span>
-<span class="doccomment">///     * stage</span>
-<span class="doccomment">///     * current</span>
-<span class="doccomment">///     * total</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PackProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">+</span> <span class="lifetime">&#39;a</span>;
+<span class="doccomment">/// Callback for pack progress
+///
+/// Parameters:
+///     * stage
+///     * current
+///     * total
+</span><span class="kw">pub type </span>PackProgress&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">dyn </span>FnMut(<a href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) + <span class="lifetime">&#39;a</span>;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new set of empty callbacks</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/remote_callbacks.rs.html#19">RemoteCallbacks</a> {
-            <span class="ident">credentials</span>: <span class="prelude-val">None</span>,
-            <span class="ident">progress</span>: <span class="prelude-val">None</span>,
-            <span class="ident">pack_progress</span>: <span class="prelude-val">None</span>,
-            <span class="ident">sideband_progress</span>: <span class="prelude-val">None</span>,
-            <span class="ident">update_tips</span>: <span class="prelude-val">None</span>,
-            <span class="ident">certificate_check</span>: <span class="prelude-val">None</span>,
-            <span class="ident">push_update_reference</span>: <span class="prelude-val">None</span>,
-            <span class="ident">push_progress</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Creates a new set of empty callbacks
+    </span><span class="kw">pub fn </span>new() -&gt; RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <a href="../../src/git2/remote_callbacks.rs.html#19">RemoteCallbacks</a> {
+            credentials: <span class="prelude-val">None</span>,
+            progress: <span class="prelude-val">None</span>,
+            pack_progress: <span class="prelude-val">None</span>,
+            sideband_progress: <span class="prelude-val">None</span>,
+            update_tips: <span class="prelude-val">None</span>,
+            certificate_check: <span class="prelude-val">None</span>,
+            push_update_reference: <span class="prelude-val">None</span>,
+            push_progress: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// The callback through which to fetch credentials if required.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prepare a callback to authenticate using the `$HOME/.ssh/id_rsa` SSH key, and</span>
-    <span class="doccomment">/// extracting the username from the URL (i.e. git@github.com:rust-lang/git2-rs.git):</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use git2::{Cred, RemoteCallbacks};</span>
-    <span class="doccomment">/// use std::env;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut callbacks = RemoteCallbacks::new();</span>
-    <span class="doccomment">/// callbacks.credentials(|_url, username_from_url, _allowed_types| {</span>
-    <span class="doccomment">///   Cred::ssh_key(</span>
-    <span class="doccomment">///     username_from_url.unwrap(),</span>
-    <span class="doccomment">///     None,</span>
-    <span class="doccomment">///     std::path::Path::new(&amp;format!(&quot;{}/.ssh/id_rsa&quot;, env::var(&quot;HOME&quot;).unwrap())),</span>
-    <span class="doccomment">///     None,</span>
-    <span class="doccomment">///   )</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">credentials</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/lib.rs.html#446-464">CredentialType</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/cred.rs.html#14">Cred</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// The callback through which to fetch credentials if required.
+    ///
+    /// # Example
+    ///
+    /// Prepare a callback to authenticate using the `$HOME/.ssh/id_rsa` SSH key, and
+    /// extracting the username from the URL (i.e. git@github.com:rust-lang/git2-rs.git):
+    ///
+    /// ```no_run
+    /// use git2::{Cred, RemoteCallbacks};
+    /// use std::env;
+    ///
+    /// let mut callbacks = RemoteCallbacks::new();
+    /// callbacks.credentials(|_url, username_from_url, _allowed_types| {
+    ///   Cred::ssh_key(
+    ///     username_from_url.unwrap(),
+    ///     None,
+    ///     std::path::Path::new(&amp;format!(&quot;{}/.ssh/id_rsa&quot;, env::var(&quot;HOME&quot;).unwrap())),
+    ///     None,
+    ///   )
+    /// });
+    /// ```
+    </span><span class="kw">pub fn </span>credentials&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;, <a href="../../src/git2/lib.rs.html#446-464">CredentialType</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/git2/cred.rs.html#14">Cred</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#121">self</a>.<span class="ident">credentials</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#121">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Credentials</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#121">self</a>
-    }
+        <a class="self" href="../../src/git2/remote_callbacks.rs.html#121">self</a>.credentials = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/remote_callbacks.rs.html#121">cb</a>) <span class="kw">as </span>Box&lt;Credentials&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#121">self</a>
+    </span>}
 
-    <span class="doccomment">/// The callback through which progress is monitored.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transfer_progress</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">Progress</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// The callback through which progress is monitored.
+    </span><span class="kw">pub fn </span>transfer_progress&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where
+        </span>F: FnMut(Progress&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#130">self</a>.<span class="ident">progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#130">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">IndexerProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#130">self</a>
-    }
+        <a class="self" href="../../src/git2/remote_callbacks.rs.html#130">self</a>.progress = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/remote_callbacks.rs.html#130">cb</a>) <span class="kw">as </span>Box&lt;IndexerProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#130">self</a>
+    </span>}
 
-    <span class="doccomment">/// Textual progress from the remote.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Text sent over the progress side-band will be passed to this function</span>
-    <span class="doccomment">/// (this is the &#39;counting objects&#39; output).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sideband_progress</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// Textual progress from the remote.
+    ///
+    /// Text sent over the progress side-band will be passed to this function
+    /// (this is the &#39;counting objects&#39; output).
+    </span><span class="kw">pub fn </span>sideband_progress&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#142">self</a>.<span class="ident">sideband_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#142">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TransportMessage</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#142">self</a>
-    }
+        <a class="self" href="../../src/git2/remote_callbacks.rs.html#142">self</a>.sideband_progress = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/remote_callbacks.rs.html#142">cb</a>) <span class="kw">as </span>Box&lt;TransportMessage&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#142">self</a>
+    </span>}
 
-    <span class="doccomment">/// Each time a reference is updated locally, the callback will be called</span>
-    <span class="doccomment">/// with information about it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_tips</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>, <a class="ident" href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// Each time a reference is updated locally, the callback will be called
+    /// with information about it.
+    </span><span class="kw">pub fn </span>update_tips&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>, <a href="../../src/git2/oid.rs.html#15">Oid</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#152">self</a>.<span class="ident">update_tips</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#152">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UpdateTips</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#152">self</a>
-    }
+        <a class="self" href="../../src/git2/remote_callbacks.rs.html#152">self</a>.update_tips = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/remote_callbacks.rs.html#152">cb</a>) <span class="kw">as </span>Box&lt;UpdateTips&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#152">self</a>
+    </span>}
 
-    <span class="doccomment">/// If certificate verification fails, then this callback will be invoked to</span>
-    <span class="doccomment">/// let the caller make the final decision of whether to allow the</span>
-    <span class="doccomment">/// connection to proceed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">certificate_check</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Cert</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// If certificate verification fails, then this callback will be invoked to
+    /// let the caller make the final decision of whether to allow the
+    /// connection to proceed.
+    </span><span class="kw">pub fn </span>certificate_check&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span>Cert&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#163">self</a>.<span class="ident">certificate_check</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#163">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">CertificateCheck</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#163">self</a>
-    }
+        <a class="self" href="../../src/git2/remote_callbacks.rs.html#163">self</a>.certificate_check = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/remote_callbacks.rs.html#163">cb</a>) <span class="kw">as </span>Box&lt;CertificateCheck&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#163">self</a>
+    </span>}
 
-    <span class="doccomment">/// Set a callback to get invoked for each updated reference on a push.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The first argument to the callback is the name of the reference and the</span>
-    <span class="doccomment">/// second is a status message sent by the server. If the status is `Some`</span>
-    <span class="doccomment">/// then the push was rejected.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_update_reference</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// Set a callback to get invoked for each updated reference on a push.
+    ///
+    /// The first argument to the callback is the name of the reference and the
+    /// second is a status message sent by the server. If the status is `Some`
+    /// then the push was rejected.
+    </span><span class="kw">pub fn </span>push_update_reference&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/git2/error.rs.html#12">Error</a>&gt; + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#176">self</a>.<span class="ident">push_update_reference</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#176">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PushUpdateReference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#176">self</a>
-    }
+        <a class="self" href="../../src/git2/remote_callbacks.rs.html#176">self</a>.push_update_reference = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/remote_callbacks.rs.html#176">cb</a>) <span class="kw">as </span>Box&lt;PushUpdateReference&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#176">self</a>
+    </span>}
 
-    <span class="doccomment">/// The callback through which progress of push transfer is monitored</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_transfer_progress</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// The callback through which progress of push transfer is monitored
+    </span><span class="kw">pub fn </span>push_transfer_progress&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#185">self</a>.<span class="ident">push_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#185">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PushTransferProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#185">self</a>
-    }
+        <a class="self" href="../../src/git2/remote_callbacks.rs.html#185">self</a>.push_progress = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/remote_callbacks.rs.html#185">cb</a>) <span class="kw">as </span>Box&lt;PushTransferProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#185">self</a>
+    </span>}
 
-    <span class="doccomment">/// Function to call with progress information during pack building.</span>
-    <span class="doccomment">/// Be aware that this is called inline with pack building operations,</span>
-    <span class="doccomment">/// so performance may be affected.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pack_progress</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// Function to call with progress information during pack building.
+    /// Be aware that this is called inline with pack building operations,
+    /// so performance may be affected.
+    </span><span class="kw">pub fn </span>pack_progress&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb: F) -&gt; <span class="kw-2">&amp;mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<a href="../../src/git2/packbuilder.rs.html#12">PackBuilderStage</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) + <span class="lifetime">&#39;a</span>,
     {
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#196">self</a>.<span class="ident">pack_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#196">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PackProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/remote_callbacks.rs.html#196">self</a>
-    }
+        <a class="self" href="../../src/git2/remote_callbacks.rs.html#196">self</a>.pack_progress = <span class="prelude-val">Some</span>(Box::new(<a href="../../src/git2/remote_callbacks.rs.html#196">cb</a>) <span class="kw">as </span>Box&lt;PackProgress&lt;<span class="lifetime">&#39;a</span>&gt;&gt;);
+        <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#196">self</a>
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <a class="ident" href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">_raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a>) -&gt; <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Raw = <a href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a>;
+    <span class="kw">unsafe fn </span>from_raw(_raw: <a href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a>) -&gt; RemoteCallbacks&lt;<span class="lifetime">&#39;a</span>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unimplemented&quot;</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callbacks</span>: <a class="ident" href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a> <span class="op">=</span> <span class="ident">mem::zeroed</span>();
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a> {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>callbacks: <a href="../../libgit2_sys/struct.git_remote_callbacks.html">raw::git_remote_callbacks</a> = mem::zeroed();
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
-                <span class="ident">raw::git_remote_init_callbacks</span>(<span class="kw-2">&amp;mut</span> <span class="ident">callbacks</span>, <span class="ident">raw::GIT_REMOTE_CALLBACKS_VERSION</span>),
-                <span class="number">0</span>
-            );
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">progress</span>.<span class="ident">is_some</span>() {
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">transfer_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#303-306">transfer_progress_cb</a>);
+                raw::git_remote_init_callbacks(<span class="kw-2">&amp;mut </span>callbacks, raw::GIT_REMOTE_CALLBACKS_VERSION),
+                <span class="number">0
+            </span>);
+            <span class="kw">if </span><span class="self">self</span>.progress.is_some() {
+                <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.transfer_progress = <span class="prelude-val">Some</span>(<a href="../../src/git2/remote_callbacks.rs.html#303-306">transfer_progress_cb</a>);
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">credentials</span>.<span class="ident">is_some</span>() {
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">credentials</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#254-260">credentials_cb</a>);
+            <span class="kw">if </span><span class="self">self</span>.credentials.is_some() {
+                <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.credentials = <span class="prelude-val">Some</span>(<a href="../../src/git2/remote_callbacks.rs.html#254-260">credentials_cb</a>);
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sideband_progress</span>.<span class="ident">is_some</span>() {
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">sideband_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#323">sideband_progress_cb</a>);
+            <span class="kw">if </span><span class="self">self</span>.sideband_progress.is_some() {
+                <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.sideband_progress = <span class="prelude-val">Some</span>(<a href="../../src/git2/remote_callbacks.rs.html#323">sideband_progress_cb</a>);
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">certificate_check</span>.<span class="ident">is_some</span>() {
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">certificate_check</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#364-369">certificate_check_cb</a>);
+            <span class="kw">if </span><span class="self">self</span>.certificate_check.is_some() {
+                <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.certificate_check = <span class="prelude-val">Some</span>(<a href="../../src/git2/remote_callbacks.rs.html#364-369">certificate_check_cb</a>);
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">push_update_reference</span>.<span class="ident">is_some</span>() {
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">push_update_reference</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#387-391">push_update_reference_cb</a>);
+            <span class="kw">if </span><span class="self">self</span>.push_update_reference.is_some() {
+                <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.push_update_reference = <span class="prelude-val">Some</span>(<a href="../../src/git2/remote_callbacks.rs.html#387-391">push_update_reference_cb</a>);
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">push_progress</span>.<span class="ident">is_some</span>() {
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">push_transfer_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#412-417">push_transfer_progress_cb</a>);
+            <span class="kw">if </span><span class="self">self</span>.push_progress.is_some() {
+                <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.push_transfer_progress = <span class="prelude-val">Some</span>(<a href="../../src/git2/remote_callbacks.rs.html#412-417">push_transfer_progress_cb</a>);
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">pack_progress</span>.<span class="ident">is_some</span>() {
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">pack_progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#432-437">pack_progress_cb</a>);
+            <span class="kw">if </span><span class="self">self</span>.pack_progress.is_some() {
+                <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.pack_progress = <span class="prelude-val">Some</span>(<a href="../../src/git2/remote_callbacks.rs.html#432-437">pack_progress_cb</a>);
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">update_tips</span>.<span class="ident">is_some</span>() {
-                <span class="kw">let</span> <span class="ident">f</span>: <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(
-                    <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-                    <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
-                    <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
-                    <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                ) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> <span class="op">=</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#340-345">update_tips_cb</a>;
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">update_tips</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#240">f</a>);
+            <span class="kw">if </span><span class="self">self</span>.update_tips.is_some() {
+                <span class="kw">let </span>f: <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
+                    <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+                    <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
+                    <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
+                    <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+                ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> = <a href="../../src/git2/remote_callbacks.rs.html#340-345">update_tips_cb</a>;
+                <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.update_tips = <span class="prelude-val">Some</span>(<a href="../../src/git2/remote_callbacks.rs.html#240">f</a>);
             }
-            <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.<span class="ident">payload</span> <span class="op">=</span> <a class="self" href="../../src/git2/remote_callbacks.rs.html#211">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-            <a class="ident" href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>
+            <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>.payload = <span class="self"><a href="../../src/git2/remote_callbacks.rs.html#211">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+            <a href="../../src/git2/remote_callbacks.rs.html#213">callbacks</a>
         }
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">credentials_cb</span>(
-    <span class="ident">ret</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_cred.html">raw::git_cred</a>,
-    <span class="ident">url</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">username_from_url</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">allowed_types</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">payload</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#259">payload</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-            <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">payload</span>
-                .<span class="ident">credentials</span>
-                .<span class="ident">as_mut</span>()
-                .<span class="ident">ok_or</span>(<span class="ident">raw::GIT_PASSTHROUGH</span> <span class="kw">as</span> <span class="ident">c_int</span>)<span class="question-mark">?</span>;
-            <span class="kw-2">*</span><a class="ident" href="../../src/git2/remote_callbacks.rs.html#255">ret</a> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-            <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">str::from_utf8</span>(<span class="ident">CStr::from_ptr</span>(<span class="ident">url</span>).<span class="ident">to_bytes</span>())
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">raw::GIT_PASSTHROUGH</span> <span class="kw">as</span> <span class="ident">c_int</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">username_from_url</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/remote_callbacks.rs.html#269">url</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#257">username_from_url</a>) {
-                <span class="prelude-val">Some</span>(<span class="ident">username</span>) =&gt; {
-                    <span class="prelude-val">Some</span>(<span class="ident">str::from_utf8</span>(<span class="ident">username</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">raw::GIT_PASSTHROUGH</span> <span class="kw">as</span> <span class="ident">c_int</span>)<span class="question-mark">?</span>)
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>credentials_cb(
+    ret: <span class="kw-2">*mut *mut </span><a href="../../libgit2_sys/struct.git_cred.html">raw::git_cred</a>,
+    url: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    username_from_url: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    allowed_types: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
+    payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>ok = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| {
+            <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/remote_callbacks.rs.html#259">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+            <span class="kw">let </span>callback = payload
+                .credentials
+                .as_mut()
+                .ok_or(raw::GIT_PASSTHROUGH <span class="kw">as </span>c_int)<span class="question-mark">?</span>;
+            <span class="kw-2">*</span><a href="../../src/git2/remote_callbacks.rs.html#255">ret</a> = ptr::null_mut();
+            <span class="kw">let </span>url = str::from_utf8(CStr::from_ptr(url).to_bytes())
+                .map_err(|<span class="kw">_</span>| raw::GIT_PASSTHROUGH <span class="kw">as </span>c_int)<span class="question-mark">?</span>;
+            <span class="kw">let </span>username_from_url = <span class="kw">match </span><a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/remote_callbacks.rs.html#269">url</a>, <a href="../../src/git2/remote_callbacks.rs.html#257">username_from_url</a>) {
+                <span class="prelude-val">Some</span>(username) =&gt; {
+                    <span class="prelude-val">Some</span>(str::from_utf8(username).map_err(|<span class="kw">_</span>| raw::GIT_PASSTHROUGH <span class="kw">as </span>c_int)<span class="question-mark">?</span>)
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">cred_type</span> <span class="op">=</span> <span class="ident">CredentialType::from_bits_truncate</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#258">allowed_types</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+            <span class="kw">let </span>cred_type = CredentialType::from_bits_truncate(<a href="../../src/git2/remote_callbacks.rs.html#258">allowed_types</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
 
-            <a class="ident" href="../../src/git2/remote_callbacks.rs.html#264">callback</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#269">url</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#271">username_from_url</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#278">cred_type</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#280">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<span class="ident">unwrap</span>();
-                <span class="ident">raw::git_error_set_str</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#280">e</a>.<a class="ident" href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#281">s</a>.<span class="ident">as_ptr</span>());
-                <a class="ident" href="../../src/git2/remote_callbacks.rs.html#280">e</a>.<a class="ident" href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>
+            <a href="../../src/git2/remote_callbacks.rs.html#264">callback</a>(<a href="../../src/git2/remote_callbacks.rs.html#269">url</a>, <a href="../../src/git2/remote_callbacks.rs.html#271">username_from_url</a>, <a href="../../src/git2/remote_callbacks.rs.html#278">cred_type</a>).map_err(|e| {
+                <span class="kw">let </span>s = CString::new(<a href="../../src/git2/remote_callbacks.rs.html#280">e</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).unwrap();
+                raw::git_error_set_str(<a href="../../src/git2/remote_callbacks.rs.html#280">e</a>.<a href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../src/git2/remote_callbacks.rs.html#281">s</a>.as_ptr());
+                <a href="../../src/git2/remote_callbacks.rs.html#280">e</a>.<a href="../../src/git2/error.rs.html#260">raw_code</a>() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>
             })
         });
-        <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#262">ok</a> {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">cred</span>)) =&gt; {
-                <span class="comment">// Turns out it&#39;s a memory safety issue if we pass through any</span>
-                <span class="comment">// and all credentials into libgit2</span>
-                <span class="kw">if</span> <span class="ident">allowed_types</span> <span class="op">&amp;</span> (<span class="ident">cred</span>.<span class="ident">credtype</span>() <span class="kw">as</span> <span class="ident">c_uint</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="kw-2">*</span><a class="ident" href="../../src/git2/remote_callbacks.rs.html#255">ret</a> <span class="op">=</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#287">cred</a>.<a class="ident" href="../../src/git2/cred.rs.html#165">unwrap</a>();
-                    <span class="number">0</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">raw::GIT_PASSTHROUGH</span> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>
+        <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#262">ok</a> {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(cred)) =&gt; {
+                <span class="comment">// Turns out it&#39;s a memory safety issue if we pass through any
+                // and all credentials into libgit2
+                </span><span class="kw">if </span>allowed_types &amp; (cred.credtype() <span class="kw">as </span>c_uint) != <span class="number">0 </span>{
+                    <span class="kw-2">*</span><a href="../../src/git2/remote_callbacks.rs.html#255">ret</a> = <a href="../../src/git2/remote_callbacks.rs.html#287">cred</a>.<a href="../../src/git2/cred.rs.html#165">unwrap</a>();
+                    <span class="number">0
+                </span>} <span class="kw">else </span>{
+                    raw::GIT_PASSTHROUGH <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#297">e</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="op">-</span><span class="number">1</span>,
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#297">e</a>,
+            <span class="prelude-val">None </span>=&gt; -<span class="number">1</span>,
         }
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">transfer_progress_cb</span>(
-    <span class="ident">stats</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_indexer_progress.html">raw::git_indexer_progress</a>,
-    <span class="ident">payload</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#305">payload</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#308">payload</a>.<span class="ident">progress</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#310">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>transfer_progress_cb(
+    stats: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_indexer_progress.html">raw::git_indexer_progress</a>,
+    payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">let </span>ok = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/remote_callbacks.rs.html#305">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#308">payload</a>.progress {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#310">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
         };
-        <span class="kw">let</span> <span class="ident">progress</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#304">stats</a>);
-        <a class="ident" href="../../src/git2/remote_callbacks.rs.html#309">callback</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#313">progress</a>)
+        <span class="kw">let </span>progress = <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/remote_callbacks.rs.html#304">stats</a>);
+        <a href="../../src/git2/remote_callbacks.rs.html#309">callback</a>(<a href="../../src/git2/remote_callbacks.rs.html#313">progress</a>)
     });
-    <span class="kw">if</span> <span class="ident">ok</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
-        <span class="number">0</span>
-    } <span class="kw">else</span> {
-        <span class="op">-</span><span class="number">1</span>
-    }
+    <span class="kw">if </span>ok == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="number">0
+    </span>} <span class="kw">else </span>{
+        -<span class="number">1
+    </span>}
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">sideband_progress_cb</span>(<span class="ident">str</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <span class="ident">len</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">payload</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#323">payload</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#325">payload</a>.<span class="ident">sideband_progress</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#327">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>sideband_progress_cb(str: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, len: <a href="../../libc/unix/type.c_int.html">c_int</a>, payload: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">let </span>ok = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/remote_callbacks.rs.html#323">payload</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#325">payload</a>.sideband_progress {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#327">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
         };
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#323">str</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#323">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <a class="ident" href="../../src/git2/remote_callbacks.rs.html#326">callback</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#330">buf</a>)
+        <span class="kw">let </span>buf = slice::from_raw_parts(<a href="../../src/git2/remote_callbacks.rs.html#323">str</a> <span class="kw">as </span><span class="kw-2">*const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a href="../../src/git2/remote_callbacks.rs.html#323">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a href="../../src/git2/remote_callbacks.rs.html#326">callback</a>(<a href="../../src/git2/remote_callbacks.rs.html#330">buf</a>)
     });
-    <span class="kw">if</span> <span class="ident">ok</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
-        <span class="number">0</span>
-    } <span class="kw">else</span> {
-        <span class="op">-</span><span class="number">1</span>
-    }
+    <span class="kw">if </span>ok == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="number">0
+    </span>} <span class="kw">else </span>{
+        -<span class="number">1
+    </span>}
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">update_tips_cb</span>(
-    <span class="ident">refname</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
-    <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
-    <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#344">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#347">payload</a>.<span class="ident">update_tips</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#349">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>update_tips_cb(
+    refname: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    a: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
+    b: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>,
+    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">let </span>ok = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/remote_callbacks.rs.html#344">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#347">payload</a>.update_tips {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#349">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
         };
-        <span class="kw">let</span> <span class="ident">refname</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#341">refname</a>).<span class="ident">to_bytes</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#342">a</a>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#343">b</a>);
-        <a class="ident" href="../../src/git2/remote_callbacks.rs.html#348">callback</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#352">refname</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#353">a</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#354">b</a>)
+        <span class="kw">let </span>refname = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(CStr::from_ptr(<a href="../../src/git2/remote_callbacks.rs.html#341">refname</a>).to_bytes()).unwrap();
+        <span class="kw">let </span>a = <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/remote_callbacks.rs.html#342">a</a>);
+        <span class="kw">let </span>b = <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/remote_callbacks.rs.html#343">b</a>);
+        <a href="../../src/git2/remote_callbacks.rs.html#348">callback</a>(<a href="../../src/git2/remote_callbacks.rs.html#352">refname</a>, <a href="../../src/git2/remote_callbacks.rs.html#353">a</a>, <a href="../../src/git2/remote_callbacks.rs.html#354">b</a>)
     });
-    <span class="kw">if</span> <span class="ident">ok</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
-        <span class="number">0</span>
-    } <span class="kw">else</span> {
-        <span class="op">-</span><span class="number">1</span>
-    }
+    <span class="kw">if </span>ok == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="number">0
+    </span>} <span class="kw">else </span>{
+        -<span class="number">1
+    </span>}
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">certificate_check_cb</span>(
-    <span class="ident">cert</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_cert.html">raw::git_cert</a>,
-    <span class="ident">_valid</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="ident">hostname</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#368">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#371">payload</a>.<span class="ident">certificate_check</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#373">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>certificate_check_cb(
+    cert: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_cert.html">raw::git_cert</a>,
+    _valid: <a href="../../libc/unix/type.c_int.html">c_int</a>,
+    hostname: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <span class="kw">let </span>ok = <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/remote_callbacks.rs.html#368">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#371">payload</a>.certificate_check {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#373">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
         };
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#365">cert</a>);
-        <span class="kw">let</span> <span class="ident">hostname</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#367">hostname</a>).<span class="ident">to_bytes</span>()).<span class="ident">unwrap</span>();
-        <a class="ident" href="../../src/git2/remote_callbacks.rs.html#372">callback</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/remote_callbacks.rs.html#376">cert</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#377">hostname</a>)
+        <span class="kw">let </span>cert = <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/remote_callbacks.rs.html#365">cert</a>);
+        <span class="kw">let </span>hostname = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(CStr::from_ptr(<a href="../../src/git2/remote_callbacks.rs.html#367">hostname</a>).to_bytes()).unwrap();
+        <a href="../../src/git2/remote_callbacks.rs.html#372">callback</a>(<span class="kw-2">&amp;</span><a href="../../src/git2/remote_callbacks.rs.html#376">cert</a>, <a href="../../src/git2/remote_callbacks.rs.html#377">hostname</a>)
     });
-    <span class="kw">if</span> <span class="ident">ok</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
-        <span class="number">0</span>
-    } <span class="kw">else</span> {
-        <span class="op">-</span><span class="number">1</span>
-    }
+    <span class="kw">if </span>ok == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="number">0
+    </span>} <span class="kw">else </span>{
+        -<span class="number">1
+    </span>}
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">push_update_reference_cb</span>(
-    <span class="ident">refname</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">status</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-    <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#390">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#393">payload</a>.<span class="ident">push_update_reference</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#395">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="number">0</span>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>push_update_reference_cb(
+    refname: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    status: <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/remote_callbacks.rs.html#390">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#393">payload</a>.push_update_reference {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#395">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="number">0</span>,
         };
-        <span class="kw">let</span> <span class="ident">refname</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#388">refname</a>).<span class="ident">to_bytes</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">is_null</span>() {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#389">status</a>).<span class="ident">to_bytes</span>()).<span class="ident">unwrap</span>())
+        <span class="kw">let </span>refname = <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(CStr::from_ptr(<a href="../../src/git2/remote_callbacks.rs.html#388">refname</a>).to_bytes()).unwrap();
+        <span class="kw">let </span>status = <span class="kw">if </span>status.is_null() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(CStr::from_ptr(<a href="../../src/git2/remote_callbacks.rs.html#389">status</a>).to_bytes()).unwrap())
         };
-        <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#394">callback</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#398">refname</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#399">status</a>) {
+        <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#394">callback</a>(<a href="../../src/git2/remote_callbacks.rs.html#398">refname</a>, <a href="../../src/git2/remote_callbacks.rs.html#399">status</a>) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="number">0</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#406">e</a>.<a class="ident" href="../../src/git2/error.rs.html#260">raw_code</a>(),
+            <span class="prelude-val">Err</span>(e) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#406">e</a>.<a href="../../src/git2/error.rs.html#260">raw_code</a>(),
         }
     })
-    .<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>)
+    .unwrap_or(-<span class="number">1</span>)
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">push_transfer_progress_cb</span>(
-    <span class="ident">progress</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">total</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">bytes</span>: <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
-    <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#416">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#419">payload</a>.<span class="ident">push_progress</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#421">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="number">0</span>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>push_transfer_progress_cb(
+    progress: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
+    total: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
+    bytes: <a href="../../libc/unix/type.size_t.html">size_t</a>,
+    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/remote_callbacks.rs.html#416">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#419">payload</a>.push_progress {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#421">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="number">0</span>,
         };
 
-        <a class="ident" href="../../src/git2/remote_callbacks.rs.html#420">callback</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#413">progress</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#414">total</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#415">bytes</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a href="../../src/git2/remote_callbacks.rs.html#420">callback</a>(<a href="../../src/git2/remote_callbacks.rs.html#413">progress</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/git2/remote_callbacks.rs.html#414">total</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/git2/remote_callbacks.rs.html#415">bytes</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <span class="number">0</span>
-    })
-    .<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>)
+        <span class="number">0
+    </span>})
+    .unwrap_or(-<span class="number">1</span>)
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">pack_progress_cb</span>(
-    <span class="ident">stage</span>: <a class="ident" href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>,
-    <span class="ident">current</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">total</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>,
-    <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-    <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#436">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RemoteCallbacks</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/remote_callbacks.rs.html#439">payload</a>.<span class="ident">pack_progress</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <a class="ident" href="../../src/git2/remote_callbacks.rs.html#441">c</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="number">0</span>,
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>pack_progress_cb(
+    stage: <a href="../../libgit2_sys/type.git_packbuilder_stage_t.html">raw::git_packbuilder_stage_t</a>,
+    current: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
+    total: <a href="../../libc/unix/type.c_uint.html">c_uint</a>,
+    data: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a> {
+    <a href="../../src/git2/panic.rs.html#8">panic::wrap</a>(|| <span class="kw">unsafe </span>{
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;mut *</span>(<a href="../../src/git2/remote_callbacks.rs.html#436">data</a> <span class="kw">as </span><span class="kw-2">*mut </span>RemoteCallbacks&lt;<span class="lifetime">&#39;_</span>&gt;);
+        <span class="kw">let </span>callback = <span class="kw">match </span><a href="../../src/git2/remote_callbacks.rs.html#439">payload</a>.pack_progress {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>c) =&gt; <a href="../../src/git2/remote_callbacks.rs.html#441">c</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="number">0</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">stage</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#433">stage</a>);
+        <span class="kw">let </span>stage = <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/remote_callbacks.rs.html#433">stage</a>);
 
-        <a class="ident" href="../../src/git2/remote_callbacks.rs.html#440">callback</a>(<a class="ident" href="../../src/git2/remote_callbacks.rs.html#445">stage</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#434">current</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/git2/remote_callbacks.rs.html#435">total</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a href="../../src/git2/remote_callbacks.rs.html#440">callback</a>(<a href="../../src/git2/remote_callbacks.rs.html#445">stage</a>, <a href="../../src/git2/remote_callbacks.rs.html#434">current</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../src/git2/remote_callbacks.rs.html#435">total</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <span class="number">0</span>
-    })
-    .<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>)
+        <span class="number">0
+    </span>})
+    .unwrap_or(-<span class="number">1</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

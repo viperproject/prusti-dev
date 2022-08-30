@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["prusti_interface"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html\" title=\"trait alloc::string::ToString\">ToString</a> for <a class=\"struct\" href=\"prusti_interface/environment/polonius_info/struct.ReborrowingDAG.html\" title=\"struct prusti_interface::environment::polonius_info::ReborrowingDAG\">ReborrowingDAG</a>","synthetic":false,"types":["prusti_interface::environment::polonius_info::ReborrowingDAG"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"prusti_interface":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html\" title=\"trait alloc::string::ToString\">ToString</a> for <a class=\"struct\" href=\"prusti_interface/environment/polonius_info/struct.ReborrowingDAG.html\" title=\"struct prusti_interface::environment::polonius_info::ReborrowingDAG\">ReborrowingDAG</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

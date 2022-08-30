@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/proto/connection.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.14/src/proto/connection.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -581,588 +581,588 @@
 <span id="581">581</span>
 <span id="582">582</span>
 <span id="583">583</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/h2/codec/error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::frame</span>::{<a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, <a class="ident" href="../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/h2/lib.rs.html#122">client</a>, <a class="ident" href="../../../src/h2/lib.rs.html#116">frame</a>, <a class="ident" href="../../../src/h2/lib.rs.html#124">server</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/h2/codec/error.rs.html#14"><span class="kw">crate</span>::codec::UserError</a>;
+<span class="kw">use </span><span class="kw">crate</span>::frame::{<a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, <a href="../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>};
+<span class="kw">use crate</span>::{<a href="../../../src/h2/lib.rs.html#122">client</a>, <a href="../../../src/h2/lib.rs.html#116">frame</a>, <a href="../../../src/h2/lib.rs.html#124">server</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/h2/frame/settings.rs.html#44"><span class="kw">crate</span>::frame::DEFAULT_INITIAL_WINDOW_SIZE</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/h2/lib.rs.html#109"><span class="kw">crate</span>::proto</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><a href="../../../src/h2/frame/settings.rs.html#44"><span class="kw">crate</span>::frame::DEFAULT_INITIAL_WINDOW_SIZE</a>;
+<span class="kw">use </span><a href="../../../src/h2/lib.rs.html#109"><span class="kw">crate</span>::proto</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>};
-<span class="kw">use</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
-<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>};
+<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
+<span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
 
-<span class="doccomment">/// An H2 connection</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> <span class="op">=</span> <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <a class="ident" href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
+<span class="doccomment">/// An H2 connection
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connection&lt;T, P, B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;
+<span class="kw">where
+    </span>P: <a href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
 {
-    <span class="doccomment">/// Read / write frame values</span>
-    <span class="ident">codec</span>: <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Read / write frame values
+    </span>codec: Codec&lt;T, Prioritized&lt;B&gt;&gt;,
 
-    <span class="ident">inner</span>: <span class="ident">ConnectionInner</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>,
+    inner: ConnectionInner&lt;P, B&gt;,
 }
 
-<span class="comment">// Extracted part of `Connection` which does not depend on `T`. Reduces the amount of duplicated</span>
-<span class="comment">// method instantiations.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ConnectionInner</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> <span class="op">=</span> <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <a class="ident" href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
+<span class="comment">// Extracted part of `Connection` which does not depend on `T`. Reduces the amount of duplicated
+// method instantiations.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>ConnectionInner&lt;P, B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;
+<span class="kw">where
+    </span>P: <a href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
 {
-    <span class="doccomment">/// Tracks the connection level state transitions.</span>
-    <span class="ident">state</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#87">State</a>,
+    <span class="doccomment">/// Tracks the connection level state transitions.
+    </span>state: <a href="../../../src/h2/proto/connection.rs.html#87">State</a>,
 
-    <span class="doccomment">/// An error to report back once complete.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This exists separately from State in order to support</span>
-    <span class="doccomment">/// graceful shutdown.</span>
-    <span class="ident">error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/go_away.rs.html#8">frame::GoAway</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// An error to report back once complete.
+    ///
+    /// This exists separately from State in order to support
+    /// graceful shutdown.
+    </span>error: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/frame/go_away.rs.html#8">frame::GoAway</a>&gt;,
 
-    <span class="doccomment">/// Pending GOAWAY frames to write.</span>
-    <span class="ident">go_away</span>: <a class="ident" href="../../../src/h2/proto/go_away.rs.html#11">GoAway</a>,
+    <span class="doccomment">/// Pending GOAWAY frames to write.
+    </span>go_away: <a href="../../../src/h2/proto/go_away.rs.html#11">GoAway</a>,
 
-    <span class="doccomment">/// Ping/pong handler</span>
-    <span class="ident">ping_pong</span>: <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#15">PingPong</a>,
+    <span class="doccomment">/// Ping/pong handler
+    </span>ping_pong: <a href="../../../src/h2/proto/ping_pong.rs.html#15">PingPong</a>,
 
-    <span class="doccomment">/// Connection settings</span>
-    <span class="ident">settings</span>: <a class="ident" href="../../../src/h2/proto/settings.rs.html#8">Settings</a>,
+    <span class="doccomment">/// Connection settings
+    </span>settings: <a href="../../../src/h2/proto/settings.rs.html#8">Settings</a>,
 
-    <span class="doccomment">/// Stream state handler</span>
-    <span class="ident">streams</span>: <span class="ident">Streams</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">P</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Stream state handler
+    </span>streams: Streams&lt;B, P&gt;,
 
-    <span class="doccomment">/// A `tracing` span tracking the lifetime of the connection.</span>
-    <span class="ident">span</span>: <a class="ident" href="../../../tracing/span/struct.Span.html">tracing::Span</a>,
+    <span class="doccomment">/// A `tracing` span tracking the lifetime of the connection.
+    </span>span: <a href="../../../tracing/span/struct.Span.html">tracing::Span</a>,
 
-    <span class="doccomment">/// Client or server</span>
-    <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Client or server
+    </span>_phantom: PhantomData&lt;P&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">DynConnection</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> <span class="op">=</span> <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> {
-    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#87">State</a>,
+<span class="kw">struct </span>DynConnection&lt;<span class="lifetime">&#39;a</span>, B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a> = <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; {
+    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../../src/h2/proto/connection.rs.html#87">State</a>,
 
-    <span class="ident">go_away</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../src/h2/proto/go_away.rs.html#11">GoAway</a>,
+    go_away: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../../src/h2/proto/go_away.rs.html#11">GoAway</a>,
 
-    <span class="ident">streams</span>: <span class="ident">DynStreams</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span>,
+    streams: DynStreams&lt;<span class="lifetime">&#39;a</span>, B&gt;,
 
-    <span class="ident">error</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/go_away.rs.html#8">frame::GoAway</a><span class="op">&gt;</span>,
+    error: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/frame/go_away.rs.html#8">frame::GoAway</a>&gt;,
 
-    <span class="ident">ping_pong</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#15">PingPong</a>,
+    ping_pong: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../../src/h2/proto/ping_pong.rs.html#15">PingPong</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Config</span> {
-    <span class="kw">pub</span> <span class="ident">next_stream_id</span>: <a class="ident" href="../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>,
-    <span class="kw">pub</span> <span class="ident">initial_max_send_streams</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub</span> <span class="ident">max_send_buffer_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub</span> <span class="ident">reset_stream_duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
-    <span class="kw">pub</span> <span class="ident">reset_stream_max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="kw">pub</span> <span class="ident">settings</span>: <a class="ident" href="../../../src/h2/frame/settings.rs.html#7">frame::Settings</a>,
+<span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Config {
+    <span class="kw">pub </span>next_stream_id: <a href="../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>,
+    <span class="kw">pub </span>initial_max_send_streams: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">pub </span>max_send_buffer_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">pub </span>reset_stream_duration: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>,
+    <span class="kw">pub </span>reset_stream_max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">pub </span>settings: <a href="../../../src/h2/frame/settings.rs.html#7">frame::Settings</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="doccomment">/// Currently open in a sane state</span>
-    <span class="ident">Open</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>State {
+    <span class="doccomment">/// Currently open in a sane state
+    </span>Open,
 
-    <span class="doccomment">/// The codec must be flushed</span>
-    <span class="ident">Closing</span>(<a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, <a class="ident" href="../../../src/h2/proto/error.rs.html#17">Initiator</a>),
+    <span class="doccomment">/// The codec must be flushed
+    </span>Closing(<a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, <a href="../../../src/h2/proto/error.rs.html#17">Initiator</a>),
 
-    <span class="doccomment">/// In a closed state</span>
-    <span class="ident">Closed</span>(<a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, <a class="ident" href="../../../src/h2/proto/error.rs.html#17">Initiator</a>),
+    <span class="doccomment">/// In a closed state
+    </span>Closed(<a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, <a href="../../../src/h2/proto/error.rs.html#17">Initiator</a>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">P</span>: <a class="ident" href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
-    <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+<span class="kw">impl</span>&lt;T, P, B&gt; Connection&lt;T, P, B&gt;
+<span class="kw">where
+    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    P: <a href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
+    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">codec</span>: <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">config</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#77">Config</a>) -&gt; <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">streams_config</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/proto/connection.rs.html#77">Config</a>) -&gt; <a class="ident" href="../../../src/h2/proto/streams/mod.rs.html#34">streams::Config</a> {
-            <a class="ident" href="../../../src/h2/proto/streams/mod.rs.html#34">streams::Config</a> {
-                <span class="ident">local_init_window_sz</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>
-                    .<span class="ident">settings</span>
-                    .<a class="ident" href="../../../src/h2/frame/settings.rs.html#69">initial_window_size</a>()
-                    .<span class="ident">unwrap_or</span>(<a class="ident" href="../../../src/h2/frame/settings.rs.html#44">DEFAULT_INITIAL_WINDOW_SIZE</a>),
-                <span class="ident">initial_max_send_streams</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>.<span class="ident">initial_max_send_streams</span>,
-                <span class="ident">local_max_buffer_size</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>.<span class="ident">max_send_buffer_size</span>,
-                <span class="ident">local_next_stream_id</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>.<span class="ident">next_stream_id</span>,
-                <span class="ident">local_push_enabled</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>.<span class="ident">settings</span>.<a class="ident" href="../../../src/h2/frame/settings.rs.html#104">is_push_enabled</a>().<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>),
-                <span class="ident">extended_connect_protocol_enabled</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>
-                    .<span class="ident">settings</span>
-                    .<a class="ident" href="../../../src/h2/frame/settings.rs.html#112">is_extended_connect_protocol_enabled</a>()
-                    .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>),
-                <span class="ident">local_reset_duration</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>.<span class="ident">reset_stream_duration</span>,
-                <span class="ident">local_reset_max</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>.<span class="ident">reset_stream_max</span>,
-                <span class="ident">remote_init_window_sz</span>: <a class="ident" href="../../../src/h2/frame/settings.rs.html#44">DEFAULT_INITIAL_WINDOW_SIZE</a>,
-                <span class="ident">remote_max_initiated</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#105">config</a>
-                    .<span class="ident">settings</span>
-                    .<a class="ident" href="../../../src/h2/frame/settings.rs.html#77">max_concurrent_streams</a>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">max</span><span class="op">|</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#125">max</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+    <span class="kw">pub fn </span>new(codec: Codec&lt;T, Prioritized&lt;B&gt;&gt;, config: <a href="../../../src/h2/proto/connection.rs.html#77">Config</a>) -&gt; Connection&lt;T, P, B&gt; {
+        <span class="kw">fn </span>streams_config(config: <span class="kw-2">&amp;</span><a href="../../../src/h2/proto/connection.rs.html#77">Config</a>) -&gt; <a href="../../../src/h2/proto/streams/mod.rs.html#34">streams::Config</a> {
+            <a href="../../../src/h2/proto/streams/mod.rs.html#34">streams::Config</a> {
+                local_init_window_sz: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>
+                    .settings
+                    .<a href="../../../src/h2/frame/settings.rs.html#69">initial_window_size</a>()
+                    .unwrap_or(<a href="../../../src/h2/frame/settings.rs.html#44">DEFAULT_INITIAL_WINDOW_SIZE</a>),
+                initial_max_send_streams: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>.initial_max_send_streams,
+                local_max_buffer_size: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>.max_send_buffer_size,
+                local_next_stream_id: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>.next_stream_id,
+                local_push_enabled: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>.settings.<a href="../../../src/h2/frame/settings.rs.html#104">is_push_enabled</a>().unwrap_or(<span class="bool-val">true</span>),
+                extended_connect_protocol_enabled: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>
+                    .settings
+                    .<a href="../../../src/h2/frame/settings.rs.html#112">is_extended_connect_protocol_enabled</a>()
+                    .unwrap_or(<span class="bool-val">false</span>),
+                local_reset_duration: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>.reset_stream_duration,
+                local_reset_max: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>.reset_stream_max,
+                remote_init_window_sz: <a href="../../../src/h2/frame/settings.rs.html#44">DEFAULT_INITIAL_WINDOW_SIZE</a>,
+                remote_max_initiated: <a href="../../../src/h2/proto/connection.rs.html#105">config</a>
+                    .settings
+                    .<a href="../../../src/h2/frame/settings.rs.html#77">max_concurrent_streams</a>()
+                    .map(|max| <a href="../../../src/h2/proto/connection.rs.html#125">max</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
             }
         }
-        <span class="kw">let</span> <span class="ident">streams</span> <span class="op">=</span> <span class="ident">Streams::new</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#105">streams_config</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/proto/connection.rs.html#104">config</a>));
-        <a class="ident" href="../../../src/h2/proto/connection.rs.html#19">Connection</a> {
-            <a class="ident" href="../../../src/h2/proto/connection.rs.html#104">codec</a>,
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#32">ConnectionInner</a> {
-                <span class="ident">state</span>: <a class="ident" href="../../../src/h2/proto/connection.rs.html#89">State::Open</a>,
-                <span class="ident">error</span>: <span class="prelude-val">None</span>,
-                <span class="ident">go_away</span>: <span class="ident">GoAway::new</span>(),
-                <span class="ident">ping_pong</span>: <span class="ident">PingPong::new</span>(),
-                <span class="ident">settings</span>: <span class="ident">Settings::new</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#104">config</a>.<span class="ident">settings</span>),
-                <a class="ident" href="../../../src/h2/proto/connection.rs.html#128">streams</a>,
-                <span class="ident">span</span>: <a class="macro" href="../../../tracing/tracing/macro.debug_span.html">tracing::debug_span!</a>(<span class="string">&quot;Connection&quot;</span>, <span class="ident">peer</span> <span class="op">=</span> <span class="op">%</span><span class="ident">P::NAME</span>),
-                <span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+        <span class="kw">let </span>streams = Streams::new(<a href="../../../src/h2/proto/connection.rs.html#105">streams_config</a>(<span class="kw-2">&amp;</span><a href="../../../src/h2/proto/connection.rs.html#104">config</a>));
+        <a href="../../../src/h2/proto/connection.rs.html#19">Connection</a> {
+            <a href="../../../src/h2/proto/connection.rs.html#104">codec</a>,
+            inner: <a href="../../../src/h2/proto/connection.rs.html#32">ConnectionInner</a> {
+                state: <a href="../../../src/h2/proto/connection.rs.html#89">State::Open</a>,
+                error: <span class="prelude-val">None</span>,
+                go_away: GoAway::new(),
+                ping_pong: PingPong::new(),
+                settings: Settings::new(<a href="../../../src/h2/proto/connection.rs.html#104">config</a>.settings),
+                <a href="../../../src/h2/proto/connection.rs.html#128">streams</a>,
+                span: <a class="macro" href="../../../tracing/tracing/macro.debug_span.html">tracing::debug_span!</a>(<span class="string">&quot;Connection&quot;</span>, peer = %P::NAME),
+                _phantom: PhantomData,
             },
         }
     }
 
-    <span class="doccomment">/// connection flow control</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_target_window_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#145">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#122">set_target_connection_window_size</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#145">size</a>);
+    <span class="doccomment">/// connection flow control
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_target_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#145">self</a>.inner.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#121">set_target_connection_window_size</a>(<a href="../../../src/h2/proto/connection.rs.html#145">size</a>);
     }
 
-    <span class="doccomment">/// Send a new SETTINGS frame with an updated initial window size.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_initial_window_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/codec/error.rs.html#14">UserError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">frame::Settings::default</span>();
-        <a class="ident" href="../../../src/h2/proto/connection.rs.html#151">settings</a>.<a class="ident" href="../../../src/h2/frame/settings.rs.html#73">set_initial_window_size</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#150">size</a>));
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#150">self</a>.<span class="ident">inner</span>.<span class="ident">settings</span>.<a class="ident" href="../../../src/h2/proto/settings.rs.html#83">send_settings</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#151">settings</a>)
+    <span class="doccomment">/// Send a new SETTINGS frame with an updated initial window size.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_initial_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/codec/error.rs.html#14">UserError</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>settings = frame::Settings::default();
+        <a href="../../../src/h2/proto/connection.rs.html#151">settings</a>.<a href="../../../src/h2/frame/settings.rs.html#73">set_initial_window_size</a>(<span class="prelude-val">Some</span>(<a href="../../../src/h2/proto/connection.rs.html#150">size</a>));
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#150">self</a>.inner.settings.<a href="../../../src/h2/proto/settings.rs.html#83">send_settings</a>(<a href="../../../src/h2/proto/connection.rs.html#151">settings</a>)
     }
 
-    <span class="doccomment">/// Send a new SETTINGS frame with extended CONNECT protocol enabled.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_enable_connect_protocol</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/codec/error.rs.html#14">UserError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">frame::Settings::default</span>();
-        <a class="ident" href="../../../src/h2/proto/connection.rs.html#158">settings</a>.<a class="ident" href="../../../src/h2/frame/settings.rs.html#116">set_enable_connect_protocol</a>(<span class="prelude-val">Some</span>(<span class="number">1</span>));
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#157">self</a>.<span class="ident">inner</span>.<span class="ident">settings</span>.<a class="ident" href="../../../src/h2/proto/settings.rs.html#83">send_settings</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#158">settings</a>)
+    <span class="doccomment">/// Send a new SETTINGS frame with extended CONNECT protocol enabled.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_enable_connect_protocol(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/codec/error.rs.html#14">UserError</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>settings = frame::Settings::default();
+        <a href="../../../src/h2/proto/connection.rs.html#158">settings</a>.<a href="../../../src/h2/frame/settings.rs.html#116">set_enable_connect_protocol</a>(<span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#157">self</a>.inner.settings.<a href="../../../src/h2/proto/settings.rs.html#83">send_settings</a>(<a href="../../../src/h2/proto/connection.rs.html#158">settings</a>)
     }
 
-    <span class="doccomment">/// Returns the maximum number of concurrent streams that may be initiated</span>
-    <span class="doccomment">/// by this peer.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">max_send_streams</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#165">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#962">max_send_streams</a>()
+    <span class="doccomment">/// Returns the maximum number of concurrent streams that may be initiated
+    /// by this peer.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_send_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#165">self</a>.inner.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#961">max_send_streams</a>()
     }
 
-    <span class="doccomment">/// Returns the maximum number of concurrent streams that may be initiated</span>
-    <span class="doccomment">/// by the remote peer.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">max_recv_streams</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#171">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#966">max_recv_streams</a>()
+    <span class="doccomment">/// Returns the maximum number of concurrent streams that may be initiated
+    /// by the remote peer.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_recv_streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#171">self</a>.inner.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#965">max_recv_streams</a>()
     }
 
-    <span class="doccomment">/// Returns `Ready` when the connection is ready to receive a frame.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `Error` as this may raise errors that are caused by delayed</span>
-    <span class="doccomment">/// processing of received frames.</span>
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">inner</span>.<span class="ident">span</span>.<span class="ident">enter</span>();
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;poll_ready&quot;</span>);
-        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#181">span</a>.<span class="ident">enter</span>();
-        <span class="comment">// The order of these calls don&#39;t really matter too much</span>
-        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">ping_pong</span>.<span class="ident">send_pending_pong</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
-        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">ping_pong</span>.<span class="ident">send_pending_ping</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
-        <span class="macro">ready!</span>(<span class="self">self</span>
-            .<span class="ident">inner</span>
-            .<span class="ident">settings</span>
-            .<span class="ident">poll_send</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>))<span class="question-mark">?</span>;
-        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>.<span class="ident">send_pending_refusal</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Returns `Ready` when the connection is ready to receive a frame.
+    ///
+    /// Returns `Error` as this may raise errors that are caused by delayed
+    /// processing of received frames.
+    </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt;&gt; {
+        <span class="kw">let </span>_e = <a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.inner.span.enter();
+        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;poll_ready&quot;</span>);
+        <span class="kw">let </span>_e = <a href="../../../src/h2/proto/connection.rs.html#181">span</a>.enter();
+        <span class="comment">// The order of these calls don&#39;t really matter too much
+        </span><span class="macro">ready!</span>(<span class="self">self</span>.inner.ping_pong.send_pending_pong(cx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.inner.ping_pong.send_pending_ping(cx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self
+            </span>.inner
+            .settings
+            .poll_send(cx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec, <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner.streams))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.inner.streams.send_pending_refusal(cx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec))<span class="question-mark">?</span>;
 
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+        Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
-    <span class="doccomment">/// Send any pending GOAWAY frames.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will return `Some(reason)` if the connection should be closed</span>
-    <span class="doccomment">/// afterwards. If this is a graceful shutdown, this returns `None`.</span>
-    <span class="kw">fn</span> <span class="ident">poll_go_away</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#199">self</a>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#124-131">send_pending_go_away</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#199">cx</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#199">self</a>.<span class="ident">codec</span>)
+    <span class="doccomment">/// Send any pending GOAWAY frames.
+    ///
+    /// This will return `Some(reason)` if the connection should be closed
+    /// afterwards. If this is a graceful shutdown, this returns `None`.
+    </span><span class="kw">fn </span>poll_go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;io::Result&lt;<a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>&gt;&gt;&gt; {
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#199">self</a>.inner.go_away.<a href="../../../src/h2/proto/go_away.rs.html#124-131">send_pending_go_away</a>(<a href="../../../src/h2/proto/connection.rs.html#199">cx</a>, <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/h2/proto/connection.rs.html#199">self</a>.codec)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_away_from_user</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>) {
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#203">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a class="ident" href="../../../src/h2/proto/connection.rs.html#394">go_away_from_user</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#203">e</a>)
+    <span class="kw">pub fn </span>go_away_from_user(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>) {
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#203">self</a>.inner.<a href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a href="../../../src/h2/proto/connection.rs.html#394">go_away_from_user</a>(<a href="../../../src/h2/proto/connection.rs.html#203">e</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">take_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ours</span>: <a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, <span class="ident">initiator</span>: <a class="ident" href="../../../src/h2/proto/error.rs.html#17">Initiator</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">debug_data</span>, <span class="ident">theirs</span>) <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#207">self</a>
-            .<span class="ident">inner</span>
-            .<span class="ident">error</span>
-            .<span class="ident">take</span>()
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">map_or</span>((<span class="ident">Bytes::new</span>(), <span class="ident">Reason::NO_ERROR</span>), <span class="op">|</span><span class="ident">frame</span><span class="op">|</span> {
-                (<a class="ident" href="../../../src/h2/proto/connection.rs.html#213">frame</a>.<a class="ident" href="../../../src/h2/frame/go_away.rs.html#32">debug_data</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/h2/proto/connection.rs.html#213">frame</a>.<a class="ident" href="../../../src/h2/frame/go_away.rs.html#28">reason</a>())
+    <span class="kw">fn </span>take_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ours: <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>, initiator: <a href="../../../src/h2/proto/error.rs.html#17">Initiator</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt; {
+        <span class="kw">let </span>(debug_data, theirs) = <span class="self"><a href="../../../src/h2/proto/connection.rs.html#207">self</a>
+            </span>.inner
+            .error
+            .take()
+            .as_ref()
+            .map_or((Bytes::new(), Reason::NO_ERROR), |frame| {
+                (<a href="../../../src/h2/proto/connection.rs.html#213">frame</a>.<a href="../../../src/h2/frame/go_away.rs.html#32">debug_data</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../src/h2/proto/connection.rs.html#213">frame</a>.<a href="../../../src/h2/frame/go_away.rs.html#28">reason</a>())
             });
 
-        <span class="kw">match</span> (<a class="ident" href="../../../src/h2/proto/connection.rs.html#207">ours</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#208">theirs</a>) {
-            (<span class="ident">Reason::NO_ERROR</span>, <span class="ident">Reason::NO_ERROR</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-            (<span class="ident">ours</span>, <span class="ident">Reason::NO_ERROR</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/error.rs.html#12">Error::GoAway</a>(<span class="ident">Bytes::new</span>(), <a class="ident" href="../../../src/h2/proto/connection.rs.html#219">ours</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#207">initiator</a>)),
-            <span class="comment">// If both sides reported an error, give their</span>
-            <span class="comment">// error back to th user. We assume our error</span>
-            <span class="comment">// was a consequence of their error, and less</span>
-            <span class="comment">// important.</span>
-            (<span class="kw">_</span>, <span class="ident">theirs</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::remote_go_away</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#208">debug_data</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#224">theirs</a>)),
+        <span class="kw">match </span>(<a href="../../../src/h2/proto/connection.rs.html#207">ours</a>, <a href="../../../src/h2/proto/connection.rs.html#208">theirs</a>) {
+            (Reason::NO_ERROR, Reason::NO_ERROR) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+            (ours, Reason::NO_ERROR) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/h2/proto/error.rs.html#12">Error::GoAway</a>(Bytes::new(), <a href="../../../src/h2/proto/connection.rs.html#219">ours</a>, <a href="../../../src/h2/proto/connection.rs.html#207">initiator</a>)),
+            <span class="comment">// If both sides reported an error, give their
+            // error back to th user. We assume our error
+            // was a consequence of their error, and less
+            // important.
+            </span>(<span class="kw">_</span>, theirs) =&gt; <span class="prelude-val">Err</span>(Error::remote_go_away(<a href="../../../src/h2/proto/connection.rs.html#208">debug_data</a>, <a href="../../../src/h2/proto/connection.rs.html#224">theirs</a>)),
         }
     }
 
-    <span class="doccomment">/// Closes the connection by transitioning to a GOAWAY state</span>
-    <span class="doccomment">/// iff there are no streams or references</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_close_connection_if_no_streams</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// If we poll() and realize that there are no streams or references</span>
-        <span class="comment">// then we can close the connection by transitioning to GOAWAY</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>.<span class="ident">has_streams_or_other_references</span>() {
-            <a class="self" href="../../../src/h2/proto/connection.rs.html#230">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a class="ident" href="../../../src/h2/proto/connection.rs.html#388">go_away_now</a>(<span class="ident">Reason::NO_ERROR</span>);
+    <span class="doccomment">/// Closes the connection by transitioning to a GOAWAY state
+    /// iff there are no streams or references
+    </span><span class="kw">pub fn </span>maybe_close_connection_if_no_streams(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// If we poll() and realize that there are no streams or references
+        // then we can close the connection by transitioning to GOAWAY
+        </span><span class="kw">if </span>!<span class="self">self</span>.inner.streams.has_streams_or_other_references() {
+            <a class="self" href="../../../src/h2/proto/connection.rs.html#230">self</a>.inner.<a href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a href="../../../src/h2/proto/connection.rs.html#388">go_away_now</a>(Reason::NO_ERROR);
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take_user_pings</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#22">UserPings</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#238">self</a>.<span class="ident">inner</span>.<span class="ident">ping_pong</span>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#73">take_user_pings</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take_user_pings(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/proto/ping_pong.rs.html#22">UserPings</a>&gt; {
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#238">self</a>.inner.ping_pong.<a href="../../../src/h2/proto/ping_pong.rs.html#73">take_user_pings</a>()
     }
 
-    <span class="doccomment">/// Advances the internal state of the connection.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// XXX(eliza): cloning the span is unfortunately necessary here in</span>
-        <span class="comment">// order to placate the borrow checker — `self` is mutably borrowed by</span>
-        <span class="comment">// `poll2`, which means that we can&#39;t borrow `self.span` to enter it.</span>
-        <span class="comment">// The clone is just an atomic ref bump.</span>
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">span</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#248">span</a>.<span class="ident">enter</span>();
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;poll&quot;</span>);
-        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#250">span</a>.<span class="ident">enter</span>();
+    <span class="doccomment">/// Advances the internal state of the connection.
+    </span><span class="kw">pub fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt;&gt; {
+        <span class="comment">// XXX(eliza): cloning the span is unfortunately necessary here in
+        // order to placate the borrow checker — `self` is mutably borrowed by
+        // `poll2`, which means that we can&#39;t borrow `self.span` to enter it.
+        // The clone is just an atomic ref bump.
+        </span><span class="kw">let </span>span = <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.inner.span.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>_e = <a href="../../../src/h2/proto/connection.rs.html#248">span</a>.enter();
+        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;poll&quot;</span>);
+        <span class="kw">let </span>_e = <a href="../../../src/h2/proto/connection.rs.html#250">span</a>.enter();
 
-        <span class="kw">loop</span> {
-            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">connection</span>.<span class="ident">state</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">state</span>);
-            <span class="comment">// TODO: probably clean up this glob of code</span>
-            <span class="kw">match</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">state</span> {
-                <span class="comment">// When open, continue to poll a frame</span>
-                <a class="ident" href="../../../src/h2/proto/connection.rs.html#89">State::Open</a> =&gt; {
-                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#297">poll2</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#243">cx</a>) {
-                        <span class="ident">Poll::Ready</span>(<span class="ident">result</span>) =&gt; <a class="ident" href="../../../src/h2/proto/connection.rs.html#260">result</a>,
-                        <span class="comment">// The connection is not ready to make progress</span>
-                        <span class="ident">Poll::Pending</span> =&gt; {
-                            <span class="comment">// Ensure all window updates have been sent.</span>
-                            <span class="comment">//</span>
-                            <span class="comment">// This will also handle flushing `self.codec`</span>
-                            <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>.<span class="ident">poll_complete</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
+        <span class="kw">loop </span>{
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(connection.state = <span class="question-mark">?</span><span class="self">self</span>.inner.state);
+            <span class="comment">// TODO: probably clean up this glob of code
+            </span><span class="kw">match </span><a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.inner.state {
+                <span class="comment">// When open, continue to poll a frame
+                </span><a href="../../../src/h2/proto/connection.rs.html#89">State::Open</a> =&gt; {
+                    <span class="kw">let </span>result = <span class="kw">match </span><a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<a href="../../../src/h2/proto/connection.rs.html#297">poll2</a>(<a href="../../../src/h2/proto/connection.rs.html#243">cx</a>) {
+                        Poll::Ready(result) =&gt; <a href="../../../src/h2/proto/connection.rs.html#260">result</a>,
+                        <span class="comment">// The connection is not ready to make progress
+                        </span>Poll::Pending =&gt; {
+                            <span class="comment">// Ensure all window updates have been sent.
+                            //
+                            // This will also handle flushing `self.codec`
+                            </span><span class="macro">ready!</span>(<span class="self">self</span>.inner.streams.poll_complete(cx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec))<span class="question-mark">?</span>;
 
-                            <span class="kw">if</span> (<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">error</span>.<span class="ident">is_some</span>()
-                                <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<span class="ident">should_close_on_idle</span>())
-                                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>.<span class="ident">has_streams</span>()
+                            <span class="kw">if </span>(<span class="self">self</span>.inner.error.is_some()
+                                || <span class="self">self</span>.inner.go_away.should_close_on_idle())
+                                &amp;&amp; !<span class="self">self</span>.inner.streams.has_streams()
                             {
-                                <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a class="ident" href="../../../src/h2/proto/connection.rs.html#388">go_away_now</a>(<span class="ident">Reason::NO_ERROR</span>);
+                                <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.inner.<a href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a href="../../../src/h2/proto/connection.rs.html#388">go_away_now</a>(Reason::NO_ERROR);
                                 <span class="kw">continue</span>;
                             }
 
-                            <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+                            <span class="kw">return </span>Poll::Pending;
                         }
                     };
 
-                    <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_dyn</span>().<span class="ident">handle_poll2_result</span>(<span class="ident">result</span>)<span class="question-mark">?</span>
-                }
-                <a class="ident" href="../../../src/h2/proto/connection.rs.html#92">State::Closing</a>(<span class="ident">reason</span>, <span class="ident">initiator</span>) =&gt; {
+                    <span class="self">self</span>.inner.as_dyn().handle_poll2_result(result)<span class="question-mark">?
+                </span>}
+                <a href="../../../src/h2/proto/connection.rs.html#92">State::Closing</a>(reason, initiator) =&gt; {
                     <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;connection closing after flush&quot;</span>);
-                    <span class="comment">// Flush/shutdown the codec</span>
-                    <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">codec</span>.<span class="ident">shutdown</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+                    <span class="comment">// Flush/shutdown the codec
+                    </span><span class="macro">ready!</span>(<span class="self">self</span>.codec.shutdown(cx))<span class="question-mark">?</span>;
 
-                    <span class="comment">// Transition the state to error</span>
-                    <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#95">State::Closed</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#282">reason</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#282">initiator</a>);
+                    <span class="comment">// Transition the state to error
+                    </span><a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.inner.state = <a href="../../../src/h2/proto/connection.rs.html#95">State::Closed</a>(<a href="../../../src/h2/proto/connection.rs.html#282">reason</a>, <a href="../../../src/h2/proto/connection.rs.html#282">initiator</a>);
                 }
-                <a class="ident" href="../../../src/h2/proto/connection.rs.html#95">State::Closed</a>(<span class="ident">reason</span>, <span class="ident">initiator</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#207">take_error</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#290">reason</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#290">initiator</a>));
+                <a href="../../../src/h2/proto/connection.rs.html#95">State::Closed</a>(reason, initiator) =&gt; {
+                    <span class="kw">return </span>Poll::Ready(<a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<a href="../../../src/h2/proto/connection.rs.html#207">take_error</a>(<a href="../../../src/h2/proto/connection.rs.html#290">reason</a>, <a href="../../../src/h2/proto/connection.rs.html#290">initiator</a>));
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll2</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// This happens outside of the loop to prevent needing to do a clock</span>
-        <span class="comment">// check and then comparison of the queue possibly multiple times a</span>
-        <span class="comment">// second (and thus, the clock wouldn&#39;t have changed enough to matter).</span>
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#348">clear_expired_reset_streams</a>();
+    <span class="kw">fn </span>poll2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt;&gt; {
+        <span class="comment">// This happens outside of the loop to prevent needing to do a clock
+        // check and then comparison of the queue possibly multiple times a
+        // second (and thus, the clock wouldn&#39;t have changed enough to matter).
+        </span><a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<a href="../../../src/h2/proto/connection.rs.html#348">clear_expired_reset_streams</a>();
 
-        <span class="kw">loop</span> {
-            <span class="comment">// First, ensure that the `Connection` is able to receive a frame</span>
-            <span class="comment">//</span>
-            <span class="comment">// The order here matters:</span>
-            <span class="comment">// - poll_go_away may buffer a graceful shutdown GOAWAY frame</span>
-            <span class="comment">// - If it has, we&#39;ve also added a PING to be sent in poll_ready</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reason</span>) <span class="op">=</span> <a class="macro" href="../../../src/h2/lib.rs.html#94-101">ready!</a>(<span class="self">self</span>.<span class="ident">poll_go_away</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>) {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<span class="ident">should_close_now</span>() {
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<span class="ident">is_user_initiated</span>() {
-                        <span class="comment">// A user initiated abrupt shutdown shouldn&#39;t return</span>
-                        <span class="comment">// the same error back to the user.</span>
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#309">reason</a>)));
+        <span class="kw">loop </span>{
+            <span class="comment">// First, ensure that the `Connection` is able to receive a frame
+            //
+            // The order here matters:
+            // - poll_go_away may buffer a graceful shutdown GOAWAY frame
+            // - If it has, we&#39;ve also added a PING to be sent in poll_ready
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(reason) = <a class="macro" href="../../../src/h2/lib.rs.html#94-101">ready!</a>(<span class="self">self</span>.poll_go_away(cx)<span class="question-mark">?</span>) {
+                <span class="kw">if </span><span class="self">self</span>.inner.go_away.should_close_now() {
+                    <span class="kw">if </span><span class="self">self</span>.inner.go_away.is_user_initiated() {
+                        <span class="comment">// A user initiated abrupt shutdown shouldn&#39;t return
+                        // the same error back to the user.
+                        </span><span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(Error::library_go_away(<a href="../../../src/h2/proto/connection.rs.html#309">reason</a>)));
                     }
                 }
-                <span class="comment">// Only NO_ERROR should be waiting for idle</span>
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
-                    <span class="ident">reason</span>,
-                    <span class="ident">Reason::NO_ERROR</span>,
-                    <span class="string">&quot;graceful GOAWAY should be NO_ERROR&quot;</span>
-                );
+                <span class="comment">// Only NO_ERROR should be waiting for idle
+                </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
+                    reason,
+                    Reason::NO_ERROR,
+                    <span class="string">&quot;graceful GOAWAY should be NO_ERROR&quot;
+                </span>);
             }
-            <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+            <span class="macro">ready!</span>(<span class="self">self</span>.poll_ready(cx))<span class="question-mark">?</span>;
 
-            <span class="kw">match</span> <span class="self">self</span>
-                .<span class="ident">inner</span>
-                .<span class="ident">as_dyn</span>()
-                .<span class="ident">recv_frame</span>(<span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>))<span class="question-mark">?</span>
-            {
-                <a class="ident" href="../../../src/h2/proto/connection.rs.html#524">ReceivedFrame::Settings</a>(<span class="ident">frame</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">settings</span>.<span class="ident">recv_settings</span>(
-                        <span class="ident">frame</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>,
+            <span class="kw">match </span><span class="self">self
+                </span>.inner
+                .as_dyn()
+                .recv_frame(<span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.codec).poll_next(cx)<span class="question-mark">?</span>))<span class="question-mark">?
+            </span>{
+                <a href="../../../src/h2/proto/connection.rs.html#524">ReceivedFrame::Settings</a>(frame) =&gt; {
+                    <span class="self">self</span>.inner.settings.recv_settings(
+                        frame,
+                        <span class="kw-2">&amp;mut </span><span class="self">self</span>.codec,
+                        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner.streams,
                     )<span class="question-mark">?</span>;
                 }
-                <a class="ident" href="../../../src/h2/proto/connection.rs.html#525">ReceivedFrame::Continue</a> =&gt; (),
-                <a class="ident" href="../../../src/h2/proto/connection.rs.html#526">ReceivedFrame::Done</a> =&gt; {
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
+                <a href="../../../src/h2/proto/connection.rs.html#525">ReceivedFrame::Continue</a> =&gt; (),
+                <a href="../../../src/h2/proto/connection.rs.html#526">ReceivedFrame::Done</a> =&gt; {
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">clear_expired_reset_streams</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#348">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#164">clear_expired_reset_streams</a>();
+    <span class="kw">fn </span>clear_expired_reset_streams(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#348">self</a>.inner.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#163">clear_expired_reset_streams</a>();
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">ConnectionInner</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <a class="ident" href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
-    <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+<span class="kw">impl</span>&lt;P, B&gt; ConnectionInner&lt;P, B&gt;
+<span class="kw">where
+    </span>P: <a href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
+    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
 {
-    <span class="kw">fn</span> <span class="ident">as_dyn</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">DynConnection</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#32">ConnectionInner</a> {
-            <span class="ident">state</span>,
-            <span class="ident">go_away</span>,
-            <span class="ident">streams</span>,
-            <span class="ident">error</span>,
-            <span class="ident">ping_pong</span>,
+    <span class="kw">fn </span>as_dyn(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; DynConnection&lt;<span class="lifetime">&#39;_</span>, B&gt; {
+        <span class="kw">let </span><a href="../../../src/h2/proto/connection.rs.html#32">ConnectionInner</a> {
+            state,
+            go_away,
+            streams,
+            error,
+            ping_pong,
             ..
-        } <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#358">self</a>;
-        <span class="kw">let</span> <span class="ident">streams</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#362">streams</a>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#942">as_dyn</a>();
-        <a class="ident" href="../../../src/h2/proto/connection.rs.html#64">DynConnection</a> {
-            <a class="ident" href="../../../src/h2/proto/connection.rs.html#360">state</a>,
-            <a class="ident" href="../../../src/h2/proto/connection.rs.html#361">go_away</a>,
-            <a class="ident" href="../../../src/h2/proto/connection.rs.html#367">streams</a>,
-            <a class="ident" href="../../../src/h2/proto/connection.rs.html#363">error</a>,
-            <a class="ident" href="../../../src/h2/proto/connection.rs.html#364">ping_pong</a>,
+        } = <a class="self" href="../../../src/h2/proto/connection.rs.html#358">self</a>;
+        <span class="kw">let </span>streams = <a href="../../../src/h2/proto/connection.rs.html#362">streams</a>.<a href="../../../src/h2/proto/streams/streams.rs.html#941">as_dyn</a>();
+        <a href="../../../src/h2/proto/connection.rs.html#64">DynConnection</a> {
+            <a href="../../../src/h2/proto/connection.rs.html#360">state</a>,
+            <a href="../../../src/h2/proto/connection.rs.html#361">go_away</a>,
+            <a href="../../../src/h2/proto/connection.rs.html#367">streams</a>,
+            <a href="../../../src/h2/proto/connection.rs.html#363">error</a>,
+            <a href="../../../src/h2/proto/connection.rs.html#364">ping_pong</a>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="ident">DynConnection</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+<span class="kw">impl</span>&lt;B&gt; DynConnection&lt;<span class="lifetime">&#39;_</span>, B&gt;
+<span class="kw">where
+    </span>B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
 {
-    <span class="kw">fn</span> <span class="ident">go_away</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>, <span class="ident">e</span>: <a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>) {
-        <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="ident">frame::GoAway::new</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#382">id</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#382">e</a>);
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#382">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#365">send_go_away</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#382">id</a>);
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#382">self</a>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#57">go_away</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#383">frame</a>);
+    <span class="kw">fn </span>go_away(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>, e: <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>) {
+        <span class="kw">let </span>frame = frame::GoAway::new(<a href="../../../src/h2/proto/connection.rs.html#382">id</a>, <a href="../../../src/h2/proto/connection.rs.html#382">e</a>);
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#382">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#364">send_go_away</a>(<a href="../../../src/h2/proto/connection.rs.html#382">id</a>);
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#382">self</a>.go_away.<a href="../../../src/h2/proto/go_away.rs.html#57">go_away</a>(<a href="../../../src/h2/proto/connection.rs.html#383">frame</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">go_away_now</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>) {
-        <span class="kw">let</span> <span class="ident">last_processed_id</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#388">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#341">last_processed_id</a>();
-        <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="ident">frame::GoAway::new</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#389">last_processed_id</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#388">e</a>);
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#388">self</a>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#75">go_away_now</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#390">frame</a>);
+    <span class="kw">fn </span>go_away_now(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>) {
+        <span class="kw">let </span>last_processed_id = <a class="self" href="../../../src/h2/proto/connection.rs.html#388">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#340">last_processed_id</a>();
+        <span class="kw">let </span>frame = frame::GoAway::new(<a href="../../../src/h2/proto/connection.rs.html#389">last_processed_id</a>, <a href="../../../src/h2/proto/connection.rs.html#388">e</a>);
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#388">self</a>.go_away.<a href="../../../src/h2/proto/go_away.rs.html#75">go_away_now</a>(<a href="../../../src/h2/proto/connection.rs.html#390">frame</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">go_away_from_user</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">e</span>: <a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>) {
-        <span class="kw">let</span> <span class="ident">last_processed_id</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#394">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#341">last_processed_id</a>();
-        <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="ident">frame::GoAway::new</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#395">last_processed_id</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#394">e</a>);
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#394">self</a>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#87">go_away_from_user</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#396">frame</a>);
+    <span class="kw">fn </span>go_away_from_user(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>) {
+        <span class="kw">let </span>last_processed_id = <a class="self" href="../../../src/h2/proto/connection.rs.html#394">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#340">last_processed_id</a>();
+        <span class="kw">let </span>frame = frame::GoAway::new(<a href="../../../src/h2/proto/connection.rs.html#395">last_processed_id</a>, <a href="../../../src/h2/proto/connection.rs.html#394">e</a>);
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#394">self</a>.go_away.<a href="../../../src/h2/proto/go_away.rs.html#87">go_away_from_user</a>(<a href="../../../src/h2/proto/connection.rs.html#396">frame</a>);
 
-        <span class="comment">// Notify all streams of reason we&#39;re abruptly closing.</span>
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#394">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#331">handle_error</a>(<span class="ident">Error::user_go_away</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#394">e</a>));
+        <span class="comment">// Notify all streams of reason we&#39;re abruptly closing.
+        </span><a class="self" href="../../../src/h2/proto/connection.rs.html#394">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#330">handle_error</a>(Error::user_go_away(<a href="../../../src/h2/proto/connection.rs.html#394">e</a>));
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_poll2_result</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">result</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#403">result</a> {
-            <span class="comment">// The connection has shutdown normally</span>
-            <span class="prelude-val">Ok</span>(()) =&gt; {
-                <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#92">State::Closing</a>(<span class="ident">Reason::NO_ERROR</span>, <a class="ident" href="../../../src/h2/proto/error.rs.html#19">Initiator::Library</a>);
+    <span class="kw">fn </span>handle_poll2_result(<span class="kw-2">&amp;mut </span><span class="self">self</span>, result: <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt; {
+        <span class="kw">match </span><a href="../../../src/h2/proto/connection.rs.html#403">result</a> {
+            <span class="comment">// The connection has shutdown normally
+            </span><span class="prelude-val">Ok</span>(()) =&gt; {
+                <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.state = <a href="../../../src/h2/proto/connection.rs.html#92">State::Closing</a>(Reason::NO_ERROR, <a href="../../../src/h2/proto/error.rs.html#19">Initiator::Library</a>);
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="comment">// Attempting to read a frame resulted in a connection level</span>
-            <span class="comment">// error. This is handled by setting a GOAWAY frame followed by</span>
-            <span class="comment">// terminating the connection.</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/error.rs.html#12">Error::GoAway</a>(<span class="ident">debug_data</span>, <span class="ident">reason</span>, <span class="ident">initiator</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/error.rs.html#12">Error::GoAway</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#413">debug_data</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#413">reason</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#413">initiator</a>);
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="ident">error</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">e</span>, <span class="string">&quot;Connection::poll; connection error&quot;</span>);
+            <span class="comment">// Attempting to read a frame resulted in a connection level
+            // error. This is handled by setting a GOAWAY frame followed by
+            // terminating the connection.
+            </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/proto/error.rs.html#12">Error::GoAway</a>(debug_data, reason, initiator)) =&gt; {
+                <span class="kw">let </span>e = <a href="../../../src/h2/proto/error.rs.html#12">Error::GoAway</a>(<a href="../../../src/h2/proto/connection.rs.html#413">debug_data</a>, <a href="../../../src/h2/proto/connection.rs.html#413">reason</a>, <a href="../../../src/h2/proto/connection.rs.html#413">initiator</a>);
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(error = <span class="question-mark">?</span>e, <span class="string">&quot;Connection::poll; connection error&quot;</span>);
 
-                <span class="comment">// We may have already sent a GOAWAY for this error,</span>
-                <span class="comment">// if so, don&#39;t send another, just flush and close up.</span>
-                <span class="kw">if</span> <span class="self">self</span>
-                    .<span class="ident">go_away</span>
-                    .<span class="ident">going_away</span>()
-                    .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">frame</span><span class="op">|</span> <span class="ident">frame</span>.<span class="ident">reason</span>() <span class="op">==</span> <span class="ident">reason</span>)
+                <span class="comment">// We may have already sent a GOAWAY for this error,
+                // if so, don&#39;t send another, just flush and close up.
+                </span><span class="kw">if </span><span class="self">self
+                    </span>.go_away
+                    .going_away()
+                    .map_or(<span class="bool-val">false</span>, |frame| frame.reason() == reason)
                 {
                     <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;    -&gt; already going away&quot;</span>);
-                    <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#92">State::Closing</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#413">reason</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#413">initiator</a>);
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+                    <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.state = <a href="../../../src/h2/proto/connection.rs.html#92">State::Closing</a>(<a href="../../../src/h2/proto/connection.rs.html#413">reason</a>, <a href="../../../src/h2/proto/connection.rs.html#413">initiator</a>);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
 
-                <span class="comment">// Reset all active streams</span>
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#331">handle_error</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#414">e</a>);
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#388">go_away_now</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#413">reason</a>);
+                <span class="comment">// Reset all active streams
+                </span><a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#330">handle_error</a>(<a href="../../../src/h2/proto/connection.rs.html#414">e</a>);
+                <a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<a href="../../../src/h2/proto/connection.rs.html#388">go_away_now</a>(<a href="../../../src/h2/proto/connection.rs.html#413">reason</a>);
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="comment">// Attempting to read a frame resulted in a stream level error.</span>
-            <span class="comment">// This is handled by resetting the frame then trying to read</span>
-            <span class="comment">// another frame.</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/error.rs.html#11">Error::Reset</a>(<span class="ident">id</span>, <span class="ident">reason</span>, <span class="ident">initiator</span>)) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">initiator</span>, <span class="ident">Initiator::Library</span>);
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">id</span>, <span class="question-mark">?</span><span class="ident">reason</span>, <span class="string">&quot;stream error&quot;</span>);
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#360">send_reset</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#437">id</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#437">reason</a>);
+            <span class="comment">// Attempting to read a frame resulted in a stream level error.
+            // This is handled by resetting the frame then trying to read
+            // another frame.
+            </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/proto/error.rs.html#11">Error::Reset</a>(id, reason, initiator)) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(initiator, Initiator::Library);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>id, <span class="question-mark">?</span>reason, <span class="string">&quot;stream error&quot;</span>);
+                <a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#359">send_reset</a>(<a href="../../../src/h2/proto/connection.rs.html#437">id</a>, <a href="../../../src/h2/proto/connection.rs.html#437">reason</a>);
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="comment">// Attempting to read a frame resulted in an I/O error. All</span>
-            <span class="comment">// active streams must be reset.</span>
-            <span class="comment">//</span>
-            <span class="comment">// TODO: Are I/O errors recoverable?</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/error.rs.html#13">Error::Io</a>(<span class="ident">e</span>, <span class="ident">inner</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="ident">error</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">e</span>, <span class="string">&quot;Connection::poll; IO error&quot;</span>);
-                <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/error.rs.html#13">Error::Io</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#447">e</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#447">inner</a>);
+            <span class="comment">// Attempting to read a frame resulted in an I/O error. All
+            // active streams must be reset.
+            //
+            // TODO: Are I/O errors recoverable?
+            </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/proto/error.rs.html#13">Error::Io</a>(e, inner)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(error = <span class="question-mark">?</span>e, <span class="string">&quot;Connection::poll; IO error&quot;</span>);
+                <span class="kw">let </span>e = <a href="../../../src/h2/proto/error.rs.html#13">Error::Io</a>(<a href="../../../src/h2/proto/connection.rs.html#447">e</a>, <a href="../../../src/h2/proto/connection.rs.html#447">inner</a>);
 
-                <span class="comment">// Reset all active streams</span>
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#331">handle_error</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#449">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="comment">// Reset all active streams
+                </span><a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#330">handle_error</a>(<a href="../../../src/h2/proto/connection.rs.html#449">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-                <span class="comment">// Return the error</span>
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#449">e</a>)
+                <span class="comment">// Return the error
+                </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/proto/connection.rs.html#449">e</a>)
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">recv_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">frame</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/mod.rs.html#70">Frame</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/proto/connection.rs.html#523">ReceivedFrame</a>, <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/h2/frame/mod.rs.html#70"><span class="kw">crate</span>::frame::Frame</a>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#460">frame</a> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#72">Headers</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv HEADERS&quot;</span>);
-                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_headers</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>recv_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/frame/mod.rs.html#80">Frame</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/h2/proto/connection.rs.html#523">ReceivedFrame</a>, <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt; {
+        <span class="kw">use </span><a href="../../../src/h2/frame/mod.rs.html#80"><span class="kw">crate</span>::frame::Frame</a>::<span class="kw-2">*</span>;
+        <span class="kw">match </span><a href="../../../src/h2/proto/connection.rs.html#460">frame</a> {
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#82">Headers</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv HEADERS&quot;</span>);
+                <span class="self">self</span>.streams.recv_headers(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#71">Data</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv DATA&quot;</span>);
-                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_data</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#81">Data</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv DATA&quot;</span>);
+                <span class="self">self</span>.streams.recv_data(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#79">Reset</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv RST_STREAM&quot;</span>);
-                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_reset</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#89">Reset</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv RST_STREAM&quot;</span>);
+                <span class="self">self</span>.streams.recv_reset(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#74">PushPromise</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PUSH_PROMISE&quot;</span>);
-                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_push_promise</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#84">PushPromise</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PUSH_PROMISE&quot;</span>);
+                <span class="self">self</span>.streams.recv_push_promise(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#75">Settings</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv SETTINGS&quot;</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#524">ReceivedFrame::Settings</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#479">frame</a>));
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#85">Settings</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv SETTINGS&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/h2/proto/connection.rs.html#524">ReceivedFrame::Settings</a>(<a href="../../../src/h2/proto/connection.rs.html#479">frame</a>));
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#77">GoAway</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv GOAWAY&quot;</span>);
-                <span class="comment">// This should prevent starting new streams,</span>
-                <span class="comment">// but should allow continuing to process current streams</span>
-                <span class="comment">// until they are all EOS. Once they are, State should</span>
-                <span class="comment">// transition to GoAway.</span>
-                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_go_away</span>(<span class="kw-2">&amp;</span><span class="ident">frame</span>)<span class="question-mark">?</span>;
-                <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#483">frame</a>);
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#87">GoAway</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv GOAWAY&quot;</span>);
+                <span class="comment">// This should prevent starting new streams,
+                // but should allow continuing to process current streams
+                // until they are all EOS. Once they are, State should
+                // transition to GoAway.
+                </span><span class="self">self</span>.streams.recv_go_away(<span class="kw-2">&amp;</span>frame)<span class="question-mark">?</span>;
+                <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.error = <span class="prelude-val">Some</span>(<a href="../../../src/h2/proto/connection.rs.html#483">frame</a>);
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#76">Ping</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PING&quot;</span>);
-                <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">ping_pong</span>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#97">recv_ping</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#492">frame</a>);
-                <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">is_shutdown</span>() {
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#86">Ping</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PING&quot;</span>);
+                <span class="kw">let </span>status = <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.ping_pong.<a href="../../../src/h2/proto/ping_pong.rs.html#97">recv_ping</a>(<a href="../../../src/h2/proto/connection.rs.html#492">frame</a>);
+                <span class="kw">if </span>status.is_shutdown() {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-                        <span class="self">self</span>.<span class="ident">go_away</span>.<span class="ident">is_going_away</span>(),
-                        <span class="string">&quot;received unexpected shutdown ping&quot;</span>
-                    );
+                        <span class="self">self</span>.go_away.is_going_away(),
+                        <span class="string">&quot;received unexpected shutdown ping&quot;
+                    </span>);
 
-                    <span class="kw">let</span> <span class="ident">last_processed_id</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#341">last_processed_id</a>();
-                    <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#382">go_away</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#501">last_processed_id</a>, <span class="ident">Reason::NO_ERROR</span>);
+                    <span class="kw">let </span>last_processed_id = <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#340">last_processed_id</a>();
+                    <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<a href="../../../src/h2/proto/connection.rs.html#382">go_away</a>(<a href="../../../src/h2/proto/connection.rs.html#501">last_processed_id</a>, Reason::NO_ERROR);
                 }
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#78">WindowUpdate</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv WINDOW_UPDATE&quot;</span>);
-                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_window_update</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#88">WindowUpdate</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv WINDOW_UPDATE&quot;</span>);
+                <span class="self">self</span>.streams.recv_window_update(frame)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#73">Priority</a>(<span class="ident">frame</span>)) =&gt; {
-                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PRIORITY&quot;</span>);
-                <span class="comment">// TODO: handle</span>
-            }
-            <span class="prelude-val">None</span> =&gt; {
+            <span class="prelude-val">Some</span>(<a href="../../../src/h2/frame/mod.rs.html#83">Priority</a>(frame)) =&gt; {
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;recv PRIORITY&quot;</span>);
+                <span class="comment">// TODO: handle
+            </span>}
+            <span class="prelude-val">None </span>=&gt; {
                 <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;codec closed&quot;</span>);
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#355">recv_eof</a>(<span class="bool-val">false</span>).<span class="ident">expect</span>(<span class="string">&quot;mutex poisoned&quot;</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#526">ReceivedFrame::Done</a>);
+                <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#354">recv_eof</a>(<span class="bool-val">false</span>).expect(<span class="string">&quot;mutex poisoned&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/h2/proto/connection.rs.html#526">ReceivedFrame::Done</a>);
             }
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#525">ReceivedFrame::Continue</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/h2/proto/connection.rs.html#525">ReceivedFrame::Continue</a>)
     }
 }
 
-<span class="kw">enum</span> <span class="ident">ReceivedFrame</span> {
-    <span class="ident">Settings</span>(<a class="ident" href="../../../src/h2/frame/settings.rs.html#7">frame::Settings</a>),
-    <span class="ident">Continue</span>,
-    <span class="ident">Done</span>,
+<span class="kw">enum </span>ReceivedFrame {
+    Settings(<a href="../../../src/h2/frame/settings.rs.html#7">frame::Settings</a>),
+    Continue,
+    Done,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/h2/client.rs.html#338">client::Peer</a>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
-    <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+<span class="kw">impl</span>&lt;T, B&gt; Connection&lt;T, <a href="../../../src/h2/client.rs.html#338">client::Peer</a>, B&gt;
+<span class="kw">where
+    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
+    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
 {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">streams</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Streams</span><span class="op">&lt;</span><span class="ident">B</span>, <a class="ident" href="../../../src/h2/client.rs.html#338">client::Peer</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/h2/proto/connection.rs.html#534">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>streams(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Streams&lt;B, <a href="../../../src/h2/client.rs.html#338">client::Peer</a>&gt; {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/h2/proto/connection.rs.html#534">self</a>.inner.streams
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/h2/server.rs.html#320">server::Peer</a>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+<span class="kw">impl</span>&lt;T, B&gt; Connection&lt;T, <a href="../../../src/h2/server.rs.html#320">server::Peer</a>, B&gt;
+<span class="kw">where
+    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_incoming</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StreamRef</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#544">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#131">next_incoming</a>()
+    <span class="kw">pub fn </span>next_incoming(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StreamRef&lt;B&gt;&gt; {
+        <a class="self" href="../../../src/h2/proto/connection.rs.html#544">self</a>.inner.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#130">next_incoming</a>()
     }
 
-    <span class="comment">// Graceful shutdown only makes sense for server peers.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_away_gracefully</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<span class="ident">is_going_away</span>() {
-            <span class="comment">// No reason to start a new one.</span>
-            <span class="kw">return</span>;
+    <span class="comment">// Graceful shutdown only makes sense for server peers.
+    </span><span class="kw">pub fn </span>go_away_gracefully(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.inner.go_away.is_going_away() {
+            <span class="comment">// No reason to start a new one.
+            </span><span class="kw">return</span>;
         }
 
-        <span class="comment">// According to http://httpwg.org/specs/rfc7540.html#GOAWAY:</span>
-        <span class="comment">//</span>
-        <span class="comment">// &gt; A server that is attempting to gracefully shut down a connection</span>
-        <span class="comment">// &gt; SHOULD send an initial GOAWAY frame with the last stream</span>
-        <span class="comment">// &gt; identifier set to 2^31-1 and a NO_ERROR code. This signals to the</span>
-        <span class="comment">// &gt; client that a shutdown is imminent and that initiating further</span>
-        <span class="comment">// &gt; requests is prohibited. After allowing time for any in-flight</span>
-        <span class="comment">// &gt; stream creation (at least one round-trip time), the server can</span>
-        <span class="comment">// &gt; send another GOAWAY frame with an updated last stream identifier.</span>
-        <span class="comment">// &gt; This ensures that a connection can be cleanly shut down without</span>
-        <span class="comment">// &gt; losing requests.</span>
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#549">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a class="ident" href="../../../src/h2/proto/connection.rs.html#382">go_away</a>(<span class="ident">StreamId::MAX</span>, <span class="ident">Reason::NO_ERROR</span>);
+        <span class="comment">// According to http://httpwg.org/specs/rfc7540.html#GOAWAY:
+        //
+        // &gt; A server that is attempting to gracefully shut down a connection
+        // &gt; SHOULD send an initial GOAWAY frame with the last stream
+        // &gt; identifier set to 2^31-1 and a NO_ERROR code. This signals to the
+        // &gt; client that a shutdown is imminent and that initiating further
+        // &gt; requests is prohibited. After allowing time for any in-flight
+        // &gt; stream creation (at least one round-trip time), the server can
+        // &gt; send another GOAWAY frame with an updated last stream identifier.
+        // &gt; This ensures that a connection can be cleanly shut down without
+        // &gt; losing requests.
+        </span><a class="self" href="../../../src/h2/proto/connection.rs.html#549">self</a>.inner.<a href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a href="../../../src/h2/proto/connection.rs.html#382">go_away</a>(StreamId::MAX, Reason::NO_ERROR);
 
-        <span class="comment">// We take the advice of waiting 1 RTT literally, and wait</span>
-        <span class="comment">// for a pong before proceeding.</span>
-        <a class="self" href="../../../src/h2/proto/connection.rs.html#549">self</a>.<span class="ident">inner</span>.<span class="ident">ping_pong</span>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#87">ping_shutdown</a>();
+        <span class="comment">// We take the advice of waiting 1 RTT literally, and wait
+        // for a pong before proceeding.
+        </span><a class="self" href="../../../src/h2/proto/connection.rs.html#549">self</a>.inner.ping_pong.<a href="../../../src/h2/proto/ping_pong.rs.html#87">ping_shutdown</a>();
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <a class="ident" href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
-    <span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+<span class="kw">impl</span>&lt;T, P, B&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Connection&lt;T, P, B&gt;
+<span class="kw">where
+    </span>P: <a href="../../../src/h2/proto/peer.rs.html#10">Peer</a>,
+    B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
 {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// Ignore errors as this indicates that the mutex is poisoned.</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#579">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#958">recv_eof</a>(<span class="bool-val">true</span>);
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// Ignore errors as this indicates that the mutex is poisoned.
+        </span><span class="kw">let _ </span>= <a class="self" href="../../../src/h2/proto/connection.rs.html#579">self</a>.inner.streams.<a href="../../../src/h2/proto/streams/streams.rs.html#957">recv_eof</a>(<span class="bool-val">true</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

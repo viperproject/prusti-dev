@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/reply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/reply.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reply.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -255,262 +255,262 @@
 <span id="255">255</span>
 <span id="256">256</span>
 <span id="257">257</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Reply Filters</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! These &quot;filters&quot; behave a little differently than the rest. Instead of</span>
-<span class="doccomment">//! being used directly on requests, these filters &quot;wrap&quot; other filters.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Wrapping a `Filter` (`with`)</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use warp::Filter;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let with_server = warp::reply::with::header(&quot;server&quot;, &quot;warp&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let route = warp::any()</span>
-<span class="doccomment">//!     .map(warp::reply)</span>
-<span class="doccomment">//!     .with(with_server);</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Wrapping allows adding in conditional logic *before* the request enters</span>
-<span class="doccomment">//! the inner filter (though the `with::header` wrapper does not).</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Reply Filters
+//!
+//! These &quot;filters&quot; behave a little differently than the rest. Instead of
+//! being used directly on requests, these filters &quot;wrap&quot; other filters.
+//!
+//!
+//! ## Wrapping a `Filter` (`with`)
+//!
+//! ```
+//! use warp::Filter;
+//!
+//! let with_server = warp::reply::with::header(&quot;server&quot;, &quot;warp&quot;);
+//!
+//! let route = warp::any()
+//!     .map(warp::reply)
+//!     .with(with_server);
+//! ```
+//!
+//! Wrapping allows adding in conditional logic *before* the request enters
+//! the inner filter (though the `with::header` wrapper does not).
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
 
-<span class="kw">use</span> <span class="ident">http::header</span>::{<a class="ident" href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>, <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>};
+<span class="kw">use </span>http::header::{<a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::sealed</span>::{<a class="ident" href="../../../src/warp/filters/reply.rs.html#241">WithDefaultHeader_</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#205">WithHeader_</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#223">WithHeaders_</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::filter</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a class="ident" href="../../../src/warp/filter/map.rs.html#11">Map</a>, <a class="ident" href="../../../src/warp/filter/wrap.rs.html#3">WrapSealed</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
+<span class="kw">use </span><span class="self">self</span>::sealed::{<a href="../../../src/warp/filters/reply.rs.html#241">WithDefaultHeader_</a>, <a href="../../../src/warp/filters/reply.rs.html#205">WithHeader_</a>, <a href="../../../src/warp/filters/reply.rs.html#223">WithHeaders_</a>};
+<span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../../../src/warp/filter/mod.rs.html#93">Filter</a>, <a href="../../../src/warp/filter/map.rs.html#11">Map</a>, <a href="../../../src/warp/filter/wrap.rs.html#3">WrapSealed</a>};
+<span class="kw">use </span><a href="../../../src/warp/reply.rs.html#228"><span class="kw">crate</span>::reply::Reply</a>;
 
-<span class="doccomment">/// Wrap a [`Filter`](crate::Filter) that adds a header to the reply.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This **only** adds a header if the underlying filter is successful, and</span>
-<span class="doccomment">/// returns a [`Reply`](Reply). If the underlying filter was rejected, the</span>
-<span class="doccomment">/// header is not added.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Always set `foo: bar` header.</span>
-<span class="doccomment">/// let route = warp::any()</span>
-<span class="doccomment">///     .map(warp::reply)</span>
-<span class="doccomment">///     .with(warp::reply::with::header(&quot;foo&quot;, &quot;bar&quot;));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a>
-<span class="kw">where</span>
-    <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
-    <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Wrap a [`Filter`](crate::Filter) that adds a header to the reply.
+///
+/// # Note
+///
+/// This **only** adds a header if the underlying filter is successful, and
+/// returns a [`Reply`](Reply). If the underlying filter was rejected, the
+/// header is not added.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// // Always set `foo: bar` header.
+/// let route = warp::any()
+///     .map(warp::reply)
+///     .with(warp::reply::with::header(&quot;foo&quot;, &quot;bar&quot;));
+/// ```
+</span><span class="kw">pub fn </span>header&lt;K, V&gt;(name: K, value: V) -&gt; <a href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a>
+<span class="kw">where
+    </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
+    &lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
+    <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
+    &lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
 {
-    <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">value</span>) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#180-185">assert_name_and_value</a>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#49">name</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#49">value</a>);
-    <a class="ident" href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a> { <a class="ident" href="../../../src/warp/filters/reply.rs.html#56">name</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#56">value</a> }
+    <span class="kw">let </span>(name, value) = <a href="../../../src/warp/filters/reply.rs.html#180-185">assert_name_and_value</a>(<a href="../../../src/warp/filters/reply.rs.html#49">name</a>, <a href="../../../src/warp/filters/reply.rs.html#49">value</a>);
+    <a href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a> { <a href="../../../src/warp/filters/reply.rs.html#56">name</a>, <a href="../../../src/warp/filters/reply.rs.html#56">value</a> }
 }
 
-<span class="doccomment">/// Wrap a [`Filter`](crate::Filter) that adds multiple headers to the reply.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This **only** adds a header if the underlying filter is successful, and</span>
-<span class="doccomment">/// returns a [`Reply`](Reply). If the underlying filter was rejected, the</span>
-<span class="doccomment">/// header is not added.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::http::header::{HeaderMap, HeaderValue};</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut headers = HeaderMap::new();</span>
-<span class="doccomment">/// headers.insert(&quot;server&quot;, HeaderValue::from_static(&quot;wee/0&quot;));</span>
-<span class="doccomment">/// headers.insert(&quot;foo&quot;, HeaderValue::from_static(&quot;bar&quot;));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Always set `server: wee/0` and `foo: bar` headers.</span>
-<span class="doccomment">/// let route = warp::any()</span>
-<span class="doccomment">///     .map(warp::reply)</span>
-<span class="doccomment">///     .with(warp::reply::with::headers(headers));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="ident">headers</span>: <a class="ident" href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>) -&gt; <a class="ident" href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a> {
-    <a class="ident" href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a> {
-        <span class="ident">headers</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#83">headers</a>),
+<span class="doccomment">/// Wrap a [`Filter`](crate::Filter) that adds multiple headers to the reply.
+///
+/// # Note
+///
+/// This **only** adds a header if the underlying filter is successful, and
+/// returns a [`Reply`](Reply). If the underlying filter was rejected, the
+/// header is not added.
+///
+/// # Example
+///
+/// ```
+/// use warp::http::header::{HeaderMap, HeaderValue};
+/// use warp::Filter;
+///
+/// let mut headers = HeaderMap::new();
+/// headers.insert(&quot;server&quot;, HeaderValue::from_static(&quot;wee/0&quot;));
+/// headers.insert(&quot;foo&quot;, HeaderValue::from_static(&quot;bar&quot;));
+///
+/// // Always set `server: wee/0` and `foo: bar` headers.
+/// let route = warp::any()
+///     .map(warp::reply)
+///     .with(warp::reply::with::headers(headers));
+/// ```
+</span><span class="kw">pub fn </span>headers(headers: <a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>) -&gt; <a href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a> {
+    <a href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a> {
+        headers: Arc::new(<a href="../../../src/warp/filters/reply.rs.html#83">headers</a>),
     }
 }
 
-<span class="comment">// pub fn headers?</span>
+<span class="comment">// pub fn headers?
 
-<span class="doccomment">/// Wrap a [`Filter`](crate::Filter) that adds a header to the reply, if they</span>
-<span class="doccomment">/// aren&#39;t already set.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This **only** adds a header if the underlying filter is successful, and</span>
-<span class="doccomment">/// returns a [`Reply`](Reply). If the underlying filter was rejected, the</span>
-<span class="doccomment">/// header is not added.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use warp::Filter;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Set `server: warp` if not already set.</span>
-<span class="doccomment">/// let route = warp::any()</span>
-<span class="doccomment">///     .map(warp::reply)</span>
-<span class="doccomment">///     .with(warp::reply::with::default_header(&quot;server&quot;, &quot;warp&quot;));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_header</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a>
-<span class="kw">where</span>
-    <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
-    <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
+</span><span class="doccomment">/// Wrap a [`Filter`](crate::Filter) that adds a header to the reply, if they
+/// aren&#39;t already set.
+///
+/// # Note
+///
+/// This **only** adds a header if the underlying filter is successful, and
+/// returns a [`Reply`](Reply). If the underlying filter was rejected, the
+/// header is not added.
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// // Set `server: warp` if not already set.
+/// let route = warp::any()
+///     .map(warp::reply)
+///     .with(warp::reply::with::default_header(&quot;server&quot;, &quot;warp&quot;));
+/// ```
+</span><span class="kw">pub fn </span>default_header&lt;K, V&gt;(name: K, value: V) -&gt; <a href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a>
+<span class="kw">where
+    </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
+    &lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
+    <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
+    &lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
 {
-    <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">value</span>) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#180-185">assert_name_and_value</a>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#110">name</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#110">value</a>);
-    <a class="ident" href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a> { <a class="ident" href="../../../src/warp/filters/reply.rs.html#117">name</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#117">value</a> }
+    <span class="kw">let </span>(name, value) = <a href="../../../src/warp/filters/reply.rs.html#180-185">assert_name_and_value</a>(<a href="../../../src/warp/filters/reply.rs.html#110">name</a>, <a href="../../../src/warp/filters/reply.rs.html#110">value</a>);
+    <a href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a> { <a href="../../../src/warp/filters/reply.rs.html#117">name</a>, <a href="../../../src/warp/filters/reply.rs.html#117">value</a> }
 }
 
-<span class="doccomment">/// Wrap a `Filter` to always set a header.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithHeader</span> {
-    <span class="ident">name</span>: <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>,
-    <span class="ident">value</span>: <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>,
+<span class="doccomment">/// Wrap a `Filter` to always set a header.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>WithHeader {
+    name: <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>,
+    value: <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WrapSealed</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="ident">R</span>,)<span class="op">&gt;</span>,
-    <span class="ident">R</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a>,
+<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span><a href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a>
+<span class="kw">where
+    </span>F: Filter&lt;Extract = (R,)&gt;,
+    R: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
 {
-    <span class="kw">type</span> <span class="ident">Wrapped</span> <span class="op">=</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">F</span>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#205">WithHeader_</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Wrapped = Map&lt;F, <a href="../../../src/warp/filters/reply.rs.html#205">WithHeader_</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">filter</span>: <span class="ident">F</span>) -&gt; <span class="ident"><span class="self">Self</span>::Wrapped</span> {
-        <span class="kw">let</span> <span class="ident">with</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#205">WithHeader_</a> { <span class="ident">with</span>: <a class="self" href="../../../src/warp/filters/reply.rs.html#135">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
-        <a class="ident" href="../../../src/warp/filters/reply.rs.html#135">filter</a>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#136">with</a>)
+    <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
+        <span class="kw">let </span>with = <a href="../../../src/warp/filters/reply.rs.html#205">WithHeader_</a> { with: <a class="self" href="../../../src/warp/filters/reply.rs.html#135">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
+        <a href="../../../src/warp/filters/reply.rs.html#135">filter</a>.<a href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<a href="../../../src/warp/filters/reply.rs.html#136">with</a>)
     }
 }
 
-<span class="doccomment">/// Wrap a `Filter` to always set multiple headers.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithHeaders</span> {
-    <span class="ident">headers</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Wrap a `Filter` to always set multiple headers.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>WithHeaders {
+    headers: Arc&lt;<a href="../../../http/header/map/struct.HeaderMap.html">HeaderMap</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WrapSealed</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="ident">R</span>,)<span class="op">&gt;</span>,
-    <span class="ident">R</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a>,
+<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span><a href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a>
+<span class="kw">where
+    </span>F: Filter&lt;Extract = (R,)&gt;,
+    R: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
 {
-    <span class="kw">type</span> <span class="ident">Wrapped</span> <span class="op">=</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">F</span>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#223">WithHeaders_</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Wrapped = Map&lt;F, <a href="../../../src/warp/filters/reply.rs.html#223">WithHeaders_</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">filter</span>: <span class="ident">F</span>) -&gt; <span class="ident"><span class="self">Self</span>::Wrapped</span> {
-        <span class="kw">let</span> <span class="ident">with</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#223">WithHeaders_</a> { <span class="ident">with</span>: <a class="self" href="../../../src/warp/filters/reply.rs.html#154">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
-        <a class="ident" href="../../../src/warp/filters/reply.rs.html#154">filter</a>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#155">with</a>)
+    <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
+        <span class="kw">let </span>with = <a href="../../../src/warp/filters/reply.rs.html#223">WithHeaders_</a> { with: <a class="self" href="../../../src/warp/filters/reply.rs.html#154">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
+        <a href="../../../src/warp/filters/reply.rs.html#154">filter</a>.<a href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<a href="../../../src/warp/filters/reply.rs.html#155">with</a>)
     }
 }
 
-<span class="doccomment">/// Wrap a `Filter` to set a header if it is not already set.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithDefaultHeader</span> {
-    <span class="ident">name</span>: <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>,
-    <span class="ident">value</span>: <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>,
+<span class="doccomment">/// Wrap a `Filter` to set a header if it is not already set.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>WithDefaultHeader {
+    name: <a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>,
+    value: <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WrapSealed</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="ident">R</span>,)<span class="op">&gt;</span>,
-    <span class="ident">R</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a>,
+<span class="kw">impl</span>&lt;F, R&gt; WrapSealed&lt;F&gt; <span class="kw">for </span><a href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a>
+<span class="kw">where
+    </span>F: Filter&lt;Extract = (R,)&gt;,
+    R: <a href="../../../src/warp/reply.rs.html#228">Reply</a>,
 {
-    <span class="kw">type</span> <span class="ident">Wrapped</span> <span class="op">=</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">F</span>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#241">WithDefaultHeader_</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Wrapped = Map&lt;F, <a href="../../../src/warp/filters/reply.rs.html#241">WithDefaultHeader_</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">filter</span>: <span class="ident">F</span>) -&gt; <span class="ident"><span class="self">Self</span>::Wrapped</span> {
-        <span class="kw">let</span> <span class="ident">with</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#241">WithDefaultHeader_</a> { <span class="ident">with</span>: <a class="self" href="../../../src/warp/filters/reply.rs.html#174">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
-        <a class="ident" href="../../../src/warp/filters/reply.rs.html#174">filter</a>.<a class="ident" href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#175">with</a>)
+    <span class="kw">fn </span>wrap(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: F) -&gt; <span class="self">Self</span>::Wrapped {
+        <span class="kw">let </span>with = <a href="../../../src/warp/filters/reply.rs.html#241">WithDefaultHeader_</a> { with: <a class="self" href="../../../src/warp/filters/reply.rs.html#174">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() };
+        <a href="../../../src/warp/filters/reply.rs.html#174">filter</a>.<a href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<a href="../../../src/warp/filters/reply.rs.html#175">with</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">assert_name_and_value</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; (<a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>)
-<span class="kw">where</span>
-    <a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
-    <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
-    <span class="op">&lt;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../../http/error/struct.Error.html">http::Error</a><span class="op">&gt;</span>,
+<span class="kw">fn </span>assert_name_and_value&lt;K, V&gt;(name: K, value: V) -&gt; (<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>, <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>)
+<span class="kw">where
+    </span><a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a>: TryFrom&lt;K&gt;,
+    &lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
+    <a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a>: TryFrom&lt;V&gt;,
+    &lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::Error: Into&lt;<a href="../../../http/error/struct.Error.html">http::Error</a>&gt;,
 {
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="op">&lt;</span><a class="ident" href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#180">name</a>)
-        .<span class="ident">map_err</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
-        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid header name&quot;</span>));
+    <span class="kw">let </span>name = &lt;<a href="../../../http/header/name/struct.HeaderName.html">HeaderName</a> <span class="kw">as </span>TryFrom&lt;K&gt;&gt;::try_from(<a href="../../../src/warp/filters/reply.rs.html#180">name</a>)
+        .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+        .unwrap_or_else(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid header name&quot;</span>));
 
-    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="op">&lt;</span><a class="ident" href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#180">value</a>)
-        .<span class="ident">map_err</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
-        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid header value&quot;</span>));
+    <span class="kw">let </span>value = &lt;<a href="../../../http/header/value/struct.HeaderValue.html">HeaderValue</a> <span class="kw">as </span>TryFrom&lt;V&gt;&gt;::try_from(<a href="../../../src/warp/filters/reply.rs.html#180">value</a>)
+        .map_err(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
+        .unwrap_or_else(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid header value&quot;</span>));
 
-    (<a class="ident" href="../../../src/warp/filters/reply.rs.html#187">name</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#191">value</a>)
+    (<a href="../../../src/warp/filters/reply.rs.html#187">name</a>, <a href="../../../src/warp/filters/reply.rs.html#191">value</a>)
 }
 
-<span class="kw">mod</span> <span class="ident">sealed</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a>, <a class="ident" href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::generic</span>::{<a class="ident" href="../../../src/warp/generic.rs.html#51">Func</a>, <a class="ident" href="../../../src/warp/generic.rs.html#4">One</a>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reply</span>::{<a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a>, <a class="ident" href="../../../src/warp/reply.rs.html#525">Reply_</a>};
+<span class="kw">mod </span>sealed {
+    <span class="kw">use super</span>::{<a href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a>, <a href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a>, <a href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::generic::{<a href="../../../src/warp/generic.rs.html#51">Func</a>, <a href="../../../src/warp/generic.rs.html#4">One</a>};
+    <span class="kw">use </span><span class="kw">crate</span>::reply::{<a href="../../../src/warp/reply.rs.html#228">Reply</a>, <a href="../../../src/warp/reply.rs.html#525">Reply_</a>};
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithHeader_</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">with</span>: <a class="ident" href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a>,
+    <span class="attribute">#[derive(Clone)]
+    #[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>WithHeader_ {
+        <span class="kw">pub</span>(<span class="kw">super</span>) with: <a href="../../../src/warp/filters/reply.rs.html#123">WithHeader</a>,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a><span class="op">&gt;</span> <span class="ident">Func</span><span class="op">&lt;</span><span class="ident">One</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#205">WithHeader_</a> {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reply.rs.html#525">Reply_</a>;
+    <span class="kw">impl</span>&lt;R: <a href="../../../src/warp/reply.rs.html#228">Reply</a>&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span><a href="../../../src/warp/filters/reply.rs.html#205">WithHeader_</a> {
+        <span class="kw">type </span>Output = <a href="../../../src/warp/reply.rs.html#525">Reply_</a>;
 
-        <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="ident">One</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#212">args</a>.<span class="number">0</span>.<a class="ident" href="../../../src/warp/reply.rs.html#232">into_response</a>();
-            <span class="comment">// Use &quot;insert&quot; to replace any set header...</span>
-            <a class="ident" href="../../../src/warp/filters/reply.rs.html#213">resp</a>.<span class="ident">headers_mut</span>()
-                .<span class="ident">insert</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/reply.rs.html#212">self</a>.<span class="ident">with</span>.<span class="ident">name</span>, <a class="self" href="../../../src/warp/filters/reply.rs.html#212">self</a>.<span class="ident">with</span>.<span class="ident">value</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a class="ident" href="../../../src/warp/reply.rs.html#525">Reply_</a>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#213">resp</a>)
+        <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, args: One&lt;R&gt;) -&gt; <span class="self">Self</span>::Output {
+            <span class="kw">let </span><span class="kw-2">mut </span>resp = <a href="../../../src/warp/filters/reply.rs.html#212">args</a>.<span class="number">0</span>.<a href="../../../src/warp/reply.rs.html#232">into_response</a>();
+            <span class="comment">// Use &quot;insert&quot; to replace any set header...
+            </span><a href="../../../src/warp/filters/reply.rs.html#213">resp</a>.headers_mut()
+                .insert(<span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/reply.rs.html#212">self</a>.with.name, <a class="self" href="../../../src/warp/filters/reply.rs.html#212">self</a>.with.value.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a href="../../../src/warp/reply.rs.html#525">Reply_</a>(<a href="../../../src/warp/filters/reply.rs.html#213">resp</a>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithHeaders_</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">with</span>: <a class="ident" href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a>,
+    <span class="attribute">#[derive(Clone)]
+    #[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>WithHeaders_ {
+        <span class="kw">pub</span>(<span class="kw">super</span>) with: <a href="../../../src/warp/filters/reply.rs.html#143">WithHeaders</a>,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a><span class="op">&gt;</span> <span class="ident">Func</span><span class="op">&lt;</span><span class="ident">One</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#223">WithHeaders_</a> {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reply.rs.html#525">Reply_</a>;
+    <span class="kw">impl</span>&lt;R: <a href="../../../src/warp/reply.rs.html#228">Reply</a>&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span><a href="../../../src/warp/filters/reply.rs.html#223">WithHeaders_</a> {
+        <span class="kw">type </span>Output = <a href="../../../src/warp/reply.rs.html#525">Reply_</a>;
 
-        <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="ident">One</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#230">args</a>.<span class="number">0</span>.<a class="ident" href="../../../src/warp/reply.rs.html#232">into_response</a>();
-            <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">with</span>.<span class="ident">headers</span> {
-                <span class="ident">resp</span>.<span class="ident">headers_mut</span>().<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
+        <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, args: One&lt;R&gt;) -&gt; <span class="self">Self</span>::Output {
+            <span class="kw">let </span><span class="kw-2">mut </span>resp = <a href="../../../src/warp/filters/reply.rs.html#230">args</a>.<span class="number">0</span>.<a href="../../../src/warp/reply.rs.html#232">into_response</a>();
+            <span class="kw">for </span>(name, value) <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.with.headers {
+                resp.headers_mut().insert(name, value.clone());
             }
-            <a class="ident" href="../../../src/warp/reply.rs.html#525">Reply_</a>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#231">resp</a>)
+            <a href="../../../src/warp/reply.rs.html#525">Reply_</a>(<a href="../../../src/warp/filters/reply.rs.html#231">resp</a>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WithDefaultHeader_</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">with</span>: <a class="ident" href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a>,
+    <span class="attribute">#[derive(Clone)]
+    #[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>WithDefaultHeader_ {
+        <span class="kw">pub</span>(<span class="kw">super</span>) with: <a href="../../../src/warp/filters/reply.rs.html#162">WithDefaultHeader</a>,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/warp/reply.rs.html#228">Reply</a><span class="op">&gt;</span> <span class="ident">Func</span><span class="op">&lt;</span><span class="ident">One</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#241">WithDefaultHeader_</a> {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reply.rs.html#525">Reply_</a>;
+    <span class="kw">impl</span>&lt;R: <a href="../../../src/warp/reply.rs.html#228">Reply</a>&gt; Func&lt;One&lt;R&gt;&gt; <span class="kw">for </span><a href="../../../src/warp/filters/reply.rs.html#241">WithDefaultHeader_</a> {
+        <span class="kw">type </span>Output = <a href="../../../src/warp/reply.rs.html#525">Reply_</a>;
 
-        <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="ident">One</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/reply.rs.html#248">args</a>.<span class="number">0</span>.<a class="ident" href="../../../src/warp/reply.rs.html#232">into_response</a>();
-            <a class="ident" href="../../../src/warp/filters/reply.rs.html#249">resp</a>.<span class="ident">headers_mut</span>()
-                .<span class="ident">entry</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/reply.rs.html#248">self</a>.<span class="ident">with</span>.<span class="ident">name</span>)
-                .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/warp/filters/reply.rs.html#248">self</a>.<span class="ident">with</span>.<span class="ident">value</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, args: One&lt;R&gt;) -&gt; <span class="self">Self</span>::Output {
+            <span class="kw">let </span><span class="kw-2">mut </span>resp = <a href="../../../src/warp/filters/reply.rs.html#248">args</a>.<span class="number">0</span>.<a href="../../../src/warp/reply.rs.html#232">into_response</a>();
+            <a href="../../../src/warp/filters/reply.rs.html#249">resp</a>.headers_mut()
+                .entry(<span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/reply.rs.html#248">self</a>.with.name)
+                .or_insert_with(|| <a class="self" href="../../../src/warp/filters/reply.rs.html#248">self</a>.with.value.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-            <a class="ident" href="../../../src/warp/reply.rs.html#525">Reply_</a>(<a class="ident" href="../../../src/warp/filters/reply.rs.html#249">resp</a>)
+            <a href="../../../src/warp/reply.rs.html#525">Reply_</a>(<a href="../../../src/warp/filters/reply.rs.html#249">resp</a>)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/common/drain.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>drain.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/common/drain.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>drain.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -215,222 +215,222 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
-<span class="kw">use</span> <a class="ident" href="../../../tokio/sync/watch/index.html">tokio::sync::watch</a>;
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="../../../tokio/sync/watch/index.html">tokio::sync::watch</a>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use super</span>::{<a href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">channel</span>() -&gt; (<a class="ident" href="../../../src/hyper/common/drain.rs.html#13">Signal</a>, <a class="ident" href="../../../src/hyper/common/drain.rs.html#20">Watch</a>) {
-    <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">watch::channel</span>(());
-    (<a class="ident" href="../../../src/hyper/common/drain.rs.html#13">Signal</a> { <a class="ident" href="../../../src/hyper/common/drain.rs.html#9">tx</a> }, <a class="ident" href="../../../src/hyper/common/drain.rs.html#20">Watch</a> { <a class="ident" href="../../../src/hyper/common/drain.rs.html#9">rx</a> })
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>channel() -&gt; (<a href="../../../src/hyper/common/drain.rs.html#13">Signal</a>, <a href="../../../src/hyper/common/drain.rs.html#20">Watch</a>) {
+    <span class="kw">let </span>(tx, rx) = watch::channel(());
+    (<a href="../../../src/hyper/common/drain.rs.html#13">Signal</a> { <a href="../../../src/hyper/common/drain.rs.html#9">tx</a> }, <a href="../../../src/hyper/common/drain.rs.html#20">Watch</a> { <a href="../../../src/hyper/common/drain.rs.html#9">rx</a> })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Signal</span> {
-    <span class="ident">tx</span>: <span class="ident">watch::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Signal {
+    tx: watch::Sender&lt;()&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Draining</span>(<span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Draining(Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Watch</span> {
-    <span class="ident">rx</span>: <span class="ident">watch::Receiver</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Watch {
+    rx: watch::Receiver&lt;()&gt;,
 }
 
-<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Watching</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">FN</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">pin</span>]</span>
-        <span class="ident">future</span>: <span class="ident">F</span>,
-        <span class="ident">state</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">FN</span><span class="op">&gt;</span>,
-        <span class="ident">watch</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">_rx</span>: <span class="ident">watch::Receiver</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="attribute">#[allow(missing_debug_implementations)]
+    </span><span class="kw">pub struct </span>Watching&lt;F, FN&gt; {
+        <span class="attribute">#[pin]
+        </span>future: F,
+        state: State&lt;FN&gt;,
+        watch: Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;&gt;,
+        _rx: watch::Receiver&lt;()&gt;,
     }
 }
 
-<span class="kw">enum</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="ident">Watch</span>(<span class="ident">F</span>),
-    <span class="ident">Draining</span>,
+<span class="kw">enum </span>State&lt;F&gt; {
+    Watch(F),
+    Draining,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/common/drain.rs.html#13">Signal</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">drain</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/hyper/common/drain.rs.html#17">Draining</a> {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/common/drain.rs.html#41">self</a>.<span class="ident">tx</span>.<span class="ident">send</span>(());
-        <a class="ident" href="../../../src/hyper/common/drain.rs.html#17">Draining</a>(<span class="ident">Box::pin</span>(<span class="kw">async</span> <span class="kw">move</span> { <span class="self">self</span>.<span class="ident">tx</span>.<span class="ident">closed</span>().<span class="kw">await</span> }))
+<span class="kw">impl </span><a href="../../../src/hyper/common/drain.rs.html#13">Signal</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain(<span class="self">self</span>) -&gt; <a href="../../../src/hyper/common/drain.rs.html#17">Draining</a> {
+        <span class="kw">let _ </span>= <a class="self" href="../../../src/hyper/common/drain.rs.html#41">self</a>.tx.send(());
+        <a href="../../../src/hyper/common/drain.rs.html#17">Draining</a>(Box::pin(<span class="kw">async move </span>{ <span class="self">self</span>.tx.closed().<span class="kw">await </span>}))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/common/drain.rs.html#17">Draining</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="../../../src/hyper/common/drain.rs.html#17">Draining</a> {
+    <span class="kw">type </span>Output = ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/hyper/common/drain.rs.html#50">self</a>.<span class="ident">as_mut</span>().<span class="number">0</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#50">cx</a>)
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        Pin::new(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/hyper/common/drain.rs.html#50">self</a>.as_mut().<span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/common/drain.rs.html#50">cx</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/common/drain.rs.html#20">Watch</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">watch</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">FN</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>, <span class="ident">on_drain</span>: <span class="ident">FN</span>) -&gt; <span class="ident">Watching</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">FN</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-        <span class="ident">FN</span>: <span class="ident">FnOnce</span>(<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">F</span><span class="op">&gt;</span>),
+<span class="kw">impl </span><a href="../../../src/hyper/common/drain.rs.html#20">Watch</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>watch&lt;F, FN&gt;(<span class="self">self</span>, future: F, on_drain: FN) -&gt; Watching&lt;F, FN&gt;
+    <span class="kw">where
+        </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+        FN: FnOnce(Pin&lt;<span class="kw-2">&amp;mut </span>F&gt;),
     {
-        <span class="kw">let</span> <span class="self">Self</span> { <span class="kw-2">mut</span> <span class="ident">rx</span> } <span class="op">=</span> <a class="self" href="../../../src/hyper/common/drain.rs.html#56">self</a>;
-        <span class="kw">let</span> <span class="ident">_rx</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/common/drain.rs.html#61">rx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../../src/hyper/common/drain.rs.html#24-33">Watching</a> {
-            <a class="ident" href="../../../src/hyper/common/drain.rs.html#56">future</a>,
-            <span class="ident">state</span>: <a class="ident" href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#56">on_drain</a>),
-            <span class="ident">watch</span>: <span class="ident">Box::pin</span>(<span class="kw">async</span> <span class="kw">move</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">changed</span>().<span class="kw">await</span>;
+        <span class="kw">let </span><span class="self">Self </span>{ <span class="kw-2">mut </span>rx } = <a class="self" href="../../../src/hyper/common/drain.rs.html#56">self</a>;
+        <span class="kw">let </span>_rx = <a href="../../../src/hyper/common/drain.rs.html#61">rx</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="../../../src/hyper/common/drain.rs.html#24-33">Watching</a> {
+            <a href="../../../src/hyper/common/drain.rs.html#56">future</a>,
+            state: <a href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(<a href="../../../src/hyper/common/drain.rs.html#56">on_drain</a>),
+            watch: Box::pin(<span class="kw">async move </span>{
+                <span class="kw">let _ </span>= rx.changed().<span class="kw">await</span>;
             }),
-            <span class="comment">// Keep the receiver alive until the future completes, so that</span>
-            <span class="comment">// dropping it can signal that draining has completed.</span>
-            <a class="ident" href="../../../src/hyper/common/drain.rs.html#62">_rx</a>,
+            <span class="comment">// Keep the receiver alive until the future completes, so that
+            // dropping it can signal that draining has completed.
+            </span><a href="../../../src/hyper/common/drain.rs.html#62">_rx</a>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">FN</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Watching</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">FN</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">FN</span>: <span class="ident">FnOnce</span>(<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">F</span><span class="op">&gt;</span>),
+<span class="kw">impl</span>&lt;F, FN&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Watching&lt;F, FN&gt;
+<span class="kw">where
+    </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    FN: FnOnce(Pin&lt;<span class="kw-2">&amp;mut </span>F&gt;),
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">F::Output</span>;
+    <span class="kw">type </span>Output = F::Output;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/common/drain.rs.html#83">self</a>.<a class="ident" href="../../../src/hyper/common/drain.rs.html#24-33">project</a>();
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">mem::replace</a>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#84">me</a>.<span class="ident">state</span>, <a class="ident" href="../../../src/hyper/common/drain.rs.html#37">State::Draining</a>) {
-                <a class="ident" href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(<span class="ident">on_drain</span>) =&gt; {
-                    <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/hyper/common/drain.rs.html#84">me</a>.<span class="ident">watch</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#83">cx</a>) {
-                        <span class="ident">Poll::Ready</span>(()) =&gt; {
-                            <span class="comment">// Drain has been triggered!</span>
-                            <a class="ident" href="../../../src/hyper/common/drain.rs.html#87">on_drain</a>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#84">me</a>.<span class="ident">future</span>.<span class="ident">as_mut</span>());
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>me = <a class="self" href="../../../src/hyper/common/drain.rs.html#83">self</a>.<a href="../../../src/hyper/common/drain.rs.html#24-33">project</a>();
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">mem::replace</a>(<a href="../../../src/hyper/common/drain.rs.html#84">me</a>.state, <a href="../../../src/hyper/common/drain.rs.html#37">State::Draining</a>) {
+                <a href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(on_drain) =&gt; {
+                    <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><a href="../../../src/hyper/common/drain.rs.html#84">me</a>.watch).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/common/drain.rs.html#83">cx</a>) {
+                        Poll::Ready(()) =&gt; {
+                            <span class="comment">// Drain has been triggered!
+                            </span><a href="../../../src/hyper/common/drain.rs.html#87">on_drain</a>(<a href="../../../src/hyper/common/drain.rs.html#84">me</a>.future.as_mut());
                         }
-                        <span class="ident">Poll::Pending</span> =&gt; {
-                            <span class="kw-2">*</span><a class="ident" href="../../../src/hyper/common/drain.rs.html#84">me</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#87">on_drain</a>);
-                            <span class="kw">return</span> <a class="ident" href="../../../src/hyper/common/drain.rs.html#84">me</a>.<span class="ident">future</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#83">cx</a>);
+                        Poll::Pending =&gt; {
+                            <span class="kw-2">*</span><a href="../../../src/hyper/common/drain.rs.html#84">me</a>.state = <a href="../../../src/hyper/common/drain.rs.html#36">State::Watch</a>(<a href="../../../src/hyper/common/drain.rs.html#87">on_drain</a>);
+                            <span class="kw">return </span><a href="../../../src/hyper/common/drain.rs.html#84">me</a>.future.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/common/drain.rs.html#83">cx</a>);
                         }
                     }
                 }
-                <a class="ident" href="../../../src/hyper/common/drain.rs.html#37">State::Draining</a> =&gt; <span class="kw">return</span> <a class="ident" href="../../../src/hyper/common/drain.rs.html#84">me</a>.<span class="ident">future</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/common/drain.rs.html#83">cx</a>),
+                <a href="../../../src/hyper/common/drain.rs.html#37">State::Draining</a> =&gt; <span class="kw">return </span><a href="../../../src/hyper/common/drain.rs.html#84">me</a>.future.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/hyper/common/drain.rs.html#83">cx</a>),
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">struct</span> <span class="ident">TestMe</span> {
-        <span class="ident">draining</span>: <span class="ident">bool</span>,
-        <span class="ident">finished</span>: <span class="ident">bool</span>,
-        <span class="ident">poll_cnt</span>: <span class="ident">usize</span>,
+    <span class="kw">struct </span>TestMe {
+        draining: bool,
+        finished: bool,
+        poll_cnt: usize,
     }
 
-    <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">TestMe</span> {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
+    <span class="kw">impl </span>Future <span class="kw">for </span>TestMe {
+        <span class="kw">type </span>Output = ();
 
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">poll_cnt</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">finished</span> {
-                <span class="ident">Poll::Ready</span>(())
-            } <span class="kw">else</span> {
-                <span class="ident">Poll::Pending</span>
+        <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+            <span class="self">self</span>.poll_cnt += <span class="number">1</span>;
+            <span class="kw">if </span><span class="self">self</span>.finished {
+                Poll::Ready(())
+            } <span class="kw">else </span>{
+                Poll::Pending
             }
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">watch</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">tokio_test::task::spawn</span>(());
-        <span class="ident">mock</span>.<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> {
-            <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">channel</span>();
-            <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">TestMe</span> {
-                <span class="ident">draining</span>: <span class="bool-val">false</span>,
-                <span class="ident">finished</span>: <span class="bool-val">false</span>,
-                <span class="ident">poll_cnt</span>: <span class="number">0</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>watch() {
+        <span class="kw">let </span><span class="kw-2">mut </span>mock = tokio_test::task::spawn(());
+        mock.enter(|cx, <span class="kw">_</span>| {
+            <span class="kw">let </span>(tx, rx) = channel();
+            <span class="kw">let </span>fut = TestMe {
+                draining: <span class="bool-val">false</span>,
+                finished: <span class="bool-val">false</span>,
+                poll_cnt: <span class="number">0</span>,
             };
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">watch</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">watch</span>(<span class="ident">fut</span>, <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">fut</span><span class="op">|</span> {
-                <span class="ident">fut</span>.<span class="ident">draining</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>watch = rx.watch(fut, |<span class="kw-2">mut </span>fut| {
+                fut.draining = <span class="bool-val">true</span>;
             });
 
-            <span class="macro">assert_eq!</span>(<span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">poll_cnt</span>, <span class="number">0</span>);
+            <span class="macro">assert_eq!</span>(watch.future.poll_cnt, <span class="number">0</span>);
 
-            <span class="comment">// First poll should poll the inner future</span>
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">watch</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>());
-            <span class="macro">assert_eq!</span>(<span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">poll_cnt</span>, <span class="number">1</span>);
+            <span class="comment">// First poll should poll the inner future
+            </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>watch).poll(cx).is_pending());
+            <span class="macro">assert_eq!</span>(watch.future.poll_cnt, <span class="number">1</span>);
 
-            <span class="comment">// Second poll should poll the inner future again</span>
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">watch</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>());
-            <span class="macro">assert_eq!</span>(<span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">poll_cnt</span>, <span class="number">2</span>);
+            <span class="comment">// Second poll should poll the inner future again
+            </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>watch).poll(cx).is_pending());
+            <span class="macro">assert_eq!</span>(watch.future.poll_cnt, <span class="number">2</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">draining</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">drain</span>();
-            <span class="comment">// Drain signaled, but needs another poll to be noticed.</span>
-            <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">draining</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">poll_cnt</span>, <span class="number">2</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>draining = tx.drain();
+            <span class="comment">// Drain signaled, but needs another poll to be noticed.
+            </span><span class="macro">assert!</span>(!watch.future.draining);
+            <span class="macro">assert_eq!</span>(watch.future.poll_cnt, <span class="number">2</span>);
 
-            <span class="comment">// Now, poll after drain has been signaled.</span>
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">watch</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>());
-            <span class="macro">assert_eq!</span>(<span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">poll_cnt</span>, <span class="number">3</span>);
-            <span class="macro">assert!</span>(<span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">draining</span>);
+            <span class="comment">// Now, poll after drain has been signaled.
+            </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>watch).poll(cx).is_pending());
+            <span class="macro">assert_eq!</span>(watch.future.poll_cnt, <span class="number">3</span>);
+            <span class="macro">assert!</span>(watch.future.draining);
 
-            <span class="comment">// Draining is not ready until watcher completes</span>
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">draining</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>());
+            <span class="comment">// Draining is not ready until watcher completes
+            </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>draining).poll(cx).is_pending());
 
-            <span class="comment">// Finishing up the watch future</span>
-            <span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">finished</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">watch</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_ready</span>());
-            <span class="macro">assert_eq!</span>(<span class="ident">watch</span>.<span class="ident">future</span>.<span class="ident">poll_cnt</span>, <span class="number">4</span>);
-            <span class="ident">drop</span>(<span class="ident">watch</span>);
+            <span class="comment">// Finishing up the watch future
+            </span>watch.future.finished = <span class="bool-val">true</span>;
+            <span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>watch).poll(cx).is_ready());
+            <span class="macro">assert_eq!</span>(watch.future.poll_cnt, <span class="number">4</span>);
+            drop(watch);
 
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">draining</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_ready</span>());
+            <span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>draining).poll(cx).is_ready());
         })
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">watch_clones</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">tokio_test::task::spawn</span>(());
-        <span class="ident">mock</span>.<span class="ident">enter</span>(<span class="op">|</span><span class="ident">cx</span>, <span class="kw">_</span><span class="op">|</span> {
-            <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">channel</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>watch_clones() {
+        <span class="kw">let </span><span class="kw-2">mut </span>mock = tokio_test::task::spawn(());
+        mock.enter(|cx, <span class="kw">_</span>| {
+            <span class="kw">let </span>(tx, rx) = channel();
 
-            <span class="kw">let</span> <span class="ident">fut1</span> <span class="op">=</span> <span class="ident">TestMe</span> {
-                <span class="ident">draining</span>: <span class="bool-val">false</span>,
-                <span class="ident">finished</span>: <span class="bool-val">false</span>,
-                <span class="ident">poll_cnt</span>: <span class="number">0</span>,
+            <span class="kw">let </span>fut1 = TestMe {
+                draining: <span class="bool-val">false</span>,
+                finished: <span class="bool-val">false</span>,
+                poll_cnt: <span class="number">0</span>,
             };
-            <span class="kw">let</span> <span class="ident">fut2</span> <span class="op">=</span> <span class="ident">TestMe</span> {
-                <span class="ident">draining</span>: <span class="bool-val">false</span>,
-                <span class="ident">finished</span>: <span class="bool-val">false</span>,
-                <span class="ident">poll_cnt</span>: <span class="number">0</span>,
+            <span class="kw">let </span>fut2 = TestMe {
+                draining: <span class="bool-val">false</span>,
+                finished: <span class="bool-val">false</span>,
+                poll_cnt: <span class="number">0</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">watch1</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">clone</span>().<span class="ident">watch</span>(<span class="ident">fut1</span>, <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">fut</span><span class="op">|</span> {
-                <span class="ident">fut</span>.<span class="ident">draining</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">let </span>watch1 = rx.clone().watch(fut1, |<span class="kw-2">mut </span>fut| {
+                fut.draining = <span class="bool-val">true</span>;
             });
-            <span class="kw">let</span> <span class="ident">watch2</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">watch</span>(<span class="ident">fut2</span>, <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">fut</span><span class="op">|</span> {
-                <span class="ident">fut</span>.<span class="ident">draining</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">let </span>watch2 = rx.watch(fut2, |<span class="kw-2">mut </span>fut| {
+                fut.draining = <span class="bool-val">true</span>;
             });
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">draining</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">drain</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>draining = tx.drain();
 
-            <span class="comment">// Still 2 outstanding watchers</span>
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">draining</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>());
+            <span class="comment">// Still 2 outstanding watchers
+            </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>draining).poll(cx).is_pending());
 
-            <span class="comment">// drop 1 for whatever reason</span>
-            <span class="ident">drop</span>(<span class="ident">watch1</span>);
+            <span class="comment">// drop 1 for whatever reason
+            </span>drop(watch1);
 
-            <span class="comment">// Still not ready, 1 other watcher still pending</span>
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">draining</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_pending</span>());
+            <span class="comment">// Still not ready, 1 other watcher still pending
+            </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>draining).poll(cx).is_pending());
 
-            <span class="ident">drop</span>(<span class="ident">watch2</span>);
+            drop(watch2);
 
-            <span class="comment">// Now all watchers are gone, draining is complete</span>
-            <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">draining</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_ready</span>());
+            <span class="comment">// Now all watchers are gone, draining is complete
+            </span><span class="macro">assert!</span>(Pin::new(<span class="kw-2">&amp;mut </span>draining).poll(cx).is_ready());
         });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

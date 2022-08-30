@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/codec/framed_read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.14/src/codec/framed_read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -413,420 +413,420 @@
 <span id="413">413</span>
 <span id="414">414</span>
 <span id="415">415</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::frame</span>::{<a class="self" href="../../../src/h2/lib.rs.html#116">self</a>, <a class="ident" href="../../../src/h2/frame/mod.rs.html#70">Frame</a>, <a class="ident" href="../../../src/h2/frame/head.rs.html#14">Kind</a>, <a class="ident" href="../../../src/h2/frame/reason.rs.html#19">Reason</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::frame</span>::{
-    <a class="ident" href="../../../src/h2/frame/settings.rs.html#47">DEFAULT_MAX_FRAME_SIZE</a>, <a class="ident" href="../../../src/h2/frame/settings.rs.html#41">DEFAULT_SETTINGS_HEADER_TABLE_SIZE</a>, <a class="ident" href="../../../src/h2/frame/settings.rs.html#53">MAX_MAX_FRAME_SIZE</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::frame::{<a class="self" href="../../../src/h2/lib.rs.html#116">self</a>, <a href="../../../src/h2/frame/mod.rs.html#80">Frame</a>, <a href="../../../src/h2/frame/head.rs.html#14">Kind</a>, <a href="../../../src/h2/frame/reason.rs.html#19">Reason</a>};
+<span class="kw">use </span><span class="kw">crate</span>::frame::{
+    <a href="../../../src/h2/frame/settings.rs.html#47">DEFAULT_MAX_FRAME_SIZE</a>, <a href="../../../src/h2/frame/settings.rs.html#41">DEFAULT_SETTINGS_HEADER_TABLE_SIZE</a>, <a href="../../../src/h2/frame/settings.rs.html#53">MAX_MAX_FRAME_SIZE</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../src/h2/proto/error.rs.html#10"><span class="kw">crate</span>::proto::Error</a>;
+<span class="kw">use </span><a href="../../../src/h2/proto/error.rs.html#10"><span class="kw">crate</span>::proto::Error</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/h2/lib.rs.html#106"><span class="kw">crate</span>::hpack</a>;
+<span class="kw">use </span><a href="../../../src/h2/lib.rs.html#106"><span class="kw">crate</span>::hpack</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
+<span class="kw">use </span><a href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">bytes::BytesMut</a>;
+<span class="kw">use </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">bytes::BytesMut</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">tokio::io::AsyncRead</a>;
-<span class="kw">use</span> <a class="ident" href="../../../tokio_util/codec/framed_read/struct.FramedRead.html">tokio_util::codec::FramedRead</a> <span class="kw">as</span> <span class="ident">InnerFramedRead</span>;
-<span class="kw">use</span> <span class="ident">tokio_util::codec</span>::{<a class="ident" href="../../../tokio_util/codec/length_delimited/struct.LengthDelimitedCodec.html">LengthDelimitedCodec</a>, <a class="ident" href="../../../tokio_util/codec/length_delimited/struct.LengthDelimitedCodecError.html">LengthDelimitedCodecError</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../tokio/io/async_read/trait.AsyncRead.html">tokio::io::AsyncRead</a>;
+<span class="kw">use </span><a href="../../../tokio_util/codec/framed_read/struct.FramedRead.html">tokio_util::codec::FramedRead</a> <span class="kw">as </span>InnerFramedRead;
+<span class="kw">use </span>tokio_util::codec::{<a href="../../../tokio_util/codec/length_delimited/struct.LengthDelimitedCodec.html">LengthDelimitedCodec</a>, <a href="../../../tokio_util/codec/length_delimited/struct.LengthDelimitedCodecError.html">LengthDelimitedCodecError</a>};
 
-<span class="comment">// 16 MB &quot;sane default&quot; taken from golang http2</span>
-<span class="kw">const</span> <span class="ident">DEFAULT_SETTINGS_MAX_HEADER_LIST_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">16</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">20</span>;
+<span class="comment">// 16 MB &quot;sane default&quot; taken from golang http2
+</span><span class="kw">const </span>DEFAULT_SETTINGS_MAX_HEADER_LIST_SIZE: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">16 </span>&lt;&lt; <span class="number">20</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">InnerFramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../tokio_util/codec/length_delimited/struct.LengthDelimitedCodec.html">LengthDelimitedCodec</a><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>FramedRead&lt;T&gt; {
+    inner: InnerFramedRead&lt;T, <a href="../../../tokio_util/codec/length_delimited/struct.LengthDelimitedCodec.html">LengthDelimitedCodec</a>&gt;,
 
-    <span class="comment">// hpack decoder state</span>
-    <span class="ident">hpack</span>: <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#16">hpack::Decoder</a>,
+    <span class="comment">// hpack decoder state
+    </span>hpack: <a href="../../../src/h2/hpack/decoder.rs.html#16">hpack::Decoder</a>,
 
-    <span class="ident">max_header_list_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    max_header_list_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
-    <span class="ident">partial</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#38">Partial</a><span class="op">&gt;</span>,
+    partial: <span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/codec/framed_read.rs.html#38">Partial</a>&gt;,
 }
 
-<span class="doccomment">/// Partially loaded headers frame</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Partial</span> {
-    <span class="doccomment">/// Empty frame</span>
-    <span class="ident">frame</span>: <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#47">Continuable</a>,
+<span class="doccomment">/// Partially loaded headers frame
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Partial {
+    <span class="doccomment">/// Empty frame
+    </span>frame: <a href="../../../src/h2/codec/framed_read.rs.html#47">Continuable</a>,
 
-    <span class="doccomment">/// Partial header payload</span>
-    <span class="ident">buf</span>: <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+    <span class="doccomment">/// Partial header payload
+    </span>buf: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Continuable</span> {
-    <span class="ident">Headers</span>(<a class="ident" href="../../../src/h2/frame/headers.rs.html#19">frame::Headers</a>),
-    <span class="ident">PushPromise</span>(<a class="ident" href="../../../src/h2/frame/headers.rs.html#37">frame::PushPromise</a>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>Continuable {
+    Headers(<a href="../../../src/h2/frame/headers.rs.html#19">frame::Headers</a>),
+    PushPromise(<a href="../../../src/h2/frame/headers.rs.html#37">frame::PushPromise</a>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">InnerFramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../tokio_util/codec/length_delimited/struct.LengthDelimitedCodec.html">LengthDelimitedCodec</a><span class="op">&gt;</span>) -&gt; <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#25">FramedRead</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#53">inner</a>,
-            <span class="ident">hpack</span>: <span class="ident">hpack::Decoder::new</span>(<a class="ident" href="../../../src/h2/frame/settings.rs.html#41">DEFAULT_SETTINGS_HEADER_TABLE_SIZE</a>),
-            <span class="ident">max_header_list_size</span>: <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#22">DEFAULT_SETTINGS_MAX_HEADER_LIST_SIZE</a>,
-            <span class="ident">partial</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;T&gt; FramedRead&lt;T&gt; {
+    <span class="kw">pub fn </span>new(inner: InnerFramedRead&lt;T, <a href="../../../tokio_util/codec/length_delimited/struct.LengthDelimitedCodec.html">LengthDelimitedCodec</a>&gt;) -&gt; FramedRead&lt;T&gt; {
+        <a href="../../../src/h2/codec/framed_read.rs.html#25">FramedRead</a> {
+            <a href="../../../src/h2/codec/framed_read.rs.html#53">inner</a>,
+            hpack: hpack::Decoder::new(<a href="../../../src/h2/frame/settings.rs.html#41">DEFAULT_SETTINGS_HEADER_TABLE_SIZE</a>),
+            max_header_list_size: <a href="../../../src/h2/codec/framed_read.rs.html#22">DEFAULT_SETTINGS_MAX_HEADER_LIST_SIZE</a>,
+            partial: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <a class="self" href="../../../src/h2/codec/framed_read.rs.html#62">self</a>.<span class="ident">inner</span>.<span class="ident">get_ref</span>()
+    <span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <a class="self" href="../../../src/h2/codec/framed_read.rs.html#62">self</a>.inner.get_ref()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <a class="self" href="../../../src/h2/codec/framed_read.rs.html#66">self</a>.<span class="ident">inner</span>.<span class="ident">get_mut</span>()
+    <span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <a class="self" href="../../../src/h2/codec/framed_read.rs.html#66">self</a>.inner.get_mut()
     }
 
-    <span class="doccomment">/// Returns the current max frame size setting</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_frame_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">decoder</span>().<span class="ident">max_frame_length</span>()
+    <span class="doccomment">/// Returns the current max frame size setting
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+    #[inline]
+    </span><span class="kw">pub fn </span>max_frame_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.inner.decoder().max_frame_length()
     }
 
-    <span class="doccomment">/// Updates the max frame size setting.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Must be within 16,384 and 16,777,215.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_max_frame_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">DEFAULT_MAX_FRAME_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">val</span> <span class="op">&amp;&amp;</span> <span class="ident">val</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_MAX_FRAME_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span>);
-        <a class="self" href="../../../src/h2/codec/framed_read.rs.html#81">self</a>.<span class="ident">inner</span>.<span class="ident">decoder_mut</span>().<span class="ident">set_max_frame_length</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#81">val</a>)
+    <span class="doccomment">/// Updates the max frame size setting.
+    ///
+    /// Must be within 16,384 and 16,777,215.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_max_frame_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(DEFAULT_MAX_FRAME_SIZE <span class="kw">as </span>usize &lt;= val &amp;&amp; val &lt;= MAX_MAX_FRAME_SIZE <span class="kw">as </span>usize);
+        <a class="self" href="../../../src/h2/codec/framed_read.rs.html#81">self</a>.inner.decoder_mut().set_max_frame_length(<a href="../../../src/h2/codec/framed_read.rs.html#81">val</a>)
     }
 
-    <span class="doccomment">/// Update the max header list size setting.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_max_header_list_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/h2/codec/framed_read.rs.html#88">self</a>.<span class="ident">max_header_list_size</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#88">val</a>;
+    <span class="doccomment">/// Update the max header list size setting.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_max_header_list_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/h2/codec/framed_read.rs.html#88">self</a>.max_header_list_size = <a href="../../../src/h2/codec/framed_read.rs.html#88">val</a>;
     }
 }
 
-<span class="doccomment">/// Decodes a frame.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This method is intentionally de-generified and outlined because it is very large.</span>
-<span class="kw">fn</span> <span class="ident">decode_frame</span>(
-    <span class="ident">hpack</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#16">hpack::Decoder</a>,
-    <span class="ident">max_header_list_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">partial_inout</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#38">Partial</a><span class="op">&gt;</span>,
-    <span class="kw-2">mut</span> <span class="ident">bytes</span>: <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/mod.rs.html#70">Frame</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;FramedRead::decode_frame&quot;</span>, <span class="ident">offset</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#102">span</a>.<span class="ident">enter</span>();
+<span class="doccomment">/// Decodes a frame.
+///
+/// This method is intentionally de-generified and outlined because it is very large.
+</span><span class="kw">fn </span>decode_frame(
+    hpack: <span class="kw-2">&amp;mut </span><a href="../../../src/h2/hpack/decoder.rs.html#16">hpack::Decoder</a>,
+    max_header_list_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    partial_inout: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/codec/framed_read.rs.html#38">Partial</a>&gt;,
+    <span class="kw-2">mut </span>bytes: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../src/h2/frame/mod.rs.html#80">Frame</a>&gt;, <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt; {
+    <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;FramedRead::decode_frame&quot;</span>, offset = bytes.len());
+    <span class="kw">let </span>_e = <a href="../../../src/h2/codec/framed_read.rs.html#102">span</a>.enter();
 
-    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;decoding frame from {}B&quot;</span>, <span class="ident">bytes</span>.<span class="ident">len</span>());
+    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;decoding frame from {}B&quot;</span>, bytes.len());
 
-    <span class="comment">// Parse the head</span>
-    <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">frame::Head::parse</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>);
+    <span class="comment">// Parse the head
+    </span><span class="kw">let </span>head = frame::Head::parse(<span class="kw-2">&amp;</span><a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>);
 
-    <span class="kw">if</span> <span class="ident">partial_inout</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">head</span>.<span class="ident">kind</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Kind::Continuation</span> {
-        <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">conn</span>: <span class="string">&quot;expected CONTINUATION, got {:?}&quot;</span>, <span class="ident">head</span>.<span class="ident">kind</span>());
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+    <span class="kw">if </span>partial_inout.is_some() &amp;&amp; head.kind() != Kind::Continuation {
+        <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;expected CONTINUATION, got {:?}&quot;</span>, head.kind());
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
     }
 
-    <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#54">kind</a>();
+    <span class="kw">let </span>kind = <a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>.<a href="../../../src/h2/frame/head.rs.html#54">kind</a>();
 
-    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">frame</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">kind</span>);
+    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(frame.kind = <span class="question-mark">?</span>kind);
 
-    <span class="macro">macro_rules!</span> <span class="ident">header_block</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">frame</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">ident</span>) =&gt; ({
-            <span class="comment">// Drop the frame header</span>
-            <span class="comment">// TODO: Change to drain: carllerche/bytes#130</span>
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>.<span class="ident">split_to</span>(<span class="ident">frame::HEADER_LEN</span>);
+    <span class="macro">macro_rules! </span>header_block {
+        (<span class="macro-nonterminal">$frame</span>:ident, <span class="macro-nonterminal">$head</span>:ident, <span class="macro-nonterminal">$bytes</span>:ident) =&gt; ({
+            <span class="comment">// Drop the frame header
+            // TODO: Change to drain: carllerche/bytes#130
+            </span><span class="kw">let _ </span>= <span class="macro-nonterminal">$bytes</span>.split_to(frame::HEADER_LEN);
 
-            <span class="comment">// Parse the header frame w/o parsing the payload</span>
-            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">frame</span>, <span class="kw-2">mut</span> <span class="ident">payload</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">frame</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">frame::load</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; <span class="ident">res</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">frame::Error::InvalidDependencyId</span>) =&gt; {
-                    <span class="macro">proto_err!</span>(<span class="ident">stream</span>: <span class="string">&quot;invalid HEADERS dependency ID&quot;</span>);
-                    <span class="comment">// A stream cannot depend on itself. An endpoint MUST</span>
-                    <span class="comment">// treat this as a stream error (Section 5.4.2) of type</span>
-                    <span class="comment">// `PROTOCOL_ERROR`.</span>
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_reset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>.<span class="ident">stream_id</span>(), <span class="ident">Reason::PROTOCOL_ERROR</span>));
+            <span class="comment">// Parse the header frame w/o parsing the payload
+            </span><span class="kw">let </span>(<span class="kw-2">mut </span>frame, <span class="kw-2">mut </span>payload) = <span class="kw">match </span>frame::<span class="macro-nonterminal">$frame::load</span>(<span class="macro-nonterminal">$head</span>, <span class="macro-nonterminal">$bytes</span>) {
+                <span class="prelude-val">Ok</span>(res) =&gt; res,
+                <span class="prelude-val">Err</span>(frame::Error::InvalidDependencyId) =&gt; {
+                    <span class="macro">proto_err!</span>(stream: <span class="string">&quot;invalid HEADERS dependency ID&quot;</span>);
+                    <span class="comment">// A stream cannot depend on itself. An endpoint MUST
+                    // treat this as a stream error (Section 5.4.2) of type
+                    // `PROTOCOL_ERROR`.
+                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_reset(<span class="macro-nonterminal">$head</span>.stream_id(), Reason::PROTOCOL_ERROR));
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load frame; err={:?}&quot;</span>, <span class="ident">e</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">proto_err!</span>(conn: <span class="string">&quot;failed to load frame; err={:?}&quot;</span>, e);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR));
                 }
             };
 
-            <span class="kw">let</span> <span class="ident">is_end_headers</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">is_end_headers</span>();
+            <span class="kw">let </span>is_end_headers = frame.is_end_headers();
 
-            <span class="comment">// Load the HPACK encoded headers</span>
-            <span class="kw">match</span> <span class="ident">frame</span>.<span class="ident">load_hpack</span>(<span class="kw-2">&amp;mut</span> <span class="ident">payload</span>, <span class="ident">max_header_list_size</span>, <span class="ident">hpack</span>) {
+            <span class="comment">// Load the HPACK encoded headers
+            </span><span class="kw">match </span>frame.load_hpack(<span class="kw-2">&amp;mut </span>payload, max_header_list_size, hpack) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {},
-                <span class="prelude-val">Err</span>(<span class="ident">frame::Error::Hpack</span>(<span class="ident">hpack::DecoderError::NeedMore</span>(<span class="kw">_</span>))) <span class="kw">if</span> <span class="op">!</span><span class="ident">is_end_headers</span> =&gt; {},
-                <span class="prelude-val">Err</span>(<span class="ident">frame::Error::MalformedMessage</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>.<span class="ident">stream_id</span>();
-                    <span class="macro">proto_err!</span>(<span class="ident">stream</span>: <span class="string">&quot;malformed header block; stream={:?}&quot;</span>, <span class="ident">id</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_reset</span>(<span class="ident">id</span>, <span class="ident">Reason::PROTOCOL_ERROR</span>));
+                <span class="prelude-val">Err</span>(frame::Error::Hpack(hpack::DecoderError::NeedMore(<span class="kw">_</span>))) <span class="kw">if </span>!is_end_headers =&gt; {},
+                <span class="prelude-val">Err</span>(frame::Error::MalformedMessage) =&gt; {
+                    <span class="kw">let </span>id = <span class="macro-nonterminal">$head</span>.stream_id();
+                    <span class="macro">proto_err!</span>(stream: <span class="string">&quot;malformed header block; stream={:?}&quot;</span>, id);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_reset(id, Reason::PROTOCOL_ERROR));
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed HPACK decoding; err={:?}&quot;</span>, <span class="ident">e</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">proto_err!</span>(conn: <span class="string">&quot;failed HPACK decoding; err={:?}&quot;</span>, e);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR));
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">is_end_headers</span> {
-                <span class="ident">frame</span>.<span class="ident">into</span>()
-            } <span class="kw">else</span> {
+            <span class="kw">if </span>is_end_headers {
+                frame.into()
+            } <span class="kw">else </span>{
                 <span class="macro">tracing::trace!</span>(<span class="string">&quot;loaded partial header block&quot;</span>);
-                <span class="comment">// Defer returning the frame</span>
-                <span class="kw-2">*</span><span class="ident">partial_inout</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Partial</span> {
-                    <span class="ident">frame</span>: <span class="ident">Continuable</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">frame</span>(<span class="ident">frame</span>),
-                    <span class="ident">buf</span>: <span class="ident">payload</span>,
+                <span class="comment">// Defer returning the frame
+                </span><span class="kw-2">*</span>partial_inout = <span class="prelude-val">Some</span>(Partial {
+                    frame: Continuable::<span class="macro-nonterminal">$frame</span>(frame),
+                    buf: payload,
                 });
 
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
         });
     }
 
-    <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#115">kind</a> {
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#19">Kind::Settings</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::Settings::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>..]);
+    <span class="kw">let </span>frame = <span class="kw">match </span><a href="../../../src/h2/codec/framed_read.rs.html#115">kind</a> {
+        <a href="../../../src/h2/frame/head.rs.html#19">Kind::Settings</a> =&gt; {
+            <span class="kw">let </span>res = frame::Settings::load(<a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>..]);
 
-            <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load SETTINGS frame; err={:?}&quot;</span>, <span class="ident">e</span>);
-                <span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
-            })<span class="question-mark">?</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            res.map_err(|e| {
+                <span class="macro">proto_err!</span>(conn: <span class="string">&quot;failed to load SETTINGS frame; err={:?}&quot;</span>, e);
+                Error::library_go_away(Reason::PROTOCOL_ERROR)
+            })<span class="question-mark">?
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#21">Kind::Ping</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::Ping::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>..]);
+        <a href="../../../src/h2/frame/head.rs.html#21">Kind::Ping</a> =&gt; {
+            <span class="kw">let </span>res = frame::Ping::load(<a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>..]);
 
-            <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load PING frame; err={:?}&quot;</span>, <span class="ident">e</span>);
-                <span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
-            })<span class="question-mark">?</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            res.map_err(|e| {
+                <span class="macro">proto_err!</span>(conn: <span class="string">&quot;failed to load PING frame; err={:?}&quot;</span>, e);
+                Error::library_go_away(Reason::PROTOCOL_ERROR)
+            })<span class="question-mark">?
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#23">Kind::WindowUpdate</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::WindowUpdate::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>..]);
+        <a href="../../../src/h2/frame/head.rs.html#23">Kind::WindowUpdate</a> =&gt; {
+            <span class="kw">let </span>res = frame::WindowUpdate::load(<a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>..]);
 
-            <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load WINDOW_UPDATE frame; err={:?}&quot;</span>, <span class="ident">e</span>);
-                <span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
-            })<span class="question-mark">?</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            res.map_err(|e| {
+                <span class="macro">proto_err!</span>(conn: <span class="string">&quot;failed to load WINDOW_UPDATE frame; err={:?}&quot;</span>, e);
+                Error::library_go_away(Reason::PROTOCOL_ERROR)
+            })<span class="question-mark">?
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#15">Kind::Data</a> =&gt; {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>.<span class="ident">split_to</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>);
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::Data::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>.<span class="ident">freeze</span>());
+        <a href="../../../src/h2/frame/head.rs.html#15">Kind::Data</a> =&gt; {
+            <span class="kw">let _ </span>= <a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>.split_to(<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>);
+            <span class="kw">let </span>res = frame::Data::load(<a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>.freeze());
 
-            <span class="comment">// TODO: Should this always be connection level? Probably not...</span>
-            <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load DATA frame; err={:?}&quot;</span>, <span class="ident">e</span>);
-                <span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
-            })<span class="question-mark">?</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            <span class="comment">// TODO: Should this always be connection level? Probably not...
+            </span>res.map_err(|e| {
+                <span class="macro">proto_err!</span>(conn: <span class="string">&quot;failed to load DATA frame; err={:?}&quot;</span>, e);
+                Error::library_go_away(Reason::PROTOCOL_ERROR)
+            })<span class="question-mark">?
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#16">Kind::Headers</a> =&gt; <a class="macro" href="../../../src/h2/codec/framed_read.rs.html#119-171">header_block!</a>(<span class="ident">Headers</span>, <span class="ident">head</span>, <span class="ident">bytes</span>),
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#18">Kind::Reset</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::Reset::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>..]);
-            <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load RESET frame; err={:?}&quot;</span>, <span class="ident">e</span>);
-                <span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
-            })<span class="question-mark">?</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="../../../src/h2/frame/head.rs.html#16">Kind::Headers</a> =&gt; <a class="macro" href="../../../src/h2/codec/framed_read.rs.html#119-171">header_block!</a>(Headers, head, bytes),
+        <a href="../../../src/h2/frame/head.rs.html#18">Kind::Reset</a> =&gt; {
+            <span class="kw">let </span>res = frame::Reset::load(<a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>..]);
+            res.map_err(|e| {
+                <span class="macro">proto_err!</span>(conn: <span class="string">&quot;failed to load RESET frame; err={:?}&quot;</span>, e);
+                Error::library_go_away(Reason::PROTOCOL_ERROR)
+            })<span class="question-mark">?
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#22">Kind::GoAway</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">frame::GoAway::load</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>..]);
-            <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">proto_err!</span>(<span class="ident">conn</span>: <span class="string">&quot;failed to load GO_AWAY frame; err={:?}&quot;</span>, <span class="ident">e</span>);
-                <span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>)
-            })<span class="question-mark">?</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="../../../src/h2/frame/head.rs.html#22">Kind::GoAway</a> =&gt; {
+            <span class="kw">let </span>res = frame::GoAway::load(<span class="kw-2">&amp;</span><a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>..]);
+            res.map_err(|e| {
+                <span class="macro">proto_err!</span>(conn: <span class="string">&quot;failed to load GO_AWAY frame; err={:?}&quot;</span>, e);
+                Error::library_go_away(Reason::PROTOCOL_ERROR)
+            })<span class="question-mark">?
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#20">Kind::PushPromise</a> =&gt; <a class="macro" href="../../../src/h2/codec/framed_read.rs.html#119-171">header_block!</a>(<span class="ident">PushPromise</span>, <span class="ident">head</span>, <span class="ident">bytes</span>),
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#17">Kind::Priority</a> =&gt; {
-            <span class="kw">if</span> <span class="ident">head</span>.<span class="ident">stream_id</span>() <span class="op">==</span> <span class="number">0</span> {
-                <span class="comment">// Invalid stream identifier</span>
-                <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">conn</span>: <span class="string">&quot;invalid stream ID 0&quot;</span>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a href="../../../src/h2/frame/head.rs.html#20">Kind::PushPromise</a> =&gt; <a class="macro" href="../../../src/h2/codec/framed_read.rs.html#119-171">header_block!</a>(PushPromise, head, bytes),
+        <a href="../../../src/h2/frame/head.rs.html#17">Kind::Priority</a> =&gt; {
+            <span class="kw">if </span>head.stream_id() == <span class="number">0 </span>{
+                <span class="comment">// Invalid stream identifier
+                </span><a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;invalid stream ID 0&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             }
 
-            <span class="kw">match</span> <span class="ident">frame::Priority::load</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>..]) {
-                <span class="prelude-val">Ok</span>(<span class="ident">frame</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#238">frame</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#157">frame::Error::InvalidDependencyId</a>) =&gt; {
-                    <span class="comment">// A stream cannot depend on itself. An endpoint MUST</span>
-                    <span class="comment">// treat this as a stream error (Section 5.4.2) of type</span>
-                    <span class="comment">// `PROTOCOL_ERROR`.</span>
-                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#50">stream_id</a>();
-                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">stream</span>: <span class="string">&quot;PRIORITY invalid dependency ID; stream={:?}&quot;</span>, <span class="ident">id</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_reset</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#243">id</a>, <span class="ident">Reason::PROTOCOL_ERROR</span>));
+            <span class="kw">match </span>frame::Priority::load(<a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>, <span class="kw-2">&amp;</span><a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>..]) {
+                <span class="prelude-val">Ok</span>(frame) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#238">frame</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <span class="prelude-val">Err</span>(<a href="../../../src/h2/frame/mod.rs.html#167">frame::Error::InvalidDependencyId</a>) =&gt; {
+                    <span class="comment">// A stream cannot depend on itself. An endpoint MUST
+                    // treat this as a stream error (Section 5.4.2) of type
+                    // `PROTOCOL_ERROR`.
+                    </span><span class="kw">let </span>id = <a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>.<a href="../../../src/h2/frame/head.rs.html#50">stream_id</a>();
+                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(stream: <span class="string">&quot;PRIORITY invalid dependency ID; stream={:?}&quot;</span>, id);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_reset(<a href="../../../src/h2/codec/framed_read.rs.html#243">id</a>, Reason::PROTOCOL_ERROR));
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">conn</span>: <span class="string">&quot;failed to load PRIORITY frame; err={:?};&quot;</span>, <span class="ident">e</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;failed to load PRIORITY frame; err={:?};&quot;</span>, e);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR));
                 }
             }
         }
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#24">Kind::Continuation</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">is_end_headers</span> <span class="op">=</span> (<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#58">flag</a>() <span class="op">&amp;</span> <span class="number">0x4</span>) <span class="op">==</span> <span class="number">0x4</span>;
+        <a href="../../../src/h2/frame/head.rs.html#24">Kind::Continuation</a> =&gt; {
+            <span class="kw">let </span>is_end_headers = (<a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>.<a href="../../../src/h2/frame/head.rs.html#58">flag</a>() &amp; <span class="number">0x4</span>) == <span class="number">0x4</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#99">partial_inout</a>.<span class="ident">take</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">partial</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#257">partial</a>,
-                <span class="prelude-val">None</span> =&gt; {
-                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">conn</span>: <span class="string">&quot;received unexpected CONTINUATION frame&quot;</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">let </span><span class="kw-2">mut </span>partial = <span class="kw">match </span><a href="../../../src/h2/codec/framed_read.rs.html#99">partial_inout</a>.take() {
+                <span class="prelude-val">Some</span>(partial) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#257">partial</a>,
+                <span class="prelude-val">None </span>=&gt; {
+                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;received unexpected CONTINUATION frame&quot;</span>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 }
             };
 
-            <span class="comment">// The stream identifiers must match</span>
-            <span class="kw">if</span> <span class="ident">partial</span>.<span class="ident">frame</span>.<span class="ident">stream_id</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">head</span>.<span class="ident">stream_id</span>() {
-                <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">conn</span>: <span class="string">&quot;CONTINUATION frame stream ID does not match previous frame stream ID&quot;</span>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="comment">// The stream identifiers must match
+            </span><span class="kw">if </span>partial.frame.stream_id() != head.stream_id() {
+                <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;CONTINUATION frame stream ID does not match previous frame stream ID&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             }
 
-            <span class="comment">// Extend the buf</span>
-            <span class="kw">if</span> <span class="ident">partial</span>.<span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>.<span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>.<span class="ident">split_off</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>);
-            } <span class="kw">else</span> {
-                <span class="kw">if</span> <span class="ident">partial</span>.<span class="ident">frame</span>.<span class="ident">is_over_size</span>() {
-                    <span class="comment">// If there was left over bytes previously, they may be</span>
-                    <span class="comment">// needed to continue decoding, even though we will</span>
-                    <span class="comment">// be ignoring this frame. This is done to keep the HPACK</span>
-                    <span class="comment">// decoder state up-to-date.</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// Still, we need to be careful, because if a malicious</span>
-                    <span class="comment">// attacker were to try to send a gigantic string, such</span>
-                    <span class="comment">// that it fits over multiple header blocks, we could</span>
-                    <span class="comment">// grow memory uncontrollably again, and that&#39;d be a shame.</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// Instead, we use a simple heuristic to determine if</span>
-                    <span class="comment">// we should continue to ignore decoding, or to tell</span>
-                    <span class="comment">// the attacker to go away.</span>
-                    <span class="kw">if</span> <span class="ident">partial</span>.<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">max_header_list_size</span> {
-                        <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">conn</span>: <span class="string">&quot;CONTINUATION frame header block size over ignorable limit&quot;</span>);
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::COMPRESSION_ERROR</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="comment">// Extend the buf
+            </span><span class="kw">if </span>partial.buf.is_empty() {
+                <a href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>.buf = <a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>.split_off(<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>);
+            } <span class="kw">else </span>{
+                <span class="kw">if </span>partial.frame.is_over_size() {
+                    <span class="comment">// If there was left over bytes previously, they may be
+                    // needed to continue decoding, even though we will
+                    // be ignoring this frame. This is done to keep the HPACK
+                    // decoder state up-to-date.
+                    //
+                    // Still, we need to be careful, because if a malicious
+                    // attacker were to try to send a gigantic string, such
+                    // that it fits over multiple header blocks, we could
+                    // grow memory uncontrollably again, and that&#39;d be a shame.
+                    //
+                    // Instead, we use a simple heuristic to determine if
+                    // we should continue to ignore decoding, or to tell
+                    // the attacker to go away.
+                    </span><span class="kw">if </span>partial.buf.len() + bytes.len() &gt; max_header_list_size {
+                        <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;CONTINUATION frame header block size over ignorable limit&quot;</span>);
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::COMPRESSION_ERROR).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                     }
                 }
-                <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>.<span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a class="ident" href="../../../src/h2/frame/mod.rs.html#67">frame::HEADER_LEN</a>..]);
+                <a href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>.buf.extend_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/h2/codec/framed_read.rs.html#100">bytes</a>[<a href="../../../src/h2/frame/mod.rs.html#77">frame::HEADER_LEN</a>..]);
             }
 
-            <span class="kw">match</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>
-                .<span class="ident">frame</span>
-                .<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#389-394">load_hpack</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>.<span class="ident">buf</span>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#98">max_header_list_size</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#97">hpack</a>)
+            <span class="kw">match </span><a href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>
+                .frame
+                .<a href="../../../src/h2/codec/framed_read.rs.html#389-394">load_hpack</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>.buf, <a href="../../../src/h2/codec/framed_read.rs.html#98">max_header_list_size</a>, <a href="../../../src/h2/codec/framed_read.rs.html#97">hpack</a>)
             {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#160">frame::Error::Hpack</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#37">hpack::DecoderError::NeedMore</a>(<span class="kw">_</span>))) <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#254">is_end_headers</a> =&gt; {}
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#151">frame::Error::MalformedMessage</a>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#108">head</a>.<a class="ident" href="../../../src/h2/frame/head.rs.html#50">stream_id</a>();
-                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">stream</span>: <span class="string">&quot;malformed CONTINUATION frame; stream={:?}&quot;</span>, <span class="ident">id</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_reset</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#303">id</a>, <span class="ident">Reason::PROTOCOL_ERROR</span>));
+                <span class="prelude-val">Err</span>(<a href="../../../src/h2/frame/mod.rs.html#170">frame::Error::Hpack</a>(<a href="../../../src/h2/hpack/decoder.rs.html#37">hpack::DecoderError::NeedMore</a>(<span class="kw">_</span>))) <span class="kw">if </span>!<a href="../../../src/h2/codec/framed_read.rs.html#254">is_end_headers</a> =&gt; {}
+                <span class="prelude-val">Err</span>(<a href="../../../src/h2/frame/mod.rs.html#161">frame::Error::MalformedMessage</a>) =&gt; {
+                    <span class="kw">let </span>id = <a href="../../../src/h2/codec/framed_read.rs.html#108">head</a>.<a href="../../../src/h2/frame/head.rs.html#50">stream_id</a>();
+                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(stream: <span class="string">&quot;malformed CONTINUATION frame; stream={:?}&quot;</span>, id);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_reset(<a href="../../../src/h2/codec/framed_read.rs.html#303">id</a>, Reason::PROTOCOL_ERROR));
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(<span class="ident">conn</span>: <span class="string">&quot;failed HPACK decoding; err={:?}&quot;</span>, <span class="ident">e</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::library_go_away</span>(<span class="ident">Reason::PROTOCOL_ERROR</span>));
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <a class="macro" href="../../../src/h2/lib.rs.html#85-92">proto_err!</a>(conn: <span class="string">&quot;failed HPACK decoding; err={:?}&quot;</span>, e);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::library_go_away(Reason::PROTOCOL_ERROR));
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">is_end_headers</span> {
-                <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>.<span class="ident">frame</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
-            } <span class="kw">else</span> {
-                <span class="kw-2">*</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#99">partial_inout</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            <span class="kw">if </span>is_end_headers {
+                <a href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>.frame.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            } <span class="kw">else </span>{
+                <span class="kw-2">*</span><a href="../../../src/h2/codec/framed_read.rs.html#99">partial_inout</a> = <span class="prelude-val">Some</span>(<a href="../../../src/h2/codec/framed_read.rs.html#256">partial</a>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
         }
-        <a class="ident" href="../../../src/h2/frame/head.rs.html#25">Kind::Unknown</a> =&gt; {
-            <span class="comment">// Unknown frames are ignored</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        <a href="../../../src/h2/frame/head.rs.html#25">Kind::Unknown</a> =&gt; {
+            <span class="comment">// Unknown frames are ignored
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
     };
 
-    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#173">frame</a>))
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/h2/codec/framed_read.rs.html#173">frame</a>))
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="kw">impl</span>&lt;T&gt; <a href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>FramedRead&lt;T&gt;
+<span class="kw">where
+    </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/frame/mod.rs.html#70">Frame</a>, <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<a href="../../../src/h2/frame/mod.rs.html#80">Frame</a>, <a href="../../../src/h2/proto/error.rs.html#10">Error</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;FramedRead::poll_next&quot;</span>);
-        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#336">span</a>.<span class="ident">enter</span>();
-        <span class="kw">loop</span> {
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;FramedRead::poll_next&quot;</span>);
+        <span class="kw">let </span>_e = <a href="../../../src/h2/codec/framed_read.rs.html#336">span</a>.enter();
+        <span class="kw">loop </span>{
             <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;poll&quot;</span>);
-            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">match</span> <a class="macro" href="../../../src/h2/lib.rs.html#94-101">ready!</a>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#341">bytes</a>,
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#361">map_err</a>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#342">e</a>)))),
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+            <span class="kw">let </span>bytes = <span class="kw">match </span><a class="macro" href="../../../src/h2/lib.rs.html#94-101">ready!</a>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_next(cx)) {
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(bytes)) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#341">bytes</a>,
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="../../../src/h2/codec/framed_read.rs.html#361">map_err</a>(<a href="../../../src/h2/codec/framed_read.rs.html#342">e</a>)))),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>),
             };
 
-            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">read</span>.<span class="ident">bytes</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">len</span>());
-            <span class="kw">let</span> <span class="self">Self</span> {
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">hpack</span>,
-                <span class="ident">max_header_list_size</span>,
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">partial</span>,
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(read.bytes = bytes.len());
+            <span class="kw">let </span><span class="self">Self </span>{
+                <span class="kw-2">ref mut </span>hpack,
+                max_header_list_size,
+                <span class="kw-2">ref mut </span>partial,
                 ..
-            } <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../src/h2/codec/framed_read.rs.html#335">self</a>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <span class="ident">decode_frame</span>(<span class="ident">hpack</span>, <span class="ident">max_header_list_size</span>, <span class="ident">partial</span>, <span class="ident">bytes</span>)<span class="question-mark">?</span> {
-                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;received&quot;</span>);
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#353">frame</a>)));
+            } = <span class="kw-2">*</span><a class="self" href="../../../src/h2/codec/framed_read.rs.html#335">self</a>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(frame) = decode_frame(hpack, max_header_list_size, partial, bytes)<span class="question-mark">? </span>{
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="question-mark">?</span>frame, <span class="string">&quot;received&quot;</span>);
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a href="../../../src/h2/codec/framed_read.rs.html#353">frame</a>)));
             }
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">map_err</span>(<span class="ident">err</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a class="ident" href="../../../src/h2/proto/error.rs.html#10">Error</a> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">io::ErrorKind::InvalidData</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#361">err</a>.<span class="ident">kind</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">custom</span>) <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#361">err</a>.<span class="ident">get_ref</span>() {
-            <span class="kw">if</span> <span class="ident">custom</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">LengthDelimitedCodecError</span><span class="op">&gt;</span>() {
-                <span class="kw">return</span> <span class="ident">Error::library_go_away</span>(<span class="ident">Reason::FRAME_SIZE_ERROR</span>);
+<span class="kw">fn </span>map_err(err: <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a href="../../../src/h2/proto/error.rs.html#10">Error</a> {
+    <span class="kw">if let </span>io::ErrorKind::InvalidData = <a href="../../../src/h2/codec/framed_read.rs.html#361">err</a>.kind() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(custom) = <a href="../../../src/h2/codec/framed_read.rs.html#361">err</a>.get_ref() {
+            <span class="kw">if </span>custom.is::&lt;LengthDelimitedCodecError&gt;() {
+                <span class="kw">return </span>Error::library_go_away(Reason::FRAME_SIZE_ERROR);
             }
         }
     }
-    <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#361">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    <a href="../../../src/h2/codec/framed_read.rs.html#361">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
 }
 
-<span class="comment">// ===== impl Continuable =====</span>
+<span class="comment">// ===== impl Continuable =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#47">Continuable</a> {
-    <span class="kw">fn</span> <span class="ident">stream_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/h2/frame/stream_id.rs.html#14">frame::StreamId</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/h2/codec/framed_read.rs.html#375">self</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#48">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="ident">h</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#377">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#217">stream_id</a>(),
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#49">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="ident">p</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#378">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#459">stream_id</a>(),
+</span><span class="kw">impl </span><a href="../../../src/h2/codec/framed_read.rs.html#47">Continuable</a> {
+    <span class="kw">fn </span>stream_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/h2/frame/stream_id.rs.html#14">frame::StreamId</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/h2/codec/framed_read.rs.html#375">self</a> </span>{
+            <a href="../../../src/h2/codec/framed_read.rs.html#48">Continuable::Headers</a>(<span class="kw-2">ref </span>h) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#377">h</a>.<a href="../../../src/h2/frame/headers.rs.html#217">stream_id</a>(),
+            <a href="../../../src/h2/codec/framed_read.rs.html#49">Continuable::PushPromise</a>(<span class="kw-2">ref </span>p) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#378">p</a>.<a href="../../../src/h2/frame/headers.rs.html#459">stream_id</a>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_over_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/h2/codec/framed_read.rs.html#382">self</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#48">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="ident">h</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#384">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#237">is_over_size</a>(),
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#49">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="ident">p</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#385">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#475">is_over_size</a>(),
+    <span class="kw">fn </span>is_over_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/h2/codec/framed_read.rs.html#382">self</a> </span>{
+            <a href="../../../src/h2/codec/framed_read.rs.html#48">Continuable::Headers</a>(<span class="kw-2">ref </span>h) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#384">h</a>.<a href="../../../src/h2/frame/headers.rs.html#237">is_over_size</a>(),
+            <a href="../../../src/h2/codec/framed_read.rs.html#49">Continuable::PushPromise</a>(<span class="kw-2">ref </span>p) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#385">p</a>.<a href="../../../src/h2/frame/headers.rs.html#475">is_over_size</a>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">load_hpack</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">src</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
-        <span class="ident">max_header_list_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">decoder</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#16">hpack::Decoder</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/frame/mod.rs.html#123">frame::Error</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/h2/codec/framed_read.rs.html#390">self</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#48">Continuable::Headers</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#396">h</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#208-213">load_hpack</a>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#391">src</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#392">max_header_list_size</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#393">decoder</a>),
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#49">Continuable::PushPromise</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">p</span>) =&gt; <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#397">p</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#450-455">load_hpack</a>(<a class="ident" href="../../../src/h2/codec/framed_read.rs.html#391">src</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#392">max_header_list_size</a>, <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#393">decoder</a>),
+    <span class="kw">fn </span>load_hpack(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        src: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+        max_header_list_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        decoder: <span class="kw-2">&amp;mut </span><a href="../../../src/h2/hpack/decoder.rs.html#16">hpack::Decoder</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/frame/mod.rs.html#133">frame::Error</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/h2/codec/framed_read.rs.html#390">self</a> </span>{
+            <a href="../../../src/h2/codec/framed_read.rs.html#48">Continuable::Headers</a>(<span class="kw-2">ref mut </span>h) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#396">h</a>.<a href="../../../src/h2/frame/headers.rs.html#208-213">load_hpack</a>(<a href="../../../src/h2/codec/framed_read.rs.html#391">src</a>, <a href="../../../src/h2/codec/framed_read.rs.html#392">max_header_list_size</a>, <a href="../../../src/h2/codec/framed_read.rs.html#393">decoder</a>),
+            <a href="../../../src/h2/codec/framed_read.rs.html#49">Continuable::PushPromise</a>(<span class="kw-2">ref mut </span>p) =&gt; <a href="../../../src/h2/codec/framed_read.rs.html#397">p</a>.<a href="../../../src/h2/frame/headers.rs.html#450-455">load_hpack</a>(<a href="../../../src/h2/codec/framed_read.rs.html#391">src</a>, <a href="../../../src/h2/codec/framed_read.rs.html#392">max_header_list_size</a>, <a href="../../../src/h2/codec/framed_read.rs.html#393">decoder</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/codec/framed_read.rs.html#47">Continuable</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cont</span>: <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#47">Continuable</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#403">cont</a> {
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#48">Continuable::Headers</a>(<span class="kw-2">mut</span> <span class="ident">headers</span>) =&gt; {
-                <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#405">headers</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#225">set_end_headers</a>();
-                <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#405">headers</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl</span>&lt;T&gt; From&lt;<a href="../../../src/h2/codec/framed_read.rs.html#47">Continuable</a>&gt; <span class="kw">for </span>Frame&lt;T&gt; {
+    <span class="kw">fn </span>from(cont: <a href="../../../src/h2/codec/framed_read.rs.html#47">Continuable</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><a href="../../../src/h2/codec/framed_read.rs.html#403">cont</a> {
+            <a href="../../../src/h2/codec/framed_read.rs.html#48">Continuable::Headers</a>(<span class="kw-2">mut </span>headers) =&gt; {
+                <a href="../../../src/h2/codec/framed_read.rs.html#405">headers</a>.<a href="../../../src/h2/frame/headers.rs.html#225">set_end_headers</a>();
+                <a href="../../../src/h2/codec/framed_read.rs.html#405">headers</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
             }
-            <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#49">Continuable::PushPromise</a>(<span class="kw-2">mut</span> <span class="ident">push</span>) =&gt; {
-                <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#409">push</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#471">set_end_headers</a>();
-                <a class="ident" href="../../../src/h2/codec/framed_read.rs.html#409">push</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            <a href="../../../src/h2/codec/framed_read.rs.html#49">Continuable::PushPromise</a>(<span class="kw-2">mut </span>push) =&gt; {
+                <a href="../../../src/h2/codec/framed_read.rs.html#409">push</a>.<a href="../../../src/h2/frame/headers.rs.html#471">set_end_headers</a>();
+                <a href="../../../src/h2/codec/framed_read.rs.html#409">push</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

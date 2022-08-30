@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/uninit_slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>uninit_slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.1/src/buf/uninit_slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>uninit_slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../bytes/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -207,214 +207,214 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">core::mem::MaybeUninit</a>;
-<span class="kw">use</span> <span class="ident">core::ops</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html">IndexMut</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html">RangeFrom</a>, <span class="ident">RangeFull</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeInclusive.html">RangeInclusive</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeTo.html">RangeTo</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeToInclusive.html">RangeToInclusive</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">core::mem::MaybeUninit</a>;
+<span class="kw">use </span>core::ops::{
+    <a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html">IndexMut</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFrom.html">RangeFrom</a>, RangeFull, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeInclusive.html">RangeInclusive</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeTo.html">RangeTo</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeToInclusive.html">RangeToInclusive</a>,
 };
 
-<span class="doccomment">/// Uninitialized byte slice.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returned by `BufMut::chunk_mut()`, the referenced byte slice may be</span>
-<span class="doccomment">/// uninitialized. The wrapper provides safe access without introducing</span>
-<span class="doccomment">/// undefined behavior.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The safety invariants of this wrapper are:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///  1. Reading from an `UninitSlice` is undefined behavior.</span>
-<span class="doccomment">///  2. Writing uninitialized bytes to an `UninitSlice` is undefined behavior.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The difference between `&amp;mut UninitSlice` and `&amp;mut [MaybeUninit&lt;u8&gt;]` is</span>
-<span class="doccomment">/// that it is possible in safe code to write uninitialized bytes to an</span>
-<span class="doccomment">/// `&amp;mut [MaybeUninit&lt;u8&gt;]`, which this type prohibits.</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UninitSlice</span>([<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>]);
+<span class="doccomment">/// Uninitialized byte slice.
+///
+/// Returned by `BufMut::chunk_mut()`, the referenced byte slice may be
+/// uninitialized. The wrapper provides safe access without introducing
+/// undefined behavior.
+///
+/// The safety invariants of this wrapper are:
+///
+///  1. Reading from an `UninitSlice` is undefined behavior.
+///  2. Writing uninitialized bytes to an `UninitSlice` is undefined behavior.
+///
+/// The difference between `&amp;mut UninitSlice` and `&amp;mut [MaybeUninit&lt;u8&gt;]` is
+/// that it is possible in safe code to write uninitialized bytes to an
+/// `&amp;mut [MaybeUninit&lt;u8&gt;]`, which this type prohibits.
+</span><span class="attribute">#[repr(transparent)]
+</span><span class="kw">pub struct </span>UninitSlice([MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
-    <span class="doccomment">/// Create a `&amp;mut UninitSlice` from a pointer and a length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must ensure that `ptr` references a valid memory region owned</span>
-    <span class="doccomment">/// by the caller representing a byte slice for the duration of `&#39;a`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::buf::UninitSlice;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let bytes = b&quot;hello world&quot;.to_vec();</span>
-    <span class="doccomment">/// let ptr = bytes.as_ptr() as *mut _;</span>
-    <span class="doccomment">/// let len = bytes.len();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let slice = unsafe { UninitSlice::from_raw_parts_mut(ptr, len) };</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_parts_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
-        <span class="kw">let</span> <span class="ident">maybe_init</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] <span class="op">=</span>
-            <span class="ident">core::slice::from_raw_parts_mut</span>(<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#44">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#44">len</a>);
-        <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#45">maybe_init</a> <span class="kw">as</span> <span class="kw-2">*mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a>)
+<span class="kw">impl </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
+    <span class="doccomment">/// Create a `&amp;mut UninitSlice` from a pointer and a length.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that `ptr` references a valid memory region owned
+    /// by the caller representing a byte slice for the duration of `&#39;a`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::buf::UninitSlice;
+    ///
+    /// let bytes = b&quot;hello world&quot;.to_vec();
+    /// let ptr = bytes.as_ptr() as *mut _;
+    /// let len = bytes.len();
+    ///
+    /// let slice = unsafe { UninitSlice::from_raw_parts_mut(ptr, len) };
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>from_raw_parts_mut&lt;<span class="lifetime">&#39;a</span>&gt;(ptr: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
+        <span class="kw">let </span>maybe_init: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] =
+            core::slice::from_raw_parts_mut(<a href="../../../src/bytes/buf/uninit_slice.rs.html#44">ptr</a> <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, <a href="../../../src/bytes/buf/uninit_slice.rs.html#44">len</a>);
+        <span class="kw-2">&amp;mut *</span>(<a href="../../../src/bytes/buf/uninit_slice.rs.html#45">maybe_init</a> <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a>)
     }
 
-    <span class="doccomment">/// Write a single byte at the specified offset.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The function panics if `index` is out of bounds.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::buf::UninitSlice;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut data = [b&#39;f&#39;, b&#39;o&#39;, b&#39;o&#39;];</span>
-    <span class="doccomment">/// let slice = unsafe { UninitSlice::from_raw_parts_mut(data.as_mut_ptr(), 3) };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// slice.write_byte(0, b&#39;b&#39;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(b&quot;boo&quot;, &amp;data[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_byte</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">len</span>());
+    <span class="doccomment">/// Write a single byte at the specified offset.
+    ///
+    /// # Panics
+    ///
+    /// The function panics if `index` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::buf::UninitSlice;
+    ///
+    /// let mut data = [b&#39;f&#39;, b&#39;o&#39;, b&#39;o&#39;];
+    /// let slice = unsafe { UninitSlice::from_raw_parts_mut(data.as_mut_ptr(), 3) };
+    ///
+    /// slice.write_byte(0, b&#39;b&#39;);
+    ///
+    /// assert_eq!(b&quot;boo&quot;, &amp;data[..]);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>write_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(index &lt; <span class="self">self</span>.len());
 
-        <span class="kw">unsafe</span> { <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#69">self</a>[<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#69">index</a>..].<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#123">as_mut_ptr</a>().<span class="ident">write</span>(<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#69">byte</a>) }
+        <span class="kw">unsafe </span>{ <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#69">self</a>[<a href="../../../src/bytes/buf/uninit_slice.rs.html#69">index</a>..].<a href="../../../src/bytes/buf/uninit_slice.rs.html#123">as_mut_ptr</a>().write(<a href="../../../src/bytes/buf/uninit_slice.rs.html#69">byte</a>) }
     }
 
-    <span class="doccomment">/// Copies bytes  from `src` into `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The length of `src` must be the same as `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The function panics if `src` has a different length than `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::buf::UninitSlice;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut data = [b&#39;f&#39;, b&#39;o&#39;, b&#39;o&#39;];</span>
-    <span class="doccomment">/// let slice = unsafe { UninitSlice::from_raw_parts_mut(data.as_mut_ptr(), 3) };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// slice.copy_from_slice(b&quot;bar&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(b&quot;bar&quot;, &amp;data[..]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">core::ptr</a>;
+    <span class="doccomment">/// Copies bytes  from `src` into `self`.
+    ///
+    /// The length of `src` must be the same as `self`.
+    ///
+    /// # Panics
+    ///
+    /// The function panics if `src` has a different length than `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::buf::UninitSlice;
+    ///
+    /// let mut data = [b&#39;f&#39;, b&#39;o&#39;, b&#39;o&#39;];
+    /// let slice = unsafe { UninitSlice::from_raw_parts_mut(data.as_mut_ptr(), 3) };
+    ///
+    /// slice.copy_from_slice(b&quot;bar&quot;);
+    ///
+    /// assert_eq!(b&quot;bar&quot;, &amp;data[..]);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>copy_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+        <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">core::ptr</a>;
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.<span class="ident">len</span>(), <span class="ident">src</span>.<span class="ident">len</span>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.len(), src.len());
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">ptr::copy_nonoverlapping</span>(<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#96">src</a>.<span class="ident">as_ptr</span>(), <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#96">self</a>.<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#123">as_mut_ptr</a>(), <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#96">self</a>.<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#167">len</a>());
+        <span class="kw">unsafe </span>{
+            ptr::copy_nonoverlapping(<a href="../../../src/bytes/buf/uninit_slice.rs.html#96">src</a>.as_ptr(), <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#96">self</a>.<a href="../../../src/bytes/buf/uninit_slice.rs.html#123">as_mut_ptr</a>(), <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#96">self</a>.<a href="../../../src/bytes/buf/uninit_slice.rs.html#167">len</a>());
         }
     }
 
-    <span class="doccomment">/// Return a raw pointer to the slice&#39;s buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller **must not** read from the referenced memory and **must not**</span>
-    <span class="doccomment">/// write **uninitialized** bytes to the slice either.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut data = [0, 1, 2];</span>
-    <span class="doccomment">/// let mut slice = &amp;mut data[..];</span>
-    <span class="doccomment">/// let ptr = BufMut::chunk_mut(&amp;mut slice).as_mut_ptr();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#123">self</a>.<span class="number">0</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
+    <span class="doccomment">/// Return a raw pointer to the slice&#39;s buffer.
+    ///
+    /// # Safety
+    ///
+    /// The caller **must not** read from the referenced memory and **must not**
+    /// write **uninitialized** bytes to the slice either.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut data = [0, 1, 2];
+    /// let mut slice = &amp;mut data[..];
+    /// let ptr = BufMut::chunk_mut(&amp;mut slice).as_mut_ptr();
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+        <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#123">self</a>.<span class="number">0</span>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
+    </span>}
+
+    <span class="doccomment">/// Return a `&amp;mut [MaybeUninit&lt;u8&gt;]` to this slice&#39;s buffer.
+    ///
+    /// # Safety
+    ///
+    /// The caller **must not** read from the referenced memory and **must not** write
+    /// **uninitialized** bytes to the slice either. This is because `BufMut` implementation
+    /// that created the `UninitSlice` knows which parts are initialized. Writing uninitalized
+    /// bytes to the slice may cause the `BufMut` to read those bytes and trigger undefined
+    /// behavior.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut data = [0, 1, 2];
+    /// let mut slice = &amp;mut data[..];
+    /// unsafe {
+    ///     let uninit_slice = BufMut::chunk_mut(&amp;mut slice).as_uninit_slice_mut();
+    /// };
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>as_uninit_slice_mut&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] {
+        <span class="kw-2">&amp;mut *</span>(<span class="self"><a href="../../../src/bytes/buf/uninit_slice.rs.html#149">self</a> </span><span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;])
     }
 
-    <span class="doccomment">/// Return a `&amp;mut [MaybeUninit&lt;u8&gt;]` to this slice&#39;s buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller **must not** read from the referenced memory and **must not** write</span>
-    <span class="doccomment">/// **uninitialized** bytes to the slice either. This is because `BufMut` implementation</span>
-    <span class="doccomment">/// that created the `UninitSlice` knows which parts are initialized. Writing uninitalized</span>
-    <span class="doccomment">/// bytes to the slice may cause the `BufMut` to read those bytes and trigger undefined</span>
-    <span class="doccomment">/// behavior.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut data = [0, 1, 2];</span>
-    <span class="doccomment">/// let mut slice = &amp;mut data[..];</span>
-    <span class="doccomment">/// unsafe {</span>
-    <span class="doccomment">///     let uninit_slice = BufMut::chunk_mut(&amp;mut slice).as_uninit_slice_mut();</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_uninit_slice_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] {
-        <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#149">self</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>])
-    }
-
-    <span class="doccomment">/// Returns the number of bytes in the slice.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use bytes::BufMut;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut data = [0, 1, 2];</span>
-    <span class="doccomment">/// let mut slice = &amp;mut data[..];</span>
-    <span class="doccomment">/// let len = BufMut::chunk_mut(&amp;mut slice).len();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(len, 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#167">self</a>.<span class="number">0</span>.<span class="ident">len</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#173">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;UninitSlice[...]&quot;</span>).<span class="ident">finish</span>()
+    <span class="doccomment">/// Returns the number of bytes in the slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bytes::BufMut;
+    ///
+    /// let mut data = [0, 1, 2];
+    /// let mut slice = &amp;mut data[..];
+    /// let len = BufMut::chunk_mut(&amp;mut slice).len();
+    ///
+    /// assert_eq!(len, 3);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#167">self</a>.<span class="number">0</span>.len()
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">impl_index</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) =&gt; {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/bytes/buf/uninit_slice.rs.html#173">fmt</a>.debug_struct(<span class="string">&quot;UninitSlice[...]&quot;</span>).finish()
+    }
+}
+
+<span class="macro">macro_rules! </span>impl_index {
+    ($(<span class="macro-nonterminal">$t</span>:ty),<span class="kw-2">*</span>) =&gt; {
         $(
-            <span class="kw">impl</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UninitSlice</span> {
-                <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">UninitSlice</span>;
+            <span class="kw">impl </span>Index&lt;<span class="macro-nonterminal">$t</span>&gt; <span class="kw">for </span>UninitSlice {
+                <span class="kw">type </span>Output = UninitSlice;
 
-                <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">UninitSlice</span> {
-                    <span class="kw">let</span> <span class="ident">maybe_uninit</span>: <span class="kw-2">&amp;</span>[<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>] <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="ident">index</span>];
-                    <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">maybe_uninit</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>] <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">UninitSlice</span>) }
+                <span class="attribute">#[inline]
+                </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="macro-nonterminal">$t</span>) -&gt; <span class="kw-2">&amp;</span>UninitSlice {
+                    <span class="kw">let </span>maybe_uninit: <span class="kw-2">&amp;</span>[MaybeUninit&lt;u8&gt;] = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[index];
+                    <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(maybe_uninit <span class="kw">as </span><span class="kw-2">*const </span>[MaybeUninit&lt;u8&gt;] <span class="kw">as </span><span class="kw-2">*const </span>UninitSlice) }
                 }
             }
 
-            <span class="kw">impl</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UninitSlice</span> {
-                <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">UninitSlice</span> {
-                    <span class="kw">let</span> <span class="ident">maybe_uninit</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>] <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="number">0</span>[<span class="ident">index</span>];
-                    <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<span class="ident">maybe_uninit</span> <span class="kw">as</span> <span class="kw-2">*mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>] <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">UninitSlice</span>) }
+            <span class="kw">impl </span>IndexMut&lt;<span class="macro-nonterminal">$t</span>&gt; <span class="kw">for </span>UninitSlice {
+                <span class="attribute">#[inline]
+                </span><span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="macro-nonterminal">$t</span>) -&gt; <span class="kw-2">&amp;mut </span>UninitSlice {
+                    <span class="kw">let </span>maybe_uninit: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;] = <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[index];
+                    <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(maybe_uninit <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;u8&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>UninitSlice) }
                 }
             }
-        )<span class="op">*</span>
+        )*
     };
 }
 
 <a class="macro" href="../../../src/bytes/buf/uninit_slice.rs.html#178-200">impl_index!</a>(
-    <span class="ident">Range</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="ident">RangeFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">RangeFull</a>,
-    <span class="ident">RangeInclusive</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="ident">RangeTo</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="ident">RangeToInclusive</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>
+    Range&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    RangeFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <a href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">RangeFull</a>,
+    RangeInclusive&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    RangeTo&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    RangeToInclusive&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;
 );
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

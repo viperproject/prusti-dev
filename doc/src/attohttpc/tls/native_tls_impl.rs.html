@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/tls/native_tls_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>native_tls_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/tls/native_tls_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>native_tls_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -92,99 +92,99 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <a class="ident" href="../../../native_tls/enum.HandshakeError.html">native_tls::HandshakeError</a>;
+<span class="kw">use </span><a href="../../../native_tls/enum.HandshakeError.html">native_tls::HandshakeError</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/attohttpc/error.rs.html#243"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use </span><a href="../../../src/attohttpc/error.rs.html#243"><span class="kw">crate</span>::Result</a>;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Certificate</span> <span class="op">=</span> <a class="ident" href="../../../native_tls/struct.Certificate.html">native_tls::Certificate</a>;
+<span class="kw">pub type </span>Certificate = <a href="../../../native_tls/struct.Certificate.html">native_tls::Certificate</a>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsHandshaker</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../../native_tls/struct.TlsConnectorBuilder.html">native_tls::TlsConnectorBuilder</a>,
+<span class="kw">pub struct </span>TlsHandshaker {
+    inner: <a href="../../../native_tls/struct.TlsConnectorBuilder.html">native_tls::TlsConnectorBuilder</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a> {
-        <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a> {
-            <span class="ident">inner</span>: <span class="ident">native_tls::TlsConnector::builder</span>(),
+<span class="kw">impl </span><a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a> {
+    <span class="kw">pub fn </span>new() -&gt; <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a> {
+        <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#11">TlsHandshaker</a> {
+            inner: native_tls::TlsConnector::builder(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">danger_accept_invalid_certs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">accept_invalid_certs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#22">self</a>.<span class="ident">inner</span>.<span class="ident">danger_accept_invalid_certs</span>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#22">accept_invalid_certs</a>);
+    <span class="kw">pub fn </span>danger_accept_invalid_certs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, accept_invalid_certs: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#22">self</a>.inner.danger_accept_invalid_certs(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#22">accept_invalid_certs</a>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">danger_accept_invalid_hostnames</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">accept_invalid_hostnames</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#26">self</a>.<span class="ident">inner</span>.<span class="ident">danger_accept_invalid_hostnames</span>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#26">accept_invalid_hostnames</a>);
+    <span class="kw">pub fn </span>danger_accept_invalid_hostnames(<span class="kw-2">&amp;mut </span><span class="self">self</span>, accept_invalid_hostnames: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#26">self</a>.inner.danger_accept_invalid_hostnames(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#26">accept_invalid_hostnames</a>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_root_certificate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cert</span>: <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#9">Certificate</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#30">self</a>.<span class="ident">inner</span>.<span class="ident">add_root_certificate</span>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#30">cert</a>);
+    <span class="kw">pub fn </span>add_root_certificate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cert: <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#9">Certificate</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#30">self</a>.inner.add_root_certificate(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#30">cert</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handshake</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">stream</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+    <span class="kw">pub fn </span>handshake&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, stream: S) -&gt; <span class="prelude-ty">Result</span>&lt;TlsStream&lt;S&gt;&gt;
+    <span class="kw">where
+        </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
-        <span class="kw">let</span> <span class="ident">connector</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">build</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#39">connector</a>.<span class="ident">connect</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#35">domain</a>, <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#35">stream</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) =&gt; <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#41">stream</a>,
-            <span class="prelude-val">Err</span>(<span class="ident">HandshakeError::Failure</span>(<span class="ident">err</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#42">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-            <span class="prelude-val">Err</span>(<span class="ident">HandshakeError::WouldBlock</span>(<span class="kw-2">mut</span> <span class="ident">stream</span>)) =&gt; <span class="kw">loop</span> {
-                <span class="kw">match</span> <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#43">stream</a>.<span class="ident">handshake</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) =&gt; <span class="kw">break</span> <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#45">stream</a>,
-                    <span class="prelude-val">Err</span>(<span class="ident">HandshakeError::Failure</span>(<span class="ident">err</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#46">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                    <span class="prelude-val">Err</span>(<span class="ident">HandshakeError::WouldBlock</span>(<span class="ident">mid_stream</span>)) =&gt; <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#43">stream</a> <span class="op">=</span> <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#47">mid_stream</a>,
+        <span class="kw">let </span>connector = <span class="self">self</span>.inner.build()<span class="question-mark">?</span>;
+        <span class="kw">let </span>stream = <span class="kw">match </span><a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#39">connector</a>.connect(<span class="kw-2">&amp;</span><a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#35">domain</a>, <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#35">stream</a>) {
+            <span class="prelude-val">Ok</span>(stream) =&gt; <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#41">stream</a>,
+            <span class="prelude-val">Err</span>(HandshakeError::Failure(err)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#42">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            <span class="prelude-val">Err</span>(HandshakeError::WouldBlock(<span class="kw-2">mut </span>stream)) =&gt; <span class="kw">loop </span>{
+                <span class="kw">match </span><a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#43">stream</a>.handshake() {
+                    <span class="prelude-val">Ok</span>(stream) =&gt; <span class="kw">break </span><a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#45">stream</a>,
+                    <span class="prelude-val">Err</span>(HandshakeError::Failure(err)) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#46">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                    <span class="prelude-val">Err</span>(HandshakeError::WouldBlock(mid_stream)) =&gt; <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#43">stream</a> = <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#47">mid_stream</a>,
                 }
             },
         };
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#55">TlsStream</a> { <span class="ident">inner</span>: <a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#40">stream</a> })
+        <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#55">TlsStream</a> { inner: <a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#40">stream</a> })
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+<span class="kw">pub struct </span>TlsStream&lt;S&gt;
+<span class="kw">where
+    </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="ident">inner</span>: <span class="ident">native_tls::TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+    inner: native_tls::TlsStream&lt;S&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+<span class="kw">impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>TlsStream&lt;S&gt;
+<span class="kw">where
+    </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#67">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#67">buf</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#67">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#67">buf</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+<span class="kw">impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>TlsStream&lt;S&gt;
+<span class="kw">where
+    </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#77">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#77">buf</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#77">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#77">buf</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#82">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#82">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
+<span class="kw">impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>TlsStream&lt;S&gt;
+<span class="kw">where
+    </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/attohttpc/tls/native_tls_impl.rs.html#91">f</a>, <span class="string">&quot;TlsStream[native_tls]&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/attohttpc/tls/native_tls_impl.rs.html#91">f</a>, <span class="string">&quot;TlsStream[native_tls]&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

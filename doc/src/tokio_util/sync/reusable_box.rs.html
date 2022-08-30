@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/sync/reusable_box.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reusable_box.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/sync/reusable_box.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reusable_box.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -169,176 +169,176 @@
 <span id="169">169</span>
 <span id="170">170</span>
 <span id="171">171</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/alloc/layout/struct.Layout.html">std::alloc::Layout</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std::mem</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/core/mem/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">ManuallyDrop</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/alloc/layout/struct.Layout.html">std::alloc::Layout</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span>std::mem::{<a class="self" href="https://doc.rust-lang.org/nightly/core/mem/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">ManuallyDrop</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// A reusable `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send + &#39;a&gt;&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type lets you replace the future stored in the box without</span>
-<span class="doccomment">/// reallocating when the size and alignment permits this.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">boxed</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A reusable `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send + &#39;a&gt;&gt;`.
+///
+/// This type lets you replace the future stored in the box without
+/// reallocating when the size and alignment permits this.
+</span><span class="kw">pub struct </span>ReusableBoxFuture&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    boxed: Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new `ReusableBoxFuture&lt;T&gt;` containing the provided future.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; ReusableBoxFuture&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="doccomment">/// Create a new `ReusableBoxFuture&lt;T&gt;` containing the provided future.
+    </span><span class="kw">pub fn </span>new&lt;F&gt;(future: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>,
     {
-        <span class="self">Self</span> {
-            <span class="ident">boxed</span>: <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#20">future</a>),
+        <span class="self">Self </span>{
+            boxed: Box::pin(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#20">future</a>),
         }
     }
 
-    <span class="doccomment">/// Replace the future currently stored in this box.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This reallocates if and only if the layout of the provided future is</span>
-    <span class="doccomment">/// different from the layout of the currently stored future.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// Replace the future currently stored in this box.
+    ///
+    /// This reallocates if and only if the layout of the provided future is
+    /// different from the layout of the currently stored future.
+    </span><span class="kw">pub fn </span>set&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: F)
+    <span class="kw">where
+        </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">future</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#33">self</a>.<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#47-49">try_set</a>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#33">future</a>) {
-            <span class="kw-2">*</span><a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#33">self</a> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#37">future</a>);
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(future) = <a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#33">self</a>.<a href="../../../src/tokio_util/sync/reusable_box.rs.html#47-49">try_set</a>(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#33">future</a>) {
+            <span class="kw-2">*</span><span class="self"><a href="../../../src/tokio_util/sync/reusable_box.rs.html#33">self</a> </span>= <span class="self">Self</span>::new(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#37">future</a>);
         }
     }
 
-    <span class="doccomment">/// Replace the future currently stored in this box.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function never reallocates, but returns an error if the provided</span>
-    <span class="doccomment">/// future has a different size or alignment from the currently stored</span>
-    <span class="doccomment">/// future.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_set</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="doccomment">/// Replace the future currently stored in this box.
+    ///
+    /// This function never reallocates, but returns an error if the provided
+    /// future has a different size or alignment from the currently stored
+    /// future.
+    </span><span class="kw">pub fn </span>try_set&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), F&gt;
+    <span class="kw">where
+        </span>F: Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>,
     {
-        <span class="comment">// If we try to inline the contents of this function, the type checker complains because</span>
-        <span class="comment">// the bound `T: &#39;a` is not satisfied in the call to `pending()`. But by putting it in an</span>
-        <span class="comment">// inner function that doesn&#39;t have `T` as a generic parameter, we implicitly get the bound</span>
-        <span class="comment">// `F::Output: &#39;a` transitively through `F: &#39;a`, allowing us to call `pending()`.</span>
-        <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">real_try_set</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>(
-            <span class="ident">this</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F::Output</span><span class="op">&gt;</span>,
-            <span class="ident">future</span>: <span class="ident">F</span>,
-        ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">F</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+        <span class="comment">// If we try to inline the contents of this function, the type checker complains because
+        // the bound `T: &#39;a` is not satisfied in the call to `pending()`. But by putting it in an
+        // inner function that doesn&#39;t have `T` as a generic parameter, we implicitly get the bound
+        // `F::Output: &#39;a` transitively through `F: &#39;a`, allowing us to call `pending()`.
+        </span><span class="attribute">#[inline(always)]
+        </span><span class="kw">fn </span>real_try_set&lt;<span class="lifetime">&#39;a</span>, F&gt;(
+            this: <span class="kw-2">&amp;mut </span>ReusableBoxFuture&lt;<span class="lifetime">&#39;a</span>, F::Output&gt;,
+            future: F,
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;(), F&gt;
+        <span class="kw">where
+            </span>F: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>,
         {
-            <span class="comment">// future::Pending&lt;T&gt; is a ZST so this never allocates.</span>
-            <span class="kw">let</span> <span class="ident">boxed</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#57">this</a>.<span class="ident">boxed</span>, <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#163">Pending</a>(<span class="ident">PhantomData</span>)));
-            <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#102-104">reuse_pin_box</a>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#64">boxed</a>, <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#58">future</a>, <span class="op">|</span><span class="ident">boxed</span><span class="op">|</span> <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#57">this</a>.<span class="ident">boxed</span> <span class="op">=</span> <span class="ident">Pin::from</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#65">boxed</a>))
+            <span class="comment">// future::Pending&lt;T&gt; is a ZST so this never allocates.
+            </span><span class="kw">let </span>boxed = mem::replace(<span class="kw-2">&amp;mut </span><a href="../../../src/tokio_util/sync/reusable_box.rs.html#57">this</a>.boxed, Box::pin(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#163">Pending</a>(PhantomData)));
+            <a href="../../../src/tokio_util/sync/reusable_box.rs.html#102-104">reuse_pin_box</a>(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#64">boxed</a>, <a href="../../../src/tokio_util/sync/reusable_box.rs.html#58">future</a>, |boxed| <a href="../../../src/tokio_util/sync/reusable_box.rs.html#57">this</a>.boxed = Pin::from(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#65">boxed</a>))
         }
 
-        <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#56-61">real_try_set</a>(<a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#47">self</a>, <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#47">future</a>)
+        <a href="../../../src/tokio_util/sync/reusable_box.rs.html#56-61">real_try_set</a>(<a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#47">self</a>, <a href="../../../src/tokio_util/sync/reusable_box.rs.html#47">future</a>)
     }
 
-    <span class="doccomment">/// Get a pinned reference to the underlying future.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pin</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> (<span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>)<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#72">self</a>.<span class="ident">boxed</span>.<span class="ident">as_mut</span>()
+    <span class="doccomment">/// Get a pinned reference to the underlying future.
+    </span><span class="kw">pub fn </span>get_pin(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span>Future&lt;Output = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>)&gt; {
+        <a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#72">self</a>.boxed.as_mut()
     }
 
-    <span class="doccomment">/// Poll the future stored inside this box.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#77">self</a>.<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#72">get_pin</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#77">cx</a>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span>;
-
-    <span class="doccomment">/// Poll the future stored inside this box.</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::into_inner</span>(<a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#86">self</a>).<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#72">get_pin</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#86">cx</a>)
+    <span class="doccomment">/// Poll the future stored inside this box.
+    </span><span class="kw">pub fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
+        <a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#77">self</a>.<a href="../../../src/tokio_util/sync/reusable_box.rs.html#72">get_pin</a>().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#77">cx</a>)
     }
 }
 
-<span class="comment">// The only method called on self.boxed is poll, which takes &amp;mut self, so this</span>
-<span class="comment">// struct being Sync does not permit any invalid access to the Future, even if</span>
-<span class="comment">// the future is not Sync.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>ReusableBoxFuture&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">type </span>Output = T;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ReusableBoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#97">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ReusableBoxFuture&quot;</span>).<span class="ident">finish</span>()
+    <span class="doccomment">/// Poll the future stored inside this box.
+    </span><span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
+        Pin::into_inner(<a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#86">self</a>).<a href="../../../src/tokio_util/sync/reusable_box.rs.html#72">get_pin</a>().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#86">cx</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">reuse_pin_box</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">U</span>, <span class="ident">O</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">boxed</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">new_value</span>: <span class="ident">U</span>, <span class="ident">callback</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">U</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>) -&gt; <span class="ident">O</span>,
+<span class="comment">// The only method called on self.boxed is poll, which takes &amp;mut self, so this
+// struct being Sync does not permit any invalid access to the Future, even if
+// the future is not Sync.
+</span><span class="kw">unsafe impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>ReusableBoxFuture&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReusableBoxFuture&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio_util/sync/reusable_box.rs.html#97">f</a>.debug_struct(<span class="string">&quot;ReusableBoxFuture&quot;</span>).finish()
+    }
+}
+
+<span class="kw">fn </span>reuse_pin_box&lt;T: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, U, O, F&gt;(boxed: Pin&lt;Box&lt;T&gt;&gt;, new_value: U, callback: F) -&gt; <span class="prelude-ty">Result</span>&lt;O, U&gt;
+<span class="kw">where
+    </span>F: FnOnce(Box&lt;U&gt;) -&gt; O,
 {
-    <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::for_value</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#102">boxed</a>);
-    <span class="kw">if</span> <span class="ident">layout</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#102">new_value</a>);
+    <span class="kw">let </span>layout = Layout::for_value::&lt;T&gt;(<span class="kw-2">&amp;*</span><a href="../../../src/tokio_util/sync/reusable_box.rs.html#102">boxed</a>);
+    <span class="kw">if </span>layout != Layout::new::&lt;U&gt;() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#102">new_value</a>);
     }
 
-    <span class="comment">// SAFETY: We don&#39;t ever construct a non-pinned reference to the old `T` from now on, and we</span>
-    <span class="comment">// always drop the `T`.</span>
-    <span class="kw">let</span> <span class="ident">raw</span>: <span class="kw-2">*mut</span> <span class="ident">T</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="kw">unsafe</span> { <span class="ident">Pin::into_inner_unchecked</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#102">boxed</a>) });
+    <span class="comment">// SAFETY: We don&#39;t ever construct a non-pinned reference to the old `T` from now on, and we
+    // always drop the `T`.
+    </span><span class="kw">let </span>raw: <span class="kw-2">*mut </span>T = Box::into_raw(<span class="kw">unsafe </span>{ Pin::into_inner_unchecked(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#102">boxed</a>) });
 
-    <span class="comment">// When dropping the old value panics, we still want to call `callback` — so move the rest of</span>
-    <span class="comment">// the code into a guard type.</span>
-    <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">CallOnDrop::new</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">raw</span>: <span class="kw-2">*mut</span> <span class="ident">U</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#113">raw</a>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>();
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#118">raw</a>.<span class="ident">write</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#102">new_value</a>) };
+    <span class="comment">// When dropping the old value panics, we still want to call `callback` — so move the rest of
+    // the code into a guard type.
+    </span><span class="kw">let </span>guard = CallOnDrop::new(|| {
+        <span class="kw">let </span>raw: <span class="kw-2">*mut </span>U = <a href="../../../src/tokio_util/sync/reusable_box.rs.html#113">raw</a>.cast::&lt;U&gt;();
+        <span class="kw">unsafe </span>{ <a href="../../../src/tokio_util/sync/reusable_box.rs.html#118">raw</a>.write(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#102">new_value</a>) };
 
-        <span class="comment">// SAFETY:</span>
-        <span class="comment">// - `T` and `U` have the same layout.</span>
-        <span class="comment">// - `raw` comes from a `Box` that uses the same allocator as this one.</span>
-        <span class="comment">// - `raw` points to a valid instance of `U` (we just wrote it in).</span>
-        <span class="kw">let</span> <span class="ident">boxed</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#118">raw</a>) };
+        <span class="comment">// SAFETY:
+        // - `T` and `U` have the same layout.
+        // - `raw` comes from a `Box` that uses the same allocator as this one.
+        // - `raw` points to a valid instance of `U` (we just wrote it in).
+        </span><span class="kw">let </span>boxed = <span class="kw">unsafe </span>{ Box::from_raw(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#118">raw</a>) };
 
-        <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#102">callback</a>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#125">boxed</a>)
+        <a href="../../../src/tokio_util/sync/reusable_box.rs.html#102">callback</a>(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#125">boxed</a>)
     });
 
-    <span class="comment">// Drop the old value.</span>
-    <span class="kw">unsafe</span> { <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#113">raw</a>) };
+    <span class="comment">// Drop the old value.
+    </span><span class="kw">unsafe </span>{ <a href="https://doc.rust-lang.org/nightly/core/ptr/fn.drop_in_place.html">ptr::drop_in_place</a>(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#113">raw</a>) };
 
-    <span class="comment">// Run the rest of the code.</span>
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#117">guard</a>.<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#146">call</a>())
+    <span class="comment">// Run the rest of the code.
+    </span><span class="prelude-val">Ok</span>(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#117">guard</a>.<a href="../../../src/tokio_util/sync/reusable_box.rs.html#146">call</a>())
 }
 
-<span class="kw">struct</span> <span class="ident">CallOnDrop</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">O</span><span class="op">&gt;</span> {
-    <span class="ident">f</span>: <span class="ident">ManuallyDrop</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>CallOnDrop&lt;O, F: FnOnce() -&gt; O&gt; {
+    f: ManuallyDrop&lt;F&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">O</span><span class="op">&gt;</span> <span class="ident">CallOnDrop</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">ManuallyDrop::new</span>(<a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#142">f</a>);
-        <span class="self">Self</span> { <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#143">f</a> }
+<span class="kw">impl</span>&lt;O, F: FnOnce() -&gt; O&gt; CallOnDrop&lt;O, F&gt; {
+    <span class="kw">fn </span>new(f: F) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>f = ManuallyDrop::new(<a href="../../../src/tokio_util/sync/reusable_box.rs.html#142">f</a>);
+        <span class="self">Self </span>{ <a href="../../../src/tokio_util/sync/reusable_box.rs.html#143">f</a> }
     }
-    <span class="kw">fn</span> <span class="ident">call</span>(<span class="self">self</span>) -&gt; <span class="ident">O</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ManuallyDrop::new</span>(<a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#146">self</a>);
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ManuallyDrop::take</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#147">this</a>.<span class="ident">f</span>) };
-        <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#148">f</a>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">O</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">CallOnDrop</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ManuallyDrop::take</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#154">self</a>.<span class="ident">f</span>) };
-        <a class="ident" href="../../../src/tokio_util/sync/reusable_box.rs.html#155">f</a>();
+    <span class="kw">fn </span>call(<span class="self">self</span>) -&gt; O {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = ManuallyDrop::new(<a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#146">self</a>);
+        <span class="kw">let </span>f = <span class="kw">unsafe </span>{ ManuallyDrop::take(<span class="kw-2">&amp;mut </span><a href="../../../src/tokio_util/sync/reusable_box.rs.html#147">this</a>.f) };
+        <a href="../../../src/tokio_util/sync/reusable_box.rs.html#148">f</a>()
     }
 }
 
-<span class="doccomment">/// The same as `std::future::Pending&lt;T&gt;`; we can&#39;t use that type directly because on rustc</span>
-<span class="doccomment">/// versions &lt;1.60 it didn&#39;t unconditionally implement `Send`.</span>
-<span class="comment">// FIXME: use `std::future::Pending&lt;T&gt;` once the MSRV is &gt;=1.60</span>
-<span class="kw">struct</span> <span class="ident">Pending</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw">fn</span>() -&gt; <span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span>&lt;O, F: FnOnce() -&gt; O&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>CallOnDrop&lt;O, F&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>f = <span class="kw">unsafe </span>{ ManuallyDrop::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio_util/sync/reusable_box.rs.html#154">self</a>.f) };
+        <a href="../../../src/tokio_util/sync/reusable_box.rs.html#155">f</a>();
+    }
+}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Pending</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span>;
+<span class="doccomment">/// The same as `std::future::Pending&lt;T&gt;`; we can&#39;t use that type directly because on rustc
+/// versions &lt;1.60 it didn&#39;t unconditionally implement `Send`.
+</span><span class="comment">// FIXME: use `std::future::Pending&lt;T&gt;` once the MSRV is &gt;=1.60
+</span><span class="kw">struct </span>Pending&lt;T&gt;(PhantomData&lt;<span class="kw">fn</span>() -&gt; T&gt;);
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Pending</span>
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>Pending&lt;T&gt; {
+    <span class="kw">type </span>Output = T;
+
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        Poll::Pending
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

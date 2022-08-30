@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/split.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/split.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -179,186 +179,186 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Split a single value implementing `AsyncRead + AsyncWrite` into separate</span>
-<span class="doccomment">//! `AsyncRead` and `AsyncWrite` handles.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! To restore this read/write object from its `split::ReadHalf` and</span>
-<span class="doccomment">//! `split::WriteHalf` use `unsplit`.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Split a single value implementing `AsyncRead + AsyncWrite` into separate
+//! `AsyncRead` and `AsyncWrite` handles.
+//!
+//! To restore this read/write object from its `split::ReadHalf` and
+//! `split::WriteHalf` use `unsplit`.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="ident" href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a class="ident" href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">std::sync::atomic::AtomicBool</a>;
-<span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering</span>::{<span class="ident">Acquire</span>, <span class="ident">Release</span>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">std::sync::atomic::AtomicBool</a>;
+<span class="kw">use </span>std::sync::atomic::Ordering::{Acquire, Release};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="macro">cfg_io_util!</span> {
-    <span class="doccomment">/// The readable half of a value returned from [`split`](split()).</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReadHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="macro">cfg_io_util! </span>{
+    <span class="doccomment">/// The readable half of a value returned from [`split`](split()).
+    </span><span class="kw">pub struct </span>ReadHalf&lt;T&gt; {
+        inner: Arc&lt;Inner&lt;T&gt;&gt;,
     }
 
-    <span class="doccomment">/// The writable half of a value returned from [`split`](split()).</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The writable half of a value returned from [`split`](split()).
+    </span><span class="kw">pub struct </span>WriteHalf&lt;T&gt; {
+        inner: Arc&lt;Inner&lt;T&gt;&gt;,
     }
 
-    <span class="doccomment">/// Splits a single value implementing `AsyncRead + AsyncWrite` into separate</span>
-    <span class="doccomment">/// `AsyncRead` and `AsyncWrite` handles.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To restore this read/write object from its `ReadHalf` and</span>
-    <span class="doccomment">/// `WriteHalf` use [`unsplit`](ReadHalf::unsplit()).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">T</span>) -&gt; (<span class="ident">ReadHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>,
+    <span class="doccomment">/// Splits a single value implementing `AsyncRead + AsyncWrite` into separate
+    /// `AsyncRead` and `AsyncWrite` handles.
+    ///
+    /// To restore this read/write object from its `ReadHalf` and
+    /// `WriteHalf` use [`unsplit`](ReadHalf::unsplit()).
+    </span><span class="kw">pub fn </span>split&lt;T&gt;(stream: T) -&gt; (ReadHalf&lt;T&gt;, WriteHalf&lt;T&gt;)
+    <span class="kw">where
+        </span>T: <a href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> + <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>,
     {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/io/split.rs.html#53">Inner</a> {
-            <span class="ident">locked</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
-            <span class="ident">stream</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/io/split.rs.html#34">stream</a>),
+        <span class="kw">let </span>inner = Arc::new(<a href="../../../src/tokio/io/split.rs.html#53">Inner</a> {
+            locked: AtomicBool::new(<span class="bool-val">false</span>),
+            stream: UnsafeCell::new(<a href="../../../src/tokio/io/split.rs.html#34">stream</a>),
         });
 
-        <span class="kw">let</span> <span class="ident">rd</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/split.rs.html#20">ReadHalf</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/tokio/io/split.rs.html#38">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="kw">let </span>rd = <a href="../../../src/tokio/io/split.rs.html#20">ReadHalf</a> {
+            inner: <a href="../../../src/tokio/io/split.rs.html#38">inner</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         };
 
-        <span class="kw">let</span> <span class="ident">wr</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/split.rs.html#25">WriteHalf</a> { <a class="ident" href="../../../src/tokio/io/split.rs.html#38">inner</a> };
+        <span class="kw">let </span>wr = <a href="../../../src/tokio/io/split.rs.html#25">WriteHalf</a> { <a href="../../../src/tokio/io/split.rs.html#38">inner</a> };
 
-        (<a class="ident" href="../../../src/tokio/io/split.rs.html#43">rd</a>, <a class="ident" href="../../../src/tokio/io/split.rs.html#47">wr</a>)
+        (<a href="../../../src/tokio/io/split.rs.html#43">rd</a>, <a href="../../../src/tokio/io/split.rs.html#47">wr</a>)
     }
 }
 
-<span class="kw">struct</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">locked</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
-    <span class="ident">stream</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>Inner&lt;T&gt; {
+    locked: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
+    stream: UnsafeCell&lt;T&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>Guard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Inner&lt;T&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ReadHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Checks if this `ReadHalf` and some `WriteHalf` were split from the same</span>
-    <span class="doccomment">/// stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pair_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../src/tokio/io/split.rs.html#65">other</a>.<a class="ident" href="../../../src/tokio/io/split.rs.html#96">is_pair_of</a>(<a class="self" href="../../../src/tokio/io/split.rs.html#65">self</a>)
+<span class="kw">impl</span>&lt;T&gt; ReadHalf&lt;T&gt; {
+    <span class="doccomment">/// Checks if this `ReadHalf` and some `WriteHalf` were split from the same
+    /// stream.
+    </span><span class="kw">pub fn </span>is_pair_of(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>WriteHalf&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a href="../../../src/tokio/io/split.rs.html#65">other</a>.<a href="../../../src/tokio/io/split.rs.html#96">is_pair_of</a>(<a class="self" href="../../../src/tokio/io/split.rs.html#65">self</a>)
     }
 
-    <span class="doccomment">/// Reunites with a previously split `WriteHalf`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this `ReadHalf` and the given `WriteHalf` do not originate from the</span>
-    <span class="doccomment">/// same `split` operation this method will panic.</span>
-    <span class="doccomment">/// This can be checked ahead of time by comparing the stream ID</span>
-    <span class="doccomment">/// of the two halves.</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsplit</span>(<span class="self">self</span>, <span class="ident">wr</span>: <span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_pair_of</span>(<span class="kw-2">&amp;</span><span class="ident">wr</span>) {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/io/split.rs.html#78">wr</a>);
+    <span class="doccomment">/// Reunites with a previously split `WriteHalf`.
+    ///
+    /// # Panics
+    ///
+    /// If this `ReadHalf` and the given `WriteHalf` do not originate from the
+    /// same `split` operation this method will panic.
+    /// This can be checked ahead of time by comparing the stream ID
+    /// of the two halves.
+    </span><span class="attribute">#[track_caller]
+    </span><span class="kw">pub fn </span>unsplit(<span class="self">self</span>, wr: WriteHalf&lt;T&gt;) -&gt; T {
+        <span class="kw">if </span><span class="self">self</span>.is_pair_of(<span class="kw-2">&amp;</span>wr) {
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="../../../src/tokio/io/split.rs.html#78">wr</a>);
 
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::try_unwrap</span>(<a class="self" href="../../../src/tokio/io/split.rs.html#78">self</a>.<span class="ident">inner</span>)
-                .<span class="ident">ok</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;`Arc::try_unwrap` failed&quot;</span>);
+            <span class="kw">let </span>inner = Arc::try_unwrap(<a class="self" href="../../../src/tokio/io/split.rs.html#78">self</a>.inner)
+                .ok()
+                .expect(<span class="string">&quot;`Arc::try_unwrap` failed&quot;</span>);
 
-            <a class="ident" href="../../../src/tokio/io/split.rs.html#82">inner</a>.<span class="ident">stream</span>.<span class="ident">into_inner</span>()
-        } <span class="kw">else</span> {
+            <a href="../../../src/tokio/io/split.rs.html#82">inner</a>.stream.into_inner()
+        } <span class="kw">else </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unrelated `split::Write` passed to `split::Read::unsplit`.&quot;</span>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Checks if this `WriteHalf` and some `ReadHalf` were split from the same</span>
-    <span class="doccomment">/// stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pair_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ReadHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="ident">Arc::ptr_eq</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/split.rs.html#96">self</a>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/io/split.rs.html#96">other</a>.<span class="ident">inner</span>)
+<span class="kw">impl</span>&lt;T&gt; WriteHalf&lt;T&gt; {
+    <span class="doccomment">/// Checks if this `WriteHalf` and some `ReadHalf` were split from the same
+    /// stream.
+    </span><span class="kw">pub fn </span>is_pair_of(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ReadHalf&lt;T&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        Arc::ptr_eq(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/split.rs.html#96">self</a>.inner, <span class="kw-2">&amp;</span><a href="../../../src/tokio/io/split.rs.html#96">other</a>.inner)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for</span> <span class="ident">ReadHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_lock</span>(<span class="ident">cx</span>));
-        <a class="ident" href="../../../src/tokio/io/split.rs.html#107">inner</a>.<a class="ident" href="../../../src/tokio/io/split.rs.html#153">stream_pin</a>().<a class="ident" href="../../../src/tokio/io/async_read.rs.html#53-57">poll_read</a>(<a class="ident" href="../../../src/tokio/io/split.rs.html#104">cx</a>, <a class="ident" href="../../../src/tokio/io/split.rs.html#105">buf</a>)
+<span class="kw">impl</span>&lt;T: <a href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>&gt; <a href="../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for </span>ReadHalf&lt;T&gt; {
+    <span class="kw">fn </span>poll_read(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.inner.poll_lock(cx));
+        <a href="../../../src/tokio/io/split.rs.html#107">inner</a>.<a href="../../../src/tokio/io/split.rs.html#153">stream_pin</a>().<a href="../../../src/tokio/io/async_read.rs.html#53-57">poll_read</a>(<a href="../../../src/tokio/io/split.rs.html#104">cx</a>, <a href="../../../src/tokio/io/split.rs.html#105">buf</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for</span> <span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_lock</span>(<span class="ident">cx</span>));
-        <a class="ident" href="../../../src/tokio/io/split.rs.html#118">inner</a>.<a class="ident" href="../../../src/tokio/io/split.rs.html#153">stream_pin</a>().<a class="ident" href="../../../src/tokio/io/async_write.rs.html#58-62">poll_write</a>(<a class="ident" href="../../../src/tokio/io/split.rs.html#115">cx</a>, <a class="ident" href="../../../src/tokio/io/split.rs.html#116">buf</a>)
+<span class="kw">impl</span>&lt;T: <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>&gt; <a href="../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for </span>WriteHalf&lt;T&gt; {
+    <span class="kw">fn </span>poll_write(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.inner.poll_lock(cx));
+        <a href="../../../src/tokio/io/split.rs.html#118">inner</a>.<a href="../../../src/tokio/io/split.rs.html#153">stream_pin</a>().<a href="../../../src/tokio/io/async_write.rs.html#58-62">poll_write</a>(<a href="../../../src/tokio/io/split.rs.html#115">cx</a>, <a href="../../../src/tokio/io/split.rs.html#116">buf</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_lock</span>(<span class="ident">cx</span>));
-        <a class="ident" href="../../../src/tokio/io/split.rs.html#123">inner</a>.<a class="ident" href="../../../src/tokio/io/split.rs.html#153">stream_pin</a>().<a class="ident" href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a class="ident" href="../../../src/tokio/io/split.rs.html#122">cx</a>)
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.inner.poll_lock(cx));
+        <a href="../../../src/tokio/io/split.rs.html#123">inner</a>.<a href="../../../src/tokio/io/split.rs.html#153">stream_pin</a>().<a href="../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a href="../../../src/tokio/io/split.rs.html#122">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_lock</span>(<span class="ident">cx</span>));
-        <a class="ident" href="../../../src/tokio/io/split.rs.html#128">inner</a>.<a class="ident" href="../../../src/tokio/io/split.rs.html#153">stream_pin</a>().<a class="ident" href="../../../src/tokio/io/async_write.rs.html#133">poll_shutdown</a>(<a class="ident" href="../../../src/tokio/io/split.rs.html#127">cx</a>)
+    <span class="kw">fn </span>poll_shutdown(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="macro" href="../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="self">self</span>.inner.poll_lock(cx));
+        <a href="../../../src/tokio/io/split.rs.html#128">inner</a>.<a href="../../../src/tokio/io/split.rs.html#153">stream_pin</a>().<a href="../../../src/tokio/io/async_write.rs.html#133">poll_shutdown</a>(<a href="../../../src/tokio/io/split.rs.html#127">cx</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">poll_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>
-            .<span class="ident">locked</span>
-            .<span class="ident">compare_exchange</span>(<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">Acquire</span>, <span class="ident">Acquire</span>)
-            .<span class="ident">is_ok</span>()
+<span class="kw">impl</span>&lt;T&gt; Inner&lt;T&gt; {
+    <span class="kw">fn </span>poll_lock(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;Guard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+        <span class="kw">if </span><span class="self">self
+            </span>.locked
+            .compare_exchange(<span class="bool-val">false</span>, <span class="bool-val">true</span>, Acquire, Acquire)
+            .is_ok()
         {
-            <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../src/tokio/io/split.rs.html#58">Guard</a> { <span class="ident">inner</span>: <a class="self" href="../../../src/tokio/io/split.rs.html#134">self</a> })
-        } <span class="kw">else</span> {
-            <span class="comment">// Spin... but investigate a better strategy</span>
+            Poll::Ready(<a href="../../../src/tokio/io/split.rs.html#58">Guard</a> { inner: <span class="self"><a href="../../../src/tokio/io/split.rs.html#134">self</a> </span>})
+        } <span class="kw">else </span>{
+            <span class="comment">// Spin... but investigate a better strategy
 
-            <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/fn.yield_now.html">std::thread::yield_now</a>();
-            <a class="ident" href="../../../src/tokio/io/split.rs.html#134">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
+            </span><a href="https://doc.rust-lang.org/nightly/std/thread/fn.yield_now.html">std::thread::yield_now</a>();
+            <a href="../../../src/tokio/io/split.rs.html#134">cx</a>.waker().wake_by_ref();
 
-            <span class="ident">Poll::Pending</span>
+            Poll::Pending
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">stream_pin</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="comment">// safety: the stream is pinned in `Arc` and the `Guard` ensures mutual</span>
-        <span class="comment">// exclusion.</span>
-        <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio/io/split.rs.html#153">self</a>.<span class="ident">inner</span>.<span class="ident">stream</span>.<span class="ident">get</span>()) }
+<span class="kw">impl</span>&lt;T&gt; Guard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>stream_pin(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>T&gt; {
+        <span class="comment">// safety: the stream is pinned in `Arc` and the `Guard` ensures mutual
+        // exclusion.
+        </span><span class="kw">unsafe </span>{ Pin::new_unchecked(<span class="kw-2">&amp;mut *</span><a class="self" href="../../../src/tokio/io/split.rs.html#153">self</a>.inner.stream.get()) }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/io/split.rs.html#161">self</a>.<span class="ident">inner</span>.<span class="ident">locked</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Release</span>);
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Guard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/tokio/io/split.rs.html#161">self</a>.inner.locked.store(<span class="bool-val">false</span>, Release);
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">ReadHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">ReadHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>ReadHalf&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>WriteHalf&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>ReadHalf&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for </span>WriteHalf&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ReadHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/io/split.rs.html#172">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;split::ReadHalf&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReadHalf&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio/io/split.rs.html#172">fmt</a>.debug_struct(<span class="string">&quot;split::ReadHalf&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">WriteHalf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/io/split.rs.html#178">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;split::WriteHalf&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>WriteHalf&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio/io/split.rs.html#178">fmt</a>.debug_struct(<span class="string">&quot;split::WriteHalf&quot;</span>).finish()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/describe.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>describe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/describe.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>describe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -199,206 +199,206 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>};
+<span class="kw">use </span>libc::{<a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/buf.rs.html#13">Buf</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a>};
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/buf.rs.html#13">Buf</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/repo.rs.html#108">Repository</a>};
 
-<span class="doccomment">/// The result of a `describe` operation on either an `Describe` or a</span>
-<span class="doccomment">/// `Repository`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Describe</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_describe_result.html">raw::git_describe_result</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <a class="ident" href="../../src/git2/repo.rs.html#108">Repository</a><span class="op">&gt;</span>,
+<span class="doccomment">/// The result of a `describe` operation on either an `Describe` or a
+/// `Repository`.
+</span><span class="kw">pub struct </span>Describe&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_describe_result.html">raw::git_describe_result</a>,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo </span><a href="../../src/git2/repo.rs.html#108">Repository</a>&gt;,
 }
 
-<span class="doccomment">/// Options which indicate how a `Describe` is created.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DescribeOptions</span> {
-    <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_describe_options.html">raw::git_describe_options</a>,
-    <span class="ident">pattern</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>,
+<span class="doccomment">/// Options which indicate how a `Describe` is created.
+</span><span class="kw">pub struct </span>DescribeOptions {
+    raw: <a href="../../libgit2_sys/struct.git_describe_options.html">raw::git_describe_options</a>,
+    pattern: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>,
 }
 
-<span class="doccomment">/// Options which can be used to customize how a description is formatted.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DescribeFormatOptions</span> {
-    <span class="ident">raw</span>: <a class="ident" href="../../libgit2_sys/struct.git_describe_format_options.html">raw::git_describe_format_options</a>,
-    <span class="ident">dirty_suffix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>,
+<span class="doccomment">/// Options which can be used to customize how a description is formatted.
+</span><span class="kw">pub struct </span>DescribeFormatOptions {
+    raw: <a href="../../libgit2_sys/struct.git_describe_format_options.html">raw::git_describe_format_options</a>,
+    dirty_suffix: <a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">CString</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Describe</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Prints this describe result, returning the result as a string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
-        <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/describe.rs.html#32">opts</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/describe.rs.html#34">o</a>.<span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>).<span class="ident">unwrap_or</span>(<span class="ident">ptr::null</span>());
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_describe_format</span>(<span class="ident">buf</span>.<span class="ident">raw</span>(), <span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">opts</span>));
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; Describe&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="doccomment">/// Prints this describe result, returning the result as a string.
+    </span><span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, opts: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <span class="kw">let </span>buf = Buf::new();
+        <span class="kw">let </span>opts = <a href="../../src/git2/describe.rs.html#32">opts</a>.map(|o| <span class="kw-2">&amp;</span><a href="../../src/git2/describe.rs.html#34">o</a>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).unwrap_or(ptr::null());
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_describe_format(buf.raw(), <span class="self">self</span>.raw, opts));
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">String::from_utf8</span>(<a class="ident" href="../../src/git2/describe.rs.html#33">buf</a>.<span class="ident">to_vec</span>()).<span class="ident">unwrap</span>())
+        <span class="prelude-val">Ok</span>(String::from_utf8(<a href="../../src/git2/describe.rs.html#33">buf</a>.to_vec()).unwrap())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">Describe</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_describe_result.html">raw::git_describe_result</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Describe&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_describe_result.html">raw::git_describe_result</a>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_describe_result.html">raw::git_describe_result</a>) -&gt; <span class="ident">Describe</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/describe.rs.html#13">Describe</a> {
-            <a class="ident" href="../../src/git2/describe.rs.html#45">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_describe_result.html">raw::git_describe_result</a>) -&gt; Describe&lt;<span class="lifetime">&#39;repo</span>&gt; {
+        <a href="../../src/git2/describe.rs.html#13">Describe</a> {
+            <a href="../../src/git2/describe.rs.html#45">raw</a>,
+            _marker: marker::PhantomData,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_describe_result.html">raw::git_describe_result</a> {
-        <a class="self" href="../../src/git2/describe.rs.html#51">self</a>.<span class="ident">raw</span>
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/enum.git_describe_result.html">raw::git_describe_result</a> {
+        <a class="self" href="../../src/git2/describe.rs.html#51">self</a>.raw
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Describe</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_describe_result_free</span>(<a class="self" href="../../src/git2/describe.rs.html#57">self</a>.<span class="ident">raw</span>) }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;repo</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Describe&lt;<span class="lifetime">&#39;repo</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{ raw::git_describe_result_free(<a class="self" href="../../src/git2/describe.rs.html#57">self</a>.raw) }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a> {
-    <span class="doccomment">/// Creates a new blank set of formatting options for a description.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a> {
-            <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
-            <span class="ident">dirty_suffix</span>: <span class="ident">CString::new</span>(<span class="ident">Vec::new</span>()).<span class="ident">unwrap</span>(),
+<span class="kw">impl </span><a href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a> {
+    <span class="doccomment">/// Creates a new blank set of formatting options for a description.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>opts = <a href="../../src/git2/describe.rs.html#25">DescribeFormatOptions</a> {
+            raw: <span class="kw">unsafe </span>{ mem::zeroed() },
+            dirty_suffix: CString::new(Vec::new()).unwrap(),
         };
-        <a class="ident" href="../../src/git2/describe.rs.html#71">opts</a>.<span class="ident">raw</span>.<span class="ident">version</span> <span class="op">=</span> <span class="number">1</span>;
-        <a class="ident" href="../../src/git2/describe.rs.html#71">opts</a>.<span class="ident">raw</span>.<span class="ident">abbreviated_size</span> <span class="op">=</span> <span class="number">7</span>;
-        <a class="ident" href="../../src/git2/describe.rs.html#71">opts</a>
+        <a href="../../src/git2/describe.rs.html#71">opts</a>.raw.version = <span class="number">1</span>;
+        <a href="../../src/git2/describe.rs.html#71">opts</a>.raw.abbreviated_size = <span class="number">7</span>;
+        <a href="../../src/git2/describe.rs.html#71">opts</a>
     }
 
-    <span class="doccomment">/// Sets the size of the abbreviated commit id to use.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The value is the lower bound for the length of the abbreviated string,</span>
-    <span class="doccomment">/// and the default is 7.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abbreviated_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#84">self</a>.<span class="ident">raw</span>.<span class="ident">abbreviated_size</span> <span class="op">=</span> <a class="ident" href="../../src/git2/describe.rs.html#84">size</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>;
-        <a class="self" href="../../src/git2/describe.rs.html#84">self</a>
-    }
+    <span class="doccomment">/// Sets the size of the abbreviated commit id to use.
+    ///
+    /// The value is the lower bound for the length of the abbreviated string,
+    /// and the default is 7.
+    </span><span class="kw">pub fn </span>abbreviated_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#84">self</a>.raw.abbreviated_size = <a href="../../src/git2/describe.rs.html#84">size</a> <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>;
+        <span class="self"><a href="../../src/git2/describe.rs.html#84">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets whether or not the long format is used even when a shorter name</span>
-    <span class="doccomment">/// could be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">always_use_long_format</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">long</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#91">self</a>.<span class="ident">raw</span>.<span class="ident">always_use_long_format</span> <span class="op">=</span> <a class="ident" href="../../src/git2/describe.rs.html#91">long</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>;
-        <a class="self" href="../../src/git2/describe.rs.html#91">self</a>
-    }
+    <span class="doccomment">/// Sets whether or not the long format is used even when a shorter name
+    /// could be used.
+    </span><span class="kw">pub fn </span>always_use_long_format(<span class="kw-2">&amp;mut </span><span class="self">self</span>, long: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#91">self</a>.raw.always_use_long_format = <a href="../../src/git2/describe.rs.html#91">long</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="self"><a href="../../src/git2/describe.rs.html#91">self</a>
+    </span>}
 
-    <span class="doccomment">/// If the workdir is dirty and this is set, this string will be appended to</span>
-    <span class="doccomment">/// the description string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dirty_suffix</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">suffix</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#98">self</a>.<span class="ident">dirty_suffix</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/git2/describe.rs.html#98">suffix</a>).<span class="ident">unwrap</span>();
-        <a class="self" href="../../src/git2/describe.rs.html#98">self</a>.<span class="ident">raw</span>.<span class="ident">dirty_suffix</span> <span class="op">=</span> <a class="self" href="../../src/git2/describe.rs.html#98">self</a>.<span class="ident">dirty_suffix</span>.<span class="ident">as_ptr</span>();
-        <a class="self" href="../../src/git2/describe.rs.html#98">self</a>
+    <span class="doccomment">/// If the workdir is dirty and this is set, this string will be appended to
+    /// the description string.
+    </span><span class="kw">pub fn </span>dirty_suffix(<span class="kw-2">&amp;mut </span><span class="self">self</span>, suffix: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#98">self</a>.dirty_suffix = CString::new(<a href="../../src/git2/describe.rs.html#98">suffix</a>).unwrap();
+        <a class="self" href="../../src/git2/describe.rs.html#98">self</a>.raw.dirty_suffix = <a class="self" href="../../src/git2/describe.rs.html#98">self</a>.dirty_suffix.as_ptr();
+        <span class="self"><a href="../../src/git2/describe.rs.html#98">self</a>
+    </span>}
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
-    <span class="doccomment">/// Creates a new blank set of formatting options for a description.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
-            <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
-            <span class="ident">pattern</span>: <span class="ident">CString::new</span>(<span class="ident">Vec::new</span>()).<span class="ident">unwrap</span>(),
+<span class="kw">impl </span><a href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
+    <span class="doccomment">/// Creates a new blank set of formatting options for a description.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>opts = <a href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
+            raw: <span class="kw">unsafe </span>{ mem::zeroed() },
+            pattern: CString::new(Vec::new()).unwrap(),
         };
-        <a class="ident" href="../../src/git2/describe.rs.html#114">opts</a>.<span class="ident">raw</span>.<span class="ident">version</span> <span class="op">=</span> <span class="number">1</span>;
-        <a class="ident" href="../../src/git2/describe.rs.html#114">opts</a>.<span class="ident">raw</span>.<span class="ident">max_candidates_tags</span> <span class="op">=</span> <span class="number">10</span>;
-        <a class="ident" href="../../src/git2/describe.rs.html#114">opts</a>
+        <a href="../../src/git2/describe.rs.html#114">opts</a>.raw.version = <span class="number">1</span>;
+        <a href="../../src/git2/describe.rs.html#114">opts</a>.raw.max_candidates_tags = <span class="number">10</span>;
+        <a href="../../src/git2/describe.rs.html#114">opts</a>
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_candidates_tags</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#124">self</a>.<span class="ident">raw</span>.<span class="ident">max_candidates_tags</span> <span class="op">=</span> <a class="ident" href="../../src/git2/describe.rs.html#124">max</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>;
-        <a class="self" href="../../src/git2/describe.rs.html#124">self</a>
-    }
+    <span class="attribute">#[allow(missing_docs)]
+    </span><span class="kw">pub fn </span>max_candidates_tags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#124">self</a>.raw.max_candidates_tags = <a href="../../src/git2/describe.rs.html#124">max</a> <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>;
+        <span class="self"><a href="../../src/git2/describe.rs.html#124">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the reference lookup strategy</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This behaves like the `--tags` option to git-describe.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">describe_tags</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#132">self</a>.<span class="ident">raw</span>.<span class="ident">describe_strategy</span> <span class="op">=</span> <span class="ident">raw::GIT_DESCRIBE_TAGS</span> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>;
-        <a class="self" href="../../src/git2/describe.rs.html#132">self</a>
-    }
+    <span class="doccomment">/// Sets the reference lookup strategy
+    ///
+    /// This behaves like the `--tags` option to git-describe.
+    </span><span class="kw">pub fn </span>describe_tags(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#132">self</a>.raw.describe_strategy = raw::GIT_DESCRIBE_TAGS <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>;
+        <span class="self"><a href="../../src/git2/describe.rs.html#132">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the reference lookup strategy</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This behaves like the `--all` option to git-describe.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">describe_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#140">self</a>.<span class="ident">raw</span>.<span class="ident">describe_strategy</span> <span class="op">=</span> <span class="ident">raw::GIT_DESCRIBE_ALL</span> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>;
-        <a class="self" href="../../src/git2/describe.rs.html#140">self</a>
-    }
+    <span class="doccomment">/// Sets the reference lookup strategy
+    ///
+    /// This behaves like the `--all` option to git-describe.
+    </span><span class="kw">pub fn </span>describe_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#140">self</a>.raw.describe_strategy = raw::GIT_DESCRIBE_ALL <span class="kw">as </span><a href="../../libc/unix/type.c_uint.html">c_uint</a>;
+        <span class="self"><a href="../../src/git2/describe.rs.html#140">self</a>
+    </span>}
 
-    <span class="doccomment">/// Indicates when calculating the distance from the matching tag or</span>
-    <span class="doccomment">/// reference whether to only walk down the first-parent ancestry.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">only_follow_first_parent</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">follow</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#147">self</a>.<span class="ident">raw</span>.<span class="ident">only_follow_first_parent</span> <span class="op">=</span> <a class="ident" href="../../src/git2/describe.rs.html#147">follow</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>;
-        <a class="self" href="../../src/git2/describe.rs.html#147">self</a>
-    }
+    <span class="doccomment">/// Indicates when calculating the distance from the matching tag or
+    /// reference whether to only walk down the first-parent ancestry.
+    </span><span class="kw">pub fn </span>only_follow_first_parent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, follow: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#147">self</a>.raw.only_follow_first_parent = <a href="../../src/git2/describe.rs.html#147">follow</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="self"><a href="../../src/git2/describe.rs.html#147">self</a>
+    </span>}
 
-    <span class="doccomment">/// If no matching tag or reference is found whether a describe option would</span>
-    <span class="doccomment">/// normally fail. This option indicates, however, that it will instead fall</span>
-    <span class="doccomment">/// back to showing the full id of the commit.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">show_commit_oid_as_fallback</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">show</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#155">self</a>.<span class="ident">raw</span>.<span class="ident">show_commit_oid_as_fallback</span> <span class="op">=</span> <a class="ident" href="../../src/git2/describe.rs.html#155">show</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>;
-        <a class="self" href="../../src/git2/describe.rs.html#155">self</a>
-    }
+    <span class="doccomment">/// If no matching tag or reference is found whether a describe option would
+    /// normally fail. This option indicates, however, that it will instead fall
+    /// back to showing the full id of the commit.
+    </span><span class="kw">pub fn </span>show_commit_oid_as_fallback(<span class="kw-2">&amp;mut </span><span class="self">self</span>, show: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#155">self</a>.raw.show_commit_oid_as_fallback = <a href="../../src/git2/describe.rs.html#155">show</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="self"><a href="../../src/git2/describe.rs.html#155">self</a>
+    </span>}
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/git2/describe.rs.html#161">self</a>.<span class="ident">pattern</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/git2/describe.rs.html#161">pattern</a>).<span class="ident">unwrap</span>();
-        <a class="self" href="../../src/git2/describe.rs.html#161">self</a>.<span class="ident">raw</span>.<span class="ident">pattern</span> <span class="op">=</span> <a class="self" href="../../src/git2/describe.rs.html#161">self</a>.<span class="ident">pattern</span>.<span class="ident">as_ptr</span>();
-        <a class="self" href="../../src/git2/describe.rs.html#161">self</a>
-    }
+    <span class="attribute">#[allow(missing_docs)]
+    </span><span class="kw">pub fn </span>pattern(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pattern: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../src/git2/describe.rs.html#161">self</a>.pattern = CString::new(<a href="../../src/git2/describe.rs.html#161">pattern</a>).unwrap();
+        <a class="self" href="../../src/git2/describe.rs.html#161">self</a>.raw.pattern = <a class="self" href="../../src/git2/describe.rs.html#161">self</a>.pattern.as_ptr();
+        <span class="self"><a href="../../src/git2/describe.rs.html#161">self</a>
+    </span>}
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <a class="ident" href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_describe_options.html">raw::git_describe_options</a>;
+<span class="kw">impl </span><a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span><a href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_describe_options.html">raw::git_describe_options</a>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">_raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_describe_options.html">raw::git_describe_options</a>) -&gt; <a class="ident" href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
+    <span class="kw">unsafe fn </span>from_raw(_raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_describe_options.html">raw::git_describe_options</a>) -&gt; <a href="../../src/git2/describe.rs.html#19">DescribeOptions</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unimplemened&quot;</span>)
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_describe_options.html">raw::git_describe_options</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/describe.rs.html#174">self</a>.<span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
-    }
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_describe_options.html">raw::git_describe_options</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/describe.rs.html#174">self</a>.raw <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*mut </span><span class="kw">_
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::DescribeOptions</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::DescribeOptions;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
-        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">head</span>()).<span class="ident">target</span>().<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke() {
+        <span class="kw">let </span>(_td, repo) = <span class="kw">crate</span>::test::repo_init();
+        <span class="kw">let </span>head = <span class="macro">t!</span>(repo.head()).target().unwrap();
 
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">describe</span>(<span class="ident">DescribeOptions::new</span>().<span class="ident">show_commit_oid_as_fallback</span>(<span class="bool-val">true</span>)));
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">to_string</span>();
-        <span class="macro">assert_eq!</span>(<span class="macro">t!</span>(<span class="ident">d</span>.<span class="ident">format</span>(<span class="prelude-val">None</span>)), <span class="kw-2">&amp;</span><span class="ident">id</span>[..<span class="number">7</span>]);
+        <span class="kw">let </span>d = <span class="macro">t!</span>(repo.describe(DescribeOptions::new().show_commit_oid_as_fallback(<span class="bool-val">true</span>)));
+        <span class="kw">let </span>id = head.to_string();
+        <span class="macro">assert_eq!</span>(<span class="macro">t!</span>(d.format(<span class="prelude-val">None</span>)), <span class="kw-2">&amp;</span>id[..<span class="number">7</span>]);
 
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">find_object</span>(<span class="ident">head</span>, <span class="prelude-val">None</span>));
-        <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">signature</span>());
-        <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">tag</span>(<span class="string">&quot;foo&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">obj</span>, <span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="string">&quot;message&quot;</span>, <span class="bool-val">true</span>));
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">describe</span>(<span class="kw-2">&amp;</span><span class="ident">DescribeOptions::new</span>()));
-        <span class="macro">assert_eq!</span>(<span class="macro">t!</span>(<span class="ident">d</span>.<span class="ident">format</span>(<span class="prelude-val">None</span>)), <span class="string">&quot;foo&quot;</span>);
+        <span class="kw">let </span>obj = <span class="macro">t!</span>(repo.find_object(head, <span class="prelude-val">None</span>));
+        <span class="kw">let </span>sig = <span class="macro">t!</span>(repo.signature());
+        <span class="macro">t!</span>(repo.tag(<span class="string">&quot;foo&quot;</span>, <span class="kw-2">&amp;</span>obj, <span class="kw-2">&amp;</span>sig, <span class="string">&quot;message&quot;</span>, <span class="bool-val">true</span>));
+        <span class="kw">let </span>d = <span class="macro">t!</span>(repo.describe(<span class="kw-2">&amp;</span>DescribeOptions::new()));
+        <span class="macro">assert_eq!</span>(<span class="macro">t!</span>(d.format(<span class="prelude-val">None</span>)), <span class="string">&quot;foo&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">obj</span>.<span class="ident">describe</span>(<span class="kw-2">&amp;</span><span class="ident">DescribeOptions::new</span>()));
-        <span class="macro">assert_eq!</span>(<span class="macro">t!</span>(<span class="ident">d</span>.<span class="ident">format</span>(<span class="prelude-val">None</span>)), <span class="string">&quot;foo&quot;</span>);
+        <span class="kw">let </span>d = <span class="macro">t!</span>(obj.describe(<span class="kw-2">&amp;</span>DescribeOptions::new()));
+        <span class="macro">assert_eq!</span>(<span class="macro">t!</span>(d.format(<span class="prelude-val">None</span>)), <span class="string">&quot;foo&quot;</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

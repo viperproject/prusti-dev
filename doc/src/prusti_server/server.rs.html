@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-server/src/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_server/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_server/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_server/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-server/src/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_server/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_server/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_server/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -124,131 +124,131 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
-</pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/prusti_server/process_verification.rs.html#20-24">process_verification_request</a>, <a class="ident" href="../../src/prusti_server/verification_request.rs.html#15">VerificationRequest</a>};
-<span class="kw">use</span> <a class="ident" href="../../log/macro.info.html">log::info</a>;
-<span class="kw">use</span> <span class="ident">prusti_common</span>::{<a class="ident" href="../../prusti_common/config/index.html">config</a>, <a class="ident" href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">net</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>},
-    <span class="ident">sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mpsc/index.html">mpsc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/index.html">thread</a>,
+</span><span class="kw">use crate</span>::{<a href="../../src/prusti_server/process_verification.rs.html#20-24">process_verification_request</a>, <a href="../../src/prusti_server/verification_request.rs.html#15">VerificationRequest</a>};
+<span class="kw">use </span><a href="../../log/macro.info.html">log::info</a>;
+<span class="kw">use </span>prusti_common::{<a href="../../prusti_common/config/index.html">config</a>, <a href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>};
+<span class="kw">use </span>std::{
+    net::{<a href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>},
+    sync::{<a href="https://doc.rust-lang.org/nightly/std/sync/mpsc/index.html">mpsc</a>, <a href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>},
+    <a href="https://doc.rust-lang.org/nightly/std/thread/index.html">thread</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../tokio/runtime/builder/struct.Builder.html">tokio::runtime::Builder</a>;
-<span class="kw">use</span> <span class="ident">viper</span>::{<a class="ident" href="../../viper/cache/struct.PersistentCache.html">PersistentCache</a>, <a class="ident" href="../../viper/viper/struct.Viper.html">Viper</a>};
-<span class="kw">use</span> <a class="ident" href="../../warp/filter/trait.Filter.html">warp::Filter</a>;
+<span class="kw">use </span><a href="../../tokio/runtime/builder/struct.Builder.html">tokio::runtime::Builder</a>;
+<span class="kw">use </span>viper::{<a href="../../viper/cache/struct.PersistentCache.html">PersistentCache</a>, <a href="../../viper/viper/struct.Viper.html">Viper</a>};
+<span class="kw">use </span><a href="../../warp/filter/trait.Filter.html">warp::Filter</a>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">BincodeReject</span>(<a class="ident" href="../../bincode/error/type.Error.html">bincode::Error</a>);
-<span class="kw">impl</span> <a class="ident" href="../../warp/reject/trait.Reject.html">warp::reject::Reject</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_server/server.rs.html#20">BincodeReject</a> {}
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>BincodeReject(<a href="../../bincode/error/type.Error.html">bincode::Error</a>);
+<span class="kw">impl </span><a href="../../warp/reject/trait.Reject.html">warp::reject::Reject</a> <span class="kw">for </span><a href="../../src/prusti_server/server.rs.html#20">BincodeReject</a> {}
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_server_on_port</span>(<span class="ident">port</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-    <a class="ident" href="../../src/prusti_server/server.rs.html#49-51">listen_on_port_with_address_callback</a>(<a class="ident" href="../../src/prusti_server/server.rs.html#23">port</a>, <span class="kw">move</span> <span class="op">|</span><span class="ident">address</span><span class="op">|</span> {
-        <span class="kw">if</span> <span class="ident">port</span> <span class="op">==</span> <span class="number">0</span> {
+<span class="kw">pub fn </span>start_server_on_port(port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
+    <a href="../../src/prusti_server/server.rs.html#49-51">listen_on_port_with_address_callback</a>(<a href="../../src/prusti_server/server.rs.html#23">port</a>, <span class="kw">move </span>|address| {
+        <span class="kw">if </span>port == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
-            <span class="ident">address</span>.<span class="ident">port</span>(),
-            <span class="ident">port</span>,
+            address.port(),
+            port,
             <span class="string">&quot;Server could not bind to port {}&quot;</span>,
-            <span class="ident">port</span>
+            port
         )
     });
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_server_thread</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
-    <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>();
-    <span class="ident">thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-        <a class="ident" href="../../src/prusti_server/server.rs.html#49-51">listen_on_port_with_address_callback</a>(
-            <span class="number">0</span>, <span class="comment">// ask system for port</span>
-            <span class="kw">move</span> <span class="op">|</span><span class="ident">address</span><span class="op">|</span> <a class="ident" href="../../src/prusti_server/server.rs.html#38">sender</a>.<span class="ident">send</span>(<a class="ident" href="../../src/prusti_server/server.rs.html#42">address</a>).<span class="ident">unwrap</span>(),
+<span class="kw">pub fn </span>spawn_server_thread() -&gt; <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> {
+    <span class="kw">let </span>(sender, receiver) = mpsc::channel();
+    thread::spawn(<span class="kw">move </span>|| {
+        <a href="../../src/prusti_server/server.rs.html#49-51">listen_on_port_with_address_callback</a>(
+            <span class="number">0</span>, <span class="comment">// ask system for port
+            </span><span class="kw">move </span>|address| <a href="../../src/prusti_server/server.rs.html#38">sender</a>.send(<a href="../../src/prusti_server/server.rs.html#42">address</a>).unwrap(),
         );
     });
-    <span class="comment">// Return the address received by the server thread.</span>
-    <a class="ident" href="../../src/prusti_server/server.rs.html#38">receiver</a>.<span class="ident">recv</span>().<span class="ident">unwrap</span>()
+    <span class="comment">// Return the address received by the server thread.
+    </span><a href="../../src/prusti_server/server.rs.html#38">receiver</a>.recv().unwrap()
 }
 
-<span class="kw">fn</span> <span class="ident">listen_on_port_with_address_callback</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">port</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="ident">address_callback</span>: <span class="ident">F</span>) -&gt; <span class="op">!</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>),
+<span class="kw">fn </span>listen_on_port_with_address_callback&lt;F&gt;(port: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, address_callback: F) -&gt; !
+<span class="kw">where
+    </span>F: FnOnce(<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>),
 {
-    <span class="kw">let</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
-    <span class="kw">let</span> <span class="ident">viper</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Viper::new_with_args</span>(
-        <span class="kw-2">&amp;</span><span class="ident">config::viper_home</span>(),
-        <span class="ident">config::extra_jvm_args</span>(),
+    <span class="kw">let </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
+    <span class="kw">let </span>viper = Arc::new(Viper::new_with_args(
+        <span class="kw-2">&amp;</span>config::viper_home(),
+        config::extra_jvm_args(),
     ));
-    <a class="ident" href="../../src/prusti_server/server.rs.html#53">stopwatch</a>.<span class="ident">finish</span>();
+    <a href="../../src/prusti_server/server.rs.html#53">stopwatch</a>.finish();
 
-    <span class="kw">let</span> <span class="ident">cache_data</span> <span class="op">=</span> <span class="ident">PersistentCache::load_cache</span>(<span class="ident">config::cache_path</span>());
-    <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<a class="ident" href="../../src/prusti_server/server.rs.html#60">cache_data</a>));
-    <span class="kw">let</span> <span class="ident">build_verification_request_handler</span> <span class="op">=</span> <span class="op">|</span><span class="ident">viper_arc</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../viper/viper/struct.Viper.html">Viper</a><span class="op">&gt;</span>, <span class="ident">cache</span><span class="op">|</span> {
-        <span class="kw">move</span> <span class="op">|</span><span class="ident">request</span>: <a class="ident" href="../../src/prusti_server/verification_request.rs.html#15">VerificationRequest</a><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;attach thread to JVM&quot;</span>);
-            <span class="kw">let</span> <span class="ident">viper_thread</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/server.rs.html#62">viper_arc</a>.<span class="ident">attach_current_thread</span>();
-            <a class="ident" href="../../src/prusti_server/server.rs.html#64">stopwatch</a>.<span class="ident">finish</span>();
-            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#20-24">process_verification_request</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/server.rs.html#65">viper_thread</a>, <a class="ident" href="../../src/prusti_server/server.rs.html#63">request</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/server.rs.html#62">cache</a>)
+    <span class="kw">let </span>cache_data = PersistentCache::load_cache(config::cache_path());
+    <span class="kw">let </span>cache = Arc::new(Mutex::new(<a href="../../src/prusti_server/server.rs.html#60">cache_data</a>));
+    <span class="kw">let </span>build_verification_request_handler = |viper_arc: Arc&lt;<a href="../../viper/viper/struct.Viper.html">Viper</a>&gt;, cache| {
+        <span class="kw">move </span>|request: <a href="../../src/prusti_server/verification_request.rs.html#15">VerificationRequest</a>| {
+            <span class="kw">let </span>stopwatch = Stopwatch::start(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;attach thread to JVM&quot;</span>);
+            <span class="kw">let </span>viper_thread = <a href="../../src/prusti_server/server.rs.html#62">viper_arc</a>.attach_current_thread();
+            <a href="../../src/prusti_server/server.rs.html#64">stopwatch</a>.finish();
+            <a href="../../src/prusti_server/process_verification.rs.html#20-24">process_verification_request</a>(<span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#65">viper_thread</a>, <a href="../../src/prusti_server/server.rs.html#63">request</a>, <span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#62">cache</a>)
         }
     };
 
-    <span class="kw">let</span> <span class="ident">json_verify</span> <span class="op">=</span> <a class="macro" href="../../warp/warp/macro.path.html">warp::path!</a>(<span class="string">&quot;json&quot;</span> <span class="op">/</span> <span class="string">&quot;verify&quot;</span>)
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">and</a>(<span class="ident">warp::body::json</span>())
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">map</a>(<a class="ident" href="../../src/prusti_server/server.rs.html#62">build_verification_request_handler</a>(
-            <a class="ident" href="../../src/prusti_server/server.rs.html#54">viper</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a class="ident" href="../../src/prusti_server/server.rs.html#61">cache</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let </span>json_verify = <a class="macro" href="../../warp/warp/macro.path.html">warp::path!</a>(<span class="string">&quot;json&quot; </span>/ <span class="string">&quot;verify&quot;</span>)
+        .<a href="../../warp/filter/trait.Filter.html">and</a>(warp::body::json())
+        .<a href="../../warp/filter/trait.Filter.html">map</a>(<a href="../../src/prusti_server/server.rs.html#62">build_verification_request_handler</a>(
+            <a href="../../src/prusti_server/server.rs.html#54">viper</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="../../src/prusti_server/server.rs.html#61">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         ))
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">map</a>(<span class="op">|</span><span class="ident">response</span><span class="op">|</span> <span class="ident">warp::reply::json</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/server.rs.html#77">response</a>));
+        .<a href="../../warp/filter/trait.Filter.html">map</a>(|response| warp::reply::json(<span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#77">response</a>));
 
-    <span class="kw">let</span> <span class="ident">bincode_verify</span> <span class="op">=</span> <a class="macro" href="../../warp/warp/macro.path.html">warp::path!</a>(<span class="string">&quot;bincode&quot;</span> <span class="op">/</span> <span class="string">&quot;verify&quot;</span>)
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">and</a>(<span class="ident">warp::body::bytes</span>())
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">and_then</a>(<span class="op">|</span><span class="ident">buf</span>: <a class="ident" href="../../bytes/bytes/struct.Bytes.html">warp::hyper::body::Bytes</a><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-            <span class="ident">bincode::deserialize</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/server.rs.html#81">buf</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;request bincode body error: {}&quot;</span>, <span class="ident">err</span>);
-                <span class="ident">warp::reject::custom</span>(<a class="ident" href="../../src/prusti_server/server.rs.html#20">BincodeReject</a>(<a class="ident" href="../../src/prusti_server/server.rs.html#82">err</a>))
+    <span class="kw">let </span>bincode_verify = <a class="macro" href="../../warp/warp/macro.path.html">warp::path!</a>(<span class="string">&quot;bincode&quot; </span>/ <span class="string">&quot;verify&quot;</span>)
+        .<a href="../../warp/filter/trait.Filter.html">and</a>(warp::body::bytes())
+        .<a href="../../warp/filter/trait.Filter.html">and_then</a>(|buf: <a href="../../bytes/bytes/struct.Bytes.html">warp::hyper::body::Bytes</a>| <span class="kw">async move </span>{
+            bincode::deserialize(<span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#81">buf</a>).map_err(|err| {
+                <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;request bincode body error: {}&quot;</span>, err);
+                warp::reject::custom(<a href="../../src/prusti_server/server.rs.html#20">BincodeReject</a>(<a href="../../src/prusti_server/server.rs.html#82">err</a>))
             })
         })
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">map</a>(<a class="ident" href="../../src/prusti_server/server.rs.html#62">build_verification_request_handler</a>(<a class="ident" href="../../src/prusti_server/server.rs.html#54">viper</a>, <a class="ident" href="../../src/prusti_server/server.rs.html#61">cache</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">map</a>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="ident">warp::http::Response::new</span>(
-                <span class="ident">bincode::serialize</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/server.rs.html#88">result</a>).<span class="ident">expect</span>(<span class="string">&quot;could not encode verification result&quot;</span>),
+        .<a href="../../warp/filter/trait.Filter.html">map</a>(<a href="../../src/prusti_server/server.rs.html#62">build_verification_request_handler</a>(<a href="../../src/prusti_server/server.rs.html#54">viper</a>, <a href="../../src/prusti_server/server.rs.html#61">cache</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+        .<a href="../../warp/filter/trait.Filter.html">map</a>(|result| {
+            warp::http::Response::new(
+                bincode::serialize(<span class="kw-2">&amp;</span><a href="../../src/prusti_server/server.rs.html#88">result</a>).expect(<span class="string">&quot;could not encode verification result&quot;</span>),
             )
         });
 
-    <span class="kw">let</span> <span class="ident">save_cache</span> <span class="op">=</span> <span class="ident">warp::post</span>()
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">and</a>(<span class="ident">warp::path</span>(<span class="string">&quot;save&quot;</span>))
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">and</a>(<span class="ident">warp::path::end</span>())
-        .<a class="ident" href="../../warp/filter/trait.Filter.html">map</a>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-            <a class="ident" href="../../src/prusti_server/server.rs.html#61">cache</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">save</span>();
-            <span class="ident">warp::reply::html</span>(<span class="string">&quot;Saved&quot;</span>)
+    <span class="kw">let </span>save_cache = warp::post()
+        .<a href="../../warp/filter/trait.Filter.html">and</a>(warp::path(<span class="string">&quot;save&quot;</span>))
+        .<a href="../../warp/filter/trait.Filter.html">and</a>(warp::path::end())
+        .<a href="../../warp/filter/trait.Filter.html">map</a>(<span class="kw">move </span>|| {
+            <a href="../../src/prusti_server/server.rs.html#61">cache</a>.lock().unwrap().save();
+            warp::reply::html(<span class="string">&quot;Saved&quot;</span>)
         });
 
-    <span class="kw">let</span> <span class="ident">endpoints</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/server.rs.html#71">json_verify</a>.<a class="ident" href="../../warp/filter/trait.Filter.html">or</a>(<a class="ident" href="../../src/prusti_server/server.rs.html#79">bincode_verify</a>).<a class="ident" href="../../warp/filter/trait.Filter.html">or</a>(<a class="ident" href="../../src/prusti_server/server.rs.html#94">save_cache</a>);
+    <span class="kw">let </span>endpoints = <a href="../../src/prusti_server/server.rs.html#71">json_verify</a>.<a href="../../warp/filter/trait.Filter.html">or</a>(<a href="../../src/prusti_server/server.rs.html#79">bincode_verify</a>).<a href="../../warp/filter/trait.Filter.html">or</a>(<a href="../../src/prusti_server/server.rs.html#94">save_cache</a>);
 
-    <span class="comment">// Here we use a single thread because</span>
-    <span class="comment">// 1. Viper is not thread safe yet (Silicon issue #578), and</span>
-    <span class="comment">// 2. By default Silicon already uses as many cores as possible.</span>
-    <span class="kw">let</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">Builder::new_current_thread</span>()
-        .<span class="ident">thread_name</span>(<span class="string">&quot;prusti-server&quot;</span>)
-        .<span class="ident">enable_all</span>()
-        .<span class="ident">build</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
+    <span class="comment">// Here we use a single thread because
+    // 1. Viper is not thread safe yet (Silicon issue #578), and
+    // 2. By default Silicon already uses as many cores as possible.
+    </span><span class="kw">let </span>runtime = Builder::new_current_thread()
+        .thread_name(<span class="string">&quot;prusti-server&quot;</span>)
+        .enable_all()
+        .build()
+        .expect(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
 
-    <a class="ident" href="../../src/prusti_server/server.rs.html#107">runtime</a>.<span class="ident">block_on</span>(<span class="kw">async</span> {
-        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Prusti Server binding to port {}&quot;</span>, <span class="ident">port</span>);
-        <span class="kw">let</span> (<span class="ident">address</span>, <span class="ident">server_loop</span>) <span class="op">=</span>
-            <span class="ident">warp::serve</span>(<a class="ident" href="../../src/prusti_server/server.rs.html#102">endpoints</a>).<span class="ident">bind_ephemeral</span>((<span class="ident">Ipv4Addr::LOCALHOST</span>, <a class="ident" href="../../src/prusti_server/server.rs.html#49">port</a>));
+    <a href="../../src/prusti_server/server.rs.html#107">runtime</a>.block_on(<span class="kw">async </span>{
+        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Prusti Server binding to port {}&quot;</span>, port);
+        <span class="kw">let </span>(address, server_loop) =
+            warp::serve(<a href="../../src/prusti_server/server.rs.html#102">endpoints</a>).bind_ephemeral((Ipv4Addr::LOCALHOST, <a href="../../src/prusti_server/server.rs.html#49">port</a>));
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>(<span class="string">&quot;port: {}&quot;</span>, <span class="ident">address</span>.<span class="ident">port</span>());
-        <a class="ident" href="../../src/prusti_server/server.rs.html#49">address_callback</a>(<a class="ident" href="../../src/prusti_server/server.rs.html#115">address</a>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>(<span class="string">&quot;port: {}&quot;</span>, address.port());
+        <a href="../../src/prusti_server/server.rs.html#49">address_callback</a>(<a href="../../src/prusti_server/server.rs.html#115">address</a>);
 
-        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Prusti Server listening on port {}&quot;</span>, <span class="ident">address</span>.<span class="ident">port</span>());
-        <span class="ident">server_loop</span>.<span class="kw">await</span>
-    });
+        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Prusti Server listening on port {}&quot;</span>, address.port());
+        server_loop.<span class="kw">await
+    </span>});
 
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;The server unexpectedly stopped.&quot;</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_server" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_server" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

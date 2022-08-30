@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/ast/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/ast/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -515,522 +515,522 @@
 <span id="515">515</span>
 <span id="516">516</span>
 <span id="517">517</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<a class="self" href="../../../src/regex_syntax/lib.rs.html#165">self</a>, <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>};
+<span class="kw">use </span><span class="kw">crate</span>::ast::{<a class="self" href="../../../src/regex_syntax/lib.rs.html#165">self</a>, <a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>};
 
-<span class="doccomment">/// A trait for visiting an abstract syntax tree (AST) in depth first order.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The principle aim of this trait is to enable callers to perform case</span>
-<span class="doccomment">/// analysis on an abstract syntax tree without necessarily using recursion.</span>
-<span class="doccomment">/// In particular, this permits callers to do case analysis with constant stack</span>
-<span class="doccomment">/// usage, which can be important since the size of an abstract syntax tree</span>
-<span class="doccomment">/// may be proportional to end user input.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Typical usage of this trait involves providing an implementation and then</span>
-<span class="doccomment">/// running it using the [`visit`](fn.visit.html) function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that the abstract syntax tree for a regular expression is quite</span>
-<span class="doccomment">/// complex. Unless you specifically need it, you might be able to use the</span>
-<span class="doccomment">/// much simpler</span>
-<span class="doccomment">/// [high-level intermediate representation](../hir/struct.Hir.html)</span>
-<span class="doccomment">/// and its</span>
-<span class="doccomment">/// [corresponding `Visitor` trait](../hir/trait.Visitor.html)</span>
-<span class="doccomment">/// instead.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Visitor</span> {
-    <span class="doccomment">/// The result of visiting an AST.</span>
-    <span class="kw">type</span> <span class="ident">Output</span>;
-    <span class="doccomment">/// An error that visiting an AST might return.</span>
-    <span class="kw">type</span> <span class="prelude-val">Err</span>;
+<span class="doccomment">/// A trait for visiting an abstract syntax tree (AST) in depth first order.
+///
+/// The principle aim of this trait is to enable callers to perform case
+/// analysis on an abstract syntax tree without necessarily using recursion.
+/// In particular, this permits callers to do case analysis with constant stack
+/// usage, which can be important since the size of an abstract syntax tree
+/// may be proportional to end user input.
+///
+/// Typical usage of this trait involves providing an implementation and then
+/// running it using the [`visit`](fn.visit.html) function.
+///
+/// Note that the abstract syntax tree for a regular expression is quite
+/// complex. Unless you specifically need it, you might be able to use the
+/// much simpler
+/// [high-level intermediate representation](../hir/struct.Hir.html)
+/// and its
+/// [corresponding `Visitor` trait](../hir/trait.Visitor.html)
+/// instead.
+</span><span class="kw">pub trait </span>Visitor {
+    <span class="doccomment">/// The result of visiting an AST.
+    </span><span class="kw">type </span>Output;
+    <span class="doccomment">/// An error that visiting an AST might return.
+    </span><span class="kw">type </span><span class="prelude-val">Err</span>;
 
-    <span class="doccomment">/// All implementors of `Visitor` must provide a `finish` method, which</span>
-    <span class="doccomment">/// yields the result of visiting the AST or an error.</span>
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// All implementors of `Visitor` must provide a `finish` method, which
+    /// yields the result of visiting the AST or an error.
+    </span><span class="kw">fn </span>finish(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Output, <span class="self">Self</span>::Err&gt;;
 
-    <span class="doccomment">/// This method is called before beginning traversal of the AST.</span>
-    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {}
+    <span class="doccomment">/// This method is called before beginning traversal of the AST.
+    </span><span class="kw">fn </span>start(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
 
-    <span class="doccomment">/// This method is called on an `Ast` before descending into child `Ast`</span>
-    <span class="doccomment">/// nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method is called on an `Ast` before descending into child `Ast`
+    /// nodes.
+    </span><span class="kw">fn </span>visit_pre(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ast: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// This method is called on an `Ast` after descending all of its child</span>
-    <span class="doccomment">/// `Ast` nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method is called on an `Ast` after descending all of its child
+    /// `Ast` nodes.
+    </span><span class="kw">fn </span>visit_post(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ast: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// This method is called between child nodes of an</span>
-    <span class="doccomment">/// [`Alternation`](struct.Alternation.html).</span>
-    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method is called between child nodes of an
+    /// [`Alternation`](struct.Alternation.html).
+    </span><span class="kw">fn </span>visit_alternation_in(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// This method is called on every</span>
-    <span class="doccomment">/// [`ClassSetItem`](enum.ClassSetItem.html)</span>
-    <span class="doccomment">/// before descending into child nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_class_set_item_pre</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method is called on every
+    /// [`ClassSetItem`](enum.ClassSetItem.html)
+    /// before descending into child nodes.
+    </span><span class="kw">fn </span>visit_class_set_item_pre(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _ast: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// This method is called on every</span>
-    <span class="doccomment">/// [`ClassSetItem`](enum.ClassSetItem.html)</span>
-    <span class="doccomment">/// after descending into child nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_class_set_item_post</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method is called on every
+    /// [`ClassSetItem`](enum.ClassSetItem.html)
+    /// after descending into child nodes.
+    </span><span class="kw">fn </span>visit_class_set_item_post(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _ast: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// This method is called on every</span>
-    <span class="doccomment">/// [`ClassSetBinaryOp`](struct.ClassSetBinaryOp.html)</span>
-    <span class="doccomment">/// before descending into child nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_pre</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method is called on every
+    /// [`ClassSetBinaryOp`](struct.ClassSetBinaryOp.html)
+    /// before descending into child nodes.
+    </span><span class="kw">fn </span>visit_class_set_binary_op_pre(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _ast: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// This method is called on every</span>
-    <span class="doccomment">/// [`ClassSetBinaryOp`](struct.ClassSetBinaryOp.html)</span>
-    <span class="doccomment">/// after descending into child nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_post</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method is called on every
+    /// [`ClassSetBinaryOp`](struct.ClassSetBinaryOp.html)
+    /// after descending into child nodes.
+    </span><span class="kw">fn </span>visit_class_set_binary_op_post(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _ast: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// This method is called between the left hand and right hand child nodes</span>
-    <span class="doccomment">/// of a [`ClassSetBinaryOp`](struct.ClassSetBinaryOp.html).</span>
-    <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_in</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method is called between the left hand and right hand child nodes
+    /// of a [`ClassSetBinaryOp`](struct.ClassSetBinaryOp.html).
+    </span><span class="kw">fn </span>visit_class_set_binary_op_in(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _ast: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="doccomment">/// Executes an implementation of `Visitor` in constant stack space.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will visit every node in the given `Ast` while calling the</span>
-<span class="doccomment">/// appropriate methods provided by the</span>
-<span class="doccomment">/// [`Visitor`](trait.Visitor.html) trait.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The primary use case for this method is when one wants to perform case</span>
-<span class="doccomment">/// analysis over an `Ast` without using a stack size proportional to the depth</span>
-<span class="doccomment">/// of the `Ast`. Namely, this method will instead use constant stack size, but</span>
-<span class="doccomment">/// will use heap space proportional to the size of the `Ast`. This may be</span>
-<span class="doccomment">/// desirable in cases where the size of `Ast` is proportional to end user</span>
-<span class="doccomment">/// input.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the visitor returns an error at any point, then visiting is stopped and</span>
-<span class="doccomment">/// the error is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a><span class="op">&gt;</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
-    <span class="ident">HeapVisitor::new</span>().<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#206-210">visit</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#119">ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#119">visitor</a>)
+<span class="doccomment">/// Executes an implementation of `Visitor` in constant stack space.
+///
+/// This function will visit every node in the given `Ast` while calling the
+/// appropriate methods provided by the
+/// [`Visitor`](trait.Visitor.html) trait.
+///
+/// The primary use case for this method is when one wants to perform case
+/// analysis over an `Ast` without using a stack size proportional to the depth
+/// of the `Ast`. Namely, this method will instead use constant stack size, but
+/// will use heap space proportional to the size of the `Ast`. This may be
+/// desirable in cases where the size of `Ast` is proportional to end user
+/// input.
+///
+/// If the visitor returns an error at any point, then visiting is stopped and
+/// the error is returned.
+</span><span class="kw">pub fn </span>visit&lt;V: <a href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a>&gt;(ast: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Output, V::Err&gt; {
+    HeapVisitor::new().<a href="../../../src/regex_syntax/ast/visitor.rs.html#206-210">visit</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#119">ast</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#119">visitor</a>)
 }
 
-<span class="doccomment">/// HeapVisitor visits every item in an `Ast` recursively using constant stack</span>
-<span class="doccomment">/// size and a heap size proportional to the size of the `Ast`.</span>
-<span class="kw">struct</span> <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// A stack of `Ast` nodes. This is roughly analogous to the call stack</span>
-    <span class="doccomment">/// used in a typical recursive visitor.</span>
-    <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>, <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
-    <span class="doccomment">/// Similar to the `Ast` stack above, but is used only for character</span>
-    <span class="doccomment">/// classes. In particular, character classes embed their own mini</span>
-    <span class="doccomment">/// recursive syntax.</span>
-    <span class="ident">stack_class</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// HeapVisitor visits every item in an `Ast` recursively using constant stack
+/// size and a heap size proportional to the size of the `Ast`.
+</span><span class="kw">struct </span>HeapVisitor&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// A stack of `Ast` nodes. This is roughly analogous to the call stack
+    /// used in a typical recursive visitor.
+    </span>stack: Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>, Frame&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;,
+    <span class="doccomment">/// Similar to the `Ast` stack above, but is used only for character
+    /// classes. In particular, character classes embed their own mini
+    /// recursive syntax.
+    </span>stack_class: Vec&lt;(ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt;, ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;,
 }
 
-<span class="doccomment">/// Represents a single stack frame while performing structural induction over</span>
-<span class="doccomment">/// an `Ast`.</span>
-<span class="kw">enum</span> <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// A stack frame allocated just before descending into a repetition</span>
-    <span class="doccomment">/// operator&#39;s child node.</span>
-    <span class="ident">Repetition</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1119">ast::Repetition</a>),
-    <span class="doccomment">/// A stack frame allocated just before descending into a group&#39;s child</span>
-    <span class="doccomment">/// node.</span>
-    <span class="ident">Group</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1184">ast::Group</a>),
-    <span class="doccomment">/// The stack frame used while visiting every child node of a concatenation</span>
-    <span class="doccomment">/// of expressions.</span>
-    <span class="ident">Concat</span> {
-        <span class="doccomment">/// The child node we are currently visiting.</span>
-        <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
-        <span class="doccomment">/// The remaining child nodes to visit (which may be empty).</span>
-        <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>],
+<span class="doccomment">/// Represents a single stack frame while performing structural induction over
+/// an `Ast`.
+</span><span class="kw">enum </span>Frame&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// A stack frame allocated just before descending into a repetition
+    /// operator&#39;s child node.
+    </span>Repetition(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1119">ast::Repetition</a>),
+    <span class="doccomment">/// A stack frame allocated just before descending into a group&#39;s child
+    /// node.
+    </span>Group(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1184">ast::Group</a>),
+    <span class="doccomment">/// The stack frame used while visiting every child node of a concatenation
+    /// of expressions.
+    </span>Concat {
+        <span class="doccomment">/// The child node we are currently visiting.
+        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
+        <span class="doccomment">/// The remaining child nodes to visit (which may be empty).
+        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>],
     },
-    <span class="doccomment">/// The stack frame used while visiting every child node of an alternation</span>
-    <span class="doccomment">/// of expressions.</span>
-    <span class="ident">Alternation</span> {
-        <span class="doccomment">/// The child node we are currently visiting.</span>
-        <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
-        <span class="doccomment">/// The remaining child nodes to visit (which may be empty).</span>
-        <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>],
+    <span class="doccomment">/// The stack frame used while visiting every child node of an alternation
+    /// of expressions.
+    </span>Alternation {
+        <span class="doccomment">/// The child node we are currently visiting.
+        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
+        <span class="doccomment">/// The remaining child nodes to visit (which may be empty).
+        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>],
     },
 }
 
-<span class="doccomment">/// Represents a single stack frame while performing structural induction over</span>
-<span class="doccomment">/// a character class.</span>
-<span class="kw">enum</span> <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The stack frame used while visiting every child node of a union of</span>
-    <span class="doccomment">/// character class items.</span>
-    <span class="ident">Union</span> {
-        <span class="doccomment">/// The child node we are currently visiting.</span>
-        <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>,
-        <span class="doccomment">/// The remaining child nodes to visit (which may be empty).</span>
-        <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>],
+<span class="doccomment">/// Represents a single stack frame while performing structural induction over
+/// a character class.
+</span><span class="kw">enum </span>ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// The stack frame used while visiting every child node of a union of
+    /// character class items.
+    </span>Union {
+        <span class="doccomment">/// The child node we are currently visiting.
+        </span>head: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>,
+        <span class="doccomment">/// The remaining child nodes to visit (which may be empty).
+        </span>tail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>],
     },
-    <span class="doccomment">/// The stack frame used while a binary class operation.</span>
-    <span class="ident">Binary</span> { <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a> },
-    <span class="doccomment">/// A stack frame allocated just before descending into a binary operator&#39;s</span>
-    <span class="doccomment">/// left hand child node.</span>
-    <span class="ident">BinaryLHS</span> {
-        <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
-        <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#922">ast::ClassSet</a>,
-        <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#922">ast::ClassSet</a>,
+    <span class="doccomment">/// The stack frame used while a binary class operation.
+    </span>Binary { op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a> },
+    <span class="doccomment">/// A stack frame allocated just before descending into a binary operator&#39;s
+    /// left hand child node.
+    </span>BinaryLHS {
+        op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
+        lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#922">ast::ClassSet</a>,
+        rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#922">ast::ClassSet</a>,
     },
-    <span class="doccomment">/// A stack frame allocated just before descending into a binary operator&#39;s</span>
-    <span class="doccomment">/// right hand child node.</span>
-    <span class="ident">BinaryRHS</span> { <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#922">ast::ClassSet</a> },
+    <span class="doccomment">/// A stack frame allocated just before descending into a binary operator&#39;s
+    /// right hand child node.
+    </span>BinaryRHS { op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>, rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#922">ast::ClassSet</a> },
 }
 
-<span class="doccomment">/// A representation of the inductive step when performing structural induction</span>
-<span class="doccomment">/// over a character class.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that there is no analogous explicit type for the inductive step for</span>
-<span class="doccomment">/// `Ast` nodes because the inductive step is just an `Ast`. For character</span>
-<span class="doccomment">/// classes, the inductive step can produce one of two possible child nodes:</span>
-<span class="doccomment">/// an item or a binary operation. (An item cannot be a binary operation</span>
-<span class="doccomment">/// because that would imply binary operations can be unioned in the concrete</span>
-<span class="doccomment">/// syntax, which is not possible.)</span>
-<span class="kw">enum</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Item</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>),
-    <span class="ident">BinaryOp</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>),
+<span class="doccomment">/// A representation of the inductive step when performing structural induction
+/// over a character class.
+///
+/// Note that there is no analogous explicit type for the inductive step for
+/// `Ast` nodes because the inductive step is just an `Ast`. For character
+/// classes, the inductive step can produce one of two possible child nodes:
+/// an item or a binary operation. (An item cannot be a binary operation
+/// because that would imply binary operations can be unioned in the concrete
+/// syntax, which is not possible.)
+</span><span class="kw">enum </span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+    Item(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>),
+    BinaryOp(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#125">HeapVisitor</a> { <span class="ident">stack</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <span class="ident">stack_class</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; HeapVisitor&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>new() -&gt; HeapVisitor&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <a href="../../../src/regex_syntax/ast/visitor.rs.html#125">HeapVisitor</a> { stack: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], stack_class: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="kw-2">mut</span> <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
-        <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.<span class="ident">stack</span>.<span class="ident">clear</span>();
-        <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.<span class="ident">stack_class</span>.<span class="ident">clear</span>();
+    <span class="kw">fn </span>visit&lt;V: <a href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a>&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <span class="kw-2">mut </span>ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
+        <span class="kw-2">mut </span>visitor: V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Output, V::Err&gt; {
+        <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.stack.clear();
+        <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.stack_class.clear();
 
-        <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#209">visitor</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#34">start</a>();
-        <span class="kw">loop</span> {
-            <span class="ident">visitor</span>.<span class="ident">visit_pre</span>(<span class="ident">ast</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">induct</span>(<span class="ident">ast</span>, <span class="kw-2">&amp;mut</span> <span class="ident">visitor</span>)<span class="question-mark">?</span> {
-                <span class="kw">let</span> <span class="ident">child</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#217">x</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#438">child</a>();
-                <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.<span class="ident">stack</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#208">ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#217">x</a>));
-                <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#208">ast</a> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#218">child</a>;
+        <a href="../../../src/regex_syntax/ast/visitor.rs.html#209">visitor</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#34">start</a>();
+        <span class="kw">loop </span>{
+            visitor.visit_pre(ast)<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="self">self</span>.induct(ast, <span class="kw-2">&amp;mut </span>visitor)<span class="question-mark">? </span>{
+                <span class="kw">let </span>child = <a href="../../../src/regex_syntax/ast/visitor.rs.html#217">x</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#438">child</a>();
+                <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.stack.push((<a href="../../../src/regex_syntax/ast/visitor.rs.html#208">ast</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#217">x</a>));
+                <a href="../../../src/regex_syntax/ast/visitor.rs.html#208">ast</a> = <a href="../../../src/regex_syntax/ast/visitor.rs.html#218">child</a>;
                 <span class="kw">continue</span>;
             }
-            <span class="comment">// No induction means we have a base case, so we can post visit</span>
-            <span class="comment">// it now.</span>
-            <span class="ident">visitor</span>.<span class="ident">visit_post</span>(<span class="ident">ast</span>)<span class="question-mark">?</span>;
+            <span class="comment">// No induction means we have a base case, so we can post visit
+            // it now.
+            </span>visitor.visit_post(ast)<span class="question-mark">?</span>;
 
-            <span class="comment">// At this point, we now try to pop our call stack until it is</span>
-            <span class="comment">// either empty or we hit another inductive case.</span>
-            <span class="kw">loop</span> {
-                <span class="kw">let</span> (<span class="ident">post_ast</span>, <span class="ident">frame</span>) <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.<span class="ident">stack</span>.<span class="ident">pop</span>() {
-                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#209">visitor</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#31">finish</a>(),
-                    <span class="prelude-val">Some</span>((<span class="ident">post_ast</span>, <span class="ident">frame</span>)) =&gt; (<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#232">post_ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#232">frame</a>),
+            <span class="comment">// At this point, we now try to pop our call stack until it is
+            // either empty or we hit another inductive case.
+            </span><span class="kw">loop </span>{
+                <span class="kw">let </span>(post_ast, frame) = <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.stack.pop() {
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#209">visitor</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#31">finish</a>(),
+                    <span class="prelude-val">Some</span>((post_ast, frame)) =&gt; (<a href="../../../src/regex_syntax/ast/visitor.rs.html#232">post_ast</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#232">frame</a>),
                 };
-                <span class="comment">// If this is a concat/alternate, then we might have additional</span>
-                <span class="comment">// inductive steps to process.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#283">pop</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#230">frame</a>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> { .. } <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#236">x</a> {
-                        <span class="ident">visitor</span>.<span class="ident">visit_alternation_in</span>()<span class="question-mark">?</span>;
+                <span class="comment">// If this is a concat/alternate, then we might have additional
+                // inductive steps to process.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#283">pop</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#230">frame</a>) {
+                    <span class="kw">if let </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> { .. } = <a href="../../../src/regex_syntax/ast/visitor.rs.html#236">x</a> {
+                        visitor.visit_alternation_in()<span class="question-mark">?</span>;
                     }
-                    <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#208">ast</a> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#236">x</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#438">child</a>();
-                    <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.<span class="ident">stack</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#230">post_ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#236">x</a>));
+                    <a href="../../../src/regex_syntax/ast/visitor.rs.html#208">ast</a> = <a href="../../../src/regex_syntax/ast/visitor.rs.html#236">x</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#438">child</a>();
+                    <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#207">self</a>.stack.push((<a href="../../../src/regex_syntax/ast/visitor.rs.html#230">post_ast</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#236">x</a>));
                     <span class="kw">break</span>;
                 }
-                <span class="comment">// Otherwise, we&#39;ve finished visiting all the child nodes for</span>
-                <span class="comment">// this AST, so we can post visit it now.</span>
-                <span class="ident">visitor</span>.<span class="ident">visit_post</span>(<span class="ident">post_ast</span>)<span class="question-mark">?</span>;
+                <span class="comment">// Otherwise, we&#39;ve finished visiting all the child nodes for
+                // this AST, so we can post visit it now.
+                </span>visitor.visit_post(post_ast)<span class="question-mark">?</span>;
             }
         }
     }
 
-    <span class="doccomment">/// Build a stack frame for the given AST if one is needed (which occurs if</span>
-    <span class="doccomment">/// and only if there are child nodes in the AST). Otherwise, return None.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this visits a class, then the underlying visitor implementation may</span>
-    <span class="doccomment">/// return an error which will be passed on here.</span>
-    <span class="kw">fn</span> <span class="ident">induct</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
-        <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#258">ast</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#482">Ast::Class</a>(<a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#714">ast::Class::Bracketed</a>(<span class="kw-2">ref</span> <span class="ident">x</span>)) =&gt; {
-                <span class="self">self</span>.<span class="ident">visit_class</span>(<span class="ident">x</span>, <span class="ident">visitor</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">None</span>
+    <span class="doccomment">/// Build a stack frame for the given AST if one is needed (which occurs if
+    /// and only if there are child nodes in the AST). Otherwise, return None.
+    ///
+    /// If this visits a class, then the underlying visitor implementation may
+    /// return an error which will be passed on here.
+    </span><span class="kw">fn </span>induct&lt;V: <a href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a>&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>,
+        visitor: <span class="kw-2">&amp;mut </span>V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Frame&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, V::Err&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#258">ast</a> {
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#482">Ast::Class</a>(<a href="../../../src/regex_syntax/ast/mod.rs.html#714">ast::Class::Bracketed</a>(<span class="kw-2">ref </span>x)) =&gt; {
+                <span class="self">self</span>.visit_class(x, visitor)<span class="question-mark">?</span>;
+                <span class="prelude-val">None
+            </span>}
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#484">Ast::Repetition</a>(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#140">Frame::Repetition</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#266">x</a>)),
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#486">Ast::Group</a>(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#143">Frame::Group</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#267">x</a>)),
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#268">x</a>.asts.is_empty() =&gt; <span class="prelude-val">None</span>,
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref </span>x) =&gt; {
+                <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#146">Frame::Concat</a> { head: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#269">x</a>.asts[<span class="number">0</span>], tail: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#269">x</a>.asts[<span class="number">1</span>..] })
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#484">Ast::Repetition</a>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#140">Frame::Repetition</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#266">x</a>)),
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#486">Ast::Group</a>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#143">Frame::Group</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#267">x</a>)),
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#268">x</a>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() =&gt; <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; {
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#146">Frame::Concat</a> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#269">x</a>.<span class="ident">asts</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#269">x</a>.<span class="ident">asts</span>[<span class="number">1</span>..] })
-            }
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#272">x</a>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() =&gt; <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> {
-                <span class="ident">head</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#273">x</a>.<span class="ident">asts</span>[<span class="number">0</span>],
-                <span class="ident">tail</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#273">x</a>.<span class="ident">asts</span>[<span class="number">1</span>..],
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) <span class="kw">if </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#272">x</a>.asts.is_empty() =&gt; <span class="prelude-val">None</span>,
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#488">Ast::Alternation</a>(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> {
+                head: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#273">x</a>.asts[<span class="number">0</span>],
+                tail: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#273">x</a>.asts[<span class="number">1</span>..],
             }),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
     }
 
-    <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,</span>
-    <span class="doccomment">/// then return it, otherwise return `None`.</span>
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#283">induct</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#140">Frame::Repetition</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#143">Frame::Group</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#146">Frame::Concat</a> { <span class="ident">tail</span>, .. } =&gt; {
-                <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#146">Frame::Concat</a> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#287">tail</a>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#287">tail</a>[<span class="number">1</span>..] })
+    <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,
+    /// then return it, otherwise return `None`.
+    </span><span class="kw">fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>, induct: Frame&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Frame&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="kw">match </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#283">induct</a> {
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#140">Frame::Repetition</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#143">Frame::Group</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#146">Frame::Concat</a> { tail, .. } =&gt; {
+                <span class="kw">if </span>tail.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#146">Frame::Concat</a> { head: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#287">tail</a>[<span class="number">0</span>], tail: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#287">tail</a>[<span class="number">1</span>..] })
                 }
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> { <span class="ident">tail</span>, .. } =&gt; {
-                <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> {
-                        <span class="ident">head</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#294">tail</a>[<span class="number">0</span>],
-                        <span class="ident">tail</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#294">tail</a>[<span class="number">1</span>..],
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> { tail, .. } =&gt; {
+                <span class="kw">if </span>tail.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> {
+                        head: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#294">tail</a>[<span class="number">0</span>],
+                        tail: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#294">tail</a>[<span class="number">1</span>..],
                     })
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_class</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#904">ast::ClassBracketed</a>,
-        <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ast</span> <span class="op">=</span> <span class="ident">ClassInduct::from_bracketed</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#309">ast</a>);
-        <span class="kw">loop</span> {
-            <span class="self">self</span>.<span class="ident">visit_class_pre</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>, <span class="ident">visitor</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#383">induct_class</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#312">ast</a>) {
-                <span class="kw">let</span> <span class="ident">child</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#315">x</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#451">child</a>();
-                <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.<span class="ident">stack_class</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#312">ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#315">x</a>));
-                <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#312">ast</a> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#316">child</a>;
+    <span class="kw">fn </span>visit_class&lt;V: <a href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a>&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#904">ast::ClassBracketed</a>,
+        visitor: <span class="kw-2">&amp;mut </span>V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), V::Err&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ast = ClassInduct::from_bracketed(<a href="../../../src/regex_syntax/ast/visitor.rs.html#309">ast</a>);
+        <span class="kw">loop </span>{
+            <span class="self">self</span>.visit_class_pre(<span class="kw-2">&amp;</span>ast, visitor)<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#383">induct_class</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#312">ast</a>) {
+                <span class="kw">let </span>child = <a href="../../../src/regex_syntax/ast/visitor.rs.html#315">x</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#451">child</a>();
+                <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.stack_class.push((<a href="../../../src/regex_syntax/ast/visitor.rs.html#312">ast</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#315">x</a>));
+                <a href="../../../src/regex_syntax/ast/visitor.rs.html#312">ast</a> = <a href="../../../src/regex_syntax/ast/visitor.rs.html#316">child</a>;
                 <span class="kw">continue</span>;
             }
-            <span class="self">self</span>.<span class="ident">visit_class_post</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>, <span class="ident">visitor</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.visit_class_post(<span class="kw-2">&amp;</span>ast, visitor)<span class="question-mark">?</span>;
 
-            <span class="comment">// At this point, we now try to pop our call stack until it is</span>
-            <span class="comment">// either empty or we hit another inductive case.</span>
-            <span class="kw">loop</span> {
-                <span class="kw">let</span> (<span class="ident">post_ast</span>, <span class="ident">frame</span>) <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.<span class="ident">stack_class</span>.<span class="ident">pop</span>() {
-                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-                    <span class="prelude-val">Some</span>((<span class="ident">post_ast</span>, <span class="ident">frame</span>)) =&gt; (<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#328">post_ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#328">frame</a>),
+            <span class="comment">// At this point, we now try to pop our call stack until it is
+            // either empty or we hit another inductive case.
+            </span><span class="kw">loop </span>{
+                <span class="kw">let </span>(post_ast, frame) = <span class="kw">match </span><a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.stack_class.pop() {
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+                    <span class="prelude-val">Some</span>((post_ast, frame)) =&gt; (<a href="../../../src/regex_syntax/ast/visitor.rs.html#328">post_ast</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#328">frame</a>),
                 };
-                <span class="comment">// If this is a union or a binary op, then we might have</span>
-                <span class="comment">// additional inductive steps to process.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#414">pop_class</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#326">frame</a>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { <span class="kw-2">ref</span> <span class="ident">op</span>, .. } <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#332">x</a> {
-                        <span class="ident">visitor</span>.<span class="ident">visit_class_set_binary_op_in</span>(<span class="ident">op</span>)<span class="question-mark">?</span>;
+                <span class="comment">// If this is a union or a binary op, then we might have
+                // additional inductive steps to process.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#414">pop_class</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#326">frame</a>) {
+                    <span class="kw">if let </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { <span class="kw-2">ref </span>op, .. } = <a href="../../../src/regex_syntax/ast/visitor.rs.html#332">x</a> {
+                        visitor.visit_class_set_binary_op_in(op)<span class="question-mark">?</span>;
                     }
-                    <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#312">ast</a> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#332">x</a>.<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#451">child</a>();
-                    <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.<span class="ident">stack_class</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#326">post_ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#332">x</a>));
+                    <a href="../../../src/regex_syntax/ast/visitor.rs.html#312">ast</a> = <a href="../../../src/regex_syntax/ast/visitor.rs.html#332">x</a>.<a href="../../../src/regex_syntax/ast/visitor.rs.html#451">child</a>();
+                    <a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#308">self</a>.stack_class.push((<a href="../../../src/regex_syntax/ast/visitor.rs.html#326">post_ast</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#332">x</a>));
                     <span class="kw">break</span>;
                 }
-                <span class="comment">// Otherwise, we&#39;ve finished visiting all the child nodes for</span>
-                <span class="comment">// this class node, so we can post visit it now.</span>
-                <span class="self">self</span>.<span class="ident">visit_class_post</span>(<span class="kw-2">&amp;</span><span class="ident">post_ast</span>, <span class="ident">visitor</span>)<span class="question-mark">?</span>;
+                <span class="comment">// Otherwise, we&#39;ve finished visiting all the child nodes for
+                // this class node, so we can post visit it now.
+                </span><span class="self">self</span>.visit_class_post(<span class="kw-2">&amp;</span>post_ast, visitor)<span class="question-mark">?</span>;
             }
         }
     }
 
-    <span class="doccomment">/// Call the appropriate `Visitor` methods given an inductive step.</span>
-    <span class="kw">fn</span> <span class="ident">visit_class_pre</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a><span class="op">&gt;</span>(
+    <span class="doccomment">/// Call the appropriate `Visitor` methods given an inductive step.
+    </span><span class="kw">fn </span>visit_class_pre&lt;V: <a href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#350">ast</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<span class="ident">item</span>) =&gt; {
-                <span class="ident">visitor</span>.<span class="ident">visit_class_set_item_pre</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
+        ast: <span class="kw-2">&amp;</span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt;,
+        visitor: <span class="kw-2">&amp;mut </span>V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), V::Err&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#350">ast</a> {
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(item) =&gt; {
+                visitor.visit_class_set_item_pre(item)<span class="question-mark">?</span>;
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(<span class="ident">op</span>) =&gt; {
-                <span class="ident">visitor</span>.<span class="ident">visit_class_set_binary_op_pre</span>(<span class="ident">op</span>)<span class="question-mark">?</span>;
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(op) =&gt; {
+                visitor.visit_class_set_binary_op_pre(op)<span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Call the appropriate `Visitor` methods given an inductive step.</span>
-    <span class="kw">fn</span> <span class="ident">visit_class_post</span><span class="op">&lt;</span><span class="ident">V</span>: <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a><span class="op">&gt;</span>(
+    <span class="doccomment">/// Call the appropriate `Visitor` methods given an inductive step.
+    </span><span class="kw">fn </span>visit_class_post&lt;V: <a href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#367">ast</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<span class="ident">item</span>) =&gt; {
-                <span class="ident">visitor</span>.<span class="ident">visit_class_set_item_post</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
+        ast: <span class="kw-2">&amp;</span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt;,
+        visitor: <span class="kw-2">&amp;mut </span>V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), V::Err&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#367">ast</a> {
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(item) =&gt; {
+                visitor.visit_class_set_item_post(item)<span class="question-mark">?</span>;
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(<span class="ident">op</span>) =&gt; {
-                <span class="ident">visitor</span>.<span class="ident">visit_class_set_binary_op_post</span>(<span class="ident">op</span>)<span class="question-mark">?</span>;
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(op) =&gt; {
+                visitor.visit_class_set_binary_op_post(op)<span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Build a stack frame for the given class node if one is needed (which</span>
-    <span class="doccomment">/// occurs if and only if there are child nodes). Otherwise, return None.</span>
-    <span class="kw">fn</span> <span class="ident">induct_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#383">ast</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw-2">ref</span> <span class="ident">x</span>)) =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#385">x</a>.<span class="ident">kind</span> {
-                    <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#925">ast::ClassSet::Item</a>(<span class="kw-2">ref</span> <span class="ident">item</span>) =&gt; {
-                        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> { <span class="ident">head</span>: <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#387">item</a>, <span class="ident">tail</span>: <span class="kw-2">&amp;</span>[] })
+    <span class="doccomment">/// Build a stack frame for the given class node if one is needed (which
+    /// occurs if and only if there are child nodes). Otherwise, return None.
+    </span><span class="kw">fn </span>induct_class(<span class="kw-2">&amp;</span><span class="self">self</span>, ast: <span class="kw-2">&amp;</span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#383">ast</a> {
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw-2">ref </span>x)) =&gt; {
+                <span class="kw">match </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#385">x</a>.kind {
+                    <a href="../../../src/regex_syntax/ast/mod.rs.html#925">ast::ClassSet::Item</a>(<span class="kw-2">ref </span>item) =&gt; {
+                        <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> { head: <a href="../../../src/regex_syntax/ast/visitor.rs.html#387">item</a>, tail: <span class="kw-2">&amp;</span>[] })
                     }
-                    <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#927">ast::ClassSet::BinaryOp</a>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; {
-                        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#174">ClassFrame::Binary</a> { <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#390">op</a> })
+                    <a href="../../../src/regex_syntax/ast/mod.rs.html#927">ast::ClassSet::BinaryOp</a>(<span class="kw-2">ref </span>op) =&gt; {
+                        <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#174">ClassFrame::Binary</a> { <a href="../../../src/regex_syntax/ast/visitor.rs.html#390">op</a> })
                     }
                 }
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#977">ast::ClassSetItem::Union</a>(<span class="kw-2">ref</span> <span class="ident">x</span>)) =&gt; {
-                <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">items</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> {
-                        <span class="ident">head</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#395">x</a>.<span class="ident">items</span>[<span class="number">0</span>],
-                        <span class="ident">tail</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#395">x</a>.<span class="ident">items</span>[<span class="number">1</span>..],
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/mod.rs.html#977">ast::ClassSetItem::Union</a>(<span class="kw-2">ref </span>x)) =&gt; {
+                <span class="kw">if </span>x.items.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> {
+                        head: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#395">x</a>.items[<span class="number">0</span>],
+                        tail: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#395">x</a>.items[<span class="number">1</span>..],
                     })
                 }
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(<span class="ident">op</span>) =&gt; {
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#177">ClassFrame::BinaryLHS</a> { <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#405">op</a>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#405">op</a>.<span class="ident">lhs</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#405">op</a>.<span class="ident">rhs</span> })
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(op) =&gt; {
+                <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#177">ClassFrame::BinaryLHS</a> { <a href="../../../src/regex_syntax/ast/visitor.rs.html#405">op</a>, lhs: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#405">op</a>.lhs, rhs: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#405">op</a>.rhs })
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,</span>
-    <span class="doccomment">/// then return it, otherwise return `None`.</span>
-    <span class="kw">fn</span> <span class="ident">pop_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#414">induct</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> { <span class="ident">tail</span>, .. } =&gt; {
-                <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> {
-                        <span class="ident">head</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#416">tail</a>[<span class="number">0</span>],
-                        <span class="ident">tail</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#416">tail</a>[<span class="number">1</span>..],
+    <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,
+    /// then return it, otherwise return `None`.
+    </span><span class="kw">fn </span>pop_class(<span class="kw-2">&amp;</span><span class="self">self</span>, induct: ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="kw">match </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#414">induct</a> {
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> { tail, .. } =&gt; {
+                <span class="kw">if </span>tail.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> {
+                        head: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#416">tail</a>[<span class="number">0</span>],
+                        tail: <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#416">tail</a>[<span class="number">1</span>..],
                     })
                 }
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#174">ClassFrame::Binary</a> { .. } =&gt; <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#177">ClassFrame::BinaryLHS</a> { <span class="ident">op</span>, <span class="ident">rhs</span>, .. } =&gt; {
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#427">op</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#427">rhs</a> })
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#174">ClassFrame::Binary</a> { .. } =&gt; <span class="prelude-val">None</span>,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#177">ClassFrame::BinaryLHS</a> { op, rhs, .. } =&gt; {
+                <span class="prelude-val">Some</span>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { <a href="../../../src/regex_syntax/ast/visitor.rs.html#427">op</a>, <a href="../../../src/regex_syntax/ast/visitor.rs.html#427">rhs</a> })
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { .. } =&gt; <span class="prelude-val">None</span>,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Perform the next inductive step on this frame and return the next</span>
-    <span class="doccomment">/// child AST node to visit.</span>
-    <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#438">self</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#140">Frame::Repetition</a>(<span class="ident">rep</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#440">rep</a>.<span class="ident">ast</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#143">Frame::Group</a>(<span class="ident">group</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#441">group</a>.<span class="ident">ast</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#146">Frame::Concat</a> { <span class="ident">head</span>, .. } =&gt; <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#442">head</a>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> { <span class="ident">head</span>, .. } =&gt; <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#443">head</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Frame&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Perform the next inductive step on this frame and return the next
+    /// child AST node to visit.
+    </span><span class="kw">fn </span>child(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/visitor.rs.html#438">self</a> </span>{
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#140">Frame::Repetition</a>(rep) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#440">rep</a>.ast,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#143">Frame::Group</a>(group) =&gt; <span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#441">group</a>.ast,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#146">Frame::Concat</a> { head, .. } =&gt; <a href="../../../src/regex_syntax/ast/visitor.rs.html#442">head</a>,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#154">Frame::Alternation</a> { head, .. } =&gt; <a href="../../../src/regex_syntax/ast/visitor.rs.html#443">head</a>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Perform the next inductive step on this frame and return the next</span>
-    <span class="doccomment">/// child class node to visit.</span>
-    <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#451">self</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> { <span class="ident">head</span>, .. } =&gt; <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#453">head</a>),
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#174">ClassFrame::Binary</a> { <span class="ident">op</span>, .. } =&gt; <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#454">op</a>),
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#177">ClassFrame::BinaryLHS</a> { <span class="kw-2">ref</span> <span class="ident">lhs</span>, .. } =&gt; {
-                <span class="ident">ClassInduct::from_set</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#455">lhs</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Perform the next inductive step on this frame and return the next
+    /// child class node to visit.
+    </span><span class="kw">fn </span>child(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/visitor.rs.html#451">self</a> </span>{
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> { head, .. } =&gt; <a href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#453">head</a>),
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#174">ClassFrame::Binary</a> { op, .. } =&gt; <a href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#454">op</a>),
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#177">ClassFrame::BinaryLHS</a> { <span class="kw-2">ref </span>lhs, .. } =&gt; {
+                ClassInduct::from_set(<a href="../../../src/regex_syntax/ast/visitor.rs.html#455">lhs</a>)
             }
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { <span class="kw-2">ref</span> <span class="ident">rhs</span>, .. } =&gt; {
-                <span class="ident">ClassInduct::from_set</span>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#458">rhs</a>)
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { <span class="kw-2">ref </span>rhs, .. } =&gt; {
+                ClassInduct::from_set(<a href="../../../src/regex_syntax/ast/visitor.rs.html#458">rhs</a>)
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_bracketed</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#904">ast::ClassBracketed</a>) -&gt; <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">ClassInduct::from_set</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#466">ast</a>.<span class="ident">kind</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from_bracketed(ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#904">ast::ClassBracketed</a>) -&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+        ClassInduct::from_set(<span class="kw-2">&amp;</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#466">ast</a>.kind)
     }
 
-    <span class="kw">fn</span> <span class="ident">from_set</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#922">ast::ClassSet</a>) -&gt; <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#470">ast</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#925">ast::ClassSet::Item</a>(<span class="kw-2">ref</span> <span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#472">item</a>),
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#927">ast::ClassSet::BinaryOp</a>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#473">op</a>),
+    <span class="kw">fn </span>from_set(ast: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../src/regex_syntax/ast/mod.rs.html#922">ast::ClassSet</a>) -&gt; ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#470">ast</a> {
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#925">ast::ClassSet::Item</a>(<span class="kw-2">ref </span>item) =&gt; <a href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#472">item</a>),
+            <a href="../../../src/regex_syntax/ast/mod.rs.html#927">ast::ClassSet::BinaryOp</a>(<span class="kw-2">ref </span>op) =&gt; <a href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#473">op</a>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#479">self</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> { .. } =&gt; <span class="string">&quot;Union&quot;</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#174">ClassFrame::Binary</a> { .. } =&gt; <span class="string">&quot;Binary&quot;</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#177">ClassFrame::BinaryLHS</a> { .. } =&gt; <span class="string">&quot;BinaryLHS&quot;</span>,
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { .. } =&gt; <span class="string">&quot;BinaryRHS&quot;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ClassFrame&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span>x = <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/visitor.rs.html#479">self</a> </span>{
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#167">ClassFrame::Union</a> { .. } =&gt; <span class="string">&quot;Union&quot;</span>,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#174">ClassFrame::Binary</a> { .. } =&gt; <span class="string">&quot;Binary&quot;</span>,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#177">ClassFrame::BinaryLHS</a> { .. } =&gt; <span class="string">&quot;BinaryLHS&quot;</span>,
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#184">ClassFrame::BinaryRHS</a> { .. } =&gt; <span class="string">&quot;BinaryRHS&quot;</span>,
         };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#479">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#479">f</a>, <span class="string">&quot;{}&quot;</span>, x)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/regex_syntax/ast/visitor.rs.html#491">self</a> {
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(<span class="ident">it</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#493">it</a> {
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#961">ast::ClassSetItem::Empty</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Empty)&quot;</span>,
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#963">ast::ClassSetItem::Literal</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Literal)&quot;</span>,
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#965">ast::ClassSetItem::Range</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Range)&quot;</span>,
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#967">ast::ClassSetItem::Ascii</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Ascii)&quot;</span>,
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#971">ast::ClassSetItem::Perl</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Perl)&quot;</span>,
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#969">ast::ClassSetItem::Unicode</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Unicode)&quot;</span>,
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Bracketed)&quot;</span>,
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#977">ast::ClassSetItem::Union</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Union)&quot;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ClassInduct&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span>x = <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/regex_syntax/ast/visitor.rs.html#491">self</a> </span>{
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#197">ClassInduct::Item</a>(it) =&gt; <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/regex_syntax/ast/visitor.rs.html#493">it</a> {
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#961">ast::ClassSetItem::Empty</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Empty)&quot;</span>,
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#963">ast::ClassSetItem::Literal</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Literal)&quot;</span>,
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#965">ast::ClassSetItem::Range</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Range)&quot;</span>,
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#967">ast::ClassSetItem::Ascii</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Ascii)&quot;</span>,
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#971">ast::ClassSetItem::Perl</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Perl)&quot;</span>,
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#969">ast::ClassSetItem::Unicode</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Unicode)&quot;</span>,
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Bracketed)&quot;</span>,
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#977">ast::ClassSetItem::Union</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Union)&quot;</span>,
             },
-            <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(<span class="ident">it</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#503">it</a>.<span class="ident">kind</span> {
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1082">ast::ClassSetBinaryOpKind::Intersection</a> =&gt; {
-                    <span class="string">&quot;BinaryOp(Intersection)&quot;</span>
-                }
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1084">ast::ClassSetBinaryOpKind::Difference</a> =&gt; {
-                    <span class="string">&quot;BinaryOp(Difference)&quot;</span>
-                }
-                <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1088">ast::ClassSetBinaryOpKind::SymmetricDifference</a> =&gt; {
-                    <span class="string">&quot;BinaryOp(SymmetricDifference)&quot;</span>
-                }
+            <a href="../../../src/regex_syntax/ast/visitor.rs.html#198">ClassInduct::BinaryOp</a>(it) =&gt; <span class="kw">match </span><a href="../../../src/regex_syntax/ast/visitor.rs.html#503">it</a>.kind {
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#1082">ast::ClassSetBinaryOpKind::Intersection</a> =&gt; {
+                    <span class="string">&quot;BinaryOp(Intersection)&quot;
+                </span>}
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#1084">ast::ClassSetBinaryOpKind::Difference</a> =&gt; {
+                    <span class="string">&quot;BinaryOp(Difference)&quot;
+                </span>}
+                <a href="../../../src/regex_syntax/ast/mod.rs.html#1088">ast::ClassSetBinaryOpKind::SymmetricDifference</a> =&gt; {
+                    <span class="string">&quot;BinaryOp(SymmetricDifference)&quot;
+                </span>}
             },
         };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#491">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/regex_syntax/ast/visitor.rs.html#491">f</a>, <span class="string">&quot;{}&quot;</span>, x)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

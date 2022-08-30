@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/common/buf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/common/buf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -149,156 +149,156 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../hyper/body/trait.Buf.html">Buf</a>, <a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
+<span class="kw">use </span>bytes::{<a href="../../../hyper/body/trait.Buf.html">Buf</a>, <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../hyper/body/struct.Bytes.html">Bytes</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">BufList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">bufs</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BufList&lt;T&gt; {
+    bufs: VecDeque&lt;T&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../hyper/body/trait.Buf.html">Buf</a><span class="op">&gt;</span> <span class="ident">BufList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">BufList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/hyper/common/buf.rs.html#6">BufList</a> {
-            <span class="ident">bufs</span>: <span class="ident">VecDeque::new</span>(),
+<span class="kw">impl</span>&lt;T: <a href="../../../hyper/body/trait.Buf.html">Buf</a>&gt; BufList&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; BufList&lt;T&gt; {
+        <a href="../../../src/hyper/common/buf.rs.html#6">BufList</a> {
+            bufs: VecDeque::new(),
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="ident">T</span>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">buf</span>.<span class="ident">has_remaining</span>());
-        <a class="self" href="../../../src/hyper/common/buf.rs.html#18">self</a>.<span class="ident">bufs</span>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/hyper/common/buf.rs.html#18">buf</a>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: T) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(buf.has_remaining());
+        <a class="self" href="../../../src/hyper/common/buf.rs.html#18">self</a>.bufs.push_back(<a href="../../../src/hyper/common/buf.rs.html#18">buf</a>);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">bufs_cnt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/hyper/common/buf.rs.html#25">self</a>.<span class="ident">bufs</span>.<span class="ident">len</span>()
+    <span class="attribute">#[inline]
+    #[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bufs_cnt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/hyper/common/buf.rs.html#25">self</a>.bufs.len()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../hyper/body/trait.Buf.html">Buf</a><span class="op">&gt;</span> <a class="ident" href="../../../hyper/body/trait.Buf.html">Buf</a> <span class="kw">for</span> <span class="ident">BufList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/hyper/common/buf.rs.html#32">self</a>.<span class="ident">bufs</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/common/buf.rs.html#33">buf</a>.<a class="ident" href="../../../hyper/body/trait.Buf.html">remaining</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>()
+<span class="kw">impl</span>&lt;T: <a href="../../../hyper/body/trait.Buf.html">Buf</a>&gt; <a href="../../../hyper/body/trait.Buf.html">Buf</a> <span class="kw">for </span>BufList&lt;T&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/hyper/common/buf.rs.html#32">self</a>.bufs.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|buf| <a href="../../../src/hyper/common/buf.rs.html#33">buf</a>.<a href="../../../hyper/body/trait.Buf.html">remaining</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">sum</a>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../../src/hyper/common/buf.rs.html#37">self</a>.<span class="ident">bufs</span>.<span class="ident">front</span>().<span class="ident">map</span>(<a class="ident" href="../../../hyper/body/trait.Buf.html">Buf::chunk</a>).<span class="ident">unwrap_or_default</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <a class="self" href="../../../src/hyper/common/buf.rs.html#37">self</a>.bufs.front().map(<a href="../../../hyper/body/trait.Buf.html">Buf::chunk</a>).unwrap_or_default()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">while</span> <span class="ident">cnt</span> <span class="op">&gt;</span> <span class="number">0</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cnt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">while </span>cnt &gt; <span class="number">0 </span>{
             {
-                <span class="kw">let</span> <span class="ident">front</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">bufs</span>[<span class="number">0</span>];
-                <span class="kw">let</span> <span class="ident">rem</span> <span class="op">=</span> <span class="ident">front</span>.<span class="ident">remaining</span>();
-                <span class="kw">if</span> <span class="ident">rem</span> <span class="op">&gt;</span> <span class="ident">cnt</span> {
-                    <span class="ident">front</span>.<span class="ident">advance</span>(<span class="ident">cnt</span>);
+                <span class="kw">let </span>front = <span class="kw-2">&amp;mut </span><span class="self">self</span>.bufs[<span class="number">0</span>];
+                <span class="kw">let </span>rem = front.remaining();
+                <span class="kw">if </span>rem &gt; cnt {
+                    front.advance(cnt);
                     <span class="kw">return</span>;
-                } <span class="kw">else</span> {
-                    <span class="ident">front</span>.<span class="ident">advance</span>(<span class="ident">rem</span>);
-                    <span class="ident">cnt</span> <span class="op">-</span><span class="op">=</span> <span class="ident">rem</span>;
+                } <span class="kw">else </span>{
+                    front.advance(rem);
+                    cnt -= rem;
                 }
             }
-            <span class="self">self</span>.<span class="ident">bufs</span>.<span class="ident">pop_front</span>();
+            <span class="self">self</span>.bufs.pop_front();
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chunks_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="number">0</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>chunks_vectored&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[IoSlice&lt;<span class="lifetime">&#39;t</span>&gt;]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">if </span>dst.is_empty() {
+            <span class="kw">return </span><span class="number">0</span>;
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vecs</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">for</span> <span class="ident">buf</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bufs</span> {
-            <span class="ident">vecs</span> <span class="op">+</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">chunks_vectored</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[<span class="ident">vecs</span>..]);
-            <span class="kw">if</span> <span class="ident">vecs</span> <span class="op">==</span> <span class="ident">dst</span>.<span class="ident">len</span>() {
+        <span class="kw">let </span><span class="kw-2">mut </span>vecs = <span class="number">0</span>;
+        <span class="kw">for </span>buf <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.bufs {
+            vecs += buf.chunks_vectored(<span class="kw-2">&amp;mut </span>dst[vecs..]);
+            <span class="kw">if </span>vecs == dst.len() {
                 <span class="kw">break</span>;
             }
         }
-        <a class="ident" href="../../../src/hyper/common/buf.rs.html#64">vecs</a>
+        <a href="../../../src/hyper/common/buf.rs.html#64">vecs</a>
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">copy_to_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../hyper/body/struct.Bytes.html">Bytes</a> {
-        <span class="comment">// Our inner buffer may have an optimized version of copy_to_bytes, and if the whole</span>
-        <span class="comment">// request can be fulfilled by the front buffer, we can take advantage.</span>
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/common/buf.rs.html#75">self</a>.<span class="ident">bufs</span>.<span class="ident">front_mut</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">front</span>) <span class="kw">if</span> <a class="ident" href="../../../src/hyper/common/buf.rs.html#79">front</a>.<a class="ident" href="../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <a class="ident" href="../../../src/hyper/common/buf.rs.html#75">len</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/common/buf.rs.html#79">front</a>.<a class="ident" href="../../../hyper/body/trait.Buf.html">copy_to_bytes</a>(<a class="ident" href="../../../src/hyper/common/buf.rs.html#75">len</a>);
-                <a class="self" href="../../../src/hyper/common/buf.rs.html#75">self</a>.<span class="ident">bufs</span>.<span class="ident">pop_front</span>();
-                <a class="ident" href="../../../src/hyper/common/buf.rs.html#80">b</a>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>copy_to_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../hyper/body/struct.Bytes.html">Bytes</a> {
+        <span class="comment">// Our inner buffer may have an optimized version of copy_to_bytes, and if the whole
+        // request can be fulfilled by the front buffer, we can take advantage.
+        </span><span class="kw">match </span><a class="self" href="../../../src/hyper/common/buf.rs.html#75">self</a>.bufs.front_mut() {
+            <span class="prelude-val">Some</span>(front) <span class="kw">if </span><a href="../../../src/hyper/common/buf.rs.html#79">front</a>.<a href="../../../hyper/body/trait.Buf.html">remaining</a>() == <a href="../../../src/hyper/common/buf.rs.html#75">len</a> =&gt; {
+                <span class="kw">let </span>b = <a href="../../../src/hyper/common/buf.rs.html#79">front</a>.<a href="../../../hyper/body/trait.Buf.html">copy_to_bytes</a>(<a href="../../../src/hyper/common/buf.rs.html#75">len</a>);
+                <a class="self" href="../../../src/hyper/common/buf.rs.html#75">self</a>.bufs.pop_front();
+                <a href="../../../src/hyper/common/buf.rs.html#80">b</a>
             }
-            <span class="prelude-val">Some</span>(<span class="ident">front</span>) <span class="kw">if</span> <a class="ident" href="../../../src/hyper/common/buf.rs.html#84">front</a>.<a class="ident" href="../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">&gt;</span> <a class="ident" href="../../../src/hyper/common/buf.rs.html#75">len</a> =&gt; <a class="ident" href="../../../src/hyper/common/buf.rs.html#84">front</a>.<a class="ident" href="../../../hyper/body/trait.Buf.html">copy_to_bytes</a>(<a class="ident" href="../../../src/hyper/common/buf.rs.html#75">len</a>),
-            <span class="kw">_</span> =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">remaining</span>(), <span class="string">&quot;`len` greater than remaining&quot;</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bm</span> <span class="op">=</span> <span class="ident">BytesMut::with_capacity</span>(<a class="ident" href="../../../src/hyper/common/buf.rs.html#75">len</a>);
-                <a class="ident" href="../../../src/hyper/common/buf.rs.html#87">bm</a>.<a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a class="self" href="../../../src/hyper/common/buf.rs.html#75">self</a>.<a class="ident" href="../../../hyper/body/trait.Buf.html">take</a>(<a class="ident" href="../../../src/hyper/common/buf.rs.html#75">len</a>));
-                <a class="ident" href="../../../src/hyper/common/buf.rs.html#87">bm</a>.<span class="ident">freeze</span>()
+            <span class="prelude-val">Some</span>(front) <span class="kw">if </span><a href="../../../src/hyper/common/buf.rs.html#84">front</a>.<a href="../../../hyper/body/trait.Buf.html">remaining</a>() &gt; <a href="../../../src/hyper/common/buf.rs.html#75">len</a> =&gt; <a href="../../../src/hyper/common/buf.rs.html#84">front</a>.<a href="../../../hyper/body/trait.Buf.html">copy_to_bytes</a>(<a href="../../../src/hyper/common/buf.rs.html#75">len</a>),
+            <span class="kw">_ </span>=&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(len &lt;= <span class="self">self</span>.remaining(), <span class="string">&quot;`len` greater than remaining&quot;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>bm = BytesMut::with_capacity(<a href="../../../src/hyper/common/buf.rs.html#75">len</a>);
+                <a href="../../../src/hyper/common/buf.rs.html#87">bm</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put</a>(<a class="self" href="../../../src/hyper/common/buf.rs.html#75">self</a>.<a href="../../../hyper/body/trait.Buf.html">take</a>(<a href="../../../src/hyper/common/buf.rs.html#75">len</a>));
+                <a href="../../../src/hyper/common/buf.rs.html#87">bm</a>.freeze()
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::ptr</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::ptr;
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">fn</span> <span class="ident">hello_world_buf</span>() -&gt; <span class="ident">BufList</span><span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span> {
-        <span class="ident">BufList</span> {
-            <span class="ident">bufs</span>: <span class="macro">vec!</span>[<span class="ident">Bytes::from</span>(<span class="string">&quot;Hello&quot;</span>), <span class="ident">Bytes::from</span>(<span class="string">&quot; &quot;</span>), <span class="ident">Bytes::from</span>(<span class="string">&quot;World&quot;</span>)].<span class="ident">into</span>(),
+    <span class="kw">fn </span>hello_world_buf() -&gt; BufList&lt;Bytes&gt; {
+        BufList {
+            bufs: <span class="macro">vec!</span>[Bytes::from(<span class="string">&quot;Hello&quot;</span>), Bytes::from(<span class="string">&quot; &quot;</span>), Bytes::from(<span class="string">&quot;World&quot;</span>)].into(),
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_bytes_shorter</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bufs</span> <span class="op">=</span> <span class="ident">hello_world_buf</span>();
-        <span class="kw">let</span> <span class="ident">old_ptr</span> <span class="op">=</span> <span class="ident">bufs</span>.<span class="ident">chunk</span>().<span class="ident">as_ptr</span>();
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">bufs</span>.<span class="ident">copy_to_bytes</span>(<span class="number">4</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">start</span>, <span class="string">&quot;Hell&quot;</span>);
-        <span class="macro">assert!</span>(<span class="ident">ptr::eq</span>(<span class="ident">old_ptr</span>, <span class="ident">start</span>.<span class="ident">as_ptr</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">bufs</span>.<span class="ident">chunk</span>(), <span class="string">b&quot;o&quot;</span>);
-        <span class="macro">assert!</span>(<span class="ident">ptr::eq</span>(<span class="ident">old_ptr</span>.<span class="ident">wrapping_add</span>(<span class="number">4</span>), <span class="ident">bufs</span>.<span class="ident">chunk</span>().<span class="ident">as_ptr</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">bufs</span>.<span class="ident">remaining</span>(), <span class="number">7</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>to_bytes_shorter() {
+        <span class="kw">let </span><span class="kw-2">mut </span>bufs = hello_world_buf();
+        <span class="kw">let </span>old_ptr = bufs.chunk().as_ptr();
+        <span class="kw">let </span>start = bufs.copy_to_bytes(<span class="number">4</span>);
+        <span class="macro">assert_eq!</span>(start, <span class="string">&quot;Hell&quot;</span>);
+        <span class="macro">assert!</span>(ptr::eq(old_ptr, start.as_ptr()));
+        <span class="macro">assert_eq!</span>(bufs.chunk(), <span class="string">b&quot;o&quot;</span>);
+        <span class="macro">assert!</span>(ptr::eq(old_ptr.wrapping_add(<span class="number">4</span>), bufs.chunk().as_ptr()));
+        <span class="macro">assert_eq!</span>(bufs.remaining(), <span class="number">7</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_bytes_eq</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bufs</span> <span class="op">=</span> <span class="ident">hello_world_buf</span>();
-        <span class="kw">let</span> <span class="ident">old_ptr</span> <span class="op">=</span> <span class="ident">bufs</span>.<span class="ident">chunk</span>().<span class="ident">as_ptr</span>();
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">bufs</span>.<span class="ident">copy_to_bytes</span>(<span class="number">5</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">start</span>, <span class="string">&quot;Hello&quot;</span>);
-        <span class="macro">assert!</span>(<span class="ident">ptr::eq</span>(<span class="ident">old_ptr</span>, <span class="ident">start</span>.<span class="ident">as_ptr</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">bufs</span>.<span class="ident">chunk</span>(), <span class="string">b&quot; &quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">bufs</span>.<span class="ident">remaining</span>(), <span class="number">6</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>to_bytes_eq() {
+        <span class="kw">let </span><span class="kw-2">mut </span>bufs = hello_world_buf();
+        <span class="kw">let </span>old_ptr = bufs.chunk().as_ptr();
+        <span class="kw">let </span>start = bufs.copy_to_bytes(<span class="number">5</span>);
+        <span class="macro">assert_eq!</span>(start, <span class="string">&quot;Hello&quot;</span>);
+        <span class="macro">assert!</span>(ptr::eq(old_ptr, start.as_ptr()));
+        <span class="macro">assert_eq!</span>(bufs.chunk(), <span class="string">b&quot; &quot;</span>);
+        <span class="macro">assert_eq!</span>(bufs.remaining(), <span class="number">6</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_bytes_longer</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bufs</span> <span class="op">=</span> <span class="ident">hello_world_buf</span>();
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">bufs</span>.<span class="ident">copy_to_bytes</span>(<span class="number">7</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">start</span>, <span class="string">&quot;Hello W&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">bufs</span>.<span class="ident">remaining</span>(), <span class="number">4</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>to_bytes_longer() {
+        <span class="kw">let </span><span class="kw-2">mut </span>bufs = hello_world_buf();
+        <span class="kw">let </span>start = bufs.copy_to_bytes(<span class="number">7</span>);
+        <span class="macro">assert_eq!</span>(start, <span class="string">&quot;Hello W&quot;</span>);
+        <span class="macro">assert_eq!</span>(bufs.remaining(), <span class="number">4</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">one_long_buf_to_bytes</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BufList::new</span>();
-        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">b&quot;Hello World&quot;</span> <span class="kw">as</span> <span class="kw-2">&amp;</span>[<span class="kw">_</span>]);
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">copy_to_bytes</span>(<span class="number">5</span>), <span class="string">&quot;Hello&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">chunk</span>(), <span class="string">b&quot; World&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>one_long_buf_to_bytes() {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = BufList::new();
+        buf.push(<span class="string">b&quot;Hello World&quot; </span><span class="kw">as </span><span class="kw-2">&amp;</span>[<span class="kw">_</span>]);
+        <span class="macro">assert_eq!</span>(buf.copy_to_bytes(<span class="number">5</span>), <span class="string">&quot;Hello&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.chunk(), <span class="string">b&quot; World&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>(<span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;`len` greater than remaining&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">buf_to_bytes_too_many</span>() {
-        <span class="ident">hello_world_buf</span>().<span class="ident">copy_to_bytes</span>(<span class="number">42</span>);
+    <span class="attribute">#[test]
+    #[should_panic(expected = <span class="string">&quot;`len` greater than remaining&quot;</span>)]
+    </span><span class="kw">fn </span>buf_to_bytes_too_many() {
+        hello_world_buf().copy_to_bytes(<span class="number">42</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/lazy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lazy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/lazy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lazy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
                         <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -76,81 +76,81 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <a class="ident" href="../../once_cell/sync/struct.Lazy.html">once_cell::sync::Lazy</a>;
+</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><a href="../../once_cell/sync/struct.Lazy.html">once_cell::sync::Lazy</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::spin::Lazy</span>;
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::spin::Lazy;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">spin</span> {
-    <span class="doccomment">//! This is the `once_cell::sync::Lazy` type, but modified to use our</span>
-    <span class="doccomment">//! `spin::Once` type rather than `OnceCell`. This is used to replace</span>
-    <span class="doccomment">//! `once_cell::sync::Lazy` on `no-std` builds.</span>
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::spin::Once</span>;
-    <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">cell::Cell</span>, <span class="ident">fmt</span>, <span class="ident">ops::Deref</span>};
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="kw">mod </span>spin {
+    <span class="doccomment">//! This is the `once_cell::sync::Lazy` type, but modified to use our
+    //! `spin::Once` type rather than `OnceCell`. This is used to replace
+    //! `once_cell::sync::Lazy` on `no-std` builds.
+    </span><span class="kw">use </span><span class="kw">crate</span>::spin::Once;
+    <span class="kw">use </span>core::{cell::Cell, fmt, ops::Deref};
 
-    <span class="doccomment">/// Re-implementation of `once_cell::sync::Lazy` on top of `spin::Once`</span>
-    <span class="doccomment">/// rather than `OnceCell`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is used when the standard library is disabled.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span> <span class="op">=</span> <span class="kw">fn</span>() -&gt; <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">cell</span>: <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">init</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Re-implementation of `once_cell::sync::Lazy` on top of `spin::Once`
+    /// rather than `OnceCell`.
+    ///
+    /// This is used when the standard library is disabled.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Lazy&lt;T, F = <span class="kw">fn</span>() -&gt; T&gt; {
+        cell: Once&lt;T&gt;,
+        init: Cell&lt;<span class="prelude-ty">Option</span>&lt;F&gt;&gt;,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Debug</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Lazy&quot;</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;cell&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cell</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;init&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;..&quot;</span>)
-                .<span class="ident">finish</span>()
+    <span class="kw">impl</span>&lt;T: fmt::Debug, F&gt; fmt::Debug <span class="kw">for </span>Lazy&lt;T, F&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            f.debug_struct(<span class="string">&quot;Lazy&quot;</span>)
+                .field(<span class="string">&quot;cell&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cell)
+                .field(<span class="string">&quot;init&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;..&quot;</span>)
+                .finish()
         }
     }
 
-    <span class="comment">// We never create a `&amp;F` from a `&amp;Lazy&lt;T, F&gt;` so it is fine to not impl</span>
-    <span class="comment">// `Sync` for `F`. We do create a `&amp;mut Option&lt;F&gt;` in `force`, but this is</span>
-    <span class="comment">// properly synchronized, so it only happens once so it also does not</span>
-    <span class="comment">// contribute to this impl.</span>
-    <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Sync</span> {}
-    <span class="comment">// auto-derived `Send` impl is OK.</span>
+    <span class="comment">// We never create a `&amp;F` from a `&amp;Lazy&lt;T, F&gt;` so it is fine to not impl
+    // `Sync` for `F`. We do create a `&amp;mut Option&lt;F&gt;` in `force`, but this is
+    // properly synchronized, so it only happens once so it also does not
+    // contribute to this impl.
+    </span><span class="kw">unsafe impl</span>&lt;T, F: Send&gt; Sync <span class="kw">for </span>Lazy&lt;T, F&gt; <span class="kw">where </span>Once&lt;T&gt;: Sync {}
+    <span class="comment">// auto-derived `Send` impl is OK.
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Creates a new lazy value with the given initializing function.</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">F</span>) -&gt; <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-            <span class="ident">Lazy</span> {
-                <span class="ident">cell</span>: <span class="ident">Once::new</span>(),
-                <span class="ident">init</span>: <span class="ident">Cell::new</span>(<span class="prelude-val">Some</span>(<span class="ident">init</span>)),
+    </span><span class="kw">impl</span>&lt;T, F&gt; Lazy&lt;T, F&gt; {
+        <span class="doccomment">/// Creates a new lazy value with the given initializing function.
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(init: F) -&gt; Lazy&lt;T, F&gt; {
+            Lazy {
+                cell: Once::new(),
+                init: Cell::new(<span class="prelude-val">Some</span>(init)),
             }
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Forces the evaluation of this lazy value and returns a reference to</span>
-        <span class="doccomment">/// the result.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This is equivalent to the `Deref` impl, but is explicit.</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">force</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-            <span class="ident">this</span>.<span class="ident">cell</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">init</span>.<span class="ident">take</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>(),
-                <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Lazy instance has previously been poisoned&quot;</span>),
+    <span class="kw">impl</span>&lt;T, F: FnOnce() -&gt; T&gt; Lazy&lt;T, F&gt; {
+        <span class="doccomment">/// Forces the evaluation of this lazy value and returns a reference to
+        /// the result.
+        ///
+        /// This is equivalent to the `Deref` impl, but is explicit.
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>force(this: <span class="kw-2">&amp;</span>Lazy&lt;T, F&gt;) -&gt; <span class="kw-2">&amp;</span>T {
+            this.cell.call_once(|| <span class="kw">match </span>this.init.take() {
+                <span class="prelude-val">Some</span>(f) =&gt; f(),
+                <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Lazy instance has previously been poisoned&quot;</span>),
             })
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-            <span class="ident">Lazy::force</span>(<span class="self">self</span>)
+    <span class="kw">impl</span>&lt;T, F: FnOnce() -&gt; T&gt; Deref <span class="kw">for </span>Lazy&lt;T, F&gt; {
+        <span class="kw">type </span>Target = T;
+        <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+            Lazy::force(<span class="self">self</span>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Creates a new lazy value using `Default` as the initializing function.</span>
-        <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="ident">Lazy::new</span>(<span class="ident">T::default</span>)
+    <span class="kw">impl</span>&lt;T: Default&gt; Default <span class="kw">for </span>Lazy&lt;T&gt; {
+        <span class="doccomment">/// Creates a new lazy value using `Default` as the initializing function.
+        </span><span class="kw">fn </span>default() -&gt; Lazy&lt;T&gt; {
+            Lazy::new(T::default)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

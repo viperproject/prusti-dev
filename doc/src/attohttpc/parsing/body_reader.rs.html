@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/parsing/body_reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body_reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/attohttpc-0.16.3/src/parsing/body_reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body_reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../attohttpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../attohttpc/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -155,162 +155,162 @@
 <span id="155">155</span>
 <span id="156">156</span>
 <span id="157">157</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.Take.html">Take</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/struct.Take.html">Take</a>};
 
-<span class="kw">use</span> <span class="ident">http::header</span>::{<a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <a class="ident" href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>, <a class="ident" href="../../../attohttpc/header/constant.CONTENT_LENGTH.html">CONTENT_LENGTH</a>, <a class="ident" href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>};
+<span class="kw">use </span>http::header::{<a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>, <a href="../../../attohttpc/header/constant.CONTENT_LENGTH.html">CONTENT_LENGTH</a>, <a href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../src/attohttpc/error.rs.html#9">InvalidResponseKind</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <a class="ident" href="../../../src/attohttpc/parsing/chunked_reader.rs.html#18"><span class="kw">crate</span>::parsing::chunked_reader::ChunkedReader</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/attohttpc/streams.rs.html#26"><span class="kw">crate</span>::streams::BaseStream</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../src/attohttpc/error.rs.html#9">InvalidResponseKind</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><a href="../../../src/attohttpc/parsing/chunked_reader.rs.html#18"><span class="kw">crate</span>::parsing::chunked_reader::ChunkedReader</a>;
+<span class="kw">use </span><a href="../../../src/attohttpc/streams.rs.html#26"><span class="kw">crate</span>::streams::BaseStream</a>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BodyReader</span> {
-    <span class="ident">Chunked</span>(<span class="ident">ChunkedReader</span><span class="op">&lt;</span><a class="ident" href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a><span class="op">&gt;</span>),
-    <span class="ident">Length</span>(<span class="ident">Take</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><a class="ident" href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a><span class="op">&gt;</span><span class="op">&gt;</span>),
-    <span class="ident">Close</span>(<span class="ident">BufReader</span><span class="op">&lt;</span><a class="ident" href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>BodyReader {
+    Chunked(ChunkedReader&lt;<a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;),
+    Length(Take&lt;BufReader&lt;<a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;&gt;),
+    Close(BufReader&lt;<a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;),
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/attohttpc/parsing/body_reader.rs.html#18">self</a> {
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#20">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#21">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#22">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span><a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../src/attohttpc/parsing/body_reader.rs.html#18">self</a> </span>{
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#20">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#21">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#22">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#18">buf</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for</span> <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fill_buf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/attohttpc/parsing/body_reader.rs.html#29">self</a> {
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#31">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#32">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#33">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="kw">for </span><a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../src/attohttpc/parsing/body_reader.rs.html#29">self</a> </span>{
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#31">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#32">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#33">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>(),
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">match</span> <a class="self" href="../../../src/attohttpc/parsing/body_reader.rs.html#38">self</a> {
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#40">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#41">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(<span class="ident">r</span>) =&gt; <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#42">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">match </span><span class="self"><a href="../../../src/attohttpc/parsing/body_reader.rs.html#38">self</a> </span>{
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#40">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#41">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(r) =&gt; <a href="../../../src/attohttpc/parsing/body_reader.rs.html#42">r</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">consume</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#38">amt</a>),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">is_chunked</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#47">headers</a>
-        .<span class="ident">get_all</span>(<a class="ident" href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>)
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#51">val</a>.<span class="ident">to_str</span>().<span class="ident">ok</span>())
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> {
-            <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#52">val</a>.<span class="ident">split</span>(<span class="string">&#39;,&#39;</span>)
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#54">s</a>.<span class="ident">trim</span>())
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#55">s</a>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;chunked&quot;</span>))
+<span class="kw">fn </span>is_chunked(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="../../../src/attohttpc/parsing/body_reader.rs.html#47">headers</a>
+        .get_all(<a href="../../../attohttpc/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|val| <a href="../../../src/attohttpc/parsing/body_reader.rs.html#51">val</a>.to_str().ok())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|val| {
+            <a href="../../../src/attohttpc/parsing/body_reader.rs.html#52">val</a>.split(<span class="string">&#39;,&#39;</span>)
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="../../../src/attohttpc/parsing/body_reader.rs.html#54">s</a>.trim())
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <a href="../../../src/attohttpc/parsing/body_reader.rs.html#55">s</a>.eq_ignore_ascii_case(<span class="string">&quot;chunked&quot;</span>))
         })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_content_length</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">to_str</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">InvalidResponseKind::ContentLength</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">=</span> <span class="ident">u64::from_str_radix</span>(<span class="ident">val</span>, <span class="number">10</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">InvalidResponseKind::ContentLength</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#61">val</a>)
+<span class="kw">fn </span>parse_content_length(val: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderValue.html">HeaderValue</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
+    <span class="kw">let </span>val = val.to_str().map_err(|<span class="kw">_</span>| InvalidResponseKind::ContentLength)<span class="question-mark">?</span>;
+    <span class="kw">let </span>val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = u64::from_str_radix(val, <span class="number">10</span>).map_err(|<span class="kw">_</span>| InvalidResponseKind::ContentLength)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#61">val</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">is_content_length</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-    <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="ident">headers</span>.<span class="ident">get_all</span>(<span class="ident">CONTENT_LENGTH</span>) {
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">parse_content_length</span>(<span class="ident">val</span>)<span class="question-mark">?</span>;
-        <span class="ident">last</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">last</span> {
-            <span class="prelude-val">None</span> =&gt; <span class="ident">val</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="kw">if</span> <span class="ident">last</span> <span class="op">==</span> <span class="ident">val</span> =&gt; <span class="ident">val</span>,
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">InvalidResponseKind::ContentLength</span>.<span class="ident">into</span>());
+<span class="kw">fn </span>is_content_length(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>last = <span class="prelude-val">None</span>;
+    <span class="kw">for </span>val <span class="kw">in </span>headers.get_all(CONTENT_LENGTH) {
+        <span class="kw">let </span>val = parse_content_length(val)<span class="question-mark">?</span>;
+        last = <span class="prelude-val">Some</span>(<span class="kw">match </span>last {
+            <span class="prelude-val">None </span>=&gt; val,
+            <span class="prelude-val">Some</span>(last) <span class="kw">if </span>last == val =&gt; val,
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(InvalidResponseKind::ContentLength.into());
             }
         });
     }
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#66">last</a>)
+    <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#66">last</a>)
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, <span class="ident">reader</span>: <span class="ident">BufReader</span><span class="op">&lt;</span><a class="ident" href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">is_chunked</span>(<span class="ident">headers</span>) {
+<span class="kw">impl </span><a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a> {
+    <span class="kw">pub fn </span>new(headers: <span class="kw-2">&amp;</span><a href="../../../attohttpc/header/struct.HeaderMap.html">HeaderMap</a>, reader: BufReader&lt;<a href="../../../src/attohttpc/streams.rs.html#26">BaseStream</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/attohttpc/parsing/body_reader.rs.html#10">BodyReader</a>&gt; {
+        <span class="kw">if </span>is_chunked(headers) {
             <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating a chunked body reader&quot;</span>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(<span class="ident">ChunkedReader::new</span>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>)))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">is_content_length</span>(<span class="ident">headers</span>)<span class="question-mark">?</span> {
+            <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#11">BodyReader::Chunked</a>(ChunkedReader::new(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>)))
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(val) = is_content_length(headers)<span class="question-mark">? </span>{
             <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating a length body reader&quot;</span>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#85">val</a>)))
-        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#12">BodyReader::Length</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">take</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#85">val</a>)))
+        } <span class="kw">else </span>{
             <a class="macro" href="../../../src/attohttpc/lib.rs.html#56-58">debug!</a>(<span class="string">&quot;creating close reader&quot;</span>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(<a class="ident" href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>))
+            <span class="prelude-val">Ok</span>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#13">BodyReader::Close</a>(<a href="../../../src/attohttpc/parsing/body_reader.rs.html#81">reader</a>))
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_is_chunked_false</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-    <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="string">&quot;content-encoding&quot;</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;gzip&quot;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">is_chunked</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>));
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_is_chunked_false() {
+    <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+    headers.insert(<span class="string">&quot;content-encoding&quot;</span>, HeaderValue::from_static(<span class="string">&quot;gzip&quot;</span>));
+    <span class="macro">assert!</span>(!is_chunked(<span class="kw-2">&amp;</span>headers));
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_is_chunked_simple</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-    <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="string">&quot;transfer-encoding&quot;</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;chunked&quot;</span>));
-    <span class="macro">assert!</span>(<span class="ident">is_chunked</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>));
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_is_chunked_simple() {
+    <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+    headers.insert(<span class="string">&quot;transfer-encoding&quot;</span>, HeaderValue::from_static(<span class="string">&quot;chunked&quot;</span>));
+    <span class="macro">assert!</span>(is_chunked(<span class="kw-2">&amp;</span>headers));
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_is_chunked_multi</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-    <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="string">&quot;transfer-encoding&quot;</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;gzip, chunked&quot;</span>));
-    <span class="macro">assert!</span>(<span class="ident">is_chunked</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>));
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_is_chunked_multi() {
+    <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+    headers.insert(<span class="string">&quot;transfer-encoding&quot;</span>, HeaderValue::from_static(<span class="string">&quot;gzip, chunked&quot;</span>));
+    <span class="macro">assert!</span>(is_chunked(<span class="kw-2">&amp;</span>headers));
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_parse_content_length_ok</span>() {
-    <span class="macro">assert_eq!</span>(<span class="ident">parse_content_length</span>(<span class="kw-2">&amp;</span><span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;17&quot;</span>)).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="number">17</span>));
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_parse_content_length_ok() {
+    <span class="macro">assert_eq!</span>(parse_content_length(<span class="kw-2">&amp;</span>HeaderValue::from_static(<span class="string">&quot;17&quot;</span>)).ok(), <span class="prelude-val">Some</span>(<span class="number">17</span>));
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_parse_content_length_err</span>() {
-    <span class="macro">assert!</span>(<span class="ident">parse_content_length</span>(<span class="kw-2">&amp;</span><span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;XD&quot;</span>)).<span class="ident">is_err</span>());
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_parse_content_length_err() {
+    <span class="macro">assert!</span>(parse_content_length(<span class="kw-2">&amp;</span>HeaderValue::from_static(<span class="string">&quot;XD&quot;</span>)).is_err());
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_is_content_length_none</span>() {
-    <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-    <span class="macro">assert_eq!</span>(<span class="ident">is_content_length</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="prelude-val">None</span>));
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_is_content_length_none() {
+    <span class="kw">let </span>headers = HeaderMap::new();
+    <span class="macro">assert_eq!</span>(is_content_length(<span class="kw-2">&amp;</span>headers).ok(), <span class="prelude-val">Some</span>(<span class="prelude-val">None</span>));
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_is_content_length_one</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-    <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="string">&quot;content-length&quot;</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;88&quot;</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">is_content_length</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="number">88</span>)));
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_is_content_length_one() {
+    <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+    headers.insert(<span class="string">&quot;content-length&quot;</span>, HeaderValue::from_static(<span class="string">&quot;88&quot;</span>));
+    <span class="macro">assert_eq!</span>(is_content_length(<span class="kw-2">&amp;</span>headers).ok(), <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="number">88</span>)));
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_is_content_length_many_ok</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-    <span class="ident">headers</span>.<span class="ident">append</span>(<span class="string">&quot;content-length&quot;</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;88&quot;</span>));
-    <span class="ident">headers</span>.<span class="ident">append</span>(<span class="string">&quot;content-length&quot;</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;88&quot;</span>));
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_is_content_length_many_ok() {
+    <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+    headers.append(<span class="string">&quot;content-length&quot;</span>, HeaderValue::from_static(<span class="string">&quot;88&quot;</span>));
+    headers.append(<span class="string">&quot;content-length&quot;</span>, HeaderValue::from_static(<span class="string">&quot;88&quot;</span>));
 
-    <span class="macro">assert_eq!</span>(<span class="ident">headers</span>.<span class="ident">get_all</span>(<span class="string">&quot;content-length&quot;</span>).<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">2</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">is_content_length</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="number">88</span>)));
+    <span class="macro">assert_eq!</span>(headers.get_all(<span class="string">&quot;content-length&quot;</span>).iter().count(), <span class="number">2</span>);
+    <span class="macro">assert_eq!</span>(is_content_length(<span class="kw-2">&amp;</span>headers).ok(), <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="number">88</span>)));
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_is_content_length_many_err</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap::new</span>();
-    <span class="ident">headers</span>.<span class="ident">append</span>(<span class="string">&quot;content-length&quot;</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;88&quot;</span>));
-    <span class="ident">headers</span>.<span class="ident">append</span>(<span class="string">&quot;content-length&quot;</span>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;90&quot;</span>));
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_is_content_length_many_err() {
+    <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+    headers.append(<span class="string">&quot;content-length&quot;</span>, HeaderValue::from_static(<span class="string">&quot;88&quot;</span>));
+    headers.append(<span class="string">&quot;content-length&quot;</span>, HeaderValue::from_static(<span class="string">&quot;90&quot;</span>));
 
-    <span class="macro">assert_eq!</span>(<span class="ident">headers</span>.<span class="ident">get_all</span>(<span class="string">&quot;content-length&quot;</span>).<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">2</span>);
-    <span class="macro">assert!</span>(<span class="ident">is_content_length</span>(<span class="kw-2">&amp;</span><span class="ident">headers</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert_eq!</span>(headers.get_all(<span class="string">&quot;content-length&quot;</span>).iter().count(), <span class="number">2</span>);
+    <span class="macro">assert!</span>(is_content_length(<span class="kw-2">&amp;</span>headers).is_err());
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="attohttpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

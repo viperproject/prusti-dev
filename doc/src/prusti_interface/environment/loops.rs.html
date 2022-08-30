@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/loops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/loops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>loops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_interface/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -569,576 +569,618 @@
 <span id="569">569</span>
 <span id="570">570</span>
 <span id="571">571</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/lib.rs.html#25"><span class="kw">crate</span>::utils</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#19"><span class="kw">crate</span>::environment::mir_sets::PlaceSet</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23"><span class="kw">crate</span>::environment::procedure::BasicBlockIndex</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">prusti_rustc_interface::middle::mir::visit::Visitor</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/graph/dominators/struct.Dominators.html">prusti_rustc_interface::data_structures::graph::dominators::Dominators</a>;
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<a class="ident" href="../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a class="ident" href="../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::index::vec</span>::{<span class="ident">Idx</span>, <span class="ident">IndexVec</span>};
-<span class="kw">use</span> <span class="ident">log</span>::{<a class="ident" href="../../../log/macro.debug.html">debug</a>, <a class="ident" href="../../../log/macro.trace.html">trace</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12"><span class="kw">crate</span>::environment::mir_utils::RealEdges</a>;
+</span><span class="kw">use crate</span>::{
+    environment::{<a href="../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#19">mir_sets::PlaceSet</a>, <a href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">mir_utils::RealEdges</a>, <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">procedure::BasicBlockIndex</a>},
+    <a href="../../../src/prusti_interface/lib.rs.html#24">utils</a>,
+};
+<span class="kw">use </span>log::{<a href="../../../log/macro.debug.html">debug</a>, <a href="../../../log/macro.trace.html">trace</a>};
+<span class="kw">use </span>prusti_rustc_interface::{
+    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/graph/dominators/struct.Dominators.html">data_structures::graph::dominators::Dominators</a>,
+    index::vec::{Idx, IndexVec},
+    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">mir::visit::Visitor</a>},
+};
+<span class="kw">use </span>rustc_hash::{<a href="../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
 
-<span class="doccomment">/// Walk up the CFG graph an collect all basic blocks that belong to the loop body.</span>
-<span class="kw">fn</span> <span class="ident">collect_loop_body</span>(
-    <span class="ident">head</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>,
-    <span class="ident">back_edge_source</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>,
-    <span class="ident">real_edges</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a>,
-    <span class="ident">body</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span>,
+<span class="doccomment">/// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
+</span><span class="kw">fn </span>collect_loop_body(
+    head: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>,
+    back_edge_source: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>,
+    real_edges: <span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a>,
+    body: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;,
 ) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_queue</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">back_edge_source</span>];
-    <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#23">body</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#21">back_edge_source</a>);
-    <span class="kw">while</span> <span class="op">!</span><span class="ident">work_queue</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">work_queue</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">predecessor</span> <span class="kw">in</span> <span class="ident">real_edges</span>.<span class="ident">predecessors</span>(<span class="ident">current</span>).<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">predecessor</span>) {
+    <span class="kw">let </span><span class="kw-2">mut </span>work_queue = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[back_edge_source];
+    <a href="../../../src/prusti_interface/environment/loops.rs.html#24">body</a>.insert(<a href="../../../src/prusti_interface/environment/loops.rs.html#22">back_edge_source</a>);
+    <span class="kw">while </span>!work_queue.is_empty() {
+        <span class="kw">let </span>current = work_queue.pop().unwrap();
+        <span class="kw">for </span><span class="kw-2">&amp;</span>predecessor <span class="kw">in </span>real_edges.predecessors(current).iter() {
+            <span class="kw">if </span>body.contains(<span class="kw-2">&amp;</span>predecessor) {
                 <span class="kw">continue</span>;
             }
-            <span class="ident">body</span>.<span class="ident">insert</span>(<span class="ident">predecessor</span>);
-            <span class="kw">if</span> <span class="ident">predecessor</span> <span class="op">!</span><span class="op">=</span> <span class="ident">head</span> {
-                <span class="ident">work_queue</span>.<span class="ident">push</span>(<span class="ident">predecessor</span>);
+            body.insert(predecessor);
+            <span class="kw">if </span>predecessor != head {
+                work_queue.push(predecessor);
             }
         }
     }
-    <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Loop body (head={:?}): {:?}&quot;</span>, <span class="ident">head</span>, <span class="ident">body</span>);
+    <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Loop body (head={:?}): {:?}&quot;</span>, head, body);
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PlaceAccessKind</span> {
-    <span class="doccomment">/// The place is assigned to.</span>
-    <span class="ident">Store</span>,
-    <span class="doccomment">/// The place is read.</span>
-    <span class="ident">Read</span>,
-    <span class="doccomment">/// The place is moved (destructive read).</span>
-    <span class="ident">Move</span>,
-    <span class="doccomment">/// The place is borrowed immutably.</span>
-    <span class="ident">SharedBorrow</span>,
-    <span class="doccomment">/// The place is borrowed mutably.</span>
-    <span class="ident">MutableBorrow</span>,
+<span class="attribute">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>PlaceAccessKind {
+    <span class="doccomment">/// The place is assigned to.
+    </span>Store,
+    <span class="doccomment">/// The place is read.
+    </span>Read,
+    <span class="doccomment">/// The place is moved (destructive read).
+    </span>Move,
+    <span class="doccomment">/// The place is borrowed immutably.
+    </span>SharedBorrow,
+    <span class="doccomment">/// The place is borrowed mutably.
+    </span>MutableBorrow,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#43">PlaceAccessKind</a> {
-    <span class="doccomment">/// Does the access write to the path?</span>
-    <span class="kw">fn</span> <span class="ident">is_write_access</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#58">self</a> {
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#45">PlaceAccessKind::Store</a> <span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#49">PlaceAccessKind::Move</a> =&gt; <span class="bool-val">true</span>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#47">PlaceAccessKind::Read</a>
-            <span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#53">PlaceAccessKind::MutableBorrow</a>
-            <span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#51">PlaceAccessKind::SharedBorrow</a> =&gt; <span class="bool-val">false</span>,
+<span class="kw">impl </span><a href="../../../src/prusti_interface/environment/loops.rs.html#44">PlaceAccessKind</a> {
+    <span class="doccomment">/// Does the access write to the path?
+    </span><span class="kw">fn </span>is_write_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self"><a href="../../../src/prusti_interface/environment/loops.rs.html#59">self</a> </span>{
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#46">PlaceAccessKind::Store</a> | <a href="../../../src/prusti_interface/environment/loops.rs.html#50">PlaceAccessKind::Move</a> =&gt; <span class="bool-val">true</span>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#48">PlaceAccessKind::Read</a>
+            | <a href="../../../src/prusti_interface/environment/loops.rs.html#54">PlaceAccessKind::MutableBorrow</a>
+            | <a href="../../../src/prusti_interface/environment/loops.rs.html#52">PlaceAccessKind::SharedBorrow</a> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="doccomment">/// A place access inside a loop.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PlaceAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-    <span class="kw">pub</span> <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">kind</span>: <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#43">PlaceAccessKind</a>,
+<span class="doccomment">/// A place access inside a loop.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>PlaceAccess&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub </span>location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+    <span class="kw">pub </span>place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    <span class="kw">pub </span>kind: <a href="../../../src/prusti_interface/environment/loops.rs.html#44">PlaceAccessKind</a>,
 }
 
-<span class="doccomment">/// A visitor that collects places that are defined before the loop and</span>
-<span class="doccomment">/// accessed inside a loop.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that it is not guaranteed that `accessed_places` and</span>
-<span class="doccomment">/// `defined_places` are disjoint</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AccessCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Loop body.</span>
-    <span class="kw">pub</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// The places that are defined before the loop and accessed inside a loop.</span>
-    <span class="kw">pub</span> <span class="ident">accessed_places</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PlaceAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A visitor that collects places that are defined before the loop and
+/// accessed inside a loop.
+///
+/// Note that it is not guaranteed that `accessed_places` and
+/// `defined_places` are disjoint
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>AccessCollector&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="doccomment">/// Loop body.
+    </span><span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FxHashSet&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+    <span class="doccomment">/// The places that are defined before the loop and accessed inside a loop.
+    </span><span class="kw">pub </span>accessed_places: Vec&lt;PlaceAccess&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AccessCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">visit_place</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">mir::visit::PlaceContext</a>,
-        <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>AccessCollector&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>visit_place(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        place: <span class="kw-2">&amp;</span>mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        context: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">mir::visit::PlaceContext</a>,
+        location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) {
-        <span class="comment">// TODO: using `location`, skip the places that are used for typechecking</span>
-        <span class="comment">// because that part of the generated code contains closures.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>.<span class="ident">block</span>) <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">is_use</span>() {
+        <span class="comment">// TODO: using `location`, skip the places that are used for typechecking
+        // because that part of the generated code contains closures.
+        </span><span class="kw">if </span><span class="self">self</span>.body.contains(<span class="kw-2">&amp;</span>location.block) &amp;&amp; context.is_use() {
             <a class="macro" href="../../../log/macro.trace.html">trace!</a>(
                 <span class="string">&quot;visit_place(place={:?}, context={:?}, location={:?})&quot;</span>,
-                <span class="ident">place</span>,
-                <span class="ident">context</span>,
-                <span class="ident">location</span>
+                place,
+                context,
+                location
             );
-            <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">prusti_rustc_interface::middle::mir::visit::PlaceContext</a>::<span class="kw-2">*</span>;
-            <span class="kw">let</span> <span class="ident">access_kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#93">context</a> {
-                <span class="ident">MutatingUse</span>(<span class="ident">mir::visit::MutatingUseContext::Store</span>) =&gt; <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#45">PlaceAccessKind::Store</a>,
-                <span class="ident">MutatingUse</span>(<span class="ident">mir::visit::MutatingUseContext::Call</span>) =&gt; <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#45">PlaceAccessKind::Store</a>,
-                <span class="ident">MutatingUse</span>(<span class="ident">mir::visit::MutatingUseContext::Borrow</span>) =&gt; <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#53">PlaceAccessKind::MutableBorrow</a>,
-                <span class="ident">MutatingUse</span>(<span class="ident">mir::visit::MutatingUseContext::Drop</span>) =&gt; <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#49">PlaceAccessKind::Move</a>,
-                <span class="ident">NonMutatingUse</span>(<span class="ident">mir::visit::NonMutatingUseContext::Copy</span>) =&gt; <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#47">PlaceAccessKind::Read</a>,
-                <span class="ident">NonMutatingUse</span>(<span class="ident">mir::visit::NonMutatingUseContext::Move</span>) =&gt; <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#49">PlaceAccessKind::Move</a>,
-                <span class="ident">NonMutatingUse</span>(<span class="ident">mir::visit::NonMutatingUseContext::Inspect</span>) =&gt; <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#47">PlaceAccessKind::Read</a>,
-                <span class="ident">NonMutatingUse</span>(<span class="ident">mir::visit::NonMutatingUseContext::SharedBorrow</span>) =&gt;
-                    <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#51">PlaceAccessKind::SharedBorrow</a>,
-                <span class="ident">NonUse</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
-                <span class="ident">x</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">x</span>),
+            <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/enum.PlaceContext.html">prusti_rustc_interface::middle::mir::visit::PlaceContext</a>::<span class="kw-2">*</span>;
+            <span class="kw">let </span>access_kind = <span class="kw">match </span><a href="../../../src/prusti_interface/environment/loops.rs.html#94">context</a> {
+                MutatingUse(mir::visit::MutatingUseContext::Store) =&gt; <a href="../../../src/prusti_interface/environment/loops.rs.html#46">PlaceAccessKind::Store</a>,
+                MutatingUse(mir::visit::MutatingUseContext::Call) =&gt; <a href="../../../src/prusti_interface/environment/loops.rs.html#46">PlaceAccessKind::Store</a>,
+                MutatingUse(mir::visit::MutatingUseContext::Borrow) =&gt; {
+                    <a href="../../../src/prusti_interface/environment/loops.rs.html#54">PlaceAccessKind::MutableBorrow</a>
+                }
+                MutatingUse(mir::visit::MutatingUseContext::Drop) =&gt; <a href="../../../src/prusti_interface/environment/loops.rs.html#50">PlaceAccessKind::Move</a>,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) =&gt; <a href="../../../src/prusti_interface/environment/loops.rs.html#48">PlaceAccessKind::Read</a>,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Move) =&gt; <a href="../../../src/prusti_interface/environment/loops.rs.html#50">PlaceAccessKind::Move</a>,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) =&gt; <a href="../../../src/prusti_interface/environment/loops.rs.html#48">PlaceAccessKind::Read</a>,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::SharedBorrow) =&gt; {
+                    <a href="../../../src/prusti_interface/environment/loops.rs.html#52">PlaceAccessKind::SharedBorrow</a>
+                }
+                NonUse(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+                x =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;{:?}&quot;</span>, x),
             };
-            <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#70">PlaceAccess</a> {
-                <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#94">location</a>,
-                <span class="ident">place</span>: <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#92">place</a>,
-                <span class="ident">kind</span>: <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#106">access_kind</a>,
+            <span class="kw">let </span>access = <a href="../../../src/prusti_interface/environment/loops.rs.html#71">PlaceAccess</a> {
+                <a href="../../../src/prusti_interface/environment/loops.rs.html#95">location</a>,
+                place: <span class="kw-2">*</span><a href="../../../src/prusti_interface/environment/loops.rs.html#93">place</a>,
+                kind: <a href="../../../src/prusti_interface/environment/loops.rs.html#107">access_kind</a>,
             };
-            <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#91">self</a>.<span class="ident">accessed_places</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#119">access</a>);
+            <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#92">self</a>.accessed_places.push(<a href="../../../src/prusti_interface/environment/loops.rs.html#123">access</a>);
         }
     }
 }
 
-<span class="doccomment">/// Returns the list of basic blocks ordered in the topological order (ignoring back edges).</span>
-<span class="kw">fn</span> <span class="ident">order_basic_blocks</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-    <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">real_edges</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a>,
-    <span class="ident">back_edges</span>: <span class="kw-2">&amp;</span><span class="ident">FxHashSet</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>)<span class="op">&gt;</span>,
-    <span class="ident">loop_depth</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">basic_blocks</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#131">mir</a>.<span class="ident">basic_blocks</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sorted_blocks</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">permanent_mark</span> <span class="op">=</span>
-        <span class="ident">IndexVec</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span><span class="ident">::from_elem_n</span>(<span class="bool-val">false</span>, <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#136">basic_blocks</a>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temporary_mark</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#138">permanent_mark</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+<span class="doccomment">/// Returns the list of basic blocks ordered in the topological order (ignoring back edges).
+</span><span class="kw">fn </span>order_basic_blocks&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+    mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    real_edges: <span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a>,
+    back_edges: <span class="kw-2">&amp;</span>FxHashSet&lt;(<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>)&gt;,
+    loop_depth: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+) -&gt; Vec&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt; {
+    <span class="kw">let </span>basic_blocks = <span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#135">mir</a>.basic_blocks;
+    <span class="kw">let </span><span class="kw-2">mut </span>sorted_blocks = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>permanent_mark =
+        IndexVec::&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;::from_elem_n(<span class="bool-val">false</span>, <a href="../../../src/prusti_interface/environment/loops.rs.html#140">basic_blocks</a>.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>temporary_mark = <a href="../../../src/prusti_interface/environment/loops.rs.html#142">permanent_mark</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="kw">fn</span> <span class="ident">visit</span>(
-        <span class="ident">real_edges</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a>,
-        <span class="ident">back_edges</span>: <span class="kw-2">&amp;</span><span class="ident">FxHashSet</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>)<span class="op">&gt;</span>,
-        <span class="ident">loop_depth</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">current</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>,
-        <span class="ident">sorted_blocks</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span>,
-        <span class="ident">permanent_mark</span>: <span class="kw-2">&amp;mut</span> <span class="ident">IndexVec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
-        <span class="ident">temporary_mark</span>: <span class="kw-2">&amp;mut</span> <span class="ident">IndexVec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit(
+        real_edges: <span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a>,
+        back_edges: <span class="kw-2">&amp;</span>FxHashSet&lt;(<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>)&gt;,
+        loop_depth: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        current: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>,
+        sorted_blocks: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+        permanent_mark: <span class="kw-2">&amp;mut </span>IndexVec&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
+        temporary_mark: <span class="kw-2">&amp;mut </span>IndexVec&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
     ) {
-        <span class="kw">if</span> <span class="ident">permanent_mark</span>[<span class="ident">current</span>] {
+        <span class="kw">if </span>permanent_mark[current] {
             <span class="kw">return</span>;
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">temporary_mark</span>[<span class="ident">current</span>], <span class="string">&quot;Not a DAG!&quot;</span>);
-        <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#149">temporary_mark</a>[<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#146">current</a>] <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">let</span> <span class="ident">curr_depth</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#145">loop_depth</a>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#146">current</a>);
-        <span class="comment">// We want to order the loop body before exit edges</span>
-        <span class="kw">let</span> <span class="ident">successors_groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
-            <span class="ident">real_edges</span>.<span class="ident">successors</span>(<span class="ident">current</span>).<span class="ident">iter</span>().<span class="ident">filter</span>(
-                <span class="op">|</span><span class="op">&amp;&amp;</span><span class="ident">bb</span><span class="op">|</span> <span class="ident">loop_depth</span>(<span class="ident">bb</span>) <span class="op">&lt;</span> <span class="ident">curr_depth</span>
-            ).<span class="ident">cloned</span>().<span class="ident">collect</span>(),
-            <span class="ident">real_edges</span>.<span class="ident">successors</span>(<span class="ident">current</span>).<span class="ident">iter</span>().<span class="ident">filter</span>(
-                <span class="op">|</span><span class="op">&amp;&amp;</span><span class="ident">bb</span><span class="op">|</span> <span class="ident">loop_depth</span>(<span class="ident">bb</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">curr_depth</span>
-            ).<span class="ident">cloned</span>().<span class="ident">collect</span>(),
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!temporary_mark[current], <span class="string">&quot;Not a DAG!&quot;</span>);
+        <a href="../../../src/prusti_interface/environment/loops.rs.html#153">temporary_mark</a>[<a href="../../../src/prusti_interface/environment/loops.rs.html#150">current</a>] = <span class="bool-val">true</span>;
+        <span class="kw">let </span>curr_depth = <a href="../../../src/prusti_interface/environment/loops.rs.html#149">loop_depth</a>(<a href="../../../src/prusti_interface/environment/loops.rs.html#150">current</a>);
+        <span class="comment">// We want to order the loop body before exit edges
+        </span><span class="kw">let </span>successors_groups: Vec&lt;Vec&lt;<span class="kw">_</span>&gt;&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+            real_edges
+                .successors(current)
+                .iter()
+                .filter(|&amp;&amp;bb| loop_depth(bb) &lt; curr_depth)
+                .cloned()
+                .collect(),
+            real_edges
+                .successors(current)
+                .iter()
+                .filter(|&amp;&amp;bb| loop_depth(bb) &gt;= curr_depth)
+                .cloned()
+                .collect(),
         ];
-        <span class="kw">for</span> <span class="ident">group</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">successors_groups</span> {
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">successor</span> <span class="kw">in</span> <span class="ident">group</span>.<span class="ident">iter</span>() {
-                <span class="kw">if</span> <span class="ident">back_edges</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="ident">current</span>, <span class="ident">successor</span>)) {
+        <span class="kw">for </span>group <span class="kw">in </span><span class="kw-2">&amp;</span>successors_groups {
+            <span class="kw">for </span><span class="kw-2">&amp;</span>successor <span class="kw">in </span>group.iter() {
+                <span class="kw">if </span>back_edges.contains(<span class="kw-2">&amp;</span>(current, successor)) {
                     <span class="kw">continue</span>;
                 }
-                <span class="ident">visit</span>(
-                    <span class="ident">real_edges</span>,
-                    <span class="ident">back_edges</span>,
-                    <span class="ident">loop_depth</span>,
-                    <span class="ident">successor</span>,
-                    <span class="ident">sorted_blocks</span>,
-                    <span class="ident">permanent_mark</span>,
-                    <span class="ident">temporary_mark</span>,
+                visit(
+                    real_edges,
+                    back_edges,
+                    loop_depth,
+                    successor,
+                    sorted_blocks,
+                    permanent_mark,
+                    temporary_mark,
                 );
             }
         }
-        <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#148">permanent_mark</a>[<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#146">current</a>] <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#147">sorted_blocks</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#146">current</a>);
+        <a href="../../../src/prusti_interface/environment/loops.rs.html#152">permanent_mark</a>[<a href="../../../src/prusti_interface/environment/loops.rs.html#150">current</a>] = <span class="bool-val">true</span>;
+        <a href="../../../src/prusti_interface/environment/loops.rs.html#151">sorted_blocks</a>.push(<a href="../../../src/prusti_interface/environment/loops.rs.html#150">current</a>);
     }
 
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">permanent_mark</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">x</span>) {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">BasicBlockIndex::new</span>(<span class="ident">index</span>);
-        <span class="ident">visit</span>(
-            <span class="ident">real_edges</span>,
-            <span class="ident">back_edges</span>,
-            <span class="ident">loop_depth</span>,
-            <span class="ident">index</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">sorted_blocks</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">permanent_mark</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">temporary_mark</span>,
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(index) = permanent_mark.iter().position(|x| !<span class="kw-2">*</span>x) {
+        <span class="kw">let </span>index = BasicBlockIndex::new(index);
+        visit(
+            real_edges,
+            back_edges,
+            loop_depth,
+            index,
+            <span class="kw-2">&amp;mut </span>sorted_blocks,
+            <span class="kw-2">&amp;mut </span>permanent_mark,
+            <span class="kw-2">&amp;mut </span>temporary_mark,
         );
     }
-    <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#137">sorted_blocks</a>.<span class="ident">reverse</span>();
-    <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#137">sorted_blocks</a>
+    <a href="../../../src/prusti_interface/environment/loops.rs.html#141">sorted_blocks</a>.reverse();
+    <a href="../../../src/prusti_interface/environment/loops.rs.html#141">sorted_blocks</a>
 }
 
-<span class="doccomment">/// Struct that contains information about all loops in the procedure.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProcedureLoops</span> {
-    <span class="doccomment">/// A list of basic blocks that are loop heads.</span>
-    <span class="kw">pub</span> <span class="ident">loop_heads</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// The depth of each loop head, starting from one for a simple single loop.</span>
-    <span class="kw">pub</span> <span class="ident">loop_head_depths</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// A map from loop heads to the corresponding bodies.</span>
-    <span class="kw">pub</span> <span class="ident">loop_bodies</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">ordered_loop_bodies</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// A map from loop bodies to the ordered vector of enclosing loop heads (from outer to inner).</span>
-    <span class="ident">enclosing_loop_heads</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// A map from loop heads to the ordered blocks from which a CFG edge exits from the loop.</span>
-    <span class="ident">loop_exit_blocks</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// A map from loop heads to the nonconditional blocks (i.e. those that are always executed</span>
-    <span class="doccomment">/// in any loop iteration).</span>
-    <span class="ident">nonconditional_loop_blocks</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Back edges.</span>
-    <span class="kw">pub</span> <span class="ident">back_edges</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>)<span class="op">&gt;</span>,
-    <span class="doccomment">/// Dominators graph.</span>
-    <span class="ident">dominators</span>: <span class="ident">Dominators</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span>,
-    <span class="doccomment">/// The list of basic blocks ordered in the topological order (ignoring back edges).</span>
-    <span class="kw">pub</span> <span class="ident">ordered_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span>,
-
+<span class="doccomment">/// Struct that contains information about all loops in the procedure.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>ProcedureLoops {
+    <span class="doccomment">/// A list of basic blocks that are loop heads.
+    </span><span class="kw">pub </span>loop_heads: FxHashSet&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+    <span class="doccomment">/// The depth of each loop head, starting from one for a simple single loop.
+    </span><span class="kw">pub </span>loop_head_depths: FxHashMap&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <span class="doccomment">/// A map from loop heads to the corresponding bodies.
+    </span><span class="kw">pub </span>loop_bodies: FxHashMap&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, FxHashSet&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    <span class="kw">pub </span>ordered_loop_bodies: FxHashMap&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, Vec&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    <span class="doccomment">/// A map from loop bodies to the ordered vector of enclosing loop heads (from outer to inner).
+    </span>enclosing_loop_heads: FxHashMap&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, Vec&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    <span class="doccomment">/// A map from loop heads to the ordered blocks from which a CFG edge exits from the loop.
+    </span>loop_exit_blocks: FxHashMap&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, Vec&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    <span class="doccomment">/// A map from loop heads to the nonconditional blocks (i.e. those that are always executed
+    /// in any loop iteration).
+    </span>nonconditional_loop_blocks: FxHashMap&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, FxHashSet&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt;,
+    <span class="doccomment">/// Back edges.
+    </span><span class="kw">pub </span>back_edges: FxHashSet&lt;(<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>)&gt;,
+    <span class="doccomment">/// Dominators graph.
+    </span>dominators: Dominators&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;,
+    <span class="doccomment">/// The list of basic blocks ordered in the topological order (ignoring back edges).
+    </span><span class="kw">pub </span>ordered_blocks: Vec&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#204">ProcedureLoops</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">real_edges</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a>) -&gt; <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#204">ProcedureLoops</a> {
-        <span class="kw">let</span> <span class="ident">dominators</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#229">mir</a>.<span class="ident">basic_blocks</span>.<span class="ident">dominators</span>();
+<span class="kw">impl </span><a href="../../../src/prusti_interface/environment/loops.rs.html#214">ProcedureLoops</a> {
+    <span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, real_edges: <span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/mir_utils/real_edges.rs.html#12">RealEdges</a>) -&gt; <a href="../../../src/prusti_interface/environment/loops.rs.html#214">ProcedureLoops</a> {
+        <span class="kw">let </span>dominators = <a href="../../../src/prusti_interface/environment/loops.rs.html#238">mir</a>.basic_blocks.dominators();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">back_edges</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span>(<span class="kw">_</span>, <span class="kw">_</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-        <span class="kw">for</span> <span class="ident">bb</span> <span class="kw">in</span> <span class="ident">mir</span>.<span class="ident">basic_blocks</span>().<span class="ident">indices</span>() {
-            <span class="kw">for</span> <span class="ident">successor</span> <span class="kw">in</span> <span class="ident">real_edges</span>.<span class="ident">successors</span>(<span class="ident">bb</span>) {
-                <span class="kw">if</span> <span class="ident">dominators</span>.<span class="ident">is_dominated_by</span>(<span class="ident">bb</span>, <span class="kw-2">*</span><span class="ident">successor</span>) {
-                    <span class="ident">back_edges</span>.<span class="ident">insert</span>((<span class="ident">bb</span>, <span class="kw-2">*</span><span class="ident">successor</span>));
-                    <span class="macro">debug!</span>(<span class="string">&quot;Loop head: {:?}&quot;</span>, <span class="ident">successor</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>back_edges: FxHashSet&lt;(<span class="kw">_</span>, <span class="kw">_</span>)&gt; = FxHashSet::default();
+        <span class="kw">for </span>bb <span class="kw">in </span>mir.basic_blocks.indices() {
+            <span class="kw">for </span>successor <span class="kw">in </span>real_edges.successors(bb) {
+                <span class="kw">if </span>dominators.is_dominated_by(bb, <span class="kw-2">*</span>successor) {
+                    back_edges.insert((bb, <span class="kw-2">*</span>successor));
+                    <span class="macro">debug!</span>(<span class="string">&quot;Loop head: {:?}&quot;</span>, successor);
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loop_bodies</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">source</span>, <span class="ident">target</span>) <span class="kw">in</span> <span class="ident">back_edges</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">loop_bodies</span>.<span class="ident">entry</span>(<span class="ident">target</span>).<span class="ident">or_insert_with</span>(<span class="ident">FxHashSet::default</span>);
-            <span class="ident">collect_loop_body</span>(<span class="ident">target</span>, <span class="ident">source</span>, <span class="ident">real_edges</span>, <span class="ident">body</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>loop_bodies = FxHashMap::default();
+        <span class="kw">for </span><span class="kw-2">&amp;</span>(source, target) <span class="kw">in </span>back_edges.iter() {
+            <span class="kw">let </span>body = loop_bodies.entry(target).or_insert_with(FxHashSet::default);
+            collect_loop_body(target, source, real_edges, body);
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enclosing_loop_heads_set</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">FxHashMap::default</span>();
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">loop_head</span>, <span class="ident">loop_body</span>) <span class="kw">in</span> <span class="ident">loop_bodies</span>.<span class="ident">iter</span>() {
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">block</span> <span class="kw">in</span> <span class="ident">loop_body</span>.<span class="ident">iter</span>() {
-                <span class="kw">let</span> <span class="ident">heads_set</span> <span class="op">=</span> <span class="ident">enclosing_loop_heads_set</span>
-                    .<span class="ident">entry</span>(<span class="ident">block</span>)
-                    .<span class="ident">or_insert_with</span>(<span class="ident">FxHashSet::default</span>);
-                <span class="ident">heads_set</span>.<span class="ident">insert</span>(<span class="ident">loop_head</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>enclosing_loop_heads_set: FxHashMap&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, FxHashSet&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt;&gt; =
+            FxHashMap::default();
+        <span class="kw">for </span>(<span class="kw-2">&amp;</span>loop_head, loop_body) <span class="kw">in </span>loop_bodies.iter() {
+            <span class="kw">for </span><span class="kw-2">&amp;</span>block <span class="kw">in </span>loop_body.iter() {
+                <span class="kw">let </span>heads_set = enclosing_loop_heads_set
+                    .entry(block)
+                    .or_insert_with(FxHashSet::default);
+                heads_set.insert(loop_head);
             }
         }
 
-        <span class="kw">let</span> <span class="ident">loop_heads</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#242">loop_bodies</a>.<span class="ident">keys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loop_head_depths</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">loop_head</span> <span class="kw">in</span> <span class="ident">loop_heads</span>.<span class="ident">iter</span>() {
-            <span class="ident">loop_head_depths</span>.<span class="ident">insert</span>(<span class="ident">loop_head</span>, <span class="ident">enclosing_loop_heads_set</span>[<span class="kw-2">&amp;</span><span class="ident">loop_head</span>].<span class="ident">len</span>());
+        <span class="kw">let </span>loop_heads: FxHashSet&lt;<span class="kw">_</span>&gt; = <a href="../../../src/prusti_interface/environment/loops.rs.html#251">loop_bodies</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>loop_head_depths = FxHashMap::default();
+        <span class="kw">for </span><span class="kw-2">&amp;</span>loop_head <span class="kw">in </span>loop_heads.iter() {
+            loop_head_depths.insert(loop_head, enclosing_loop_heads_set[<span class="kw-2">&amp;</span>loop_head].len());
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enclosing_loop_heads</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">block</span>, <span class="ident">loop_heads</span>) <span class="kw">in</span> <span class="ident">enclosing_loop_heads_set</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heads</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicBlockIndex</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">loop_heads</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
-            <span class="ident">heads</span>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">bbi</span><span class="op">|</span> <span class="ident">loop_head_depths</span>[<span class="ident">bbi</span>]);
-            <span class="ident">enclosing_loop_heads</span>.<span class="ident">insert</span>(<span class="ident">block</span>, <span class="ident">heads</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>enclosing_loop_heads = FxHashMap::default();
+        <span class="kw">for </span>(<span class="kw-2">&amp;</span>block, loop_heads) <span class="kw">in </span>enclosing_loop_heads_set.iter() {
+            <span class="kw">let </span><span class="kw-2">mut </span>heads: Vec&lt;BasicBlockIndex&gt; = loop_heads.iter().cloned().collect();
+            heads.sort_by_key(|bbi| loop_head_depths[bbi]);
+            enclosing_loop_heads.insert(block, heads);
         }
 
-        <span class="kw">let</span> <span class="ident">get_loop_depth</span> <span class="op">=</span> <span class="op">|</span><span class="ident">bb</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">|</span> {
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#265">enclosing_loop_heads</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#272">bb</a>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">heads</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#274">heads</a>.<span class="ident">last</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb_head</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#260">loop_head_depths</a>[<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#275">bb_head</a>])
-                .<span class="ident">unwrap_or</span>(<span class="number">0</span>)
+        <span class="kw">let </span>get_loop_depth = |bb: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>| {
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#274">enclosing_loop_heads</a>
+                .get(<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#281">bb</a>)
+                .and_then(|heads| <a href="../../../src/prusti_interface/environment/loops.rs.html#284">heads</a>.last())
+                .map(|bb_head| <a href="../../../src/prusti_interface/environment/loops.rs.html#269">loop_head_depths</a>[<a href="../../../src/prusti_interface/environment/loops.rs.html#285">bb_head</a>])
+                .unwrap_or(<span class="number">0</span>)
         };
 
-        <span class="kw">let</span> <span class="ident">ordered_blocks</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#130-135">order_basic_blocks</a>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#229">mir</a>, <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#229">real_edges</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#232">back_edges</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#272">get_loop_depth</a>);
-        <span class="kw">let</span> <span class="ident">block_order</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#279">ordered_blocks</a>
-            .<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">v</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#281">v</a>, <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#281">i</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;ordered_blocks: {:?}&quot;</span>, <span class="ident">ordered_blocks</span>);
+        <span class="kw">let </span>ordered_blocks = <a href="../../../src/prusti_interface/environment/loops.rs.html#134-139">order_basic_blocks</a>(<a href="../../../src/prusti_interface/environment/loops.rs.html#238">mir</a>, <a href="../../../src/prusti_interface/environment/loops.rs.html#238">real_edges</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#241">back_edges</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#281">get_loop_depth</a>);
+        <span class="kw">let </span>block_order: FxHashMap&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; = <a href="../../../src/prusti_interface/environment/loops.rs.html#289">ordered_blocks</a>
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, v)| (<a href="../../../src/prusti_interface/environment/loops.rs.html#294">v</a>, <a href="../../../src/prusti_interface/environment/loops.rs.html#294">i</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;ordered_blocks: {:?}&quot;</span>, ordered_blocks);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ordered_loop_bodies</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">loop_head</span>, <span class="ident">loop_body</span>) <span class="kw">in</span> <span class="ident">loop_bodies</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ordered_body</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">loop_body</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
-            <span class="ident">ordered_body</span>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> <span class="ident">block_order</span>[<span class="ident">bb</span>]);
-            <span class="macro">debug_assert_eq!</span>(<span class="ident">loop_head</span>, <span class="ident">ordered_body</span>[<span class="number">0</span>]);
-            <span class="ident">ordered_loop_bodies</span>.<span class="ident">insert</span>(<span class="ident">loop_head</span>, <span class="ident">ordered_body</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>ordered_loop_bodies = FxHashMap::default();
+        <span class="kw">for </span>(<span class="kw-2">&amp;</span>loop_head, loop_body) <span class="kw">in </span>loop_bodies.iter() {
+            <span class="kw">let </span><span class="kw-2">mut </span>ordered_body: Vec&lt;<span class="kw">_</span>&gt; = loop_body.iter().cloned().collect();
+            ordered_body.sort_by_key(|bb| block_order[bb]);
+            <span class="macro">debug_assert_eq!</span>(loop_head, ordered_body[<span class="number">0</span>]);
+            ordered_loop_bodies.insert(loop_head, ordered_body);
         }
 
-        <span class="comment">// In Rust, the evaluation of a loop guard may happen over several blocks.</span>
-        <span class="comment">// Here, we identify the CFG blocks that decide whether to exit from the loop or not.</span>
-        <span class="comment">// They are those blocks in the loop that:</span>
-        <span class="comment">// 1. have a SwitchInt terminator (TODO: can we remove this condition?)</span>
-        <span class="comment">// 2. have an out-edge that exits from the loop</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loop_exit_blocks</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">loop_head</span> <span class="kw">in</span> <span class="ident">loop_heads</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="ident">loop_head_depth</span> <span class="op">=</span> <span class="ident">loop_head_depths</span>[<span class="kw-2">&amp;</span><span class="ident">loop_head</span>];
-            <span class="kw">let</span> <span class="ident">loop_body</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">loop_bodies</span>[<span class="kw-2">&amp;</span><span class="ident">loop_head</span>];
-            <span class="kw">let</span> <span class="ident">ordered_loop_body</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ordered_loop_bodies</span>[<span class="kw-2">&amp;</span><span class="ident">loop_head</span>];
+        <span class="comment">// In Rust, the evaluation of a loop guard may happen over several blocks.
+        // Here, we identify the CFG blocks that decide whether to exit from the loop or not.
+        // They are those blocks in the loop that:
+        // 1. have a SwitchInt terminator (TODO: can we remove this condition?)
+        // 2. have an out-edge that exits from the loop
+        </span><span class="kw">let </span><span class="kw-2">mut </span>loop_exit_blocks = FxHashMap::default();
+        <span class="kw">for </span><span class="kw-2">&amp;</span>loop_head <span class="kw">in </span>loop_heads.iter() {
+            <span class="kw">let </span>loop_head_depth = loop_head_depths[<span class="kw-2">&amp;</span>loop_head];
+            <span class="kw">let </span>loop_body = <span class="kw-2">&amp;</span>loop_bodies[<span class="kw-2">&amp;</span>loop_head];
+            <span class="kw">let </span>ordered_loop_body = <span class="kw-2">&amp;</span>ordered_loop_bodies[<span class="kw-2">&amp;</span>loop_head];
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exit_blocks</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">border</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-            <span class="ident">border</span>.<span class="ident">insert</span>(<span class="ident">loop_head</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>exit_blocks = <span class="macro">vec!</span>[];
+            <span class="kw">let </span><span class="kw-2">mut </span>border = FxHashSet::default();
+            border.insert(loop_head);
 
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">curr_bb</span> <span class="kw">in</span> <span class="ident">ordered_loop_body</span> {
-                <span class="macro">debug_assert!</span>(<span class="ident">border</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">curr_bb</span>));
+            <span class="kw">for </span><span class="kw-2">&amp;</span>curr_bb <span class="kw">in </span>ordered_loop_body {
+                <span class="macro">debug_assert!</span>(border.contains(<span class="kw-2">&amp;</span>curr_bb));
 
-                <span class="comment">// Decide if this block has an exit edge</span>
-                <span class="kw">let</span> <span class="ident">term</span> <span class="op">=</span> <span class="ident">mir</span>[<span class="ident">curr_bb</span>].<span class="ident">terminator</span>();
-                <span class="kw">let</span> <span class="ident">is_switch_int</span> <span class="op">=</span> <span class="macro">matches!</span>(<span class="ident">term</span>.<span class="ident">kind</span>, <span class="ident">mir::TerminatorKind::SwitchInt</span> { .. });
-                <span class="kw">let</span> <span class="ident">has_exit_edge</span> <span class="op">=</span> <span class="ident">real_edges</span>.<span class="ident">successors</span>(<span class="ident">curr_bb</span>).<span class="ident">iter</span>().<span class="ident">any</span>(
-                    <span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">bb</span><span class="op">|</span> <span class="ident">get_loop_depth</span>(<span class="ident">bb</span>) <span class="op">&lt;</span> <span class="ident">loop_head_depth</span>
-                );
-                <span class="kw">if</span> <span class="ident">is_switch_int</span> <span class="op">&amp;&amp;</span> <span class="ident">has_exit_edge</span> {
-                    <span class="ident">exit_blocks</span>.<span class="ident">push</span>(<span class="ident">curr_bb</span>);
+                <span class="comment">// Decide if this block has an exit edge
+                </span><span class="kw">let </span>term = mir[curr_bb].terminator();
+                <span class="kw">let </span>is_switch_int = <span class="macro">matches!</span>(term.kind, mir::TerminatorKind::SwitchInt { .. });
+                <span class="kw">let </span>has_exit_edge = real_edges
+                    .successors(curr_bb)
+                    .iter()
+                    .any(|<span class="kw-2">&amp;</span>bb| get_loop_depth(bb) &lt; loop_head_depth);
+                <span class="kw">if </span>is_switch_int &amp;&amp; has_exit_edge {
+                    exit_blocks.push(curr_bb);
                 }
 
-                <span class="ident">border</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">curr_bb</span>);
+                border.remove(<span class="kw-2">&amp;</span>curr_bb);
 
-                <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">succ_bb</span> <span class="kw">in</span> <span class="ident">real_edges</span>.<span class="ident">successors</span>(<span class="ident">curr_bb</span>) {
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">back_edges</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="ident">curr_bb</span>, <span class="ident">succ_bb</span>)) {
-                        <span class="comment">// Consider only forward in-loop edges</span>
-                        <span class="kw">if</span> <span class="ident">loop_body</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">succ_bb</span>) {
-                            <span class="ident">border</span>.<span class="ident">insert</span>(<span class="ident">succ_bb</span>);
+                <span class="kw">for </span><span class="kw-2">&amp;</span>succ_bb <span class="kw">in </span>real_edges.successors(curr_bb) {
+                    <span class="kw">if </span>!back_edges.contains(<span class="kw-2">&amp;</span>(curr_bb, succ_bb)) {
+                        <span class="comment">// Consider only forward in-loop edges
+                        </span><span class="kw">if </span>loop_body.contains(<span class="kw-2">&amp;</span>succ_bb) {
+                            border.insert(succ_bb);
                         }
                     }
                 }
             }
 
-            <span class="ident">loop_exit_blocks</span>.<span class="ident">insert</span>(<span class="ident">loop_head</span>, <span class="ident">exit_blocks</span>);
+            loop_exit_blocks.insert(loop_head, exit_blocks);
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;loop_exit_blocks: {:?}&quot;</span>, <span class="ident">loop_exit_blocks</span>);
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;loop_exit_blocks: {:?}&quot;</span>, loop_exit_blocks);
 
-        <span class="comment">// The nonconditional blocks of a loop are those blocks of the loop body that dominate all</span>
-        <span class="comment">// the blocks from which a back-edge starts.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nonconditional_loop_blocks</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">loop_head</span>, <span class="ident">loop_body</span>) <span class="kw">in</span> <span class="ident">loop_bodies</span>.<span class="ident">iter</span>() {
-            <span class="ident">nonconditional_loop_blocks</span>.<span class="ident">insert</span>(<span class="ident">loop_head</span>, <span class="ident">loop_body</span>.<span class="ident">clone</span>());
+        <span class="comment">// The nonconditional blocks of a loop are those blocks of the loop body that dominate all
+        // the blocks from which a back-edge starts.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>nonconditional_loop_blocks = FxHashMap::default();
+        <span class="kw">for </span>(<span class="kw-2">&amp;</span>loop_head, loop_body) <span class="kw">in </span>loop_bodies.iter() {
+            nonconditional_loop_blocks.insert(loop_head, loop_body.clone());
         }
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">back_edge_source</span>, <span class="ident">loop_head</span>) <span class="kw">in</span> <span class="ident">back_edges</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="ident">blocks</span> <span class="op">=</span> <span class="ident">nonconditional_loop_blocks</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">loop_head</span>).<span class="ident">unwrap</span>();
-            <span class="kw-2">*</span><span class="ident">blocks</span> <span class="op">=</span> <span class="ident">blocks</span>.<span class="ident">intersection</span>(
-                <span class="kw-2">&amp;</span><span class="ident">dominators</span>.<span class="ident">dominators</span>(<span class="ident">back_edge_source</span>).<span class="ident">collect</span>()
-            ).<span class="ident">copied</span>().<span class="ident">collect</span>();
+        <span class="kw">for </span><span class="kw-2">&amp;</span>(back_edge_source, loop_head) <span class="kw">in </span>back_edges.iter() {
+            <span class="kw">let </span>blocks = nonconditional_loop_blocks.get_mut(<span class="kw-2">&amp;</span>loop_head).unwrap();
+            <span class="kw-2">*</span>blocks = blocks
+                .intersection(<span class="kw-2">&amp;</span>dominators.dominators(back_edge_source).collect())
+                .copied()
+                .collect();
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;nonconditional_loop_blocks: {:?}&quot;</span>, <span class="ident">nonconditional_loop_blocks</span>);
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(
+            <span class="string">&quot;nonconditional_loop_blocks: {:?}&quot;</span>,
+            nonconditional_loop_blocks
+        );
 
-        <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#204">ProcedureLoops</a> {
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#259">loop_heads</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#260">loop_head_depths</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#242">loop_bodies</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#284">ordered_loop_bodies</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#265">enclosing_loop_heads</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#297">loop_exit_blocks</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#338">nonconditional_loop_blocks</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#232">back_edges</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#230">dominators</a>,
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#279">ordered_blocks</a>
+        <a href="../../../src/prusti_interface/environment/loops.rs.html#214">ProcedureLoops</a> {
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#268">loop_heads</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#269">loop_head_depths</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#251">loop_bodies</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#298">ordered_loop_bodies</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#274">enclosing_loop_heads</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#311">loop_exit_blocks</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#353">nonconditional_loop_blocks</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#241">back_edges</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#239">dominators</a>,
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#289">ordered_blocks</a>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_loop_heads</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#364">self</a>.<span class="ident">loop_heads</span>.<span class="ident">len</span>()
+    <span class="kw">pub fn </span>count_loop_heads(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#383">self</a>.loop_heads.len()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_loop_nesting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#368">self</a>.<span class="ident">loop_head_depths</span>.<span class="ident">values</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>().<span class="ident">cloned</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>)
+    <span class="kw">pub fn </span>max_loop_nesting(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#387">self</a>.loop_head_depths.values().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>().cloned().unwrap_or(<span class="number">0</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_loop_head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bbi</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#372">self</a>.<span class="ident">loop_heads</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#372">bbi</a>)
+    <span class="kw">pub fn </span>is_loop_head(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#391">self</a>.loop_heads.contains(<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#391">bbi</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_loop_exit_blocks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bbi</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>] {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">is_loop_head</span>(<span class="ident">bbi</span>));
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#376">self</a>.<span class="ident">loop_exit_blocks</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#376">bbi</a>]
+    <span class="kw">pub fn </span>get_loop_exit_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>] {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_loop_head(bbi));
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#395">self</a>.loop_exit_blocks[<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#395">bbi</a>]
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_conditional_branch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">loop_head</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">bbi</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">is_loop_head</span>(<span class="ident">loop_head</span>));
-        <span class="op">!</span><a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#381">self</a>.<span class="ident">nonconditional_loop_blocks</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#381">loop_head</a>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#381">bbi</a>)
+    <span class="kw">pub fn </span>is_conditional_branch(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, bbi: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_loop_head(loop_head));
+        !<a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#400">self</a>.nonconditional_loop_blocks[<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#400">loop_head</a>].contains(<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#400">bbi</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_enclosing_loop_heads</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bbi</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>] {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">heads</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#386">self</a>.<span class="ident">enclosing_loop_heads</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#386">bbi</a>) {
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#387">heads</a>
-        } <span class="kw">else</span> {
+    <span class="kw">pub fn </span>get_enclosing_loop_heads(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>] {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(heads) = <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#405">self</a>.enclosing_loop_heads.get(<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#405">bbi</a>) {
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#406">heads</a>
+        } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>[]
         }
     }
 
-    <span class="doccomment">/// Get the loop head, if any</span>
-    <span class="doccomment">/// Note: a loop head **is** loop head of itself</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_loop_head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bbi</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#396">self</a>.<span class="ident">enclosing_loop_heads</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#396">bbi</a>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">heads</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#399">heads</a>.<span class="ident">last</span>())
-            .<span class="ident">cloned</span>()
+    <span class="doccomment">/// Get the loop head, if any
+    /// Note: a loop head **is** loop head of itself
+    </span><span class="kw">pub fn </span>get_loop_head(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>&gt; {
+        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#415">self</a>.enclosing_loop_heads
+            .get(<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#415">bbi</a>)
+            .and_then(|heads| <a href="../../../src/prusti_interface/environment/loops.rs.html#418">heads</a>.last())
+            .cloned()
     }
 
-    <span class="doccomment">/// Get the depth of a loop head, starting from one for a simple loop</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_loop_head_depth</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bbi</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">is_loop_head</span>(<span class="ident">bbi</span>));
-        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#404">self</a>.<span class="ident">loop_head_depths</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#404">bbi</a>]
+    <span class="doccomment">/// Get the depth of a loop head, starting from one for a simple loop
+    </span><span class="kw">pub fn </span>get_loop_head_depth(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_loop_head(bbi));
+        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#423">self</a>.loop_head_depths[<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#423">bbi</a>]
     }
 
-    <span class="doccomment">/// Get the loop-depth of a block (zero if it&#39;s not in a loop).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_loop_depth</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bbi</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#410">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#396">get_loop_head</a>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#410">bbi</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#410">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#404">get_loop_head_depth</a>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#411">x</a>)).<span class="ident">unwrap_or</span>(<span class="number">0</span>)
+    <span class="doccomment">/// Get the loop-depth of a block (zero if it&#39;s not in a loop).
+    </span><span class="kw">pub fn </span>get_loop_depth(<span class="kw-2">&amp;</span><span class="self">self</span>, bbi: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#429">self</a>.<a href="../../../src/prusti_interface/environment/loops.rs.html#415">get_loop_head</a>(<a href="../../../src/prusti_interface/environment/loops.rs.html#429">bbi</a>)
+            .map(|x| <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#429">self</a>.<a href="../../../src/prusti_interface/environment/loops.rs.html#423">get_loop_head_depth</a>(<a href="../../../src/prusti_interface/environment/loops.rs.html#431">x</a>))
+            .unwrap_or(<span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Get the (topologically ordered) body of a loop, given a loop head</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_loop_body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">loop_head</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>] {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">is_loop_head</span>(<span class="ident">loop_head</span>));
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#415">self</a>.<span class="ident">ordered_loop_bodies</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#415">loop_head</a>]
+    <span class="doccomment">/// Get the (topologically ordered) body of a loop, given a loop head
+    </span><span class="kw">pub fn </span>get_loop_body(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>] {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.is_loop_head(loop_head));
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#436">self</a>.ordered_loop_bodies[<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#436">loop_head</a>]
     }
 
-    <span class="doccomment">/// Does this edge exit a loop?</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_out_edge</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">to</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">from_loop_head</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#421">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#396">get_loop_head</a>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#421">from</a>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">to_loop_head</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#421">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#396">get_loop_head</a>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#421">to</a>) {
-                <span class="kw">if</span> <span class="ident">from_loop_head</span> <span class="op">==</span> <span class="ident">to_loop_head</span> <span class="op">|</span><span class="op">|</span> <span class="ident">to</span> <span class="op">==</span> <span class="ident">to_loop_head</span> {
-                    <span class="bool-val">false</span>
-                } <span class="kw">else</span> {
-                    <span class="op">!</span><a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#421">self</a>.<span class="ident">enclosing_loop_heads</span>[<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#421">to</a>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#422">from_loop_head</a>)
+    <span class="doccomment">/// Does this edge exit a loop?
+    </span><span class="kw">pub fn </span>is_out_edge(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, to: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(from_loop_head) = <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#442">self</a>.<a href="../../../src/prusti_interface/environment/loops.rs.html#415">get_loop_head</a>(<a href="../../../src/prusti_interface/environment/loops.rs.html#442">from</a>) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(to_loop_head) = <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#442">self</a>.<a href="../../../src/prusti_interface/environment/loops.rs.html#415">get_loop_head</a>(<a href="../../../src/prusti_interface/environment/loops.rs.html#442">to</a>) {
+                <span class="kw">if </span>from_loop_head == to_loop_head || to == to_loop_head {
+                    <span class="bool-val">false
+                </span>} <span class="kw">else </span>{
+                    !<a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#442">self</a>.enclosing_loop_heads[<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#442">to</a>].contains(<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#443">from_loop_head</a>)
                 }
-            } <span class="kw">else</span> {
-                <span class="bool-val">true</span>
-            }
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+            } <span class="kw">else </span>{
+                <span class="bool-val">true
+            </span>}
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 
-    <span class="doccomment">/// Check if ``block`` is inside a given loop.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_block_in_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">loop_head</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>, <span class="ident">block</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#438">self</a>.<span class="ident">dominators</span>.<span class="ident">is_dominated_by</span>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#438">block</a>, <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#438">loop_head</a>)
+    <span class="doccomment">/// Check if ``block`` is inside a given loop.
+    </span><span class="kw">pub fn </span>is_block_in_loop(<span class="kw-2">&amp;</span><span class="self">self</span>, loop_head: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>, block: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#459">self</a>.dominators.is_dominated_by(<a href="../../../src/prusti_interface/environment/loops.rs.html#459">block</a>, <a href="../../../src/prusti_interface/environment/loops.rs.html#459">loop_head</a>)
     }
 
-    <span class="doccomment">/// Compute what paths that are accessed inside the loop.</span>
-    <span class="kw">fn</span> <span class="ident">compute_used_paths</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Compute what paths that are accessed inside the loop.
+    </span><span class="kw">fn </span>compute_used_paths&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">loop_head</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>,
-        <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PlaceAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#444">self</a>.<span class="ident">loop_bodies</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#445">loop_head</a>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#82">AccessCollector</a> {
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#448">body</a>,
-            <span class="ident">accessed_places</span>: <span class="ident">Vec::new</span>(),
+        loop_head: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>,
+        mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ) -&gt; Vec&lt;PlaceAccess&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+        <span class="kw">let </span>body = <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#465">self</a>.loop_bodies.get(<span class="kw-2">&amp;</span><a href="../../../src/prusti_interface/environment/loops.rs.html#466">loop_head</a>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="../../../src/prusti_interface/environment/loops.rs.html#83">AccessCollector</a> {
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#469">body</a>,
+            accessed_places: Vec::new(),
         };
-        <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#449">visitor</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">visit_body</a>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#446">mir</a>);
-        <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#449">visitor</a>.<span class="ident">accessed_places</span>
+        <a href="../../../src/prusti_interface/environment/loops.rs.html#470">visitor</a>.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html">visit_body</a>(<a href="../../../src/prusti_interface/environment/loops.rs.html#467">mir</a>);
+        <a href="../../../src/prusti_interface/environment/loops.rs.html#470">visitor</a>.accessed_places
     }
 
-    <span class="doccomment">/// If `definitely_initalised_paths` is not `None`, returns only leaves that are</span>
-    <span class="doccomment">/// definitely initialised.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_read_and_write_leaves</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// If `definitely_initalised_paths` is not `None`, returns only leaves that are
+    /// definitely initialised.
+    </span><span class="kw">pub fn </span>compute_read_and_write_leaves&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">loop_head</span>: <a class="ident" href="../../../src/prusti_interface/environment/procedure.rs.html#23">BasicBlockIndex</a>,
-        <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">definitely_initalised_paths</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PlaceSet</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        loop_head: <a href="../../../src/prusti_interface/environment/procedure.rs.html#24">BasicBlockIndex</a>,
+        mir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        definitely_initalised_paths: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     ) -&gt; (
-        <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        Vec&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+        Vec&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+        Vec&lt;mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     ) {
-        <span class="comment">// 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix</span>
-        <span class="comment">//     accessed in the loop body and ``t`` is the type of access (read,</span>
-        <span class="comment">//     destructive read, …).</span>
-        <span class="comment">// 2.  Let ``A2`` be a subset of ``A1`` that contains only the prefixes</span>
-        <span class="comment">//     whose roots are defined before the loop. (The root of the prefix</span>
-        <span class="comment">//     ``x.f.g.h`` is ``x``.)</span>
-        <span class="comment">// 3.  Let ``A3`` be a subset of ``A2`` without accesses that are subsumed</span>
-        <span class="comment">//     by other accesses.</span>
-        <span class="comment">// 4.  Let ``U`` be a set of prefixes that are unreachable at the loop</span>
-        <span class="comment">//     head because they are either moved out or mutably borrowed.</span>
-        <span class="comment">// 5.  For each access ``(p, t)`` in the set ``A3``:</span>
-        <span class="comment">//</span>
-        <span class="comment">//     1.  Add a read permission to the loop invariant to read the prefix</span>
-        <span class="comment">//         up to the last element. If needed, unfold the corresponding</span>
-        <span class="comment">//         predicates.</span>
-        <span class="comment">//     2.  Add a permission to the last element based on what is required</span>
-        <span class="comment">//         by the type of access. If ``p`` is a prefix of some prefixes in</span>
-        <span class="comment">//         ``U``, then the invariant would contain corresponding predicate</span>
-        <span class="comment">//         bodies without unreachable elements instead of predicates.</span>
+        <span class="comment">// 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
+        //     accessed in the loop body and ``t`` is the type of access (read,
+        //     destructive read, …).
+        // 2.  Let ``A2`` be a subset of ``A1`` that contains only the prefixes
+        //     whose roots are defined before the loop. (The root of the prefix
+        //     ``x.f.g.h`` is ``x``.)
+        // 3.  Let ``A3`` be a subset of ``A2`` without accesses that are subsumed
+        //     by other accesses.
+        // 4.  Let ``U`` be a set of prefixes that are unreachable at the loop
+        //     head because they are either moved out or mutably borrowed.
+        // 5.  For each access ``(p, t)`` in the set ``A3``:
+        //
+        //     1.  Add a read permission to the loop invariant to read the prefix
+        //         up to the last element. If needed, unfold the corresponding
+        //         predicates.
+        //     2.  Add a permission to the last element based on what is required
+        //         by the type of access. If ``p`` is a prefix of some prefixes in
+        //         ``U``, then the invariant would contain corresponding predicate
+        //         bodies without unreachable elements instead of predicates.
 
-        <span class="comment">// Paths accessed inside the loop body.</span>
-        <span class="kw">let</span> <span class="ident">accesses</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#460">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#443-447">compute_used_paths</a>(<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#461">loop_head</a>, <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#462">mir</a>);
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses = {:?}&quot;</span>, <span class="ident">accesses</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accesses_pairs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#490">accesses</a>
-            .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#70">PlaceAccess</a> { <span class="ident">place</span>, <span class="ident">kind</span>, .. }<span class="op">|</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#494">place</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#494">kind</a>))
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses_pairs = {:?}&quot;</span>, <span class="ident">accesses_pairs</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">paths</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#463">definitely_initalised_paths</a> {
-            <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;definitely_initalised_paths = {:?}&quot;</span>, <span class="ident">paths</span>);
-            <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#492">accesses_pairs</a>.<span class="ident">retain</span>(<span class="op">|</span>(<span class="ident">place</span>, <span class="ident">kind</span>)<span class="op">|</span> {
-                    <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#497">paths</a>.<a class="ident" href="../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#55">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">initialised_place</span><span class="op">|</span>
-                        <span class="comment">// If the prefix is definitely initialised, then this place is a potential</span>
-                        <span class="comment">// loop invariant.</span>
-                        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#23">utils::is_prefix</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#499">place</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#500">initialised_place</a>) <span class="op">|</span><span class="op">|</span>
-                        <span class="comment">// If the access is store, then we only need the path to exist, which is</span>
-                        <span class="comment">// guaranteed if we have at least some of the leaves still initialised.</span>
-                        <span class="comment">//</span>
-                        <span class="comment">// Note that the Rust compiler is even more permissive as explained in this</span>
-                        <span class="comment">// issue: https://github.com/rust-lang/rust/issues/21232.</span>
-                        (
-                            <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#499">kind</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#45">PlaceAccessKind::Store</a> <span class="op">&amp;&amp;</span>
-                            <a class="ident" href="../../../src/prusti_interface/utils.rs.html#23">utils::is_prefix</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#500">initialised_place</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#499">place</a>)
+        // Paths accessed inside the loop body.
+        </span><span class="kw">let </span>accesses = <a class="self" href="../../../src/prusti_interface/environment/loops.rs.html#481">self</a>.<a href="../../../src/prusti_interface/environment/loops.rs.html#464-468">compute_used_paths</a>(<a href="../../../src/prusti_interface/environment/loops.rs.html#482">loop_head</a>, <a href="../../../src/prusti_interface/environment/loops.rs.html#483">mir</a>);
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses = {:?}&quot;</span>, accesses);
+        <span class="kw">let </span><span class="kw-2">mut </span>accesses_pairs: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../src/prusti_interface/environment/loops.rs.html#511">accesses</a>
+            .iter()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<a href="../../../src/prusti_interface/environment/loops.rs.html#71">PlaceAccess</a> { place, kind, .. }| (<span class="kw-2">*</span><a href="../../../src/prusti_interface/environment/loops.rs.html#515">place</a>, <span class="kw-2">*</span><a href="../../../src/prusti_interface/environment/loops.rs.html#515">kind</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses_pairs = {:?}&quot;</span>, accesses_pairs);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(paths) = <a href="../../../src/prusti_interface/environment/loops.rs.html#484">definitely_initalised_paths</a> {
+            <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;definitely_initalised_paths = {:?}&quot;</span>, paths);
+            <a href="../../../src/prusti_interface/environment/loops.rs.html#513">accesses_pairs</a>.retain(|(place, kind)| {
+                <a href="../../../src/prusti_interface/environment/loops.rs.html#518">paths</a>.<a href="../../../src/prusti_interface/environment/mir_sets/place_set.rs.html#55">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|initialised_place|
+                        <span class="comment">// If the prefix is definitely initialised, then this place is a potential
+                        // loop invariant.
+                        </span><a href="../../../src/prusti_interface/utils.rs.html#22">utils::is_prefix</a>(<span class="kw-2">*</span><a href="../../../src/prusti_interface/environment/loops.rs.html#520">place</a>, <span class="kw-2">*</span><a href="../../../src/prusti_interface/environment/loops.rs.html#521">initialised_place</a>) ||
+                        <span class="comment">// If the access is store, then we only need the path to exist, which is
+                        // guaranteed if we have at least some of the leaves still initialised.
+                        //
+                        // Note that the Rust compiler is even more permissive as explained in this
+                        // issue: https://github.com/rust-lang/rust/issues/21232.
+                        </span>(
+                            <span class="kw-2">*</span><a href="../../../src/prusti_interface/environment/loops.rs.html#520">kind</a> == <a href="../../../src/prusti_interface/environment/loops.rs.html#46">PlaceAccessKind::Store</a> &amp;&amp;
+                            <a href="../../../src/prusti_interface/utils.rs.html#22">utils::is_prefix</a>(<span class="kw-2">*</span><a href="../../../src/prusti_interface/environment/loops.rs.html#521">initialised_place</a>, <span class="kw-2">*</span><a href="../../../src/prusti_interface/environment/loops.rs.html#520">place</a>)
                         ))
-                });
+            });
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses_pairs = {:?}&quot;</span>, <span class="ident">accesses_pairs</span>);
-        <span class="comment">// Paths to whose leaves we need write permissions.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">write_leaves</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> (<span class="ident">place</span>, <span class="ident">kind</span>) <span class="kw">in</span> <span class="ident">accesses_pairs</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">kind</span>.<span class="ident">is_write_access</span>() {
-                <span class="kw">let</span> <span class="ident">has_prefix</span> <span class="op">=</span> <span class="ident">accesses_pairs</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span>(<span class="ident">potential_prefix</span>, <span class="ident">kind</span>)<span class="op">|</span> {
-                    <span class="ident">kind</span>.<span class="ident">is_write_access</span>()
-                        <span class="op">&amp;&amp;</span> <span class="ident">place</span> <span class="op">!</span><span class="op">=</span> <span class="ident">potential_prefix</span>
-                        <span class="op">&amp;&amp;</span> <span class="ident">utils::is_prefix</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="kw-2">*</span><span class="ident">potential_prefix</span>)
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;accesses_pairs = {:?}&quot;</span>, accesses_pairs);
+        <span class="comment">// Paths to whose leaves we need write permissions.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>write_leaves: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a>&gt; = Vec::new();
+        <span class="kw">for </span>(place, kind) <span class="kw">in </span>accesses_pairs.iter() {
+            <span class="kw">if </span>kind.is_write_access() {
+                <span class="kw">let </span>has_prefix = accesses_pairs.iter().any(|(potential_prefix, kind)| {
+                    kind.is_write_access()
+                        &amp;&amp; place != potential_prefix
+                        &amp;&amp; utils::is_prefix(<span class="kw-2">*</span>place, <span class="kw-2">*</span>potential_prefix)
                 });
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">has_prefix</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">write_leaves</span>.<span class="ident">contains</span>(<span class="ident">place</span>) {
-                    <span class="ident">write_leaves</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">place</span>);
+                <span class="kw">if </span>!has_prefix &amp;&amp; !write_leaves.contains(place) {
+                    write_leaves.push(<span class="kw-2">*</span>place);
                 }
             }
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;write_leaves = {:?}&quot;</span>, <span class="ident">write_leaves</span>);
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;write_leaves = {:?}&quot;</span>, write_leaves);
 
-        <span class="comment">// Paths to whose leaves are roots of trees to which we need write permissions.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mut_borrow_leaves</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> (<span class="ident">place</span>, <span class="ident">kind</span>) <span class="kw">in</span> <span class="ident">accesses_pairs</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">kind</span> <span class="op">==</span> <span class="ident">PlaceAccessKind::MutableBorrow</span> {
-                <span class="kw">let</span> <span class="ident">has_prefix</span> <span class="op">=</span> <span class="ident">accesses_pairs</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span>(<span class="ident">potential_prefix</span>, <span class="ident">kind</span>)<span class="op">|</span> {
-                    (<span class="ident">kind</span>.<span class="ident">is_write_access</span>() <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">kind</span> <span class="op">==</span> <span class="ident">PlaceAccessKind::MutableBorrow</span>)
-                        <span class="op">&amp;&amp;</span> <span class="ident">place</span> <span class="op">!</span><span class="op">=</span> <span class="ident">potential_prefix</span>
-                        <span class="op">&amp;&amp;</span> <span class="ident">utils::is_prefix</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="kw-2">*</span><span class="ident">potential_prefix</span>)
+        <span class="comment">// Paths to whose leaves are roots of trees to which we need write permissions.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>mut_borrow_leaves: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a>&gt; = Vec::new();
+        <span class="kw">for </span>(place, kind) <span class="kw">in </span>accesses_pairs.iter() {
+            <span class="kw">if </span><span class="kw-2">*</span>kind == PlaceAccessKind::MutableBorrow {
+                <span class="kw">let </span>has_prefix = accesses_pairs.iter().any(|(potential_prefix, kind)| {
+                    (kind.is_write_access() || <span class="kw-2">*</span>kind == PlaceAccessKind::MutableBorrow)
+                        &amp;&amp; place != potential_prefix
+                        &amp;&amp; utils::is_prefix(<span class="kw-2">*</span>place, <span class="kw-2">*</span>potential_prefix)
                 });
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">has_prefix</span>
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">write_leaves</span>.<span class="ident">contains</span>(<span class="ident">place</span>)
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">mut_borrow_leaves</span>.<span class="ident">contains</span>(<span class="ident">place</span>)
+                <span class="kw">if </span>!has_prefix
+                    &amp;&amp; !write_leaves.contains(place)
+                    &amp;&amp; !mut_borrow_leaves.contains(place)
                 {
-                    <span class="ident">mut_borrow_leaves</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">place</span>);
+                    mut_borrow_leaves.push(<span class="kw-2">*</span>place);
                 }
             }
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;mut_borrow_leaves = {:?}&quot;</span>, <span class="ident">write_leaves</span>);
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;mut_borrow_leaves = {:?}&quot;</span>, write_leaves);
 
-        <span class="comment">// Paths to whose leaves we need read permissions.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_leaves</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> (<span class="ident">place</span>, <span class="ident">kind</span>) <span class="kw">in</span> <span class="ident">accesses_pairs</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">kind</span>.<span class="ident">is_write_access</span>() {
-                <span class="kw">let</span> <span class="ident">has_prefix</span> <span class="op">=</span> <span class="ident">accesses_pairs</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span>(<span class="ident">potential_prefix</span>, <span class="ident">_kind</span>)<span class="op">|</span> {
-                    <span class="ident">place</span> <span class="op">!</span><span class="op">=</span> <span class="ident">potential_prefix</span> <span class="op">&amp;&amp;</span> <span class="ident">utils::is_prefix</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="kw-2">*</span><span class="ident">potential_prefix</span>)
+        <span class="comment">// Paths to whose leaves we need read permissions.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>read_leaves: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a>&gt; = Vec::new();
+        <span class="kw">for </span>(place, kind) <span class="kw">in </span>accesses_pairs.iter() {
+            <span class="kw">if </span>!kind.is_write_access() {
+                <span class="kw">let </span>has_prefix = accesses_pairs.iter().any(|(potential_prefix, _kind)| {
+                    place != potential_prefix &amp;&amp; utils::is_prefix(<span class="kw-2">*</span>place, <span class="kw-2">*</span>potential_prefix)
                 });
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">has_prefix</span>
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">read_leaves</span>.<span class="ident">contains</span>(<span class="ident">place</span>)
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">write_leaves</span>.<span class="ident">contains</span>(<span class="ident">place</span>)
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">mut_borrow_leaves</span>.<span class="ident">contains</span>(<span class="ident">place</span>)
+                <span class="kw">if </span>!has_prefix
+                    &amp;&amp; !read_leaves.contains(place)
+                    &amp;&amp; !write_leaves.contains(place)
+                    &amp;&amp; !mut_borrow_leaves.contains(place)
                 {
-                    <span class="ident">read_leaves</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">place</span>);
+                    read_leaves.push(<span class="kw-2">*</span>place);
                 }
             }
         }
-        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;read_leaves = {:?}&quot;</span>, <span class="ident">read_leaves</span>);
+        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;read_leaves = {:?}&quot;</span>, read_leaves);
 
-        (<a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#517">write_leaves</a>, <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#533">mut_borrow_leaves</a>, <a class="ident" href="../../../src/prusti_interface/environment/loops.rs.html#552">read_leaves</a>)
+        (<a href="../../../src/prusti_interface/environment/loops.rs.html#538">write_leaves</a>, <a href="../../../src/prusti_interface/environment/loops.rs.html#554">mut_borrow_leaves</a>, <a href="../../../src/prusti_interface/environment/loops.rs.html#573">read_leaves</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/cms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cms.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/cms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cms.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -312,319 +312,319 @@
 <span id="312">312</span>
 <span id="313">313</span>
 <span id="314">314</span>
-</pre><pre class="rust"><code><span class="doccomment">//! SMIME implementation using CMS</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! CMS (PKCS#7) is an encryption standard.  It allows signing and encrypting data using</span>
-<span class="doccomment">//! X.509 certificates.  The OpenSSL implementation of CMS is used in email encryption</span>
-<span class="doccomment">//! generated from a `Vec` of bytes.  This `Vec` follows the smime protocol standards.</span>
-<span class="doccomment">//! Data accepted by this module will be smime type `enveloped-data`.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! SMIME implementation using CMS
+//!
+//! CMS (PKCS#7) is an encryption standard.  It allows signing and encrypting data using
+//! X.509 certificates.  The OpenSSL implementation of CMS is used in email encryption
+//! generated from a `Vec` of bytes.  This `Vec` follows the smime protocol standards.
+//! Data accepted by this module will be smime type `enveloped-data`.
 
-<span class="kw">use</span> <a class="ident" href="../../bitflags/macro.bitflags.html">bitflags::bitflags</a>;
-<span class="kw">use</span> <span class="ident">foreign_types</span>::{<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_uint.html">libc::c_uint</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+</span><span class="kw">use </span><a href="../../bitflags/macro.bitflags.html">bitflags::bitflags</a>;
+<span class="kw">use </span>foreign_types::{<a href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
+<span class="kw">use </span><a href="../../libc/unix/type.c_uint.html">libc::c_uint</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bio</span>::{<a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a class="ident" href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/stack.rs.html#180"><span class="kw">crate</span>::stack::StackRef</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>, <a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
-<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><span class="kw">crate</span>::bio::{<a href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>};
+<span class="kw">use </span><a href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
+<span class="kw">use </span><a href="../../src/openssl/stack.rs.html#180"><span class="kw">crate</span>::stack::StackRef</a>;
+<span class="kw">use </span><a href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
+<span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>, <a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>};
+<span class="kw">use crate</span>::{<a href="../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<a class="macro" href="../../bitflags/macro.bitflags.html">bitflags!</a> {
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CMSOptions</span> : <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a> {
-        <span class="kw">const</span> <span class="ident">TEXT</span> <span class="op">=</span> <span class="ident">ffi::CMS_TEXT</span>;
-        <span class="kw">const</span> <span class="ident">CMS_NOCERTS</span> <span class="op">=</span> <span class="ident">ffi::CMS_NOCERTS</span>;
-        <span class="kw">const</span> <span class="ident">NO_CONTENT_VERIFY</span> <span class="op">=</span> <span class="ident">ffi::CMS_NO_CONTENT_VERIFY</span>;
-        <span class="kw">const</span> <span class="ident">NO_ATTR_VERIFY</span> <span class="op">=</span> <span class="ident">ffi::CMS_NO_ATTR_VERIFY</span>;
-        <span class="kw">const</span> <span class="ident">NOSIGS</span> <span class="op">=</span> <span class="ident">ffi::CMS_NOSIGS</span>;
-        <span class="kw">const</span> <span class="ident">NOINTERN</span> <span class="op">=</span> <span class="ident">ffi::CMS_NOINTERN</span>;
-        <span class="kw">const</span> <span class="ident">NO_SIGNER_CERT_VERIFY</span> <span class="op">=</span> <span class="ident">ffi::CMS_NO_SIGNER_CERT_VERIFY</span>;
-        <span class="kw">const</span> <span class="ident">NOVERIFY</span> <span class="op">=</span> <span class="ident">ffi::CMS_NOVERIFY</span>;
-        <span class="kw">const</span> <span class="ident">DETACHED</span> <span class="op">=</span> <span class="ident">ffi::CMS_DETACHED</span>;
-        <span class="kw">const</span> <span class="ident">BINARY</span> <span class="op">=</span> <span class="ident">ffi::CMS_BINARY</span>;
-        <span class="kw">const</span> <span class="ident">NOATTR</span> <span class="op">=</span> <span class="ident">ffi::CMS_NOATTR</span>;
-        <span class="kw">const</span> <span class="ident">NOSMIMECAP</span> <span class="op">=</span> <span class="ident">ffi::CMS_NOSMIMECAP</span>;
-        <span class="kw">const</span> <span class="ident">NOOLDMIMETYPE</span> <span class="op">=</span> <span class="ident">ffi::CMS_NOOLDMIMETYPE</span>;
-        <span class="kw">const</span> <span class="ident">CRLFEOL</span> <span class="op">=</span> <span class="ident">ffi::CMS_CRLFEOL</span>;
-        <span class="kw">const</span> <span class="ident">STREAM</span> <span class="op">=</span> <span class="ident">ffi::CMS_STREAM</span>;
-        <span class="kw">const</span> <span class="ident">NOCRL</span> <span class="op">=</span> <span class="ident">ffi::CMS_NOCRL</span>;
-        <span class="kw">const</span> <span class="ident">PARTIAL</span> <span class="op">=</span> <span class="ident">ffi::CMS_PARTIAL</span>;
-        <span class="kw">const</span> <span class="ident">REUSE_DIGEST</span> <span class="op">=</span> <span class="ident">ffi::CMS_REUSE_DIGEST</span>;
-        <span class="kw">const</span> <span class="ident">USE_KEYID</span> <span class="op">=</span> <span class="ident">ffi::CMS_USE_KEYID</span>;
-        <span class="kw">const</span> <span class="ident">DEBUG_DECRYPT</span> <span class="op">=</span> <span class="ident">ffi::CMS_DEBUG_DECRYPT</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">libressl</span>), <span class="ident">not</span>(<span class="ident">ossl101</span>)))]</span>
-        <span class="kw">const</span> <span class="ident">KEY_PARAM</span> <span class="op">=</span> <span class="ident">ffi::CMS_KEY_PARAM</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">libressl</span>), <span class="ident">not</span>(<span class="ident">ossl101</span>), <span class="ident">not</span>(<span class="ident">ossl102</span>)))]</span>
-        <span class="kw">const</span> <span class="ident">ASCIICRLF</span> <span class="op">=</span> <span class="ident">ffi::CMS_ASCIICRLF</span>;
+<a class="macro" href="../../bitflags/macro.bitflags.html">bitflags! </a>{
+    <span class="kw">pub struct </span>CMSOptions : <a href="../../libc/unix/type.c_uint.html">c_uint</a> {
+        <span class="kw">const </span>TEXT = ffi::CMS_TEXT;
+        <span class="kw">const </span>CMS_NOCERTS = ffi::CMS_NOCERTS;
+        <span class="kw">const </span>NO_CONTENT_VERIFY = ffi::CMS_NO_CONTENT_VERIFY;
+        <span class="kw">const </span>NO_ATTR_VERIFY = ffi::CMS_NO_ATTR_VERIFY;
+        <span class="kw">const </span>NOSIGS = ffi::CMS_NOSIGS;
+        <span class="kw">const </span>NOINTERN = ffi::CMS_NOINTERN;
+        <span class="kw">const </span>NO_SIGNER_CERT_VERIFY = ffi::CMS_NO_SIGNER_CERT_VERIFY;
+        <span class="kw">const </span>NOVERIFY = ffi::CMS_NOVERIFY;
+        <span class="kw">const </span>DETACHED = ffi::CMS_DETACHED;
+        <span class="kw">const </span>BINARY = ffi::CMS_BINARY;
+        <span class="kw">const </span>NOATTR = ffi::CMS_NOATTR;
+        <span class="kw">const </span>NOSMIMECAP = ffi::CMS_NOSMIMECAP;
+        <span class="kw">const </span>NOOLDMIMETYPE = ffi::CMS_NOOLDMIMETYPE;
+        <span class="kw">const </span>CRLFEOL = ffi::CMS_CRLFEOL;
+        <span class="kw">const </span>STREAM = ffi::CMS_STREAM;
+        <span class="kw">const </span>NOCRL = ffi::CMS_NOCRL;
+        <span class="kw">const </span>PARTIAL = ffi::CMS_PARTIAL;
+        <span class="kw">const </span>REUSE_DIGEST = ffi::CMS_REUSE_DIGEST;
+        <span class="kw">const </span>USE_KEYID = ffi::CMS_USE_KEYID;
+        <span class="kw">const </span>DEBUG_DECRYPT = ffi::CMS_DEBUG_DECRYPT;
+        <span class="attribute">#[cfg(all(not(libressl), not(ossl101)))]
+        </span><span class="kw">const </span>KEY_PARAM = ffi::CMS_KEY_PARAM;
+        <span class="attribute">#[cfg(all(not(libressl), not(ossl101), not(ossl102)))]
+        </span><span class="kw">const </span>ASCIICRLF = ffi::CMS_ASCIICRLF;
     }
 }
 
-<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/cms/enum.CMS_ContentInfo.html">ffi::CMS_ContentInfo</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::CMS_ContentInfo_free</span>;
+<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/cms/enum.CMS_ContentInfo.html">ffi::CMS_ContentInfo</a>;
+    <span class="kw">fn </span>drop = ffi::CMS_ContentInfo_free;
 
-    <span class="doccomment">/// High level CMS wrapper</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// CMS supports nesting various types of data, including signatures, certificates,</span>
-    <span class="doccomment">/// encrypted data, smime messages (encrypted email), and data digest.  The ContentInfo</span>
-    <span class="doccomment">/// content type is the encapsulation of all those content types.  [`RFC 5652`] describes</span>
-    <span class="doccomment">/// CMS and OpenSSL follows this RFC&#39;s implementation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RFC 5652`]: https://tools.ietf.org/html/rfc5652#page-6</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CmsContentInfo</span>;
-    <span class="doccomment">/// Reference to [`CMSContentInfo`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CMSContentInfo`]:struct.CmsContentInfo.html</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CmsContentInfoRef</span>;
+    <span class="doccomment">/// High level CMS wrapper
+    ///
+    /// CMS supports nesting various types of data, including signatures, certificates,
+    /// encrypted data, smime messages (encrypted email), and data digest.  The ContentInfo
+    /// content type is the encapsulation of all those content types.  [`RFC 5652`] describes
+    /// CMS and OpenSSL follows this RFC&#39;s implementation.
+    ///
+    /// [`RFC 5652`]: https://tools.ietf.org/html/rfc5652#page-6
+    </span><span class="kw">pub struct </span>CmsContentInfo;
+    <span class="doccomment">/// Reference to [`CMSContentInfo`]
+    ///
+    /// [`CMSContentInfo`]:struct.CmsContentInfo.html
+    </span><span class="kw">pub struct </span>CmsContentInfoRef;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfoRef</a> {
-    <span class="doccomment">/// Given the sender&#39;s private key, `pkey` and the recipient&#39;s certificate, `cert`,</span>
-    <span class="doccomment">/// decrypt the data in `self`.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CMS_decrypt</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrypt</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">cert</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+<span class="kw">impl </span><a href="../../src/openssl/cms.rs.html#51-68">CmsContentInfoRef</a> {
+    <span class="doccomment">/// Given the sender&#39;s private key, `pkey` and the recipient&#39;s certificate, `cert`,
+    /// decrypt the data in `self`.
+    </span><span class="attribute">#[corresponds(CMS_decrypt)]
+    </span><span class="kw">pub fn </span>decrypt&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;, cert: <span class="kw-2">&amp;</span><a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#74">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
-            <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#74">cert</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
-            <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">MemBio::new</span>()<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>pkey = <a href="../../src/openssl/cms.rs.html#74">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
+            <span class="kw">let </span>cert = <a href="../../src/openssl/cms.rs.html#74">cert</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
+            <span class="kw">let </span>out = MemBio::new()<span class="question-mark">?</span>;
 
-            <span class="ident">cvt</span>(<span class="ident">ffi::CMS_decrypt</span>(
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">pkey</span>,
-                <span class="ident">cert</span>,
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="ident">out</span>.<span class="ident">as_ptr</span>(),
+            cvt(ffi::CMS_decrypt(
+                <span class="self">self</span>.as_ptr(),
+                pkey,
+                cert,
+                ptr::null_mut(),
+                out.as_ptr(),
                 <span class="number">0</span>,
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/cms.rs.html#81">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/cms.rs.html#81">out</a>.<a href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
         }
     }
 
-    <span class="doccomment">/// Given the sender&#39;s private key, `pkey`,</span>
-    <span class="doccomment">/// decrypt the data in `self` without validating the recipient certificate.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *Warning*: Not checking the recipient certificate may leave you vulnerable to Bleichenbacher&#39;s attack on PKCS#1 v1.5 RSA padding.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CMS_decrypt</span>)]</span>
-    <span class="comment">// FIXME merge into decrypt</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrypt_without_cert_check</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+    <span class="doccomment">/// Given the sender&#39;s private key, `pkey`,
+    /// decrypt the data in `self` without validating the recipient certificate.
+    ///
+    /// *Warning*: Not checking the recipient certificate may leave you vulnerable to Bleichenbacher&#39;s attack on PKCS#1 v1.5 RSA padding.
+    </span><span class="attribute">#[corresponds(CMS_decrypt)]
+    </span><span class="comment">// FIXME merge into decrypt
+    </span><span class="kw">pub fn </span>decrypt_without_cert_check&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#102">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
-            <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">MemBio::new</span>()<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>pkey = <a href="../../src/openssl/cms.rs.html#102">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
+            <span class="kw">let </span>out = MemBio::new()<span class="question-mark">?</span>;
 
-            <span class="ident">cvt</span>(<span class="ident">ffi::CMS_decrypt</span>(
-                <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">pkey</span>,
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="ident">ptr::null_mut</span>(),
-                <span class="ident">out</span>.<span class="ident">as_ptr</span>(),
+            cvt(ffi::CMS_decrypt(
+                <span class="self">self</span>.as_ptr(),
+                pkey,
+                ptr::null_mut(),
+                ptr::null_mut(),
+                out.as_ptr(),
                 <span class="number">0</span>,
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/cms.rs.html#108">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+            <span class="prelude-val">Ok</span>(<a href="../../src/openssl/cms.rs.html#108">out</a>.<a href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
         }
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der!</a> {
-        <span class="doccomment">/// Serializes this CmsContentInfo using DER.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_CMS_ContentInfo</span>)]</span>
-        <span class="ident">to_der</span>,
-        <span class="ident">ffi::i2d_CMS_ContentInfo</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der! </a>{
+        <span class="doccomment">/// Serializes this CmsContentInfo using DER.
+        </span><span class="attribute">#[corresponds(i2d_CMS_ContentInfo)]
+        </span>to_der,
+        ffi::i2d_CMS_ContentInfo
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#76-87">to_pem!</a> {
-        <span class="doccomment">/// Serializes this CmsContentInfo using DER.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_CMS</span>)]</span>
-        <span class="ident">to_pem</span>,
-        <span class="ident">ffi::PEM_write_bio_CMS</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#76-87">to_pem! </a>{
+        <span class="doccomment">/// Serializes this CmsContentInfo using DER.
+        </span><span class="attribute">#[corresponds(PEM_write_bio_CMS)]
+        </span>to_pem,
+        ffi::PEM_write_bio_CMS
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a> {
-    <span class="doccomment">/// Parses a smime formatted `vec` of bytes into a `CmsContentInfo`.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SMIME_read_CMS</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">smime_read_cms</span>(<span class="ident">smime</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<span class="ident">smime</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a> {
+    <span class="doccomment">/// Parses a smime formatted `vec` of bytes into a `CmsContentInfo`.
+    </span><span class="attribute">#[corresponds(SMIME_read_CMS)]
+    </span><span class="kw">pub fn </span>smime_read_cms(smime: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>bio = MemBioSlice::new(smime)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::SMIME_read_CMS</span>(<span class="ident">bio</span>.<span class="ident">as_ptr</span>(), <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
+            <span class="kw">let </span>cms = cvt_p(ffi::SMIME_read_CMS(bio.as_ptr(), ptr::null_mut()))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#145">cms</a>))
+            <span class="prelude-val">Ok</span>(CmsContentInfo::from_ptr(<a href="../../src/openssl/cms.rs.html#145">cms</a>))
         }
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der!</a> {
-        <span class="doccomment">/// Deserializes a DER-encoded ContentInfo structure.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_CMS_ContentInfo</span>)]</span>
-        <span class="ident">from_der</span>,
-        <span class="ident">CmsContentInfo</span>,
-        <span class="ident">ffi::d2i_CMS_ContentInfo</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der! </a>{
+        <span class="doccomment">/// Deserializes a DER-encoded ContentInfo structure.
+        </span><span class="attribute">#[corresponds(d2i_CMS_ContentInfo)]
+        </span>from_der,
+        CmsContentInfo,
+        ffi::d2i_CMS_ContentInfo
     }
 
-    <a class="macro" href="../../src/openssl/macros.rs.html#119-131">from_pem!</a> {
-        <span class="doccomment">/// Deserializes a PEM-encoded ContentInfo structure.</span>
-        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_CMS</span>)]</span>
-        <span class="ident">from_pem</span>,
-        <span class="ident">CmsContentInfo</span>,
-        <span class="ident">ffi::PEM_read_bio_CMS</span>
+    <a class="macro" href="../../src/openssl/macros.rs.html#119-131">from_pem! </a>{
+        <span class="doccomment">/// Deserializes a PEM-encoded ContentInfo structure.
+        </span><span class="attribute">#[corresponds(PEM_read_bio_CMS)]
+        </span>from_pem,
+        CmsContentInfo,
+        ffi::PEM_read_bio_CMS
     }
 
-    <span class="doccomment">/// Given a signing cert `signcert`, private key `pkey`, a certificate stack `certs`,</span>
-    <span class="doccomment">/// data `data` and flags `flags`, create a CmsContentInfo struct.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// All arguments are optional.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CMS_sign</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="ident">signcert</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a><span class="op">&gt;</span>,
-        <span class="ident">pkey</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">certs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/cms.rs.html#22-49">CMSOptions</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
+    <span class="doccomment">/// Given a signing cert `signcert`, private key `pkey`, a certificate stack `certs`,
+    /// data `data` and flags `flags`, create a CmsContentInfo struct.
+    ///
+    /// All arguments are optional.
+    </span><span class="attribute">#[corresponds(CMS_sign)]
+    </span><span class="kw">pub fn </span>sign&lt;T&gt;(
+        signcert: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../src/openssl/x509/mod.rs.html#362-370">X509Ref</a>&gt;,
+        pkey: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PKeyRef&lt;T&gt;&gt;,
+        certs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StackRef&lt;<a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>&gt;&gt;,
+        data: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+        flags: <a href="../../src/openssl/cms.rs.html#22-49">CMSOptions</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">signcert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#173">signcert</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#183">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#174">pkey</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#184">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="kw">let</span> <span class="ident">data_bio</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/openssl/cms.rs.html#176">data</a> {
-                <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">MemBioSlice::new</span>(<span class="ident">data</span>)<span class="question-mark">?</span>),
-                <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>signcert = <a href="../../src/openssl/cms.rs.html#173">signcert</a>.map_or(ptr::null_mut(), |p| <a href="../../src/openssl/cms.rs.html#183">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="kw">let </span>pkey = <a href="../../src/openssl/cms.rs.html#174">pkey</a>.map_or(ptr::null_mut(), |p| <a href="../../src/openssl/cms.rs.html#184">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="kw">let </span>data_bio = <span class="kw">match </span><a href="../../src/openssl/cms.rs.html#176">data</a> {
+                <span class="prelude-val">Some</span>(data) =&gt; <span class="prelude-val">Some</span>(MemBioSlice::new(data)<span class="question-mark">?</span>),
+                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             };
-            <span class="kw">let</span> <span class="ident">data_bio_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#185">data_bio</a>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#189">p</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>());
-            <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#175">certs</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#190">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="kw">let </span>data_bio_ptr = <a href="../../src/openssl/cms.rs.html#185">data_bio</a>.as_ref().map_or(ptr::null_mut(), |p| <a href="../../src/openssl/cms.rs.html#189">p</a>.<a href="../../src/openssl/bio.rs.html#35">as_ptr</a>());
+            <span class="kw">let </span>certs = <a href="../../src/openssl/cms.rs.html#175">certs</a>.map_or(ptr::null_mut(), |p| <a href="../../src/openssl/cms.rs.html#190">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
 
-            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::CMS_sign</span>(
-                <span class="ident">signcert</span>,
-                <span class="ident">pkey</span>,
-                <span class="ident">certs</span>,
-                <span class="ident">data_bio_ptr</span>,
-                <span class="ident">flags</span>.<span class="ident">bits</span>(),
+            <span class="kw">let </span>cms = cvt_p(ffi::CMS_sign(
+                signcert,
+                pkey,
+                certs,
+                data_bio_ptr,
+                flags.bits(),
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#192">cms</a>))
+            <span class="prelude-val">Ok</span>(CmsContentInfo::from_ptr(<a href="../../src/openssl/cms.rs.html#192">cms</a>))
         }
     }
 
-    <span class="doccomment">/// Given a certificate stack `certs`, data `data`, cipher `cipher` and flags `flags`,</span>
-    <span class="doccomment">/// create a CmsContentInfo struct.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`CMS_encrypt`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CMS_encrypt`]: https://www.openssl.org/docs/manmaster/man3/CMS_encrypt.html</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CMS_encrypt</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encrypt</span>(
-        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#362-370">X509</a><span class="op">&gt;</span>,
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">cipher</span>: <a class="ident" href="../../src/openssl/symm.rs.html#73">Cipher</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/cms.rs.html#22-49">CMSOptions</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">data_bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Given a certificate stack `certs`, data `data`, cipher `cipher` and flags `flags`,
+    /// create a CmsContentInfo struct.
+    ///
+    /// OpenSSL documentation at [`CMS_encrypt`]
+    ///
+    /// [`CMS_encrypt`]: https://www.openssl.org/docs/manmaster/man3/CMS_encrypt.html
+    </span><span class="attribute">#[corresponds(CMS_encrypt)]
+    </span><span class="kw">pub fn </span>encrypt(
+        certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="../../src/openssl/x509/mod.rs.html#362-370">X509</a>&gt;,
+        data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        cipher: <a href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+        flags: <a href="../../src/openssl/cms.rs.html#22-49">CMSOptions</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a href="../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>data_bio = MemBioSlice::new(data)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::CMS_encrypt</span>(
-                <span class="ident">certs</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">data_bio</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">cipher</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">flags</span>.<span class="ident">bits</span>(),
+            <span class="kw">let </span>cms = cvt_p(ffi::CMS_encrypt(
+                certs.as_ptr(),
+                data_bio.as_ptr(),
+                cipher.as_ptr(),
+                flags.bits(),
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#220">cms</a>))
+            <span class="prelude-val">Ok</span>(CmsContentInfo::from_ptr(<a href="../../src/openssl/cms.rs.html#220">cms</a>))
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkcs12::Pkcs12</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stack::Stack</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509::X509</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::pkcs12::Pkcs12;
+    <span class="kw">use </span><span class="kw">crate</span>::stack::Stack;
+    <span class="kw">use </span><span class="kw">crate</span>::x509::X509;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cms_encrypt_decrypt</span>() {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-        <span class="kw">let</span> <span class="ident">_provider</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::provider::Provider::try_load</span>(<span class="prelude-val">None</span>, <span class="string">&quot;legacy&quot;</span>, <span class="bool-val">true</span>).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>cms_encrypt_decrypt() {
+        <span class="attribute">#[cfg(ossl300)]
+        </span><span class="kw">let </span>_provider = <span class="kw">crate</span>::provider::Provider::try_load(<span class="prelude-val">None</span>, <span class="string">&quot;legacy&quot;</span>, <span class="bool-val">true</span>).unwrap();
 
-        <span class="comment">// load cert with public key only</span>
-        <span class="kw">let</span> <span class="ident">pub_cert_bytes</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cms_pubkey.der&quot;</span>);
-        <span class="kw">let</span> <span class="ident">pub_cert</span> <span class="op">=</span> <span class="ident">X509::from_der</span>(<span class="ident">pub_cert_bytes</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to load pub cert&quot;</span>);
+        <span class="comment">// load cert with public key only
+        </span><span class="kw">let </span>pub_cert_bytes = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cms_pubkey.der&quot;</span>);
+        <span class="kw">let </span>pub_cert = X509::from_der(pub_cert_bytes).expect(<span class="string">&quot;failed to load pub cert&quot;</span>);
 
-        <span class="comment">// load cert with private key</span>
-        <span class="kw">let</span> <span class="ident">priv_cert_bytes</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cms.p12&quot;</span>);
-        <span class="kw">let</span> <span class="ident">priv_cert</span> <span class="op">=</span> <span class="ident">Pkcs12::from_der</span>(<span class="ident">priv_cert_bytes</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to load priv cert&quot;</span>);
-        <span class="kw">let</span> <span class="ident">priv_cert</span> <span class="op">=</span> <span class="ident">priv_cert</span>
-            .<span class="ident">parse</span>(<span class="string">&quot;mypass&quot;</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to parse priv cert&quot;</span>);
+        <span class="comment">// load cert with private key
+        </span><span class="kw">let </span>priv_cert_bytes = <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cms.p12&quot;</span>);
+        <span class="kw">let </span>priv_cert = Pkcs12::from_der(priv_cert_bytes).expect(<span class="string">&quot;failed to load priv cert&quot;</span>);
+        <span class="kw">let </span>priv_cert = priv_cert
+            .parse(<span class="string">&quot;mypass&quot;</span>)
+            .expect(<span class="string">&quot;failed to parse priv cert&quot;</span>);
 
-        <span class="comment">// encrypt cms message using public key cert</span>
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;My Message&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cert_stack</span> <span class="op">=</span> <span class="ident">Stack::new</span>().<span class="ident">expect</span>(<span class="string">&quot;failed to create stack&quot;</span>);
-        <span class="ident">cert_stack</span>
-            .<span class="ident">push</span>(<span class="ident">pub_cert</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to add pub cert to stack&quot;</span>);
+        <span class="comment">// encrypt cms message using public key cert
+        </span><span class="kw">let </span>input = String::from(<span class="string">&quot;My Message&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>cert_stack = Stack::new().expect(<span class="string">&quot;failed to create stack&quot;</span>);
+        cert_stack
+            .push(pub_cert)
+            .expect(<span class="string">&quot;failed to add pub cert to stack&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">encrypt</span> <span class="op">=</span> <span class="ident">CmsContentInfo::encrypt</span>(
-            <span class="kw-2">&amp;</span><span class="ident">cert_stack</span>,
-            <span class="ident">input</span>.<span class="ident">as_bytes</span>(),
-            <span class="ident">Cipher::des_ede3_cbc</span>(),
-            <span class="ident">CMSOptions::empty</span>(),
+        <span class="kw">let </span>encrypt = CmsContentInfo::encrypt(
+            <span class="kw-2">&amp;</span>cert_stack,
+            input.as_bytes(),
+            Cipher::des_ede3_cbc(),
+            CMSOptions::empty(),
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;failed create encrypted cms&quot;</span>);
+        .expect(<span class="string">&quot;failed create encrypted cms&quot;</span>);
 
-        <span class="comment">// decrypt cms message using private key cert (DER)</span>
-        {
-            <span class="kw">let</span> <span class="ident">encrypted_der</span> <span class="op">=</span> <span class="ident">encrypt</span>.<span class="ident">to_der</span>().<span class="ident">expect</span>(<span class="string">&quot;failed to create der from cms&quot;</span>);
-            <span class="kw">let</span> <span class="ident">decrypt</span> <span class="op">=</span>
-                <span class="ident">CmsContentInfo::from_der</span>(<span class="kw-2">&amp;</span><span class="ident">encrypted_der</span>).<span class="ident">expect</span>(<span class="string">&quot;failed read cms from der&quot;</span>);
+        <span class="comment">// decrypt cms message using private key cert (DER)
+        </span>{
+            <span class="kw">let </span>encrypted_der = encrypt.to_der().expect(<span class="string">&quot;failed to create der from cms&quot;</span>);
+            <span class="kw">let </span>decrypt =
+                CmsContentInfo::from_der(<span class="kw-2">&amp;</span>encrypted_der).expect(<span class="string">&quot;failed read cms from der&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">decrypt_with_cert_check</span> <span class="op">=</span> <span class="ident">decrypt</span>
-                .<span class="ident">decrypt</span>(<span class="kw-2">&amp;</span><span class="ident">priv_cert</span>.<span class="ident">pkey</span>, <span class="kw-2">&amp;</span><span class="ident">priv_cert</span>.<span class="ident">cert</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to decrypt cms&quot;</span>);
-            <span class="kw">let</span> <span class="ident">decrypt_with_cert_check</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="ident">decrypt_with_cert_check</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to create string from cms content&quot;</span>);
+            <span class="kw">let </span>decrypt_with_cert_check = decrypt
+                .decrypt(<span class="kw-2">&amp;</span>priv_cert.pkey, <span class="kw-2">&amp;</span>priv_cert.cert)
+                .expect(<span class="string">&quot;failed to decrypt cms&quot;</span>);
+            <span class="kw">let </span>decrypt_with_cert_check = String::from_utf8(decrypt_with_cert_check)
+                .expect(<span class="string">&quot;failed to create string from cms content&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">decrypt_without_cert_check</span> <span class="op">=</span> <span class="ident">decrypt</span>
-                .<span class="ident">decrypt_without_cert_check</span>(<span class="kw-2">&amp;</span><span class="ident">priv_cert</span>.<span class="ident">pkey</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to decrypt cms&quot;</span>);
-            <span class="kw">let</span> <span class="ident">decrypt_without_cert_check</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="ident">decrypt_without_cert_check</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to create string from cms content&quot;</span>);
+            <span class="kw">let </span>decrypt_without_cert_check = decrypt
+                .decrypt_without_cert_check(<span class="kw-2">&amp;</span>priv_cert.pkey)
+                .expect(<span class="string">&quot;failed to decrypt cms&quot;</span>);
+            <span class="kw">let </span>decrypt_without_cert_check = String::from_utf8(decrypt_without_cert_check)
+                .expect(<span class="string">&quot;failed to create string from cms content&quot;</span>);
 
-            <span class="macro">assert_eq!</span>(<span class="ident">input</span>, <span class="ident">decrypt_with_cert_check</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">input</span>, <span class="ident">decrypt_without_cert_check</span>);
+            <span class="macro">assert_eq!</span>(input, decrypt_with_cert_check);
+            <span class="macro">assert_eq!</span>(input, decrypt_without_cert_check);
         }
 
-        <span class="comment">// decrypt cms message using private key cert (PEM)</span>
-        {
-            <span class="kw">let</span> <span class="ident">encrypted_pem</span> <span class="op">=</span> <span class="ident">encrypt</span>.<span class="ident">to_pem</span>().<span class="ident">expect</span>(<span class="string">&quot;failed to create pem from cms&quot;</span>);
-            <span class="kw">let</span> <span class="ident">decrypt</span> <span class="op">=</span>
-                <span class="ident">CmsContentInfo::from_pem</span>(<span class="kw-2">&amp;</span><span class="ident">encrypted_pem</span>).<span class="ident">expect</span>(<span class="string">&quot;failed read cms from pem&quot;</span>);
+        <span class="comment">// decrypt cms message using private key cert (PEM)
+        </span>{
+            <span class="kw">let </span>encrypted_pem = encrypt.to_pem().expect(<span class="string">&quot;failed to create pem from cms&quot;</span>);
+            <span class="kw">let </span>decrypt =
+                CmsContentInfo::from_pem(<span class="kw-2">&amp;</span>encrypted_pem).expect(<span class="string">&quot;failed read cms from pem&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">decrypt_with_cert_check</span> <span class="op">=</span> <span class="ident">decrypt</span>
-                .<span class="ident">decrypt</span>(<span class="kw-2">&amp;</span><span class="ident">priv_cert</span>.<span class="ident">pkey</span>, <span class="kw-2">&amp;</span><span class="ident">priv_cert</span>.<span class="ident">cert</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to decrypt cms&quot;</span>);
-            <span class="kw">let</span> <span class="ident">decrypt_with_cert_check</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="ident">decrypt_with_cert_check</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to create string from cms content&quot;</span>);
+            <span class="kw">let </span>decrypt_with_cert_check = decrypt
+                .decrypt(<span class="kw-2">&amp;</span>priv_cert.pkey, <span class="kw-2">&amp;</span>priv_cert.cert)
+                .expect(<span class="string">&quot;failed to decrypt cms&quot;</span>);
+            <span class="kw">let </span>decrypt_with_cert_check = String::from_utf8(decrypt_with_cert_check)
+                .expect(<span class="string">&quot;failed to create string from cms content&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">decrypt_without_cert_check</span> <span class="op">=</span> <span class="ident">decrypt</span>
-                .<span class="ident">decrypt_without_cert_check</span>(<span class="kw-2">&amp;</span><span class="ident">priv_cert</span>.<span class="ident">pkey</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to decrypt cms&quot;</span>);
-            <span class="kw">let</span> <span class="ident">decrypt_without_cert_check</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="ident">decrypt_without_cert_check</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to create string from cms content&quot;</span>);
+            <span class="kw">let </span>decrypt_without_cert_check = decrypt
+                .decrypt_without_cert_check(<span class="kw-2">&amp;</span>priv_cert.pkey)
+                .expect(<span class="string">&quot;failed to decrypt cms&quot;</span>);
+            <span class="kw">let </span>decrypt_without_cert_check = String::from_utf8(decrypt_without_cert_check)
+                .expect(<span class="string">&quot;failed to create string from cms content&quot;</span>);
 
-            <span class="macro">assert_eq!</span>(<span class="ident">input</span>, <span class="ident">decrypt_with_cert_check</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">input</span>, <span class="ident">decrypt_without_cert_check</span>);
+            <span class="macro">assert_eq!</span>(input, decrypt_with_cert_check);
+            <span class="macro">assert_eq!</span>(input, decrypt_without_cert_check);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

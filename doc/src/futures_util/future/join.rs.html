@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/future/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/future/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -215,222 +215,222 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(non_snake_case)]
 
-<span class="kw">use</span> <a class="ident" href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::future</span>::{<a class="ident" href="../../../src/futures_util/future/maybe_done.rs.html#43">maybe_done</a>, <a class="ident" href="../../../src/futures_util/future/maybe_done.rs.html#14">MaybeDone</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">futures_core::future</span>::{<a class="ident" href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+</span><span class="kw">use </span><a href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
+<span class="kw">use </span><span class="kw">crate</span>::future::{<a href="../../../src/futures_util/future/maybe_done.rs.html#43">maybe_done</a>, <a href="../../../src/futures_util/future/maybe_done.rs.html#14">MaybeDone</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>futures_core::future::{<a href="../../../futures_util/future/trait.FusedFuture.html">FusedFuture</a>, <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="macro">macro_rules!</span> <span class="ident">generate</span> {
+<span class="macro">macro_rules! </span>generate {
     ($(
-        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Join</span>:<span class="ident">ident</span>, <span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>:<span class="ident">ident</span>),<span class="kw-2">*</span><span class="op">&gt;</span>),
+        $(<span class="attribute">#[<span class="macro-nonterminal">$doc</span>:meta]</span>)*
+        (<span class="macro-nonterminal">$Join</span>:ident, &lt;$(<span class="macro-nonterminal">$Fut</span>:ident),<span class="kw-2">*</span>&gt;),
     )<span class="kw-2">*</span>) =&gt; ($(
-        <span class="macro">pin_project!</span> {
-            $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span>)<span class="op">*</span>
-            <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Join</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>: <span class="ident">Future</span>),<span class="kw-2">*</span><span class="op">&gt;</span> {
-                $(<span class="attribute">#[<span class="ident">pin</span>]</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>: <span class="ident">MaybeDone</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span><span class="op">&gt;</span>,)<span class="op">*</span>
+        <span class="macro">pin_project! </span>{
+            $(<span class="attribute">#[<span class="macro-nonterminal">$doc</span>]</span>)*
+            <span class="attribute">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+            </span><span class="kw">pub struct </span><span class="macro-nonterminal">$Join</span>&lt;$(<span class="macro-nonterminal">$Fut</span>: Future),<span class="kw-2">*</span>&gt; {
+                $(<span class="attribute">#[pin] </span><span class="macro-nonterminal">$Fut</span>: MaybeDone&lt;<span class="macro-nonterminal">$Fut</span>&gt;,)*
             }
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Join</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>),<span class="kw-2">*</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            $(
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>: <span class="ident">Future</span> <span class="op">+</span> <span class="ident">fmt::Debug</span>,
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut::Output</span>: <span class="ident">fmt::Debug</span>,
-            )<span class="op">*</span>
+        <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$Fut</span>),<span class="kw-2">*</span>&gt; fmt::Debug <span class="kw">for </span><span class="macro-nonterminal">$Join</span>&lt;$(<span class="macro-nonterminal">$Fut</span>),<span class="kw-2">*</span>&gt;
+        <span class="kw">where
+            </span>$(
+                <span class="macro-nonterminal">$Fut</span>: Future + fmt::Debug,
+                <span class="macro-nonterminal">$Fut::Output</span>: fmt::Debug,
+            )*
         {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-                <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Join</span>))
-                    $(.<span class="ident">field</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>))<span class="op">*</span>
-                    .<span class="ident">finish</span>()
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+                f.debug_struct(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$Join</span>))
+                    $(.field(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$Fut</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="macro-nonterminal">$Fut</span>))*
+                    .finish()
             }
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>: <span class="ident">Future</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Join</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>),<span class="kw-2">*</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">new</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>),<span class="kw-2">*</span>) -&gt; <span class="self">Self</span> {
-                <span class="self">Self</span> {
-                    $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>: <span class="ident">maybe_done</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>)),<span class="op">*</span>
+        <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$Fut</span>: Future),<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$Join</span>&lt;$(<span class="macro-nonterminal">$Fut</span>),<span class="kw-2">*</span>&gt; {
+            <span class="kw">fn </span>new($(<span class="macro-nonterminal">$Fut</span>: <span class="macro-nonterminal">$Fut</span>),<span class="kw-2">*</span>) -&gt; <span class="self">Self </span>{
+                <span class="self">Self </span>{
+                    $(<span class="macro-nonterminal">$Fut</span>: maybe_done(<span class="macro-nonterminal">$Fut</span>)),*
                 }
             }
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>: <span class="ident">Future</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Join</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>),<span class="kw-2">*</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut::Output</span>),<span class="kw-2">*</span>);
+        <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$Fut</span>: Future),<span class="kw-2">*</span>&gt; Future <span class="kw">for </span><span class="macro-nonterminal">$Join</span>&lt;$(<span class="macro-nonterminal">$Fut</span>),<span class="kw-2">*</span>&gt; {
+            <span class="kw">type </span>Output = ($(<span class="macro-nonterminal">$Fut::Output</span>),<span class="kw-2">*</span>);
 
-            <span class="kw">fn</span> <span class="ident">poll</span>(
-                <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>
-            ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_done</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">futures</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
+            <span class="kw">fn </span>poll(
+                <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;
+            ) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>all_done = <span class="bool-val">true</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>futures = <span class="self">self</span>.project();
                 $(
-                    <span class="ident">all_done</span> <span class="op">&amp;=</span> <span class="ident">futures</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">is_ready</span>();
-                )<span class="op">*</span>
+                    all_done &amp;= futures.<span class="macro-nonterminal">$Fut</span>.as_mut().poll(cx).is_ready();
+                )*
 
-                <span class="kw">if</span> <span class="ident">all_done</span> {
-                    <span class="ident">Poll::Ready</span>(($(<span class="ident">futures</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>.<span class="ident">take_output</span>().<span class="ident">unwrap</span>()), <span class="kw-2">*</span>))
-                } <span class="kw">else</span> {
-                    <span class="ident">Poll::Pending</span>
+                <span class="kw">if </span>all_done {
+                    Poll::Ready(($(futures.<span class="macro-nonterminal">$Fut</span>.take_output().unwrap()), <span class="kw-2">*</span>))
+                } <span class="kw">else </span>{
+                    Poll::Pending
                 }
             }
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>: <span class="ident">FusedFuture</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">FusedFuture</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Join</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>),<span class="kw-2">*</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$Fut</span>: FusedFuture),<span class="kw-2">*</span>&gt; FusedFuture <span class="kw">for </span><span class="macro-nonterminal">$Join</span>&lt;$(<span class="macro-nonterminal">$Fut</span>),<span class="kw-2">*</span>&gt; {
+            <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
                 $(
-                    <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Fut</span>.<span class="ident">is_terminated</span>()
-                ) <span class="op">&amp;&amp;</span> <span class="op">*</span>
+                    <span class="self">self</span>.<span class="macro-nonterminal">$Fut</span>.is_terminated()
+                ) &amp;&amp; *
             }
         }
     )<span class="kw-2">*</span>)
 }
 
-<a class="macro" href="../../../src/futures_util/future/join.rs.html#11-74">generate!</a> {
-    <span class="doccomment">/// Future for the [`join`](join()) function.</span>
-    (<span class="ident">Join</span>, <span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span><span class="op">&gt;</span>),
+<a class="macro" href="../../../src/futures_util/future/join.rs.html#11-74">generate! </a>{
+    <span class="doccomment">/// Future for the [`join`](join()) function.
+    </span>(Join, &lt;Fut1, Fut2&gt;),
 
-    <span class="doccomment">/// Future for the [`join3`] function.</span>
-    (<span class="ident">Join3</span>, <span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// Future for the [`join3`] function.
+    </span>(Join3, &lt;Fut1, Fut2, Fut3&gt;),
 
-    <span class="doccomment">/// Future for the [`join4`] function.</span>
-    (<span class="ident">Join4</span>, <span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span>, <span class="ident">Fut4</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// Future for the [`join4`] function.
+    </span>(Join4, &lt;Fut1, Fut2, Fut3, Fut4&gt;),
 
-    <span class="doccomment">/// Future for the [`join5`] function.</span>
-    (<span class="ident">Join5</span>, <span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span>, <span class="ident">Fut4</span>, <span class="ident">Fut5</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// Future for the [`join5`] function.
+    </span>(Join5, &lt;Fut1, Fut2, Fut3, Fut4, Fut5&gt;),
 }
 
-<span class="doccomment">/// Joins the result of two futures, waiting for them both to complete.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will return a new future which awaits both futures to</span>
-<span class="doccomment">/// complete. The returned future will finish with a tuple of both results.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that this function consumes the passed futures and returns a</span>
-<span class="doccomment">/// wrapped version of it.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::future;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let a = async { 1 };</span>
-<span class="doccomment">/// let b = async { 2 };</span>
-<span class="doccomment">/// let pair = future::join(a, b);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(pair.await, (1, 2));</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span><span class="op">&gt;</span>(<span class="ident">future1</span>: <span class="ident">Fut1</span>, <span class="ident">future2</span>: <span class="ident">Fut2</span>) -&gt; <span class="ident">Join</span><span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Fut1</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut2</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="doccomment">/// Joins the result of two futures, waiting for them both to complete.
+///
+/// This function will return a new future which awaits both futures to
+/// complete. The returned future will finish with a tuple of both results.
+///
+/// Note that this function consumes the passed futures and returns a
+/// wrapped version of it.
+///
+/// # Examples
+///
+/// ```
+/// # futures::executor::block_on(async {
+/// use futures::future;
+///
+/// let a = async { 1 };
+/// let b = async { 2 };
+/// let pair = future::join(a, b);
+///
+/// assert_eq!(pair.await, (1, 2));
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>join&lt;Fut1, Fut2&gt;(future1: Fut1, future2: Fut2) -&gt; Join&lt;Fut1, Fut2&gt;
+<span class="kw">where
+    </span>Fut1: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut2: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Join::new</span>(<a class="ident" href="../../../src/futures_util/future/join.rs.html#111">future1</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#111">future2</a>);
-    <span class="ident">assert_future</span>::<span class="op">&lt;</span>(<span class="ident">Fut1::Output</span>, <span class="ident">Fut2::Output</span>), <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/join.rs.html#116">f</a>)
+    <span class="kw">let </span>f = Join::new(<a href="../../../src/futures_util/future/join.rs.html#111">future1</a>, <a href="../../../src/futures_util/future/join.rs.html#111">future2</a>);
+    assert_future::&lt;(Fut1::Output, Fut2::Output), <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/future/join.rs.html#116">f</a>)
 }
 
-<span class="doccomment">/// Same as [`join`](join()), but with more futures.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::future;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let a = async { 1 };</span>
-<span class="doccomment">/// let b = async { 2 };</span>
-<span class="doccomment">/// let c = async { 3 };</span>
-<span class="doccomment">/// let tuple = future::join3(a, b, c);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(tuple.await, (1, 2, 3));</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join3</span><span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span><span class="op">&gt;</span>(
-    <span class="ident">future1</span>: <span class="ident">Fut1</span>,
-    <span class="ident">future2</span>: <span class="ident">Fut2</span>,
-    <span class="ident">future3</span>: <span class="ident">Fut3</span>,
-) -&gt; <span class="ident">Join3</span><span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Fut1</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut2</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut3</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="doccomment">/// Same as [`join`](join()), but with more futures.
+///
+/// # Examples
+///
+/// ```
+/// # futures::executor::block_on(async {
+/// use futures::future;
+///
+/// let a = async { 1 };
+/// let b = async { 2 };
+/// let c = async { 3 };
+/// let tuple = future::join3(a, b, c);
+///
+/// assert_eq!(tuple.await, (1, 2, 3));
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>join3&lt;Fut1, Fut2, Fut3&gt;(
+    future1: Fut1,
+    future2: Fut2,
+    future3: Fut3,
+) -&gt; Join3&lt;Fut1, Fut2, Fut3&gt;
+<span class="kw">where
+    </span>Fut1: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut2: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut3: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Join3::new</span>(<a class="ident" href="../../../src/futures_util/future/join.rs.html#137">future1</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#138">future2</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#139">future3</a>);
-    <span class="ident">assert_future</span>::<span class="op">&lt;</span>(<span class="ident">Fut1::Output</span>, <span class="ident">Fut2::Output</span>, <span class="ident">Fut3::Output</span>), <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/join.rs.html#146">f</a>)
+    <span class="kw">let </span>f = Join3::new(<a href="../../../src/futures_util/future/join.rs.html#137">future1</a>, <a href="../../../src/futures_util/future/join.rs.html#138">future2</a>, <a href="../../../src/futures_util/future/join.rs.html#139">future3</a>);
+    assert_future::&lt;(Fut1::Output, Fut2::Output, Fut3::Output), <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/future/join.rs.html#146">f</a>)
 }
 
-<span class="doccomment">/// Same as [`join`](join()), but with more futures.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::future;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let a = async { 1 };</span>
-<span class="doccomment">/// let b = async { 2 };</span>
-<span class="doccomment">/// let c = async { 3 };</span>
-<span class="doccomment">/// let d = async { 4 };</span>
-<span class="doccomment">/// let tuple = future::join4(a, b, c, d);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(tuple.await, (1, 2, 3, 4));</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join4</span><span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span>, <span class="ident">Fut4</span><span class="op">&gt;</span>(
-    <span class="ident">future1</span>: <span class="ident">Fut1</span>,
-    <span class="ident">future2</span>: <span class="ident">Fut2</span>,
-    <span class="ident">future3</span>: <span class="ident">Fut3</span>,
-    <span class="ident">future4</span>: <span class="ident">Fut4</span>,
-) -&gt; <span class="ident">Join4</span><span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span>, <span class="ident">Fut4</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Fut1</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut2</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut3</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut4</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="doccomment">/// Same as [`join`](join()), but with more futures.
+///
+/// # Examples
+///
+/// ```
+/// # futures::executor::block_on(async {
+/// use futures::future;
+///
+/// let a = async { 1 };
+/// let b = async { 2 };
+/// let c = async { 3 };
+/// let d = async { 4 };
+/// let tuple = future::join4(a, b, c, d);
+///
+/// assert_eq!(tuple.await, (1, 2, 3, 4));
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>join4&lt;Fut1, Fut2, Fut3, Fut4&gt;(
+    future1: Fut1,
+    future2: Fut2,
+    future3: Fut3,
+    future4: Fut4,
+) -&gt; Join4&lt;Fut1, Fut2, Fut3, Fut4&gt;
+<span class="kw">where
+    </span>Fut1: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut2: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut3: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut4: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Join4::new</span>(<a class="ident" href="../../../src/futures_util/future/join.rs.html#168">future1</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#169">future2</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#170">future3</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#171">future4</a>);
-    <span class="ident">assert_future</span>::<span class="op">&lt;</span>(<span class="ident">Fut1::Output</span>, <span class="ident">Fut2::Output</span>, <span class="ident">Fut3::Output</span>, <span class="ident">Fut4::Output</span>), <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/join.rs.html#179">f</a>)
+    <span class="kw">let </span>f = Join4::new(<a href="../../../src/futures_util/future/join.rs.html#168">future1</a>, <a href="../../../src/futures_util/future/join.rs.html#169">future2</a>, <a href="../../../src/futures_util/future/join.rs.html#170">future3</a>, <a href="../../../src/futures_util/future/join.rs.html#171">future4</a>);
+    assert_future::&lt;(Fut1::Output, Fut2::Output, Fut3::Output, Fut4::Output), <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/future/join.rs.html#179">f</a>)
 }
 
-<span class="doccomment">/// Same as [`join`](join()), but with more futures.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # futures::executor::block_on(async {</span>
-<span class="doccomment">/// use futures::future;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let a = async { 1 };</span>
-<span class="doccomment">/// let b = async { 2 };</span>
-<span class="doccomment">/// let c = async { 3 };</span>
-<span class="doccomment">/// let d = async { 4 };</span>
-<span class="doccomment">/// let e = async { 5 };</span>
-<span class="doccomment">/// let tuple = future::join5(a, b, c, d, e);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(tuple.await, (1, 2, 3, 4, 5));</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join5</span><span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span>, <span class="ident">Fut4</span>, <span class="ident">Fut5</span><span class="op">&gt;</span>(
-    <span class="ident">future1</span>: <span class="ident">Fut1</span>,
-    <span class="ident">future2</span>: <span class="ident">Fut2</span>,
-    <span class="ident">future3</span>: <span class="ident">Fut3</span>,
-    <span class="ident">future4</span>: <span class="ident">Fut4</span>,
-    <span class="ident">future5</span>: <span class="ident">Fut5</span>,
-) -&gt; <span class="ident">Join5</span><span class="op">&lt;</span><span class="ident">Fut1</span>, <span class="ident">Fut2</span>, <span class="ident">Fut3</span>, <span class="ident">Fut4</span>, <span class="ident">Fut5</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Fut1</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut2</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut3</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut4</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    <span class="ident">Fut5</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+<span class="doccomment">/// Same as [`join`](join()), but with more futures.
+///
+/// # Examples
+///
+/// ```
+/// # futures::executor::block_on(async {
+/// use futures::future;
+///
+/// let a = async { 1 };
+/// let b = async { 2 };
+/// let c = async { 3 };
+/// let d = async { 4 };
+/// let e = async { 5 };
+/// let tuple = future::join5(a, b, c, d, e);
+///
+/// assert_eq!(tuple.await, (1, 2, 3, 4, 5));
+/// # });
+/// ```
+</span><span class="kw">pub fn </span>join5&lt;Fut1, Fut2, Fut3, Fut4, Fut5&gt;(
+    future1: Fut1,
+    future2: Fut2,
+    future3: Fut3,
+    future4: Fut4,
+    future5: Fut5,
+) -&gt; Join5&lt;Fut1, Fut2, Fut3, Fut4, Fut5&gt;
+<span class="kw">where
+    </span>Fut1: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut2: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut3: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut4: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
+    Fut5: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Join5::new</span>(<a class="ident" href="../../../src/futures_util/future/join.rs.html#202">future1</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#203">future2</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#204">future3</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#205">future4</a>, <a class="ident" href="../../../src/futures_util/future/join.rs.html#206">future5</a>);
-    <span class="ident">assert_future</span>::<span class="op">&lt;</span>(<span class="ident">Fut1::Output</span>, <span class="ident">Fut2::Output</span>, <span class="ident">Fut3::Output</span>, <span class="ident">Fut4::Output</span>, <span class="ident">Fut5::Output</span>), <span class="kw">_</span><span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/join.rs.html#215">f</a>)
+    <span class="kw">let </span>f = Join5::new(<a href="../../../src/futures_util/future/join.rs.html#202">future1</a>, <a href="../../../src/futures_util/future/join.rs.html#203">future2</a>, <a href="../../../src/futures_util/future/join.rs.html#204">future3</a>, <a href="../../../src/futures_util/future/join.rs.html#205">future4</a>, <a href="../../../src/futures_util/future/join.rs.html#206">future5</a>);
+    assert_future::&lt;(Fut1::Output, Fut2::Output, Fut3::Output, Fut4::Output, Fut5::Output), <span class="kw">_</span>&gt;(<a href="../../../src/futures_util/future/join.rs.html#215">f</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

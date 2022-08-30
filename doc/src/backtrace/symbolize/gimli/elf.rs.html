@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.66/src/symbolize/gimli/elf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>elf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../backtrace/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../backtrace/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../backtrace/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.66/src/symbolize/gimli/elf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>elf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../backtrace/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../backtrace/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../backtrace/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -421,428 +421,428 @@
 <span id="421">421</span>
 <span id="422">422</span>
 <span id="423">423</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mystd::ffi</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/index.html"><span class="kw">super</span>::mystd::fs</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mystd::os::unix::ffi</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">OsStrExt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">OsStringExt</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::mystd::path</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#64"><span class="kw">super</span>::Either</a>;
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#105">Context</a>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#10">Stash</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
-<span class="kw">use</span> <span class="ident">core::convert</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">TryInto</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
-<span class="kw">use</span> <span class="ident">object::elf</span>::{<a class="ident" href="../../../../object/elf/constant.ELFCOMPRESS_ZLIB.html">ELFCOMPRESS_ZLIB</a>, <a class="ident" href="../../../../object/elf/static.ELF_NOTE_GNU.html">ELF_NOTE_GNU</a>, <a class="ident" href="../../../../object/elf/constant.NT_GNU_BUILD_ID.html">NT_GNU_BUILD_ID</a>, <a class="ident" href="../../../../object/elf/constant.SHF_COMPRESSED.html">SHF_COMPRESSED</a>};
-<span class="kw">use</span> <span class="ident">object::read::elf</span>::{<a class="ident" href="../../../../object/read/elf/compression/trait.CompressionHeader.html">CompressionHeader</a>, <a class="ident" href="../../../../object/read/elf/file/trait.FileHeader.html">FileHeader</a>, <a class="ident" href="../../../../object/read/elf/section/trait.SectionHeader.html">SectionHeader</a>, <a class="ident" href="../../../../object/read/elf/section/struct.SectionTable.html">SectionTable</a>, <a class="ident" href="../../../../object/read/elf/symbol/trait.Sym.html">Sym</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../object/read/util/struct.StringTable.html">object::read::StringTable</a>;
-<span class="kw">use</span> <span class="ident">object</span>::{<span class="ident">BigEndian</span>, <span class="ident">Bytes</span>, <span class="ident">NativeEndian</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::mystd::ffi::{<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/fs/index.html"><span class="kw">super</span>::mystd::fs</a>;
+<span class="kw">use </span><span class="kw">super</span>::mystd::os::unix::ffi::{<a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">OsStrExt</a>, <a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">OsStringExt</a>};
+<span class="kw">use </span><span class="kw">super</span>::mystd::path::{<a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>};
+<span class="kw">use </span><a href="../../../../src/backtrace/symbolize/gimli.rs.html#64"><span class="kw">super</span>::Either</a>;
+<span class="kw">use super</span>::{<a href="../../../../src/backtrace/symbolize/gimli.rs.html#105">Context</a>, <a href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a>, <a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#10">Stash</a>, <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">Vec</a>};
+<span class="kw">use </span>core::convert::{<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">TryFrom</a>, <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">TryInto</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/index.html">core::str</a>;
+<span class="kw">use </span>object::elf::{<a href="../../../../object/elf/constant.ELFCOMPRESS_ZLIB.html">ELFCOMPRESS_ZLIB</a>, <a href="../../../../object/elf/static.ELF_NOTE_GNU.html">ELF_NOTE_GNU</a>, <a href="../../../../object/elf/constant.NT_GNU_BUILD_ID.html">NT_GNU_BUILD_ID</a>, <a href="../../../../object/elf/constant.SHF_COMPRESSED.html">SHF_COMPRESSED</a>};
+<span class="kw">use </span>object::read::elf::{<a href="../../../../object/read/elf/compression/trait.CompressionHeader.html">CompressionHeader</a>, <a href="../../../../object/read/elf/file/trait.FileHeader.html">FileHeader</a>, <a href="../../../../object/read/elf/section/trait.SectionHeader.html">SectionHeader</a>, <a href="../../../../object/read/elf/section/struct.SectionTable.html">SectionTable</a>, <a href="../../../../object/read/elf/symbol/trait.Sym.html">Sym</a>};
+<span class="kw">use </span><a href="../../../../object/read/util/struct.StringTable.html">object::read::StringTable</a>;
+<span class="kw">use </span>object::{BigEndian, Bytes, NativeEndian};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-<span class="kw">type</span> <span class="ident">Elf</span> <span class="op">=</span> <span class="ident">object::elf::FileHeader32</span><span class="op">&lt;</span><span class="ident">NativeEndian</span><span class="op">&gt;</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="kw">type</span> <span class="ident">Elf</span> <span class="op">=</span> <span class="ident">object::elf::FileHeader64</span><span class="op">&lt;</span><a class="ident" href="../../../../object/endian/type.NativeEndian.html">NativeEndian</a><span class="op">&gt;</span>;
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+</span><span class="kw">type </span>Elf = object::elf::FileHeader32&lt;NativeEndian&gt;;
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+</span><span class="kw">type </span>Elf = object::elf::FileHeader64&lt;<a href="../../../../object/endian/type.NativeEndian.html">NativeEndian</a>&gt;;
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::mmap</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="ident">Mapping::mk_or_other</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#21">map</a>, <span class="op">|</span><span class="ident">map</span>, <span class="ident">stash</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object::parse</span>(<span class="kw-2">&amp;</span><span class="ident">map</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a> {
+    <span class="kw">pub fn </span>new(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a>&gt; {
+        <span class="kw">let </span>map = <span class="kw">super</span>::mmap(path)<span class="question-mark">?</span>;
+        Mapping::mk_or_other(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#21">map</a>, |map, stash| {
+            <span class="kw">let </span>object = Object::parse(<span class="kw-2">&amp;</span>map)<span class="question-mark">?</span>;
 
-            <span class="comment">// Try to locate an external debug file using the build ID.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path_debug</span>) <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>.<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#217">build_id</a>().<span class="ident">and_then</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">locate_build_id</a>) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mapping</span>) <span class="op">=</span> <span class="ident">Mapping::new_debug</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#26">path_debug</a>, <span class="prelude-val">None</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#66">Either::A</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#27">mapping</a>));
+            <span class="comment">// Try to locate an external debug file using the build ID.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(path_debug) = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>.<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#217">build_id</a>().and_then(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">locate_build_id</a>) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(mapping) = Mapping::new_debug(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#26">path_debug</a>, <span class="prelude-val">None</span>) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli.rs.html#66">Either::A</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#27">mapping</a>));
                 }
             }
 
-            <span class="comment">// Try to locate an external debug file using the GNU debug link section.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">path_debug</span>, <span class="ident">crc</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>.<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#232">gnu_debuglink_path</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#20">path</a>) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mapping</span>) <span class="op">=</span> <span class="ident">Mapping::new_debug</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#33">path_debug</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#33">crc</a>)) {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#66">Either::A</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#34">mapping</a>));
+            <span class="comment">// Try to locate an external debug file using the GNU debug link section.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>((path_debug, crc)) = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>.<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#232">gnu_debuglink_path</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#20">path</a>) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(mapping) = Mapping::new_debug(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#33">path_debug</a>, <span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#33">crc</a>)) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli.rs.html#66">Either::A</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#34">mapping</a>));
                 }
             }
 
-            <span class="ident">Context::new</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#22">stash</a>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>, <span class="prelude-val">None</span>).<span class="ident">map</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#67">Either::B</a>)
+            Context::new(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#22">stash</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#23">object</a>, <span class="prelude-val">None</span>).map(<a href="../../../../src/backtrace/symbolize/gimli.rs.html#67">Either::B</a>)
         })
     }
 
-    <span class="doccomment">/// Load debuginfo from an external debug file.</span>
-    <span class="kw">fn</span> <span class="ident">new_debug</span>(<span class="ident">path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <span class="ident">crc</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::mmap</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="ident">Mapping::mk</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#45">map</a>, <span class="op">|</span><span class="ident">map</span>, <span class="ident">stash</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object::parse</span>(<span class="kw-2">&amp;</span><span class="ident">map</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Load debuginfo from an external debug file.
+    </span><span class="kw">fn </span>new_debug(path: <a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, crc: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../src/backtrace/symbolize/gimli.rs.html#57">Mapping</a>&gt; {
+        <span class="kw">let </span>map = <span class="kw">super</span>::mmap(<span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
+        Mapping::mk(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#45">map</a>, |map, stash| {
+            <span class="kw">let </span>object = Object::parse(<span class="kw-2">&amp;</span>map)<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_crc</span>) <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#44">crc</a> {
-                <span class="comment">// TODO: check crc</span>
-            }
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(_crc) = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#44">crc</a> {
+                <span class="comment">// TODO: check crc
+            </span>}
 
-            <span class="comment">// Try to locate a supplementary object file.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">path_sup</span>, <span class="ident">build_id_sup</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>.<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#247">gnu_debugaltlink_path</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#44">path</a>) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map_sup</span>) <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli.rs.html#136"><span class="kw">super</span>::mmap</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#54">path_sup</a>) {
-                    <span class="kw">let</span> <span class="ident">map_sup</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>.<a class="ident" href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#38">set_mmap_aux</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#55">map_sup</a>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sup</span>) <span class="op">=</span> <span class="ident">Object::parse</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#56">map_sup</a>) {
-                        <span class="kw">if</span> <span class="ident">sup</span>.<span class="ident">build_id</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">build_id_sup</span>) {
-                            <span class="kw">return</span> <span class="ident">Context::new</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#57">sup</a>));
+            <span class="comment">// Try to locate a supplementary object file.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>((path_sup, build_id_sup)) = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>.<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#247">gnu_debugaltlink_path</a>(<span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#44">path</a>) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(map_sup) = <a href="../../../../src/backtrace/symbolize/gimli.rs.html#136"><span class="kw">super</span>::mmap</a>(<span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#54">path_sup</a>) {
+                    <span class="kw">let </span>map_sup = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>.<a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#38">set_mmap_aux</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#55">map_sup</a>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = Object::parse(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#56">map_sup</a>) {
+                        <span class="kw">if </span>sup.build_id() == <span class="prelude-val">Some</span>(build_id_sup) {
+                            <span class="kw">return </span>Context::new(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>, <span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#57">sup</a>));
                         }
                     }
                 }
             }
 
-            <span class="ident">Context::new</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>, <span class="prelude-val">None</span>)
+            Context::new(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#46">stash</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#47">object</a>, <span class="prelude-val">None</span>)
         })
     }
 }
 
-<span class="kw">struct</span> <span class="ident">ParsedSym</span> {
-    <span class="ident">address</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
-    <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+<span class="kw">struct </span>ParsedSym {
+    address: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    name: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Zero-sized type representing the native endianness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// We could use a literal instead, but this helps ensure correctness.</span>
-    <span class="ident">endian</span>: <a class="ident" href="../../../../object/endian/type.NativeEndian.html">NativeEndian</a>,
-    <span class="doccomment">/// The entire file data.</span>
-    <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    <span class="ident">sections</span>: <span class="ident">SectionTable</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#17">Elf</a><span class="op">&gt;</span>,
-    <span class="ident">strings</span>: <span class="ident">StringTable</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// List of pre-parsed and sorted symbols by base address.</span>
-    <span class="ident">syms</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#70">ParsedSym</a><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>Object&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Zero-sized type representing the native endianness.
+    ///
+    /// We could use a literal instead, but this helps ensure correctness.
+    </span>endian: <a href="../../../../object/endian/type.NativeEndian.html">NativeEndian</a>,
+    <span class="doccomment">/// The entire file data.
+    </span>data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    sections: SectionTable&lt;<span class="lifetime">&#39;a</span>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#17">Elf</a>&gt;,
+    strings: StringTable&lt;<span class="lifetime">&#39;a</span>&gt;,
+    <span class="doccomment">/// List of pre-parsed and sorted symbols by base address.
+    </span>syms: Vec&lt;<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#70">ParsedSym</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">elf</span> <span class="op">=</span> <span class="ident">Elf::parse</span>(<span class="ident">data</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">endian</span> <span class="op">=</span> <span class="ident">elf</span>.<span class="ident">endian</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">sections</span> <span class="op">=</span> <span class="ident">elf</span>.<span class="ident">sections</span>(<span class="ident">endian</span>, <span class="ident">data</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">syms</span> <span class="op">=</span> <span class="ident">sections</span>
-            .<span class="ident">symbols</span>(<span class="ident">endian</span>, <span class="ident">data</span>, <span class="ident">object::elf::SHT_SYMTAB</span>)
-            .<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">syms</span>.<span class="ident">is_empty</span>() {
-            <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a> <span class="op">=</span> <span class="ident">sections</span>
-                .<span class="ident">symbols</span>(<span class="ident">endian</span>, <span class="ident">data</span>, <span class="ident">object::elf::SHT_DYNSYM</span>)
-                .<span class="ident">ok</span>()<span class="question-mark">?</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Object&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>parse(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;Object&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="kw">let </span>elf = Elf::parse(data).ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span>endian = elf.endian().ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span>sections = elf.sections(endian, data).ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>syms = sections
+            .symbols(endian, data, object::elf::SHT_SYMTAB)
+            .ok()<span class="question-mark">?</span>;
+        <span class="kw">if </span>syms.is_empty() {
+            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a> = sections
+                .symbols(endian, data, object::elf::SHT_DYNSYM)
+                .ok()<span class="question-mark">?</span>;
         }
-        <span class="kw">let</span> <span class="ident">strings</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a>.<span class="ident">strings</span>();
+        <span class="kw">let </span>strings = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a>.strings();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">syms</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a>
-            .<span class="ident">iter</span>()
-            <span class="comment">// Only look at function/object symbols. This mirrors what</span>
-            <span class="comment">// libbacktrace does and in general we&#39;re only symbolicating</span>
-            <span class="comment">// function addresses in theory. Object symbols correspond</span>
-            <span class="comment">// to data, and maybe someone&#39;s crazy enough to have a</span>
-            <span class="comment">// function go into static data?</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">sym</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">st_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#111">sym</a>.<span class="ident">st_type</span>();
-                <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#112">st_type</a> <span class="op">==</span> <span class="ident">object::elf::STT_FUNC</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#112">st_type</a> <span class="op">==</span> <span class="ident">object::elf::STT_OBJECT</span>
+        <span class="kw">let </span><span class="kw-2">mut </span>syms = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#94">syms</a>
+            .iter()
+            <span class="comment">// Only look at function/object symbols. This mirrors what
+            // libbacktrace does and in general we&#39;re only symbolicating
+            // function addresses in theory. Object symbols correspond
+            // to data, and maybe someone&#39;s crazy enough to have a
+            // function go into static data?
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|sym| {
+                <span class="kw">let </span>st_type = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#111">sym</a>.st_type();
+                <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#112">st_type</a> == object::elf::STT_FUNC || <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#112">st_type</a> == object::elf::STT_OBJECT
             })
-            <span class="comment">// skip anything that&#39;s in an undefined section header,</span>
-            <span class="comment">// since it means it&#39;s an imported function and we&#39;re only</span>
-            <span class="comment">// symbolicating with locally defined functions.</span>
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">sym</span><span class="op">|</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#118">sym</a>.<a class="ident" href="../../../../object/read/elf/symbol/trait.Sym.html">st_shndx</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>) <span class="op">!</span><span class="op">=</span> <span class="ident">object::elf::SHN_UNDEF</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">sym</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a class="ident" href="../../../../object/read/elf/symbol/trait.Sym.html">st_value</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a class="ident" href="../../../../object/read/elf/symbol/trait.Sym.html">st_size</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a class="ident" href="../../../../object/read/elf/symbol/trait.Sym.html">st_name</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>);
-                <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#70">ParsedSym</a> {
-                    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#120">address</a>,
-                    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#121">size</a>,
-                    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#122">name</a>,
+            <span class="comment">// skip anything that&#39;s in an undefined section header,
+            // since it means it&#39;s an imported function and we&#39;re only
+            // symbolicating with locally defined functions.
+            </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|sym| <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#118">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_shndx</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>) != object::elf::SHN_UNDEF)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|sym| {
+                <span class="kw">let </span>address = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_value</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <span class="kw">let </span>size = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_size</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <span class="kw">let </span>name = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#119">sym</a>.<a href="../../../../object/read/elf/symbol/trait.Sym.html">st_name</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>);
+                <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#70">ParsedSym</a> {
+                    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#120">address</a>,
+                    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#121">size</a>,
+                    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#122">name</a>,
                 }
             })
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#104">syms</a>.<span class="ident">sort_unstable_by_key</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#130">s</a>.<span class="ident">address</span>);
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#76">Object</a> {
-            <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>,
-            <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#90">data</a>,
-            <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#93">sections</a>,
-            <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#102">strings</a>,
-            <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#104">syms</a>,
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#104">syms</a>.sort_unstable_by_key(|s| <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#130">s</a>.address);
+        <span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#76">Object</a> {
+            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#92">endian</a>,
+            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#90">data</a>,
+            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#93">sections</a>,
+            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#102">strings</a>,
+            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#104">syms</a>,
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">section</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stash</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#10">Stash</a>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">section</span>) <span class="op">=</span> <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">self</a>.<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">section_header</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">name</a>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Bytes</span>(<span class="ident">section</span>.<span class="ident">data</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">data</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>);
+    <span class="kw">pub fn </span>section(<span class="kw-2">&amp;</span><span class="self">self</span>, stash: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#10">Stash</a>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(section) = <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">self</a>.<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">section_header</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">name</a>) {
+            <span class="kw">let </span><span class="kw-2">mut </span>data = Bytes(section.data(<span class="self">self</span>.endian, <span class="self">self</span>.data).ok()<span class="question-mark">?</span>);
 
-            <span class="comment">// Check for DWARF-standard (gABI) compression, i.e., as generated</span>
-            <span class="comment">// by ld&#39;s `--compress-debug-sections=zlib-gabi` flag.</span>
-            <span class="kw">let</span> <span class="ident">flags</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#141">section</a>.<a class="ident" href="../../../../object/read/elf/section/trait.SectionHeader.html">sh_flags</a>(<a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">self</a>.<span class="ident">endian</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-            <span class="kw">if</span> (<span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">u64::from</span>(<span class="ident">SHF_COMPRESSED</span>)) <span class="op">==</span> <span class="number">0</span> {
-                <span class="comment">// Not compressed.</span>
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#142">data</a>.<span class="number">0</span>);
+            <span class="comment">// Check for DWARF-standard (gABI) compression, i.e., as generated
+            // by ld&#39;s `--compress-debug-sections=zlib-gabi` flag.
+            </span><span class="kw">let </span>flags: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#141">section</a>.<a href="../../../../object/read/elf/section/trait.SectionHeader.html">sh_flags</a>(<a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">self</a>.endian).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            <span class="kw">if </span>(flags &amp; u64::from(SHF_COMPRESSED)) == <span class="number">0 </span>{
+                <span class="comment">// Not compressed.
+                </span><span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#142">data</a>.<span class="number">0</span>);
             }
 
-            <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Elf</span> <span class="kw">as</span> <span class="ident">FileHeader</span><span class="op">&gt;</span><span class="ident">::CompressionHeader</span><span class="op">&gt;</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">header</span>.<span class="ident">ch_type</span>(<span class="self">self</span>.<span class="ident">endian</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">ELFCOMPRESS_ZLIB</span> {
-                <span class="comment">// Zlib compression is the only known type.</span>
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
+            <span class="kw">let </span>header = data.read::&lt;&lt;Elf <span class="kw">as </span>FileHeader&gt;::CompressionHeader&gt;().ok()<span class="question-mark">?</span>;
+            <span class="kw">if </span>header.ch_type(<span class="self">self</span>.endian) != ELFCOMPRESS_ZLIB {
+                <span class="comment">// Zlib compression is the only known type.
+                </span><span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">usize::try_from</span>(<span class="ident">header</span>.<span class="ident">ch_size</span>(<span class="self">self</span>.<span class="ident">endian</span>)).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">stash</a>.<a class="ident" href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#25">allocate</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#157">size</a>);
-            <span class="ident">decompress_zlib</span>(<span class="ident">data</span>.<span class="number">0</span>, <span class="ident">buf</span>)<span class="question-mark">?</span>;
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#158">buf</a>);
+            <span class="kw">let </span>size = usize::try_from(header.ch_size(<span class="self">self</span>.endian)).ok()<span class="question-mark">?</span>;
+            <span class="kw">let </span>buf = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">stash</a>.<a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#25">allocate</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#157">size</a>);
+            decompress_zlib(data.<span class="number">0</span>, buf)<span class="question-mark">?</span>;
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#158">buf</a>);
         }
 
-        <span class="comment">// Check for the nonstandard GNU compression format, i.e., as generated</span>
-        <span class="comment">// by ld&#39;s `--compress-debug-sections=zlib-gnu` flag. This means that if</span>
-        <span class="comment">// we&#39;re actually asking for `.debug_info` then we need to look up a</span>
-        <span class="comment">// section named `.zdebug_info`.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">name</span>.<span class="ident">starts_with</span>(<span class="string">&quot;.debug_&quot;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="comment">// Check for the nonstandard GNU compression format, i.e., as generated
+        // by ld&#39;s `--compress-debug-sections=zlib-gnu` flag. This means that if
+        // we&#39;re actually asking for `.debug_info` then we need to look up a
+        // section named `.zdebug_info`.
+        </span><span class="kw">if </span>!name.starts_with(<span class="string">&quot;.debug_&quot;</span>) {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="ident">debug_name</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">name</a>[<span class="number">7</span>..].<span class="ident">as_bytes</span>();
-        <span class="kw">let</span> <span class="ident">compressed_section</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">sections</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">header</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sections</span>.<span class="ident">section_name</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="ident">header</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;.zdebug_&quot;</span>) <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">name</span>[<span class="number">8</span>..] <span class="op">==</span> <span class="ident">debug_name</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">header</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                }
+        <span class="kw">let </span>debug_name = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">name</a>[<span class="number">7</span>..].as_bytes();
+        <span class="kw">let </span>compressed_section = <span class="self">self
+            </span>.sections
+            .iter()
+            .filter_map(|header| {
+                <span class="kw">let </span>name = <span class="self">self</span>.sections.section_name(<span class="self">self</span>.endian, header).ok()<span class="question-mark">?</span>;
+                <span class="kw">if </span>name.starts_with(<span class="string">b&quot;.zdebug_&quot;</span>) &amp;&amp; <span class="kw-2">&amp;</span>name[<span class="number">8</span>..] == debug_name {
+                    <span class="prelude-val">Some</span>(header)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
             })
-            .<span class="ident">next</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Bytes</span>(<span class="ident">compressed_section</span>.<span class="ident">data</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">data</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>);
-        <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">read_bytes</span>(<span class="number">8</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>.<span class="number">0</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&quot;ZLIB\0\0\0\0&quot;</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+            .next()<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>data = Bytes(compressed_section.data(<span class="self">self</span>.endian, <span class="self">self</span>.data).ok()<span class="question-mark">?</span>);
+        <span class="kw">if </span>data.read_bytes(<span class="number">8</span>).ok()<span class="question-mark">?</span>.<span class="number">0 </span>!= <span class="string">b&quot;ZLIB\0\0\0\0&quot; </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">usize::try_from</span>(<span class="ident">data</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">object::U32Bytes</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>.<span class="ident">get</span>(<span class="ident">BigEndian</span>)).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">stash</a>.<a class="ident" href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#25">allocate</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#187">size</a>);
-        <span class="ident">decompress_zlib</span>(<span class="ident">data</span>.<span class="number">0</span>, <span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#188">buf</a>)
+        <span class="kw">let </span>size = usize::try_from(data.read::&lt;object::U32Bytes&lt;<span class="kw">_</span>&gt;&gt;().ok()<span class="question-mark">?</span>.get(BigEndian)).ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span>buf = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#140">stash</a>.<a href="../../../../src/backtrace/symbolize/gimli/stash.rs.html#25">allocate</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#187">size</a>);
+        decompress_zlib(data.<span class="number">0</span>, buf)<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#188">buf</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">section_header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="op">&lt;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#17">Elf</a> <span class="kw">as</span> <span class="ident">FileHeader</span><span class="op">&gt;</span><span class="ident">::SectionHeader</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">self</a>.<span class="ident">sections</span>
-            .<span class="ident">section_by_name</span>(<a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">self</a>.<span class="ident">endian</span>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">name</a>.<span class="ident">as_bytes</span>())
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">_index</span>, <span class="ident">section</span>)<span class="op">|</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#196">section</a>)
+    <span class="kw">fn </span>section_header(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>&lt;<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#17">Elf</a> <span class="kw">as </span>FileHeader&gt;::SectionHeader&gt; {
+        <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">self</a>.sections
+            .section_by_name(<a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">self</a>.endian, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#193">name</a>.as_bytes())
+            .map(|(_index, section)| <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#196">section</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search_symtab</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>, <span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="comment">// Same sort of binary search as Windows above</span>
-        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">self</a>.<span class="ident">syms</span>.<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">addr</a>, <span class="op">|</span><span class="ident">sym</span><span class="op">|</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#201">sym</a>.<span class="ident">address</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#202">i</a>,
-            <span class="prelude-val">Err</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>)<span class="question-mark">?</span>,
+    <span class="kw">pub fn </span>search_symtab&lt;<span class="lifetime">&#39;b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>, addr: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="comment">// Same sort of binary search as Windows above
+        </span><span class="kw">let </span>i = <span class="kw">match </span><a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">self</a>.syms.binary_search_by_key(<span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">addr</a>, |sym| <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#201">sym</a>.address) {
+            <span class="prelude-val">Ok</span>(i) =&gt; <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#202">i</a>,
+            <span class="prelude-val">Err</span>(i) =&gt; i.checked_sub(<span class="number">1</span>)<span class="question-mark">?</span>,
         };
-        <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">syms</span>.<span class="ident">get</span>(<span class="ident">i</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">sym</span>.<span class="ident">address</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">addr</span> <span class="op">&amp;&amp;</span> <span class="ident">addr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">sym</span>.<span class="ident">address</span> <span class="op">+</span> <span class="ident">sym</span>.<span class="ident">size</span> {
-            <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">self</a>.<span class="ident">strings</span>.<span class="ident">get</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#205">sym</a>.<span class="ident">name</span>).<span class="ident">ok</span>()
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+        <span class="kw">let </span>sym = <span class="self">self</span>.syms.get(i)<span class="question-mark">?</span>;
+        <span class="kw">if </span>sym.address &lt;= addr &amp;&amp; addr &lt;= sym.address + sym.size {
+            <a class="self" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#199">self</a>.strings.get(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#205">sym</a>.name).ok()
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">search_object_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)<span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>search_object_map(<span class="kw-2">&amp;</span><span class="self">self</span>, _addr: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)&gt; {
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">build_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">section</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">sections</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">notes</span>)) <span class="op">=</span> <span class="ident">section</span>.<span class="ident">notes</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">data</span>) {
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">note</span>)) <span class="op">=</span> <span class="ident">notes</span>.<span class="ident">next</span>() {
-                    <span class="kw">if</span> <span class="ident">note</span>.<span class="ident">name</span>() <span class="op">==</span> <span class="ident">ELF_NOTE_GNU</span> <span class="op">&amp;&amp;</span> <span class="ident">note</span>.<span class="ident">n_type</span>(<span class="self">self</span>.<span class="ident">endian</span>) <span class="op">==</span> <span class="ident">NT_GNU_BUILD_ID</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">note</span>.<span class="ident">desc</span>());
+    <span class="kw">fn </span>build_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">for </span>section <span class="kw">in </span><span class="self">self</span>.sections.iter() {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>notes)) = section.notes(<span class="self">self</span>.endian, <span class="self">self</span>.data) {
+                <span class="kw">while let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(note)) = notes.next() {
+                    <span class="kw">if </span>note.name() == ELF_NOTE_GNU &amp;&amp; note.n_type(<span class="self">self</span>.endian) == NT_GNU_BUILD_ID {
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(note.desc());
                     }
                 }
             }
         }
-        <span class="prelude-val">None</span>
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="comment">// The contents of the &quot;.gnu_debuglink&quot; section is documented at:
+    // https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
+    </span><span class="kw">fn </span>gnu_debuglink_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)&gt; {
+        <span class="kw">let </span>section = <span class="self">self</span>.section_header(<span class="string">&quot;.gnu_debuglink&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>data = section.data(<span class="self">self</span>.endian, <span class="self">self</span>.data).ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span>len = data.iter().position(|x| <span class="kw-2">*</span>x == <span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>filename = <span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#234">data</a>[..<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#235">len</a>];
+        <span class="kw">let </span>offset = (<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#235">len</a> + <span class="number">1 </span>+ <span class="number">3</span>) &amp; !<span class="number">3</span>;
+        <span class="kw">let </span>crc_bytes = data
+            .get(offset..offset + <span class="number">4</span>)
+            .and_then(|bytes| bytes.try_into().ok())<span class="question-mark">?</span>;
+        <span class="kw">let </span>crc = u32::from_ne_bytes(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#238">crc_bytes</a>);
+        <span class="kw">let </span>path_debug = locate_debuglink(path, filename)<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>((<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#242">path_debug</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#241">crc</a>))
     }
 
-    <span class="comment">// The contents of the &quot;.gnu_debuglink&quot; section is documented at:</span>
-    <span class="comment">// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html</span>
-    <span class="kw">fn</span> <span class="ident">gnu_debuglink_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">section_header</span>(<span class="string">&quot;.gnu_debuglink&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">data</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">data</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#234">data</a>[..<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#235">len</a>];
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#235">len</a> <span class="op">+</span> <span class="number">1</span> <span class="op">+</span> <span class="number">3</span>) <span class="op">&amp;</span> <span class="op">!</span><span class="number">3</span>;
-        <span class="kw">let</span> <span class="ident">crc_bytes</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">get</span>(<span class="ident">offset</span>..<span class="ident">offset</span> <span class="op">+</span> <span class="number">4</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">bytes</span><span class="op">|</span> <span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">ok</span>())<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">crc</span> <span class="op">=</span> <span class="ident">u32::from_ne_bytes</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#238">crc_bytes</a>);
-        <span class="kw">let</span> <span class="ident">path_debug</span> <span class="op">=</span> <span class="ident">locate_debuglink</span>(<span class="ident">path</span>, <span class="ident">filename</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#242">path_debug</a>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#241">crc</a>))
-    }
-
-    <span class="comment">// The format of the &quot;.gnu_debugaltlink&quot; section is based on gdb.</span>
-    <span class="kw">fn</span> <span class="ident">gnu_debugaltlink_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">section_header</span>(<span class="string">&quot;.gnu_debugaltlink&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">data</span>(<span class="self">self</span>.<span class="ident">endian</span>, <span class="self">self</span>.<span class="ident">data</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#249">data</a>[..<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#250">len</a>];
-        <span class="kw">let</span> <span class="ident">build_id</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#249">data</a>[<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#250">len</a> <span class="op">+</span> <span class="number">1</span>..];
-        <span class="kw">let</span> <span class="ident">path_sup</span> <span class="op">=</span> <span class="ident">locate_debugaltlink</span>(<span class="ident">path</span>, <span class="ident">filename</span>, <span class="ident">build_id</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#253">path_sup</a>, <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#252">build_id</a>))
+    <span class="comment">// The format of the &quot;.gnu_debugaltlink&quot; section is based on gdb.
+    </span><span class="kw">fn </span>gnu_debugaltlink_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])&gt; {
+        <span class="kw">let </span>section = <span class="self">self</span>.section_header(<span class="string">&quot;.gnu_debugaltlink&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>data = section.data(<span class="self">self</span>.endian, <span class="self">self</span>.data).ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span>len = data.iter().position(|x| <span class="kw-2">*</span>x == <span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>filename = <span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#249">data</a>[..<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#250">len</a>];
+        <span class="kw">let </span>build_id = <span class="kw-2">&amp;</span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#249">data</a>[<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#250">len</a> + <span class="number">1</span>..];
+        <span class="kw">let </span>path_sup = locate_debugaltlink(path, filename, build_id)<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>((<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#253">path_sup</a>, <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#252">build_id</a>))
     }
 }
 
-<span class="kw">fn</span> <span class="ident">decompress_zlib</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">miniz_oxide::inflate::core::inflate_flags</span>::{
-        <span class="ident">TINFL_FLAG_PARSE_ZLIB_HEADER</span>, <span class="ident">TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF</span>,
+<span class="kw">fn </span>decompress_zlib(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], output: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+    <span class="kw">use </span>miniz_oxide::inflate::core::inflate_flags::{
+        TINFL_FLAG_PARSE_ZLIB_HEADER, TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF,
     };
-    <span class="kw">use</span> <span class="ident">miniz_oxide::inflate::core</span>::{<span class="ident">decompress</span>, <a class="ident" href="../../../../miniz_oxide/inflate/core/struct.DecompressorOxide.html">DecompressorOxide</a>};
-    <span class="kw">use</span> <a class="ident" href="../../../../miniz_oxide/inflate/enum.TINFLStatus.html">miniz_oxide::inflate::TINFLStatus</a>;
+    <span class="kw">use </span>miniz_oxide::inflate::core::{decompress, <a href="../../../../miniz_oxide/inflate/core/struct.DecompressorOxide.html">DecompressorOxide</a>};
+    <span class="kw">use </span><a href="../../../../miniz_oxide/inflate/enum.TINFLStatus.html">miniz_oxide::inflate::TINFLStatus</a>;
 
-    <span class="kw">let</span> (<span class="ident">status</span>, <span class="ident">in_read</span>, <span class="ident">out_read</span>) <span class="op">=</span> <span class="ident">decompress</span>(
-        <span class="kw-2">&amp;mut</span> <span class="ident">DecompressorOxide::new</span>(),
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#258">input</a>,
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#258">output</a>,
+    <span class="kw">let </span>(status, in_read, out_read) = decompress(
+        <span class="kw-2">&amp;mut </span>DecompressorOxide::new(),
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#258">input</a>,
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#258">output</a>,
         <span class="number">0</span>,
-        <span class="ident">TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF</span> <span class="op">|</span> <span class="ident">TINFL_FLAG_PARSE_ZLIB_HEADER</span>,
+        TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF | TINFL_FLAG_PARSE_ZLIB_HEADER,
     );
-    <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">TINFLStatus::Done</span> <span class="op">&amp;&amp;</span> <span class="ident">in_read</span> <span class="op">==</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">out_read</span> <span class="op">==</span> <span class="ident">output</span>.<span class="ident">len</span>() {
+    <span class="kw">if </span>status == TINFLStatus::Done &amp;&amp; in_read == input.len() &amp;&amp; out_read == output.len() {
         <span class="prelude-val">Some</span>(())
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
-    }
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">const</span> <span class="ident">DEBUG_PATH</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="string">b&quot;/usr/lib/debug&quot;</span>;
+<span class="kw">const </span>DEBUG_PATH: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <span class="string">b&quot;/usr/lib/debug&quot;</span>;
 
-<span class="kw">fn</span> <span class="ident">debug_path_exists</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="macro">cfg_if::cfg_if!</span> {
-        <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span> {
-            <span class="kw">use</span> <span class="ident">core::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
-            <span class="kw">static</span> <span class="ident">DEBUG_PATH_EXISTS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a> <span class="op">=</span> <span class="ident">AtomicU8::new</span>(<span class="number">0</span>);
+<span class="kw">fn </span>debug_path_exists() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="macro">cfg_if::cfg_if! </span>{
+        <span class="kw">if </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))] </span>{
+            <span class="kw">use </span>core::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+            <span class="kw">static </span>DEBUG_PATH_EXISTS: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU8.html">AtomicU8</a> = AtomicU8::new(<span class="number">0</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exists</span> <span class="op">=</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#285">DEBUG_PATH_EXISTS</a>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
-            <span class="kw">if</span> <span class="ident">exists</span> <span class="op">==</span> <span class="number">0</span> {
-                <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a> <span class="op">=</span> <span class="kw">if</span> <span class="ident">Path::new</span>(<span class="ident">OsStr::from_bytes</span>(<span class="ident">DEBUG_PATH</span>)).<span class="ident">is_dir</span>() {
-                    <span class="number">1</span>
-                } <span class="kw">else</span> {
-                    <span class="number">2</span>
-                };
-                <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#285">DEBUG_PATH_EXISTS</a>.<span class="ident">store</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a>, <span class="ident">Ordering::Relaxed</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>exists = <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#285">DEBUG_PATH_EXISTS</a>.load(Ordering::Relaxed);
+            <span class="kw">if </span>exists == <span class="number">0 </span>{
+                <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a> = <span class="kw">if </span>Path::new(OsStr::from_bytes(DEBUG_PATH)).is_dir() {
+                    <span class="number">1
+                </span>} <span class="kw">else </span>{
+                    <span class="number">2
+                </span>};
+                <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#285">DEBUG_PATH_EXISTS</a>.store(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a>, Ordering::Relaxed);
             }
-            <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a> <span class="op">==</span> <span class="number">1</span>
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+            <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#287">exists</a> == <span class="number">1
+        </span>} <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 }
 
-<span class="doccomment">/// Locate a debug file based on its build ID.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The format of build id paths is documented at:</span>
-<span class="doccomment">/// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html</span>
-<span class="kw">fn</span> <span class="ident">locate_build_id</span>(<span class="ident">build_id</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a><span class="op">&gt;</span> {
-    <span class="kw">const</span> <span class="ident">BUILD_ID_PATH</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="string">b&quot;/usr/lib/debug/.build-id/&quot;</span>;
-    <span class="kw">const</span> <span class="ident">BUILD_ID_SUFFIX</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="op">=</span> <span class="string">b&quot;.debug&quot;</span>;
+<span class="doccomment">/// Locate a debug file based on its build ID.
+///
+/// The format of build id paths is documented at:
+/// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
+</span><span class="kw">fn </span>locate_build_id(build_id: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
+    <span class="kw">const </span>BUILD_ID_PATH: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <span class="string">b&quot;/usr/lib/debug/.build-id/&quot;</span>;
+    <span class="kw">const </span>BUILD_ID_SUFFIX: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <span class="string">b&quot;.debug&quot;</span>;
 
-    <span class="kw">if</span> <span class="ident">build_id</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">if </span>build_id.len() &lt; <span class="number">2 </span>{
+        <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">debug_path_exists</span>() {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">if </span>!debug_path_exists() {
+        <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">path</span> <span class="op">=</span>
-        <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#308">BUILD_ID_PATH</a>.<span class="ident">len</span>() <span class="op">+</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#309">BUILD_ID_SUFFIX</a>.<span class="ident">len</span>() <span class="op">+</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>);
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#308">BUILD_ID_PATH</a>);
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">hex</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>[<span class="number">0</span>] <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>));
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">hex</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>[<span class="number">0</span>] <span class="op">&amp;</span> <span class="number">0xf</span>));
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<span class="ident">push</span>(<span class="string">b&#39;/&#39;</span>);
-    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">build_id</span>[<span class="number">1</span>..] {
-        <span class="ident">path</span>.<span class="ident">push</span>(<span class="ident">hex</span>(<span class="ident">byte</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>));
-        <span class="ident">path</span>.<span class="ident">push</span>(<span class="ident">hex</span>(<span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0xf</span>));
+    <span class="kw">let </span><span class="kw-2">mut </span>path =
+        Vec::with_capacity(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#308">BUILD_ID_PATH</a>.len() + <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#309">BUILD_ID_SUFFIX</a>.len() + <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>.len() * <span class="number">2 </span>+ <span class="number">1</span>);
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#308">BUILD_ID_PATH</a>);
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">hex</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>[<span class="number">0</span>] &gt;&gt; <span class="number">4</span>));
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">hex</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">build_id</a>[<span class="number">0</span>] &amp; <span class="number">0xf</span>));
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.push(<span class="string">b&#39;/&#39;</span>);
+    <span class="kw">for </span>byte <span class="kw">in </span><span class="kw-2">&amp;</span>build_id[<span class="number">1</span>..] {
+        path.push(hex(byte &gt;&gt; <span class="number">4</span>));
+        path.push(hex(byte &amp; <span class="number">0xf</span>));
     }
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#309">BUILD_ID_SUFFIX</a>);
-    <span class="prelude-val">Some</span>(<span class="ident">PathBuf::from</span>(<span class="ident">OsString::from_vec</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>)))
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#309">BUILD_ID_SUFFIX</a>);
+    <span class="prelude-val">Some</span>(PathBuf::from(OsString::from_vec(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#319">path</a>)))
 }
 
-<span class="kw">fn</span> <span class="ident">hex</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-    <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&lt;</span> <span class="number">10</span> {
-        <span class="string">b&#39;0&#39;</span> <span class="op">+</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">byte</a>
-    } <span class="kw">else</span> {
-        <span class="string">b&#39;a&#39;</span> <span class="op">+</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">byte</a> <span class="op">-</span> <span class="number">10</span>
-    }
+<span class="kw">fn </span>hex(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
+    <span class="kw">if </span>byte &lt; <span class="number">10 </span>{
+        <span class="string">b&#39;0&#39; </span>+ <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">byte</a>
+    } <span class="kw">else </span>{
+        <span class="string">b&#39;a&#39; </span>+ <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#333">byte</a> - <span class="number">10
+    </span>}
 }
 
-<span class="doccomment">/// Locate a file specified in a `.gnu_debuglink` section.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `path` is the file containing the section.</span>
-<span class="doccomment">/// `filename` is from the contents of the section.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Search order is based on gdb, documented at:</span>
-<span class="doccomment">/// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// gdb also allows the user to customize the debug search path, but we don&#39;t.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// gdb also supports debuginfod, but we don&#39;t yet.</span>
-<span class="kw">fn</span> <span class="ident">locate_debuglink</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">filename</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">fs::canonicalize</span>(<span class="ident">path</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">parent</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">parent</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<span class="ident">OsString::with_capacity</span>(
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#279">DEBUG_PATH</a>.<span class="ident">len</span>() <span class="op">+</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>.<span class="ident">as_os_str</span>().<span class="ident">len</span>() <span class="op">+</span> <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#352">filename</a>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">2</span>,
+<span class="doccomment">/// Locate a file specified in a `.gnu_debuglink` section.
+///
+/// `path` is the file containing the section.
+/// `filename` is from the contents of the section.
+///
+/// Search order is based on gdb, documented at:
+/// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
+///
+/// gdb also allows the user to customize the debug search path, but we don&#39;t.
+///
+/// gdb also supports debuginfod, but we don&#39;t yet.
+</span><span class="kw">fn </span>locate_debuglink(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, filename: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
+    <span class="kw">let </span>path = fs::canonicalize(path).ok()<span class="question-mark">?</span>;
+    <span class="kw">let </span>parent = path.parent()<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>f = PathBuf::from(OsString::with_capacity(
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#279">DEBUG_PATH</a>.len() + <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>.as_os_str().len() + <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#352">filename</a>.len() + <span class="number">2</span>,
     ));
-    <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">OsStr::from_bytes</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#352">filename</a>));
+    <span class="kw">let </span>filename = Path::new(OsStr::from_bytes(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#352">filename</a>));
 
-    <span class="comment">// Try &quot;/parent/filename&quot; if it differs from &quot;path&quot;</span>
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>);
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
-    <span class="kw">if</span> <span class="ident">f</span> <span class="op">!</span><span class="op">=</span> <span class="ident">path</span> <span class="op">&amp;&amp;</span> <span class="ident">f</span>.<span class="ident">is_file</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
+    <span class="comment">// Try &quot;/parent/filename&quot; if it differs from &quot;path&quot;
+    </span><a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>);
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
+    <span class="kw">if </span>f != path &amp;&amp; f.is_file() {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
     }
 
-    <span class="comment">// Try &quot;/parent/.debug/filename&quot;</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">OsString::from</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#368">s</a>.<span class="ident">clear</span>();
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#368">s</a>);
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>);
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.<span class="ident">push</span>(<span class="string">&quot;.debug&quot;</span>);
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
-    <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_file</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
+    <span class="comment">// Try &quot;/parent/.debug/filename&quot;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>s = OsString::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#368">s</a>.clear();
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a> = PathBuf::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#368">s</a>);
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>);
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<span class="string">&quot;.debug&quot;</span>);
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
+    <span class="kw">if </span>f.is_file() {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
     }
 
-    <span class="kw">if</span> <span class="ident">debug_path_exists</span>() {
-        <span class="comment">// Try &quot;/usr/lib/debug/parent/filename&quot;</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">OsString::from</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#380">s</a>.<span class="ident">clear</span>();
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#380">s</a>);
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.<span class="ident">push</span>(<span class="ident">OsStr::from_bytes</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#279">DEBUG_PATH</a>));
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>.<span class="ident">strip_prefix</span>(<span class="string">&quot;/&quot;</span>).<span class="ident">unwrap</span>());
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
-        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_file</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
+    <span class="kw">if </span>debug_path_exists() {
+        <span class="comment">// Try &quot;/usr/lib/debug/parent/filename&quot;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>s = OsString::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#380">s</a>.clear();
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a> = PathBuf::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#380">s</a>);
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(OsStr::from_bytes(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#279">DEBUG_PATH</a>));
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#354">parent</a>.strip_prefix(<span class="string">&quot;/&quot;</span>).unwrap());
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#358">filename</a>);
+        <span class="kw">if </span>f.is_file() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#355">f</a>);
         }
     }
 
-    <span class="prelude-val">None</span>
-}
+    <span class="prelude-val">None
+</span>}
 
-<span class="doccomment">/// Locate a file specified in a `.gnu_debugaltlink` section.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `path` is the file containing the section.</span>
-<span class="doccomment">/// `filename` and `build_id` are the contents of the section.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Search order is based on gdb:</span>
-<span class="doccomment">/// - filename, which is either absolute or relative to `path`</span>
-<span class="doccomment">/// - the build ID path under `BUILD_ID_PATH`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// gdb also allows the user to customize the debug search path, but we don&#39;t.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// gdb also supports debuginfod, but we don&#39;t yet.</span>
-<span class="kw">fn</span> <span class="ident">locate_debugaltlink</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">filename</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">build_id</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">OsStr::from_bytes</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#406">filename</a>));
-    <span class="kw">if</span> <span class="ident">filename</span>.<span class="ident">is_absolute</span>() {
-        <span class="kw">if</span> <span class="ident">filename</span>.<span class="ident">is_file</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#407">filename</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+<span class="doccomment">/// Locate a file specified in a `.gnu_debugaltlink` section.
+///
+/// `path` is the file containing the section.
+/// `filename` and `build_id` are the contents of the section.
+///
+/// Search order is based on gdb:
+/// - filename, which is either absolute or relative to `path`
+/// - the build ID path under `BUILD_ID_PATH`
+///
+/// gdb also allows the user to customize the debug search path, but we don&#39;t.
+///
+/// gdb also supports debuginfod, but we don&#39;t yet.
+</span><span class="kw">fn </span>locate_debugaltlink(path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, filename: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], build_id: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
+    <span class="kw">let </span>filename = Path::new(OsStr::from_bytes(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#406">filename</a>));
+    <span class="kw">if </span>filename.is_absolute() {
+        <span class="kw">if </span>filename.is_file() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#407">filename</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
-    } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">fs::canonicalize</span>(<span class="ident">path</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">parent</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">parent</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#414">parent</a>);
-        <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#415">f</a>.<span class="ident">push</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#407">filename</a>);
-        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_file</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#415">f</a>);
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>path = fs::canonicalize(path).ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span>parent = path.parent()<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>f = PathBuf::from(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#414">parent</a>);
+        <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#415">f</a>.push(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#407">filename</a>);
+        <span class="kw">if </span>f.is_file() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#415">f</a>);
         }
     }
 
-    <a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">locate_build_id</a>(<a class="ident" href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#406">build_id</a>)
+    <a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#307">locate_build_id</a>(<a href="../../../../src/backtrace/symbolize/gimli/elf.rs.html#406">build_id</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

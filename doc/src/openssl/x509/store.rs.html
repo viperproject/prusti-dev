@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/x509/store.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>store.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/x509/store.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>store.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -207,214 +207,214 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Describe a context in which to verify an `X509` certificate.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The `X509` certificate store holds trusted CA certificates used to verify</span>
-<span class="doccomment">//! peer certificates.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Example</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use openssl::x509::store::{X509StoreBuilder, X509Store};</span>
-<span class="doccomment">//! use openssl::x509::{X509, X509Name};</span>
-<span class="doccomment">//! use openssl::pkey::PKey;</span>
-<span class="doccomment">//! use openssl::hash::MessageDigest;</span>
-<span class="doccomment">//! use openssl::rsa::Rsa;</span>
-<span class="doccomment">//! use openssl::nid::Nid;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let rsa = Rsa::generate(2048).unwrap();</span>
-<span class="doccomment">//! let pkey = PKey::from_rsa(rsa).unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut name = X509Name::builder().unwrap();</span>
-<span class="doccomment">//! name.append_entry_by_nid(Nid::COMMONNAME, &quot;foobar.com&quot;).unwrap();</span>
-<span class="doccomment">//! let name = name.build();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut builder = X509::builder().unwrap();</span>
-<span class="doccomment">//! builder.set_version(2).unwrap();</span>
-<span class="doccomment">//! builder.set_subject_name(&amp;name).unwrap();</span>
-<span class="doccomment">//! builder.set_issuer_name(&amp;name).unwrap();</span>
-<span class="doccomment">//! builder.set_pubkey(&amp;pkey).unwrap();</span>
-<span class="doccomment">//! builder.sign(&amp;pkey, MessageDigest::sha256()).unwrap();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let certificate: X509 = builder.build();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut builder = X509StoreBuilder::new().unwrap();</span>
-<span class="doccomment">//! let _ = builder.add_cert(certificate);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let store: X509Store = builder.build();</span>
-<span class="doccomment">//! ```</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Describe a context in which to verify an `X509` certificate.
+//!
+//! The `X509` certificate store holds trusted CA certificates used to verify
+//! peer certificates.
+//!
+//! # Example
+//!
+//! ```rust
+//! use openssl::x509::store::{X509StoreBuilder, X509Store};
+//! use openssl::x509::{X509, X509Name};
+//! use openssl::pkey::PKey;
+//! use openssl::hash::MessageDigest;
+//! use openssl::rsa::Rsa;
+//! use openssl::nid::Nid;
+//!
+//! let rsa = Rsa::generate(2048).unwrap();
+//! let pkey = PKey::from_rsa(rsa).unwrap();
+//!
+//! let mut name = X509Name::builder().unwrap();
+//! name.append_entry_by_nid(Nid::COMMONNAME, &quot;foobar.com&quot;).unwrap();
+//! let name = name.build();
+//!
+//! let mut builder = X509::builder().unwrap();
+//! builder.set_version(2).unwrap();
+//! builder.set_subject_name(&amp;name).unwrap();
+//! builder.set_issuer_name(&amp;name).unwrap();
+//! builder.set_pubkey(&amp;pkey).unwrap();
+//! builder.sign(&amp;pkey, MessageDigest::sha256()).unwrap();
+//!
+//! let certificate: X509 = builder.build();
+//!
+//! let mut builder = X509StoreBuilder::new().unwrap();
+//! let _ = builder.add_cert(certificate);
+//!
+//! let store: X509Store = builder.build();
+//! ```
 
-<span class="kw">use</span> <a class="ident" href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
-<span class="kw">use</span> <a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+</span><span class="kw">use </span><a href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
+<span class="kw">use </span><a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#449"><span class="kw">crate</span>::ssl::SslFiletype</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/stack.rs.html#180"><span class="kw">crate</span>::stack::StackRef</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/openssl/x509/verify.rs.html#27-60"><span class="kw">crate</span>::x509::verify::X509VerifyFlags</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../../src/openssl/x509/mod.rs.html#1551-1559">X509Object</a>, <a class="ident" href="../../../src/openssl/x509/mod.rs.html#362-370">X509</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../../src/openssl/lib.rs.html#185">cvt_p</a>};
-<span class="kw">use</span> <a class="ident" href="../../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span><a href="../../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../../../src/openssl/ssl/mod.rs.html#449"><span class="kw">crate</span>::ssl::SslFiletype</a>;
+<span class="kw">use </span><a href="../../../src/openssl/stack.rs.html#180"><span class="kw">crate</span>::stack::StackRef</a>;
+<span class="attribute">#[cfg(any(ossl102, libressl261))]
+</span><span class="kw">use </span><a href="../../../src/openssl/x509/verify.rs.html#27-60"><span class="kw">crate</span>::x509::verify::X509VerifyFlags</a>;
+<span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="../../../src/openssl/x509/mod.rs.html#1551-1559">X509Object</a>, <a href="../../../src/openssl/x509/mod.rs.html#362-370">X509</a>};
+<span class="kw">use crate</span>::{<a href="../../../src/openssl/lib.rs.html#194">cvt</a>, <a href="../../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use </span><a href="../../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
 
-<a class="macro" href="../../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509_STORE.html">ffi::X509_STORE</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::X509_STORE_free</span>;
+<a class="macro" href="../../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../../openssl_sys/handwritten/types/enum.X509_STORE.html">ffi::X509_STORE</a>;
+    <span class="kw">fn </span>drop = ffi::X509_STORE_free;
 
-    <span class="doccomment">/// A builder type used to construct an `X509Store`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509StoreBuilder</span>;
-    <span class="doccomment">/// A reference to an [`X509StoreBuilder`].</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509StoreBuilderRef</span>;
+    <span class="doccomment">/// A builder type used to construct an `X509Store`.
+    </span><span class="kw">pub struct </span>X509StoreBuilder;
+    <span class="doccomment">/// A reference to an [`X509StoreBuilder`].
+    </span><span class="kw">pub struct </span>X509StoreBuilderRef;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/store.rs.html#52-60">X509StoreBuilder</a> {
-    <span class="doccomment">/// Returns a builder for a certificate store.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The store is initially empty.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_STORE_new</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/store.rs.html#52-60">X509StoreBuilder</a>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../openssl/fn.init.html">ffi::init</a>();
+<span class="kw">impl </span><a href="../../../src/openssl/x509/store.rs.html#52-60">X509StoreBuilder</a> {
+    <span class="doccomment">/// Returns a builder for a certificate store.
+    ///
+    /// The store is initially empty.
+    </span><span class="attribute">#[corresponds(X509_STORE_new)]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/openssl/x509/store.rs.html#52-60">X509StoreBuilder</a>, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{
+            <a href="../../../openssl/fn.init.html">ffi::init</a>();
 
-            <a class="ident" href="../../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::X509_STORE_new</span>()).<span class="ident">map</span>(<a class="ident" href="../../../src/openssl/x509/store.rs.html#52-60">X509StoreBuilder</a>)
+            <a href="../../../src/openssl/lib.rs.html#185">cvt_p</a>(ffi::X509_STORE_new()).map(<a href="../../../src/openssl/x509/store.rs.html#52-60">X509StoreBuilder</a>)
         }
     }
 
-    <span class="doccomment">/// Constructs the `X509Store`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/openssl/x509/store.rs.html#173-181">X509Store</a> {
-        <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <a class="ident" href="../../../src/openssl/x509/store.rs.html#173-181">X509Store</a>(<a class="self" href="../../../src/openssl/x509/store.rs.html#76">self</a>.<span class="number">0</span>);
-        <span class="ident">mem::forget</span>(<a class="self" href="../../../src/openssl/x509/store.rs.html#76">self</a>);
-        <a class="ident" href="../../../src/openssl/x509/store.rs.html#77">store</a>
+    <span class="doccomment">/// Constructs the `X509Store`.
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="../../../src/openssl/x509/store.rs.html#173-181">X509Store</a> {
+        <span class="kw">let </span>store = <a href="../../../src/openssl/x509/store.rs.html#173-181">X509Store</a>(<a class="self" href="../../../src/openssl/x509/store.rs.html#76">self</a>.<span class="number">0</span>);
+        mem::forget(<a class="self" href="../../../src/openssl/x509/store.rs.html#76">self</a>);
+        <a href="../../../src/openssl/x509/store.rs.html#77">store</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/store.rs.html#52-60">X509StoreBuilderRef</a> {
-    <span class="doccomment">/// Adds a certificate to the certificate store.</span>
-    <span class="comment">// FIXME should take an &amp;X509Ref</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_STORE_add_cert</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_cert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cert</span>: <a class="ident" href="../../../src/openssl/x509/mod.rs.html#362-370">X509</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::X509_STORE_add_cert</span>(<a class="self" href="../../../src/openssl/x509/store.rs.html#87">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../../src/openssl/x509/store.rs.html#87">cert</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()) }
+<span class="kw">impl </span><a href="../../../src/openssl/x509/store.rs.html#52-60">X509StoreBuilderRef</a> {
+    <span class="doccomment">/// Adds a certificate to the certificate store.
+    </span><span class="comment">// FIXME should take an &amp;X509Ref
+    </span><span class="attribute">#[corresponds(X509_STORE_add_cert)]
+    </span><span class="kw">pub fn </span>add_cert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cert: <a href="../../../src/openssl/x509/mod.rs.html#362-370">X509</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="../../../src/openssl/lib.rs.html#194">cvt</a>(ffi::X509_STORE_add_cert(<a class="self" href="../../../src/openssl/x509/store.rs.html#87">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="../../../src/openssl/x509/store.rs.html#87">cert</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
-    <span class="doccomment">/// Load certificates from their default locations.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// These locations are read from the `SSL_CERT_FILE` and `SSL_CERT_DIR`</span>
-    <span class="doccomment">/// environment variables if present, or defaults specified at OpenSSL</span>
-    <span class="doccomment">/// build time otherwise.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_STORE_set_default_paths</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default_paths</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::X509_STORE_set_default_paths</span>(<a class="self" href="../../../src/openssl/x509/store.rs.html#97">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()) }
+    <span class="doccomment">/// Load certificates from their default locations.
+    ///
+    /// These locations are read from the `SSL_CERT_FILE` and `SSL_CERT_DIR`
+    /// environment variables if present, or defaults specified at OpenSSL
+    /// build time otherwise.
+    </span><span class="attribute">#[corresponds(X509_STORE_set_default_paths)]
+    </span><span class="kw">pub fn </span>set_default_paths(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="../../../src/openssl/lib.rs.html#194">cvt</a>(ffi::X509_STORE_set_default_paths(<a class="self" href="../../../src/openssl/x509/store.rs.html#97">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
-    <span class="doccomment">/// Adds a lookup method to the store.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_STORE_add_lookup</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_lookup</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">X509LookupMethodRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">X509LookupRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">lookup</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi::X509_STORE_add_lookup</span>(<a class="self" href="../../../src/openssl/x509/store.rs.html#104">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../../src/openssl/x509/store.rs.html#105">method</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
-        <a class="ident" href="../../../src/openssl/lib.rs.html#185">cvt_p</a>(<a class="ident" href="../../../src/openssl/x509/store.rs.html#107">lookup</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">X509LookupRef::from_ptr_mut</span>(<a class="ident" href="../../../src/openssl/x509/store.rs.html#108">ptr</a>) })
+    <span class="doccomment">/// Adds a lookup method to the store.
+    </span><span class="attribute">#[corresponds(X509_STORE_add_lookup)]
+    </span><span class="kw">pub fn </span>add_lookup&lt;T&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        method: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>X509LookupMethodRef&lt;T&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span>X509LookupRef&lt;T&gt;, <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>lookup = <span class="kw">unsafe </span>{ ffi::X509_STORE_add_lookup(<a class="self" href="../../../src/openssl/x509/store.rs.html#104">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="../../../src/openssl/x509/store.rs.html#105">method</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
+        <a href="../../../src/openssl/lib.rs.html#185">cvt_p</a>(<a href="../../../src/openssl/x509/store.rs.html#107">lookup</a>).map(|ptr| <span class="kw">unsafe </span>{ X509LookupRef::from_ptr_mut(<a href="../../../src/openssl/x509/store.rs.html#108">ptr</a>) })
     }
 
-    <span class="doccomment">/// Sets certificate chain validation related flags.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_STORE_set_flags</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">flags</span>: <a class="ident" href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::X509_STORE_set_flags</span>(<a class="self" href="../../../src/openssl/x509/store.rs.html#114">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../../src/openssl/x509/store.rs.html#114">flags</a>.<a class="ident" href="../../../src/openssl/x509/verify.rs.html#27-60">bits</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()) }
-    }
-}
-
-<a class="macro" href="../../../src/openssl/macros.rs.html#164-269">generic_foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509_LOOKUP.html">ffi::X509_LOOKUP</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::X509_LOOKUP_free</span>;
-
-    <span class="doccomment">/// Information used by an `X509Store` to look up certificates and CRLs.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509Lookup</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-    <span class="doccomment">/// A reference to an [`X509Lookup`].</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509LookupRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-}
-
-<span class="doccomment">/// Marker type corresponding to the [`X509_LOOKUP_hash_dir`] lookup method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`X509_LOOKUP_hash_dir`]: https://www.openssl.org/docs/man1.1.0/crypto/X509_LOOKUP_hash_dir.html</span>
-<span class="comment">// FIXME should be an enum</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HashDir</span>;
-
-<span class="kw">impl</span> <span class="ident">X509Lookup</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/store.rs.html#133">HashDir</a><span class="op">&gt;</span> {
-    <span class="doccomment">/// Lookup method that loads certificates and CRLs on demand and caches</span>
-    <span class="doccomment">/// them in memory once they are loaded. It also checks for newer CRLs upon</span>
-    <span class="doccomment">/// each lookup, so that newer CRLs are used as soon as they appear in the</span>
-    <span class="doccomment">/// directory.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_LOOKUP_hash_dir</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash_dir</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">X509LookupMethodRef</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/store.rs.html#133">HashDir</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="ident">X509LookupMethodRef::from_ptr</span>(<span class="ident">ffi::X509_LOOKUP_hash_dir</span>()) }
+    <span class="doccomment">/// Sets certificate chain validation related flags.
+    </span><span class="attribute">#[corresponds(X509_STORE_set_flags)]
+    #[cfg(any(ossl102, libressl261))]
+    </span><span class="kw">pub fn </span>set_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, flags: <a href="../../../src/openssl/x509/verify.rs.html#27-60">X509VerifyFlags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="../../../src/openssl/lib.rs.html#194">cvt</a>(ffi::X509_STORE_set_flags(<a class="self" href="../../../src/openssl/x509/store.rs.html#114">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="../../../src/openssl/x509/store.rs.html#114">flags</a>.<a href="../../../src/openssl/x509/verify.rs.html#27-60">bits</a>())).map(|<span class="kw">_</span>| ()) }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">X509LookupRef</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/store.rs.html#133">HashDir</a><span class="op">&gt;</span> {
-    <span class="doccomment">/// Specifies a directory from which certificates and CRLs will be loaded</span>
-    <span class="doccomment">/// on-demand. Must be used with `X509Lookup::hash_dir`.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_LOOKUP_add_dir</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_dir</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">file_type</span>: <a class="ident" href="../../../src/openssl/ssl/mod.rs.html#449">SslFiletype</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../../src/openssl/x509/store.rs.html#150">name</a>).<span class="ident">unwrap</span>();
-        <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::X509_LOOKUP_add_dir</span>(
-                <a class="self" href="../../../src/openssl/x509/store.rs.html#150">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../../src/openssl/x509/store.rs.html#151">name</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../../src/openssl/x509/store.rs.html#150">file_type</a>.<a class="ident" href="../../../src/openssl/ssl/mod.rs.html#469">as_raw</a>(),
+<a class="macro" href="../../../src/openssl/macros.rs.html#164-269">generic_foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../../openssl_sys/handwritten/types/enum.X509_LOOKUP.html">ffi::X509_LOOKUP</a>;
+    <span class="kw">fn </span>drop = ffi::X509_LOOKUP_free;
+
+    <span class="doccomment">/// Information used by an `X509Store` to look up certificates and CRLs.
+    </span><span class="kw">pub struct </span>X509Lookup&lt;T&gt;;
+    <span class="doccomment">/// A reference to an [`X509Lookup`].
+    </span><span class="kw">pub struct </span>X509LookupRef&lt;T&gt;;
+}
+
+<span class="doccomment">/// Marker type corresponding to the [`X509_LOOKUP_hash_dir`] lookup method.
+///
+/// [`X509_LOOKUP_hash_dir`]: https://www.openssl.org/docs/man1.1.0/crypto/X509_LOOKUP_hash_dir.html
+</span><span class="comment">// FIXME should be an enum
+</span><span class="kw">pub struct </span>HashDir;
+
+<span class="kw">impl </span>X509Lookup&lt;<a href="../../../src/openssl/x509/store.rs.html#133">HashDir</a>&gt; {
+    <span class="doccomment">/// Lookup method that loads certificates and CRLs on demand and caches
+    /// them in memory once they are loaded. It also checks for newer CRLs upon
+    /// each lookup, so that newer CRLs are used as soon as they appear in the
+    /// directory.
+    </span><span class="attribute">#[corresponds(X509_LOOKUP_hash_dir)]
+    </span><span class="kw">pub fn </span>hash_dir() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>X509LookupMethodRef&lt;<a href="../../../src/openssl/x509/store.rs.html#133">HashDir</a>&gt; {
+        <span class="kw">unsafe </span>{ X509LookupMethodRef::from_ptr(ffi::X509_LOOKUP_hash_dir()) }
+    }
+}
+
+<span class="kw">impl </span>X509LookupRef&lt;<a href="../../../src/openssl/x509/store.rs.html#133">HashDir</a>&gt; {
+    <span class="doccomment">/// Specifies a directory from which certificates and CRLs will be loaded
+    /// on-demand. Must be used with `X509Lookup::hash_dir`.
+    </span><span class="attribute">#[corresponds(X509_LOOKUP_add_dir)]
+    </span><span class="kw">pub fn </span>add_dir(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, file_type: <a href="../../../src/openssl/ssl/mod.rs.html#449">SslFiletype</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/openssl/error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">let </span>name = CString::new(<a href="../../../src/openssl/x509/store.rs.html#150">name</a>).unwrap();
+        <span class="kw">unsafe </span>{
+            <a href="../../../src/openssl/lib.rs.html#194">cvt</a>(ffi::X509_LOOKUP_add_dir(
+                <a class="self" href="../../../src/openssl/x509/store.rs.html#150">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="../../../src/openssl/x509/store.rs.html#151">name</a>.as_ptr(),
+                <a href="../../../src/openssl/x509/store.rs.html#150">file_type</a>.<a href="../../../src/openssl/ssl/mod.rs.html#469">as_raw</a>(),
             ))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+            .map(|<span class="kw">_</span>| ())
         }
     }
 }
 
-<a class="macro" href="../../../src/openssl/macros.rs.html#164-269">generic_foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509_LOOKUP_METHOD.html">ffi::X509_LOOKUP_METHOD</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">X509_LOOKUP_meth_free</span>;
+<a class="macro" href="../../../src/openssl/macros.rs.html#164-269">generic_foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../../openssl_sys/handwritten/types/enum.X509_LOOKUP_METHOD.html">ffi::X509_LOOKUP_METHOD</a>;
+    <span class="kw">fn </span>drop = X509_LOOKUP_meth_free;
 
-    <span class="doccomment">/// Method used to look up certificates and CRLs.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509LookupMethod</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-    <span class="doccomment">/// A reference to an [`X509LookupMethod`].</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509LookupMethodRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Method used to look up certificates and CRLs.
+    </span><span class="kw">pub struct </span>X509LookupMethod&lt;T&gt;;
+    <span class="doccomment">/// A reference to an [`X509LookupMethod`].
+    </span><span class="kw">pub struct </span>X509LookupMethodRef&lt;T&gt;;
 }
 
-<a class="macro" href="../../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync!</a> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../../openssl_sys/handwritten/types/enum.X509_STORE.html">ffi::X509_STORE</a>;
-    <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::X509_STORE_free</span>;
+<a class="macro" href="../../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../../openssl_sys/handwritten/types/enum.X509_STORE.html">ffi::X509_STORE</a>;
+    <span class="kw">fn </span>drop = ffi::X509_STORE_free;
 
-    <span class="doccomment">/// A certificate store to hold trusted `X509` certificates.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509Store</span>;
-    <span class="doccomment">/// Reference to an `X509Store`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509StoreRef</span>;
+    <span class="doccomment">/// A certificate store to hold trusted `X509` certificates.
+    </span><span class="kw">pub struct </span>X509Store;
+    <span class="doccomment">/// Reference to an `X509Store`.
+    </span><span class="kw">pub struct </span>X509StoreRef;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/openssl/x509/store.rs.html#173-181">X509StoreRef</a> {
-    <span class="doccomment">/// Get a reference to the cache of certificates in this store.</span>
-    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">X509_STORE_get0_objects</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">objects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../../src/openssl/x509/mod.rs.html#1551-1559">X509Object</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="ident">StackRef::from_ptr</span>(<a class="ident" href="../../../openssl_sys/handwritten/x509/fn.X509_STORE_get0_objects.html">X509_STORE_get0_objects</a>(<a class="self" href="../../../src/openssl/x509/store.rs.html#186">self</a>.<a class="ident" href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
+<span class="kw">impl </span><a href="../../../src/openssl/x509/store.rs.html#173-181">X509StoreRef</a> {
+    <span class="doccomment">/// Get a reference to the cache of certificates in this store.
+    </span><span class="attribute">#[corresponds(X509_STORE_get0_objects)]
+    </span><span class="kw">pub fn </span>objects(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StackRef&lt;<a href="../../../src/openssl/x509/mod.rs.html#1551-1559">X509Object</a>&gt; {
+        <span class="kw">unsafe </span>{ StackRef::from_ptr(<a href="../../../openssl_sys/handwritten/x509/fn.X509_STORE_get0_objects.html">X509_STORE_get0_objects</a>(<a class="self" href="../../../src/openssl/x509/store.rs.html#186">self</a>.<a href="../../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../openssl_sys/handwritten/x509/fn.X509_STORE_get0_objects.html">ffi::X509_STORE_get0_objects</a>;
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">X509_STORE_get0_objects</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::X509_STORE</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">ffi::stack_st_X509_OBJECT</span> {
-            (<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">objs</span>
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl270))] </span>{
+        <span class="kw">use </span><a href="../../../openssl_sys/handwritten/x509/fn.X509_STORE_get0_objects.html">ffi::X509_STORE_get0_objects</a>;
+    } <span class="kw">else </span>{
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>X509_STORE_get0_objects(x: <span class="kw-2">*mut </span>ffi::X509_STORE) -&gt; <span class="kw-2">*mut </span>ffi::stack_st_X509_OBJECT {
+            (<span class="kw-2">*</span>x).objs
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../openssl_sys/handwritten/x509_vfy/fn.X509_LOOKUP_meth_free.html">ffi::X509_LOOKUP_meth_free</a>;
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">X509_LOOKUP_meth_free</span>(<span class="ident">_x</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::X509_LOOKUP_METHOD</span>) {}
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(ossl110)] </span>{
+        <span class="kw">use </span><a href="../../../openssl_sys/handwritten/x509_vfy/fn.X509_LOOKUP_meth_free.html">ffi::X509_LOOKUP_meth_free</a>;
+    } <span class="kw">else </span>{
+        <span class="attribute">#[allow(bad_style)]
+        </span><span class="kw">unsafe fn </span>X509_LOOKUP_meth_free(_x: <span class="kw-2">*mut </span>ffi::X509_LOOKUP_METHOD) {}
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

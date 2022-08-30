@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/os/unix/net/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../async_std/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/os/unix/net/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../async_std/index.html"><div class="logo-container">
                     <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../async_std/index.html">
                         <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -235,240 +235,240 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Unix-specific networking extensions.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Unix-specific networking extensions.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">std::os::unix::net::UnixListener</a> <span class="kw">as</span> <span class="ident">StdUnixListener</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">std::os::unix::net::UnixStream</a> <span class="kw">as</span> <span class="ident">StdUnixStream</span>;
-<span class="kw">use</span> <a class="ident" href="../../../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">std::os::unix::net::UnixListener</a> <span class="kw">as </span>StdUnixListener;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">std::os::unix::net::UnixStream</a> <span class="kw">as </span>StdUnixStream;
+<span class="kw">use </span><a href="../../../../../async_std/pin/struct.Pin.html">std::pin::Pin</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../../async_io/struct.Async.html">async_io::Async</a>;
+<span class="kw">use </span><a href="../../../../../async_io/struct.Async.html">async_io::Async</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../../async_std/os/unix/net/struct.SocketAddr.html"><span class="kw">super</span>::SocketAddr</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/stream.rs.html#41"><span class="kw">super</span>::UnixStream</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../../src/async_std/lib.rs.html#307"><span class="kw">crate</span>::io</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::os::unix::io</span>::{<a class="ident" href="../../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="../../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a>, <a class="ident" href="../../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a>, <a class="ident" href="../../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../../src/async_std/path/path.rs.html#49"><span class="kw">crate</span>::path::Path</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../../async_std/stream/trait.Stream.html"><span class="kw">crate</span>::stream::Stream</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../../async_std/sync/struct.Arc.html"><span class="kw">crate</span>::sync::Arc</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::task</span>::{<a class="ident" href="../../../../../async_std/task/macro.ready.html">ready</a>, <a class="ident" href="../../../../../async_std/task/struct.Context.html">Context</a>, <a class="ident" href="../../../../../async_std/task/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../../../async_std/os/unix/net/struct.SocketAddr.html"><span class="kw">super</span>::SocketAddr</a>;
+<span class="kw">use </span><a href="../../../../../src/async_std/os/unix/net/stream.rs.html#41"><span class="kw">super</span>::UnixStream</a>;
+<span class="kw">use </span><a href="../../../../../src/async_std/lib.rs.html#307"><span class="kw">crate</span>::io</a>;
+<span class="kw">use </span><span class="kw">crate</span>::os::unix::io::{<a href="../../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a>, <a href="../../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a>, <a href="../../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a>, <a href="../../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>};
+<span class="kw">use </span><a href="../../../../../src/async_std/path/path.rs.html#49"><span class="kw">crate</span>::path::Path</a>;
+<span class="kw">use </span><a href="../../../../../async_std/stream/trait.Stream.html"><span class="kw">crate</span>::stream::Stream</a>;
+<span class="kw">use </span><a href="../../../../../async_std/sync/struct.Arc.html"><span class="kw">crate</span>::sync::Arc</a>;
+<span class="kw">use </span><span class="kw">crate</span>::task::{<a href="../../../../../async_std/task/macro.ready.html">ready</a>, <a href="../../../../../async_std/task/struct.Context.html">Context</a>, <a href="../../../../../async_std/task/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// A Unix domain socket server, listening for connections.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// After creating a `UnixListener` by [`bind`]ing it to a socket address, it listens for incoming</span>
-<span class="doccomment">/// connections. These can be accepted by awaiting elements from the async stream of [`incoming`]</span>
-<span class="doccomment">/// connections.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The socket will be closed when the value is dropped.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is an async version of [`std::os::unix::net::UnixListener`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`std::os::unix::net::UnixListener`]:</span>
-<span class="doccomment">/// https://doc.rust-lang.org/std/os/unix/net/struct.UnixListener.html</span>
-<span class="doccomment">/// [`bind`]: #method.bind</span>
-<span class="doccomment">/// [`incoming`]: #method.incoming</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// use async_std::os::unix::net::UnixListener;</span>
-<span class="doccomment">/// use async_std::prelude::*;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;</span>
-<span class="doccomment">/// let mut incoming = listener.incoming();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// while let Some(stream) = incoming.next().await {</span>
-<span class="doccomment">///     let mut stream = stream?;</span>
-<span class="doccomment">///     stream.write_all(b&quot;hello world&quot;).await?;</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # Ok(()) }) }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnixListener</span> {
-    <span class="ident">watcher</span>: <span class="ident">Async</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a><span class="op">&gt;</span>,
+<span class="doccomment">/// A Unix domain socket server, listening for connections.
+///
+/// After creating a `UnixListener` by [`bind`]ing it to a socket address, it listens for incoming
+/// connections. These can be accepted by awaiting elements from the async stream of [`incoming`]
+/// connections.
+///
+/// The socket will be closed when the value is dropped.
+///
+/// This type is an async version of [`std::os::unix::net::UnixListener`].
+///
+/// [`std::os::unix::net::UnixListener`]:
+/// https://doc.rust-lang.org/std/os/unix/net/struct.UnixListener.html
+/// [`bind`]: #method.bind
+/// [`incoming`]: #method.incoming
+///
+/// # Examples
+///
+/// ```no_run
+/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+/// #
+/// use async_std::os::unix::net::UnixListener;
+/// use async_std::prelude::*;
+///
+/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;
+/// let mut incoming = listener.incoming();
+///
+/// while let Some(stream) = incoming.next().await {
+///     let mut stream = stream?;
+///     stream.write_all(b&quot;hello world&quot;).await?;
+/// }
+/// #
+/// # Ok(()) }) }
+/// ```
+</span><span class="kw">pub struct </span>UnixListener {
+    watcher: Async&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a>&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-    <span class="doccomment">/// Creates a Unix datagram listener bound to the given path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::os::unix::net::UnixListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/async_std/path/path.rs.html#49">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">StdUnixListener</span><span class="op">&gt;</span><span class="ident">::bind</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+    <span class="doccomment">/// Creates a Unix datagram listener bound to the given path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::os::unix::net::UnixListener;
+    ///
+    /// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>bind&lt;P: AsRef&lt;<a href="../../../../../src/async_std/path/path.rs.html#49">Path</a>&gt;&gt;(path: P) -&gt; io::Result&lt;<a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a>&gt; {
+        <span class="kw">let </span>path = path.as_ref().to_owned();
+        <span class="kw">let </span>listener = Async::&lt;StdUnixListener&gt;::bind(path)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">UnixListener</span> { <span class="ident">watcher</span>: <span class="ident">listener</span> })
+        <span class="prelude-val">Ok</span>(UnixListener { watcher: listener })
     }
 
-    <span class="doccomment">/// Accepts a new incoming connection to this listener.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When a connection is established, the corresponding stream and address will be returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::os::unix::net::UnixListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// let (socket, addr) = listener.accept().await?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../../../src/async_std/os/unix/net/stream.rs.html#41">UnixStream</a>, <a class="ident" href="../../../../../async_std/os/unix/net/struct.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">watcher</span>.<span class="ident">accept</span>().<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="doccomment">/// Accepts a new incoming connection to this listener.
+    ///
+    /// When a connection is established, the corresponding stream and address will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::os::unix::net::UnixListener;
+    ///
+    /// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;
+    /// let (socket, addr) = listener.accept().await?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub async fn </span>accept(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(<a href="../../../../../src/async_std/os/unix/net/stream.rs.html#41">UnixStream</a>, <a href="../../../../../async_std/os/unix/net/struct.SocketAddr.html">SocketAddr</a>)&gt; {
+        <span class="kw">let </span>(stream, addr) = <span class="self">self</span>.watcher.accept().<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((
-            <span class="ident">UnixStream</span> {
-                <span class="ident">watcher</span>: <span class="ident">Arc::new</span>(<span class="ident">stream</span>),
+            UnixStream {
+                watcher: Arc::new(stream),
             },
-            <span class="ident">addr</span>,
+            addr,
         ))
     }
 
-    <span class="doccomment">/// Returns a stream of incoming connections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Iterating over this stream is equivalent to calling [`accept`] in a loop. The stream of</span>
-    <span class="doccomment">/// connections is infinite, i.e awaiting the next connection will never result in [`None`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`accept`]: #method.accept</span>
-    <span class="doccomment">/// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::os::unix::net::UnixListener;</span>
-    <span class="doccomment">/// use async_std::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// let mut incoming = listener.incoming();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(stream) = incoming.next().await {</span>
-    <span class="doccomment">///     let mut stream = stream?;</span>
-    <span class="doccomment">///     stream.write_all(b&quot;hello world&quot;).await?;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">incoming</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Incoming</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#179">Incoming</a> {
-            <span class="ident">incoming</span>: <span class="ident">Box::pin</span>(<a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#130">self</a>.<span class="ident">watcher</span>.<span class="ident">incoming</span>()),
+    <span class="doccomment">/// Returns a stream of incoming connections.
+    ///
+    /// Iterating over this stream is equivalent to calling [`accept`] in a loop. The stream of
+    /// connections is infinite, i.e awaiting the next connection will never result in [`None`].
+    ///
+    /// [`accept`]: #method.accept
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::os::unix::net::UnixListener;
+    /// use async_std::prelude::*;
+    ///
+    /// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;
+    /// let mut incoming = listener.incoming();
+    ///
+    /// while let Some(stream) = incoming.next().await {
+    ///     let mut stream = stream?;
+    ///     stream.write_all(b&quot;hello world&quot;).await?;
+    /// }
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>incoming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Incoming&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#179">Incoming</a> {
+            incoming: Box::pin(<a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#130">self</a>.watcher.incoming()),
         }
     }
 
-    <span class="doccomment">/// Returns the local socket address of this listener.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// use async_std::os::unix::net::UnixListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// let addr = listener.local_addr()?;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok(()) }) }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../async_std/os/unix/net/struct.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#150">self</a>.<span class="ident">watcher</span>.<span class="ident">get_ref</span>().<span class="ident">local_addr</span>()
+    <span class="doccomment">/// Returns the local socket address of this listener.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
+    /// #
+    /// use async_std::os::unix::net::UnixListener;
+    ///
+    /// let listener = UnixListener::bind(&quot;/tmp/socket&quot;).await?;
+    /// let addr = listener.local_addr()?;
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="../../../../../async_std/os/unix/net/struct.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#150">self</a>.watcher.get_ref().local_addr()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#156">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;UnixListener&quot;</span>);
-        <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#157">builder</a>.<span class="ident">field</span>(<span class="string">&quot;fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#156">self</a>.<a class="ident" href="../../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>());
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#156">f</a>.debug_struct(<span class="string">&quot;UnixListener&quot;</span>);
+        <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#157">builder</a>.field(<span class="string">&quot;fd&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#156">self</a>.<a href="../../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>());
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">addr</span>) <span class="op">=</span> <a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#156">self</a>.<a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#150">local_addr</a>() {
-            <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#157">builder</a>.<span class="ident">field</span>(<span class="string">&quot;local&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#160">addr</a>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = <a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#156">self</a>.<a href="../../../../../src/async_std/os/unix/net/listener.rs.html#150">local_addr</a>() {
+            <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#157">builder</a>.field(<span class="string">&quot;local&quot;</span>, <span class="kw-2">&amp;</span><a href="../../../../../src/async_std/os/unix/net/listener.rs.html#160">addr</a>);
         }
 
-        <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#157">builder</a>.<span class="ident">finish</span>()
+        <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#157">builder</a>.finish()
     }
 }
 
-<span class="doccomment">/// A stream of incoming Unix domain socket connections.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This stream is infinite, i.e awaiting the next connection will never result in [`None`]. It is</span>
-<span class="doccomment">/// created by the [`incoming`] method on [`UnixListener`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is an async version of [`std::os::unix::net::Incoming`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`std::os::unix::net::Incoming`]: https://doc.rust-lang.org/std/os/unix/net/struct.Incoming.html</span>
-<span class="doccomment">/// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None</span>
-<span class="doccomment">/// [`incoming`]: struct.UnixListener.html#method.incoming</span>
-<span class="doccomment">/// [`UnixListener`]: struct.UnixListener.html</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Incoming</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">incoming</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">StdUnixStream</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A stream of incoming Unix domain socket connections.
+///
+/// This stream is infinite, i.e awaiting the next connection will never result in [`None`]. It is
+/// created by the [`incoming`] method on [`UnixListener`].
+///
+/// This type is an async version of [`std::os::unix::net::Incoming`].
+///
+/// [`std::os::unix::net::Incoming`]: https://doc.rust-lang.org/std/os/unix/net/struct.Incoming.html
+/// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+/// [`incoming`]: struct.UnixListener.html#method.incoming
+/// [`UnixListener`]: struct.UnixListener.html
+</span><span class="kw">pub struct </span>Incoming&lt;<span class="lifetime">&#39;a</span>&gt; {
+    incoming: Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = io::Result&lt;Async&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/stream/struct.UnixStream.html">StdUnixStream</a>&gt;&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;a</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../async_std/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">Incoming</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/async_std/os/unix/net/stream.rs.html#41">UnixStream</a><span class="op">&gt;</span>;
+<span class="kw">impl </span><a href="../../../../../async_std/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>Incoming&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span>Item = io::Result&lt;<a href="../../../../../src/async_std/os/unix/net/stream.rs.html#41">UnixStream</a>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="macro" href="../../../../../async_std/task/macro.ready.html">ready!</a>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">incoming</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>));
-        <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#187">res</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#188">res</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/stream.rs.html#41">UnixStream</a> { <span class="ident">watcher</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#188">stream</a>) })))
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span>res = <a class="macro" href="../../../../../async_std/task/macro.ready.html">ready!</a>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.incoming).poll_next(cx));
+        Poll::Ready(<a href="../../../../../src/async_std/os/unix/net/listener.rs.html#187">res</a>.map(|res| <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#188">res</a>.map(|stream| <a href="../../../../../src/async_std/os/unix/net/stream.rs.html#41">UnixStream</a> { watcher: Arc::new(<a href="../../../../../src/async_std/os/unix/net/listener.rs.html#188">stream</a>) })))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Incoming</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#193">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Incoming&quot;</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Incoming&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#193">f</a>.debug_struct(<span class="string">&quot;Incoming&quot;</span>)
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-    <span class="doccomment">/// Converts a `std::os::unix::net::UnixListener` into its asynchronous equivalent.</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">listener</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a>) -&gt; <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-        <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-            <span class="ident">watcher</span>: <span class="ident">Async::new</span>(<a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#201">listener</a>).<span class="ident">expect</span>(<span class="string">&quot;UnixListener is known to be good&quot;</span>),
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a>&gt; <span class="kw">for </span><a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+    <span class="doccomment">/// Converts a `std::os::unix::net::UnixListener` into its asynchronous equivalent.
+    </span><span class="kw">fn </span>from(listener: <a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a>) -&gt; <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+        <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+            watcher: Async::new(<a href="../../../../../src/async_std/os/unix/net/listener.rs.html#201">listener</a>).expect(<span class="string">&quot;UnixListener is known to be good&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::convert::TryFrom</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../../async_std/io/struct.Error.html">io::Error</a>;
-    <span class="doccomment">/// Converts a `UnixListener` into its synchronous equivalent.</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">listener</span>: <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">listener</span>.<span class="ident">watcher</span>.<span class="ident">into_inner</span>()<span class="question-mark">?</span>;
-        <span class="ident">inner</span>.<span class="ident">set_nonblocking</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#212">inner</a>)
+<span class="kw">impl </span>std::convert::TryFrom&lt;<a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a>&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a> {
+    <span class="kw">type </span>Error = <a href="../../../../../async_std/io/struct.Error.html">io::Error</a>;
+    <span class="doccomment">/// Converts a `UnixListener` into its synchronous equivalent.
+    </span><span class="kw">fn </span>try_from(listener: <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">StdUnixListener</a>&gt; {
+        <span class="kw">let </span>inner = listener.watcher.into_inner()<span class="question-mark">?</span>;
+        inner.set_nonblocking(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../../../src/async_std/os/unix/net/listener.rs.html#212">inner</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#219">self</a>.<span class="ident">watcher</span>.<a class="ident" href="../../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="kw">impl </span><a href="../../../../../async_std/os/unix/io/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#219">self</a>.watcher.<a href="../../../../../async_std/os/unix/io/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="../../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>) -&gt; <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-        <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">std::os::unix::net::UnixListener::from_raw_fd</span>(<a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#225">fd</a>);
-        <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#226">listener</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl </span><a href="../../../../../async_std/os/unix/io/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for </span><a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+    <span class="kw">unsafe fn </span>from_raw_fd(fd: <a href="../../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a>) -&gt; <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+        <span class="kw">let </span>listener = std::os::unix::net::UnixListener::from_raw_fd(<a href="../../../../../src/async_std/os/unix/net/listener.rs.html#225">fd</a>);
+        <a href="../../../../../src/async_std/os/unix/net/listener.rs.html#226">listener</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
-    <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#232">self</a>.<span class="ident">watcher</span>.<span class="ident">into_inner</span>().<span class="ident">unwrap</span>().<a class="ident" href="../../../../../async_std/os/unix/io/trait.IntoRawFd.html">into_raw_fd</a>()
+<span class="kw">impl </span><a href="../../../../../async_std/os/unix/io/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for </span><a href="../../../../../src/async_std/os/unix/net/listener.rs.html#52">UnixListener</a> {
+    <span class="kw">fn </span>into_raw_fd(<span class="self">self</span>) -&gt; <a href="../../../../../async_std/os/unix/io/type.RawFd.html">RawFd</a> {
+        <a class="self" href="../../../../../src/async_std/os/unix/net/listener.rs.html#232">self</a>.watcher.into_inner().unwrap().<a href="../../../../../async_std/os/unix/io/trait.IntoRawFd.html">into_raw_fd</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

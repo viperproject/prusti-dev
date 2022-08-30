@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.15/src/ops/checked.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>checked.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../num_traits/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../num_traits/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../num_traits/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.15/src/ops/checked.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>checked.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../num_traits/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../num_traits/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../num_traits/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -275,282 +275,282 @@
 <span id="275">275</span>
 <span id="276">276</span>
 <span id="277">277</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">Add</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Div.html">Div</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Mul.html">Mul</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Rem.html">Rem</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shl.html">Shl</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shr.html">Shr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">Sub</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">Add</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Div.html">Div</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Mul.html">Mul</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Rem.html">Rem</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shl.html">Shl</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shr.html">Shr</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">Sub</a>};
 
-<span class="doccomment">/// Performs addition that returns `None` instead of wrapping around on</span>
-<span class="doccomment">/// overflow.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CheckedAdd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Add</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Adds two numbers, checking for overflow. If overflow happens, `None` is</span>
-    <span class="doccomment">/// returned.</span>
-    <span class="kw">fn</span> <span class="ident">checked_add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Performs addition that returns `None` instead of wrapping around on
+/// overflow.
+</span><span class="kw">pub trait </span>CheckedAdd: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Add&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
+    <span class="doccomment">/// Adds two numbers, checking for overflow. If overflow happens, `None` is
+    /// returned.
+    </span><span class="kw">fn </span>checked_add(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">checked_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; {
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
-                <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">*</span><span class="ident">v</span>)
+<span class="macro">macro_rules! </span>checked_impl {
+    (<span class="macro-nonterminal">$trait_name</span>:ident, <span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
+        <span class="kw">impl </span><span class="macro-nonterminal">$trait_name </span><span class="kw">for </span><span class="macro-nonterminal">$t </span>{
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$t</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$t</span>&gt; {
+                &lt;<span class="macro-nonterminal">$t</span>&gt;::<span class="macro-nonterminal">$method</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">*</span>v)
             }
         }
     };
 }
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedAdd</span>, <span class="ident">checked_add</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedAdd, checked_add, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
 
-<span class="doccomment">/// Performs subtraction that returns `None` instead of wrapping around on underflow.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CheckedSub</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Sub</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Subtracts two numbers, checking for underflow. If underflow happens,</span>
-    <span class="doccomment">/// `None` is returned.</span>
-    <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Performs subtraction that returns `None` instead of wrapping around on underflow.
+</span><span class="kw">pub trait </span>CheckedSub: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Sub&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
+    <span class="doccomment">/// Subtracts two numbers, checking for underflow. If underflow happens,
+    /// `None` is returned.
+    </span><span class="kw">fn </span>checked_sub(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedSub</span>, <span class="ident">checked_sub</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedSub, checked_sub, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
 
-<span class="doccomment">/// Performs multiplication that returns `None` instead of wrapping around on underflow or</span>
-<span class="doccomment">/// overflow.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CheckedMul</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Mul</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Multiplies two numbers, checking for underflow or overflow. If underflow</span>
-    <span class="doccomment">/// or overflow happens, `None` is returned.</span>
-    <span class="kw">fn</span> <span class="ident">checked_mul</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Performs multiplication that returns `None` instead of wrapping around on underflow or
+/// overflow.
+</span><span class="kw">pub trait </span>CheckedMul: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Mul&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
+    <span class="doccomment">/// Multiplies two numbers, checking for underflow or overflow. If underflow
+    /// or overflow happens, `None` is returned.
+    </span><span class="kw">fn </span>checked_mul(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedMul</span>, <span class="ident">checked_mul</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedMul, checked_mul, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
 
-<span class="doccomment">/// Performs division that returns `None` instead of panicking on division by zero and instead of</span>
-<span class="doccomment">/// wrapping around on underflow and overflow.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CheckedDiv</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Div</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Divides two numbers, checking for underflow, overflow and division by</span>
-    <span class="doccomment">/// zero. If any of that happens, `None` is returned.</span>
-    <span class="kw">fn</span> <span class="ident">checked_div</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Performs division that returns `None` instead of panicking on division by zero and instead of
+/// wrapping around on underflow and overflow.
+</span><span class="kw">pub trait </span>CheckedDiv: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Div&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
+    <span class="doccomment">/// Divides two numbers, checking for underflow, overflow and division by
+    /// zero. If any of that happens, `None` is returned.
+    </span><span class="kw">fn </span>checked_div(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedDiv</span>, <span class="ident">checked_div</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedDiv, checked_div, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
 
-<span class="doccomment">/// Performs an integral remainder that returns `None` instead of panicking on division by zero and</span>
-<span class="doccomment">/// instead of wrapping around on underflow and overflow.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CheckedRem</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Rem</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Finds the remainder of dividing two numbers, checking for underflow, overflow and division</span>
-    <span class="doccomment">/// by zero. If any of that happens, `None` is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use num_traits::CheckedRem;</span>
-    <span class="doccomment">/// use std::i32::MIN;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(CheckedRem::checked_rem(&amp;10, &amp;7), Some(3));</span>
-    <span class="doccomment">/// assert_eq!(CheckedRem::checked_rem(&amp;10, &amp;-7), Some(3));</span>
-    <span class="doccomment">/// assert_eq!(CheckedRem::checked_rem(&amp;-10, &amp;7), Some(-3));</span>
-    <span class="doccomment">/// assert_eq!(CheckedRem::checked_rem(&amp;-10, &amp;-7), Some(-3));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(CheckedRem::checked_rem(&amp;10, &amp;0), None);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(CheckedRem::checked_rem(&amp;MIN, &amp;1), Some(0));</span>
-    <span class="doccomment">/// assert_eq!(CheckedRem::checked_rem(&amp;MIN, &amp;-1), None);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">checked_rem</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Performs an integral remainder that returns `None` instead of panicking on division by zero and
+/// instead of wrapping around on underflow and overflow.
+</span><span class="kw">pub trait </span>CheckedRem: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Rem&lt;<span class="self">Self</span>, Output = <span class="self">Self</span>&gt; {
+    <span class="doccomment">/// Finds the remainder of dividing two numbers, checking for underflow, overflow and division
+    /// by zero. If any of that happens, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use num_traits::CheckedRem;
+    /// use std::i32::MIN;
+    ///
+    /// assert_eq!(CheckedRem::checked_rem(&amp;10, &amp;7), Some(3));
+    /// assert_eq!(CheckedRem::checked_rem(&amp;10, &amp;-7), Some(3));
+    /// assert_eq!(CheckedRem::checked_rem(&amp;-10, &amp;7), Some(-3));
+    /// assert_eq!(CheckedRem::checked_rem(&amp;-10, &amp;-7), Some(-3));
+    ///
+    /// assert_eq!(CheckedRem::checked_rem(&amp;10, &amp;0), None);
+    ///
+    /// assert_eq!(CheckedRem::checked_rem(&amp;MIN, &amp;1), Some(0));
+    /// assert_eq!(CheckedRem::checked_rem(&amp;MIN, &amp;-1), None);
+    /// ```
+    </span><span class="kw">fn </span>checked_rem(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(<span class="ident">CheckedRem</span>, <span class="ident">checked_rem</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#11-20">checked_impl!</a>(CheckedRem, checked_rem, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
 
-<span class="macro">macro_rules!</span> <span class="ident">checked_impl_unary</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; {
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
-                <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">*</span><span class="self">self</span>)
+<span class="macro">macro_rules! </span>checked_impl_unary {
+    (<span class="macro-nonterminal">$trait_name</span>:ident, <span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
+        <span class="kw">impl </span><span class="macro-nonterminal">$trait_name </span><span class="kw">for </span><span class="macro-nonterminal">$t </span>{
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$t</span>&gt; {
+                &lt;<span class="macro-nonterminal">$t</span>&gt;::<span class="macro-nonterminal">$method</span>(<span class="kw-2">*</span><span class="self">self</span>)
             }
         }
     };
 }
 
-<span class="doccomment">/// Performs negation that returns `None` if the result can&#39;t be represented.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CheckedNeg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="doccomment">/// Negates a number, returning `None` for results that can&#39;t be represented, like signed `MIN`</span>
-    <span class="doccomment">/// values that can&#39;t be positive, or non-zero unsigned values that can&#39;t be negative.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use num_traits::CheckedNeg;</span>
-    <span class="doccomment">/// use std::i32::MIN;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(CheckedNeg::checked_neg(&amp;1_i32), Some(-1));</span>
-    <span class="doccomment">/// assert_eq!(CheckedNeg::checked_neg(&amp;-1_i32), Some(1));</span>
-    <span class="doccomment">/// assert_eq!(CheckedNeg::checked_neg(&amp;MIN), None);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(CheckedNeg::checked_neg(&amp;0_u32), Some(0));</span>
-    <span class="doccomment">/// assert_eq!(CheckedNeg::checked_neg(&amp;1_u32), None);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">checked_neg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Performs negation that returns `None` if the result can&#39;t be represented.
+</span><span class="kw">pub trait </span>CheckedNeg: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+    <span class="doccomment">/// Negates a number, returning `None` for results that can&#39;t be represented, like signed `MIN`
+    /// values that can&#39;t be positive, or non-zero unsigned values that can&#39;t be negative.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use num_traits::CheckedNeg;
+    /// use std::i32::MIN;
+    ///
+    /// assert_eq!(CheckedNeg::checked_neg(&amp;1_i32), Some(-1));
+    /// assert_eq!(CheckedNeg::checked_neg(&amp;-1_i32), Some(1));
+    /// assert_eq!(CheckedNeg::checked_neg(&amp;MIN), None);
+    ///
+    /// assert_eq!(CheckedNeg::checked_neg(&amp;0_u32), Some(0));
+    /// assert_eq!(CheckedNeg::checked_neg(&amp;1_u32), None);
+    /// ```
+    </span><span class="kw">fn </span>checked_neg(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(<span class="ident">CheckedNeg</span>, <span class="ident">checked_neg</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#150-159">checked_impl_unary!</a>(CheckedNeg, checked_neg, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
 
-<span class="doccomment">/// Performs a left shift that returns `None` on shifts larger than</span>
-<span class="doccomment">/// the type width.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CheckedShl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Shl</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Checked shift left. Computes `self &lt;&lt; rhs`, returning `None`</span>
-    <span class="doccomment">/// if `rhs` is larger than or equal to the number of bits in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use num_traits::CheckedShl;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let x: u16 = 0x0001;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(CheckedShl::checked_shl(&amp;x, 0),  Some(0x0001));</span>
-    <span class="doccomment">/// assert_eq!(CheckedShl::checked_shl(&amp;x, 1),  Some(0x0002));</span>
-    <span class="doccomment">/// assert_eq!(CheckedShl::checked_shl(&amp;x, 15), Some(0x8000));</span>
-    <span class="doccomment">/// assert_eq!(CheckedShl::checked_shl(&amp;x, 16), None);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">checked_shl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Performs a left shift that returns `None` on shifts larger than
+/// the type width.
+</span><span class="kw">pub trait </span>CheckedShl: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, Output = <span class="self">Self</span>&gt; {
+    <span class="doccomment">/// Checked shift left. Computes `self &lt;&lt; rhs`, returning `None`
+    /// if `rhs` is larger than or equal to the number of bits in `self`.
+    ///
+    /// ```
+    /// use num_traits::CheckedShl;
+    ///
+    /// let x: u16 = 0x0001;
+    ///
+    /// assert_eq!(CheckedShl::checked_shl(&amp;x, 0),  Some(0x0001));
+    /// assert_eq!(CheckedShl::checked_shl(&amp;x, 1),  Some(0x0002));
+    /// assert_eq!(CheckedShl::checked_shl(&amp;x, 15), Some(0x8000));
+    /// assert_eq!(CheckedShl::checked_shl(&amp;x, 16), None);
+    /// ```
+    </span><span class="kw">fn </span>checked_shl(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">checked_shift_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; {
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
-                <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">rhs</span>)
+<span class="macro">macro_rules! </span>checked_shift_impl {
+    (<span class="macro-nonterminal">$trait_name</span>:ident, <span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
+        <span class="kw">impl </span><span class="macro-nonterminal">$trait_name </span><span class="kw">for </span><span class="macro-nonterminal">$t </span>{
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$t</span>&gt; {
+                &lt;<span class="macro-nonterminal">$t</span>&gt;::<span class="macro-nonterminal">$method</span>(<span class="kw-2">*</span><span class="self">self</span>, rhs)
             }
         }
     };
 }
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShl</span>, <span class="ident">checked_shl</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShl, checked_shl, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
 
-<span class="doccomment">/// Performs a right shift that returns `None` on shifts larger than</span>
-<span class="doccomment">/// the type width.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CheckedShr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Shr</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Checked shift right. Computes `self &gt;&gt; rhs`, returning `None`</span>
-    <span class="doccomment">/// if `rhs` is larger than or equal to the number of bits in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use num_traits::CheckedShr;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let x: u16 = 0x8000;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(CheckedShr::checked_shr(&amp;x, 0),  Some(0x8000));</span>
-    <span class="doccomment">/// assert_eq!(CheckedShr::checked_shr(&amp;x, 1),  Some(0x4000));</span>
-    <span class="doccomment">/// assert_eq!(CheckedShr::checked_shr(&amp;x, 15), Some(0x0001));</span>
-    <span class="doccomment">/// assert_eq!(CheckedShr::checked_shr(&amp;x, 16), None);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">checked_shr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Performs a right shift that returns `None` on shifts larger than
+/// the type width.
+</span><span class="kw">pub trait </span>CheckedShr: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, Output = <span class="self">Self</span>&gt; {
+    <span class="doccomment">/// Checked shift right. Computes `self &gt;&gt; rhs`, returning `None`
+    /// if `rhs` is larger than or equal to the number of bits in `self`.
+    ///
+    /// ```
+    /// use num_traits::CheckedShr;
+    ///
+    /// let x: u16 = 0x8000;
+    ///
+    /// assert_eq!(CheckedShr::checked_shr(&amp;x, 0),  Some(0x8000));
+    /// assert_eq!(CheckedShr::checked_shr(&amp;x, 1),  Some(0x4000));
+    /// assert_eq!(CheckedShr::checked_shr(&amp;x, 15), Some(0x0001));
+    /// assert_eq!(CheckedShr::checked_shr(&amp;x, 16), None);
+    /// ```
+    </span><span class="kw">fn </span>checked_shr(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
 }
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(<span class="ident">CheckedShr</span>, <span class="ident">checked_shr</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>);
+<a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>);
+<span class="attribute">#[cfg(has_i128)]
+</span><a class="macro" href="../../../src/num_traits/ops/checked.rs.html#217-226">checked_shift_impl!</a>(CheckedShr, checked_shr, <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="num_traits" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="num_traits" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

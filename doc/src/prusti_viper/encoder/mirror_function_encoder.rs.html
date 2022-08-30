@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mirror_function_encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mirror_function_encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mirror_function_encoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mirror_function_encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -294,117 +294,117 @@
 <span id="294">294</span>
 <span id="295">295</span>
 <span id="296">296</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<a class="ident" href="../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::hir::def_id::DefId</a>;
+</span><span class="kw">use </span>rustc_hash::{<a href="../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::hir::def_id::DefId</a>;
 
-<span class="kw">use</span> <span class="ident">vir_crate::polymorphic</span>::{<a class="self" href="../../../vir/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>};
+<span class="kw">use </span>vir_crate::polymorphic::{<span class="self"><a href="../../../vir/polymorphic/index.html">self</a> </span><span class="kw">as </span>vir};
 
 
 
-<span class="kw">const</span> <span class="ident">MIRROR_DOMAIN_NAME</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;MirrorDomain&quot;</span>;
+<span class="kw">const </span>MIRROR_DOMAIN_NAME: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;MirrorDomain&quot;</span>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirrorEncoder</span> {
-    <span class="ident">domain</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>,
-    <span class="ident">encoded</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>MirrorEncoder {
+    domain: <a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>,
+    encoded: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;,
 }
 
-<span class="comment">// mirror_caller_functions: RefCell&lt;Vec&lt;vir::Function&gt;&gt;</span>
+<span class="comment">// mirror_caller_functions: RefCell&lt;Vec&lt;vir::Function&gt;&gt;
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#16">MirrorEncoder</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">domain</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-                <span class="ident">name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#14">MIRROR_DOMAIN_NAME</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                <span class="ident">functions</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                <span class="ident">axioms</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                <span class="ident">type_vars</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+</span><span class="kw">impl </span><a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#16">MirrorEncoder</a> {
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            domain: <a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
+                name: <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#14">MIRROR_DOMAIN_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                functions: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+                axioms: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+                type_vars: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             },
-            <span class="ident">encoded</span>: <span class="ident">FxHashSet::default</span>(),
+            encoded: FxHashSet::default(),
         }
     }
 
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">encoded</span>.<span class="ident">is_empty</span>() {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#37">self</a>.<span class="ident">domain</span>)
+    <span class="kw">pub fn </span>get_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.encoded.is_empty() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#37">self</a>.domain)
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_mirrors</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="comment">// encoder: &amp;Encoder,</span>
-        <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-        <span class="ident">function</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>,
+    <span class="kw">pub fn </span>encode_mirrors(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <span class="comment">// encoder: &amp;Encoder,
+        </span>def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        function: <span class="kw-2">&amp;mut </span><a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>,
     ) {
-        <span class="comment">// don&#39;t encode a mirror for the same DefId multiple times</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">encoded</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">def_id</span>) {
+        <span class="comment">// don&#39;t encode a mirror for the same DefId multiple times
+        </span><span class="kw">if </span><span class="self">self</span>.encoded.contains(<span class="kw-2">&amp;</span>def_id) {
             <span class="kw">return</span>;
         }
-        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<span class="ident">encoded</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.encoded.insert(<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>);
 
-        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#61-65">encode_mirror_simple</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">function</a>);
-        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#100-104">encode_mirror_axiomatized</a>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">function</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#61-65">encode_mirror_simple</a>(<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>, <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">function</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#46">self</a>.<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#100-104">encode_mirror_axiomatized</a>(<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#48">def_id</a>, <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#49">function</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_mirror_simple</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-        <span class="ident">function</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>,
+    <span class="kw">fn </span>encode_mirror_simple(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        function: <span class="kw-2">&amp;mut </span><a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>,
     ) {
-        <span class="comment">// create mirror function</span>
-        <span class="kw">let</span> <span class="ident">mirror_func</span> <span class="op">=</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
-            <span class="ident">name</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;mirror_simple${}&quot;</span>, <span class="ident">function</span>.<span class="ident">name</span>),
-            <span class="ident">type_arguments</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">type_arguments</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">formal_args</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">formal_args</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">return_type</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">return_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">unique</span>: <span class="bool-val">false</span>,
-            <span class="ident">domain_name</span>: <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#14">MIRROR_DOMAIN_NAME</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+        <span class="comment">// create mirror function
+        </span><span class="kw">let </span>mirror_func = <a href="../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
+            name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;mirror_simple${}&quot;</span>, function.name),
+            type_arguments: <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.type_arguments.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            formal_args: <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.formal_args.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            return_type: <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            unique: <span class="bool-val">false</span>,
+            domain_name: <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#14">MIRROR_DOMAIN_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         };
 
-        <span class="comment">// add postcondition to the original function</span>
-        <span class="comment">// [result == mirror(args), true]</span>
-        <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">posts</span>.<span class="ident">push</span>(<span class="ident">vir::Expr::InhaleExhale</span>( <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/struct.InhaleExhale.html">vir::InhaleExhale</a> {
-            <span class="ident">inhale_expr</span>: <span class="kw">box</span> <span class="ident">vir::Expr::eq_cmp</span>(
-                <span class="ident">vir::Expr::local</span>(
-                    <span class="ident">vir::LocalVar::new</span>(<span class="string">&quot;__result&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">return_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <span class="comment">// add postcondition to the original function
+        // [result == mirror(args), true]
+        </span><a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.posts.push(vir::Expr::InhaleExhale( <a href="../../../vir/gen/polymorphic/ast/expr/struct.InhaleExhale.html">vir::InhaleExhale</a> {
+            inhale_expr: <span class="kw">box </span>vir::Expr::eq_cmp(
+                vir::Expr::local(
+                    vir::LocalVar::new(<span class="string">&quot;__result&quot;</span>, <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                 ),
-                <span class="ident">vir::Expr::domain_func_app</span>(
-                    <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#67">mirror_func</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.<span class="ident">formal_args</span>.<span class="ident">iter</span>()
-                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="ident">vir::Expr::local</span>)
-                        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                vir::Expr::domain_func_app(
+                    <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#67">mirror_func</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#64">function</a>.formal_args.iter()
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(vir::Expr::local)
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
                 ),
             ),
-            <span class="ident">exhale_expr</span>: <span class="kw">box</span> <span class="bool-val">true</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <span class="ident">position</span>: <span class="ident">vir::Position::default</span>(),
+            exhale_expr: <span class="kw">box </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            position: vir::Position::default(),
         }));
 
-        <span class="comment">// add mirror function to mirror domain</span>
-        <a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#62">self</a>.<span class="ident">domain</span>.<span class="ident">functions</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#67">mirror_func</a>);
+        <span class="comment">// add mirror function to mirror domain
+        </span><a class="self" href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#62">self</a>.domain.functions.push(<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#67">mirror_func</a>);
     }
 
-    <span class="comment">// TODO: ...</span>
-    <span class="kw">fn</span> <span class="ident">encode_mirror_axiomatized</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-        <span class="ident">_function</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>,
+    <span class="comment">// TODO: ...
+    </span><span class="kw">fn </span>encode_mirror_axiomatized(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        _function: <span class="kw-2">&amp;mut </span><a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>,
     ) {}
 }
 
-<span class="comment">// ------------------------------</span>
-<span class="comment">// --- OLD ----------------------</span>
-<span class="comment">// ------------------------------</span>
+<span class="comment">// ------------------------------
+// --- OLD ----------------------
+// ------------------------------
 
-<span class="comment">/*
+/*
 pub fn encode_mirror_of_pure_function(
     encoder: &amp;Encoder,
     mirror_function_domain: &amp;mut vir::Domain,
@@ -589,6 +589,6 @@ fn encode_mirror_caller(encoder: &amp;Encoder, df: vir::DomainFunc, pres: vir::E
     encoder.insert_mirror_caller(function);
     */
 }
-*/</span>
-</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+*/
+</span></code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

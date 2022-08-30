@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/async_write_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_write_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/async_write_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_write_ext.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1291,1298 +1291,1298 @@
 <span id="1291">1291</span>
 <span id="1292">1292</span>
 <span id="1293">1293</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::flush</span>::{<a class="ident" href="../../../../src/tokio/io/util/flush.rs.html#26-28">flush</a>, <a class="ident" href="../../../../src/tokio/io/util/flush.rs.html#10-23">Flush</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::shutdown</span>::{<a class="ident" href="../../../../src/tokio/io/util/shutdown.rs.html#26-28">shutdown</a>, <a class="ident" href="../../../../src/tokio/io/util/shutdown.rs.html#10-23">Shutdown</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::write</span>::{<a class="ident" href="../../../../src/tokio/io/util/write.rs.html#25-27">write</a>, <a class="ident" href="../../../../src/tokio/io/util/write.rs.html#10-21">Write</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::write_all</span>::{<a class="ident" href="../../../../src/tokio/io/util/write_all.rs.html#23-25">write_all</a>, <a class="ident" href="../../../../src/tokio/io/util/write_all.rs.html#11-21">WriteAll</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::write_all_buf</span>::{<a class="ident" href="../../../../src/tokio/io/util/write_all_buf.rs.html#25-28">write_all_buf</a>, <a class="ident" href="../../../../src/tokio/io/util/write_all_buf.rs.html#11-21">WriteAllBuf</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::write_buf</span>::{<a class="ident" href="../../../../src/tokio/io/util/write_buf.rs.html#25-28">write_buf</a>, <a class="ident" href="../../../../src/tokio/io/util/write_buf.rs.html#11-21">WriteBuf</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::write_int</span>::{<a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#138">WriteF32</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#151">WriteF32Le</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#139">WriteF64</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#152">WriteF64Le</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::write_int</span>::{
-    <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#136">WriteI128</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#149">WriteI128Le</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#133">WriteI16</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#146">WriteI16Le</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#134">WriteI32</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#147">WriteI32Le</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#135">WriteI64</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#148">WriteI64Le</a>,
-    <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#126">WriteI8</a>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::util::flush::{<a href="../../../../src/tokio/io/util/flush.rs.html#26-28">flush</a>, <a href="../../../../src/tokio/io/util/flush.rs.html#10-23">Flush</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::shutdown::{<a href="../../../../src/tokio/io/util/shutdown.rs.html#26-28">shutdown</a>, <a href="../../../../src/tokio/io/util/shutdown.rs.html#10-23">Shutdown</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write::{<a href="../../../../src/tokio/io/util/write.rs.html#25-27">write</a>, <a href="../../../../src/tokio/io/util/write.rs.html#10-21">Write</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_all::{<a href="../../../../src/tokio/io/util/write_all.rs.html#23-25">write_all</a>, <a href="../../../../src/tokio/io/util/write_all.rs.html#11-21">WriteAll</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_all_buf::{<a href="../../../../src/tokio/io/util/write_all_buf.rs.html#25-28">write_all_buf</a>, <a href="../../../../src/tokio/io/util/write_all_buf.rs.html#11-21">WriteAllBuf</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_buf::{<a href="../../../../src/tokio/io/util/write_buf.rs.html#25-28">write_buf</a>, <a href="../../../../src/tokio/io/util/write_buf.rs.html#11-21">WriteBuf</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_int::{<a href="../../../../src/tokio/io/util/write_int.rs.html#138">WriteF32</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#151">WriteF32Le</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#139">WriteF64</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#152">WriteF64Le</a>};
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_int::{
+    <a href="../../../../src/tokio/io/util/write_int.rs.html#136">WriteI128</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#149">WriteI128Le</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#133">WriteI16</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#146">WriteI16Le</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#134">WriteI32</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#147">WriteI32Le</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#135">WriteI64</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#148">WriteI64Le</a>,
+    <a href="../../../../src/tokio/io/util/write_int.rs.html#126">WriteI8</a>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::write_int</span>::{
-    <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#131">WriteU128</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#144">WriteU128Le</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#128">WriteU16</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#141">WriteU16Le</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#129">WriteU32</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#142">WriteU32Le</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#130">WriteU64</a>, <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#143">WriteU64Le</a>,
-    <a class="ident" href="../../../../src/tokio/io/util/write_int.rs.html#125">WriteU8</a>,
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_int::{
+    <a href="../../../../src/tokio/io/util/write_int.rs.html#131">WriteU128</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#144">WriteU128Le</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#128">WriteU16</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#141">WriteU16Le</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#129">WriteU32</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#142">WriteU32Le</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#130">WriteU64</a>, <a href="../../../../src/tokio/io/util/write_int.rs.html#143">WriteU64Le</a>,
+    <a href="../../../../src/tokio/io/util/write_int.rs.html#125">WriteU8</a>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io::util::write_vectored</span>::{<a class="ident" href="../../../../src/tokio/io/util/write_vectored.rs.html#23-28">write_vectored</a>, <a class="ident" href="../../../../src/tokio/io/util/write_vectored.rs.html#10-21">WriteVectored</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45"><span class="kw">crate</span>::io::AsyncWrite</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
+<span class="kw">use </span><span class="kw">crate</span>::io::util::write_vectored::{<a href="../../../../src/tokio/io/util/write_vectored.rs.html#23-28">write_vectored</a>, <a href="../../../../src/tokio/io/util/write_vectored.rs.html#10-21">WriteVectored</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/io/async_write.rs.html#45"><span class="kw">crate</span>::io::AsyncWrite</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
+<span class="kw">use </span><a href="../../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
 
-<span class="macro">cfg_io_util!</span> {
-    <span class="doccomment">/// Defines numeric writer.</span>
-    <span class="macro">macro_rules!</span> <span class="ident">write_impl</span> {
+<span class="macro">cfg_io_util! </span>{
+    <span class="doccomment">/// Defines numeric writer.
+    </span><span class="macro">macro_rules! </span>write_impl {
         (
             $(
-                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
-                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) -&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>;
-            )<span class="op">*</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$outer</span>:meta]</span>)*
+                <span class="kw">fn </span><span class="macro-nonterminal">$name</span>:ident(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <span class="macro-nonterminal">$ty</span>:ty) -&gt; $(<span class="macro-nonterminal">$fut</span>:ident)<span class="kw-2">*</span>;
+            )*
         ) =&gt; {
             $(
-                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>]</span>)<span class="op">*</span>
-                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>)<span class="kw-2">*</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Unpin</span> {
-                    $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>)<span class="kw-2">*</span><span class="ident">::new</span>(<span class="self">self</span>, <span class="ident">n</span>)
+                $(<span class="attribute">#[<span class="macro-nonterminal">$outer</span>]</span>)*
+                <span class="kw">fn </span><span class="macro-nonterminal">$name</span>&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, n: <span class="macro-nonterminal">$ty</span>) -&gt; $(<span class="macro-nonterminal">$fut</span>)<span class="kw-2">*</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self</span>&gt; <span class="kw">where </span><span class="self">Self</span>: Unpin {
+                    $(<span class="macro-nonterminal">$fut</span>)<span class="kw-2">*</span>::new(<span class="self">self</span>, n)
                 }
-            )<span class="op">*</span>
+            )*
         }
     }
 
-    <span class="doccomment">/// Writes bytes to a sink.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Implemented as an extension trait, adding utility methods to all</span>
-    <span class="doccomment">/// [`AsyncWrite`] types. Callers will tend to import this trait instead of</span>
-    <span class="doccomment">/// [`AsyncWrite`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-    <span class="doccomment">/// use tokio::fs::File;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let data = b&quot;some bytes&quot;;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let mut pos = 0;</span>
-    <span class="doccomment">///     let mut buffer = File::create(&quot;foo.txt&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     while pos &lt; data.len() {</span>
-    <span class="doccomment">///         let bytes_written = buffer.write(&amp;data[pos..]).await?;</span>
-    <span class="doccomment">///         pos += bytes_written;</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [module][crate::io] documentation for more details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`AsyncWrite`]: AsyncWrite</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsyncWriteExt</span>: <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> {
-        <span class="doccomment">/// Writes a buffer into this writer, returning how many bytes were</span>
-        <span class="doccomment">/// written.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn write(&amp;mut self, buf: &amp;[u8]) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will attempt to write the entire contents of `buf`, but</span>
-        <span class="doccomment">/// the entire write may not succeed, or the write may also generate an</span>
-        <span class="doccomment">/// error. A call to `write` represents *at most one* attempt to write to</span>
-        <span class="doccomment">/// any wrapped object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Return</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the return value is `Ok(n)` then it must be guaranteed that `n &lt;=</span>
-        <span class="doccomment">/// buf.len()`. A return value of `0` typically means that the</span>
-        <span class="doccomment">/// underlying object is no longer able to accept bytes and will likely</span>
-        <span class="doccomment">/// not be able to in the future as well, or that the buffer provided is</span>
-        <span class="doccomment">/// empty.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Each call to `write` may generate an I/O error indicating that the</span>
-        <span class="doccomment">/// operation could not be completed. If an error is returned then no bytes</span>
-        <span class="doccomment">/// in the buffer were written to this writer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// It is **not** considered an error if the entire buffer could not be</span>
-        <span class="doccomment">/// written to this writer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is cancellation safe in the sense that if it is used as</span>
-        <span class="doccomment">/// the event in a [`tokio::select!`](crate::select) statement and some</span>
-        <span class="doccomment">/// other branch completes first, then it is guaranteed that no data was</span>
-        <span class="doccomment">/// written to this `AsyncWrite`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // Writes some prefix of the byte string, not necessarily all of it.</span>
-        <span class="doccomment">///     file.write(b&quot;some bytes&quot;).await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">Write</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    <span class="doccomment">/// Writes bytes to a sink.
+    ///
+    /// Implemented as an extension trait, adding utility methods to all
+    /// [`AsyncWrite`] types. Callers will tend to import this trait instead of
+    /// [`AsyncWrite`].
+    ///
+    /// ```no_run
+    /// use tokio::io::{self, AsyncWriteExt};
+    /// use tokio::fs::File;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let data = b&quot;some bytes&quot;;
+    ///
+    ///     let mut pos = 0;
+    ///     let mut buffer = File::create(&quot;foo.txt&quot;).await?;
+    ///
+    ///     while pos &lt; data.len() {
+    ///         let bytes_written = buffer.write(&amp;data[pos..]).await?;
+    ///         pos += bytes_written;
+    ///     }
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// See [module][crate::io] documentation for more details.
+    ///
+    /// [`AsyncWrite`]: AsyncWrite
+    </span><span class="kw">pub trait </span>AsyncWriteExt: <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> {
+        <span class="doccomment">/// Writes a buffer into this writer, returning how many bytes were
+        /// written.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn write(&amp;mut self, buf: &amp;[u8]) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// This function will attempt to write the entire contents of `buf`, but
+        /// the entire write may not succeed, or the write may also generate an
+        /// error. A call to `write` represents *at most one* attempt to write to
+        /// any wrapped object.
+        ///
+        /// # Return
+        ///
+        /// If the return value is `Ok(n)` then it must be guaranteed that `n &lt;=
+        /// buf.len()`. A return value of `0` typically means that the
+        /// underlying object is no longer able to accept bytes and will likely
+        /// not be able to in the future as well, or that the buffer provided is
+        /// empty.
+        ///
+        /// # Errors
+        ///
+        /// Each call to `write` may generate an I/O error indicating that the
+        /// operation could not be completed. If an error is returned then no bytes
+        /// in the buffer were written to this writer.
+        ///
+        /// It is **not** considered an error if the entire buffer could not be
+        /// written to this writer.
+        ///
+        /// # Cancel safety
+        ///
+        /// This method is cancellation safe in the sense that if it is used as
+        /// the event in a [`tokio::select!`](crate::select) statement and some
+        /// other branch completes first, then it is guaranteed that no data was
+        /// written to this `AsyncWrite`.
+        ///
+        /// # Examples
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, AsyncWriteExt};
+        /// use tokio::fs::File;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut file = File::create(&quot;foo.txt&quot;).await?;
+        ///
+        ///     // Writes some prefix of the byte string, not necessarily all of it.
+        ///     file.write(b&quot;some bytes&quot;).await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>write&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Write&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/write.rs.html#25-27">write</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#123">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_write_ext.rs.html#123">src</a>)
+            <a href="../../../../src/tokio/io/util/write.rs.html#25-27">write</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#123">self</a>, <a href="../../../../src/tokio/io/util/async_write_ext.rs.html#123">src</a>)
         }
 
-        <span class="doccomment">/// Like [`write`], except that it writes from a slice of buffers.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn write_vectored(&amp;mut self, bufs: &amp;[IoSlice&lt;&#39;_&gt;]) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// See [`AsyncWrite::poll_write_vectored`] for more details.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is cancellation safe in the sense that if it is used as</span>
-        <span class="doccomment">/// the event in a [`tokio::select!`](crate::select) statement and some</span>
-        <span class="doccomment">/// other branch completes first, then it is guaranteed that no data was</span>
-        <span class="doccomment">/// written to this `AsyncWrite`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">/// use std::io::IoSlice;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     let bufs: &amp;[_] = &amp;[</span>
-        <span class="doccomment">///         IoSlice::new(b&quot;hello&quot;),</span>
-        <span class="doccomment">///         IoSlice::new(b&quot; &quot;),</span>
-        <span class="doccomment">///         IoSlice::new(b&quot;world&quot;),</span>
-        <span class="doccomment">///     ];</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     file.write_vectored(&amp;bufs).await?;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`write`]: AsyncWriteExt::write</span>
-        <span class="kw">fn</span> <span class="ident">write_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bufs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>]) -&gt; <span class="ident">WriteVectored</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Like [`write`], except that it writes from a slice of buffers.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn write_vectored(&amp;mut self, bufs: &amp;[IoSlice&lt;&#39;_&gt;]) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// See [`AsyncWrite::poll_write_vectored`] for more details.
+        ///
+        /// # Cancel safety
+        ///
+        /// This method is cancellation safe in the sense that if it is used as
+        /// the event in a [`tokio::select!`](crate::select) statement and some
+        /// other branch completes first, then it is guaranteed that no data was
+        /// written to this `AsyncWrite`.
+        ///
+        /// # Examples
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, AsyncWriteExt};
+        /// use tokio::fs::File;
+        /// use std::io::IoSlice;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut file = File::create(&quot;foo.txt&quot;).await?;
+        ///
+        ///     let bufs: &amp;[_] = &amp;[
+        ///         IoSlice::new(b&quot;hello&quot;),
+        ///         IoSlice::new(b&quot; &quot;),
+        ///         IoSlice::new(b&quot;world&quot;),
+        ///     ];
+        ///
+        ///     file.write_vectored(&amp;bufs).await?;
+        ///
+        ///     Ok(())
+        /// }
+        /// ```
+        ///
+        /// [`write`]: AsyncWriteExt::write
+        </span><span class="kw">fn </span>write_vectored&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[IoSlice&lt;<span class="lifetime">&#39;b</span>&gt;]) -&gt; WriteVectored&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/write_vectored.rs.html#23-28">write_vectored</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#171">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_write_ext.rs.html#171">bufs</a>)
+            <a href="../../../../src/tokio/io/util/write_vectored.rs.html#23-28">write_vectored</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#171">self</a>, <a href="../../../../src/tokio/io/util/async_write_ext.rs.html#171">bufs</a>)
         }
 
-        <span class="doccomment">/// Writes a buffer into this writer, advancing the buffer&#39;s internal</span>
-        <span class="doccomment">/// cursor.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn write_buf&lt;B: Buf&gt;(&amp;mut self, buf: &amp;mut B) -&gt; io::Result&lt;usize&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will attempt to write the entire contents of `buf`, but</span>
-        <span class="doccomment">/// the entire write may not succeed, or the write may also generate an</span>
-        <span class="doccomment">/// error. After the operation completes, the buffer&#39;s</span>
-        <span class="doccomment">/// internal cursor is advanced by the number of bytes written. A</span>
-        <span class="doccomment">/// subsequent call to `write_buf` using the **same** `buf` value will</span>
-        <span class="doccomment">/// resume from the point that the first call to `write_buf` completed.</span>
-        <span class="doccomment">/// A call to `write_buf` represents *at most one* attempt to write to any</span>
-        <span class="doccomment">/// wrapped object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Return</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the return value is `Ok(n)` then it must be guaranteed that `n &lt;=</span>
-        <span class="doccomment">/// buf.len()`. A return value of `0` typically means that the</span>
-        <span class="doccomment">/// underlying object is no longer able to accept bytes and will likely</span>
-        <span class="doccomment">/// not be able to in the future as well, or that the buffer provided is</span>
-        <span class="doccomment">/// empty.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Each call to `write` may generate an I/O error indicating that the</span>
-        <span class="doccomment">/// operation could not be completed. If an error is returned then no bytes</span>
-        <span class="doccomment">/// in the buffer were written to this writer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// It is **not** considered an error if the entire buffer could not be</span>
-        <span class="doccomment">/// written to this writer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is cancellation safe in the sense that if it is used as</span>
-        <span class="doccomment">/// the event in a [`tokio::select!`](crate::select) statement and some</span>
-        <span class="doccomment">/// other branch completes first, then it is guaranteed that no data was</span>
-        <span class="doccomment">/// written to this `AsyncWrite`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`] implements [`AsyncWrite`] and [`Cursor`]`&lt;&amp;[u8]&gt;` implements [`Buf`]:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`]: crate::fs::File</span>
-        <span class="doccomment">/// [`Buf`]: bytes::Buf</span>
-        <span class="doccomment">/// [`Cursor`]: std::io::Cursor</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// use bytes::Buf;</span>
-        <span class="doccomment">/// use std::io::Cursor;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = Cursor::new(b&quot;data to write&quot;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     // Loop until the entire contents of the buffer are written to</span>
-        <span class="doccomment">///     // the file.</span>
-        <span class="doccomment">///     while buffer.has_remaining() {</span>
-        <span class="doccomment">///         // Writes some prefix of the byte string, not necessarily</span>
-        <span class="doccomment">///         // all of it.</span>
-        <span class="doccomment">///         file.write_buf(&amp;mut buffer).await?;</span>
-        <span class="doccomment">///     }</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">write_buf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">B</span>) -&gt; <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span>, <span class="ident">B</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-            <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+        <span class="doccomment">/// Writes a buffer into this writer, advancing the buffer&#39;s internal
+        /// cursor.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn write_buf&lt;B: Buf&gt;(&amp;mut self, buf: &amp;mut B) -&gt; io::Result&lt;usize&gt;;
+        /// ```
+        ///
+        /// This function will attempt to write the entire contents of `buf`, but
+        /// the entire write may not succeed, or the write may also generate an
+        /// error. After the operation completes, the buffer&#39;s
+        /// internal cursor is advanced by the number of bytes written. A
+        /// subsequent call to `write_buf` using the **same** `buf` value will
+        /// resume from the point that the first call to `write_buf` completed.
+        /// A call to `write_buf` represents *at most one* attempt to write to any
+        /// wrapped object.
+        ///
+        /// # Return
+        ///
+        /// If the return value is `Ok(n)` then it must be guaranteed that `n &lt;=
+        /// buf.len()`. A return value of `0` typically means that the
+        /// underlying object is no longer able to accept bytes and will likely
+        /// not be able to in the future as well, or that the buffer provided is
+        /// empty.
+        ///
+        /// # Errors
+        ///
+        /// Each call to `write` may generate an I/O error indicating that the
+        /// operation could not be completed. If an error is returned then no bytes
+        /// in the buffer were written to this writer.
+        ///
+        /// It is **not** considered an error if the entire buffer could not be
+        /// written to this writer.
+        ///
+        /// # Cancel safety
+        ///
+        /// This method is cancellation safe in the sense that if it is used as
+        /// the event in a [`tokio::select!`](crate::select) statement and some
+        /// other branch completes first, then it is guaranteed that no data was
+        /// written to this `AsyncWrite`.
+        ///
+        /// # Examples
+        ///
+        /// [`File`] implements [`AsyncWrite`] and [`Cursor`]`&lt;&amp;[u8]&gt;` implements [`Buf`]:
+        ///
+        /// [`File`]: crate::fs::File
+        /// [`Buf`]: bytes::Buf
+        /// [`Cursor`]: std::io::Cursor
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, AsyncWriteExt};
+        /// use tokio::fs::File;
+        ///
+        /// use bytes::Buf;
+        /// use std::io::Cursor;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut file = File::create(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = Cursor::new(b&quot;data to write&quot;);
+        ///
+        ///     // Loop until the entire contents of the buffer are written to
+        ///     // the file.
+        ///     while buffer.has_remaining() {
+        ///         // Writes some prefix of the byte string, not necessarily
+        ///         // all of it.
+        ///         file.write_buf(&amp;mut buffer).await?;
+        ///     }
+        ///
+        ///     Ok(())
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>write_buf&lt;<span class="lifetime">&#39;a</span>, B&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>B) -&gt; WriteBuf&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>, B&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            B: <a href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/write_buf.rs.html#25-28">write_buf</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#251">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_write_ext.rs.html#251">src</a>)
+            <a href="../../../../src/tokio/io/util/write_buf.rs.html#25-28">write_buf</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#251">self</a>, <a href="../../../../src/tokio/io/util/async_write_ext.rs.html#251">src</a>)
         }
 
-        <span class="doccomment">/// Attempts to write an entire buffer into this writer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn write_all_buf(&amp;mut self, buf: impl Buf) -&gt; Result&lt;(), io::Error&gt; {</span>
-        <span class="doccomment">///     while buf.has_remaining() {</span>
-        <span class="doccomment">///         self.write_buf(&amp;mut buf).await?;</span>
-        <span class="doccomment">///     }</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method will continuously call [`write`] until</span>
-        <span class="doccomment">/// [`buf.has_remaining()`](bytes::Buf::has_remaining) returns false. This method will not</span>
-        <span class="doccomment">/// return until the entire buffer has been successfully written or an error occurs. The</span>
-        <span class="doccomment">/// first error generated will be returned.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The buffer is advanced after each chunk is successfully written. After failure,</span>
-        <span class="doccomment">/// `src.chunk()` will return the chunk that failed to write.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If `write_all_buf` is used as the event in a</span>
-        <span class="doccomment">/// [`tokio::select!`](crate::select) statement and some other branch</span>
-        <span class="doccomment">/// completes first, then the data in the provided buffer may have been</span>
-        <span class="doccomment">/// partially written. However, it is guaranteed that the provided</span>
-        <span class="doccomment">/// buffer has been [advanced] by the amount of bytes that have been</span>
-        <span class="doccomment">/// partially written.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`] implements [`AsyncWrite`] and [`Cursor`]`&lt;&amp;[u8]&gt;` implements [`Buf`]:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`File`]: crate::fs::File</span>
-        <span class="doccomment">/// [`Buf`]: bytes::Buf</span>
-        <span class="doccomment">/// [`Cursor`]: std::io::Cursor</span>
-        <span class="doccomment">/// [advanced]: bytes::Buf::advance</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// use std::io::Cursor;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = Cursor::new(b&quot;data to write&quot;);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     file.write_all_buf(&amp;mut buffer).await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`write`]: AsyncWriteExt::write</span>
-        <span class="kw">fn</span> <span class="ident">write_all_buf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">B</span>) -&gt; <span class="ident">WriteAllBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span>, <span class="ident">B</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-            <span class="ident">B</span>: <a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
+        <span class="doccomment">/// Attempts to write an entire buffer into this writer.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn write_all_buf(&amp;mut self, buf: impl Buf) -&gt; Result&lt;(), io::Error&gt; {
+        ///     while buf.has_remaining() {
+        ///         self.write_buf(&amp;mut buf).await?;
+        ///     }
+        ///     Ok(())
+        /// }
+        /// ```
+        ///
+        /// This method will continuously call [`write`] until
+        /// [`buf.has_remaining()`](bytes::Buf::has_remaining) returns false. This method will not
+        /// return until the entire buffer has been successfully written or an error occurs. The
+        /// first error generated will be returned.
+        ///
+        /// The buffer is advanced after each chunk is successfully written. After failure,
+        /// `src.chunk()` will return the chunk that failed to write.
+        ///
+        /// # Cancel safety
+        ///
+        /// If `write_all_buf` is used as the event in a
+        /// [`tokio::select!`](crate::select) statement and some other branch
+        /// completes first, then the data in the provided buffer may have been
+        /// partially written. However, it is guaranteed that the provided
+        /// buffer has been [advanced] by the amount of bytes that have been
+        /// partially written.
+        ///
+        /// # Examples
+        ///
+        /// [`File`] implements [`AsyncWrite`] and [`Cursor`]`&lt;&amp;[u8]&gt;` implements [`Buf`]:
+        ///
+        /// [`File`]: crate::fs::File
+        /// [`Buf`]: bytes::Buf
+        /// [`Cursor`]: std::io::Cursor
+        /// [advanced]: bytes::Buf::advance
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, AsyncWriteExt};
+        /// use tokio::fs::File;
+        ///
+        /// use std::io::Cursor;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut file = File::create(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = Cursor::new(b&quot;data to write&quot;);
+        ///
+        ///     file.write_all_buf(&amp;mut buffer).await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        ///
+        /// [`write`]: AsyncWriteExt::write
+        </span><span class="kw">fn </span>write_all_buf&lt;<span class="lifetime">&#39;a</span>, B&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>B) -&gt; WriteAllBuf&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>, B&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+            B: <a href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/write_all_buf.rs.html#25-28">write_all_buf</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#315">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_write_ext.rs.html#315">src</a>)
+            <a href="../../../../src/tokio/io/util/write_all_buf.rs.html#25-28">write_all_buf</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#315">self</a>, <a href="../../../../src/tokio/io/util/async_write_ext.rs.html#315">src</a>)
         }
 
-        <span class="doccomment">/// Attempts to write an entire buffer into this writer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn write_all(&amp;mut self, buf: &amp;[u8]) -&gt; io::Result&lt;()&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method will continuously call [`write`] until there is no more data</span>
-        <span class="doccomment">/// to be written. This method will not return until the entire buffer</span>
-        <span class="doccomment">/// has been successfully written or such an error occurs. The first</span>
-        <span class="doccomment">/// error generated from this method will be returned.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Cancel safety</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This method is not cancellation safe. If it is used as the event</span>
-        <span class="doccomment">/// in a [`tokio::select!`](crate::select) statement and some other</span>
-        <span class="doccomment">/// branch completes first, then the provided buffer may have been</span>
-        <span class="doccomment">/// partially written, but future calls to `write_all` will start over</span>
-        <span class="doccomment">/// from the beginning of the buffer.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This function will return the first error that [`write`] returns.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let mut file = File::create(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     file.write_all(b&quot;some bytes&quot;).await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`write`]: AsyncWriteExt::write</span>
-        <span class="kw">fn</span> <span class="ident">write_all</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">WriteAll</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Attempts to write an entire buffer into this writer.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn write_all(&amp;mut self, buf: &amp;[u8]) -&gt; io::Result&lt;()&gt;;
+        /// ```
+        ///
+        /// This method will continuously call [`write`] until there is no more data
+        /// to be written. This method will not return until the entire buffer
+        /// has been successfully written or such an error occurs. The first
+        /// error generated from this method will be returned.
+        ///
+        /// # Cancel safety
+        ///
+        /// This method is not cancellation safe. If it is used as the event
+        /// in a [`tokio::select!`](crate::select) statement and some other
+        /// branch completes first, then the provided buffer may have been
+        /// partially written, but future calls to `write_all` will start over
+        /// from the beginning of the buffer.
+        ///
+        /// # Errors
+        ///
+        /// This function will return the first error that [`write`] returns.
+        ///
+        /// # Examples
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, AsyncWriteExt};
+        /// use tokio::fs::File;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let mut file = File::create(&quot;foo.txt&quot;).await?;
+        ///
+        ///     file.write_all(b&quot;some bytes&quot;).await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        ///
+        /// [`write`]: AsyncWriteExt::write
+        </span><span class="kw">fn </span>write_all&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; WriteAll&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/write_all.rs.html#23-25">write_all</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#364">self</a>, <a class="ident" href="../../../../src/tokio/io/util/async_write_ext.rs.html#364">src</a>)
+            <a href="../../../../src/tokio/io/util/write_all.rs.html#23-25">write_all</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#364">self</a>, <a href="../../../../src/tokio/io/util/async_write_ext.rs.html#364">src</a>)
         }
 
-        <a class="macro" href="../../../../src/tokio/io/util/async_write_ext.rs.html#24-38">write_impl!</a> {
-            <span class="doccomment">/// Writes an unsigned 8-bit integer to the underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u8(&amp;mut self, n: u8) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 8 bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u8(2).await?;</span>
-            <span class="doccomment">///     writer.write_u8(5).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x02\x05&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">WriteU8</span>;
+        <a class="macro" href="../../../../src/tokio/io/util/async_write_ext.rs.html#24-38">write_impl! </a>{
+            <span class="doccomment">/// Writes an unsigned 8-bit integer to the underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u8(&amp;mut self, n: u8) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 8 bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u8(2).await?;
+            ///     writer.write_u8(5).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x02\x05&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; WriteU8;
 
-            <span class="doccomment">/// Writes an unsigned 8-bit integer to the underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i8(&amp;mut self, n: i8) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 8 bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u8(2).await?;</span>
-            <span class="doccomment">///     writer.write_u8(5).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x02\x05&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; <span class="ident">WriteI8</span>;
+            <span class="doccomment">/// Writes an unsigned 8-bit integer to the underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i8(&amp;mut self, n: i8) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 8 bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u8(2).await?;
+            ///     writer.write_u8(5).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x02\x05&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; WriteI8;
 
-            <span class="doccomment">/// Writes an unsigned 16-bit integer in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u16(&amp;mut self, n: u16) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 16-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u16(517).await?;</span>
-            <span class="doccomment">///     writer.write_u16(768).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x02\x05\x03\x00&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="ident">WriteU16</span>;
+            <span class="doccomment">/// Writes an unsigned 16-bit integer in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u16(&amp;mut self, n: u16) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 16-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u16(517).await?;
+            ///     writer.write_u16(768).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x02\x05\x03\x00&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; WriteU16;
 
-            <span class="doccomment">/// Writes a signed 16-bit integer in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i16(&amp;mut self, n: i16) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write signed 16-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_i16(193).await?;</span>
-            <span class="doccomment">///     writer.write_i16(-132).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x00\xc1\xff\x7c&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="ident">WriteI16</span>;
+            <span class="doccomment">/// Writes a signed 16-bit integer in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i16(&amp;mut self, n: i16) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write signed 16-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_i16(193).await?;
+            ///     writer.write_i16(-132).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x00\xc1\xff\x7c&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; WriteI16;
 
-            <span class="doccomment">/// Writes an unsigned 32-bit integer in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u32(&amp;mut self, n: u32) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 32-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u32(267).await?;</span>
-            <span class="doccomment">///     writer.write_u32(1205419366).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x00\x00\x01\x0b\x47\xd9\x3d\x66&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">WriteU32</span>;
+            <span class="doccomment">/// Writes an unsigned 32-bit integer in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u32(&amp;mut self, n: u32) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 32-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u32(267).await?;
+            ///     writer.write_u32(1205419366).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x00\x00\x01\x0b\x47\xd9\x3d\x66&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; WriteU32;
 
-            <span class="doccomment">/// Writes a signed 32-bit integer in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i32(&amp;mut self, n: i32) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write signed 32-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_i32(267).await?;</span>
-            <span class="doccomment">///     writer.write_i32(1205419366).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x00\x00\x01\x0b\x47\xd9\x3d\x66&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="ident">WriteI32</span>;
+            <span class="doccomment">/// Writes a signed 32-bit integer in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i32(&amp;mut self, n: i32) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write signed 32-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_i32(267).await?;
+            ///     writer.write_i32(1205419366).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x00\x00\x01\x0b\x47\xd9\x3d\x66&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; WriteI32;
 
-            <span class="doccomment">/// Writes an unsigned 64-bit integer in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u64(&amp;mut self, n: u64) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 64-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u64(918733457491587).await?;</span>
-            <span class="doccomment">///     writer.write_u64(143).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x00\x03\x43\x95\x4d\x60\x86\x83\x00\x00\x00\x00\x00\x00\x00\x8f&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">WriteU64</span>;
+            <span class="doccomment">/// Writes an unsigned 64-bit integer in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u64(&amp;mut self, n: u64) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 64-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u64(918733457491587).await?;
+            ///     writer.write_u64(143).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x00\x03\x43\x95\x4d\x60\x86\x83\x00\x00\x00\x00\x00\x00\x00\x8f&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; WriteU64;
 
-            <span class="doccomment">/// Writes an signed 64-bit integer in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i64(&amp;mut self, n: i64) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write signed 64-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_i64(i64::MIN).await?;</span>
-            <span class="doccomment">///     writer.write_i64(i64::MAX).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x80\x00\x00\x00\x00\x00\x00\x00\x7f\xff\xff\xff\xff\xff\xff\xff&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="ident">WriteI64</span>;
+            <span class="doccomment">/// Writes an signed 64-bit integer in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i64(&amp;mut self, n: i64) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write signed 64-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_i64(i64::MIN).await?;
+            ///     writer.write_i64(i64::MAX).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x80\x00\x00\x00\x00\x00\x00\x00\x7f\xff\xff\xff\xff\xff\xff\xff&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; WriteI64;
 
-            <span class="doccomment">/// Writes an unsigned 128-bit integer in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u128(&amp;mut self, n: u128) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 128-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u128(16947640962301618749969007319746179).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, vec![</span>
-            <span class="doccomment">///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83,</span>
-            <span class="doccomment">///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; <span class="ident">WriteU128</span>;
+            <span class="doccomment">/// Writes an unsigned 128-bit integer in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u128(&amp;mut self, n: u128) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 128-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u128(16947640962301618749969007319746179).await?;
+            ///
+            ///     assert_eq!(writer, vec![
+            ///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83,
+            ///         0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83
+            ///     ]);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; WriteU128;
 
-            <span class="doccomment">/// Writes an signed 128-bit integer in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i128(&amp;mut self, n: i128) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write signed 128-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_i128(i128::MIN).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, vec![</span>
-            <span class="doccomment">///         0x80, 0, 0, 0, 0, 0, 0, 0,</span>
-            <span class="doccomment">///         0, 0, 0, 0, 0, 0, 0, 0</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; <span class="ident">WriteI128</span>;
+            <span class="doccomment">/// Writes an signed 128-bit integer in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i128(&amp;mut self, n: i128) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write signed 128-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_i128(i128::MIN).await?;
+            ///
+            ///     assert_eq!(writer, vec![
+            ///         0x80, 0, 0, 0, 0, 0, 0, 0,
+            ///         0, 0, 0, 0, 0, 0, 0, 0
+            ///     ]);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; WriteI128;
 
-            <span class="doccomment">/// Writes an 32-bit floating point type in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_f32(&amp;mut self, n: f32) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write 32-bit floating point type to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_f32(f32::MIN).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, vec![0xff, 0x7f, 0xff, 0xff]);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_f32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) -&gt; <span class="ident">WriteF32</span>;
+            <span class="doccomment">/// Writes an 32-bit floating point type in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_f32(&amp;mut self, n: f32) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write 32-bit floating point type to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_f32(f32::MIN).await?;
+            ///
+            ///     assert_eq!(writer, vec![0xff, 0x7f, 0xff, 0xff]);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_f32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) -&gt; WriteF32;
 
-            <span class="doccomment">/// Writes an 64-bit floating point type in big-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_f64(&amp;mut self, n: f64) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write 64-bit floating point type to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_f64(f64::MIN).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, vec![</span>
-            <span class="doccomment">///         0xff, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_f64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="ident">WriteF64</span>;
+            <span class="doccomment">/// Writes an 64-bit floating point type in big-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_f64(&amp;mut self, n: f64) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write 64-bit floating point type to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_f64(f64::MIN).await?;
+            ///
+            ///     assert_eq!(writer, vec![
+            ///         0xff, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+            ///     ]);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; WriteF64;
 
-            <span class="doccomment">/// Writes an unsigned 16-bit integer in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u16_le(&amp;mut self, n: u16) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 16-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u16_le(517).await?;</span>
-            <span class="doccomment">///     writer.write_u16_le(768).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x05\x02\x00\x03&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="ident">WriteU16Le</span>;
+            <span class="doccomment">/// Writes an unsigned 16-bit integer in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u16_le(&amp;mut self, n: u16) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 16-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u16_le(517).await?;
+            ///     writer.write_u16_le(768).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x05\x02\x00\x03&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; WriteU16Le;
 
-            <span class="doccomment">/// Writes a signed 16-bit integer in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i16_le(&amp;mut self, n: i16) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write signed 16-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_i16_le(193).await?;</span>
-            <span class="doccomment">///     writer.write_i16_le(-132).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\xc1\x00\x7c\xff&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i16_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="ident">WriteI16Le</span>;
+            <span class="doccomment">/// Writes a signed 16-bit integer in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i16_le(&amp;mut self, n: i16) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write signed 16-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_i16_le(193).await?;
+            ///     writer.write_i16_le(-132).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\xc1\x00\x7c\xff&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i16_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; WriteI16Le;
 
-            <span class="doccomment">/// Writes an unsigned 32-bit integer in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u32_le(&amp;mut self, n: u32) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 32-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u32_le(267).await?;</span>
-            <span class="doccomment">///     writer.write_u32_le(1205419366).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x0b\x01\x00\x00\x66\x3d\xd9\x47&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">WriteU32Le</span>;
+            <span class="doccomment">/// Writes an unsigned 32-bit integer in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u32_le(&amp;mut self, n: u32) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 32-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u32_le(267).await?;
+            ///     writer.write_u32_le(1205419366).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x0b\x01\x00\x00\x66\x3d\xd9\x47&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; WriteU32Le;
 
-            <span class="doccomment">/// Writes a signed 32-bit integer in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i32_le(&amp;mut self, n: i32) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write signed 32-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_i32_le(267).await?;</span>
-            <span class="doccomment">///     writer.write_i32_le(1205419366).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x0b\x01\x00\x00\x66\x3d\xd9\x47&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="ident">WriteI32Le</span>;
+            <span class="doccomment">/// Writes a signed 32-bit integer in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i32_le(&amp;mut self, n: i32) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write signed 32-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_i32_le(267).await?;
+            ///     writer.write_i32_le(1205419366).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x0b\x01\x00\x00\x66\x3d\xd9\x47&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; WriteI32Le;
 
-            <span class="doccomment">/// Writes an unsigned 64-bit integer in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u64_le(&amp;mut self, n: u64) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 64-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u64_le(918733457491587).await?;</span>
-            <span class="doccomment">///     writer.write_u64_le(143).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x83\x86\x60\x4d\x95\x43\x03\x00\x8f\x00\x00\x00\x00\x00\x00\x00&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">WriteU64Le</span>;
+            <span class="doccomment">/// Writes an unsigned 64-bit integer in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u64_le(&amp;mut self, n: u64) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 64-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u64_le(918733457491587).await?;
+            ///     writer.write_u64_le(143).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x83\x86\x60\x4d\x95\x43\x03\x00\x8f\x00\x00\x00\x00\x00\x00\x00&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; WriteU64Le;
 
-            <span class="doccomment">/// Writes an signed 64-bit integer in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i64_le(&amp;mut self, n: i64) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write signed 64-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_i64_le(i64::MIN).await?;</span>
-            <span class="doccomment">///     writer.write_i64_le(i64::MAX).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, b&quot;\x00\x00\x00\x00\x00\x00\x00\x80\xff\xff\xff\xff\xff\xff\xff\x7f&quot;);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="ident">WriteI64Le</span>;
+            <span class="doccomment">/// Writes an signed 64-bit integer in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i64_le(&amp;mut self, n: i64) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write signed 64-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_i64_le(i64::MIN).await?;
+            ///     writer.write_i64_le(i64::MAX).await?;
+            ///
+            ///     assert_eq!(writer, b&quot;\x00\x00\x00\x00\x00\x00\x00\x80\xff\xff\xff\xff\xff\xff\xff\x7f&quot;);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; WriteI64Le;
 
-            <span class="doccomment">/// Writes an unsigned 128-bit integer in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_u128_le(&amp;mut self, n: u128) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write unsigned 128-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_u128_le(16947640962301618749969007319746179).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, vec![</span>
-            <span class="doccomment">///         0x83, 0x86, 0x60, 0x4d, 0x95, 0x43, 0x03, 0x00,</span>
-            <span class="doccomment">///         0x83, 0x86, 0x60, 0x4d, 0x95, 0x43, 0x03, 0x00,</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u128_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; <span class="ident">WriteU128Le</span>;
+            <span class="doccomment">/// Writes an unsigned 128-bit integer in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_u128_le(&amp;mut self, n: u128) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write unsigned 128-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_u128_le(16947640962301618749969007319746179).await?;
+            ///
+            ///     assert_eq!(writer, vec![
+            ///         0x83, 0x86, 0x60, 0x4d, 0x95, 0x43, 0x03, 0x00,
+            ///         0x83, 0x86, 0x60, 0x4d, 0x95, 0x43, 0x03, 0x00,
+            ///     ]);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_u128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; WriteU128Le;
 
-            <span class="doccomment">/// Writes an signed 128-bit integer in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_i128_le(&amp;mut self, n: i128) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write signed 128-bit integers to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_i128_le(i128::MIN).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, vec![</span>
-            <span class="doccomment">///          0, 0, 0, 0, 0, 0, 0,</span>
-            <span class="doccomment">///         0, 0, 0, 0, 0, 0, 0, 0, 0x80</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i128_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; <span class="ident">WriteI128Le</span>;
+            <span class="doccomment">/// Writes an signed 128-bit integer in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_i128_le(&amp;mut self, n: i128) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write signed 128-bit integers to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_i128_le(i128::MIN).await?;
+            ///
+            ///     assert_eq!(writer, vec![
+            ///          0, 0, 0, 0, 0, 0, 0,
+            ///         0, 0, 0, 0, 0, 0, 0, 0, 0x80
+            ///     ]);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_i128_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; WriteI128Le;
 
-            <span class="doccomment">/// Writes an 32-bit floating point type in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_f32_le(&amp;mut self, n: f32) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write 32-bit floating point type to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_f32_le(f32::MIN).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, vec![0xff, 0xff, 0x7f, 0xff]);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_f32_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) -&gt; <span class="ident">WriteF32Le</span>;
+            <span class="doccomment">/// Writes an 32-bit floating point type in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_f32_le(&amp;mut self, n: f32) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write 32-bit floating point type to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_f32_le(f32::MIN).await?;
+            ///
+            ///     assert_eq!(writer, vec![0xff, 0xff, 0x7f, 0xff]);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_f32_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>) -&gt; WriteF32Le;
 
-            <span class="doccomment">/// Writes an 64-bit floating point type in little-endian order to the</span>
-            <span class="doccomment">/// underlying writer.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Equivalent to:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```ignore</span>
-            <span class="doccomment">/// async fn write_f64_le(&amp;mut self, n: f64) -&gt; io::Result&lt;()&gt;;</span>
-            <span class="doccomment">/// ```</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// It is recommended to use a buffered writer to avoid excessive</span>
-            <span class="doccomment">/// syscalls.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Errors</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// This method returns the same errors as [`AsyncWriteExt::write_all`].</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Examples</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Write 64-bit floating point type to a `AsyncWrite`:</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// ```rust</span>
-            <span class="doccomment">/// use tokio::io::{self, AsyncWriteExt};</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// #[tokio::main]</span>
-            <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-            <span class="doccomment">///     let mut writer = Vec::new();</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     writer.write_f64_le(f64::MIN).await?;</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">///     assert_eq!(writer, vec![</span>
-            <span class="doccomment">///         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xef, 0xff</span>
-            <span class="doccomment">///     ]);</span>
-            <span class="doccomment">///     Ok(())</span>
-            <span class="doccomment">/// }</span>
-            <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_f64_le</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="ident">WriteF64Le</span>;
+            <span class="doccomment">/// Writes an 64-bit floating point type in little-endian order to the
+            /// underlying writer.
+            ///
+            /// Equivalent to:
+            ///
+            /// ```ignore
+            /// async fn write_f64_le(&amp;mut self, n: f64) -&gt; io::Result&lt;()&gt;;
+            /// ```
+            ///
+            /// It is recommended to use a buffered writer to avoid excessive
+            /// syscalls.
+            ///
+            /// # Errors
+            ///
+            /// This method returns the same errors as [`AsyncWriteExt::write_all`].
+            ///
+            /// [`AsyncWriteExt::write_all`]: AsyncWriteExt::write_all
+            ///
+            /// # Examples
+            ///
+            /// Write 64-bit floating point type to a `AsyncWrite`:
+            ///
+            /// ```rust
+            /// use tokio::io::{self, AsyncWriteExt};
+            ///
+            /// #[tokio::main]
+            /// async fn main() -&gt; io::Result&lt;()&gt; {
+            ///     let mut writer = Vec::new();
+            ///
+            ///     writer.write_f64_le(f64::MIN).await?;
+            ///
+            ///     assert_eq!(writer, vec![
+            ///         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xef, 0xff
+            ///     ]);
+            ///     Ok(())
+            /// }
+            /// ```
+            </span><span class="kw">fn </span>write_f64_le(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; WriteF64Le;
         }
 
-        <span class="doccomment">/// Flushes this output stream, ensuring that all intermediately buffered</span>
-        <span class="doccomment">/// contents reach their destination.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn flush(&amp;mut self) -&gt; io::Result&lt;()&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Errors</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// It is considered an error if not all bytes could be written due to</span>
-        <span class="doccomment">/// I/O errors or EOF being reached.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, BufWriter, AsyncWriteExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let f = File::create(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = BufWriter::new(f);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     buffer.write_all(b&quot;some bytes&quot;).await?;</span>
-        <span class="doccomment">///     buffer.flush().await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Flush</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Flushes this output stream, ensuring that all intermediately buffered
+        /// contents reach their destination.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn flush(&amp;mut self) -&gt; io::Result&lt;()&gt;;
+        /// ```
+        ///
+        /// # Errors
+        ///
+        /// It is considered an error if not all bytes could be written due to
+        /// I/O errors or EOF being reached.
+        ///
+        /// # Examples
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, BufWriter, AsyncWriteExt};
+        /// use tokio::fs::File;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let f = File::create(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = BufWriter::new(f);
+        ///
+        ///     buffer.write_all(b&quot;some bytes&quot;).await?;
+        ///     buffer.flush().await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Flush&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/flush.rs.html#26-28">flush</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#1245">self</a>)
+            <a href="../../../../src/tokio/io/util/flush.rs.html#26-28">flush</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#1245">self</a>)
         }
 
-        <span class="doccomment">/// Shuts down the output stream, ensuring that the value can be dropped</span>
-        <span class="doccomment">/// cleanly.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```ignore</span>
-        <span class="doccomment">/// async fn shutdown(&amp;mut self) -&gt; io::Result&lt;()&gt;;</span>
-        <span class="doccomment">/// ```</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Similar to [`flush`], all intermediately buffered is written to the</span>
-        <span class="doccomment">/// underlying stream. Once the operation completes, the caller should</span>
-        <span class="doccomment">/// no longer attempt to write to the stream. For example, the</span>
-        <span class="doccomment">/// `TcpStream` implementation will issue a `shutdown(Write)` sys call.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`flush`]: fn@crate::io::AsyncWriteExt::flush</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// # Examples</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// ```no_run</span>
-        <span class="doccomment">/// use tokio::io::{self, BufWriter, AsyncWriteExt};</span>
-        <span class="doccomment">/// use tokio::fs::File;</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// #[tokio::main]</span>
-        <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-        <span class="doccomment">///     let f = File::create(&quot;foo.txt&quot;).await?;</span>
-        <span class="doccomment">///     let mut buffer = BufWriter::new(f);</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">///     buffer.write_all(b&quot;some bytes&quot;).await?;</span>
-        <span class="doccomment">///     buffer.shutdown().await?;</span>
-        <span class="doccomment">///     Ok(())</span>
-        <span class="doccomment">/// }</span>
-        <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Shutdown</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+        <span class="doccomment">/// Shuts down the output stream, ensuring that the value can be dropped
+        /// cleanly.
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// async fn shutdown(&amp;mut self) -&gt; io::Result&lt;()&gt;;
+        /// ```
+        ///
+        /// Similar to [`flush`], all intermediately buffered is written to the
+        /// underlying stream. Once the operation completes, the caller should
+        /// no longer attempt to write to the stream. For example, the
+        /// `TcpStream` implementation will issue a `shutdown(Write)` sys call.
+        ///
+        /// [`flush`]: fn@crate::io::AsyncWriteExt::flush
+        ///
+        /// # Examples
+        ///
+        /// ```no_run
+        /// use tokio::io::{self, BufWriter, AsyncWriteExt};
+        /// use tokio::fs::File;
+        ///
+        /// #[tokio::main]
+        /// async fn main() -&gt; io::Result&lt;()&gt; {
+        ///     let f = File::create(&quot;foo.txt&quot;).await?;
+        ///     let mut buffer = BufWriter::new(f);
+        ///
+        ///     buffer.write_all(b&quot;some bytes&quot;).await?;
+        ///     buffer.shutdown().await?;
+        ///     Ok(())
+        /// }
+        /// ```
+        </span><span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Shutdown&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+        <span class="kw">where
+            </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
         {
-            <a class="ident" href="../../../../src/tokio/io/util/shutdown.rs.html#26-28">shutdown</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#1284">self</a>)
+            <a href="../../../../src/tokio/io/util/shutdown.rs.html#26-28">shutdown</a>(<a class="self" href="../../../../src/tokio/io/util/async_write_ext.rs.html#1284">self</a>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/tokio/io/util/async_write_ext.rs.html#69">AsyncWriteExt</a> <span class="kw">for</span> <span class="ident">W</span> {}
+<span class="kw">impl</span>&lt;W: <a href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../../src/tokio/io/util/async_write_ext.rs.html#69">AsyncWriteExt</a> <span class="kw">for </span>W {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/net/tcp/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/net/tcp/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -395,402 +395,402 @@
 <span id="395">395</span>
 <span id="396">396</span>
 <span id="397">397</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a class="ident" href="../../../../src/tokio/io/poll_evented.rs.html#62">PollEvented</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/net/tcp/stream.rs.html#67"><span class="kw">crate</span>::net::tcp::TcpStream</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::net</span>::{<a class="ident" href="../../../../src/tokio/net/addr.rs.html#24-26">to_socket_addrs</a>, <a class="ident" href="../../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::io::{<a href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a href="../../../../src/tokio/io/poll_evented.rs.html#62">PollEvented</a>};
+<span class="kw">use </span><a href="../../../../src/tokio/net/tcp/stream.rs.html#67"><span class="kw">crate</span>::net::tcp::TcpStream</a>;
+<span class="kw">use </span><span class="kw">crate</span>::net::{<a href="../../../../src/tokio/net/addr.rs.html#24-26">to_socket_addrs</a>, <a href="../../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <span class="ident">std::net</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/net/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>};
-<span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>std::net::{<a class="self" href="https://doc.rust-lang.org/nightly/std/net/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>};
+<span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="macro">cfg_net!</span> {
-    <span class="doccomment">/// A TCP socket server, listening for connections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You can accept a new connection by using the [`accept`](`TcpListener::accept`)</span>
-    <span class="doccomment">/// method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A `TcpListener` can be turned into a `Stream` with [`TcpListenerStream`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TcpListenerStream`]: https://docs.rs/tokio-stream/0.1/tokio_stream/wrappers/struct.TcpListenerStream.html</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that accepting a connection can lead to various errors and not all</span>
-    <span class="doccomment">/// of them are necessarily fatal ‒ for example having too many open file</span>
-    <span class="doccomment">/// descriptors or the other side closing the connection while it waits in</span>
-    <span class="doccomment">/// an accept queue. These would terminate the stream if not handled in any</span>
-    <span class="doccomment">/// way.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Using `accept`:</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::net::TcpListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// async fn process_socket&lt;T&gt;(socket: T) {</span>
-    <span class="doccomment">///     # drop(socket);</span>
-    <span class="doccomment">///     // do work with socket here</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let listener = TcpListener::bind(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     loop {</span>
-    <span class="doccomment">///         let (socket, _) = listener.accept().await?;</span>
-    <span class="doccomment">///         process_socket(socket).await;</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TcpListener</span> {
-        <span class="ident">io</span>: <span class="ident">PollEvented</span><span class="op">&lt;</span><a class="ident" href="../../../../mio/net/tcp/listener/struct.TcpListener.html">mio::net::TcpListener</a><span class="op">&gt;</span>,
+<span class="macro">cfg_net! </span>{
+    <span class="doccomment">/// A TCP socket server, listening for connections.
+    ///
+    /// You can accept a new connection by using the [`accept`](`TcpListener::accept`)
+    /// method.
+    ///
+    /// A `TcpListener` can be turned into a `Stream` with [`TcpListenerStream`].
+    ///
+    /// [`TcpListenerStream`]: https://docs.rs/tokio-stream/0.1/tokio_stream/wrappers/struct.TcpListenerStream.html
+    ///
+    /// # Errors
+    ///
+    /// Note that accepting a connection can lead to various errors and not all
+    /// of them are necessarily fatal ‒ for example having too many open file
+    /// descriptors or the other side closing the connection while it waits in
+    /// an accept queue. These would terminate the stream if not handled in any
+    /// way.
+    ///
+    /// # Examples
+    ///
+    /// Using `accept`:
+    /// ```no_run
+    /// use tokio::net::TcpListener;
+    ///
+    /// use std::io;
+    ///
+    /// async fn process_socket&lt;T&gt;(socket: T) {
+    ///     # drop(socket);
+    ///     // do work with socket here
+    /// }
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let listener = TcpListener::bind(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    ///     loop {
+    ///         let (socket, _) = listener.accept().await?;
+    ///         process_socket(socket).await;
+    ///     }
+    /// }
+    /// ```
+    </span><span class="kw">pub struct </span>TcpListener {
+        io: PollEvented&lt;<a href="../../../../mio/net/tcp/listener/struct.TcpListener.html">mio::net::TcpListener</a>&gt;,
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> {
-    <span class="doccomment">/// Creates a new TcpListener, which will be bound to the specified address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned listener is ready for accepting connections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Binding with a port number of 0 will request that the OS assigns a port</span>
-    <span class="doccomment">/// to this listener. The port allocated can be queried via the `local_addr`</span>
-    <span class="doccomment">/// method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The address type can be any implementor of the [`ToSocketAddrs`] trait.</span>
-    <span class="doccomment">/// If `addr` yields multiple addresses, bind will be attempted with each of</span>
-    <span class="doccomment">/// the addresses until one succeeds and returns the listener. If none of</span>
-    <span class="doccomment">/// the addresses succeed in creating a listener, the error returned from</span>
-    <span class="doccomment">/// the last attempt (the last address) is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function sets the `SO_REUSEADDR` option on the socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// To configure the socket before binding, you can use the [`TcpSocket`]</span>
-    <span class="doccomment">/// type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`ToSocketAddrs`]: trait@crate::net::ToSocketAddrs</span>
-    <span class="doccomment">/// [`TcpSocket`]: struct@crate::net::TcpSocket</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::net::TcpListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let listener = TcpListener::bind(&quot;127.0.0.1:2345&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // use the listener</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     # let _ = listener;</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="../../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a><span class="op">&gt;</span>(<span class="ident">addr</span>: <span class="ident">A</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="ident">to_socket_addrs</span>(<span class="ident">addr</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+<span class="kw">impl </span><a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> {
+    <span class="doccomment">/// Creates a new TcpListener, which will be bound to the specified address.
+    ///
+    /// The returned listener is ready for accepting connections.
+    ///
+    /// Binding with a port number of 0 will request that the OS assigns a port
+    /// to this listener. The port allocated can be queried via the `local_addr`
+    /// method.
+    ///
+    /// The address type can be any implementor of the [`ToSocketAddrs`] trait.
+    /// If `addr` yields multiple addresses, bind will be attempted with each of
+    /// the addresses until one succeeds and returns the listener. If none of
+    /// the addresses succeed in creating a listener, the error returned from
+    /// the last attempt (the last address) is returned.
+    ///
+    /// This function sets the `SO_REUSEADDR` option on the socket.
+    ///
+    /// To configure the socket before binding, you can use the [`TcpSocket`]
+    /// type.
+    ///
+    /// [`ToSocketAddrs`]: trait@crate::net::ToSocketAddrs
+    /// [`TcpSocket`]: struct@crate::net::TcpSocket
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::net::TcpListener;
+    ///
+    /// use std::io;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let listener = TcpListener::bind(&quot;127.0.0.1:2345&quot;).await?;
+    ///
+    ///     // use the listener
+    ///
+    ///     # let _ = listener;
+    ///     Ok(())
+    /// }
+    /// ```
+    </span><span class="kw">pub async fn </span>bind&lt;A: <a href="../../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a>&gt;(addr: A) -&gt; io::Result&lt;<a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a>&gt; {
+        <span class="kw">let </span>addrs = to_socket_addrs(addr).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_err = <span class="prelude-val">None</span>;
 
-        <span class="kw">for</span> <span class="ident">addr</span> <span class="kw">in</span> <span class="ident">addrs</span> {
-            <span class="kw">match</span> <span class="ident">TcpListener::bind_addr</span>(<span class="ident">addr</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">listener</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">listener</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>),
+        <span class="kw">for </span>addr <span class="kw">in </span>addrs {
+            <span class="kw">match </span>TcpListener::bind_addr(addr) {
+                <span class="prelude-val">Ok</span>(listener) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(listener),
+                <span class="prelude-val">Err</span>(e) =&gt; last_err = <span class="prelude-val">Some</span>(e),
             }
         }
 
-        <span class="prelude-val">Err</span>(<span class="ident">last_err</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidInput</span>,
+        <span class="prelude-val">Err</span>(last_err.unwrap_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
                 <span class="string">&quot;could not resolve to any address&quot;</span>,
             )
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">bind_addr</span>(<span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">mio::net::TcpListener::bind</span>(<span class="ident">addr</span>)<span class="question-mark">?</span>;
-        <span class="ident">TcpListener::new</span>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#118">listener</a>)
+    <span class="kw">fn </span>bind_addr(addr: <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; io::Result&lt;<a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a>&gt; {
+        <span class="kw">let </span>listener = mio::net::TcpListener::bind(addr)<span class="question-mark">?</span>;
+        TcpListener::new(<a href="../../../../src/tokio/net/tcp/listener.rs.html#118">listener</a>)
     }
 
-    <span class="doccomment">/// Accepts a new incoming connection from this listener.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will yield once a new TCP connection is established. When</span>
-    <span class="doccomment">/// established, the corresponding [`TcpStream`] and the remote peer&#39;s</span>
-    <span class="doccomment">/// address will be returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Cancel safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is cancel safe. If the method is used as the event in a</span>
-    <span class="doccomment">/// [`tokio::select!`](crate::select) statement and some other branch</span>
-    <span class="doccomment">/// completes first, then it is guaranteed that no new connections were</span>
-    <span class="doccomment">/// accepted by this method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TcpStream`]: struct@crate::net::TcpStream</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::net::TcpListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let listener = TcpListener::bind(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     match listener.accept().await {</span>
-    <span class="doccomment">///         Ok((_socket, addr)) =&gt; println!(&quot;new client: {:?}&quot;, addr),</span>
-    <span class="doccomment">///         Err(e) =&gt; println!(&quot;couldn&#39;t get client: {:?}&quot;, e),</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">mio</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">io</span>
-            .<span class="ident">registration</span>()
-            .<span class="ident">async_io</span>(<span class="ident">Interest::READABLE</span>, <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">io</span>.<span class="ident">accept</span>())
+    <span class="doccomment">/// Accepts a new incoming connection from this listener.
+    ///
+    /// This function will yield once a new TCP connection is established. When
+    /// established, the corresponding [`TcpStream`] and the remote peer&#39;s
+    /// address will be returned.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is cancel safe. If the method is used as the event in a
+    /// [`tokio::select!`](crate::select) statement and some other branch
+    /// completes first, then it is guaranteed that no new connections were
+    /// accepted by this method.
+    ///
+    /// [`TcpStream`]: struct@crate::net::TcpStream
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::net::TcpListener;
+    ///
+    /// use std::io;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let listener = TcpListener::bind(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    ///     match listener.accept().await {
+    ///         Ok((_socket, addr)) =&gt; println!(&quot;new client: {:?}&quot;, addr),
+    ///         Err(e) =&gt; println!(&quot;couldn&#39;t get client: {:?}&quot;, e),
+    ///     }
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    </span><span class="kw">pub async fn </span>accept(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(<a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)&gt; {
+        <span class="kw">let </span>(mio, addr) = <span class="self">self
+            </span>.io
+            .registration()
+            .async_io(Interest::READABLE, || <span class="self">self</span>.io.accept())
             .<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">TcpStream::new</span>(<span class="ident">mio</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<span class="ident">stream</span>, <span class="ident">addr</span>))
+        <span class="kw">let </span>stream = TcpStream::new(mio)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((stream, addr))
     }
 
-    <span class="doccomment">/// Polls to accept a new incoming connection to this listener.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is no connection to accept, `Poll::Pending` is returned and the</span>
-    <span class="doccomment">/// current task will be notified by a waker.  Note that on multiple calls</span>
-    <span class="doccomment">/// to `poll_accept`, only the `Waker` from the `Context` passed to the most</span>
-    <span class="doccomment">/// recent call is scheduled to receive a wakeup.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">ev</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">io</span>.<span class="ident">registration</span>().<span class="ident">poll_read_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Polls to accept a new incoming connection to this listener.
+    ///
+    /// If there is no connection to accept, `Poll::Pending` is returned and the
+    /// current task will be notified by a waker.  Note that on multiple calls
+    /// to `poll_accept`, only the `Waker` from the `Context` passed to the most
+    /// recent call is scheduled to receive a wakeup.
+    </span><span class="kw">pub fn </span>poll_accept(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;(<a href="../../../../src/tokio/net/tcp/stream.rs.html#67">TcpStream</a>, <a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>ev = <span class="macro">ready!</span>(<span class="self">self</span>.io.registration().poll_read_ready(cx))<span class="question-mark">?</span>;
 
-            <span class="kw">match</span> <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#173">self</a>.<span class="ident">io</span>.<span class="ident">accept</span>() {
-                <span class="prelude-val">Ok</span>((<span class="ident">io</span>, <span class="ident">addr</span>)) =&gt; {
-                    <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">TcpStream::new</span>(<span class="ident">io</span>)<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>((<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#179">io</a>, <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#178">addr</a>)));
+            <span class="kw">match </span><a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#173">self</a>.io.accept() {
+                <span class="prelude-val">Ok</span>((io, addr)) =&gt; {
+                    <span class="kw">let </span>io = TcpStream::new(io)<span class="question-mark">?</span>;
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>((<a href="../../../../src/tokio/net/tcp/listener.rs.html#179">io</a>, <a href="../../../../src/tokio/net/tcp/listener.rs.html#178">addr</a>)));
                 }
-                <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#182">e</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; {
-                    <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#173">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a class="ident" href="../../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#175">ev</a>);
+                <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span><a href="../../../../src/tokio/net/tcp/listener.rs.html#182">e</a>.kind() == io::ErrorKind::WouldBlock =&gt; {
+                    <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#173">self</a>.io.<a href="../../../../src/tokio/io/poll_evented.rs.html#123">registration</a>().<a href="../../../../src/tokio/io/driver/registration.rs.html#100">clear_readiness</a>(<a href="../../../../src/tokio/net/tcp/listener.rs.html#175">ev</a>);
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#185">e</a>)),
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../../src/tokio/net/tcp/listener.rs.html#185">e</a>)),
             }
         }
     }
 
-    <span class="doccomment">/// Creates new `TcpListener` from a `std::net::TcpListener`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is intended to be used to wrap a TCP listener from the</span>
-    <span class="doccomment">/// standard library in the Tokio equivalent. The conversion assumes nothing</span>
-    <span class="doccomment">/// about the underlying listener; it is left up to the user to set it in</span>
-    <span class="doccomment">/// non-blocking mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This API is typically paired with the `socket2` crate and the `Socket`</span>
-    <span class="doccomment">/// type to build up and customize a listener before it&#39;s shipped off to the</span>
-    <span class="doccomment">/// backing event loop. This allows configuration of options like</span>
-    <span class="doccomment">/// `SO_REUSEPORT`, binding to multiple addresses, etc.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// use std::error::Error;</span>
-    <span class="doccomment">/// use tokio::net::TcpListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">///     let std_listener = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
-    <span class="doccomment">///     std_listener.set_nonblocking(true)?;</span>
-    <span class="doccomment">///     let listener = TcpListener::from_std(std_listener)?;</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function panics if thread-local runtime is not set.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The runtime is usually set implicitly when this function is called</span>
-    <span class="doccomment">/// from a future driven by a tokio runtime, otherwise runtime can be set</span>
-    <span class="doccomment">/// explicitly with [`Runtime::enter`](crate::runtime::Runtime::enter) function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">listener</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">mio::net::TcpListener::from_std</span>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#224">listener</a>);
-        <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">PollEvented::new</span>(<span class="ident">io</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> { <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#226">io</a> })
+    <span class="doccomment">/// Creates new `TcpListener` from a `std::net::TcpListener`.
+    ///
+    /// This function is intended to be used to wrap a TCP listener from the
+    /// standard library in the Tokio equivalent. The conversion assumes nothing
+    /// about the underlying listener; it is left up to the user to set it in
+    /// non-blocking mode.
+    ///
+    /// This API is typically paired with the `socket2` crate and the `Socket`
+    /// type to build up and customize a listener before it&#39;s shipped off to the
+    /// backing event loop. This allows configuration of options like
+    /// `SO_REUSEPORT`, binding to multiple addresses, etc.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use std::error::Error;
+    /// use tokio::net::TcpListener;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    ///     let std_listener = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;
+    ///     std_listener.set_nonblocking(true)?;
+    ///     let listener = TcpListener::from_std(std_listener)?;
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if thread-local runtime is not set.
+    ///
+    /// The runtime is usually set implicitly when this function is called
+    /// from a future driven by a tokio runtime, otherwise runtime can be set
+    /// explicitly with [`Runtime::enter`](crate::runtime::Runtime::enter) function.
+    </span><span class="kw">pub fn </span>from_std(listener: <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>) -&gt; io::Result&lt;<a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a>&gt; {
+        <span class="kw">let </span>io = mio::net::TcpListener::from_std(<a href="../../../../src/tokio/net/tcp/listener.rs.html#224">listener</a>);
+        <span class="kw">let </span>io = PollEvented::new(io)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> { <a href="../../../../src/tokio/net/tcp/listener.rs.html#226">io</a> })
     }
 
-    <span class="doccomment">/// Turns a [`tokio::net::TcpListener`] into a [`std::net::TcpListener`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned [`std::net::TcpListener`] will have nonblocking mode set as</span>
-    <span class="doccomment">/// `true`.  Use [`set_nonblocking`] to change the blocking mode if needed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// use std::error::Error;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {</span>
-    <span class="doccomment">///     let tokio_listener = tokio::net::TcpListener::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">///     let std_listener = tokio_listener.into_std()?;</span>
-    <span class="doccomment">///     std_listener.set_nonblocking(false)?;</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`tokio::net::TcpListener`]: TcpListener</span>
-    <span class="doccomment">/// [`std::net::TcpListener`]: std::net::TcpListener</span>
-    <span class="doccomment">/// [`set_nonblocking`]: fn@std::net::TcpListener::set_nonblocking</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_std</span>(<span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">std::net::TcpListener</a><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-        {
-            <span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>};
-            <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#252">self</a>.<span class="ident">io</span>
-                .<a class="ident" href="../../../../src/tokio/io/poll_evented.rs.html#129">into_inner</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">io</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#258">io</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">raw_fd</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">std::net::TcpListener::from_raw_fd</span>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#259">raw_fd</a>) })
+    <span class="doccomment">/// Turns a [`tokio::net::TcpListener`] into a [`std::net::TcpListener`].
+    ///
+    /// The returned [`std::net::TcpListener`] will have nonblocking mode set as
+    /// `true`.  Use [`set_nonblocking`] to change the blocking mode if needed.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use std::error::Error;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    ///     let tokio_listener = tokio::net::TcpListener::bind(&quot;127.0.0.1:0&quot;).await?;
+    ///     let std_listener = tokio_listener.into_std()?;
+    ///     std_listener.set_nonblocking(false)?;
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// [`tokio::net::TcpListener`]: TcpListener
+    /// [`std::net::TcpListener`]: std::net::TcpListener
+    /// [`set_nonblocking`]: fn@std::net::TcpListener::set_nonblocking
+    </span><span class="kw">pub fn </span>into_std(<span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">std::net::TcpListener</a>&gt; {
+        <span class="attribute">#[cfg(unix)]
+        </span>{
+            <span class="kw">use </span>std::os::unix::io::{<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>};
+            <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#252">self</a>.io
+                .<a href="../../../../src/tokio/io/poll_evented.rs.html#129">into_inner</a>()
+                .map(|io| <a href="../../../../src/tokio/net/tcp/listener.rs.html#258">io</a>.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>())
+                .map(|raw_fd| <span class="kw">unsafe </span>{ std::net::TcpListener::from_raw_fd(<a href="../../../../src/tokio/net/tcp/listener.rs.html#259">raw_fd</a>) })
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-        {
-            <span class="kw">use</span> <span class="ident">std::os::windows::io</span>::{<span class="ident">FromRawSocket</span>, <span class="ident">IntoRawSocket</span>};
-            <span class="self">self</span>.<span class="ident">io</span>
-                .<span class="ident">into_inner</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">io</span><span class="op">|</span> <span class="ident">io</span>.<span class="ident">into_raw_socket</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">raw_socket</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">std::net::TcpListener::from_raw_socket</span>(<span class="ident">raw_socket</span>) })
+        <span class="attribute">#[cfg(windows)]
+        </span>{
+            <span class="kw">use </span>std::os::windows::io::{FromRawSocket, IntoRawSocket};
+            <span class="self">self</span>.io
+                .into_inner()
+                .map(|io| io.into_raw_socket())
+                .map(|raw_socket| <span class="kw">unsafe </span>{ std::net::TcpListener::from_raw_socket(raw_socket) })
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">listener</span>: <a class="ident" href="../../../../mio/net/tcp/listener/struct.TcpListener.html">mio::net::TcpListener</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">PollEvented::new</span>(<span class="ident">listener</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> { <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#273">io</a> })
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(listener: <a href="../../../../mio/net/tcp/listener/struct.TcpListener.html">mio::net::TcpListener</a>) -&gt; io::Result&lt;<a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a>&gt; {
+        <span class="kw">let </span>io = PollEvented::new(listener)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> { <a href="../../../../src/tokio/net/tcp/listener.rs.html#273">io</a> })
     }
 
-    <span class="doccomment">/// Returns the local address that this listener is bound to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be useful, for example, when binding to port 0 to figure out</span>
-    <span class="doccomment">/// which port was actually bound.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// use tokio::net::TcpListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">/// use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let listener = TcpListener::bind(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     assert_eq!(listener.local_addr()?,</span>
-    <span class="doccomment">///                SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 8080)));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#300">self</a>.<span class="ident">io</span>.<span class="ident">local_addr</span>()
+    <span class="doccomment">/// Returns the local address that this listener is bound to.
+    ///
+    /// This can be useful, for example, when binding to port 0 to figure out
+    /// which port was actually bound.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use tokio::net::TcpListener;
+    ///
+    /// use std::io;
+    /// use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let listener = TcpListener::bind(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    ///     assert_eq!(listener.local_addr()?,
+    ///                SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 8080)));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>&gt; {
+        <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#300">self</a>.io.local_addr()
     }
 
-    <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For more information about this option, see [`set_ttl`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_ttl`]: method@Self::set_ttl</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::net::TcpListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///    let listener = TcpListener::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///    listener.set_ttl(100).expect(&quot;could not set TTL&quot;);</span>
-    <span class="doccomment">///    assert_eq!(listener.ttl()?, 100);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///    Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#327">self</a>.<span class="ident">io</span>.<span class="ident">ttl</span>()
+    <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.
+    ///
+    /// For more information about this option, see [`set_ttl`].
+    ///
+    /// [`set_ttl`]: method@Self::set_ttl
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::net::TcpListener;
+    ///
+    /// use std::io;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///    let listener = TcpListener::bind(&quot;127.0.0.1:0&quot;).await?;
+    ///
+    ///    listener.set_ttl(100).expect(&quot;could not set TTL&quot;);
+    ///    assert_eq!(listener.ttl()?, 100);
+    ///
+    ///    Ok(())
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>ttl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
+        <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#327">self</a>.io.ttl()
     }
 
-    <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This value sets the time-to-live field that is used in every packet sent</span>
-    <span class="doccomment">/// from this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::net::TcpListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let listener = TcpListener::bind(&quot;127.0.0.1:0&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     listener.set_ttl(100).expect(&quot;could not set TTL&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#352">self</a>.<span class="ident">io</span>.<span class="ident">set_ttl</span>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#352">ttl</a>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
-
-    <span class="doccomment">/// Consumes stream, returning the tokio I/O object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is equivalent to</span>
-    <span class="doccomment">/// [`TcpListener::from_std(stream)`](TcpListener::from_std).</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::from_std</span>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#364">stream</a>)
+    <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.
+    ///
+    /// This value sets the time-to-live field that is used in every packet sent
+    /// from this socket.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::net::TcpListener;
+    ///
+    /// use std::io;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let listener = TcpListener::bind(&quot;127.0.0.1:0&quot;).await?;
+    ///
+    ///     listener.set_ttl(100).expect(&quot;could not set TTL&quot;);
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>set_ttl(<span class="kw-2">&amp;</span><span class="self">self</span>, ttl: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; io::Result&lt;()&gt; {
+        <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#352">self</a>.io.set_ttl(<a href="../../../../src/tokio/net/tcp/listener.rs.html#352">ttl</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#370">self</a>.<span class="ident">io</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#370">f</a>)
+<span class="kw">impl </span>TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>&gt; <span class="kw">for </span><a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> {
+    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+
+    <span class="doccomment">/// Consumes stream, returning the tokio I/O object.
+    ///
+    /// This is equivalent to
+    /// [`TcpListener::from_std(stream)`](TcpListener::from_std).
+    </span><span class="kw">fn </span>try_from(stream: <a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="self">Self</span>::from_std(<a href="../../../../src/tokio/net/tcp/listener.rs.html#364">stream</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">mod</span> <span class="ident">sys</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52"><span class="kw">super</span>::TcpListener</a>;
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#370">self</a>.io.<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a href="../../../../src/tokio/net/tcp/listener.rs.html#370">f</a>)
+    }
+}
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> {
-        <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-            <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#381">self</a>.<span class="ident">io</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">mod </span>sys {
+    <span class="kw">use </span><a href="../../../../src/tokio/net/tcp/listener.rs.html#52"><span class="kw">super</span>::TcpListener</a>;
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
+
+    <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="../../../../src/tokio/net/tcp/listener.rs.html#52">TcpListener</a> {
+        <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
+            <a class="self" href="../../../../src/tokio/net/tcp/listener.rs.html#381">self</a>.io.<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">mod</span> <span class="ident">sys</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::TcpListener</span>;
-    <span class="kw">use</span> <span class="ident">std::os::windows::prelude</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">mod </span>sys {
+    <span class="kw">use </span><span class="kw">super</span>::TcpListener;
+    <span class="kw">use </span>std::os::windows::prelude::<span class="kw-2">*</span>;
 
-    <span class="kw">impl</span> <span class="ident">AsRawSocket</span> <span class="kw">for</span> <span class="ident">TcpListener</span> {
-        <span class="kw">fn</span> <span class="ident">as_raw_socket</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-            <span class="self">self</span>.<span class="ident">io</span>.<span class="ident">as_raw_socket</span>()
+    <span class="kw">impl </span>AsRawSocket <span class="kw">for </span>TcpListener {
+        <span class="kw">fn </span>as_raw_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawSocket {
+            <span class="self">self</span>.io.as_raw_socket()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

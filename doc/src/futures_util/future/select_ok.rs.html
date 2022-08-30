@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/future/select_ok.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select_ok.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/future/select_ok.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select_ok.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -83,90 +83,90 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/futures_util/future/try_future/mod.rs.html#137"><span class="kw">crate</span>::future::TryFutureExt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">futures_core::future</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>};
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/futures_util/future/mod.rs.html#126-128"><span class="kw">super</span>::assert_future</a>;
+<span class="kw">use </span><a href="../../../src/futures_util/future/try_future/mod.rs.html#137"><span class="kw">crate</span>::future::TryFutureExt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">core::iter::FromIterator</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">core::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>futures_core::future::{<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a>};
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// Future for the [`select_ok`] function.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SelectOk</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Future for the [`select_ok`] function.
+</span><span class="attribute">#[derive(Debug)]
+#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+</span><span class="kw">pub struct </span>SelectOk&lt;Fut&gt; {
+    inner: Vec&lt;Fut&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">SelectOk</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;Fut: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>SelectOk&lt;Fut&gt; {}
 
-<span class="doccomment">/// Creates a new future which will select the first successful future over a list of futures.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The returned future will wait for any future within `iter` to be ready and Ok. Unlike</span>
-<span class="doccomment">/// `select_all`, this will only return the first successful completion, or the last</span>
-<span class="doccomment">/// failure. This is useful in contexts where any success is desired and failures</span>
-<span class="doccomment">/// are ignored, unless all the futures fail.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///  This function is only available when the `std` or `alloc` feature of this</span>
-<span class="doccomment">/// library is activated, and it is activated by default.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will panic if the iterator specified contains no items.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_ok</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">SelectOk</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
-    <span class="ident">I::Item</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="doccomment">/// Creates a new future which will select the first successful future over a list of futures.
+///
+/// The returned future will wait for any future within `iter` to be ready and Ok. Unlike
+/// `select_all`, this will only return the first successful completion, or the last
+/// failure. This is useful in contexts where any success is desired and failures
+/// are ignored, unless all the futures fail.
+///
+///  This function is only available when the `std` or `alloc` feature of this
+/// library is activated, and it is activated by default.
+///
+/// # Panics
+///
+/// This function will panic if the iterator specified contains no items.
+</span><span class="kw">pub fn </span>select_ok&lt;I&gt;(iter: I) -&gt; SelectOk&lt;I::Item&gt;
+<span class="kw">where
+    </span>I: <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">IntoIterator</a>,
+    I::Item: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#13">SelectOk</a> { <span class="ident">inner</span>: <a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#32">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>() };
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">ret</span>.<span class="ident">inner</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;iterator provided to select_ok was empty&quot;</span>);
-    <span class="ident">assert_future</span>::<span class="op">&lt;</span>
-        <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="op">&lt;</span><span class="ident">I::Item</span> <span class="kw">as</span> <span class="ident">TryFuture</span><span class="op">&gt;</span><span class="ident">::Ok</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>), <span class="op">&lt;</span><span class="ident">I::Item</span> <span class="kw">as</span> <span class="ident">TryFuture</span><span class="op">&gt;</span><span class="ident">::Error</span><span class="op">&gt;</span>,
+    <span class="kw">let </span>ret = <a href="../../../src/futures_util/future/select_ok.rs.html#13">SelectOk</a> { inner: <a href="../../../src/futures_util/future/select_ok.rs.html#32">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>() };
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!ret.inner.is_empty(), <span class="string">&quot;iterator provided to select_ok was empty&quot;</span>);
+    assert_future::&lt;
+        <span class="prelude-ty">Result</span>&lt;(&lt;I::Item <span class="kw">as </span>TryFuture&gt;::Ok, Vec&lt;I::Item&gt;), &lt;I::Item <span class="kw">as </span>TryFuture&gt;::Error&gt;,
         <span class="kw">_</span>,
-    <span class="op">&gt;</span>(<a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#37">ret</a>)
+    &gt;(<a href="../../../src/futures_util/future/select_ok.rs.html#37">ret</a>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">SelectOk</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Fut::Ok</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>), <span class="ident">Fut::Error</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;Fut: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span>SelectOk&lt;Fut&gt; {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(Fut::Ok, Vec&lt;Fut&gt;), Fut::Error&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="comment">// loop until we&#39;ve either exhausted all errors, a success was hit, or nothing is ready</span>
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span>
-                <a class="self" href="../../../src/futures_util/future/select_ok.rs.html#48">self</a>.<span class="ident">inner</span>.<span class="ident">iter_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">f</span>)<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#52">f</a>.<a class="ident" href="../../../src/futures_util/future/try_future/mod.rs.html#613-615">try_poll_unpin</a>(<a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#48">cx</a>) {
-                    <span class="ident">Poll::Pending</span> =&gt; <span class="prelude-val">None</span>,
-                    <span class="ident">Poll::Ready</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#52">i</a>, <a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#54">e</a>)),
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="comment">// loop until we&#39;ve either exhausted all errors, a success was hit, or nothing is ready
+        </span><span class="kw">loop </span>{
+            <span class="kw">let </span>item =
+                <a class="self" href="../../../src/futures_util/future/select_ok.rs.html#48">self</a>.inner.iter_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find_map</a>(|(i, f)| <span class="kw">match </span><a href="../../../src/futures_util/future/select_ok.rs.html#52">f</a>.<a href="../../../src/futures_util/future/try_future/mod.rs.html#619-621">try_poll_unpin</a>(<a href="../../../src/futures_util/future/select_ok.rs.html#48">cx</a>) {
+                    Poll::Pending =&gt; <span class="prelude-val">None</span>,
+                    Poll::Ready(e) =&gt; <span class="prelude-val">Some</span>((<a href="../../../src/futures_util/future/select_ok.rs.html#52">i</a>, <a href="../../../src/futures_util/future/select_ok.rs.html#54">e</a>)),
                 });
-            <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#51">item</a> {
-                <span class="prelude-val">Some</span>((<span class="ident">idx</span>, <span class="ident">res</span>)) =&gt; {
-                    <span class="comment">// always remove Ok or Err, if it&#39;s not the last Err continue looping</span>
-                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/futures_util/future/select_ok.rs.html#48">self</a>.<span class="ident">inner</span>.<span class="ident">remove</span>(<a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#57">idx</a>));
-                    <span class="kw">match</span> <a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#57">res</a> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">e</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/futures_util/future/select_ok.rs.html#48">self</a>.<span class="ident">inner</span>, <span class="ident">Vec::new</span>());
-                            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#61">e</a>, <a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#62">rest</a>)));
+            <span class="kw">match </span><a href="../../../src/futures_util/future/select_ok.rs.html#51">item</a> {
+                <span class="prelude-val">Some</span>((idx, res)) =&gt; {
+                    <span class="comment">// always remove Ok or Err, if it&#39;s not the last Err continue looping
+                    </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/futures_util/future/select_ok.rs.html#48">self</a>.inner.remove(<a href="../../../src/futures_util/future/select_ok.rs.html#57">idx</a>));
+                    <span class="kw">match </span><a href="../../../src/futures_util/future/select_ok.rs.html#57">res</a> {
+                        <span class="prelude-val">Ok</span>(e) =&gt; {
+                            <span class="kw">let </span>rest = mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/futures_util/future/select_ok.rs.html#48">self</a>.inner);
+                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>((<a href="../../../src/futures_util/future/select_ok.rs.html#61">e</a>, <a href="../../../src/futures_util/future/select_ok.rs.html#62">rest</a>)));
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">is_empty</span>() {
-                                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#65">e</a>));
+                        <span class="prelude-val">Err</span>(e) =&gt; {
+                            <span class="kw">if </span><span class="self">self</span>.inner.is_empty() {
+                                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../src/futures_util/future/select_ok.rs.html#65">e</a>));
                             }
                         }
                     }
                 }
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="comment">// based on the filter above, nothing is ready, return</span>
-                    <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="comment">// based on the filter above, nothing is ready, return
+                    </span><span class="kw">return </span>Poll::Pending;
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SelectOk</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Fut</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#32-35">select_ok</a>(<a class="ident" href="../../../src/futures_util/future/select_ok.rs.html#82">iter</a>)
+<span class="kw">impl</span>&lt;Fut: <a href="../../../futures_util/future/trait.TryFuture.html">TryFuture</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; FromIterator&lt;Fut&gt; <span class="kw">for </span>SelectOk&lt;Fut&gt; {
+    <span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = Fut&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/futures_util/future/select_ok.rs.html#32-35">select_ok</a>(<a href="../../../src/futures_util/future/select_ok.rs.html#82">iter</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

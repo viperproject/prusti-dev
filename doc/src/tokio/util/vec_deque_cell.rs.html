@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/util/vec_deque_cell.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>vec_deque_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/util/vec_deque_cell.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>vec_deque_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -51,58 +51,58 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
+<span class="kw">use </span>std::marker::PhantomData;
 
-<span class="doccomment">/// This type is like VecDeque, except that it is not Sync and can be modified</span>
-<span class="doccomment">/// through immutable references.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">VecDequeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">_not_sync</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span>,
+<span class="doccomment">/// This type is like VecDeque, except that it is not Sync and can be modified
+/// through immutable references.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>VecDequeCell&lt;T&gt; {
+    inner: UnsafeCell&lt;VecDeque&lt;T&gt;&gt;,
+    _not_sync: PhantomData&lt;<span class="kw-2">*const </span>()&gt;,
 }
 
-<span class="comment">// This is Send for the same reasons that RefCell&lt;VecDeque&lt;T&gt;&gt; is Send.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">VecDequeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="comment">// This is Send for the same reasons that RefCell&lt;VecDeque&lt;T&gt;&gt; is Send.
+</span><span class="kw">unsafe impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for </span>VecDequeCell&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">VecDequeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">cap</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">VecDeque::with_capacity</span>(<a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#17">cap</a>)),
-            <span class="ident">_not_sync</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;T&gt; VecDequeCell&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_capacity(cap: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: UnsafeCell::new(VecDeque::with_capacity(<a href="../../../src/tokio/util/vec_deque_cell.rs.html#17">cap</a>)),
+            _not_sync: PhantomData,
         }
     }
 
-    <span class="doccomment">/// Safety: This method may not be called recursively.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">with_inner</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
+    <span class="doccomment">/// Safety: This method may not be called recursively.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">unsafe fn </span>with_inner&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; R
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>VecDeque&lt;T&gt;) -&gt; R,
     {
-        <span class="comment">// safety: This type is not Sync, so concurrent calls of this method</span>
-        <span class="comment">// cannot happen. Furthermore, the caller guarantees that the method is</span>
-        <span class="comment">// not called recursively. Finally, this is the only place that can</span>
-        <span class="comment">// create mutable references to the inner VecDeque. This ensures that</span>
-        <span class="comment">// any mutable references created here are exclusive.</span>
-        <a class="self" href="../../../src/tokio/util/vec_deque_cell.rs.html#26">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#26">f</a>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#35">ptr</a>))
+        <span class="comment">// safety: This type is not Sync, so concurrent calls of this method
+        // cannot happen. Furthermore, the caller guarantees that the method is
+        // not called recursively. Finally, this is the only place that can
+        // create mutable references to the inner VecDeque. This ensures that
+        // any mutable references created here are exclusive.
+        </span><a class="self" href="../../../src/tokio/util/vec_deque_cell.rs.html#26">self</a>.inner.<a href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(|ptr| <a href="../../../src/tokio/util/vec_deque_cell.rs.html#26">f</a>(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio/util/vec_deque_cell.rs.html#35">ptr</a>))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop_front</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/util/vec_deque_cell.rs.html#38">self</a>.<a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#26-28">with_inner</a>(<span class="ident">VecDeque::pop_front</span>) }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_front(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="kw">unsafe </span>{ <a class="self" href="../../../src/tokio/util/vec_deque_cell.rs.html#38">self</a>.<a href="../../../src/tokio/util/vec_deque_cell.rs.html#26-28">with_inner</a>(VecDeque::pop_front) }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_back</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">item</span>: <span class="ident">T</span>) {
-        <span class="kw">unsafe</span> {
-            <a class="self" href="../../../src/tokio/util/vec_deque_cell.rs.html#42">self</a>.<a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#26-28">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#44">inner</a>.<span class="ident">push_back</span>(<a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#42">item</a>));
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_back(<span class="kw-2">&amp;</span><span class="self">self</span>, item: T) {
+        <span class="kw">unsafe </span>{
+            <a class="self" href="../../../src/tokio/util/vec_deque_cell.rs.html#42">self</a>.<a href="../../../src/tokio/util/vec_deque_cell.rs.html#26-28">with_inner</a>(|inner| <a href="../../../src/tokio/util/vec_deque_cell.rs.html#44">inner</a>.push_back(<a href="../../../src/tokio/util/vec_deque_cell.rs.html#42">item</a>));
         }
     }
 
-    <span class="doccomment">/// Replaces the inner VecDeque with an empty VecDeque and return the current</span>
-    <span class="doccomment">/// contents.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="self" href="../../../src/tokio/util/vec_deque_cell.rs.html#50">self</a>.<a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#26-28">with_inner</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">std::mem::take</span>(<a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#51">inner</a>)) }
+    <span class="doccomment">/// Replaces the inner VecDeque with an empty VecDeque and return the current
+    /// contents.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>take(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VecDeque&lt;T&gt; {
+        <span class="kw">unsafe </span>{ <a class="self" href="../../../src/tokio/util/vec_deque_cell.rs.html#50">self</a>.<a href="../../../src/tokio/util/vec_deque_cell.rs.html#26-28">with_inner</a>(|inner| std::mem::take(<a href="../../../src/tokio/util/vec_deque_cell.rs.html#51">inner</a>)) }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

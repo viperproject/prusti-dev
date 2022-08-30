@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/try_stream/into_async_read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>into_async_read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/try_stream/into_async_read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>into_async_read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -163,170 +163,172 @@
 <span id="163">163</span>
 <span id="164">164</span>
 <span id="165">165</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/mod.rs.html#157"><span class="kw">crate</span>::stream::TryStreamExt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/stream/trait.TryStream.html">futures_core::stream::TryStream</a>;
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <span class="ident">futures_io</span>::{<a class="ident" href="../../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>, <a class="ident" href="../../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>, <span class="prelude-ty">Result</span>};
+<span id="166">166</span>
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span><a href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span><a href="../../../../futures_util/stream/trait.TryStream.html">futures_core::stream::TryStream</a>;
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span>futures_io::{<a href="../../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a>, <a href="../../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span><a href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
+<span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>, <span class="prelude-ty">Result</span>};
 
-<span class="doccomment">/// Reader for the [`into_async_read`](super::TryStreamExt::into_async_read) method.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;readers do nothing unless polled&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoAsyncRead</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">St::Ok</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
-{
-    <span class="ident">stream</span>: <span class="ident">St</span>,
-    <span class="ident">state</span>: <span class="ident">ReadState</span><span class="op">&lt;</span><span class="ident">St::Ok</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">IntoAsyncRead</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">St::Ok</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
-{
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">ReadState</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="ident">Ready</span> { <span class="ident">chunk</span>: <span class="ident">T</span>, <span class="ident">chunk_start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> },
-    <span class="ident">PendingChunk</span>,
-    <span class="ident">Eof</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <span class="ident">IntoAsyncRead</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">St::Ok</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
-{
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">St</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#42">stream</a>, <span class="ident">state</span>: <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#33">ReadState::PendingChunk</a> }
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
+    <span class="doccomment">/// Reader for the [`into_async_read`](super::TryStreamExt::into_async_read) method.
+    </span><span class="attribute">#[derive(Debug)]
+    #[must_use = <span class="string">&quot;readers do nothing unless polled&quot;</span>]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;io&quot;</span>)))]
+    </span><span class="kw">pub struct </span>IntoAsyncRead&lt;St&gt;
+    <span class="kw">where
+        </span>St: TryStream&lt;Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;,
+        St::Ok: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+    {
+        <span class="attribute">#[pin]
+        </span>stream: St,
+        state: ReadState&lt;St::Ok&gt;,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for</span> <span class="ident">IntoAsyncRead</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">St::Ok</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>ReadState&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+    Ready { chunk: T, chunk_start: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> },
+    PendingChunk,
+    Eof,
+}
+
+<span class="kw">impl</span>&lt;St&gt; IntoAsyncRead&lt;St&gt;
+<span class="kw">where
+    </span>St: TryStream&lt;Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;,
+    St::Ok: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">self</a>.<span class="ident">state</span> {
-                <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#32">ReadState::Ready</a> { <span class="ident">chunk</span>, <span class="ident">chunk_start</span> } =&gt; {
-                    <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">chunk</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#55">buf</a>.<span class="ident">len</span>(), <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#60">chunk</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">chunk_start</a>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#38">stream</a>, state: <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#29">ReadState::PendingChunk</a> }
+    }
+}
 
-                    <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#55">buf</a>[..<a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#61">len</a>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#60">chunk</a>[<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">chunk_start</a>..<span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">chunk_start</a> <span class="op">+</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#61">len</a>]);
-                    <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">chunk_start</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#61">len</a>;
+<span class="kw">impl</span>&lt;St&gt; <a href="../../../../futures_util/io/trait.AsyncRead.html">AsyncRead</a> <span class="kw">for </span>IntoAsyncRead&lt;St&gt;
+<span class="kw">where
+    </span>St: TryStream&lt;Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;,
+    St::Ok: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
+{
+    <span class="kw">fn </span>poll_read(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#49">self</a>.<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#10-24">project</a>();
 
-                    <span class="kw">if</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="kw-2">*</span><span class="ident">chunk_start</span> {
-                        <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#33">ReadState::PendingChunk</a>;
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">this</a>.state {
+                <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#28">ReadState::Ready</a> { chunk, chunk_start } =&gt; {
+                    <span class="kw">let </span>chunk = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#57">chunk</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+                    <span class="kw">let </span>len = cmp::min(<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#51">buf</a>.len(), <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#58">chunk</a>.len() - <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#57">chunk_start</a>);
+
+                    <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#51">buf</a>[..<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">len</a>].copy_from_slice(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#58">chunk</a>[<span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#57">chunk_start</a>..<span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#57">chunk_start</a> + <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">len</a>]);
+                    <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#57">chunk_start</a> += <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">len</a>;
+
+                    <span class="kw">if </span>chunk.len() == <span class="kw-2">*</span>chunk_start {
+                        <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">this</a>.state = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#29">ReadState::PendingChunk</a>;
                     }
 
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#61">len</a>));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#59">len</a>));
                 }
-                <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#33">ReadState::PendingChunk</a> =&gt; <span class="kw">match</span> <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">try_poll_next_unpin</span>(<span class="ident">cx</span>)) {
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">chunk</span>)) =&gt; {
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">chunk</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() {
-                            <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#32">ReadState::Ready</a> { <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#73">chunk</a>, <span class="ident">chunk_start</span>: <span class="number">0</span> };
+                <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#29">ReadState::PendingChunk</a> =&gt; <span class="kw">match </span><a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.stream.as_mut().try_poll_next(cx)) {
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(chunk)) =&gt; {
+                        <span class="kw">if </span>!chunk.as_ref().is_empty() {
+                            <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">this</a>.state = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#28">ReadState::Ready</a> { <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#71">chunk</a>, chunk_start: <span class="number">0 </span>};
                         }
                     }
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; {
-                        <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#34">ReadState::Eof</a>;
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#78">err</a>));
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
+                        <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">this</a>.state = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#30">ReadState::Eof</a>;
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#76">err</a>));
                     }
-                    <span class="prelude-val">None</span> =&gt; {
-                        <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#34">ReadState::Eof</a>;
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
+                    <span class="prelude-val">None </span>=&gt; {
+                        <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#53">this</a>.state = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#30">ReadState::Eof</a>;
+                        <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
                     }
                 },
-                <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#34">ReadState::Eof</a> =&gt; {
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
+                <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#30">ReadState::Eof</a> =&gt; {
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for</span> <span class="ident">IntoAsyncRead</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="../../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">St::Ok</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;St&gt; <a href="../../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a> <span class="kw">for </span>IntoAsyncRead&lt;St&gt;
+<span class="kw">where
+    </span>St: TryStream&lt;Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt; + <a href="../../../../futures_util/io/trait.AsyncWrite.html">AsyncWrite</a>,
+    St::Ok: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#101">self</a>.<span class="ident">stream</span>).<a class="ident" href="../../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#102">cx</a>, <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#103">buf</a>)
+    <span class="kw">fn </span>poll_write(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="kw">let </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#98">self</a>.<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#10-24">project</a>();
+        <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#99">this</a>.stream.<a href="../../../../futures_util/io/trait.AsyncWrite.html">poll_write</a>(<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#98">cx</a>, <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#98">buf</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#108">self</a>.<span class="ident">stream</span>).<a class="ident" href="../../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#108">cx</a>)
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+        <span class="kw">let </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#103">self</a>.<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#10-24">project</a>();
+        <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#104">this</a>.stream.<a href="../../../../futures_util/io/trait.AsyncWrite.html">poll_flush</a>(<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#103">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#112">self</a>.<span class="ident">stream</span>).<a class="ident" href="../../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#112">cx</a>)
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+        <span class="kw">let </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#108">self</a>.<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#10-24">project</a>();
+        <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#109">this</a>.stream.<a href="../../../../futures_util/io/trait.AsyncWrite.html">poll_close</a>(<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#108">cx</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for</span> <span class="ident">IntoAsyncRead</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">St</span>: <span class="ident">TryStream</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">St::Ok</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;St&gt; <a href="../../../../futures_util/io/trait.AsyncBufRead.html">AsyncBufRead</a> <span class="kw">for </span>IntoAsyncRead&lt;St&gt;
+<span class="kw">where
+    </span>St: TryStream&lt;Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a>&gt;,
+    St::Ok: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">poll_fill_buf</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">while</span> <span class="kw">let</span> <span class="ident">ReadState::PendingChunk</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">try_poll_next_unpin</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">chunk</span>)) =&gt; {
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">chunk</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() {
-                        <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">ReadState::Ready</span> { <span class="ident">chunk</span>, <span class="ident">chunk_start</span>: <span class="number">0</span> };
+    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#119">self</a>.<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#10-24">project</a>();
+
+        <span class="kw">while let </span>ReadState::PendingChunk = this.state {
+            <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().try_poll_next(cx)) {
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(chunk)) =&gt; {
+                    <span class="kw">if </span>!chunk.as_ref().is_empty() {
+                        <span class="kw-2">*</span>this.state = ReadState::Ready { chunk, chunk_start: <span class="number">0 </span>};
                     }
                 }
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; {
-                    <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">ReadState::Eof</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>));
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
+                    <span class="kw-2">*</span>this.state = ReadState::Eof;
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(err));
                 }
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">ReadState::Eof</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[]));
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="kw-2">*</span>this.state = ReadState::Eof;
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[]));
                 }
             }
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#32">ReadState::Ready</a> { <span class="kw-2">ref</span> <span class="ident">chunk</span>, <span class="ident">chunk_start</span> } <span class="op">=</span> <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#122">self</a>.<span class="ident">into_ref</span>().<span class="ident">get_ref</span>().<span class="ident">state</span> {
-            <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#141">chunk</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#142">chunk</a>[<a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#141">chunk_start</a>..]));
+        <span class="kw">if let </span><span class="kw-2">&amp;mut </span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#28">ReadState::Ready</a> { <span class="kw-2">ref </span>chunk, chunk_start } = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#120">this</a>.state {
+            <span class="kw">let </span>chunk = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#140">chunk</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#141">chunk</a>[<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#140">chunk_start</a>..]));
         }
 
-        <span class="comment">// To get to this point we must be in ReadState::Eof</span>
-        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[]))
+        <span class="comment">// To get to this point we must be in ReadState::Eof
+        </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[]))
     }
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">amount</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="comment">// https://github.com/rust-lang/futures-rs/pull/1556#discussion_r281644295</span>
-        <span class="kw">if</span> <span class="ident">amount</span> <span class="op">==</span> <span class="number">0</span> {
+    <span class="kw">fn </span>consume(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amount: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>this = <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#149">self</a>.<a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#10-24">project</a>();
+
+        <span class="comment">// https://github.com/rust-lang/futures-rs/pull/1556#discussion_r281644295
+        </span><span class="kw">if </span>amount == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#32">ReadState::Ready</a> { <span class="ident">chunk</span>, <span class="ident">chunk_start</span> } <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#150">self</a>.<span class="ident">state</span> {
-            <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#155">chunk_start</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#150">amount</a>;
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw-2">*</span><span class="ident">chunk_start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>());
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">chunk_start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() {
-                <a class="self" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#150">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#33">ReadState::PendingChunk</a>;
+        <span class="kw">if let </span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#28">ReadState::Ready</a> { chunk, chunk_start } = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#150">this</a>.state {
+            <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#156">chunk_start</a> += <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#149">amount</a>;
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="kw-2">*</span>chunk_start &lt;= chunk.as_ref().len());
+            <span class="kw">if </span><span class="kw-2">*</span>chunk_start &gt;= chunk.as_ref().len() {
+                <span class="kw-2">*</span><a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#150">this</a>.state = <a href="../../../../src/futures_util/stream/try_stream/into_async_read.rs.html#29">ReadState::PendingChunk</a>;
             }
-        } <span class="kw">else</span> {
+        } <span class="kw">else </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="bool-val">false</span>, <span class="string">&quot;Attempted to consume from IntoAsyncRead without chunk&quot;</span>);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-core-0.3.21/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_core/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_core/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_core/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-core-0.3.24/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_core/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_core/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_core/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -233,240 +233,240 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Asynchronous streams.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Asynchronous streams.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">core::ops::DerefMut</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">core::ops::DerefMut</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span>core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="doccomment">/// An owned dynamically typed [`Stream`] for use in cases where you can&#39;t</span>
-<span class="doccomment">/// statically type your result or need to add some indirection.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BoxStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">alloc::boxed::Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An owned dynamically typed [`Stream`] for use in cases where you can&#39;t
+/// statically type your result or need to add some indirection.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">pub type </span>BoxStream&lt;<span class="lifetime">&#39;a</span>, T&gt; = Pin&lt;alloc::boxed::Box&lt;<span class="kw">dyn </span>Stream&lt;Item = T&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;a</span>&gt;&gt;;
 
-<span class="doccomment">/// `BoxStream`, but without the `Send` requirement.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocalBoxStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">alloc::boxed::Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="doccomment">/// `BoxStream`, but without the `Send` requirement.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">pub type </span>LocalBoxStream&lt;<span class="lifetime">&#39;a</span>, T&gt; = Pin&lt;alloc::boxed::Box&lt;<span class="kw">dyn </span>Stream&lt;Item = T&gt; + <span class="lifetime">&#39;a</span>&gt;&gt;;
 
-<span class="doccomment">/// A stream of values produced asynchronously.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If `Future&lt;Output = T&gt;` is an asynchronous version of `T`, then `Stream&lt;Item</span>
-<span class="doccomment">/// = T&gt;` is an asynchronous version of `Iterator&lt;Item = T&gt;`. A stream</span>
-<span class="doccomment">/// represents a sequence of value-producing events that occur asynchronously to</span>
-<span class="doccomment">/// the caller.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The trait is modeled after `Future`, but allows `poll_next` to be called</span>
-<span class="doccomment">/// even after a value has been produced, yielding `None` once the stream has</span>
-<span class="doccomment">/// been fully exhausted.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Stream</span> {
-    <span class="doccomment">/// Values yielded by the stream.</span>
-    <span class="kw">type</span> <span class="ident">Item</span>;
+<span class="doccomment">/// A stream of values produced asynchronously.
+///
+/// If `Future&lt;Output = T&gt;` is an asynchronous version of `T`, then `Stream&lt;Item
+/// = T&gt;` is an asynchronous version of `Iterator&lt;Item = T&gt;`. A stream
+/// represents a sequence of value-producing events that occur asynchronously to
+/// the caller.
+///
+/// The trait is modeled after `Future`, but allows `poll_next` to be called
+/// even after a value has been produced, yielding `None` once the stream has
+/// been fully exhausted.
+</span><span class="attribute">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+</span><span class="kw">pub trait </span>Stream {
+    <span class="doccomment">/// Values yielded by the stream.
+    </span><span class="kw">type </span>Item;
 
-    <span class="doccomment">/// Attempt to pull out the next value of this stream, registering the</span>
-    <span class="doccomment">/// current task for wakeup if the value is not yet available, and returning</span>
-    <span class="doccomment">/// `None` if the stream is exhausted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Return value</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// There are several possible return values, each indicating a distinct</span>
-    <span class="doccomment">/// stream state:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - `Poll::Pending` means that this stream&#39;s next value is not ready</span>
-    <span class="doccomment">/// yet. Implementations will ensure that the current task will be notified</span>
-    <span class="doccomment">/// when the next value may be ready.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - `Poll::Ready(Some(val))` means that the stream has successfully</span>
-    <span class="doccomment">/// produced a value, `val`, and may produce further values on subsequent</span>
-    <span class="doccomment">/// `poll_next` calls.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - `Poll::Ready(None)` means that the stream has terminated, and</span>
-    <span class="doccomment">/// `poll_next` should not be invoked again.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Once a stream has finished (returned `Ready(None)` from `poll_next`), calling its</span>
-    <span class="doccomment">/// `poll_next` method again may panic, block forever, or cause other kinds of</span>
-    <span class="doccomment">/// problems; the `Stream` trait places no requirements on the effects of</span>
-    <span class="doccomment">/// such a call. However, as the `poll_next` method is not marked `unsafe`,</span>
-    <span class="doccomment">/// Rust&#39;s usual rules apply: calls must never cause undefined behavior</span>
-    <span class="doccomment">/// (memory corruption, incorrect use of `unsafe` functions, or the like),</span>
-    <span class="doccomment">/// regardless of the stream&#39;s state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this is difficult to guard against then the [`fuse`] adapter can be used</span>
-    <span class="doccomment">/// to ensure that `poll_next` always returns `Ready(None)` in subsequent</span>
-    <span class="doccomment">/// calls.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`fuse`]: https://docs.rs/futures/0.3/futures/stream/trait.StreamExt.html#method.fuse</span>
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Attempt to pull out the next value of this stream, registering the
+    /// current task for wakeup if the value is not yet available, and returning
+    /// `None` if the stream is exhausted.
+    ///
+    /// # Return value
+    ///
+    /// There are several possible return values, each indicating a distinct
+    /// stream state:
+    ///
+    /// - `Poll::Pending` means that this stream&#39;s next value is not ready
+    /// yet. Implementations will ensure that the current task will be notified
+    /// when the next value may be ready.
+    ///
+    /// - `Poll::Ready(Some(val))` means that the stream has successfully
+    /// produced a value, `val`, and may produce further values on subsequent
+    /// `poll_next` calls.
+    ///
+    /// - `Poll::Ready(None)` means that the stream has terminated, and
+    /// `poll_next` should not be invoked again.
+    ///
+    /// # Panics
+    ///
+    /// Once a stream has finished (returned `Ready(None)` from `poll_next`), calling its
+    /// `poll_next` method again may panic, block forever, or cause other kinds of
+    /// problems; the `Stream` trait places no requirements on the effects of
+    /// such a call. However, as the `poll_next` method is not marked `unsafe`,
+    /// Rust&#39;s usual rules apply: calls must never cause undefined behavior
+    /// (memory corruption, incorrect use of `unsafe` functions, or the like),
+    /// regardless of the stream&#39;s state.
+    ///
+    /// If this is difficult to guard against then the [`fuse`] adapter can be used
+    /// to ensure that `poll_next` always returns `Ready(None)` in subsequent
+    /// calls.
+    ///
+    /// [`fuse`]: https://docs.rs/futures/0.3/futures/stream/trait.StreamExt.html#method.fuse
+    </span><span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt;;
 
-    <span class="doccomment">/// Returns the bounds on the remaining length of the stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Specifically, `size_hint()` returns a tuple where the first element</span>
-    <span class="doccomment">/// is the lower bound, and the second element is the upper bound.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The second half of the tuple that is returned is an [`Option`]`&lt;`[`usize`]`&gt;`.</span>
-    <span class="doccomment">/// A [`None`] here means that either there is no known upper bound, or the</span>
-    <span class="doccomment">/// upper bound is larger than [`usize`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Implementation notes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is not enforced that a stream implementation yields the declared</span>
-    <span class="doccomment">/// number of elements. A buggy stream may yield less than the lower bound</span>
-    <span class="doccomment">/// or more than the upper bound of elements.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `size_hint()` is primarily intended to be used for optimizations such as</span>
-    <span class="doccomment">/// reserving space for the elements of the stream, but must not be</span>
-    <span class="doccomment">/// trusted to e.g., omit bounds checks in unsafe code. An incorrect</span>
-    <span class="doccomment">/// implementation of `size_hint()` should not lead to memory safety</span>
-    <span class="doccomment">/// violations.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// That said, the implementation should provide a correct estimation,</span>
-    <span class="doccomment">/// because otherwise it would be a violation of the trait&#39;s protocol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default implementation returns `(0, `[`None`]`)` which is correct for any</span>
-    <span class="doccomment">/// stream.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
+    <span class="doccomment">/// Returns the bounds on the remaining length of the stream.
+    ///
+    /// Specifically, `size_hint()` returns a tuple where the first element
+    /// is the lower bound, and the second element is the upper bound.
+    ///
+    /// The second half of the tuple that is returned is an [`Option`]`&lt;`[`usize`]`&gt;`.
+    /// A [`None`] here means that either there is no known upper bound, or the
+    /// upper bound is larger than [`usize`].
+    ///
+    /// # Implementation notes
+    ///
+    /// It is not enforced that a stream implementation yields the declared
+    /// number of elements. A buggy stream may yield less than the lower bound
+    /// or more than the upper bound of elements.
+    ///
+    /// `size_hint()` is primarily intended to be used for optimizations such as
+    /// reserving space for the elements of the stream, but must not be
+    /// trusted to e.g., omit bounds checks in unsafe code. An incorrect
+    /// implementation of `size_hint()` should not lead to memory safety
+    /// violations.
+    ///
+    /// That said, the implementation should provide a correct estimation,
+    /// because otherwise it would be a violation of the trait&#39;s protocol.
+    ///
+    /// The default implementation returns `(0, `[`None`]`)` which is correct for any
+    /// stream.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
         (<span class="number">0</span>, <span class="prelude-val">None</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <span class="ident">S</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">S::Item</span>;
+<span class="kw">impl</span>&lt;S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_core/stream.rs.html#27">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>S {
+    <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">S::poll_next</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_core/stream.rs.html#103">self</a>), <a class="ident" href="../../src/futures_core/stream.rs.html#103">cx</a>)
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        S::poll_next(Pin::new(<span class="kw-2">&amp;mut **</span><a class="self" href="../../src/futures_core/stream.rs.html#103">self</a>), <a href="../../src/futures_core/stream.rs.html#103">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_core/stream.rs.html#107">self</a>).<a class="ident" href="../../src/futures_core/stream.rs.html#95">size_hint</a>()
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        (<span class="kw-2">**</span><a class="self" href="../../src/futures_core/stream.rs.html#107">self</a>).<a href="../../src/futures_core/stream.rs.html#95">size_hint</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="kw">for</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">P::Target</span>: <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a>,
+<span class="kw">impl</span>&lt;P&gt; <a href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="kw">for </span>Pin&lt;P&gt;
+<span class="kw">where
+    </span>P: <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    P::Target: <a href="../../src/futures_core/stream.rs.html#27">Stream</a>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">P::Target</span> <span class="kw">as</span> <span class="ident">Stream</span><span class="op">&gt;</span><span class="ident">::Item</span>;
+    <span class="kw">type </span>Item = &lt;P::Target <span class="kw">as </span>Stream&gt;::Item;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_core/stream.rs.html#119">self</a>.<span class="ident">get_mut</span>().<span class="ident">as_mut</span>().<a class="ident" href="../../src/futures_core/stream.rs.html#66">poll_next</a>(<a class="ident" href="../../src/futures_core/stream.rs.html#119">cx</a>)
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <a class="self" href="../../src/futures_core/stream.rs.html#119">self</a>.get_mut().as_mut().<a href="../../src/futures_core/stream.rs.html#66">poll_next</a>(<a href="../../src/futures_core/stream.rs.html#119">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_core/stream.rs.html#123">self</a>).<a class="ident" href="../../src/futures_core/stream.rs.html#95">size_hint</a>()
-    }
-}
-
-<span class="doccomment">/// A stream which tracks whether or not the underlying stream</span>
-<span class="doccomment">/// should no longer be polled.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `is_terminated` will return `true` if a future should no longer be polled.</span>
-<span class="doccomment">/// Usually, this state occurs after `poll_next` (or `try_poll_next`) returned</span>
-<span class="doccomment">/// `Poll::Ready(None)`. However, `is_terminated` may also return `true` if a</span>
-<span class="doccomment">/// stream has become inactive and can no longer make progress and should be</span>
-<span class="doccomment">/// ignored or dropped rather than being polled again.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FusedStream</span>: <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a> {
-    <span class="doccomment">/// Returns `true` if the stream should no longer be polled.</span>
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_core/stream.rs.html#136">FusedStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#136">FusedStream</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <span class="ident">F</span> {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">&lt;</span><span class="ident">F</span> <span class="kw">as</span> <span class="ident">FusedStream</span><span class="op">&gt;</span><span class="ident">::is_terminated</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_core/stream.rs.html#142">self</a>)
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        (<span class="kw-2">**</span><a class="self" href="../../src/futures_core/stream.rs.html#123">self</a>).<a href="../../src/futures_core/stream.rs.html#95">size_hint</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#136">FusedStream</a> <span class="kw">for</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">P::Target</span>: <a class="ident" href="../../src/futures_core/stream.rs.html#136">FusedStream</a>,
+<span class="doccomment">/// A stream which tracks whether or not the underlying stream
+/// should no longer be polled.
+///
+/// `is_terminated` will return `true` if a future should no longer be polled.
+/// Usually, this state occurs after `poll_next` (or `try_poll_next`) returned
+/// `Poll::Ready(None)`. However, `is_terminated` may also return `true` if a
+/// stream has become inactive and can no longer make progress and should be
+/// ignored or dropped rather than being polled again.
+</span><span class="kw">pub trait </span>FusedStream: <a href="../../src/futures_core/stream.rs.html#27">Stream</a> {
+    <span class="doccomment">/// Returns `true` if the stream should no longer be polled.
+    </span><span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+}
+
+<span class="kw">impl</span>&lt;F: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_core/stream.rs.html#136">FusedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../src/futures_core/stream.rs.html#136">FusedStream</a> <span class="kw">for </span><span class="kw-2">&amp;mut </span>F {
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        &lt;F <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><a class="self" href="../../src/futures_core/stream.rs.html#142">self</a>)
+    }
+}
+
+<span class="kw">impl</span>&lt;P&gt; <a href="../../src/futures_core/stream.rs.html#136">FusedStream</a> <span class="kw">for </span>Pin&lt;P&gt;
+<span class="kw">where
+    </span>P: <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    P::Target: <a href="../../src/futures_core/stream.rs.html#136">FusedStream</a>,
 {
-    <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">&lt;</span><span class="ident">P::Target</span> <span class="kw">as</span> <span class="ident">FusedStream</span><span class="op">&gt;</span><span class="ident">::is_terminated</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_core/stream.rs.html#152">self</a>)
+    <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        &lt;P::Target <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><a class="self" href="../../src/futures_core/stream.rs.html#152">self</a>)
     }
 }
 
-<span class="kw">mod</span> <span class="ident">private_try_stream</span> {
-    <span class="kw">use</span> <a class="ident" href="../../src/futures_core/stream.rs.html#27"><span class="kw">super</span>::Stream</a>;
+<span class="kw">mod </span>private_try_stream {
+    <span class="kw">use </span><a href="../../src/futures_core/stream.rs.html#27"><span class="kw">super</span>::Stream</a>;
 
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span> {}
+    <span class="kw">pub trait </span>Sealed {}
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#160">Sealed</a> <span class="kw">for</span> <span class="ident">S</span> <span class="kw">where</span> <span class="ident">S</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> {}
+    <span class="kw">impl</span>&lt;S, T, E&gt; <a href="../../src/futures_core/stream.rs.html#160">Sealed</a> <span class="kw">for </span>S <span class="kw">where </span>S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; {}
 }
 
-<span class="doccomment">/// A convenience for streams that return `Result` values that includes</span>
-<span class="doccomment">/// a variety of adapters tailored to such futures.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">TryStream</span>: <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="op">+</span> <a class="ident" href="../../src/futures_core/stream.rs.html#160">private_try_stream::Sealed</a> {
-    <span class="doccomment">/// The type of successful values yielded by this future</span>
-    <span class="kw">type</span> <span class="prelude-val">Ok</span>;
+<span class="doccomment">/// A convenience for streams that return `Result` values that includes
+/// a variety of adapters tailored to such futures.
+</span><span class="kw">pub trait </span>TryStream: <a href="../../src/futures_core/stream.rs.html#27">Stream</a> + <a href="../../src/futures_core/stream.rs.html#160">private_try_stream::Sealed</a> {
+    <span class="doccomment">/// The type of successful values yielded by this future
+    </span><span class="kw">type </span><span class="prelude-val">Ok</span>;
 
-    <span class="doccomment">/// The type of failures yielded by this future</span>
-    <span class="kw">type</span> <span class="ident">Error</span>;
+    <span class="doccomment">/// The type of failures yielded by this future
+    </span><span class="kw">type </span>Error;
 
-    <span class="doccomment">/// Poll this `TryStream` as if it were a `Stream`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is a stopgap for a compiler limitation that prevents us from</span>
-    <span class="doccomment">/// directly inheriting from the `Stream` trait; in the future it won&#39;t be</span>
-    <span class="doccomment">/// needed.</span>
-    <span class="kw">fn</span> <span class="ident">try_poll_next</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Poll this `TryStream` as if it were a `Stream`.
+    ///
+    /// This method is a stopgap for a compiler limitation that prevents us from
+    /// directly inheriting from the `Stream` trait; in the future it won&#39;t be
+    /// needed.
+    </span><span class="kw">fn </span>try_poll_next(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;&gt;&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#167">TryStream</a> <span class="kw">for</span> <span class="ident">S</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;S, T, E&gt; <a href="../../src/futures_core/stream.rs.html#167">TryStream</a> <span class="kw">for </span>S
+<span class="kw">where
+    </span>S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt;,
 {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= T;
+    <span class="kw">type </span>Error = E;
 
-    <span class="kw">fn</span> <span class="ident">try_poll_next</span>(
-        <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/futures_core/stream.rs.html#193">self</a>.<a class="ident" href="../../src/futures_core/stream.rs.html#66">poll_next</a>(<a class="ident" href="../../src/futures_core/stream.rs.html#194">cx</a>)
+    <span class="kw">fn </span>try_poll_next(
+        <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;&gt;&gt; {
+        <a class="self" href="../../src/futures_core/stream.rs.html#193">self</a>.<a href="../../src/futures_core/stream.rs.html#66">poll_next</a>(<a href="../../src/futures_core/stream.rs.html#194">cx</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">if_alloc</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">mod </span>if_alloc {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">S::Item</span>;
+    <span class="kw">impl</span>&lt;S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_core/stream.rs.html#27">Stream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="kw">for </span>Box&lt;S&gt; {
+        <span class="kw">type </span>Item = S::Item;
 
-        <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_core/stream.rs.html#208">self</a>).<a class="ident" href="../../src/futures_core/stream.rs.html#66">poll_next</a>(<a class="ident" href="../../src/futures_core/stream.rs.html#208">cx</a>)
+        <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+            Pin::new(<span class="kw-2">&amp;mut **</span><a class="self" href="../../src/futures_core/stream.rs.html#208">self</a>).<a href="../../src/futures_core/stream.rs.html#66">poll_next</a>(<a href="../../src/futures_core/stream.rs.html#208">cx</a>)
         }
 
-        <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-            (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_core/stream.rs.html#212">self</a>).<a class="ident" href="../../src/futures_core/stream.rs.html#95">size_hint</a>()
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="kw">for</span> <span class="ident">std::panic::AssertUnwindSafe</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">S::Item</span>;
-
-        <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">unsafe</span> { <a class="self" href="../../src/futures_core/stream.rs.html#221">self</a>.<span class="ident">map_unchecked_mut</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/futures_core/stream.rs.html#222">x</a>.<span class="number">0</span>) }.<a class="ident" href="../../src/futures_core/stream.rs.html#66">poll_next</a>(<a class="ident" href="../../src/futures_core/stream.rs.html#221">cx</a>)
-        }
-
-        <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-            <a class="self" href="../../src/futures_core/stream.rs.html#225">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/futures_core/stream.rs.html#95">size_hint</a>()
+        <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+            (<span class="kw-2">**</span><a class="self" href="../../src/futures_core/stream.rs.html#212">self</a>).<a href="../../src/futures_core/stream.rs.html#95">size_hint</a>()
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/futures_core/stream.rs.html#136">FusedStream</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_core/stream.rs.html#136">FusedStream</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <span class="op">&lt;</span><span class="ident">S</span> <span class="kw">as</span> <span class="ident">FusedStream</span><span class="op">&gt;</span><span class="ident">::is_terminated</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/futures_core/stream.rs.html#231">self</a>)
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">impl</span>&lt;S: <a href="../../src/futures_core/stream.rs.html#27">Stream</a>&gt; <a href="../../src/futures_core/stream.rs.html#27">Stream</a> <span class="kw">for </span>std::panic::AssertUnwindSafe&lt;S&gt; {
+        <span class="kw">type </span>Item = S::Item;
+
+        <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;S::Item&gt;&gt; {
+            <span class="kw">unsafe </span>{ <a class="self" href="../../src/futures_core/stream.rs.html#221">self</a>.map_unchecked_mut(|x| <span class="kw-2">&amp;mut </span><a href="../../src/futures_core/stream.rs.html#222">x</a>.<span class="number">0</span>) }.<a href="../../src/futures_core/stream.rs.html#66">poll_next</a>(<a href="../../src/futures_core/stream.rs.html#221">cx</a>)
+        }
+
+        <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+            <a class="self" href="../../src/futures_core/stream.rs.html#225">self</a>.<span class="number">0</span>.<a href="../../src/futures_core/stream.rs.html#95">size_hint</a>()
+        }
+    }
+
+    <span class="kw">impl</span>&lt;S: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/futures_core/stream.rs.html#136">FusedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; <a href="../../src/futures_core/stream.rs.html#136">FusedStream</a> <span class="kw">for </span>Box&lt;S&gt; {
+        <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+            &lt;S <span class="kw">as </span>FusedStream&gt;::is_terminated(<span class="kw-2">&amp;**</span><a class="self" href="../../src/futures_core/stream.rs.html#231">self</a>)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

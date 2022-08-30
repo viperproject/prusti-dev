@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/signature.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signature.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/signature.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signature.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -177,184 +177,184 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../libc/index.html">libc</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/index.html">libc</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a>, <a class="ident" href="../../src/git2/time.rs.html#10">Time</a>};
+<span class="kw">use </span><a href="../../src/git2/util.rs.html#25"><span class="kw">crate</span>::util::Binding</a>;
+<span class="kw">use crate</span>::{<a href="../../libgit2_sys/index.html">raw</a>, <a href="../../src/git2/error.rs.html#12">Error</a>, <a href="../../src/git2/time.rs.html#10">Time</a>};
 
-<span class="doccomment">/// A Signature is used to indicate authorship of various actions throughout the</span>
-<span class="doccomment">/// library.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Signatures contain a name, email, and timestamp. All fields can be specified</span>
-<span class="doccomment">/// with `new` while the `now` constructor omits the timestamp. The</span>
-<span class="doccomment">/// [`Repository::signature`] method can be used to create a default signature</span>
-<span class="doccomment">/// with name and email values read from the configuration.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Repository::signature`]: struct.Repository.html#method.signature</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
-    <span class="ident">owned</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+<span class="doccomment">/// A Signature is used to indicate authorship of various actions throughout the
+/// library.
+///
+/// Signatures contain a name, email, and timestamp. All fields can be specified
+/// with `new` while the `now` constructor omits the timestamp. The
+/// [`Repository::signature`] method can be used to create a default signature
+/// with name and email values read from the configuration.
+///
+/// [`Repository::signature`]: struct.Repository.html#method.signature
+</span><span class="kw">pub struct </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+    raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>,
+    _marker: marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
+    owned: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new action signature with a timestamp of &#39;now&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See `new` for more information</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">now</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">email</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">email</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">email</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_signature_now</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ret</span>, <span class="ident">name</span>, <span class="ident">email</span>));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/signature.rs.html#33">ret</a>))
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Create a new action signature with a timestamp of &#39;now&#39;.
+    ///
+    /// See `new` for more information
+    </span><span class="kw">pub fn </span>now(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, email: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Signature&lt;<span class="lifetime">&#39;static</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
+        <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
+        <span class="kw">let </span>email = CString::new(email)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_signature_now(<span class="kw-2">&amp;mut </span>ret, name, email));
+            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/signature.rs.html#33">ret</a>))
         }
     }
 
-    <span class="doccomment">/// Create a new action signature.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `time` specified is in seconds since the epoch, and the `offset` is</span>
-    <span class="doccomment">/// the time zone offset in minutes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns error if either `name` or `email` contain angle brackets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">email</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">time</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/time.rs.html#10">Time</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12">Error</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">email</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">email</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> {
-            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_signature_new</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">ret</span>,
-                <span class="ident">name</span>,
-                <span class="ident">email</span>,
-                <span class="ident">time</span>.<span class="ident">seconds</span>() <span class="kw">as</span> <span class="ident">raw::git_time_t</span>,
-                <span class="ident">time</span>.<span class="ident">offset_minutes</span>() <span class="kw">as</span> <span class="ident">libc::c_int</span>
+    <span class="doccomment">/// Create a new action signature.
+    ///
+    /// The `time` specified is in seconds since the epoch, and the `offset` is
+    /// the time zone offset in minutes.
+    ///
+    /// Returns error if either `name` or `email` contain angle brackets.
+    </span><span class="kw">pub fn </span>new(name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, email: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, time: <span class="kw-2">&amp;</span><a href="../../src/git2/time.rs.html#10">Time</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Signature&lt;<span class="lifetime">&#39;static</span>&gt;, <a href="../../src/git2/error.rs.html#12">Error</a>&gt; {
+        <a href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>ret = ptr::null_mut();
+        <span class="kw">let </span>name = CString::new(name)<span class="question-mark">?</span>;
+        <span class="kw">let </span>email = CString::new(email)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(raw::git_signature_new(
+                <span class="kw-2">&amp;mut </span>ret,
+                name,
+                email,
+                time.seconds() <span class="kw">as </span>raw::git_time_t,
+                time.offset_minutes() <span class="kw">as </span>libc::c_int
             ));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/signature.rs.html#50">ret</a>))
+            <span class="prelude-val">Ok</span>(<a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/signature.rs.html#50">ret</a>))
         }
     }
 
-    <span class="doccomment">/// Gets the name on the signature.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the name is not valid utf-8</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/signature.rs.html#68">self</a>.<a class="ident" href="../../src/git2/signature.rs.html#73">name_bytes</a>()).<span class="ident">ok</span>()
+    <span class="doccomment">/// Gets the name on the signature.
+    ///
+    /// Returns `None` if the name is not valid utf-8
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/signature.rs.html#68">self</a>.<a href="../../src/git2/signature.rs.html#73">name_bytes</a>()).ok()
     }
 
-    <span class="doccomment">/// Gets the name on the signature as a byte slice.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/signature.rs.html#73">self</a>, (<span class="kw-2">*</span><a class="self" href="../../src/git2/signature.rs.html#73">self</a>.<span class="ident">raw</span>).<span class="ident">name</span>).<span class="ident">unwrap</span>() }
+    <span class="doccomment">/// Gets the name on the signature as a byte slice.
+    </span><span class="kw">pub fn </span>name_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/signature.rs.html#73">self</a>, (<span class="kw-2">*</span><a class="self" href="../../src/git2/signature.rs.html#73">self</a>.raw).name).unwrap() }
     }
 
-    <span class="doccomment">/// Gets the email on the signature.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the email is not valid utf-8</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">email</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/signature.rs.html#80">self</a>.<a class="ident" href="../../src/git2/signature.rs.html#85">email_bytes</a>()).<span class="ident">ok</span>()
+    <span class="doccomment">/// Gets the email on the signature.
+    ///
+    /// Returns `None` if the email is not valid utf-8
+    </span><span class="kw">pub fn </span>email(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <a href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/signature.rs.html#80">self</a>.<a href="../../src/git2/signature.rs.html#85">email_bytes</a>()).ok()
     }
 
-    <span class="doccomment">/// Gets the email on the signature as a byte slice.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">email_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/signature.rs.html#85">self</a>, (<span class="kw-2">*</span><a class="self" href="../../src/git2/signature.rs.html#85">self</a>.<span class="ident">raw</span>).<span class="ident">email</span>).<span class="ident">unwrap</span>() }
+    <span class="doccomment">/// Gets the email on the signature as a byte slice.
+    </span><span class="kw">pub fn </span>email_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/signature.rs.html#85">self</a>, (<span class="kw-2">*</span><a class="self" href="../../src/git2/signature.rs.html#85">self</a>.raw).email).unwrap() }
     }
 
-    <span class="doccomment">/// Get the `when` of this signature.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">when</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/time.rs.html#10">Time</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/signature.rs.html#90">self</a>.<span class="ident">raw</span>).<span class="ident">when</span>) }
+    <span class="doccomment">/// Get the `when` of this signature.
+    </span><span class="kw">pub fn </span>when(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../src/git2/time.rs.html#10">Time</a> {
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/signature.rs.html#90">self</a>.raw).when) }
     }
 
-    <span class="doccomment">/// Convert a signature of any lifetime into an owned signature with a</span>
-    <span class="doccomment">/// static lifetime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>(<a class="self" href="../../src/git2/signature.rs.html#96">self</a>);
-            <a class="ident" href="../../src/git2/signature.rs.html#98">me</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for</span> <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>) -&gt; <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/signature.rs.html#21">Signature</a> {
-            <a class="ident" href="../../src/git2/signature.rs.html#106">raw</a>,
-            <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
-            <span class="ident">owned</span>: <span class="bool-val">true</span>,
-        }
-    }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a> {
-        <a class="self" href="../../src/git2/signature.rs.html#113">self</a>.<span class="ident">raw</span>
-    }
-}
-
-<span class="doccomment">/// Creates a new signature from the give raw pointer, tied to the lifetime</span>
-<span class="doccomment">/// of the given object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function is unsafe as there is no guarantee that `raw` is valid for</span>
-<span class="doccomment">/// `&#39;a` nor if it&#39;s a valid pointer.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_const</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">_lt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">T</span>, <span class="ident">raw</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>) -&gt; <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/git2/signature.rs.html#21">Signature</a> {
-        <span class="ident">raw</span>: <a class="ident" href="../../src/git2/signature.rs.html#123">raw</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>,
-        <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
-        <span class="ident">owned</span>: <span class="bool-val">false</span>,
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <span class="comment">// TODO: can this be defined for &#39;a and just do a plain old copy if the</span>
-        <span class="comment">//       lifetime isn&#39;t static?</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-        <span class="kw">let</span> <span class="ident">rc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">raw::git_signature_dup</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/signature.rs.html#135">raw</a>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/signature.rs.html#132">self</a>.<span class="ident">raw</span>) };
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">rc</span>, <span class="number">0</span>);
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/signature.rs.html#135">raw</a>) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">owned</span> {
-            <span class="kw">unsafe</span> { <span class="ident">raw::git_signature_free</span>(<a class="self" href="../../src/git2/signature.rs.html#143">self</a>.<span class="ident">raw</span>) }
+    <span class="doccomment">/// Convert a signature of any lifetime into an owned signature with a
+    /// static lifetime.
+    </span><span class="kw">pub fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Signature&lt;<span class="lifetime">&#39;static</span>&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>me = mem::transmute::&lt;<span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;a</span>&gt;, <span class="kw-2">&amp;</span>Signature&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(<a class="self" href="../../src/git2/signature.rs.html#96">self</a>);
+            <a href="../../src/git2/signature.rs.html#98">me</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">Signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="../../src/git2/util.rs.html#25">Binding</a> <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Raw = <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>;
+    <span class="kw">unsafe fn </span>from_raw(raw: <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>) -&gt; Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <a href="../../src/git2/signature.rs.html#21">Signature</a> {
+            <a href="../../src/git2/signature.rs.html#106">raw</a>,
+            _marker: marker::PhantomData,
+            owned: <span class="bool-val">true</span>,
+        }
+    }
+    <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a> {
+        <a class="self" href="../../src/git2/signature.rs.html#113">self</a>.raw
+    }
+}
+
+<span class="doccomment">/// Creates a new signature from the give raw pointer, tied to the lifetime
+/// of the given object.
+///
+/// This function is unsafe as there is no guarantee that `raw` is valid for
+/// `&#39;a` nor if it&#39;s a valid pointer.
+</span><span class="kw">pub unsafe fn </span>from_raw_const&lt;<span class="lifetime">&#39;b</span>, T&gt;(_lt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>T, raw: <span class="kw-2">*const </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>) -&gt; Signature&lt;<span class="lifetime">&#39;b</span>&gt; {
+    <a href="../../src/git2/signature.rs.html#21">Signature</a> {
+        raw: <a href="../../src/git2/signature.rs.html#123">raw</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libgit2_sys/struct.git_signature.html">raw::git_signature</a>,
+        _marker: marker::PhantomData,
+        owned: <span class="bool-val">false</span>,
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;static</span>&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Signature&lt;<span class="lifetime">&#39;static</span>&gt; {
+        <span class="comment">// TODO: can this be defined for &#39;a and just do a plain old copy if the
+        //       lifetime isn&#39;t static?
+        </span><span class="kw">let </span><span class="kw-2">mut </span>raw = ptr::null_mut();
+        <span class="kw">let </span>rc = <span class="kw">unsafe </span>{ raw::git_signature_dup(<span class="kw-2">&amp;mut </span><a href="../../src/git2/signature.rs.html#135">raw</a>, <span class="kw-2">&amp;*</span><a class="self" href="../../src/git2/signature.rs.html#132">self</a>.raw) };
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(rc, <span class="number">0</span>);
+        <span class="kw">unsafe </span>{ <a href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a href="../../src/git2/signature.rs.html#135">raw</a>) }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.owned {
+            <span class="kw">unsafe </span>{ raw::git_signature_free(<a class="self" href="../../src/git2/signature.rs.html#143">self</a>.raw) }
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>Signature&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a class="ident" href="../../src/git2/signature.rs.html#151">f</a>,
+            <a href="../../src/git2/signature.rs.html#151">f</a>,
             <span class="string">&quot;{} &lt;{}&gt;&quot;</span>,
-            <span class="ident">String::from_utf8_lossy</span>(<span class="self">self</span>.<span class="ident">name_bytes</span>()),
-            <span class="ident">String::from_utf8_lossy</span>(<span class="self">self</span>.<span class="ident">email_bytes</span>())
+            String::from_utf8_lossy(<span class="self">self</span>.name_bytes()),
+            String::from_utf8_lossy(<span class="self">self</span>.email_bytes())
         )
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Signature</span>, <span class="ident">Time</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use crate</span>::{Signature, Time};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="ident">Signature::new</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Time::new</span>(<span class="number">89</span>, <span class="number">0</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">Signature::now</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">Signature::new</span>(<span class="string">&quot;&lt;foo&gt;&quot;</span>, <span class="string">&quot;bar&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Time::new</span>(<span class="number">89</span>, <span class="number">0</span>)).<span class="ident">is_err</span>());
-        <span class="macro">assert!</span>(<span class="ident">Signature::now</span>(<span class="string">&quot;&lt;foo&gt;&quot;</span>, <span class="string">&quot;bar&quot;</span>).<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke() {
+        Signature::new(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>, <span class="kw-2">&amp;</span>Time::new(<span class="number">89</span>, <span class="number">0</span>)).unwrap();
+        Signature::now(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>).unwrap();
+        <span class="macro">assert!</span>(Signature::new(<span class="string">&quot;&lt;foo&gt;&quot;</span>, <span class="string">&quot;bar&quot;</span>, <span class="kw-2">&amp;</span>Time::new(<span class="number">89</span>, <span class="number">0</span>)).is_err());
+        <span class="macro">assert!</span>(Signature::now(<span class="string">&quot;&lt;foo&gt;&quot;</span>, <span class="string">&quot;bar&quot;</span>).is_err());
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Signature::now</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;bar&quot;</span>));
+        <span class="kw">let </span>s = Signature::now(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>).unwrap();
+        <span class="macro">assert_eq!</span>(s.name(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>));
+        <span class="macro">assert_eq!</span>(s.email(), <span class="prelude-val">Some</span>(<span class="string">&quot;bar&quot;</span>));
 
-        <span class="ident">drop</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
-        <span class="ident">drop</span>(<span class="ident">s</span>.<span class="ident">to_owned</span>());
+        drop(s.clone());
+        drop(s.to_owned());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
